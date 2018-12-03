@@ -4,7 +4,7 @@ One of the easiest ways to contribute is to participate in discussions on GitHub
 
 
 ## General feedback and discussions?
-Please start a discussion on the [repo issue tracker](https://github.com/aspnet/AspNetCore-Tooling/issues).
+Please start a discussion on the [aspnet/AspNetCore issue tracker](https://github.com/aspnet/AspNetCore/issues).
 
 
 ## Bugs and feature requests?
