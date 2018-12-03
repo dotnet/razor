@@ -2,8 +2,7 @@ ASP.NET Core Tooling
 ====================
 
 ASP.NET Core is an open-source and cross-platform framework for building modern cloud based internet connected applications, such as web apps, IoT apps and mobile backends.
-This repo contains tools for working on ASP.NET Core apps using the [.NET Core Command Line](https://github.com/dotnet/cli), [Visual Studio](https://visualstudio.com), [VS Code](https://code.visualstudio.com),
-and more.
+This repo contains tools for working on ASP.NET Core apps using the [.NET Core Command Line](https://github.com/dotnet/cli) and [Visual Studio](https://visualstudio.com).
 
 ## Get Started
 
@@ -13,7 +12,7 @@ Also check out the [.NET Homepage](https://www.microsoft.com/net) for released v
 
 ## How to Engage, Contribute, and Give Feedback
 
-Some of the best ways to contribute are to try things out, file issues, join in design conversations,
+Some of the best ways to contribute are to try things out, [file issues](https://github.com/aspnet/AspNetCore/issues), join in design conversations,
 and make pull-requests.
 
 * Follow along with the development of ASP.NET Core:
