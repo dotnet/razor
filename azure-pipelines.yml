@@ -86,7 +86,7 @@ phases:
         PublishLocation: Container
         ArtifactName: Packages_$(Agent.Os)_$(Agent.JobName)
       continueOnError: true
-      condition: eq($(_BuildConfig), 'Release')
+      condition: eq(variables['_BuildConfig'], 'Release')
     - task: PublishBuildArtifacts@1
       displayName: Publish VSIX Artifacts
       inputs:
@@ -94,7 +94,7 @@ phases:
         PublishLocation: Container
         ArtifactName: VSIX_$(Agent.Os)_$(Agent.JobName)
       continueOnError: true
-      condition: eq($(_BuildConfig), 'Release')
+      condition: eq(variables['_BuildConfig'], 'Release')
     - task: PublishBuildArtifacts@1
       displayName: Publish VS for Mac Artifacts
       inputs:
@@ -102,7 +102,7 @@ phases:
         PublishLocation: Container
         ArtifactName: MPack_$(Agent.Os)_$(Agent.JobName)
       continueOnError: true
-      condition: eq($(_BuildConfig), 'Release')
+      condition: eq(variables['_BuildConfig'], 'Release')
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
       inputs:
