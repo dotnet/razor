@@ -21,7 +21,12 @@
   <ItemGroup Condition="'$(BinariesRoot)'!=''">
     <Reference Include="$(BinariesRoot)\Microsoft.AspNetCore.Html.Abstractions.dll"/>
     <Reference Include="$(BinariesRoot)\Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib.dll"/>
-  </ItemGroup>  
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Don't use references from Microsoft.AspNetCore.App. We don't want to create a cycle between runtime and tooling -->
+    <FrameworkReference Remove="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 
   <!-- Test Placeholder -->
   

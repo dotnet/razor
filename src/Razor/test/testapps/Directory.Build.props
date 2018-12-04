@@ -13,7 +13,9 @@
   </PropertyGroup>
 
   <!-- Import solution dependencies.props when building in place -->
-  <Import Project="..\..\build\dependencies.props" Condition="'$(BinariesRoot)'==''"/>
+  <Import
+    Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), global.json))\eng\Versions.props"
+    Condition="'$(BinariesRoot)'==''" />
 
   <PropertyGroup>
     <!-- aspnet/BuildTools#662 Don't police what version of NetCoreApp we use -->
