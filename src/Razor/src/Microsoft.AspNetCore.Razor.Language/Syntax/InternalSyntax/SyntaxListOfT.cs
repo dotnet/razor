@@ -9,6 +9,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     internal struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>>
         where TNode : GreenNode
     {
+        public static readonly SyntaxList<RazorSyntaxNode> Empty = new SyntaxListBuilder<RazorSyntaxNode>(0).ToList();
         private readonly GreenNode _node;
 
         public SyntaxList(GreenNode node)

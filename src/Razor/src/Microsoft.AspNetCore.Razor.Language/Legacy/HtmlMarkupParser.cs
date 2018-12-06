@@ -13,7 +13,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
     {
         private const string ScriptTagName = "script";
 
-        private static readonly SyntaxList<RazorSyntaxNode> EmptySyntaxList = new SyntaxListBuilder<RazorSyntaxNode>(0).ToList();
         private static readonly char[] ValidAfterTypeAttributeNameCharacters = { ' ', '\t', '\r', '\n', '\f', '=' };
         private static readonly SyntaxToken[] nonAllowedHtmlCommentEnding = new[]
         {
@@ -150,7 +149,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 else if (tagMode == MarkupTagMode.SelfClosing || tagMode == MarkupTagMode.Invalid)
                 {
                     // For cases like <foo /> or invalid cases like |<|<p>
-                    var element = SyntaxFactory.MarkupElement(startTag, EmptySyntaxList, null);
+                    var element = SyntaxFactory.MarkupElement(startTag, SyntaxList<RazorSyntaxNode>.Empty, null);
                     builder.Add(element);
                     return;
                 }
@@ -184,7 +183,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     if (!TryRecoverStartTag(builder, endTagName, endTag))
                     {
                         // Could not recover.
-                        var element = SyntaxFactory.MarkupElement(null, EmptySyntaxList, endTag);
+                        var element = SyntaxFactory.MarkupElement(null, SyntaxList<RazorSyntaxNode>.Empty, endTag);
                         builder.Add(element);
                     }
                 }
