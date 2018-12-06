@@ -12,6 +12,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
     internal partial class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     {
         private const string ScriptTagName = "script";
+        private static readonly SyntaxList<RazorSyntaxNode> EmptySyntaxList = new SyntaxListBuilder<RazorSyntaxNode>(0).ToList();
 
         private static readonly char[] ValidAfterTypeAttributeNameCharacters = { ' ', '\t', '\r', '\n', '\f', '=' };
         private static readonly SyntaxToken[] nonAllowedHtmlCommentEnding = new[]
@@ -57,8 +58,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 while (_tagTracker.Count > 0)
                 {
                     var tracker = _tagTracker.Pop();
-                    var element = SyntaxFactory.MarkupElement(tracker.StartTag, builder.ToList(), null);
-                    builder.Clear();
+                    var element = SyntaxFactory.MarkupElement(tracker.StartTag, builder.Consume(), endTag: null);
                     builder.AddRange(tracker.PreviousNodes);
                     builder.Add(element);
                 }
@@ -149,16 +149,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 else if (tagMode == MarkupTagMode.SelfClosing || tagMode == MarkupTagMode.Invalid)
                 {
                     // For cases like <foo /> or invalid cases like |<|<p>
-                    var element = SyntaxFactory.MarkupElement(startTag, SyntaxList<RazorSyntaxNode>.Empty, null);
+                    var element = SyntaxFactory.MarkupElement(startTag, EmptySyntaxList, endTag: null);
                     builder.Add(element);
                     return;
                 }
                 else
                 {
                     // This is a normal start tag. We need to keep track of it.
-                    var tracker = new TagTracker(tagName, startTag, tagStart, builder);
+                    var tracker = new TagTracker(tagName, startTag, tagStart, builder.Consume());
                     _tagTracker.Push(tracker);
-                    builder.Clear();
                     return;
                 }
             }
@@ -170,8 +169,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 {
                     // Happy path. Found a matching start tag. Create the element and reset the builder.
                     var tracker = _tagTracker.Pop();
-                    var element = SyntaxFactory.MarkupElement(tracker.StartTag, builder.ToList(), endTag);
-                    builder.Clear();
+                    var element = SyntaxFactory.MarkupElement(tracker.StartTag, builder.Consume(), endTag);
                     builder.AddRange(tracker.PreviousNodes);
                     builder.Add(element);
                     return;
@@ -183,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     if (!TryRecoverStartTag(builder, endTagName, endTag))
                     {
                         // Could not recover.
-                        var element = SyntaxFactory.MarkupElement(null, SyntaxList<RazorSyntaxNode>.Empty, endTag);
+                        var element = SyntaxFactory.MarkupElement(startTag: null, body: EmptySyntaxList, endTag: endTag);
                         builder.Add(element);
                     }
                 }
@@ -209,16 +207,14 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 for (var i = 0; i < malformedTagCount; i++)
                 {
                     var tracker = _tagTracker.Pop();
-                    var malformedElement = SyntaxFactory.MarkupElement(tracker.StartTag, builder.ToList(), null);
-                    builder.Clear();
+                    var malformedElement = SyntaxFactory.MarkupElement(tracker.StartTag, builder.Consume(), endTag: null);
                     builder.AddRange(tracker.PreviousNodes);
                     builder.Add(malformedElement);
                 }
 
                 // Now complete our target tag which is not malformed.
                 var tagTracker = _tagTracker.Pop();
-                var element = SyntaxFactory.MarkupElement(tagTracker.StartTag, builder.ToList(), endTag);
-                builder.Clear();
+                var element = SyntaxFactory.MarkupElement(tagTracker.StartTag, builder.Consume(), endTag);
                 builder.AddRange(tagTracker.PreviousNodes);
                 builder.Add(element);
 
@@ -693,8 +689,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
         private void ParseJavascriptAndEndScriptTag(in SyntaxListBuilder<RazorSyntaxNode> builder, MarkupStartTagSyntax startTag, AcceptedCharactersInternal endTagAcceptedCharacters = AcceptedCharactersInternal.Any)
         {
-            var previousNodes = builder.ToList();
-            builder.Clear();
+            var previousNodes = builder.Consume();
 
             // Special case for <script>: Skip to end of script tag and parse code
             var seenEndScript = false;
@@ -761,8 +756,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 }
             }
 
-            var element = SyntaxFactory.MarkupElement(startTag, builder.ToList(), endTag);
-            builder.Clear();
+            var element = SyntaxFactory.MarkupElement(startTag, builder.Consume(), endTag);
             builder.AddRange(previousNodes);
             builder.Add(element);
         }
@@ -1404,12 +1398,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 string tagName,
                 MarkupStartTagSyntax startTag,
                 SourceLocation tagLocation,
-                SyntaxListBuilder<RazorSyntaxNode> builder)
+                SyntaxList<RazorSyntaxNode> previousNodes)
             {
                 TagName = tagName;
                 StartTag = startTag;
                 TagLocation = tagLocation;
-                PreviousNodes = builder.ToList();
+                PreviousNodes = previousNodes;
             }
 
             public string TagName { get; }
