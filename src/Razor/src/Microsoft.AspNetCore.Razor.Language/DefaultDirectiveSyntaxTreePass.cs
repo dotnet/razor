@@ -46,6 +46,20 @@ namespace Microsoft.AspNetCore.Razor.Language
                 return rewrittenTree;
             }
 
+            public override SyntaxNode Visit(SyntaxNode node)
+            {
+                try
+                {
+                    return base.Visit(node);
+                }
+                catch (InsufficientExecutionStackException)
+                {
+                    // We're very close to reaching the stack limit. Let's not go any deeper.
+                    // It's okay to not show nested section errors in deeply nested cases instead of crashing.
+                    return node;
+                }
+            }
+
             public override SyntaxNode VisitRazorDirective(RazorDirectiveSyntax node)
             {
                 if (_nestedLevel > 0)
