@@ -543,6 +543,6 @@ Instead, wrap the contents of the block in "{{}}":
     <value>The file path '{0}' is invalid. File path is the root relative path of the file starting with '/' and should not contain any '\' characters.</value>
   </data>
   <data name="Rewriter_InsufficientStack" xml:space="preserve">
-    <value>Not enough stack space to continue parsing this document. Razor doesn't support more than deeply nested elements.</value>
+    <value>Not enough stack space to continue parsing this document. Razor doesn't support deeply nested elements.</value>
   </data>
 </root>

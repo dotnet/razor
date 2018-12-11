@@ -1907,7 +1907,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         }
 
         /// <summary>
-        /// Not enough stack space to continue parsing this document. Razor doesn't support more than deeply nested elements.
+        /// Not enough stack space to continue parsing this document. Razor doesn't support deeply nested elements.
         /// </summary>
         internal static string FormatRewriter_InsufficientStack()
             => GetString("Rewriter_InsufficientStack");
