@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     [Export(typeof(IDynamicFileInfoProvider))]
     internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     {
+        public event EventHandler<DynamicFileInfo> Reloaded;
+
         private readonly ConcurrentDictionary<Key, Entry> _entries;
         private readonly Func<Key, Entry> _createEmptyEntry;
         private readonly DocumentServiceProviderFactory _factory;
@@ -35,8 +37,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _entries = new ConcurrentDictionary<Key, Entry>();
             _createEmptyEntry = (key) => new Entry(CreateEmptyInfo(key));
         }
-
-        public event EventHandler<string> Updated;
 
         // Called by us to update entries
         public void UpdateFileInfo(ProjectSnapshot project, DocumentSnapshot document)
@@ -63,12 +63,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var key = new Key(project.WorkspaceProject.Id, project.WorkspaceProject.FilePath, document.FilePath);
             if (_entries.TryGetValue(key, out var entry))
             {
+                var info = CreateInfo(key, document);
                 lock (entry.Lock)
                 {
-                    entry.Current = CreateInfo(key, document);
+                    entry.Current = info;
                 }
 
-                Updated?.Invoke(this, document.FilePath);
+                Reloaded?.Invoke(this, info);
             }
         }
 
@@ -97,19 +98,21 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var key = new Key(project.WorkspaceProject.Id, project.WorkspaceProject.FilePath, document.FilePath);
             if (_entries.TryGetValue(key, out var entry))
             {
+                var info = CreateEmptyInfo(key);
+
                 var updated = false;
                 lock (entry.Lock)
                 {
                     if (entry.Current.TextLoader is GeneratedDocumentTextLoader)
                     {
                         updated = true;
-                        entry.Current = CreateEmptyInfo(key);
+                        entry.Current = info;
                     }
                 }
 
                 if (updated)
                 {
-                    Updated?.Invoke(this, document.FilePath);
+                    Reloaded?.Invoke(this, info);
                 }
             }
         }
