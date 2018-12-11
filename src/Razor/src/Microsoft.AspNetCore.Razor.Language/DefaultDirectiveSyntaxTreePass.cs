@@ -2,9 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language
@@ -33,16 +32,18 @@ namespace Microsoft.AspNetCore.Razor.Language
         {
             private int _nestedLevel;
             private RazorSyntaxTree _syntaxTree;
+            private List<RazorDiagnostic> _diagnostics;
 
             public NestedSectionVerifier(RazorSyntaxTree syntaxTree)
             {
                 _syntaxTree = syntaxTree;
+                _diagnostics = new List<RazorDiagnostic>(syntaxTree.Diagnostics);
             }
 
             public RazorSyntaxTree Verify()
             {
                 var root = Visit(_syntaxTree.Root);
-                var rewrittenTree = new DefaultRazorSyntaxTree(root, _syntaxTree.Source, _syntaxTree.Diagnostics, _syntaxTree.Options);
+                var rewrittenTree = new DefaultRazorSyntaxTree(root, _syntaxTree.Source, _diagnostics, _syntaxTree.Options);
                 return rewrittenTree;
             }
 
@@ -56,6 +57,8 @@ namespace Microsoft.AspNetCore.Razor.Language
                 {
                     // We're very close to reaching the stack limit. Let's not go any deeper.
                     // It's okay to not show nested section errors in deeply nested cases instead of crashing.
+                    _diagnostics.Add(RazorDiagnosticFactory.CreateRewriter_InsufficientStack(SourceSpan.Undefined));
+
                     return node;
                 }
             }

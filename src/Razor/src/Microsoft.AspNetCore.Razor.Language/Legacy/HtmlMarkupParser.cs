@@ -46,7 +46,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         // This is the main entry point into the Razor parser. This will be called only once.
         // Anything outside of code blocks like @{} are parsed here.
         // This calls into the code parser whenever a '@' transition is encountered.
-        // In this mode, we don't add any tag related errors. We let the editor take care of that.
+        // In this mode, we group markup elements with the appropriate Start tag, End tag and body
+        // but we don't perform any validation on the structure. We don't produce errors for cases like missing end tags etc.
+        // We let the editor take care of that.
         //
         public RazorDocumentSyntax ParseDocument()
         {
@@ -86,6 +88,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         // and add appropriate errors for any malformed cases.
         // In addition to parsing regular tags, we also understand special "text" tags. These tags are not rendered to the output
         // but used to render a block of text it encloses as markup. They are a multiline alternative to the single line markup syntax @:
+        // One caveat is that the tags in single markup as parsed as plain text.
         //
         // The tag stack inside a code block is different from the stack outside the block.
         // E.g, `<div> @{ </div> }` will be parsed as two separate elements with missing end and start tags respectively.
@@ -147,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         //
         // This is called when the body of a Razor block directive needs to be parsed. E.g @section |{ ... }|
         // This parses markup in 'document' mode, which means we don't add any errors for malformed tags.
-        // Since, a razor block can also have several code blocks @{} within it, we need to keep track of the block nesting leve
+        // Since, a razor block can also have several code blocks @{} within it, we need to keep track of the block nesting level
         // to make sure we exit when we reach the final '}'.
         //
         // Similar to ParseBlock, the tag stack inside a razor block is different from the stack outside the block.
@@ -253,8 +256,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 switch (GetParserState(ParseMode.MarkupInCodeBlock))
                 {
                     case ParserState.EOF:
-                        CompleteMarkupInCodeBlock(builder);
-                        return;
+                        break;
                     case ParserState.Tag:
                         ParseMarkupElement(builder, ParseMode.MarkupInCodeBlock);
                         break;
@@ -270,7 +272,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                         ParseMarkupNode(builder, ParseMode.Text);
                         break;
                 }
-            } while (_tagTracker.Count > 0);
+            } while (!EndOfFile && _tagTracker.Count > 0);
 
             CompleteMarkupInCodeBlock(builder);
         }
@@ -280,7 +282,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             // Output anything we've accepted so far.
             builder.Add(OutputAsMarkupLiteral());
 
-            var completeOuterTag = true;
+            var isOuterTagWellFormed = true;
             while (_tagTracker.Count > 0)
             {
                 var tracker = _tagTracker.Pop();
@@ -290,8 +292,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
                 if (_tagTracker.Count == 0)
                 {
-                    completeOuterTag = tracker.IsComplete;
-                    if (completeOuterTag)
+                    isOuterTagWellFormed = tracker.IsWellFormed;
+                    if (isOuterTagWellFormed)
                     {
                         // We're at the outermost start tag. Add an error.
                         // We don't want to add this error if the tag is unfinished. A different error would have already been added.
@@ -307,6 +309,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             if (!Context.DesignTimeMode)
             {
+                // We want to accept the whitespace and newline at the end of the markup.
+                // E.g, 
+                // @{
+                //     <div>Foo</div>|   
+                // |}
+                // Except in two cases,
+                // 1. Design time
+                // 2. Text tags
+                //
                 var shouldAcceptWhitespaceAndNewLine = true;
 
                 // Check if the previous span was a transition.
@@ -334,7 +345,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     AcceptWhile(SyntaxKind.Whitespace);
                     TryAccept(SyntaxKind.NewLine);
 
-                    if (completeOuterTag)
+                    if (isOuterTagWellFormed)
                     {
                         // Completed tags have no accepted characters inside blocks.
                         SpanContext.EditHandler.AcceptedCharacters = AcceptedCharactersInternal.None;
@@ -343,7 +354,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             }
 
             PutCurrentBack();
-            if (!completeOuterTag)
+            if (!isOuterTagWellFormed)
             {
                 AcceptMarkerTokenIfNecessary();
             }
@@ -380,6 +391,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             }
             else if (CurrentToken.Kind == SyntaxKind.OpenAngle)
             {
+                // Template
+                // E.g, @<div>Foo</div>
                 ParseMarkupInCodeBlock(builder);
             }
         }
@@ -423,7 +436,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             {
                 // Parsing a start tag
                 var tagStart = CurrentStart;
-                var startTag = ParseStartTag(mode, tagStart, out var tagName, out var tagMode, out var complete);
+                var startTag = ParseStartTag(mode, tagStart, out var tagName, out var tagMode, out var isWellFormed);
                 if (tagMode == MarkupTagMode.Script)
                 {
                     var acceptedCharacters = mode == ParseMode.MarkupInCodeBlock ? AcceptedCharactersInternal.None : AcceptedCharactersInternal.Any;
@@ -441,7 +454,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 else
                 {
                     // This is a normal start tag. We need to keep track of it.
-                    var tracker = new TagTracker(tagName, startTag, tagStart, builder.Consume(), complete);
+                    var tracker = new TagTracker(tagName, startTag, tagStart, builder.Consume(), isWellFormed);
                     _tagTracker.Push(tracker);
                     return;
                 }
@@ -450,7 +463,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             {
                 // Parsing an end tag.
                 var endTagStart = CurrentStart;
-                var endTag = ParseEndTag(mode, out var endTagName, out var complete);
+                var endTag = ParseEndTag(mode, out var endTagName, out var _);
 
                 if (endTagName != null && string.Equals(CurrentStartTagName, endTagName, StringComparison.OrdinalIgnoreCase))
                 {
@@ -557,7 +570,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             SourceLocation tagStartLocation,
             out string tagName,
             out MarkupTagMode tagMode,
-            out bool complete)
+            out bool isWellFormed)
         {
             Assert(SyntaxKind.OpenAngle);
 
@@ -587,7 +600,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     string.Equals(tagName, SyntaxConstants.TextTagName, StringComparison.OrdinalIgnoreCase))
                 {
                     // "<text>" tag is special only if it is the outermost tag.
-                    return ParseStartTextTag(out tagMode, out complete);
+                    return ParseStartTextTag(out tagMode, out isWellFormed);
                 }
 
                 TryAccept(SyntaxKind.Text);
@@ -615,7 +628,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     if (EndOfFile || !At(SyntaxKind.CloseAngle))
                     {
                         // Unfinished tag
-                        complete = false;
+                        isWellFormed = false;
                         Context.ErrorSink.OnError(
                             RazorDiagnosticFactory.CreateParsing_UnfinishedTag(
                                 new SourceSpan(
@@ -625,7 +638,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     }
                     else
                     {
-                        complete = TryAccept(SyntaxKind.CloseAngle);
+                        isWellFormed = TryAccept(SyntaxKind.CloseAngle);
 
                         // Completed tags in code blocks have no accepted characters.
                         SpanContext.EditHandler.AcceptedCharacters = AcceptedCharactersInternal.None;
@@ -670,7 +683,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 }
                 else
                 {
-                    complete = TryAccept(SyntaxKind.CloseAngle);
+                    isWellFormed = TryAccept(SyntaxKind.CloseAngle);
                 }
 
                 // End tag block
@@ -690,7 +703,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             }
         }
 
-        private MarkupStartTagSyntax ParseStartTextTag(out MarkupTagMode tagMode, out bool complete)
+        private MarkupStartTagSyntax ParseStartTextTag(out MarkupTagMode tagMode, out bool isWellFormed)
         {
             // At this point, we should have already accepted the open angle. We won't get here if the tag is escaped.
             tagMode = MarkupTagMode.Normal;
@@ -729,7 +742,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 SpanContext.EditHandler.AcceptedCharacters = AcceptedCharactersInternal.None;
             }
 
-            complete = true;
+            isWellFormed = true;
             SpanContext.ChunkGenerator = SpanChunkGenerator.Null;
             var transition = GetNodeWithSpanContext(SyntaxFactory.MarkupTransition(Output()));
             var startTextTag = SyntaxFactory.MarkupStartTag(transition);
@@ -746,7 +759,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             TryAccept(SyntaxKind.CloseAngle);
         }
 
-        private MarkupEndTagSyntax ParseEndTag(ParseMode mode, out string tagName, out bool complete)
+        private MarkupEndTagSyntax ParseEndTag(ParseMode mode, out string tagName, out bool isWellFormed)
         {
             // This section can accept things like: '</p  >' or '</p>' etc.
             Assert(SyntaxKind.OpenAngle);
@@ -785,7 +798,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                             string.Equals(_tagTracker.Last().TagName, SyntaxConstants.TextTagName, StringComparison.OrdinalIgnoreCase))
                         {
                             // This means there is only one open text tag and it is the outermost tag.
-                            return ParseEndTextTag(out complete);
+                            return ParseEndTextTag(out isWellFormed);
                         }
                     }
 
@@ -805,7 +818,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     }
                 }
 
-                complete = TryAccept(SyntaxKind.CloseAngle);
+                isWellFormed = TryAccept(SyntaxKind.CloseAngle);
 
                 // End tag block
                 tagBuilder.Add(OutputAsMarkupLiteral());
@@ -814,15 +827,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             }
         }
 
-        private MarkupEndTagSyntax ParseEndTextTag(out bool complete)
+        private MarkupEndTagSyntax ParseEndTextTag(out bool isWellFormed)
         {
             // At this point, we should have already accepted the open angle and forward slash. We won't get here if the tag is escaped.
             var textLocation = CurrentStart;
             Assert(SyntaxKind.Text);
             AcceptAndMoveNext();
 
-            complete = TryAccept(SyntaxKind.CloseAngle);
-            if (!complete)
+            isWellFormed = TryAccept(SyntaxKind.CloseAngle);
+            if (!isWellFormed)
             {
                 Context.ErrorSink.OnError(
                     RazorDiagnosticFactory.CreateParsing_TextTagCannotContainAttributes(
@@ -1818,18 +1831,24 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     token.Kind == SyntaxKind.OpenAngle);
                 if (At(SyntaxKind.Text))
                 {
+                    // We need to inspect this text token to figure out if this could be the end of the Razor block
+                    // or if it is the start of a new block in which case we need to keep track of the nesting level.
                     nesting += ProcessTextToken(builder, nestingSequences, nesting);
                     if (CurrentToken != null)
                     {
+                        // This was just some regular text. Accept and move on.
+                        // If we were at the end of a block, we would have already accepted it and CurrentToken will be null.
                         AcceptAndMoveNext();
                     }
                     else if (nesting > 0)
                     {
+                        // This was the start of a new block. We've already consumed the text. Move on.
                         NextToken();
                     }
                 }
                 else
                 {
+                    // We're at a tag. Parse it and continue.
                     ParseMarkupNode(builder, ParseMode.Markup);
                 }
             }
@@ -2047,13 +2066,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 MarkupStartTagSyntax startTag,
                 SourceLocation tagLocation,
                 SyntaxList<RazorSyntaxNode> previousNodes,
-                bool isComplete)
+                bool isWellFormed)
             {
                 TagName = tagName;
                 StartTag = startTag;
                 TagLocation = tagLocation;
                 PreviousNodes = previousNodes;
-                IsComplete = isComplete;
+                IsWellFormed = isWellFormed;
             }
 
             public string TagName { get; }
@@ -2064,7 +2083,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             public SyntaxList<RazorSyntaxNode> PreviousNodes { get; }
 
-            public bool IsComplete { get; }
+            public bool IsWellFormed { get; }
         }
     }
 }
