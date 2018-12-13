@@ -29,6 +29,19 @@ namespace Microsoft.AspNetCore.Razor.Language
                 suppressPrimaryMethodBody: false);
         }
 
+        public static RazorCodeGenerationOptions ForComponents(Action<RazorCodeGenerationOptionsBuilder> configure = null)
+        {
+            var builder = new DefaultRazorCodeGenerationOptionsBuilder(designTime: false)
+            {
+                SuppressMetadataAttributes = true,
+            };
+
+            configure?.Invoke(builder);
+            var options = builder.Build();
+
+            return options;
+        }
+
         public static RazorCodeGenerationOptions Create(Action<RazorCodeGenerationOptionsBuilder> configure)
         {
             if (configure == null)

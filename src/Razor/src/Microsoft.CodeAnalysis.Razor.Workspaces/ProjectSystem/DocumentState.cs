@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -237,9 +237,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private IReadOnlyList<DocumentSnapshot> GetImportsCore(DefaultProjectSnapshot project)
         {
             var projectEngine = project.GetProjectEngine();
-            var importFeature = projectEngine.ProjectFeatures.OfType<IImportProjectFeature>().FirstOrDefault();
             var projectItem = projectEngine.FileSystem.GetItem(HostDocument.FilePath);
-            var importItems = importFeature?.GetImports(projectItem);
+            var importItems = MvcImportItems.GetImportItems(projectEngine.FileSystem, projectItem);
             if (importItems == null)
             {
                 return Array.Empty<DocumentSnapshot>();
@@ -381,7 +380,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                 var projectEngine = project.GetProjectEngine();
 
-                var codeDocument = projectEngine.ProcessDesignTime(documentSource, importSources, tagHelpers);
+                var parserOptions = projectEngine.GetParserOptions(o => o.SetDesignTime(true));
+                var codeGenerationOptions = RazorCodeGenerationOptions.CreateDesignTimeDefault();
+                var codeDocument = RazorCodeDocument.Create(documentSource, importSources, parserOptions, codeGenerationOptions);
+                codeDocument.SetTagHelpers(tagHelpers);
+
+                projectEngine.Process(codeDocument);
                 var csharpDocument = codeDocument.GetCSharpDocument();
 
                 // OK now we've generated the code. Let's check if the output is actually different. This is

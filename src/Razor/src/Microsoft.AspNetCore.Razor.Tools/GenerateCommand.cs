@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.VisualStudio.LanguageServices.Razor.Serialization;
 using Newtonsoft.Json;
@@ -168,18 +168,9 @@ namespace Microsoft.AspNetCore.Razor.Tools
                 RazorProjectFileSystem.Create(projectDirectory),
             });
 
-            var engine = RazorProjectEngine.Create(configuration, compositeFileSystem, b =>
-            {
-                b.Features.Add(new StaticTagHelperFeature() { TagHelpers = tagHelpers, });
-                b.Features.Add(new InputDocumentKindClassifierPass(sourceItems));
+            var engine = RazorProjectEngine.Create(configuration, compositeFileSystem);
 
-                if (GenerateDeclaration.HasValue())
-                {
-                    b.Features.Add(new SetSuppressPrimaryMethodBodyOptionFeature());
-                }
-            });
-
-            var results = GenerateCode(engine, sourceItems);
+            var results = GenerateCode(engine, sourceItems, tagHelpers);
 
             var success = true;
 
@@ -265,14 +256,40 @@ namespace Microsoft.AspNetCore.Razor.Tools
             return items;
         }
 
-        private OutputItem[] GenerateCode(RazorProjectEngine engine, SourceItem[] inputs)
+        private OutputItem[] GenerateCode(RazorProjectEngine engine, SourceItem[] inputs, IReadOnlyList<TagHelperDescriptor> tagHelpers)
         {
             var outputs = new OutputItem[inputs.Length];
+            var parserOptions = engine.GetParserOptions();
+
             Parallel.For(0, outputs.Length, new ParallelOptions() { MaxDegreeOfParallelism = Debugger.IsAttached ? 1 : 4 }, i =>
             {
                 var inputItem = inputs[i];
 
-                var codeDocument = engine.Process(engine.FileSystem.GetItem(inputItem.FilePath));
+                var projectItem = engine.FileSystem.GetItem(inputItem.FilePath);
+                var source = RazorSourceDocument.ReadFrom(projectItem);
+
+                IEnumerable<RazorSourceDocument> imports;
+                RazorCodeGenerationOptions codeGenerationOptions;
+
+                if (inputItem.DocumentKind == "component")
+                {
+                    imports = Array.Empty<RazorSourceDocument>();
+                    codeGenerationOptions = RazorCodeGenerationOptions.ForComponents(builder =>
+                    {
+                        builder.SuppressPrimaryMethodBody = GenerateDeclaration.HasValue();
+                    });
+                }
+                else
+                {
+                    imports = MvcImportItems.GetImportDocuments(engine.FileSystem, projectItem);
+                    codeGenerationOptions = RazorCodeGenerationOptions.CreateDefault();
+                }
+
+                var codeDocument = RazorCodeDocument.Create(source, imports, parserOptions, codeGenerationOptions);
+                codeDocument.SetTagHelpers(tagHelpers);
+                codeDocument.SetInputDocumentKind(inputItem.DocumentKind);
+                engine.Process(codeDocument);
+
                 var csharpDocument = codeDocument.GetCSharpDocument();
                 outputs[i] = new OutputItem(inputItem, csharpDocument);
             });
@@ -280,7 +297,7 @@ namespace Microsoft.AspNetCore.Razor.Tools
             return outputs;
         }
 
-        private struct OutputItem
+        private readonly struct OutputItem
         {
             public OutputItem(
                 SourceItem inputItem,
@@ -317,56 +334,6 @@ namespace Microsoft.AspNetCore.Razor.Tools
             public string FilePath { get; }
 
             public string DocumentKind { get; }
-        }
-
-        private class StaticTagHelperFeature : ITagHelperFeature
-        {
-            public RazorEngine Engine { get; set; }
-
-            public IReadOnlyList<TagHelperDescriptor> TagHelpers { get; set; }
-
-            public IReadOnlyList<TagHelperDescriptor> GetDescriptors() => TagHelpers;
-        }
-
-        private class SetSuppressPrimaryMethodBodyOptionFeature : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
-        {
-            public int Order { get; set; }
-
-            public void Configure(RazorCodeGenerationOptionsBuilder options)
-            {
-                if (options == null)
-                {
-                    throw new ArgumentNullException(nameof(options));
-                }
-
-                options.SuppressPrimaryMethodBody = true;
-            }
-        }
-
-        private class InputDocumentKindClassifierPass : RazorEngineFeatureBase, IRazorDocumentClassifierPass
-        {
-            public InputDocumentKindClassifierPass(SourceItem[] sourceItems)
-            {
-                DocumentKinds = new Dictionary<string, string>(sourceItems.Length, StringComparer.OrdinalIgnoreCase);
-                for (var i = 0; i < sourceItems.Length; i++)
-                {
-                    var item = sourceItems[i];
-                    DocumentKinds[item.SourcePath] = item.DocumentKind;
-                }
-            }
-
-            // Run before other document classifiers
-            public int Order => -1000;
-
-            public Dictionary<string, string> DocumentKinds { get; }
-
-            public void Execute(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
-            {
-                if (DocumentKinds.TryGetValue(codeDocument.Source.FilePath, out var kind))
-                {
-                    codeDocument.SetInputDocumentKind(kind);
-                }
-            }
         }
     }
 }

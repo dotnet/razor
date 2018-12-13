@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -939,9 +940,19 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
             var projectItem = CreateProjectItemFromFile();
             var imports = GetImports(projectEngine, projectItem);
+            var parserOptions = projectEngine.GetParserOptions();
+            var codeGenerationOptions = RazorCodeGenerationOptions.CreateDefault();
+
+            var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
+            var codeDocument = RazorCodeDocument.Create(
+                sourceDocument,
+                imports,
+                parserOptions,
+                codeGenerationOptions);
+            codeDocument.SetTagHelpers(descriptors.ToList());
 
             // Act
-            var codeDocument = projectEngine.Process(RazorSourceDocument.ReadFrom(projectItem), imports, descriptors.ToList());
+            projectEngine.Process(codeDocument);
 
             // Assert
             AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
@@ -965,8 +976,20 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             var projectItem = CreateProjectItemFromFile();
             var imports = GetImports(projectEngine, projectItem);
 
+            var parserOptions = projectEngine.GetParserOptions(builder => builder.SetDesignTime(true));
+            var codeGenerationOptions = RazorCodeGenerationOptions.CreateDesignTime(
+                options => options.SuppressChecksum = true);
+
+            var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
+            var codeDocument = RazorCodeDocument.Create(
+                sourceDocument,
+                imports,
+                parserOptions,
+                codeGenerationOptions);
+            codeDocument.SetTagHelpers(descriptors.ToList());
+
             // Act
-            var codeDocument = projectEngine.ProcessDesignTime(RazorSourceDocument.ReadFrom(projectItem), imports, descriptors.ToList());
+            projectEngine.Process(codeDocument);
 
             // Assert
             AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
@@ -975,12 +998,6 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         }
 
         private static IReadOnlyList<RazorSourceDocument> GetImports(RazorProjectEngine projectEngine, RazorProjectItem projectItem)
-        {
-            var importFeature = projectEngine.ProjectFeatures.OfType<IImportProjectFeature>().FirstOrDefault();
-            var importItems = importFeature.GetImports(projectItem);
-            var importSourceDocuments = importItems.Where(i => i.Exists).Select(i => RazorSourceDocument.ReadFrom(i)).ToList();
-
-            return importSourceDocuments;
-        }
+            => Array.Empty<RazorSourceDocument>();
     }
 }

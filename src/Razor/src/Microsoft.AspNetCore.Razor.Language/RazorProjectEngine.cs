@@ -35,18 +35,6 @@ namespace Microsoft.AspNetCore.Razor.Language
             return codeDocument;
         }
 
-        internal virtual RazorCodeDocument Process(RazorSourceDocument source, IReadOnlyList<RazorSourceDocument> importSources, IReadOnlyList<TagHelperDescriptor> tagHelpers)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            var codeDocument = CreateCodeDocumentCore(source, importSources, tagHelpers);
-            ProcessCore(codeDocument);
-            return codeDocument;
-        }
-
         public virtual RazorCodeDocument ProcessDesignTime(RazorProjectItem projectItem)
         {
             if (projectItem == null)
@@ -59,17 +47,9 @@ namespace Microsoft.AspNetCore.Razor.Language
             return codeDocument;
         }
 
-        internal virtual RazorCodeDocument ProcessDesignTime(RazorSourceDocument source, IReadOnlyList<RazorSourceDocument> importSources, IReadOnlyList<TagHelperDescriptor> tagHelpers)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
+        public abstract RazorParserOptions GetParserOptions(Action<RazorParserOptionsBuilder> builder = null);
 
-            var codeDocument = CreateCodeDocumentDesignTimeCore(source, importSources, tagHelpers);
-            ProcessCore(codeDocument);
-            return codeDocument;
-        }
+        public void Process(RazorCodeDocument codeDocument) => ProcessCore(codeDocument);
 
         protected abstract RazorCodeDocument CreateCodeDocumentCore(RazorProjectItem projectItem);
 

@@ -71,6 +71,15 @@ namespace Microsoft.AspNetCore.Razor.Language
             return CreateCodeDocumentCore(sourceDocument, importSourceDocuments, tagHelpers: null);
         }
 
+        public override RazorParserOptions GetParserOptions(Action<RazorParserOptionsBuilder> builder = null)
+        {
+            return GetRequiredFeature<IRazorParserOptionsFactoryProjectFeature>().Create(
+                options =>
+                {
+                    builder?.Invoke(options);
+                });
+        }
+
         internal override RazorCodeDocument CreateCodeDocumentCore(RazorSourceDocument sourceDocument, IReadOnlyList<RazorSourceDocument> importSourceDocuments, IReadOnlyList<TagHelperDescriptor> tagHelpers)
         {
             if (sourceDocument == null)

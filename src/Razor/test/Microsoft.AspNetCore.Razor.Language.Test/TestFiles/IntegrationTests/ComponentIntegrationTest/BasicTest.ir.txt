@@ -1,7 +1,5 @@
 Document - 
-    RazorCompiledItemAttribute - 
     NamespaceDeclaration -  - AspNetCore
-        RazorSourceChecksumAttribute - 
         ClassDeclaration -  - public sealed - BasicTest - global::Microsoft.AspNetCore.Components.Component - 
             MethodDeclaration -  - public override - void - BuildRenderTree
                 CSharpCode - 
