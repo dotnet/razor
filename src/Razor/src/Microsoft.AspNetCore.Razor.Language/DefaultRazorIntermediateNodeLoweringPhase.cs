@@ -810,6 +810,22 @@ namespace Microsoft.AspNetCore.Razor.Language
                 base.VisitMarkupTextLiteral(node);
             }
 
+            public override void VisitMarkupStartTag(MarkupStartTagSyntax node)
+            {
+                foreach (var child in node.Children)
+                {
+                    Visit(child);
+                }
+            }
+
+            public override void VisitMarkupEndTag(MarkupEndTagSyntax node)
+            {
+                foreach (var child in node.Children)
+                {
+                    Visit(child);
+                }
+            }
+
             public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
             {
                 var info = node.TagHelperInfo;
