@@ -8,9 +8,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -160,7 +160,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             {
                 Content = text,
             };
-            
+
             return projectItem;
         }
 
@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             {
                 Content = fileContent,
             };
-            
+
             return projectItem;
         }
 
@@ -450,6 +450,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             codeDocument.Source.CopyTo(0, charBuffer, 0, codeDocument.Source.Length);
             var sourceContent = new string(charBuffer);
 
+            AssertNonAdjacentSourceMappings(csharpDocument.SourceMappings, codeDocument.Source);
+
             var spans = visitor.CodeSpans;
             for (var i = 0; i < spans.Count; i++)
             {
@@ -486,13 +488,13 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 for (var j = 0; j < csharpDocument.SourceMappings.Count; j++)
                 {
                     var mapping = csharpDocument.SourceMappings[j];
-                    if (mapping.OriginalSpan == sourceSpan)
+                    if (Intersects(mapping.OriginalSpan, sourceSpan))
                     {
                         var actualSpan = csharpDocument.GeneratedCode.Substring(
                             mapping.GeneratedSpan.AbsoluteIndex,
                             mapping.GeneratedSpan.Length);
 
-                        if (!string.Equals(expectedSpan, actualSpan, StringComparison.Ordinal))
+                        if (actualSpan.IndexOf(expectedSpan) == -1)
                         {
                             throw new XunitException(
                                 $"Found the span {sourceSpan} in the output mappings but it contains " +
@@ -510,6 +512,48 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                         $"Could not find the span {sourceSpan} - containing '{EscapeWhitespace(expectedSpan)}' " +
                         $"in the output.");
                 }
+            }
+        }
+
+        private static bool Intersects(SourceSpan first, SourceSpan second)
+        {
+            if (first.AbsoluteIndex <= (second.AbsoluteIndex + second.Length) &&
+                (first.AbsoluteIndex + first.Length) >= second.AbsoluteIndex)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private void AssertNonAdjacentSourceMappings(IReadOnlyList<SourceMapping> sourceMappings, RazorSourceDocument sourceDocument)
+        {
+            if (sourceMappings.Count <= 1)
+            {
+                return;
+            }
+
+            var lastSpan = sourceMappings[0].OriginalSpan;
+            for (var i = 1; i < sourceMappings.Count; i++)
+            {
+                var currentSpan = sourceMappings[i].OriginalSpan;
+                if (currentSpan.AbsoluteIndex <= (lastSpan.AbsoluteIndex + lastSpan.Length) &&
+                    (currentSpan.AbsoluteIndex + currentSpan.Length) >= lastSpan.AbsoluteIndex)
+                {
+
+                    var charBuffer = new char[sourceDocument.Length];
+                    sourceDocument.CopyTo(0, charBuffer, 0, sourceDocument.Length);
+                    var sourceContent = new string(charBuffer);
+                    var lastSpanSnippet = sourceContent.Substring(lastSpan.AbsoluteIndex, lastSpan.Length);
+                    var currentSpanSnippet = sourceContent.Substring(currentSpan.AbsoluteIndex, currentSpan.Length);
+
+                    // Adjacent spans overlap
+                    throw new XunitException($@"Adjacent C# mappings are not allowed:
+{lastSpan}: {lastSpanSnippet}
+{currentSpan}: {currentSpanSnippet}");
+                }
+
+                lastSpan = currentSpan;
             }
         }
 

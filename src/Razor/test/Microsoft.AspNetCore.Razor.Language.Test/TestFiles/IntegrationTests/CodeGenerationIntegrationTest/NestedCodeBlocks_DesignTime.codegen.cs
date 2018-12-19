@@ -24,11 +24,6 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 #line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml"
      if(bar) {
     }
-
-#line default
-#line hidden
-#line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml"
-     
 }
 
 #line default

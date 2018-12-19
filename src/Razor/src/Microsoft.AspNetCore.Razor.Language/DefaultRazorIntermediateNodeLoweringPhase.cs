@@ -691,6 +691,30 @@ namespace Microsoft.AspNetCore.Razor.Language
                 var context = node.GetSpanContext();
                 if (context == null || context.ChunkGenerator is StatementChunkGenerator)
                 {
+                    var source = BuildSourceSpanFromNode(node);
+                    var currentChildren = _builder.Current.Children;
+                    if (currentChildren.Count > 0 &&
+                        currentChildren[currentChildren.Count - 1] is CSharpCodeIntermediateNode existingCSharpNode &&
+                        existingCSharpNode.Children.LastOrDefault() is IntermediateToken csharpToken)
+                    {
+                        if (csharpToken.Source == null && source == null)
+                        {
+                            Combine(csharpToken, node, existingCSharpNode);
+                            base.VisitCSharpStatementLiteral(node);
+                            return;
+                        }
+
+                        if (source != null &&
+                            csharpToken.Source != null &&
+                            csharpToken.Source.Value.FilePath == source.Value.FilePath &&
+                            csharpToken.Source.Value.AbsoluteIndex + csharpToken.Source.Value.Length == source.Value.AbsoluteIndex)
+                        {
+                            Combine(csharpToken, node, existingCSharpNode);
+                            base.VisitCSharpStatementLiteral(node);
+                            return;
+                        }
+                    }
+
                     var isAttributeValue = _builder.Current is CSharpCodeAttributeValueIntermediateNode;
 
                     if (!isAttributeValue)
@@ -706,7 +730,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                     {
                         Content = node.GetContent(),
                         Kind = TokenKind.CSharp,
-                        Source = BuildSourceSpanFromNode(node),
+                        Source = source,
                     });
 
                     if (!isAttributeValue)
@@ -1015,6 +1039,28 @@ namespace Microsoft.AspNetCore.Razor.Language
                 }
 
                 return rewritten;
+            }
+
+            private void Combine(IntermediateToken existingToken, SyntaxNode syntax, CSharpCodeIntermediateNode existingParent)
+            {
+                Debug.Assert(existingToken.Kind == TokenKind.CSharp);
+                existingToken.Content = existingToken.Content + syntax.GetContent();
+                existingToken.Source = new SourceSpan(
+                    existingToken.Source.Value.FilePath,
+                    existingToken.Source.Value.AbsoluteIndex,
+                    existingToken.Source.Value.LineIndex,
+                    existingToken.Source.Value.CharacterIndex,
+                    existingToken.Source.Value.Length + syntax.FullWidth);
+
+                if (existingParent.Source != null)
+                {
+                    existingParent.Source = new SourceSpan(
+                        existingParent.Source.Value.FilePath,
+                        existingParent.Source.Value.AbsoluteIndex,
+                        existingParent.Source.Value.LineIndex,
+                        existingParent.Source.Value.CharacterIndex,
+                        existingParent.Source.Value.Length + syntax.FullWidth);
+                }
             }
 
             private void Combine(HtmlContentIntermediateNode node, SyntaxNode item)

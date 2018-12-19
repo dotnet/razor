@@ -22,7 +22,5 @@ Document -
                 HtmlContent - (98:4,29 [17] NestedCSharp.cshtml)
                     IntermediateToken - (98:4,29 [11] NestedCSharp.cshtml) - Html - .\n        
                     IntermediateToken - (109:5,8 [6] NestedCSharp.cshtml) - Html - </div>
-                CSharpCode - (115:5,14 [7] NestedCSharp.cshtml)
-                    IntermediateToken - (115:5,14 [7] NestedCSharp.cshtml) - CSharp - \n    }
-                CSharpCode - (122:6,5 [2] NestedCSharp.cshtml)
-                    IntermediateToken - (122:6,5 [2] NestedCSharp.cshtml) - CSharp - \n
+                CSharpCode - (115:5,14 [9] NestedCSharp.cshtml)
+                    IntermediateToken - (115:5,14 [9] NestedCSharp.cshtml) - CSharp - \n    }\n

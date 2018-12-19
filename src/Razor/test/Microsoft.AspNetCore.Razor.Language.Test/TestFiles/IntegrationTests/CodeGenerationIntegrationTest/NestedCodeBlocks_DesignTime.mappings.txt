@@ -5,17 +5,12 @@ Generated Location: (732:18,1 [15] )
 |if(foo) {
     |
 
-Source Location: (17:1,5 [16] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml)
+Source Location: (17:1,5 [19] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml)
 |if(bar) {
-    }|
-Generated Location: (877:24,5 [16] )
-|if(bar) {
-    }|
-
-Source Location: (33:2,5 [3] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml)
-|
+    }
 }|
-Generated Location: (1023:30,5 [3] )
-|
+Generated Location: (877:24,5 [19] )
+|if(bar) {
+    }
 }|
 

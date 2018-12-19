@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
@@ -42,12 +42,82 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
 
             context.Visitor.VisitDocument(documentNode);
 
+            //var normalizedSourceMappings = NormalizeSourceMappings(context.SourceMappings);
             var cSharp = context.CodeWriter.GenerateCode();
             return new DefaultRazorCSharpDocument(
                 cSharp,
                 _options,
                 context.Diagnostics.ToArray(),
                 context.SourceMappings.ToArray());
+        }
+
+        private SourceMapping[] NormalizeSourceMappings(List<SourceMapping> sourceMappings)
+        {
+            if (sourceMappings.Count <= 1)
+            {
+                return sourceMappings.ToArray();
+            }
+
+            var normalizedMappings = new List<SourceMapping>();
+            var lastMapping = sourceMappings[0];
+            for (var i = 1; i < sourceMappings.Count; i++)
+            {
+                var currentMapping = sourceMappings[i];
+                if (Intersects(currentMapping.OriginalSpan, lastMapping.OriginalSpan) &&
+                    Intersects(currentMapping.GeneratedSpan, lastMapping.GeneratedSpan))
+                {
+                    // Source mappings are adjacent in the original and generated file. We can normalize.
+                    var normalizedOriginalSpan = Combine(currentMapping.OriginalSpan, lastMapping.OriginalSpan);
+                    var normalizedGeneratedSpan = Combine(currentMapping.GeneratedSpan, lastMapping.GeneratedSpan);
+                    var normalizedMapping = new SourceMapping(normalizedOriginalSpan, normalizedGeneratedSpan);
+                    normalizedMappings.Add(normalizedMapping);
+                    lastMapping = normalizedMapping;
+                }
+                else
+                {
+                    normalizedMappings.Add(lastMapping);
+                    lastMapping = currentMapping;
+                }
+            }
+
+            if (lastMapping != normalizedMappings[normalizedMappings.Count - 1])
+            {
+                // Add the very last mapping to the normalized collection.
+                normalizedMappings.Add(lastMapping);
+            }
+
+            return normalizedMappings.ToArray();
+        }
+
+        private static SourceSpan Combine(SourceSpan first, SourceSpan second)
+        {
+            SourceSpan baseSpan;
+            if (first.AbsoluteIndex < second.AbsoluteIndex)
+            {
+                baseSpan = first;
+            }
+            else
+            {
+                baseSpan = second;
+            }
+
+            var combinedSpan = new SourceSpan(
+                baseSpan.AbsoluteIndex,
+                baseSpan.LineIndex,
+                baseSpan.CharacterIndex,
+                first.Length + second.Length);
+            return combinedSpan;
+        }
+
+        private static bool Intersects(SourceSpan first, SourceSpan second)
+        {
+            if (first.AbsoluteIndex <= (second.AbsoluteIndex + second.Length) &&
+                (first.AbsoluteIndex + first.Length) >= second.AbsoluteIndex)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private class Visitor : IntermediateNodeVisitor

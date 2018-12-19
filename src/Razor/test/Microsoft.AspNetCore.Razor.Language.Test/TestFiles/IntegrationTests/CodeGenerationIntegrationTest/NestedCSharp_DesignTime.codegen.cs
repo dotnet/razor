@@ -39,11 +39,6 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 
 #line default
 #line hidden
-#line 7 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCSharp.cshtml"
-     
-
-#line default
-#line hidden
         }
         #pragma warning restore 1998
     }
