@@ -1126,7 +1126,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                     Source = BuildSourceSpanFromNode(node),
 
                     // Could be empty while the tag is being typed in.
-                    TagName = node.StartTag?.GetTagName() ?? node.EndTag?.GetTagName() ?? string.Empty,
+                    TagName = node.StartTag?.GetTagNameWithOptionalBang() ?? node.EndTag?.GetTagName() ?? string.Empty,
                 });
 
                 base.VisitMarkupElement(node);

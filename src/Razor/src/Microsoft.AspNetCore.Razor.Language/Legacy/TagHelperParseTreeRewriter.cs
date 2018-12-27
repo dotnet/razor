@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 var startTag = (MarkupStartTagSyntax)Visit(node.StartTag);
                 if (startTag != null)
                 {
-                    var tagName = startTag.GetTagName();
+                    var tagName = startTag.GetTagNameWithOptionalBang();
                     if (TryRewriteTagHelperStart(startTag, out tagHelperStart, out tagHelperInfo))
                     {
                         // This is a tag helper.
@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 tagHelperInfo = null;
 
                 // Get tag name of the current block
-                var tagName = startTag.GetTagName();
+                var tagName = startTag.GetTagNameWithOptionalBang();
 
                 // Could not determine tag name, it can't be a TagHelper, continue on and track the element.
                 if (string.IsNullOrEmpty(tagName) || tagName.StartsWith("!"))
@@ -599,7 +599,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             private void ValidateParentAllowsPlainStartTag(MarkupStartTagSyntax tagBlock)
             {
-                var tagName = tagBlock.GetTagName();
+                var tagName = tagBlock.GetTagNameWithOptionalBang();
 
                 // Treat partial tags such as '</' which have no tag names as content.
                 if (string.IsNullOrEmpty(tagName))

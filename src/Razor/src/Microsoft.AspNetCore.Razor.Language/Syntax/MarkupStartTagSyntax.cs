@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax
@@ -19,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
         public SyntaxList<RazorSyntaxNode> Children => GetLegacyChildren();
 
-        public string GetTagName()
+        public string GetTagNameWithOptionalBang()
         {
             return Name.IsMissing ? string.Empty : Bang?.Content + Name.Content;
         }
@@ -33,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
         public bool IsVoidElement()
         {
-            return ParserHelpers.VoidElements.Contains(GetTagName());
+            return ParserHelpers.VoidElements.Contains(Name.Content);
         }
 
         private SyntaxList<RazorSyntaxNode> GetLegacyChildren()
