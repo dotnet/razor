@@ -12,7 +12,7 @@ RazorDocument - [0..17)::17 - [@{<text></!text>}]
                     CSharpCodeBlock - [2..16)::14
                         MarkupBlock - [2..16)::14
                             MarkupElement - [2..16)::14
-                                MarkupStartTag - [2..8)::6 - [<text>] - Gen<None> - SpanEditHandler;Accepts:None
+                                MarkupStartTag - [2..8)::6 - MarkupTransition - [<text>] - Gen<None> - SpanEditHandler;Accepts:None
                                     OpenAngle;[<];
                                     Text;[text];
                                     CloseAngle;[>];

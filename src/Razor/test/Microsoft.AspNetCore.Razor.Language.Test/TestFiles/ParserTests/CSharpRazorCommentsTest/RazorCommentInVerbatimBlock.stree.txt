@@ -15,7 +15,7 @@ RazorDocument - [0..26)::26 - [@{LF    <textLF    @**@LF}]
                             Whitespace;[    ];
                         MarkupBlock - [8..26)::18
                             MarkupElement - [8..26)::18
-                                MarkupStartTag - [8..13)::5 - [<text] - Gen<None> - SpanEditHandler;Accepts:Any
+                                MarkupStartTag - [8..13)::5 - MarkupTransition - [<text] - Gen<None> - SpanEditHandler;Accepts:Any
                                     OpenAngle;[<];
                                     Text;[text];
                                     CloseAngle;[<Missing>];
