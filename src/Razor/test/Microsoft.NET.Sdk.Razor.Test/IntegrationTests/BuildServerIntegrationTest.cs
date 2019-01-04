@@ -141,8 +141,9 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         }
 
         // Skipping on MacOS because of https://github.com/dotnet/corefx/issues/33141.
+        // Skipping on Linux because of https://github.com/aspnet/Razor/issues/2525.
         [ConditionalFact]
-        [OSSkipCondition(OperatingSystems.MacOSX)]
+        [OSSkipCondition(OperatingSystems.Linux | OperatingSystems.MacOSX)]
         [InitializeTestProject("SimpleMvc")]
         public async Task ManualServerShutdown_NoPipeName_ShutsDownServer()
         {
@@ -180,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                     RedirectStandardError = true,
                     RedirectStandardOutput = true,
                     FileName = "dotnet",
-                    Arguments = $"{toolAssembly} shutdown"
+                    Arguments = $"{toolAssembly} shutdown -w"
                 };
 
                 var logFilePath = Path.Combine(publishDir, "out.log");
