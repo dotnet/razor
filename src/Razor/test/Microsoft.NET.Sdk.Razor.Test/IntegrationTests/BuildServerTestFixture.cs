@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
     /// Note that this fixture will always initialize a server of the current version since it
     /// invokes the ServerConnection API from the referenced rzc.
     /// </summary>
-    public class BuildServerTestFixture : BuildServerTestFixtureBase
+    public class BuildServerTestFixture : BuildServerTestFixtureBase, IDisposable
     {
         public BuildServerTestFixture() : this(Guid.NewGuid().ToString())
         {
