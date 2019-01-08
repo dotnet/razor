@@ -71,9 +71,22 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 while (_tagTracker.Count > 0)
                 {
                     var tracker = _tagTracker.Pop();
-                    var element = SyntaxFactory.MarkupElement(tracker.StartTag, builder.Consume(), endTag: null);
-                    builder.AddRange(tracker.PreviousNodes);
-                    builder.Add(element);
+                    if (ParserHelpers.VoidElements.Contains(tracker.TagName))
+                    {
+                        // We were tracking a void element but we reached the end of the document without finding a matching end tag.
+                        // So, close that element and move its content to its parent.
+                        var children = builder.Consume();
+                        var voidElement = SyntaxFactory.MarkupElement(tracker.StartTag, EmptySyntaxList, endTag: null);
+                        builder.AddRange(tracker.PreviousNodes);
+                        builder.Add(voidElement);
+                        builder.AddRange(children);
+                    }
+                    else
+                    {
+                        var element = SyntaxFactory.MarkupElement(tracker.StartTag, builder.Consume(), endTag: null);
+                        builder.AddRange(tracker.PreviousNodes);
+                        builder.Add(element);
+                    }
                 }
 
                 var markup = SyntaxFactory.MarkupBlock(builder.ToList());
@@ -533,6 +546,19 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
         private bool TryRecoverStartTag(in SyntaxListBuilder<RazorSyntaxNode> builder, string endTagName, MarkupEndTagSyntax endTag)
         {
+            // First check if the tag we're tracking is a void tag. If so, we need to close it out before moving on.
+            while (_tagTracker.Count > 0 &&
+                !string.Equals(CurrentStartTagName, endTagName, StringComparison.OrdinalIgnoreCase) &&
+                ParserHelpers.VoidElements.Contains(CurrentStartTagName))
+            {
+                var tracker = _tagTracker.Pop();
+                var children = builder.Consume();
+                var voidElement = SyntaxFactory.MarkupElement(tracker.StartTag, EmptySyntaxList, endTag: null);
+                builder.AddRange(tracker.PreviousNodes);
+                builder.Add(voidElement);
+                builder.AddRange(children);
+            }
+
             var malformedTagCount = 0;
             foreach (var tag in _tagTracker)
             {
