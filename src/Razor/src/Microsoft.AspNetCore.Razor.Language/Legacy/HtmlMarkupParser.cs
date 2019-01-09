@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 while (_tagTracker.Count > 0)
                 {
                     var tracker = _tagTracker.Pop();
-                    if (ParserHelpers.VoidElements.Contains(tracker.TagName))
+                    if (IsVoidElement(tracker.TagName))
                     {
                         // We were tracking a void element but we reached the end of the document without finding a matching end tag.
                         // So, close that element and move its content to its parent.
@@ -549,7 +549,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             // First check if the tag we're tracking is a void tag. If so, we need to close it out before moving on.
             while (_tagTracker.Count > 0 &&
                 !string.Equals(CurrentStartTagName, endTagName, StringComparison.OrdinalIgnoreCase) &&
-                ParserHelpers.VoidElements.Contains(CurrentStartTagName))
+                IsVoidElement(CurrentStartTagName))
             {
                 var tracker = _tagTracker.Pop();
                 var children = builder.Consume();
@@ -673,7 +673,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     // Completed tags in code blocks have no accepted characters.
                     SpanContext.EditHandler.AcceptedCharacters = AcceptedCharactersInternal.None;
 
-                    if (tagMode != MarkupTagMode.SelfClosing && ParserHelpers.VoidElements.Contains(tagName))
+                    if (tagMode != MarkupTagMode.SelfClosing && IsVoidElement(tagName))
                     {
                         // This is a void element.
                         // Technically, void elements like "meta" are not allowed to have end tags. Just in case they do,
@@ -2138,6 +2138,21 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             }
 
             return last.Green;
+        }
+
+        private static bool IsVoidElement(string tagName)
+        {
+            if (string.IsNullOrEmpty(tagName))
+            {
+                return false;
+            }
+
+            if (tagName.StartsWith("!"))
+            {
+                tagName = tagName.Substring(1);
+            }
+
+            return ParserHelpers.VoidElements.Contains(tagName);
         }
 
         private enum ParseMode
