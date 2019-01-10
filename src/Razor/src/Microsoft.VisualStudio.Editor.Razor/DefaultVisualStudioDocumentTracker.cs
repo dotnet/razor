@@ -21,12 +21,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly string _filePath;
         private readonly string _projectPath;
-        private readonly ProjectSnapshotManager _projectManager;
         private readonly WorkspaceEditorSettings _workspaceEditorSettings;
         private readonly ITextBuffer _textBuffer;
-        private readonly ImportDocumentManager _importDocumentManager;
         private readonly List<ITextView> _textViews;
-        private readonly Workspace _workspace;
+        private WorkspaceState _workspaceState;
         private bool _isSupportedProject;
         private ProjectSnapshot _projectSnapshot;
         private int _subscribeCount;
@@ -43,11 +41,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             ForegroundDispatcher dispatcher,
             string filePath,
             string projectPath,
-            ProjectSnapshotManager projectManager,
             WorkspaceEditorSettings workspaceEditorSettings,
-            Workspace workspace,
-            ITextBuffer textBuffer,
-            ImportDocumentManager importDocumentManager)
+            ITextBuffer textBuffer)
         {
             if (dispatcher == null)
             {
@@ -64,19 +59,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(projectPath));
             }
 
-            if (projectManager == null)
-            {
-                throw new ArgumentNullException(nameof(projectManager));
-            }
-
             if (workspaceEditorSettings == null)
             {
                 throw new ArgumentNullException(nameof(workspaceEditorSettings));
-            }
-
-            if (workspace == null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
             }
 
             if (textBuffer == null)
@@ -84,19 +69,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            if (importDocumentManager == null)
-            {
-                throw new ArgumentNullException(nameof(importDocumentManager));
-            }
-
             _foregroundDispatcher = dispatcher;
             _filePath = filePath;
             _projectPath = projectPath;
-            _projectManager = projectManager;
             _workspaceEditorSettings = workspaceEditorSettings;
             _textBuffer = textBuffer;
-            _importDocumentManager = importDocumentManager;
-            _workspace = workspace; // For now we assume that the workspace is the always default VS workspace.
 
             _textViews = new List<ITextView>();
             _tagHelpers = Array.Empty<TagHelperDescriptor>();
@@ -113,7 +90,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override Project Project =>
             _projectSnapshot.WorkspaceProject == null ?
             null :
-            _workspace.CurrentSolution.GetProject(_projectSnapshot.WorkspaceProject.Id);
+            _workspaceState.Workspace.CurrentSolution.GetProject(_projectSnapshot.WorkspaceProject.Id);
 
         internal override ProjectSnapshot ProjectSnapshot => _projectSnapshot;
 
@@ -121,7 +98,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override IReadOnlyList<ITextView> TextViews => _textViews;
 
-        public override Workspace Workspace => _workspace;
+        public override Workspace Workspace => _workspaceState.Workspace;
 
         public override string FilePath => _filePath;
 
@@ -141,6 +118,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             if (!_textViews.Contains(textView))
             {
                 _textViews.Add(textView);
+
+                // HACK: Need to trigger some sort of context change event at this point in order to signal to WTE to
+                // grab the active parsers.
+                OnContextChanged(ContextChangeKind.TextViewsChanged);
             }
         }
 
@@ -156,6 +137,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             if (_textViews.Contains(textView))
             {
                 _textViews.Remove(textView);
+
+                OnContextChanged(ContextChangeKind.TextViewsChanged);
             }
         }
 
@@ -174,8 +157,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return null;
         }
 
-        public void Subscribe()
+        public void Subscribe(WorkspaceState workspaceState)
         {
+            if (workspaceState == null)
+            {
+                throw new ArgumentNullException(nameof(workspaceState));
+            }
+
             _foregroundDispatcher.AssertForegroundThread();
 
             if (_subscribeCount++ > 0)
@@ -183,14 +171,15 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return;
             }
 
-            _projectSnapshot = _projectManager.GetOrCreateProject(_projectPath);
+            _workspaceState = workspaceState;
+            _projectSnapshot = _workspaceState.ProjectSnapshotManager.GetOrCreateProject(_projectPath);
             _isSupportedProject = true;
 
-            _projectManager.Changed += ProjectManager_Changed;
+            _workspaceState.ProjectSnapshotManager.Changed += ProjectManager_Changed;
             _workspaceEditorSettings.Changed += EditorSettingsManager_Changed;
-            _importDocumentManager.Changed += Import_Changed;
+            _workspaceState.ImportDocumentManager.Changed += Import_Changed;
 
-            _importDocumentManager.OnSubscribed(this);
+            _workspaceState.ImportDocumentManager.OnSubscribed(this);
 
             OnContextChanged(ContextChangeKind.ProjectChanged);
         }
@@ -204,11 +193,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return;
             }
 
-            _importDocumentManager.OnUnsubscribed(this);
+            _workspaceState.ImportDocumentManager.OnUnsubscribed(this);
 
-            _projectManager.Changed -= ProjectManager_Changed;
+            _workspaceState.ProjectSnapshotManager.Changed -= ProjectManager_Changed;
             _workspaceEditorSettings.Changed -= EditorSettingsManager_Changed;
-            _importDocumentManager.Changed -= Import_Changed;
+            _workspaceState.ImportDocumentManager.Changed -= Import_Changed;
 
             // Detached from project.
             _isSupportedProject = false;
@@ -271,7 +260,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 handler(this, new ContextChangeEventArgs(kind));
             }
 
-            if (kind == ContextChangeKind.ProjectChanged && 
+            if (kind == ContextChangeKind.ProjectChanged &&
                 _projectSnapshot != null &&
                 _computingTagHelpers.project == null)
             {
@@ -288,7 +277,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
             {
                 // This will be the new snapshot unless the project was removed.
-                _projectSnapshot = _projectManager.GetLoadedProject(e.ProjectFilePath);
+                _projectSnapshot = _workspaceState.ProjectSnapshotManager.GetLoadedProject(e.ProjectFilePath);
 
                 switch (e.Kind)
                 {
@@ -309,7 +298,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     case ProjectChangeKind.ProjectRemoved:
 
                         // Fall back to ephemeral project
-                        _projectSnapshot = _projectManager.GetOrCreateProject(ProjectPath);
+                        _projectSnapshot = _workspaceState.ProjectSnapshotManager.GetOrCreateProject(ProjectPath);
                         OnContextChanged(ContextChangeKind.ProjectChanged);
                         break;
 

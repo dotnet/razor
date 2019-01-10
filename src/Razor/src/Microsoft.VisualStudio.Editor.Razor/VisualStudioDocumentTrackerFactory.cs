@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    internal abstract class VisualStudioDocumentTrackerFactory : ILanguageService
+    internal abstract class VisualStudioDocumentTrackerFactory
     {
         public abstract VisualStudioDocumentTracker Create(ITextBuffer textBuffer);
     }

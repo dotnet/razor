@@ -35,8 +35,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly VisualStudioCompletionBroker _completionBroker;
         private readonly VisualStudioDocumentTracker _documentTracker;
         private readonly ForegroundDispatcher _dispatcher;
-        private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
-        private readonly ErrorReporter _errorReporter;
         private TaskCompletionSource<RazorCodeDocument> _codeDocumentTaskCompletionSource;
         private RazorProjectEngine _projectEngine;
         private RazorCodeDocument _codeDocument;
@@ -52,8 +50,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public DefaultVisualStudioRazorParser(
             ForegroundDispatcher dispatcher,
             VisualStudioDocumentTracker documentTracker,
-            ProjectSnapshotProjectEngineFactory projectEngineFactory,
-            ErrorReporter errorReporter,
             VisualStudioCompletionBroker completionBroker)
         {
             if (dispatcher == null)
@@ -66,28 +62,18 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(documentTracker));
             }
 
-            if (projectEngineFactory == null)
-            {
-                throw new ArgumentNullException(nameof(projectEngineFactory));
-            }
-
-            if (errorReporter == null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
             if (completionBroker == null)
             {
                 throw new ArgumentNullException(nameof(completionBroker));
             }
 
             _dispatcher = dispatcher;
-            _projectEngineFactory = projectEngineFactory;
-            _errorReporter = errorReporter;
             _completionBroker = completionBroker;
             _documentTracker = documentTracker;
 
             _documentTracker.ContextChanged += DocumentTracker_ContextChanged;
+
+            TryReinitializeParser();
         }
 
         public override string FilePath => _documentTracker.FilePath;
@@ -180,29 +166,34 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             StopParser();
 
-            if (!_documentTracker.IsSupportedProject)
-            {
-                // Tracker is either starting up, tearing down or wrongfully instantiated.
-                // Either way, the tracker can't act on its associated project, neither can we.
-                return false;
-            }
-
             StartParser();
 
             return true;
         }
 
-        // Internal for testing
-        internal void StartParser()
+        private void StartParser()
         {
             _dispatcher.AssertForegroundThread();
 
-            // Make sure any tests use the real thing or a good mock. These tests can cause failures
-            // that are hard to understand when this throws.
-            Debug.Assert(_documentTracker.IsSupportedProject);
-            Debug.Assert(_documentTracker.ProjectSnapshot != null);
+            if (_parser != null)
+            {
+                Debug.Fail("Parser has already been started.");
+                return;
+            }
 
-            _projectEngine = _projectEngineFactory.Create(_documentTracker.ProjectSnapshot, ConfigureProjectEngine);
+            if (_documentTracker.IsSupportedProject)
+            {            
+                // Make sure any tests use the real thing or a good mock. These tests can cause failures
+                // that are hard to understand when this throws.
+                Debug.Assert(_documentTracker.ProjectSnapshot != null);
+                Debug.Assert(_documentTracker.Workspace != null);
+                var projectEngineFactory = _documentTracker.Workspace.Services.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
+                _projectEngine = projectEngineFactory.Create(_documentTracker.ProjectSnapshot, ConfigureProjectEngine);
+            }
+            else
+            {
+                _projectEngine = RazorProjectEngine.Create((builder) => { });
+            }
 
             Debug.Assert(_projectEngine != null);
             Debug.Assert(_projectEngine.Engine != null);
@@ -381,7 +372,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the workspace.
-                Task.Factory.StartNew(() => _errorReporter.ReportError(ex), CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                Debug.Fail("Unexpected error on the background parsing thread of Razor: " + ex.Message);
             }
         }
 

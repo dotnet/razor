@@ -17,11 +17,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly RazorEditorFactoryService _editorFactoryService;
+        private readonly VisualStudioDocumentTrackerSubscriber _documentTrackerSubscriber;
 
         [ImportingConstructor]
         public DefaultRazorDocumentManager(
             ForegroundDispatcher dispatcher,
-            RazorEditorFactoryService editorFactoryService)
+            RazorEditorFactoryService editorFactoryService,
+            VisualStudioDocumentTrackerSubscriber documentTrackerSubscriber)
         {
             if (dispatcher == null)
             {
@@ -33,8 +35,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(editorFactoryService));
             }
 
+            if (documentTrackerSubscriber == null)
+            {
+                throw new ArgumentNullException(nameof(documentTrackerSubscriber));
+            }
+
             _foregroundDispatcher = dispatcher;
             _editorFactoryService = editorFactoryService;
+            _documentTrackerSubscriber = documentTrackerSubscriber;
         }
 
         public override void OnTextViewOpened(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
@@ -69,7 +77,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                 if (documentTracker.TextViews.Count == 1)
                 {
-                    tracker.Subscribe();
+                    _documentTrackerSubscriber.Subscribe(tracker);
                 }
             }
         }
@@ -102,7 +110,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                     if (documentTracker.TextViews.Count == 0)
                     {
-                        documentTracker.Unsubscribe();
+                        _documentTrackerSubscriber.Unsubscribe(documentTracker);
                     }
                 }
             }

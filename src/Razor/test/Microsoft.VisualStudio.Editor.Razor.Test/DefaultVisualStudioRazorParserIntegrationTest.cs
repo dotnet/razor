@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Test;
@@ -27,7 +28,15 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public DefaultVisualStudioRazorParserIntegrationTest()
         {
-            Workspace = CodeAnalysis.TestWorkspace.Create();
+            var projectEngineFactory = CreateProjectEngineFactory();
+            var workspaceServices = new List<IWorkspaceService>()
+            {
+                projectEngineFactory
+            };
+            var languageServices = new List<ILanguageService>();
+            var testServices = TestServices.Create(workspaceServices, languageServices);
+
+            Workspace = CodeAnalysis.TestWorkspace.Create(testServices);
             ProjectSnapshot = new EphemeralProjectSnapshot(Workspace.Services, TestProjectPath);
         }
 
@@ -489,12 +498,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             var textBuffer = new TestTextBuffer(originalSnapshot);
             var documentTracker = CreateDocumentTracker(textBuffer);
-            var templateEngineFactory = CreateProjectEngineFactory();
             var parser = new DefaultVisualStudioRazorParser(
                 Dispatcher,
                 documentTracker,
-                templateEngineFactory,
-                new DefaultErrorReporter(),
                 new TestCompletionBroker())
             {
                 // We block idle work with the below reset events. Therefore, make tests fast and have the idle timer fire as soon as possible.
@@ -502,8 +508,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 NotifyForegroundIdleStart = new ManualResetEventSlim(),
                 BlockBackgroundIdleWork = new ManualResetEventSlim(),
             };
-
-            parser.StartParser();
 
             return new TestParserManager(parser);
         }
@@ -577,7 +581,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 tracker.FilePath == TestLinePragmaFileName &&
                 tracker.ProjectPath == TestProjectPath &&
                 tracker.ProjectSnapshot == ProjectSnapshot &&
-                tracker.IsSupportedProject == true);
+                tracker.IsSupportedProject == true &&
+                tracker.Workspace == Workspace);
             textBuffer.Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
 
             return documentTracker;

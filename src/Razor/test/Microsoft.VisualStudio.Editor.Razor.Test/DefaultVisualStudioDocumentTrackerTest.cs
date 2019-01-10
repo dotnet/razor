@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             FilePath = TestProjectData.SomeProjectFile1.FilePath;
             ProjectPath = TestProjectData.SomeProject.FilePath;
 
-            ImportDocumentManager = Mock.Of<ImportDocumentManager>();
             WorkspaceEditorSettings = new DefaultWorkspaceEditorSettings(Mock.Of<ForegroundDispatcher>(), Mock.Of<EditorSettingsManager>());
 
             SomeTagHelpers = new List<TagHelperDescriptor>()
@@ -37,22 +36,23 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 TagHelperDescriptorBuilder.Create("test", "test").Build(),
             };
             
-            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Workspace) { AllowNotifyListeners = true };
-
             HostProject = new HostProject(ProjectPath, FallbackRazorConfiguration.MVC_2_1);
             UpdatedHostProject = new HostProject(ProjectPath, FallbackRazorConfiguration.MVC_2_0);
             OtherHostProject = new HostProject(TestProjectData.AnotherProject.FilePath, FallbackRazorConfiguration.MVC_2_0);
+            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Workspace) { AllowNotifyListeners = true };
+            var importDocumentManager = Mock.Of<ImportDocumentManager>();
+            WorkspaceState = new DefaultWorkspaceState(Workspace, ProjectManager, importDocumentManager);
+
 
             DocumentTracker = new DefaultVisualStudioDocumentTracker(
                 Dispatcher,
                 FilePath,
                 ProjectPath,
-                ProjectManager,
                 WorkspaceEditorSettings,
-                Workspace,
-                TextBuffer,
-                ImportDocumentManager);
+                TextBuffer);
         }
+
+        private WorkspaceState WorkspaceState { get; }
 
         private IContentType RazorCoreContentType { get; }
 
@@ -108,14 +108,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 callCount++;
             };
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
 
             // Call count is 2 right now:
             // 1 trigger for initial subscribe context changed.
             // 1 trigger for TagHelpers being changed (computed).
 
             // Act
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
 
             // Assert
             Assert.Equal(2, callCount);
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var callCount = 0;
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
             DocumentTracker.ContextChanged += (sender, args) =>
             {
                 callCount++;
@@ -145,8 +145,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var callCount = 0;
-            DocumentTracker.Subscribe();
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
+            DocumentTracker.Subscribe(WorkspaceState);
             DocumentTracker.ContextChanged += (sender, args) =>
             {
                 callCount++;
@@ -188,6 +188,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void ProjectManager_Changed_ProjectAdded_TriggersContextChanged()
         {
             // Arrange
+            DocumentTracker.Subscribe(WorkspaceState);
             ProjectManager.HostProjectAdded(HostProject);
             ProjectManager.WorkspaceProjectAdded(WorkspaceProject);
 
@@ -213,6 +214,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void ProjectManager_Changed_ProjectChanged_TriggersContextChanged()
         {
             // Arrange
+            DocumentTracker.Subscribe(WorkspaceState);
             ProjectManager.HostProjectAdded(HostProject);
             ProjectManager.WorkspaceProjectAdded(WorkspaceProject);
             
@@ -238,6 +240,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void ProjectManager_Changed_ProjectRemoved_TriggersContextChanged_WithEphemeralProject()
         {
             // Arrange
+            DocumentTracker.Subscribe(WorkspaceState);
             ProjectManager.HostProjectAdded(HostProject);
             ProjectManager.WorkspaceProjectAdded(WorkspaceProject);
 
@@ -329,7 +332,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             };
 
             // Act
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
 
             // Assert
             Assert.True(called);
@@ -342,7 +345,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
 
             // Subscribe once to set supported project
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
 
             var called = false;
             DocumentTracker.ContextChanged += (sender, args) =>
@@ -461,7 +464,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
 
             // Act
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
 
             // Assert
             Assert.IsType<EphemeralProjectSnapshot>(DocumentTracker.ProjectSnapshot);
@@ -474,7 +477,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             ProjectManager.HostProjectAdded(HostProject);
 
             // Act
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
 
             // Assert
             Assert.IsType<DefaultProjectSnapshot>(DocumentTracker.ProjectSnapshot);
@@ -486,7 +489,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             ProjectManager.HostProjectAdded(HostProject);
 
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
 
             await DocumentTracker.PendingTagHelperTask;
 
@@ -516,7 +519,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             ProjectManager.HostProjectAdded(HostProject);
 
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
 
             await DocumentTracker.PendingTagHelperTask;
 
@@ -544,7 +547,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             ProjectManager.HostProjectAdded(HostProject);
 
-            DocumentTracker.Subscribe();
+            DocumentTracker.Subscribe(WorkspaceState);
 
             // We haven't let the tag helpers complete yet
             Assert.False(DocumentTracker.PendingTagHelperTask.IsCompleted);

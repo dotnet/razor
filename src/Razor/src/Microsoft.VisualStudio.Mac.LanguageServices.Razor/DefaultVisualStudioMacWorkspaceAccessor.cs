@@ -12,7 +12,6 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
     [System.Composition.Shared]
-    [Export(typeof(VisualStudioWorkspaceAccessor))]
     [Export(typeof(VisualStudioMacWorkspaceAccessor))]
     internal class DefaultVisualStudioMacWorkspaceAccessor : VisualStudioMacWorkspaceAccessor
     {
@@ -27,37 +26,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
 
             _projectService = projectService;
-        }
-
-        public override bool TryGetWorkspace(ITextBuffer textBuffer, out Workspace workspace)
-        {
-            if (textBuffer == null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
-            // We do a best effort approach in this method to get the workspace that belongs to the TextBuffer.
-            // Below we try and find the project and then the solution that contains the given text buffer. If 
-            // we're able to find both the project and solution then we use the solution to look up the corresponding 
-            // Workspace using MonoDevelops TypeSystemService.
-
-            var hostProject = (DotNetProject)_projectService.GetHostProject(textBuffer);
-            if (hostProject == null)
-            {
-                // Does not have a host project.
-                workspace = null;
-                return false;
-            }
-
-            var hostSolution = hostProject.ParentSolution;
-            if (hostSolution == null)
-            {
-                // Project does not have a solution
-                workspace = null;
-                return false;
-            }
-
-            return TryGetWorkspace(hostSolution, out workspace);
         }
 
         public override bool TryGetWorkspace(Solution solution, out Workspace workspace)

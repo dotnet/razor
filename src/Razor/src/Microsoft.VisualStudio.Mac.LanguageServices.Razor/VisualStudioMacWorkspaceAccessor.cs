@@ -7,7 +7,7 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    internal abstract class VisualStudioMacWorkspaceAccessor : VisualStudioWorkspaceAccessor
+    internal abstract class VisualStudioMacWorkspaceAccessor
     {
         public abstract bool TryGetWorkspace(Solution solution, out Workspace workspace);
     }

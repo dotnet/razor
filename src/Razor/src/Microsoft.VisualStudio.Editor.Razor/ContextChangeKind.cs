@@ -9,5 +9,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
         EditorSettingsChanged,
         TagHelpersChanged,
         ImportsChanged,
+        TextViewsChanged,
     }
 }

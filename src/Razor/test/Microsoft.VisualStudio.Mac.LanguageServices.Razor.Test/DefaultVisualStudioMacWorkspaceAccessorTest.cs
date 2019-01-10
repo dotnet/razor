@@ -10,20 +10,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
     public class DefaultVisualStudioMacWorkspaceAccessorTest
     {
-        [Fact]
-        public void TryGetWorkspace_NoHostProject_ReturnsFalse()
-        {
-            // Arrange
-            var workspaceAccessor = new DefaultVisualStudioMacWorkspaceAccessor(Mock.Of<TextBufferProjectService>());
-            var textBuffer = Mock.Of<ITextBuffer>();
-
-            // Act
-            var result = workspaceAccessor.TryGetWorkspace(textBuffer, out var workspace);
-
-            // Assert
-            Assert.False(result);
-        }
-
         // -------------------------------------------------------------------------------------------
         // Purposefully do not have any more tests here because that would involve mocking MonoDevelop 
         // types. The default constructors for the Solution / DotNetProject MonoDevelop types change

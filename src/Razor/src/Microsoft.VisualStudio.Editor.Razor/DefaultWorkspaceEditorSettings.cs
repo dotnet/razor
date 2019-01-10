@@ -2,12 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
+    [Export(typeof(WorkspaceEditorSettings))]
     internal class DefaultWorkspaceEditorSettings : WorkspaceEditorSettings
     {
         private readonly EditorSettingsManager _editorSettingsManager;
@@ -16,7 +18,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private int _listenerCount = 0;
 
-        public DefaultWorkspaceEditorSettings(ForegroundDispatcher foregroundDispatcher, EditorSettingsManager editorSettingsManager)
+        [ImportingConstructor]
+        public DefaultWorkspaceEditorSettings(
+            ForegroundDispatcher foregroundDispatcher, 
+            EditorSettingsManager editorSettingsManager)
         {
             if (foregroundDispatcher == null)
             {

@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    internal abstract class VisualStudioCompletionBroker : ILanguageService
+    internal abstract class VisualStudioCompletionBroker
     {
         public abstract bool IsCompletionActive(ITextView textView);
     }

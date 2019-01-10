@@ -2,31 +2,26 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
+    [System.Composition.Shared]
+    [Export(typeof(VisualStudioRazorParserFactory))]
     internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFactory
     {
         private readonly ForegroundDispatcher _dispatcher;
-        private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
         private readonly VisualStudioCompletionBroker _completionBroker;
-        private readonly ErrorReporter _errorReporter;
 
+        [ImportingConstructor]
         public DefaultVisualStudioRazorParserFactory(
             ForegroundDispatcher dispatcher,
-            ErrorReporter errorReporter,
-            VisualStudioCompletionBroker completionBroker,
-            ProjectSnapshotProjectEngineFactory projectEngineFactory)
+            VisualStudioCompletionBroker completionBroker)
         {
             if (dispatcher == null)
             {
                 throw new ArgumentNullException(nameof(dispatcher));
-            }
-
-            if (errorReporter == null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
             }
 
             if (completionBroker == null)
@@ -34,15 +29,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(completionBroker));
             }
 
-            if (projectEngineFactory == null)
-            {
-                throw new ArgumentNullException(nameof(projectEngineFactory));
-            }
-
             _dispatcher = dispatcher;
-            _errorReporter = errorReporter;
             _completionBroker = completionBroker;
-            _projectEngineFactory = projectEngineFactory;
         }
 
         public override VisualStudioRazorParser Create(VisualStudioDocumentTracker documentTracker)
@@ -57,8 +45,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var parser = new DefaultVisualStudioRazorParser(
                 _dispatcher,
                 documentTracker,
-                _projectEngineFactory,
-                _errorReporter,
                 _completionBroker);
             return parser;
         }

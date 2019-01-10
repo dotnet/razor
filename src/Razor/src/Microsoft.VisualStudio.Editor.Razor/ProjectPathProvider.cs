@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    internal abstract class ProjectPathProvider : IWorkspaceService
+    internal abstract class ProjectPathProvider
     {
         public abstract bool TryGetProjectPath(ITextBuffer textBuffer, out string filePath);
     }

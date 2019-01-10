@@ -2,17 +2,21 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
+    [System.Composition.Shared]
+    [Export(typeof(BraceSmartIndenterFactory))]
     internal class DefaultBraceSmartIndenterFactory : BraceSmartIndenterFactory
     {
         private readonly IEditorOperationsFactoryService _editorOperationsFactory;
         private readonly ForegroundDispatcher _dispatcher;
         private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
 
+        [ImportingConstructor]
         public DefaultBraceSmartIndenterFactory(
             ForegroundDispatcher dispatcher,
             TextBufferCodeDocumentProvider codeDocumentProvider,

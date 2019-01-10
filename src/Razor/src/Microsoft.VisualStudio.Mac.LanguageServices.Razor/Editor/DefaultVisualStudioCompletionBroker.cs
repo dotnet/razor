@@ -2,12 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text.Editor;
 using MonoDevelop.Ide.CodeCompletion;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
 {
+    [System.Composition.Shared]
+    [Export(typeof(VisualStudioCompletionBroker))]
     internal class DefaultVisualStudioCompletionBroker : VisualStudioCompletionBroker
     {
         private const string IsCompletionActiveKey = "RoslynCompletionPresenterSession.IsCompletionActive";
