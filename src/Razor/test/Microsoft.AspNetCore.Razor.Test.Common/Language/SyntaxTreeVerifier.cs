@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language
 {
@@ -18,20 +20,15 @@ namespace Microsoft.AspNetCore.Razor.Language
             if (ensureFullFidelity)
             {
                 var syntaxTreeString = syntaxTree.Root.ToFullString();
-                if (syntaxTree.Source.Length != syntaxTreeString.Length)
-                {
-                    throw new InvalidOperationException(
-                        $"The syntax tree does not exactly represent the document. Document length: {syntaxTree.Source.Length} Syntax tree length: {syntaxTreeString.Length}");
-                }
-
+                var builder = new StringBuilder(syntaxTree.Source.Length);
                 for (var i = 0; i < syntaxTree.Source.Length; i++)
                 {
-                    if (syntaxTree.Source[i] != syntaxTreeString[i])
-                    {
-                        throw new InvalidOperationException(
-                            $"The syntax tree does not exactly represent the document. Position: {i} Expected character: {syntaxTree.Source[i]} Actual character: {syntaxTreeString[i]}");
-                    }
+                    builder.Append(syntaxTree.Source[i]);
                 }
+                var sourceString = builder.ToString();
+
+                // Make sure the syntax tree contains all of the text in the document.
+                Assert.Equal(sourceString, syntaxTreeString);
             }
         }
 
