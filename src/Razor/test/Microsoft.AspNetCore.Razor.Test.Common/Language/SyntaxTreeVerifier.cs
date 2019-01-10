@@ -15,11 +15,23 @@ namespace Microsoft.AspNetCore.Razor.Language
             var verifier = new Verifier(syntaxTree.Source);
             verifier.Visit(syntaxTree.Root);
 
-            var syntaxTreeLength = verifier.SourceLocationTracker.CurrentLocation.AbsoluteIndex;
-            if (ensureFullFidelity && syntaxTreeLength != syntaxTree.Source.Length)
+            if (ensureFullFidelity)
             {
-                throw new InvalidOperationException(
-                    $"The syntax tree does not exactly represent the document. Document length: {syntaxTree.Source.Length} Syntax tree length: {syntaxTreeLength}");
+                var syntaxTreeString = syntaxTree.Root.ToFullString();
+                if (syntaxTree.Source.Length != syntaxTreeString.Length)
+                {
+                    throw new InvalidOperationException(
+                        $"The syntax tree does not exactly represent the document. Document length: {syntaxTree.Source.Length} Syntax tree length: {syntaxTreeString.Length}");
+                }
+
+                for (var i = 0; i < syntaxTree.Source.Length; i++)
+                {
+                    if (syntaxTree.Source[i] != syntaxTreeString[i])
+                    {
+                        throw new InvalidOperationException(
+                            $"The syntax tree does not exactly represent the document. Position: {i} Expected character: {syntaxTree.Source[i]} Actual character: {syntaxTreeString[i]}");
+                    }
+                }
             }
         }
 
