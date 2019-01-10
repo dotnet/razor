@@ -10,12 +10,20 @@ namespace Microsoft.AspNetCore.Razor.Language
     // Verifies recursively that a syntax tree has no gaps in terms of position/location.
     internal class SyntaxTreeVerifier
     {
-        public static void Verify(RazorSyntaxTree syntaxTree)
+        public static void Verify(RazorSyntaxTree syntaxTree, bool ensureFullFidelity = true)
         {
-            new Verifier(syntaxTree.Source).Visit(syntaxTree.Root);
+            var verifier = new Verifier(syntaxTree.Source);
+            verifier.Visit(syntaxTree.Root);
+
+            var syntaxTreeLength = verifier.SourceLocationTracker.CurrentLocation.AbsoluteIndex;
+            if (ensureFullFidelity && syntaxTreeLength != syntaxTree.Source.Length)
+            {
+                throw new InvalidOperationException(
+                    $"The syntax tree does not exactly represent the document. Document length: {syntaxTree.Source.Length} Syntax tree length: {syntaxTreeLength}");
+            }
         }
 
-        private class Verifier : SyntaxRewriter
+        private class Verifier : SyntaxWalker
         {
             private readonly SourceLocationTracker _tracker;
             private readonly RazorSourceDocument _source;
@@ -26,7 +34,9 @@ namespace Microsoft.AspNetCore.Razor.Language
                 _source = source;
             }
 
-            public override SyntaxNode VisitToken(SyntaxToken token)
+            public SourceLocationTracker SourceLocationTracker => _tracker;
+
+            public override void VisitToken(SyntaxToken token)
             {
                 if (token != null && !token.IsMissing && token.Kind != SyntaxKind.Marker)
                 {
@@ -39,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                     _tracker.UpdateLocation(token.Content);
                 }
 
-                return base.VisitToken(token);
+                base.VisitToken(token);
             }
         }
     }
