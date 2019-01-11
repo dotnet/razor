@@ -84,7 +84,6 @@ Copyright (c) .NET Foundation. All rights reserved.
     Returns="@(RazorComponentWithTargetPath)">
   </Target>
 
-
   <!--
     Using DependsOnTargets here because real dependencies of this target aren't defined in
     a downlevel (pre-3.0) SDK.

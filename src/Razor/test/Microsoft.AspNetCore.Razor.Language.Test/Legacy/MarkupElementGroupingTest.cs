@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy
 {
-    public class MarkupElementGroupingTest : CsHtmlMarkupParserTestBase
+    public class MarkupElementGroupingTest : MarkupParserTestBase
     {
         [Fact]
         public void Handles_ValidTags()
@@ -121,6 +121,18 @@ Foo</div>
             // Arrange
             var content = @"
 <input>Foo</input>
+";
+
+            // Act & Assert
+            ParseDocumentTest(content);
+        }
+
+        [Fact]
+        public void Handles_SpecialCasesVoidTags_WithNoEndTags()
+        {
+            // Arrange
+            var content = @"
+<head><meta><!meta></head>
 ";
 
             // Act & Assert
