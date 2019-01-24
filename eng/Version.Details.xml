@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <ProductDependencies></ProductDependencies>
+  <ProductDependencies>
+    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="4.6.0-preview.19067.6">
+      <Uri>https://github.com/dotnet/corefx</Uri>
+      <Sha>d8c200414ccf65e0be94358937e9c711c0fd532d</Sha>
+    </Dependency>
+    <Dependency Name="System.Text.Encodings.Web" Version="4.6.0-preview.19067.6">
+      <Uri>https://github.com/dotnet/corefx</Uri>
+      <Sha>d8c200414ccf65e0be94358937e9c711c0fd532d</Sha>
+    </Dependency>
+  </ProductDependencies>
   <ToolsetDependencies>
     <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="1.0.0-beta.19073.5">
       <Uri>https://github.com/dotnet/arcade</Uri>
