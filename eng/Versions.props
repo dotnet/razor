@@ -47,7 +47,6 @@
   <PropertyGroup Label="Package Versions">
     <BenchmarkDotNetPackageVersion>0.10.13</BenchmarkDotNetPackageVersion>
     <MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>3.0.0-preview-181106-14</MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>
-    <MicrosoftAspNetCoreHtmlAbstractionsPackageVersion>3.0.0-alpha1-10717</MicrosoftAspNetCoreHtmlAbstractionsPackageVersion>
     <MicrosoftAspNetCoreTestingPackageVersion>3.0.0-preview-181106-14</MicrosoftAspNetCoreTestingPackageVersion>
     <MicrosoftBuildFrameworkPackageVersion>15.8.166</MicrosoftBuildFrameworkPackageVersion>
     <MicrosoftBuildPackageVersion>15.8.166</MicrosoftBuildPackageVersion>
@@ -93,6 +92,7 @@
     <TEST_NewtonsoftJsonPackageVersion>11.0.1</TEST_NewtonsoftJsonPackageVersion>
     <StreamJsonRpcPackageVersion>1.3.23</StreamJsonRpcPackageVersion>
     <SystemDiagnosticsDiagnosticSourcePackageVersion>4.6.0-preview1-26907-04</SystemDiagnosticsDiagnosticSourcePackageVersion>
+    <SystemTextEncodingsWebPackageVersion>4.6.0-preview1-26907-04</SystemTextEncodingsWebPackageVersion>
     <SystemValueTuplePackageVersion>4.6.0-preview1-26829-04</SystemValueTuplePackageVersion>
     <VSIX_MicrosoftCodeAnalysisPackageVersion>3.0.0-beta2-18612-05</VSIX_MicrosoftCodeAnalysisPackageVersion>
     <VSIX_MicrosoftCodeAnalysisCommonPackageVersion>3.0.0-beta2-18612-05</VSIX_MicrosoftCodeAnalysisCommonPackageVersion>

@@ -246,7 +246,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             var depsFilePath = Path.Combine(Project.DirectoryPath, OutputPath, "SimpleMvc.deps.json");
             var dependencyContext = ReadDependencyContext(depsFilePath);
             // Pick a couple of libraries and ensure they have some compile references
-            var packageReference = dependencyContext.CompileLibraries.First(l => l.Name == "Microsoft.AspNetCore.Html.Abstractions");
+            var packageReference = dependencyContext.CompileLibraries.First(l => l.Name == "Microsoft.Text.Encodings.Web");
             Assert.NotEmpty(packageReference.Assemblies);
 
             var projectReference = dependencyContext.CompileLibraries.First(l => l.Name == "SimpleMvc");
