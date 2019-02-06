@@ -356,8 +356,14 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             public override SyntaxNode VisitCSharpTransition(CSharpTransitionSyntax node)
             {
-                if (!_tryParseResult.IsBoundNonStringAttribute)
+                var isPartOfCodeBlock = node.FirstAncestorOrSelf<CSharpStatementSyntax>() != null;
+                var isPartOfDirective = node.FirstAncestorOrSelf<RazorDirectiveSyntax>() != null;
+                if (!_tryParseResult.IsBoundNonStringAttribute || isPartOfCodeBlock || isPartOfDirective)
                 {
+                    // We don't want to rewrite anything in bound string attributes.
+                    // Also, we don't support code blocks or directives inside tag helper attributes. Don't rewrite anything inside a code block or a directive.
+                    // E.g, <p age="@{1 + 2}"> is not supported.
+                    // A diagnostic will be added at the code generation phase.
                     return base.VisitCSharpTransition(node);
                 }
 
@@ -460,8 +466,14 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             public override SyntaxNode VisitRazorMetaCode(RazorMetaCodeSyntax node)
             {
-                if (!_tryParseResult.IsBoundNonStringAttribute)
+                var isPartOfCodeBlock = node.FirstAncestorOrSelf<CSharpStatementSyntax>() != null;
+                var isPartOfDirective = node.FirstAncestorOrSelf<RazorDirectiveSyntax>() != null;
+                if (!_tryParseResult.IsBoundNonStringAttribute || isPartOfCodeBlock || isPartOfDirective)
                 {
+                    // We don't want to rewrite anything in bound string attributes.
+                    // Also, we don't support code blocks or directives inside tag helper attributes. Don't rewrite anything inside a code block or a directive.
+                    // E.g, <p age="@{1 + 2}"> is not supported.
+                    // A diagnostic will be added at the code generation phase.
                     return base.VisitRazorMetaCode(node);
                 }
 

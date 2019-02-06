@@ -483,6 +483,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         }
 
         [Fact]
+        public void CreatesMarkupCodeSpansForNonStringTagHelperAttributes12()
+        {
+            EvaluateData(CodeTagHelperAttributes_Descriptors, "<person age=\"@{flag == 0 ? 11 : 12}\" />");
+        }
+
+        [Fact]
         public void TagHelperParseTreeRewriter_CreatesErrorForIncompleteTagHelper1()
         {
             RunParseTreeRewriterTest("<p class=foo dynamic=@DateTime.Now style=color:red;><strong></p></strong>", "strong", "p");
