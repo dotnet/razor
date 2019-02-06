@@ -356,14 +356,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             public override SyntaxNode VisitCSharpTransition(CSharpTransitionSyntax node)
             {
-                var isPartOfCodeBlock = node.FirstAncestorOrSelf<CSharpStatementSyntax>() != null;
-                var isPartOfDirective = node.FirstAncestorOrSelf<RazorDirectiveSyntax>() != null;
-                if (!_tryParseResult.IsBoundNonStringAttribute || isPartOfCodeBlock || isPartOfDirective)
+                if (!_tryParseResult.IsBoundNonStringAttribute)
                 {
-                    // We don't want to rewrite anything in bound string attributes.
-                    // Also, we don't support code blocks or directives inside tag helper attributes. Don't rewrite anything inside a code block or a directive.
-                    // E.g, <p age="@{1 + 2}"> is not supported.
-                    // A diagnostic will be added at the code generation phase.
                     return base.VisitCSharpTransition(node);
                 }
 
@@ -466,14 +460,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             public override SyntaxNode VisitRazorMetaCode(RazorMetaCodeSyntax node)
             {
-                var isPartOfCodeBlock = node.FirstAncestorOrSelf<CSharpStatementSyntax>() != null;
-                var isPartOfDirective = node.FirstAncestorOrSelf<RazorDirectiveSyntax>() != null;
-                if (!_tryParseResult.IsBoundNonStringAttribute || isPartOfCodeBlock || isPartOfDirective)
+                if (!_tryParseResult.IsBoundNonStringAttribute)
                 {
-                    // We don't want to rewrite anything in bound string attributes.
-                    // Also, we don't support code blocks or directives inside tag helper attributes. Don't rewrite anything inside a code block or a directive.
-                    // E.g, <p age="@{1 + 2}"> is not supported.
-                    // A diagnostic will be added at the code generation phase.
                     return base.VisitRazorMetaCode(node);
                 }
 
@@ -490,6 +478,20 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
                 _rewriteAsMarkup = true;
                 return base.VisitRazorMetaCode(node);
+            }
+
+            public override SyntaxNode VisitCSharpStatement(CSharpStatementSyntax node)
+            {
+                // We don't support code blocks inside tag helper attributes. Don't rewrite anything inside a code block.
+                // E.g, <p age="@{1 + 2}"> is not supported.
+                return node;
+            }
+
+            public override SyntaxNode VisitRazorDirective(RazorDirectiveSyntax node)
+            {
+                // Also, we don't support directives inside tag helper attributes. Don't rewrite anything inside a directive.
+                // E.g, <p age="@functions { }"> is not supported.
+                return node;
             }
 
             public override SyntaxNode VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
