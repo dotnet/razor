@@ -347,6 +347,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         }
 
         [Fact]
+        public void CreatesErrorForMalformedTagHelpersWithAttributes20()
+        {
+            RunParseTreeRewriterTest("<p attr=\"@if (true) <p attr='@foo'> }\"></p>", "strong", "p");
+        }
+
+        [Fact]
         public void CreatesErrorForMalformedTagHelper1()
         {
             RunParseTreeRewriterTest("<p", "strong", "p");

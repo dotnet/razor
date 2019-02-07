@@ -489,8 +489,16 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             public override SyntaxNode VisitRazorDirective(RazorDirectiveSyntax node)
             {
-                // Also, we don't support directives inside tag helper attributes. Don't rewrite anything inside a directive.
+                // We don't support directives inside tag helper attributes. Don't rewrite anything inside a directive.
                 // E.g, <p age="@functions { }"> is not supported.
+                return node;
+            }
+
+            public override SyntaxNode VisitMarkupElement(MarkupElementSyntax node)
+            {
+                // We're visiting an attribute value. If we encounter a MarkupElement this means the attribute value is invalid.
+                // We don't want to rewrite anything here.
+                // E.g, <my age="@if (true) { <my4 age=... }"></my4>
                 return node;
             }
 
