@@ -3,7 +3,6 @@
   <PropertyGroup>
     <RazorSdkDirectoryRoot>$(RazorSdkArtifactsDirectory)$(Configuration)\sdk-output\</RazorSdkDirectoryRoot>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
-    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
   <PropertyGroup>
