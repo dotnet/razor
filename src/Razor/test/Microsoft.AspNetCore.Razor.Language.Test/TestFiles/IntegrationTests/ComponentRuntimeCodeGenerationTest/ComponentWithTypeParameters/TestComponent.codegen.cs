@@ -21,13 +21,13 @@ namespace Test
 
 #line default
 #line hidden
-            builder.AddContent(1, "    ");
+            builder.AddMarkupContent(1, "    ");
             builder.OpenElement(2, "p");
-            builder.AddContent(3, "\r\n    ");
+            builder.AddMarkupContent(3, "\r\n    ");
             builder.AddContent(4, ChildContent(item2));
-            builder.AddContent(5, ";\r\n    ");
+            builder.AddMarkupContent(5, ";\r\n    ");
             builder.CloseElement();
-            builder.AddContent(6, "\r\n");
+            builder.AddMarkupContent(6, "\r\n");
 #line 11 "x:\dir\subdir\Test\TestComponent.cshtml"
 }
 

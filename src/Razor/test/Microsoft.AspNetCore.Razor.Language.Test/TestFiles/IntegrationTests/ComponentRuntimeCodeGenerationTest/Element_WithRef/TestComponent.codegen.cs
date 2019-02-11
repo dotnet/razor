@@ -25,7 +25,7 @@ namespace Test
 #line hidden
             }
             );
-            builder.AddContent(4, "Hello");
+            builder.AddMarkupContent(4, "Hello");
             builder.CloseElement();
         }
         #pragma warning restore 1998

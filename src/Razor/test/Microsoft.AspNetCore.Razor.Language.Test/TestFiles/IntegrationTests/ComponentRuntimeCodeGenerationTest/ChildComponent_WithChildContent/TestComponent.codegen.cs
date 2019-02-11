@@ -17,7 +17,7 @@ namespace Test
             builder.OpenComponent<Test.MyComponent>(0);
             builder.AddAttribute(1, "MyAttr", "abc");
             builder.AddAttribute(2, "ChildContent", (Microsoft.AspNetCore.Components.RenderFragment)((builder2) => {
-                builder2.AddContent(3, "Some text");
+                builder2.AddMarkupContent(3, "Some text");
                 builder2.AddMarkupContent(4, "<some-child a=\"1\">Nested text</some-child>");
             }
             ));

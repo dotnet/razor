@@ -16,7 +16,7 @@ namespace Test
             base.BuildRenderTree(builder);
             builder.OpenComponent<Test.MyComponent>(0);
             builder.AddAttribute(1, "Header", (Microsoft.AspNetCore.Components.RenderFragment)((builder2) => {
-                builder2.AddContent(2, "Hi!");
+                builder2.AddMarkupContent(2, "Hi!");
             }
             ));
             builder.AddAttribute(3, "Footer", (Microsoft.AspNetCore.Components.RenderFragment)((builder2) => {

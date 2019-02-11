@@ -21,9 +21,9 @@ namespace Test
 #line hidden
             (builder2) => {
                 builder2.OpenElement(0, "li");
-                builder2.AddContent(1, "#");
+                builder2.AddMarkupContent(1, "#");
                 builder2.AddContent(2, context.Index);
-                builder2.AddContent(3, " - ");
+                builder2.AddMarkupContent(3, " - ");
                 builder2.AddContent(4, context.Item.ToLower());
                 builder2.CloseElement();
             }

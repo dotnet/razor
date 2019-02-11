@@ -256,7 +256,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             // Text node
             var content = GetHtmlContent(node);
             context.CodeWriter
-                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.AddContent)}")
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.AddMarkupContent)}")
                 .Write((_sourceSequence++).ToString())
                 .WriteParameterSeparator()
                 .WriteStringLiteral(content)

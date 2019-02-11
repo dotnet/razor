@@ -16,7 +16,7 @@ namespace Test
             base.BuildRenderTree(builder);
             builder.OpenComponent<Test.MyComponent>(0);
             builder.AddAttribute(1, "ChildContent", (Microsoft.AspNetCore.Components.RenderFragment)((builder2) => {
-                builder2.AddContent(2, "hello");
+                builder2.AddMarkupContent(2, "hello");
             }
             ));
             builder.CloseComponent();
