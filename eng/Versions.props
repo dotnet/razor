@@ -55,10 +55,10 @@
     <MicrosoftCodeAnalysisCSharpPackageVersion>2.11.0-beta1-final</MicrosoftCodeAnalysisCSharpPackageVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>2.11.0-beta1-final</MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
     <MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>3.0.0-preview3.19113.6</MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>
-    <MicrosoftExtensionsDependencyModelPackageVersion>3.0.0-preview3-27413-7</MicrosoftExtensionsDependencyModelPackageVersion>
+    <MicrosoftExtensionsDependencyModelPackageVersion>3.0.0-preview3-27414-8</MicrosoftExtensionsDependencyModelPackageVersion>
     <MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>3.0.0-preview3.19113.6</MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>
     <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>3.0.0-preview3.19113.6</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
-    <MicrosoftNETCoreAppPackageVersion>3.0.0-preview3-27413-7</MicrosoftNETCoreAppPackageVersion>
+    <MicrosoftNETCoreAppPackageVersion>3.0.0-preview3-27414-8</MicrosoftNETCoreAppPackageVersion>
     <MicrosoftNETCoreApp21PackageVersion>2.1.3</MicrosoftNETCoreApp21PackageVersion>
     <MicrosoftNETCoreApp30PackageVersion>$(MicrosoftNETCoreAppPackageVersion)</MicrosoftNETCoreApp30PackageVersion>
     <MicrosoftNETFrameworkReferenceAssemblies>1.0.0-alpha-004</MicrosoftNETFrameworkReferenceAssemblies>
