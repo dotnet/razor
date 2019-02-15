@@ -171,8 +171,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 node.AttributeName,
                 out var valueAttributeName,
                 out var changeAttributeName,
+                out var expressionAttributeName,
                 out var valueAttribute,
-                out var changeAttribute))
+                out var changeAttribute,
+                out var expressionAttribute))
             {
                 // Skip anything we can't understand. It's important that we don't crash, that will bring down
                 // the build.
@@ -340,7 +342,30 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     changeNode.Children[0].Children.Add(changeExpressionTokens[i]);
                 }
 
-                return new[] { valueNode, changeNode };
+                ComponentAttributeIntermediateNode expressionNode = null;
+                if (expressionAttribute != null)
+                {
+                    expressionNode = new ComponentAttributeIntermediateNode(node)
+                    {
+                        AttributeName = expressionAttributeName,
+                        BoundAttribute = expressionAttribute,
+                        PropertyName = expressionAttribute.GetPropertyName(),
+                        TagHelper = node.TagHelper,
+                        TypeName = expressionAttribute.IsWeaklyTyped() ? null : expressionAttribute.TypeName,
+                    };
+
+                    expressionNode.Children.Clear();
+                    expressionNode.Children.Add(new CSharpExpressionIntermediateNode());
+                    expressionNode.Children[0].Children.Add(new IntermediateToken()
+                    {
+                        Content = $"() => {original.Content}",
+                        Kind = TokenKind.CSharp
+                    });
+                }
+
+                return expressionNode == null
+                    ? new[] { valueNode, changeNode }
+                    : new[] { valueNode, changeNode, expressionNode };
             }
         }
 
@@ -394,11 +419,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             string attributeName,
             out string valueAttributeName,
             out string changeAttributeName,
+            out string expressionAttributeName,
             out BoundAttributeDescriptor valueAttribute,
-            out BoundAttributeDescriptor changeAttribute)
+            out BoundAttributeDescriptor changeAttribute,
+            out BoundAttributeDescriptor expressionAttribute)
         {
             valueAttribute = null;
             changeAttribute = null;
+            expressionAttribute = null;
+            expressionAttributeName = null;
 
             // Even though some of our 'bind' tag helpers specify the attribute names, they
             // should still satisfy one of the valid syntaxes.
@@ -415,6 +444,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             // We expect 1 bind tag helper per-node.
             valueAttributeName = node.TagHelper.GetValueAttributeName() ?? valueAttributeName;
             changeAttributeName = node.TagHelper.GetChangeAttributeName() ?? changeAttributeName;
+            expressionAttributeName = node.TagHelper.GetExpressionAttributeName() ?? expressionAttributeName;
 
             // We expect 0-1 components per-node.
             var componentTagHelper = (parent as ComponentIntermediateNode)?.Component;
@@ -437,6 +467,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 changeAttributeName = valueAttributeName + "Changed";
             }
 
+            // Likewise for the expression attribute
+            if (expressionAttributeName == null)
+            {
+                expressionAttributeName = valueAttributeName + "Expression";
+            }
+
             for (var i = 0; i < componentTagHelper.BoundAttributes.Count; i++)
             {
                 var attribute = componentTagHelper.BoundAttributes[i];
@@ -449,6 +485,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 if (string.Equals(changeAttributeName, attribute.Name))
                 {
                     changeAttribute = attribute;
+                }
+
+                if (string.Equals(expressionAttributeName, attribute.Name))
+                {
+                    expressionAttribute = attribute;
                 }
             }
 

@@ -429,6 +429,84 @@ namespace Test
         }
 
         [Fact]
+        public void BindToComponent_SpecifiesValueAndExpression()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using System.Linq.Expressions;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        int Value { get; set; }
+
+        [Parameter]
+        Action<int> ValueChanged { get; set; }
+
+        [Parameter]
+        Expression<Func<int>> ValueExpression { get; set; }
+    }
+}"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent bind-Value=""ParentValue"" />
+@functions {
+    public int ParentValue { get; set; } = 42;
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void BindToComponent_SpecifiesValueAndExpression_TypeChecked()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using System.Linq.Expressions;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        int Value { get; set; }
+
+        [Parameter]
+        Action<int> ValueChanged { get; set; }
+
+        [Parameter]
+        Expression<Func<string>> ValueExpression { get; set; }
+    }
+}"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent bind-Value=""ParentValue"" />
+@functions {
+    public int ParentValue { get; set; } = 42;
+}");
+
+            var assembly = CompileToAssembly(generated, throwOnFailure: false);
+            // This has some errors
+            Assert.Collection(
+                assembly.Diagnostics.OrderBy(d => d.Id),
+                d => Assert.Equal("CS0029", d.Id),
+                d => Assert.Equal("CS1662", d.Id));
+        }
+
+        [Fact]
         public void BindToElement_WritesAttributes()
         {
             // Arrange
