@@ -34,6 +34,9 @@ function LogError {
 
 try {
     if ($ci) {
+        $env:DOTNET_ROOT = "$repoRoot\.dotnet"
+        $env:PATH = "$env:DOTNET_ROOT;$env:PATH"
+
         & $PSScriptRoot\..\common\build.ps1 -ci -prepareMachine -build:$false -restore:$false
     }
 
