@@ -36,6 +36,8 @@ jobs:
     # This job checks for code quality
     - job: Code_check
       displayName: Code check
+      enablePublishBuildArtifacts: false
+      enablePublishTestResults: false
       pool:
         # agent pool can't be read from a user-defined variable (Azure DevOps limitation)
         ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
