@@ -1101,6 +1101,415 @@ namespace Test
 
         #endregion
 
+        #region EventCallback
+
+        [Fact]
+        public void EventCallback_CanPassEventCallback_Explicitly()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@(EventCallback.Factory.Create(this, Increment))""/>
+
+@functions {
+    private int counter;
+    private void Increment() {
+        counter++;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void EventCallback_CanPassEventCallbackOfT_Explicitly()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback<UIMouseEventArgs> OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@(EventCallback.Factory.Create<UIMouseEventArgs>(this, Increment))""/>
+
+@functions {
+    private int counter;
+    private void Increment() {
+        counter++;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void EventCallback_CanPassEventCallback_Implicitly_Action()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@Increment""/>
+
+@functions {
+    private int counter;
+    private void Increment() {
+        counter++;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void EventCallback_CanPassEventCallback_Implicitly_ActionOfObject()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@Increment""/>
+
+@functions {
+    private int counter;
+    private void Increment(object e) {
+        counter++;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void EventCallback_CanPassEventCallback_Implicitly_FuncOfTask()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@Increment""/>
+
+@functions {
+    private int counter;
+    private Task Increment() {
+        counter++;
+        return Task.CompletedTask;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void EventCallback_CanPassEventCallback_Implicitly_FuncOfobjectTask()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@Increment""/>
+
+@functions {
+    private int counter;
+    private Task Increment(object e) {
+        counter++;
+        return Task.CompletedTask;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void EventCallback_CanPassEventCallbackOfT_Implicitly_Action()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback<UIMouseEventArgs> OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@Increment""/>
+
+@functions {
+    private int counter;
+    private void Increment() {
+        counter++;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void EventCallback_CanPassEventCallbackOfT_Implicitly_ActionOfT()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback<UIMouseEventArgs> OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@Increment""/>
+
+@functions {
+    private int counter;
+    private void Increment(UIMouseEventArgs e) {
+        counter++;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void EventCallback_CanPassEventCallbackOfT_Implicitly_FuncOfTask()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback<UIMouseEventArgs> OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@Increment""/>
+
+@functions {
+    private int counter;
+    private Task Increment() {
+        counter++;
+        return Task.CompletedTask;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void EventCallback_CanPassEventCallbackOfT_Implicitly_FuncOfTTask()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback<UIMouseEventArgs> OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@Increment""/>
+
+@functions {
+    private int counter;
+    private Task Increment(UIMouseEventArgs e) {
+        counter++;
+        return Task.CompletedTask;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void EventCallback_CanPassEventCallbackOfT_Implicitly_TypeMismatch()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        EventCallback<UIMouseEventArgs> OnClick { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent OnClick=""@Increment""/>
+
+@functions {
+    private int counter;
+    private void Increment(UIChangeEventArgs e) {
+        counter++;
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+
+            var result = CompileToAssembly(generated, throwOnFailure: false);
+
+            // Cannot convert from method group to Action - this isn't a great error message, but it's
+            // what the compiler gives us.
+            Assert.Collection(result.Diagnostics, d => { Assert.Equal("CS1503", d.Id); });
+        }
+
+        #endregion
+
         #region Event Handlers
 
         [Fact]
