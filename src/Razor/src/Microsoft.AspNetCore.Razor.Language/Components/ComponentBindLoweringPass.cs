@@ -148,11 +148,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         {
             // Bind works similarly to a macro, it always expands to code that the user could have written.
             //
-            // For the nodes that are related to the bind-attribute rewrite them to look like a pair of
+            // For the nodes that are related to the bind-attribute rewrite them to look like a set of
             // 'normal' HTML attributes similar to the following transformation.
             //
             // Input:   <MyComponent bind-Value="@currentCount" />
-            // Output:  <MyComponent Value ="...<get the value>..." ValueChanged ="... <set the value>..." />
+            // Output:  <MyComponent Value ="...<get the value>..." ValueChanged ="... <set the value>..." ValueExpression ="() => ...<get the value>..." />
             //
             // This means that the expression that appears inside of 'bind' must be an LValue or else
             // there will be errors. In general the errors that come from C# in this case are good enough
@@ -342,6 +342,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     changeNode.Children[0].Children.Add(changeExpressionTokens[i]);
                 }
 
+                // Finally, also emit a node for the "Expression" attribute, but only if the target
+                // component is defined to accept one
                 ComponentAttributeIntermediateNode expressionNode = null;
                 if (expressionAttribute != null)
                 {

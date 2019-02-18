@@ -507,6 +507,44 @@ namespace Test
         }
 
         [Fact]
+        public void BindToComponent_SpecifiesValueAndExpression_Generic()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using System.Linq.Expressions;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<T> : ComponentBase
+    {
+        [Parameter]
+        T SomeParam { get; set; }
+
+        [Parameter]
+        Action<T> SomeParamChanged { get; set; }
+
+        [Parameter]
+        Expression<Func<T>> SomeParamExpression { get; set; }
+    }
+}"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent bind-SomeParam=""ParentValue"" />
+@functions {
+    public DateTime ParentValue { get; set; } = DateTime.Now;
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
         public void BindToElement_WritesAttributes()
         {
             // Arrange
