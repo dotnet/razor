@@ -333,6 +333,80 @@ namespace Test
         }
 
         [Fact]
+        public void BindToComponent_EventCallback_SpecifiesValue_WithMatchingProperties()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        int Value { get; set; }
+
+        [Parameter]
+        EventCallback<int> ValueChanged { get; set; }
+    }
+}"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent bind-Value=""ParentValue"" />
+@functions {
+    public int ParentValue { get; set; } = 42;
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void BindToComponent_EventCallback_TypeChecked_WithMatchingProperties()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        int Value { get; set; }
+
+        [Parameter]
+        EventCallback<int> ValueChanged { get; set; }
+    }
+}"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent bind-Value=""ParentValue"" />
+@functions {
+    public string ParentValue { get; set; } = ""42"";
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+
+            var assembly = CompileToAssembly(generated, throwOnFailure: false);
+            // This has some errors
+            Assert.Collection(
+                assembly.Diagnostics.OrderBy(d => d.Id),
+                d => Assert.Equal("CS1503", d.Id),
+                d => Assert.Equal("CS1503", d.Id));
+        }
+
+        [Fact]
         public void BindToComponent_SpecifiesValue_WithoutMatchingProperties()
         {
             // Arrange
@@ -467,6 +541,44 @@ namespace Test
         }
 
         [Fact]
+        public void BindToComponent_EventCallback_SpecifiesValueAndExpression()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using System.Linq.Expressions;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        int Value { get; set; }
+
+        [Parameter]
+        EventCallback<int> ValueChanged { get; set; }
+
+        [Parameter]
+        Expression<Func<int>> ValueExpression { get; set; }
+    }
+}"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent bind-Value=""ParentValue"" />
+@functions {
+    public int ParentValue { get; set; } = 42;
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
         public void BindToComponent_SpecifiesValueAndExpression_TypeChecked()
         {
             // Arrange
@@ -524,6 +636,44 @@ namespace Test
 
         [Parameter]
         Action<T> SomeParamChanged { get; set; }
+
+        [Parameter]
+        Expression<Func<T>> SomeParamExpression { get; set; }
+    }
+}"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+<MyComponent bind-SomeParam=""ParentValue"" />
+@functions {
+    public DateTime ParentValue { get; set; } = DateTime.Now;
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void BindToComponent_EventCallback_SpecifiesValueAndExpression_Generic()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using System.Linq.Expressions;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<T> : ComponentBase
+    {
+        [Parameter]
+        T SomeParam { get; set; }
+
+        [Parameter]
+        EventCallback<T> SomeParamChanged { get; set; }
 
         [Parameter]
         Expression<Func<T>> SomeParamExpression { get; set; }
