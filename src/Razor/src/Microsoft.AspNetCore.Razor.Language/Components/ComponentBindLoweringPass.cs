@@ -212,7 +212,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
             var valueExpressionTokens = new List<IntermediateToken>();
             var changeExpressionTokens = new List<IntermediateToken>();
-            if (changeAttribute == null || changeAttribute.IsDelegateProperty())
+            if (changeAttribute != null && changeAttribute.IsDelegateProperty())
             {
                 RewriteNodesForDelegateBind(
                     original,
