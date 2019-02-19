@@ -18,6 +18,24 @@ pr:
 - "*"
 
 jobs:
+# This job checks for code quality
+- template: /eng/common/templates/jobs/jobs.yml
+  parameters:
+    enablePublishBuildArtifacts: false
+    enablePublishTestResults: false
+    jobs:
+    - job: Code_check
+      displayName: Code check
+      pool:
+        # agent pool can't be read from a user-defined variable (Azure DevOps limitation)
+        ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
+          name: dotnet-external-temp-vs2019
+        ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          name: dotnet-internal-temp-vs2019
+      steps:
+      - powershell: ./restore.cmd -ci; ./eng/scripts/CodeCheck.ps1 -ci
+        displayName: Run eng/scripts/CodeCheck.ps1
+
 # Three jobs for each of the three OSes we want to run on
 - template: /eng/common/templates/jobs/jobs.yml
   parameters:
@@ -31,22 +49,7 @@ jobs:
     ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       enableMicrobuild: true
       enablePublishBuildAssets: true
-
     jobs:
-    # This job checks for code quality
-    - job: Code_check
-      displayName: Code check
-      enablePublishBuildArtifacts: false
-      enablePublishTestResults: false
-      pool:
-        # agent pool can't be read from a user-defined variable (Azure DevOps limitation)
-        ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
-          name: dotnet-external-temp-vs2019
-        ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          name: dotnet-internal-temp-vs2019
-      steps:
-      - powershell: ./restore.cmd -ci; ./eng/scripts/CodeCheck.ps1 -ci
-        displayName: Run eng/scripts/CodeCheck.ps1
     - job: Windows
       pool:
         # agent pool can't be read from a user-defined variable (Azure DevOps limitation)

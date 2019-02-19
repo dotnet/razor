@@ -9,7 +9,6 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 1
-Import-Module -Scope Local -Force "$PSScriptRoot/common.psm1"
 
 $repoRoot = Resolve-Path "$PSScriptRoot/../.."
 
