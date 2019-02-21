@@ -13,13 +13,13 @@
       <Uri>https://github.com/aspnet/Extensions</Uri>
       <Sha>924015e98bc443023a6b0eea2c0016b876e4051f</Sha>
     </Dependency>
-    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="4.6.0-preview.19109.6">
+    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="4.6.0-preview4.19120.16">
       <Uri>https://github.com/dotnet/corefx</Uri>
-      <Sha>0abec4390b30fdda97dc496594f9b1f9c9b20e17</Sha>
+      <Sha>84b4bed23b55d47adb8da0134dc6346b622ca8eb</Sha>
     </Dependency>
-    <Dependency Name="System.Text.Encodings.Web" Version="4.6.0-preview.19109.6">
+    <Dependency Name="System.Text.Encodings.Web" Version="4.6.0-preview4.19120.16">
       <Uri>https://github.com/dotnet/corefx</Uri>
-      <Sha>0abec4390b30fdda97dc496594f9b1f9c9b20e17</Sha>
+      <Sha>84b4bed23b55d47adb8da0134dc6346b622ca8eb</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Extensions.DependencyModel" Version="3.0.0-preview4-27420-5">
       <Uri>https://github.com/dotnet/core-setup</Uri>
