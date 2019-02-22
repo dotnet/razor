@@ -109,7 +109,6 @@
     <MonoAddinsPackageVersion>1.3.8</MonoAddinsPackageVersion>
     <MonoDevelopSdkPackageVersion>1.0.1</MonoDevelopSdkPackageVersion>
     <MoqPackageVersion>4.10.0</MoqPackageVersion>
-    <NETStandardLibrary20PackageVersion>2.0.3</NETStandardLibrary20PackageVersion>
     <!-- STOP!!! We need to reference the version of JSON that our HOSTS supprt. -->
     <NewtonsoftJsonPackageVersion>9.0.1</NewtonsoftJsonPackageVersion>
     <VS_NewtonsoftJsonPackageVersion>9.0.1</VS_NewtonsoftJsonPackageVersion>
