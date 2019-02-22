@@ -684,7 +684,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var sourceDocument = TestRazorSourceDocument.Create(source, filePath: "TestFile");
             var parser = new RazorParser();
             var syntaxTree = parser.Parse(sourceDocument);
-            var visitor = new DefaultRazorTagHelperBinderPhase.DirectiveVisitor(tagHelpers: new List<TagHelperDescriptor>());
+            var visitor = new DefaultRazorTagHelperBinderPhase.TagHelperDirectiveVisitor(tagHelpers: new List<TagHelperDescriptor>());
 
             // Act
             visitor.Visit(syntaxTree.Root);
@@ -850,7 +850,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var sourceDocument = TestRazorSourceDocument.Create(source, filePath: "TestFile");
             var parser = new RazorParser();
             var syntaxTree = parser.Parse(sourceDocument);
-            var visitor = new DefaultRazorTagHelperBinderPhase.DirectiveVisitor((TagHelperDescriptor[])tagHelpers);
+            var visitor = new DefaultRazorTagHelperBinderPhase.TagHelperDirectiveVisitor((TagHelperDescriptor[])tagHelpers);
 
             // Act
             visitor.Visit(syntaxTree.Root);
@@ -994,7 +994,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var sourceDocument = TestRazorSourceDocument.Create(source, filePath: "TestFile");
             var parser = new RazorParser();
             var syntaxTree = parser.Parse(sourceDocument);
-            var visitor = new DefaultRazorTagHelperBinderPhase.DirectiveVisitor((TagHelperDescriptor[])tagHelpers);
+            var visitor = new DefaultRazorTagHelperBinderPhase.TagHelperDirectiveVisitor((TagHelperDescriptor[])tagHelpers);
 
             // Act
             visitor.Visit(syntaxTree.Root);

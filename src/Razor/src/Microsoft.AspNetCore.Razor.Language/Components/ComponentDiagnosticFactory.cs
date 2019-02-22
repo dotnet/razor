@@ -12,8 +12,19 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 {
     internal static class ComponentDiagnosticFactory
     {
-        public static readonly RazorDiagnosticDescriptor CodeBlockInAttribute =
-            new RazorDiagnosticDescriptor(
+        public static readonly RazorDiagnosticDescriptor UnsupportedTagHelperDirective = new RazorDiagnosticDescriptor(
+            "BL9978",
+            () => 
+                "The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document." +
+                "Use '@using <namespace>' directive instead.",
+            RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_UnsupportedTagHelperDirective(SourceSpan? source)
+        {
+            return RazorDiagnostic.Create(UnsupportedTagHelperDirective, source ?? SourceSpan.Undefined);
+        }
+
+        public static readonly RazorDiagnosticDescriptor CodeBlockInAttribute = new RazorDiagnosticDescriptor(
             "BL9979",
             () =>
                 "Code blocks delimited by '@{...}' like '@{{ {0} }}' for attributes are no longer supported " +

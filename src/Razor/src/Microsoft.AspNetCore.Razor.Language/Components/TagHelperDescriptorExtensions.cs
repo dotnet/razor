@@ -152,6 +152,18 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 string.Equals(ComponentMetadata.Ref.TagHelperKind, kind);
         }
 
+        public static bool IsComponentFullyQualifiedNameMatch(this TagHelperDescriptor tagHelper)
+        {
+            if (tagHelper == null)
+            {
+                throw new ArgumentNullException(nameof(tagHelper));
+            }
+
+            return
+                tagHelper.Metadata.TryGetValue(ComponentMetadata.Component.NameMatchKey, out var matchType) &&
+                string.Equals(ComponentMetadata.Component.FullyQualifiedNameMatch, matchType);
+        }
+
         public static string GetEventArgsType(this TagHelperDescriptor tagHelper)
         {
             if (tagHelper == null)

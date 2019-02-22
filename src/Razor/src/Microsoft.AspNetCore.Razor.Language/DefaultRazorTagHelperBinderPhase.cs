@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -11,6 +13,9 @@ namespace Microsoft.AspNetCore.Razor.Language
 {
     internal class DefaultRazorTagHelperBinderPhase : RazorEnginePhaseBase, IRazorTagHelperBinderPhase
     {
+        private static readonly char[] PathSeparators = new char[] { '/', '\\' };
+        private static readonly char[] NamespaceSeparators = new char[] { '.' };
+
         protected override void ExecuteCore(RazorCodeDocument codeDocument)
         {
             var syntaxTree = codeDocument.GetSyntaxTree();
@@ -33,18 +38,27 @@ namespace Microsoft.AspNetCore.Razor.Language
             //
             // The imports come logically before the main razor file and are in the order they
             // should be processed.
-            var visitor = new DirectiveVisitor(descriptors);
+            DirectiveVisitor visitor = null;
+            if (FileKinds.IsComponent(codeDocument.GetFileKind()))
+            {
+                var currentNamespace = ComputeNamespace(codeDocument);
+                visitor = new ComponentDirectiveVisitor(codeDocument.Source.FilePath, descriptors, currentNamespace);
+            }
+            else
+            {
+                visitor = new TagHelperDirectiveVisitor(descriptors);
+            }
             var imports = codeDocument.GetImportSyntaxTrees();
             if (imports != null)
             {
                 for (var i = 0; i < imports.Count; i++)
                 {
                     var import = imports[i];
-                    visitor.Visit(import.Root);
+                    visitor.Visit(import);
                 }
             }
 
-            visitor.Visit(syntaxTree.Root);
+            visitor.Visit(syntaxTree);
 
             var tagHelperPrefix = visitor.TagHelperPrefix;
             descriptors = visitor.Matches.ToArray();
@@ -61,6 +75,37 @@ namespace Microsoft.AspNetCore.Razor.Language
             var rewrittenSyntaxTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, tagHelperPrefix, descriptors);
             
             codeDocument.SetSyntaxTree(rewrittenSyntaxTree);
+        }
+
+        private string ComputeNamespace(RazorCodeDocument codeDocument)
+        {
+            var rootNamespace = codeDocument.GetCodeGenerationOptions().RootNamespace;
+            var relativePath = codeDocument.Source.RelativePath;
+            if (rootNamespace == null || relativePath == null)
+            {
+                return null;
+            }
+
+            // Sanitize the base namespace, but leave the dots.
+            var builder = new StringBuilder();
+            var segments = rootNamespace.Split(NamespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
+            builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[0]));
+            for (var i = 1; i < segments.Length; i++)
+            {
+                builder.Append('.');
+                builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[i]));
+            }
+
+            segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
+
+            // Skip the last segment because it's the FileName.
+            for (var i = 0; i < segments.Length - 1; i++)
+            {
+                builder.Append('.');
+                builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[i]));
+            }
+
+            return builder.ToString();
         }
 
         private static bool MatchesDirective(TagHelperDescriptor descriptor, string typePattern, string assemblyName)
@@ -86,20 +131,44 @@ namespace Microsoft.AspNetCore.Razor.Language
             return string.Equals(descriptor.Name, typePattern, StringComparison.Ordinal);
         }
 
-        internal class DirectiveVisitor : SyntaxRewriter
+        private static bool IsComponentTagHelperKind(string tagHelperKind)
+        {
+            return tagHelperKind == ComponentMetadata.Component.TagHelperKind ||
+                tagHelperKind == ComponentMetadata.ChildContent.TagHelperKind ||
+                tagHelperKind == ComponentMetadata.EventHandler.TagHelperKind ||
+                tagHelperKind == ComponentMetadata.Bind.TagHelperKind ||
+                tagHelperKind == ComponentMetadata.Ref.TagHelperKind;
+        }
+
+        internal abstract class DirectiveVisitor : SyntaxWalker
+        {
+            public abstract HashSet<TagHelperDescriptor> Matches { get; }
+
+            public abstract string TagHelperPrefix { get; }
+
+            public abstract void Visit(RazorSyntaxTree tree);
+        }
+
+        internal class TagHelperDirectiveVisitor : DirectiveVisitor
         {
             private IReadOnlyList<TagHelperDescriptor> _tagHelpers;
+            private string _tagHelperPrefix;
 
-            public DirectiveVisitor(IReadOnlyList<TagHelperDescriptor> tagHelpers)
+            public TagHelperDirectiveVisitor(IReadOnlyList<TagHelperDescriptor> tagHelpers)
             {
-                _tagHelpers = tagHelpers;
+                // We don't want to bind components in a view document.
+                _tagHelpers = tagHelpers.Where(t => !IsComponentTagHelperKind(t.Kind)).ToList();
             }
 
-            public string TagHelperPrefix { get; private set; }
+            public override string TagHelperPrefix => _tagHelperPrefix;
 
-            public HashSet<TagHelperDescriptor> Matches { get; } = new HashSet<TagHelperDescriptor>();
+            public override HashSet<TagHelperDescriptor> Matches { get; } = new HashSet<TagHelperDescriptor>();
 
-            public override SyntaxNode VisitRazorDirective(RazorDirectiveSyntax node)
+            public override void Visit(RazorSyntaxTree tree)
+            {
+                Visit(tree.Root);
+            }
+            public override void VisitRazorDirective(RazorDirectiveSyntax node)
             {
                 var descendantLiterals = node.DescendantNodes();
                 foreach (var child in descendantLiterals)
@@ -167,12 +236,10 @@ namespace Microsoft.AspNetCore.Razor.Language
                         if (!string.IsNullOrEmpty(tagHelperPrefix.DirectiveText))
                         {
                             // We only expect to see a single one of these per file, but that's enforced at another level.
-                            TagHelperPrefix = tagHelperPrefix.DirectiveText;
+                            _tagHelperPrefix = tagHelperPrefix.DirectiveText;
                         }
                     }
                 }
-
-                return base.VisitRazorDirective(node);
             }
 
             private bool AssemblyContainsTagHelpers(string assemblyName, IReadOnlyList<TagHelperDescriptor> tagHelpers)
@@ -186,6 +253,156 @@ namespace Microsoft.AspNetCore.Razor.Language
                 }
 
                 return false;
+            }
+        }
+
+        internal class ComponentDirectiveVisitor : DirectiveVisitor
+        {
+            private IReadOnlyList<TagHelperDescriptor> _tagHelpers;
+            private string _filePath;
+            private RazorSourceDocument _source;
+
+            public ComponentDirectiveVisitor(string filePath, IReadOnlyList<TagHelperDescriptor> tagHelpers, string currentNamespace)
+            {
+                _filePath = filePath;
+
+                // We don't want to bind non-component tag helpers in a component document.
+                _tagHelpers = tagHelpers.Where(t => IsComponentTagHelperKind(t.Kind)).ToList();
+
+                for (var i = 0; i < _tagHelpers.Count; i++)
+                {
+                    var tagHelper = _tagHelpers[i];
+                    if (tagHelper.IsComponentFullyQualifiedNameMatch() ||
+                        (currentNamespace != null && IsTypeInScope(tagHelper.GetTypeName(), currentNamespace)))
+                    {
+                        // If the component descriptor matches for a fully qualified name, using directives shouldn't matter.
+                        // Also, if the type is already in scope of the document's namespace, using isn't necessary.
+                        Matches.Add(tagHelper);
+                    }
+                }
+            }
+
+            public override HashSet<TagHelperDescriptor> Matches { get; } = new HashSet<TagHelperDescriptor>();
+
+            public override string TagHelperPrefix => null;
+
+            public override void Visit(RazorSyntaxTree tree)
+            {
+                _source = tree.Source;
+                Visit(tree.Root);
+            }
+
+            public override void VisitRazorDirective(RazorDirectiveSyntax node)
+            {
+                var descendantLiterals = node.DescendantNodes();
+                foreach (var child in descendantLiterals)
+                {
+                    if (!(child is CSharpStatementLiteralSyntax literal))
+                    {
+                        continue;
+                    }
+
+                    var context = literal.GetSpanContext();
+                    if (context == null)
+                    {
+                        // We can't find a chunk generator.
+                        continue;
+                    }
+                    else if (context.ChunkGenerator is AddTagHelperChunkGenerator addTagHelper)
+                    {
+                        // Make sure this node exists in the file we're parsing and not in its imports.
+                        if (_filePath.Equals(_source.FilePath, StringComparison.Ordinal))
+                        {
+                            addTagHelper.Diagnostics.Add(
+                                ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(_source)));
+                        }
+                    }
+                    else if (context.ChunkGenerator is RemoveTagHelperChunkGenerator removeTagHelper)
+                    {
+                        // Make sure this node exists in the file we're parsing and not in its imports.
+                        if (_filePath.Equals(_source.FilePath, StringComparison.Ordinal))
+                        {
+                            removeTagHelper.Diagnostics.Add(
+                                ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(_source)));
+                        }
+                    }
+                    else if (context.ChunkGenerator is TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix)
+                    {
+                        // Make sure this node exists in the file we're parsing and not in its imports.
+                        if (_filePath.Equals(_source.FilePath, StringComparison.Ordinal))
+                        {
+                            tagHelperPrefix.Diagnostics.Add(
+                                ComponentDiagnosticFactory.Create_UnsupportedTagHelperDirective(node.GetSourceSpan(_source)));
+                        }
+                    }
+                    else if (context.ChunkGenerator is AddImportChunkGenerator usingStatement && !usingStatement.IsStatic)
+                    {
+                        // Get the namespace from the using statement. Split it at '=' in case there is an alias.
+                        var @namespace = usingStatement.ParsedNamespace.Split('=').LastOrDefault();
+                        for (var i = 0; i < _tagHelpers.Count; i++)
+                        {
+                            var tagHelper = _tagHelpers[i];
+                            if (tagHelper.IsComponentFullyQualifiedNameMatch())
+                            {
+                                // We've already added these to our list of matches.
+                                continue;
+                            }
+
+                            var typeName = tagHelper.GetTypeName();
+                            if (typeName != null && IsTypeInNamespace(typeName, @namespace))
+                            {
+                                // If the type is at the top-level or if the type's namespace matches the using's namespace, add it.
+                                Matches.Add(tagHelper);
+                            }
+                        }
+                    }
+                }
+            }
+
+            private bool IsTypeInNamespace(string typeName, string @namespace)
+            {
+                var namespaceLength = typeName.LastIndexOf('.');
+                if (namespaceLength == -1)
+                {
+                    // Either the typeName is not the full type name or this type is at the top level.
+                    return true;
+                }
+
+                var typeNamespace = typeName.Substring(0, namespaceLength);
+                if (typeNamespace.Equals(@namespace, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            private bool IsTypeInScope(string typeName, string currentNamespace)
+            {
+                var namespaceLength = typeName.LastIndexOf('.');
+                if (namespaceLength == -1)
+                {
+                    // Either the typeName is not the full type name or this type is at the top level.
+                    return true;
+                }
+
+                var typeNamespace = typeName.Substring(0, namespaceLength);
+                var typeNamespaceSegments = typeNamespace.Split(NamespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
+                var currentNamespaceSegments = currentNamespace.Split(NamespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
+                if (typeNamespaceSegments.Length > currentNamespaceSegments.Length)
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < typeNamespaceSegments.Length; i++)
+                {
+                    if (!typeNamespaceSegments[i].Equals(currentNamespaceSegments[i], StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
         }
     }

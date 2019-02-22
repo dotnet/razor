@@ -68,6 +68,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             public readonly static string GenericTypedKey = "Components.GenericTyped";
 
             public readonly static string TypeParameterKey = "Components.TypeParameter";
+
+            public readonly static string NameMatchKey = "Components.NameMatch";
+
+            public readonly static string FullyQualifiedNameMatch = "Components.FullyQualifiedNameMatch";
         }
 
         public static class EventHandler
