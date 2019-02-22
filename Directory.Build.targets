@@ -2,4 +2,9 @@
 <Project>
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <Import Project="eng\MPack.targets" />
+
+  <ItemGroup>
+    <!-- Workaround https://github.com/dotnet/sdk/issues/2976 -->
+    <PackageReference Update="Microsoft.NETCore.Platforms" PrivateAssets="All" />
+  </ItemGroup>
 </Project>
