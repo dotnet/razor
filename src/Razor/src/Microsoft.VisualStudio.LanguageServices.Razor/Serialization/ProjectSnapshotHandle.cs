@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         public ProjectSnapshotHandle(
             string filePath, 
-            RazorConfiguration configuration)
+            RazorConfiguration configuration,
+            ProjectWorkspaceState projectWorkspaceState)
         {
             if (filePath == null)
             {
@@ -19,10 +20,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             FilePath = filePath;
             Configuration = configuration;
+            ProjectWorkspaceState = projectWorkspaceState;
         }
 
         public RazorConfiguration Configuration { get; }
 
         public string FilePath { get; }
+
+        public ProjectWorkspaceState ProjectWorkspaceState { get; }
     }
 }

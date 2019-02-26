@@ -7,8 +7,6 @@ using Newtonsoft.Json;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 {
-    // We can't truly serialize a snapshot because it has access to a Workspace Project\
-    //
     // Instead we serialize to a ProjectSnapshotHandle and then use that to re-create the snapshot
     // inside the remote host.
     internal class ProjectSnapshotJsonConverter : JsonConverter
@@ -32,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var project = (ProjectSnapshot)value;
-            var handle = new ProjectSnapshotHandle(project.FilePath, project.Configuration);
+            var handle = new ProjectSnapshotHandle(project.FilePath, project.Configuration, project.ProjectWorkspaceState);
 
             ProjectSnapshotHandleJsonConverter.Instance.WriteJson(writer, handle, serializer);
         }

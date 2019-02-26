@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -29,8 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             var obj = JObject.Load(reader);
             var filePath = obj[nameof(ProjectSnapshotHandle.FilePath)].Value<string>();
             var configuration = obj[nameof(ProjectSnapshotHandle.Configuration)].ToObject<RazorConfiguration>(serializer);
-            
-            return new ProjectSnapshotHandle(filePath, configuration);
+            var projectWorkspaceState = obj[nameof(ProjectSnapshotHandle.ProjectWorkspaceState)].ToObject<ProjectWorkspaceState>(serializer);
+
+            return new ProjectSnapshotHandle(filePath, configuration, projectWorkspaceState);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -51,6 +51,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             {
                 writer.WritePropertyName(nameof(ProjectSnapshotHandle.Configuration));
                 serializer.Serialize(writer, handle.Configuration);
+            }
+
+
+            if (handle.ProjectWorkspaceState == null)
+            {
+                writer.WritePropertyName(nameof(ProjectSnapshotHandle.ProjectWorkspaceState));
+                writer.WriteNull();
+            }
+            else
+            {
+                writer.WritePropertyName(nameof(ProjectSnapshotHandle.ProjectWorkspaceState));
+                serializer.Serialize(writer, handle.ProjectWorkspaceState);
             }
 
             writer.WriteEndObject();

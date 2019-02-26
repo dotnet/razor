@@ -22,9 +22,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
         public JsonConverter[] Converters { get; }
 
         [Fact]
-        public void ProjectSnapshotHandleJsonConverter_Serialization_CanKindaRoundTrip()
+        public void ProjectSnapshotHandleJsonConverter_Serialization_CanRoundTrip()
         {
             // Arrange
+            var expectedTagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build();
             var snapshot = new ProjectSnapshotHandle(
                 "Test.csproj",
                 new ProjectSystemRazorConfiguration(
@@ -34,7 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
                     {
                         new ProjectSystemRazorExtension("Test-Extension1"),
                         new ProjectSystemRazorExtension("Test-Extension2"),
-                    }));
+                    }),
+                new ProjectWorkspaceState(new[] {
+                    expectedTagHelper,
+                }));
 
             // Act
             var json = JsonConvert.SerializeObject(snapshot, Converters);
@@ -48,13 +52,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
                 e => Assert.Equal("Test-Extension1", e.ExtensionName),
                 e => Assert.Equal("Test-Extension2", e.ExtensionName));
             Assert.Equal(snapshot.Configuration.LanguageVersion, obj.Configuration.LanguageVersion);
+            var tagHelper = Assert.Single(snapshot.ProjectWorkspaceState.TagHelpers);
+            Assert.Equal(expectedTagHelper, tagHelper);
         }
 
         [Fact]
         public void ProjectSnapshotHandleJsonConverter_SerializationWithNulls_CanKindaRoundTrip()
         {
             // Arrange
-            var snapshot = new ProjectSnapshotHandle("Test.csproj", null);
+            var snapshot = new ProjectSnapshotHandle("Test.csproj", null, null);
 
             // Act
             var json = JsonConvert.SerializeObject(snapshot, Converters);
@@ -63,6 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             // Assert
             Assert.Equal(snapshot.FilePath, obj.FilePath);
             Assert.Null(obj.Configuration);
+            Assert.Null(obj.ProjectWorkspaceState);
         }
     }
 }
