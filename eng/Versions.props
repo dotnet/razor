@@ -63,9 +63,9 @@
     <MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>3.0.0-preview3.19126.4</MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>
     <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>3.0.0-preview3.19126.4</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
     <MicrosoftNETCoreAppPackageVersion>3.0.0-preview3-27426-9</MicrosoftNETCoreAppPackageVersion>
-    <MicrosoftNETCorePlatformsPackageVersion>3.0.0-preview3.19126.9</MicrosoftNETCorePlatformsPackageVersion>
-    <SystemDiagnosticsDiagnosticSourcePackageVersion>4.6.0-preview3.19126.9</SystemDiagnosticsDiagnosticSourcePackageVersion>
-    <SystemTextEncodingsWebPackageVersion>4.6.0-preview3.19126.9</SystemTextEncodingsWebPackageVersion>
+    <MicrosoftNETCorePlatformsPackageVersion>3.0.0-preview3.19127.2</MicrosoftNETCorePlatformsPackageVersion>
+    <SystemDiagnosticsDiagnosticSourcePackageVersion>4.6.0-preview3.19127.2</SystemDiagnosticsDiagnosticSourcePackageVersion>
+    <SystemTextEncodingsWebPackageVersion>4.6.0-preview3.19127.2</SystemTextEncodingsWebPackageVersion>
   </PropertyGroup>
   <!--
 
