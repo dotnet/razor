@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public RazorParserOptions GetOptions()
         {
-            var builder = new DefaultRazorParserOptionsBuilder(_designTime, _version);
+            var builder = new DefaultRazorParserOptionsBuilder(_designTime, _version, fileKind: null);
             for (var i = 0; i < _configureOptions.Length; i++)
             {
                 _configureOptions[i].Configure(builder);
