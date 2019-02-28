@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         {
             var rootNamespace = codeDocument.GetCodeGenerationOptions().RootNamespace;
             var relativePath = codeDocument.Source.RelativePath;
-            if (rootNamespace == null || relativePath == null)
+            if (string.IsNullOrEmpty(rootNamespace) || string.IsNullOrEmpty(relativePath))
             {
                 return null;
             }
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             public TagHelperDirectiveVisitor(IReadOnlyList<TagHelperDescriptor> tagHelpers)
             {
-                // We don't want to bind components in a view document.
+                // We don't want to consider components in a view document.
                 _tagHelpers = tagHelpers.Where(t => !IsComponentTagHelperKind(t.Kind)).ToList();
             }
 
@@ -168,6 +168,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             {
                 Visit(tree.Root);
             }
+
             public override void VisitRazorDirective(RazorDirectiveSyntax node)
             {
                 var descendantLiterals = node.DescendantNodes();
@@ -266,16 +267,20 @@ namespace Microsoft.AspNetCore.Razor.Language
             {
                 _filePath = filePath;
 
-                // We don't want to bind non-component tag helpers in a component document.
+                // We don't want to consider non-component tag helpers in a component document.
                 _tagHelpers = tagHelpers.Where(t => IsComponentTagHelperKind(t.Kind)).ToList();
 
                 for (var i = 0; i < _tagHelpers.Count; i++)
                 {
                     var tagHelper = _tagHelpers[i];
-                    if (tagHelper.IsComponentFullyQualifiedNameMatch() ||
-                        (currentNamespace != null && IsTypeInScope(tagHelper.GetTypeName(), currentNamespace)))
+                    if (tagHelper.IsComponentFullyQualifiedNameMatch())
                     {
                         // If the component descriptor matches for a fully qualified name, using directives shouldn't matter.
+                        Matches.Add(tagHelper);
+                    }
+
+                    if (currentNamespace != null && IsTypeInScope(tagHelper.GetTypeName(), currentNamespace))
+                    {
                         // Also, if the type is already in scope of the document's namespace, using isn't necessary.
                         Matches.Add(tagHelper);
                     }
