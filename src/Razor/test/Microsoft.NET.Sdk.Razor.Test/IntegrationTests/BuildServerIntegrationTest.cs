@@ -114,8 +114,8 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         [InitializeTestProject("SimpleMvc")]
         public async Task Build_ServerConnectionMutexCreationFails_FallsBackToInProcessRzc()
         {
-            // Use a pipe name longer that 260 characters to make the Mutex constructor throw.
-            var pipeName = new string('P', 261);
+            // Use an invalid pipe name to make the Mutex constructor throw.
+            var pipeName = "Invalid\\name";
             var result = await DotnetMSBuild(
                 "Build",
                 "/p:_RazorForceBuildServer=true",
