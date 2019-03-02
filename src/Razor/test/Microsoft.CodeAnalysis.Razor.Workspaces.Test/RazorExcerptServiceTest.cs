@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Razor
             services.Add(new TestTagHelperResolver());
         }
 
-        [Fact]
+        [Fact(Skip = "This test is flakey due to https://github.com/dotnet/roslyn/issues/31548. Skipping until the blocking issue is resolved.")]
         public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp()
         {
             // Arrange
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 });
         }
 
-        [Fact]
+        [Fact(Skip = "This test is flakey due to https://github.com/dotnet/roslyn/issues/31548. Skipping until the blocking issue is resolved.")]
         public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp_ImplicitExpression()
         {
             // Arrange
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 });
         }
 
-        [Fact]
+        [Fact(Skip = "This test is flakey due to https://github.com/dotnet/roslyn/issues/31548. Skipping until the blocking issue is resolved.")]
         public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp_ComplexLine()
         {
             // Arrange
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 });
         }
 
-        [Fact]
+        [Fact(Skip = "This test is flakey due to https://github.com/dotnet/roslyn/issues/31548. Skipping until the blocking issue is resolved.")]
         public async Task TryGetExcerptInternalAsync_MultiLine_CanClassifyCSharp()
         {
             // Arrange
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 });
         }
 
-        [Fact]
+        [Fact(Skip = "This test is flakey due to https://github.com/dotnet/roslyn/issues/31548. Skipping until the blocking issue is resolved.")]
         public async Task TryGetExcerptInternalAsync_MultiLine_Boundaries_CanClassifyCSharp()
         {
             // Arrange
