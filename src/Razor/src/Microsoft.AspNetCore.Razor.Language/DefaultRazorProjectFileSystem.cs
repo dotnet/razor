@@ -68,9 +68,11 @@ namespace Microsoft.AspNetCore.Razor.Language
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(path));
             }
 
-            var absolutePath = path;
-            if (!absolutePath.StartsWith(Root, StringComparison.OrdinalIgnoreCase))
+            var absolutePath = path.Replace('\\', '/');
+            if (!absolutePath.StartsWith(Root, StringComparison.OrdinalIgnoreCase) &&
+                !absolutePath.StartsWith("//", StringComparison.OrdinalIgnoreCase))
             {
+                // This is not an absolute path. Strip the leading slash if any and combine it with Root.
                 if (path[0] == '/' || path[0] == '\\')
                 {
                     path = path.Substring(1);

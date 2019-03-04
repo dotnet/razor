@@ -42,6 +42,25 @@ namespace Microsoft.AspNetCore.Razor.Language
         }
 
         [Fact]
+        public void NormalizeAndEnsureValidPath_FileFromNetworkShare_NormalizesToAbsolutePath()
+        {
+            // Arrange
+            var fileSystem = new TestRazorProjectFileSystem("//some/network/share/root");
+
+            // Act 1
+            var absolutePath = fileSystem.NormalizeAndEnsureValidPath("\\\\some\\network\\share\\root\\file.cshtml");
+
+            // Assert 1
+            Assert.Equal("//some/network/share/root/file.cshtml", absolutePath);
+
+            // Act 2
+            absolutePath = fileSystem.NormalizeAndEnsureValidPath("//some/network/share/root/file.cshtml");
+
+            // Assert 2
+            Assert.Equal("//some/network/share/root/file.cshtml", absolutePath);
+        }
+
+        [Fact]
         public void NormalizeAndEnsureValidPath_NormalizesToAbsolutePathWithoutForwardSlash()
         {
             // Arrange
@@ -247,6 +266,20 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             // Assert
             Assert.False(item.Exists);
+        }
+
+        [Fact]
+        public void GetItem_MismatchedRootPath_Throws()
+        {
+            // Arrange
+            var rootPath = "//some/network/share/root";
+            var fileSystem = new TestRazorProjectFileSystem(rootPath);
+            var path = "\\\\some\\other\\network\\share\\root\\file.cshtml";
+
+            // Act & Assert
+            ExceptionAssert.Throws<InvalidOperationException>(
+                () => fileSystem.GetItem(path),
+                $"The file '{path.Replace('\\', Path.DirectorySeparatorChar)}' is not a descendent of the base path '{rootPath}'.");
         }
 
         private class TestRazorProjectFileSystem : DefaultRazorProjectFileSystem
