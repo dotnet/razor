@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var file = new FileInfo(absolutePath);
             if (!absolutePath.StartsWith(absoluteBasePath))
             {
-                throw new InvalidOperationException($"The file '{file.FullName}' is not a descendent of the base path '{absoluteBasePath}'.");
+                throw new InvalidOperationException($"The file '{absolutePath}' is not a descendent of the base path '{absoluteBasePath}'.");
             }
 
             var relativePhysicalPath = file.FullName.Substring(absoluteBasePath.Length + 1); // Include leading separator
@@ -69,6 +69,10 @@ namespace Microsoft.AspNetCore.Razor.Language
             }
 
             var absolutePath = path.Replace('\\', '/');
+
+            // Check if the given path is an absolute path. It is absolute if,
+            // 1. It starts with Root or
+            // 2. It is a network share path and starts with a '//'. Eg. //servername/some/network/folder
             if (!absolutePath.StartsWith(Root, StringComparison.OrdinalIgnoreCase) &&
                 !absolutePath.StartsWith("//", StringComparison.OrdinalIgnoreCase))
             {

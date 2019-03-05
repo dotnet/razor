@@ -42,21 +42,28 @@ namespace Microsoft.AspNetCore.Razor.Language
         }
 
         [Fact]
-        public void NormalizeAndEnsureValidPath_FileFromNetworkShare_NormalizesToAbsolutePath()
+        public void NormalizeAndEnsureValidPath_FileFromNetworkShare__WindowsStyle_NormalizesToAbsolutePath()
         {
             // Arrange
             var fileSystem = new TestRazorProjectFileSystem("//some/network/share/root");
 
-            // Act 1
+            // Act
             var absolutePath = fileSystem.NormalizeAndEnsureValidPath("\\\\some\\network\\share\\root\\file.cshtml");
 
-            // Assert 1
+            // Assert
             Assert.Equal("//some/network/share/root/file.cshtml", absolutePath);
+        }
 
-            // Act 2
-            absolutePath = fileSystem.NormalizeAndEnsureValidPath("//some/network/share/root/file.cshtml");
+        [Fact]
+        public void NormalizeAndEnsureValidPath_FileFromNetworkShare_UnixStyle_NormalizesToAbsolutePath()
+        {
+            // Arrange
+            var fileSystem = new TestRazorProjectFileSystem("//some/network/share/root");
 
-            // Assert 2
+            // Act
+            var absolutePath = fileSystem.NormalizeAndEnsureValidPath("//some/network/share/root/file.cshtml");
+
+            // Assert
             Assert.Equal("//some/network/share/root/file.cshtml", absolutePath);
         }
 
@@ -216,7 +223,6 @@ namespace Microsoft.AspNetCore.Razor.Language
                     Assert.Equal("/", item.BasePath);
                     Assert.Equal(Path.Combine(TestFolder, "Views", "Home", "_ViewImports.cshtml"), item.PhysicalPath);
                     Assert.Equal(Path.Combine("Views", "Home", "_ViewImports.cshtml"), item.RelativePhysicalPath);
-
                 },
                 item =>
                 {
@@ -224,7 +230,6 @@ namespace Microsoft.AspNetCore.Razor.Language
                     Assert.Equal("/", item.BasePath);
                     Assert.Equal(Path.Combine(TestFolder, "Views", "_ViewImports.cshtml"), item.PhysicalPath);
                     Assert.Equal(Path.Combine("Views", "_ViewImports.cshtml"), item.RelativePhysicalPath);
-
                 },
                 item =>
                 {
@@ -232,7 +237,6 @@ namespace Microsoft.AspNetCore.Razor.Language
                     Assert.Equal("/", item.BasePath);
                     Assert.Equal(Path.Combine(TestFolder, "_ViewImports.cshtml"), item.PhysicalPath);
                     Assert.Equal("_ViewImports.cshtml", item.RelativePhysicalPath);
-
                 });
         }
 
@@ -279,7 +283,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             // Act & Assert
             ExceptionAssert.Throws<InvalidOperationException>(
                 () => fileSystem.GetItem(path),
-                $"The file '{path.Replace('\\', Path.DirectorySeparatorChar)}' is not a descendent of the base path '{rootPath}'.");
+                $"The file '{path.Replace('\\', '/')}' is not a descendent of the base path '{rootPath}'.");
         }
 
         private class TestRazorProjectFileSystem : DefaultRazorProjectFileSystem
