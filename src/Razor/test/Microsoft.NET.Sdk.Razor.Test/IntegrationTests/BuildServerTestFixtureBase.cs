@@ -20,6 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         protected BuildServerTestFixtureBase(string pipeName)
         {
             PipeName = pipeName;
+            Console.WriteLine("Creating pipe with name: " + pipeName);
         }
 
         public string PipeName { get; }
