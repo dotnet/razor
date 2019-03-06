@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Testing;
@@ -38,6 +39,32 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             // Assert
             Assert.Equal("C:/some/test/path/root/file.cshtml", absolutePath);
+        }
+
+        [Fact]
+        public void NormalizeAndEnsureValidPath_FileFromNetworkShare__WindowsStyle_NormalizesToAbsolutePath()
+        {
+            // Arrange
+            var fileSystem = new TestRazorProjectFileSystem("//some/network/share/root");
+
+            // Act
+            var absolutePath = fileSystem.NormalizeAndEnsureValidPath("\\\\some\\network\\share\\root\\file.cshtml");
+
+            // Assert
+            Assert.Equal("//some/network/share/root/file.cshtml", absolutePath);
+        }
+
+        [Fact]
+        public void NormalizeAndEnsureValidPath_FileFromNetworkShare_UnixStyle_NormalizesToAbsolutePath()
+        {
+            // Arrange
+            var fileSystem = new TestRazorProjectFileSystem("//some/network/share/root");
+
+            // Act
+            var absolutePath = fileSystem.NormalizeAndEnsureValidPath("//some/network/share/root/file.cshtml");
+
+            // Assert
+            Assert.Equal("//some/network/share/root/file.cshtml", absolutePath);
         }
 
         [Fact]
@@ -199,7 +226,6 @@ namespace Microsoft.AspNetCore.Razor.Language
                     Assert.Equal("/", item.BasePath);
                     Assert.Equal(Path.Combine(TestFolder, "Views", "Home", "_ViewImports.cshtml"), item.PhysicalPath);
                     Assert.Equal(Path.Combine("Views", "Home", "_ViewImports.cshtml"), item.RelativePhysicalPath);
-
                 },
                 item =>
                 {
@@ -207,7 +233,6 @@ namespace Microsoft.AspNetCore.Razor.Language
                     Assert.Equal("/", item.BasePath);
                     Assert.Equal(Path.Combine(TestFolder, "Views", "_ViewImports.cshtml"), item.PhysicalPath);
                     Assert.Equal(Path.Combine("Views", "_ViewImports.cshtml"), item.RelativePhysicalPath);
-
                 },
                 item =>
                 {
@@ -215,7 +240,6 @@ namespace Microsoft.AspNetCore.Razor.Language
                     Assert.Equal("/", item.BasePath);
                     Assert.Equal(Path.Combine(TestFolder, "_ViewImports.cshtml"), item.PhysicalPath);
                     Assert.Equal("_ViewImports.cshtml", item.RelativePhysicalPath);
-
                 });
         }
 
@@ -249,6 +273,20 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             // Assert
             Assert.False(item.Exists);
+        }
+
+        [Fact]
+        public void GetItem_MismatchedRootPath_Throws()
+        {
+            // Arrange
+            var rootPath = "//some/network/share/root";
+            var fileSystem = new TestRazorProjectFileSystem(rootPath);
+            var path = "\\\\some\\other\\network\\share\\root\\file.cshtml";
+
+            // Act & Assert
+            ExceptionAssert.Throws<InvalidOperationException>(
+                () => fileSystem.GetItem(path),
+                $"The file '{path.Replace('\\', '/')}' is not a descendent of the base path '{rootPath}'.");
         }
 
         private class TestRazorProjectFileSystem : DefaultRazorProjectFileSystem
