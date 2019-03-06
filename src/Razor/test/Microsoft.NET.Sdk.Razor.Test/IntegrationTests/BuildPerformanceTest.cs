@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         {
         }
 
-        [Fact]
+        [Fact(Skip = "Testing")]
         [InitializeTestProject("SimpleMvc")]
         public async Task BuildMvcApp()
         {
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Testing")]
         [InitializeTestProject("MvcWithComponents")]
         public async Task BuildMvcAppWithComponents()
         {
