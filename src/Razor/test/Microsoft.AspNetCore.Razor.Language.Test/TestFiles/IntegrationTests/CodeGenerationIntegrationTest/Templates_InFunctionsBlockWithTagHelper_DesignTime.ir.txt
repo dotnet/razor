@@ -1,0 +1,71 @@
+Document - 
+    NamespaceDeclaration -  - Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
+        ClassDeclaration -  - public - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Templates_InFunctionsBlockWithTagHelper_DesignTime -  - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::DivTagHelper - __DivTagHelper
+            DesignTimeDirective - 
+                DirectiveToken - (14:0,14 [17] Templates_InFunctionsBlockWithTagHelper.cshtml) - "*, TestAssembly"
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static System.Object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - public async - System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (31:0,31 [2] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                    IntermediateToken - (31:0,31 [2] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - \n
+                CSharpCode - (35:1,2 [100] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                    IntermediateToken - (35:1,2 [100] Templates_InFunctionsBlockWithTagHelper.cshtml) - CSharp - \n    var people = new Person[]\n    {\n        new Person() { Name = "Ryan", Age = 95, };\n    };\n
+                HtmlContent - (138:7,0 [2] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                    IntermediateToken - (138:7,0 [2] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - \n
+                CSharpCode - (142:8,2 [36] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                    IntermediateToken - (142:8,2 [36] Templates_InFunctionsBlockWithTagHelper.cshtml) - CSharp -  await AnnounceBirthday(people[0]); 
+                HtmlContent - (181:9,0 [2] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                    IntermediateToken - (181:9,0 [2] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - \n
+            CSharpCode - (195:10,12 [106] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (195:10,12 [106] Templates_InFunctionsBlockWithTagHelper.cshtml) - CSharp - \n    Task AnnounceBirthday(Person person)\n    {\n        var formatted = $"Mr. {person.Name}";\n        
+            TagHelper - (302:14,9 [72] Templates_InFunctionsBlockWithTagHelper.cshtml) - div - TagMode.StartTagAndEndTag
+                DefaultTagHelperBody - 
+                    HtmlContent - (307:14,14 [33] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                        IntermediateToken - (307:14,14 [14] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - \n            
+                        IntermediateToken - (321:15,12 [3] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - <h3
+                        IntermediateToken - (324:15,15 [1] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - >
+                        IntermediateToken - (325:15,16 [15] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - Happy birthday 
+                    CSharpExpression - (342:15,33 [9] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                        IntermediateToken - (342:15,33 [9] Templates_InFunctionsBlockWithTagHelper.cshtml) - CSharp - formatted
+                    HtmlContent - (352:15,43 [16] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                        IntermediateToken - (352:15,43 [1] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - !
+                        IntermediateToken - (353:15,44 [5] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - </h3>
+                        IntermediateToken - (358:15,49 [10] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - \n        
+                DefaultTagHelperCreate -  - DivTagHelper
+                DefaultTagHelperExecute - 
+            CSharpCode - (374:16,14 [12] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (374:16,14 [12] Templates_InFunctionsBlockWithTagHelper.cshtml) - CSharp - \n\n        
+            HtmlContent - (387:18,9 [14] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (387:18,9 [3] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - <ul
+                IntermediateToken - (390:18,12 [1] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - >
+                IntermediateToken - (391:18,13 [10] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - \n        
+            CSharpCode - (402:19,9 [59] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (402:19,9 [59] Templates_InFunctionsBlockWithTagHelper.cshtml) - CSharp - for (var i = 0; i < Age / 10; i++)\n        {\n            
+            HtmlContent - (461:21,12 [3] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (461:21,12 [2] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - <p
+                IntermediateToken - (463:21,14 [1] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - >
+            CSharpExpression - (466:21,17 [1] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (466:21,17 [1] Templates_InFunctionsBlockWithTagHelper.cshtml) - CSharp - i
+            HtmlContent - (468:21,19 [20] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (468:21,19 [16] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html -  Happy birthday!
+                IntermediateToken - (484:21,35 [4] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - </p>
+            CSharpCode - (488:21,39 [11] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (488:21,39 [11] Templates_InFunctionsBlockWithTagHelper.cshtml) - CSharp - \n        }
+            HtmlContent - (499:22,9 [15] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (499:22,9 [10] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - \n        
+                IntermediateToken - (509:23,8 [5] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - </ul>
+            CSharpCode - (514:23,13 [87] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (514:23,13 [87] Templates_InFunctionsBlockWithTagHelper.cshtml) - CSharp - \n\n        if (person.Age < 20)\n        {\n            return;\n        }\n\n        
+            HtmlContent - (602:30,9 [23] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (602:30,9 [3] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - <h4
+                IntermediateToken - (605:30,12 [1] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - >
+                IntermediateToken - (606:30,13 [14] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - Secret message
+                IntermediateToken - (620:30,27 [5] Templates_InFunctionsBlockWithTagHelper.cshtml) - Html - </h4>
+            CSharpCode - (625:30,32 [111] Templates_InFunctionsBlockWithTagHelper.cshtml)
+                IntermediateToken - (625:30,32 [111] Templates_InFunctionsBlockWithTagHelper.cshtml) - CSharp - \n    }\n\n\n    class Person\n    {\n        string Name { get; set; }\n        int Age { get; set; }\n    }\n

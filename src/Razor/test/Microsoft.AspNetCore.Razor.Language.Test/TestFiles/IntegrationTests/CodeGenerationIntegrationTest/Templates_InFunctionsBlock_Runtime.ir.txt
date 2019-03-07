@@ -1,0 +1,69 @@
+Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Templates_InFunctionsBlock_Runtime -  - 
+            MethodDeclaration -  - public async - System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (0:0,0 [2] Templates_InFunctionsBlock.cshtml)
+                    IntermediateToken - (0:0,0 [2] Templates_InFunctionsBlock.cshtml) - Html - \n
+                CSharpCode - (4:1,2 [100] Templates_InFunctionsBlock.cshtml)
+                    IntermediateToken - (4:1,2 [100] Templates_InFunctionsBlock.cshtml) - CSharp - \n    var people = new Person[]\n    {\n        new Person() { Name = "Ryan", Age = 95, };\n    };\n
+                HtmlContent - (107:7,0 [2] Templates_InFunctionsBlock.cshtml)
+                    IntermediateToken - (107:7,0 [2] Templates_InFunctionsBlock.cshtml) - Html - \n
+                CSharpCode - (111:8,2 [30] Templates_InFunctionsBlock.cshtml)
+                    IntermediateToken - (111:8,2 [30] Templates_InFunctionsBlock.cshtml) - CSharp -  AnnounceBirthday(people[0]); 
+                HtmlContent - (144:9,0 [2] Templates_InFunctionsBlock.cshtml)
+                    IntermediateToken - (144:9,0 [2] Templates_InFunctionsBlock.cshtml) - Html - \n
+            CSharpCode - (158:10,12 [106] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (158:10,12 [106] Templates_InFunctionsBlock.cshtml) - CSharp - \n    void AnnounceBirthday(Person person)\n    {\n        var formatted = $"Mr. {person.Name}";\n        
+            HtmlContent - (265:14,9 [38] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (265:14,9 [4] Templates_InFunctionsBlock.cshtml) - Html - <div
+                IntermediateToken - (269:14,13 [1] Templates_InFunctionsBlock.cshtml) - Html - >
+                IntermediateToken - (270:14,14 [14] Templates_InFunctionsBlock.cshtml) - Html - \n            
+                IntermediateToken - (284:15,12 [3] Templates_InFunctionsBlock.cshtml) - Html - <h3
+                IntermediateToken - (287:15,15 [1] Templates_InFunctionsBlock.cshtml) - Html - >
+                IntermediateToken - (288:15,16 [15] Templates_InFunctionsBlock.cshtml) - Html - Happy birthday 
+            CSharpExpression - (305:15,33 [9] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (305:15,33 [9] Templates_InFunctionsBlock.cshtml) - CSharp - formatted
+            HtmlContent - (315:15,43 [24] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (315:15,43 [1] Templates_InFunctionsBlock.cshtml) - Html - !
+                IntermediateToken - (316:15,44 [5] Templates_InFunctionsBlock.cshtml) - Html - </h3>
+                IntermediateToken - (321:15,49 [10] Templates_InFunctionsBlock.cshtml) - Html - \n        
+                IntermediateToken - (331:16,8 [6] Templates_InFunctionsBlock.cshtml) - Html - </div>
+                IntermediateToken - (337:16,14 [2] Templates_InFunctionsBlock.cshtml) - Html - \n
+            CSharpCode - (339:17,0 [10] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (339:17,0 [10] Templates_InFunctionsBlock.cshtml) - CSharp - \n        
+            HtmlContent - (350:18,9 [6] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (350:18,9 [3] Templates_InFunctionsBlock.cshtml) - Html - <ul
+                IntermediateToken - (353:18,12 [1] Templates_InFunctionsBlock.cshtml) - Html - >
+                IntermediateToken - (354:18,13 [2] Templates_InFunctionsBlock.cshtml) - Html - \n
+            CSharpCode - (356:19,0 [8] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (356:19,0 [8] Templates_InFunctionsBlock.cshtml) - CSharp -         
+            CSharpCode - (365:19,9 [47] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (365:19,9 [47] Templates_InFunctionsBlock.cshtml) - CSharp - for (var i = 0; i < Age / 10; i++)\n        {\n
+            HtmlContent - (412:21,0 [15] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (412:21,0 [12] Templates_InFunctionsBlock.cshtml) - Html -             
+                IntermediateToken - (424:21,12 [2] Templates_InFunctionsBlock.cshtml) - Html - <p
+                IntermediateToken - (426:21,14 [1] Templates_InFunctionsBlock.cshtml) - Html - >
+            CSharpExpression - (429:21,17 [1] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (429:21,17 [1] Templates_InFunctionsBlock.cshtml) - CSharp - i
+            HtmlContent - (431:21,19 [22] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (431:21,19 [16] Templates_InFunctionsBlock.cshtml) - Html -  Happy birthday!
+                IntermediateToken - (447:21,35 [4] Templates_InFunctionsBlock.cshtml) - Html - </p>
+                IntermediateToken - (451:21,39 [2] Templates_InFunctionsBlock.cshtml) - Html - \n
+            CSharpCode - (453:22,0 [11] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (453:22,0 [11] Templates_InFunctionsBlock.cshtml) - CSharp -         }\n
+            HtmlContent - (464:23,0 [15] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (464:23,0 [8] Templates_InFunctionsBlock.cshtml) - Html -         
+                IntermediateToken - (472:23,8 [5] Templates_InFunctionsBlock.cshtml) - Html - </ul>
+                IntermediateToken - (477:23,13 [2] Templates_InFunctionsBlock.cshtml) - Html - \n
+            CSharpCode - (479:24,0 [85] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (479:24,0 [85] Templates_InFunctionsBlock.cshtml) - CSharp - \n        if (person.Age < 20)\n        {\n            return;\n        }\n\n        
+            HtmlContent - (565:30,9 [25] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (565:30,9 [3] Templates_InFunctionsBlock.cshtml) - Html - <h4
+                IntermediateToken - (568:30,12 [1] Templates_InFunctionsBlock.cshtml) - Html - >
+                IntermediateToken - (569:30,13 [14] Templates_InFunctionsBlock.cshtml) - Html - Secret message
+                IntermediateToken - (583:30,27 [5] Templates_InFunctionsBlock.cshtml) - Html - </h4>
+                IntermediateToken - (588:30,32 [2] Templates_InFunctionsBlock.cshtml) - Html - \n
+            CSharpCode - (590:31,0 [107] Templates_InFunctionsBlock.cshtml)
+                IntermediateToken - (590:31,0 [107] Templates_InFunctionsBlock.cshtml) - CSharp -     }\n\n    class Person\n    {\n        string Name { get; set; }\n        int Age { get; set; }\n    }\n

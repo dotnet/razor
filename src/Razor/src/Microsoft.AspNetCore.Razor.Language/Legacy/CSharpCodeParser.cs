@@ -1409,7 +1409,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                             ParseDirectiveBlock(directiveBuilder, descriptor, parseChildren: (childBuilder, startingBraceLocation) =>
                             {
                                 NextToken();
-                                Balance(childBuilder, BalancingModes.NoErrorOnFailure, SyntaxKind.LeftBrace, SyntaxKind.RightBrace, startingBraceLocation);
+
+                                var balancingMode = BalancingModes.NoErrorOnFailure;
+                                if (Context.FeatureFlags.AllowRazorInCodeBlockDirectives)
+                                {
+                                    // We want to allow templates inside code blocks (like @functions)
+                                    balancingMode |= BalancingModes.AllowCommentsAndTemplates;
+                                }
+
+                                Balance(childBuilder, balancingMode, SyntaxKind.LeftBrace, SyntaxKind.RightBrace, startingBraceLocation);
                                 SpanContext.ChunkGenerator = new StatementChunkGenerator();
                                 var existingEditHandler = SpanContext.EditHandler;
                                 SpanContext.EditHandler = new CodeBlockEditHandler(Language.TokenizeString);

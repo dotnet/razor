@@ -19,7 +19,16 @@ namespace Microsoft.AspNetCore.Razor.Language.Extensions
             {
                 for (var i = 0; i < functions.Node.Children.Count; i++)
                 {
-                    @class.Children.Add(functions.Node.Children[i]);
+                    var child = functions.Node.Children[i];
+                    if (child is TemplateIntermediateNode)
+                    {
+                        // If there's a template at the top level in the functions block we want to just 'inline'
+                        // its content. In this context a template acts like a transition to markup.
+                        @class.Children.AddRange(child.Children);
+                        continue;
+                    }
+
+                    @class.Children.Add(child);
                 }
             }
         }

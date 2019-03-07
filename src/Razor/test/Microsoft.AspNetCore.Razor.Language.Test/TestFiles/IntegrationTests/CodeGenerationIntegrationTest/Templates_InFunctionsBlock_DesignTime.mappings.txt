@@ -1,0 +1,108 @@
+Source Location: (4:1,2 [100] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates_InFunctionsBlock.cshtml)
+|
+    var people = new Person[]
+    {
+        new Person() { Name = "Ryan", Age = 95, };
+    };
+|
+Generated Location: (753:18,2 [100] )
+|
+    var people = new Person[]
+    {
+        new Person() { Name = "Ryan", Age = 95, };
+    };
+|
+
+Source Location: (111:8,2 [30] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates_InFunctionsBlock.cshtml)
+| AnnounceBirthday(people[0]); |
+Generated Location: (988:27,2 [30] )
+| AnnounceBirthday(people[0]); |
+
+Source Location: (158:10,12 [106] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates_InFunctionsBlock.cshtml)
+|
+    void AnnounceBirthday(Person person)
+    {
+        var formatted = $"Mr. {person.Name}";
+        |
+Generated Location: (1215:34,12 [106] )
+|
+    void AnnounceBirthday(Person person)
+    {
+        var formatted = $"Mr. {person.Name}";
+        |
+
+Source Location: (305:15,33 [9] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates_InFunctionsBlock.cshtml)
+|formatted|
+Generated Location: (1490:43,33 [9] )
+|formatted|
+
+Source Location: (337:16,14 [12] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates_InFunctionsBlock.cshtml)
+|
+
+        |
+Generated Location: (1650:48,14 [12] )
+|
+
+        |
+
+Source Location: (365:19,9 [59] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates_InFunctionsBlock.cshtml)
+|for (var i = 0; i < Age / 10; i++)
+        {
+            |
+Generated Location: (1807:55,9 [59] )
+|for (var i = 0; i < Age / 10; i++)
+        {
+            |
+
+Source Location: (429:21,17 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates_InFunctionsBlock.cshtml)
+|i|
+Generated Location: (2019:62,17 [1] )
+|i|
+
+Source Location: (451:21,39 [11] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates_InFunctionsBlock.cshtml)
+|
+        }|
+Generated Location: (2196:67,39 [11] )
+|
+        }|
+
+Source Location: (477:23,13 [87] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates_InFunctionsBlock.cshtml)
+|
+
+        if (person.Age < 20)
+        {
+            return;
+        }
+
+        |
+Generated Location: (2356:73,13 [87] )
+|
+
+        if (person.Age < 20)
+        {
+            return;
+        }
+
+        |
+
+Source Location: (588:30,32 [109] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates_InFunctionsBlock.cshtml)
+|
+    }
+
+    class Person
+    {
+        string Name { get; set; }
+        int Age { get; set; }
+    }
+|
+Generated Location: (2611:85,32 [109] )
+|
+    }
+
+    class Person
+    {
+        string Name { get; set; }
+        int Age { get; set; }
+    }
+|
+

@@ -1,0 +1,40 @@
+﻿@addTagHelper "*, TestAssembly"
+@{
+    var people = new Person[]
+    {
+        new Person() { Name = "Ryan", Age = 95, };
+    };
+}
+
+@{ await AnnounceBirthday(people[0]); }
+
+@functions {
+    Task AnnounceBirthday(Person person)
+    {
+        var formatted = $"Mr. {person.Name}";
+        @<div>
+            <h3>Happy birthday @(formatted)!</h3>
+        </div>
+
+        @<ul>
+        @for (var i = 0; i < Age / 10; i++)
+        {
+            <p>@(i) Happy birthday!</p>
+        }
+        </ul>
+
+        if (person.Age < 20)
+        {
+            return;
+        }
+
+        @<h4>Secret message</h4>
+    }
+
+
+    class Person
+    {
+        string Name { get; set; }
+        int Age { get; set; }
+    }
+}
