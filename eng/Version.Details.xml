@@ -13,13 +13,13 @@
       <Uri>https://github.com/aspnet/Extensions</Uri>
       <Sha>58f20f8eb07320405c1a71f4484aba92853b41be</Sha>
     </Dependency>
-    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="4.6.0-preview3.19157.5">
+    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="4.6.0-preview3.19157.9">
       <Uri>https://github.com/dotnet/corefx</Uri>
-      <Sha>d32557cdcb245cbb872dca502a0d109daae494e0</Sha>
+      <Sha>40d09ad77ba0c022e256b37985465a6f9a95776c</Sha>
     </Dependency>
-    <Dependency Name="System.Text.Encodings.Web" Version="4.6.0-preview3.19157.5">
+    <Dependency Name="System.Text.Encodings.Web" Version="4.6.0-preview3.19157.9">
       <Uri>https://github.com/dotnet/corefx</Uri>
-      <Sha>d32557cdcb245cbb872dca502a0d109daae494e0</Sha>
+      <Sha>40d09ad77ba0c022e256b37985465a6f9a95776c</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Extensions.DependencyModel" Version="3.0.0-preview3-27507-12">
       <Uri>https://github.com/dotnet/core-setup</Uri>
@@ -32,9 +32,9 @@
   </ProductDependencies>
   <ToolsetDependencies>
     <!-- Listed as a dependency to workaround https://github.com/dotnet/cli/issues/10528 -->
-    <Dependency Name="Microsoft.NETCore.Platforms" Version="3.0.0-preview3.19157.5">
+    <Dependency Name="Microsoft.NETCore.Platforms" Version="3.0.0-preview3.19157.9">
       <Uri>https://github.com/dotnet/corefx</Uri>
-      <Sha>d32557cdcb245cbb872dca502a0d109daae494e0</Sha>
+      <Sha>40d09ad77ba0c022e256b37985465a6f9a95776c</Sha>
     </Dependency>
     <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.0.0-preview3.19153.1">
       <Uri>https://github.com/aspnet/Extensions</Uri>
