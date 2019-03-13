@@ -12,8 +12,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 {
     internal static class ComponentDiagnosticFactory
     {
+        private const string DiagnosticPrefix = "RZ";
+
         public static readonly RazorDiagnosticDescriptor UnsupportedTagHelperDirective = new RazorDiagnosticDescriptor(
-            "BL9978",
+            $"{DiagnosticPrefix}9978",
             () => 
                 "The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document." +
                 "Use '@using <namespace>' directive instead.",
@@ -25,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         }
 
         public static readonly RazorDiagnosticDescriptor CodeBlockInAttribute = new RazorDiagnosticDescriptor(
-            "BL9979",
+            $"{DiagnosticPrefix}9979",
             () =>
                 "Code blocks delimited by '@{...}' like '@{{ {0} }}' for attributes are no longer supported " +
                 "These features have been changed to use attribute syntax. " +
@@ -42,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         }
 
         public static readonly RazorDiagnosticDescriptor UnclosedTag = new RazorDiagnosticDescriptor(
-            "BL9980",
+            $"{DiagnosticPrefix}9980",
             () => "Unclosed tag '{0}' with no matching end tag.",
             RazorDiagnosticSeverity.Error);
 
@@ -52,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         }
 
         public static readonly RazorDiagnosticDescriptor UnexpectedClosingTag = new RazorDiagnosticDescriptor(
-            "BL9981",
+            $"{DiagnosticPrefix}9981",
             () => "Unexpected closing tag '{0}' with no matching start tag.",
             RazorDiagnosticSeverity.Error);
 
@@ -62,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         }
 
         public static readonly RazorDiagnosticDescriptor UnexpectedClosingTagForVoidElement = new RazorDiagnosticDescriptor(
-            "BL9983",
+            $"{DiagnosticPrefix}9983",
             () => "Unexpected closing tag '{0}'. The element '{0}' is a void element, and should be used without a closing tag.",
             RazorDiagnosticSeverity.Error);
 
@@ -72,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         }
 
         public static readonly RazorDiagnosticDescriptor InvalidHtmlContent = new RazorDiagnosticDescriptor(
-            "BL9984",
+            $"{DiagnosticPrefix}9984",
             () => "Found invalid HTML content. Text '{0}'",
             RazorDiagnosticSeverity.Error);
 
@@ -82,7 +84,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         }
 
         public static readonly RazorDiagnosticDescriptor MultipleComponents = new RazorDiagnosticDescriptor(
-            "BL9985",
+            $"{DiagnosticPrefix}9985",
             () => "Multiple components use the tag '{0}'. Components: {1}",
             RazorDiagnosticSeverity.Error);
 
@@ -92,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         }
 
         public static readonly RazorDiagnosticDescriptor UnsupportedComplexContent = new RazorDiagnosticDescriptor(
-            "BL9986",
+            $"{DiagnosticPrefix}9986",
             () => "Component attributes do not support complex content (mixed C# and markup). Attribute: '{0}', text '{1}'",
             RazorDiagnosticSeverity.Error);
 
@@ -104,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor PageDirective_CannotBeImported =
             new RazorDiagnosticDescriptor(
-            "BL9987",
+            $"{DiagnosticPrefix}9987",
             () => ComponentResources.PageDirectiveCannotBeImported,
             RazorDiagnosticSeverity.Error);
 
@@ -118,7 +120,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor PageDirective_MustSpecifyRoute =
             new RazorDiagnosticDescriptor(
-            "BL9988",
+            $"{DiagnosticPrefix}9988",
             () => "The @page directive must specify a route template. The route template must be enclosed in quotes and begin with the '/' character.",
             RazorDiagnosticSeverity.Error);
 
@@ -130,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor BindAttribute_Duplicates =
             new RazorDiagnosticDescriptor(
-            "BL9989",
+            $"{DiagnosticPrefix}9989",
             () => "The attribute '{0}' was matched by multiple bind attributes. Duplicates:{1}",
             RazorDiagnosticSeverity.Error);
 
@@ -146,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor EventHandler_Duplicates =
             new RazorDiagnosticDescriptor(
-            "BL9990",
+            $"{DiagnosticPrefix}9990",
             () => "The attribute '{0}' was matched by multiple event handlers attributes. Duplicates:{1}",
             RazorDiagnosticSeverity.Error);
 
@@ -162,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor BindAttribute_InvalidSyntax =
             new RazorDiagnosticDescriptor(
-            "BL9991",
+            $"{DiagnosticPrefix}9991",
             () => "The attribute names could not be inferred from bind attribute '{0}'. Bind attributes should be of the form" +
                 "'bind', 'bind-value' or 'bind-value-change'",
             RazorDiagnosticSeverity.Error);
@@ -177,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         }
 
         public static readonly RazorDiagnosticDescriptor DisallowedScriptTag = new RazorDiagnosticDescriptor(
-            "BL9992",
+            $"{DiagnosticPrefix}9992",
             () => "Script tags should not be placed inside components because they cannot be updated dynamically. To fix this, move the script tag to the 'index.html' file or another static location. For more information see https://go.microsoft.com/fwlink/?linkid=872131",
             RazorDiagnosticSeverity.Error);
 
@@ -191,7 +193,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor TemplateInvalidLocation =
             new RazorDiagnosticDescriptor(
-            "BL9994",
+            $"{DiagnosticPrefix}9994",
             () => "Razor templates cannot be used in attributes.",
             RazorDiagnosticSeverity.Error);
 
@@ -202,7 +204,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor ChildContentSetByAttributeAndBody =
             new RazorDiagnosticDescriptor(
-                "BL9995",
+                $"{DiagnosticPrefix}9995",
                 () => "The child content property '{0}' is set by both the attribute and the element contents.",
                 RazorDiagnosticSeverity.Error);
 
@@ -213,7 +215,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor ChildContentMixedWithExplicitChildContent =
             new RazorDiagnosticDescriptor(
-                "BL9996",
+                $"{DiagnosticPrefix}9996",
                 () => "Unrecognized child content inside component '{0}'. The component '{0}' accepts child content through the " +
                 "following top-level items: {1}.",
                 RazorDiagnosticSeverity.Error);
@@ -226,7 +228,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidAttribute =
             new RazorDiagnosticDescriptor(
-                "BL9997",
+                $"{DiagnosticPrefix}9997",
                 () => "Unrecognized attribute '{0}' on child content element '{1}'.",
                 RazorDiagnosticSeverity.Error);
 
@@ -237,7 +239,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidParameter =
             new RazorDiagnosticDescriptor(
-                "BL9998",
+                $"{DiagnosticPrefix}9998",
                 () => "Invalid parameter name. The parameter name attribute '{0}' on child content element '{1}' can only include literal text.",
                 RazorDiagnosticSeverity.Error);
 
@@ -248,7 +250,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor ChildContentRepeatedParameterName =
             new RazorDiagnosticDescriptor(
-                "BL9999",
+                $"{DiagnosticPrefix}9999",
                 () => "The child content element '{0}' of component '{1}' uses the same parameter name ('{2}') as enclosing child content " +
                 "element '{3}' of component '{4}'. Specify the parameter name like: '<{0} Context=\"another_name\"> to resolve the ambiguity",
                 RazorDiagnosticSeverity.Error);
@@ -276,7 +278,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor GenericComponentMissingTypeArgument =
             new RazorDiagnosticDescriptor(
-                "BL10000",
+                $"{DiagnosticPrefix}10000",
                 () => "The component '{0}' is missing required type arguments. Specify the missing types using the attributes: {1}.",
                 RazorDiagnosticSeverity.Error);
 
@@ -293,7 +295,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor GenericComponentTypeInferenceUnderspecified =
             new RazorDiagnosticDescriptor(
-                "BL10001",
+                $"{DiagnosticPrefix}10001",
                 () => "The type of component '{0}' cannot be inferred based on the values provided. Consider specifying the type arguments " +
                     "directly using the following attributes: {1}.",
                 RazorDiagnosticSeverity.Error);
@@ -311,7 +313,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly RazorDiagnosticDescriptor ChildContentHasInvalidParameterOnComponent =
             new RazorDiagnosticDescriptor(
-                "BL10002",
+                $"{DiagnosticPrefix}10002",
                 () => "Invalid parameter name. The parameter name attribute '{0}' on component '{1}' can only include literal text.",
                 RazorDiagnosticSeverity.Error);
 

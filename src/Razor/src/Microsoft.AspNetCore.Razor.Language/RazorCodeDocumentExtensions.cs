@@ -3,12 +3,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language
 {
     public static class RazorCodeDocumentExtensions
     {
+        private static readonly char[] PathSeparators = new char[] { '/', '\\' };
+        private static readonly char[] NamespaceSeparators = new char[] { '.' };
+
         public static TagHelperDocumentContext GetTagHelperContext(this RazorCodeDocument document)
         {
             if (document == null)
@@ -187,6 +192,57 @@ namespace Microsoft.AspNetCore.Razor.Language
             }
 
             document.Items[typeof(FileKinds)] = fileKind;
+        }
+
+        // In general documents will have a relative path (relative to the project root).
+        // We can only really compute a nice class/namespace when we know a relative path.
+        //
+        // However all kinds of thing are possible in tools. We shouldn't barf here if the document isn't 
+        // set up correctly.
+        internal static bool TryComputeNamespaceAndClass(this RazorCodeDocument document, out string @namespace, out string @class)
+        {
+            var filePath = document.Source.FilePath;
+            var relativePath = document.Source.RelativePath;
+            if (filePath == null || relativePath == null || filePath.Length <= relativePath.Length)
+            {
+                @namespace = null;
+                @class = null;
+                return false;
+            }
+
+            var options = document.GetCodeGenerationOptions();
+            var rootNamespace = options.RootNamespace;
+            if (string.IsNullOrEmpty(rootNamespace))
+            {
+                @namespace = null;
+                @class = null;
+                return false;
+            }
+
+            var builder = new StringBuilder();
+
+            // Sanitize the base namespace, but leave the dots.
+            var segments = rootNamespace.Split(NamespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
+            builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[0]));
+            for (var i = 1; i < segments.Length; i++)
+            {
+                builder.Append('.');
+                builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[i]));
+            }
+
+            segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
+
+            // Skip the last segment because it's the FileName.
+            for (var i = 0; i < segments.Length - 1; i++)
+            {
+                builder.Append('.');
+                builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[i]));
+            }
+
+            @namespace = builder.ToString();
+            @class = CSharpIdentifier.SanitizeIdentifier(Path.GetFileNameWithoutExtension(relativePath));
+
+            return true;
         }
 
         private class ImportSyntaxTreesHolder

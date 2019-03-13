@@ -18,7 +18,12 @@ namespace Microsoft.AspNetCore.Razor.Language
                 fileKind: FileKinds.Legacy);
         }
 
-        public static RazorParserOptions Create(Action<RazorParserOptionsBuilder> configure, string fileKind = null)
+        public static RazorParserOptions Create(Action<RazorParserOptionsBuilder> configure)
+        {
+            return Create(configure, fileKind: null);
+        }
+
+        public static RazorParserOptions Create(Action<RazorParserOptionsBuilder> configure, string fileKind)
         {
             if (configure == null)
             {
@@ -32,7 +37,12 @@ namespace Microsoft.AspNetCore.Razor.Language
             return options;
         }
 
-        public static RazorParserOptions CreateDesignTime(Action<RazorParserOptionsBuilder> configure, string fileKind = null)
+        public static RazorParserOptions CreateDesignTime(Action<RazorParserOptionsBuilder> configure)
+        {
+            return CreateDesignTime(configure, fileKind: null);
+        }
+
+        public static RazorParserOptions CreateDesignTime(Action<RazorParserOptionsBuilder> configure, string fileKind)
         {
             if (configure == null)
             {

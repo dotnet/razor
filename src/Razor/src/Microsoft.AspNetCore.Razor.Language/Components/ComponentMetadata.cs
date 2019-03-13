@@ -13,6 +13,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static readonly string ImportsFileName = "_Imports.razor";
 
+        public static bool IsComponentTagHelperKind(string tagHelperKind)
+        {
+            return tagHelperKind == Component.TagHelperKind ||
+                tagHelperKind == ChildContent.TagHelperKind ||
+                tagHelperKind == EventHandler.TagHelperKind ||
+                tagHelperKind == Bind.TagHelperKind ||
+                tagHelperKind == Ref.TagHelperKind;
+        }
+
         public static class Bind
         {
             public static readonly string RuntimeName = "Components.None";

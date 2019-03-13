@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             DirectiveVisitor visitor = null;
             if (FileKinds.IsComponent(codeDocument.GetFileKind()))
             {
-                var currentNamespace = ComputeNamespace(codeDocument);
+                codeDocument.TryComputeNamespaceAndClass(out var currentNamespace, out var _);
                 visitor = new ComponentDirectiveVisitor(codeDocument.Source.FilePath, descriptors, currentNamespace);
             }
             else
@@ -60,7 +60,9 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             visitor.Visit(syntaxTree);
 
+            // This will always be null for a component document.
             var tagHelperPrefix = visitor.TagHelperPrefix;
+
             descriptors = visitor.Matches.ToArray();
 
             var context = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
@@ -75,37 +77,6 @@ namespace Microsoft.AspNetCore.Razor.Language
             var rewrittenSyntaxTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, tagHelperPrefix, descriptors);
             
             codeDocument.SetSyntaxTree(rewrittenSyntaxTree);
-        }
-
-        private string ComputeNamespace(RazorCodeDocument codeDocument)
-        {
-            var rootNamespace = codeDocument.GetCodeGenerationOptions().RootNamespace;
-            var relativePath = codeDocument.Source.RelativePath;
-            if (string.IsNullOrEmpty(rootNamespace) || string.IsNullOrEmpty(relativePath))
-            {
-                return null;
-            }
-
-            // Sanitize the base namespace, but leave the dots.
-            var builder = new StringBuilder();
-            var segments = rootNamespace.Split(NamespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
-            builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[0]));
-            for (var i = 1; i < segments.Length; i++)
-            {
-                builder.Append('.');
-                builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[i]));
-            }
-
-            segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
-
-            // Skip the last segment because it's the FileName.
-            for (var i = 0; i < segments.Length - 1; i++)
-            {
-                builder.Append('.');
-                builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[i]));
-            }
-
-            return builder.ToString();
         }
 
         private static bool MatchesDirective(TagHelperDescriptor descriptor, string typePattern, string assemblyName)
@@ -131,14 +102,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             return string.Equals(descriptor.Name, typePattern, StringComparison.Ordinal);
         }
 
-        private static bool IsComponentTagHelperKind(string tagHelperKind)
-        {
-            return tagHelperKind == ComponentMetadata.Component.TagHelperKind ||
-                tagHelperKind == ComponentMetadata.ChildContent.TagHelperKind ||
-                tagHelperKind == ComponentMetadata.EventHandler.TagHelperKind ||
-                tagHelperKind == ComponentMetadata.Bind.TagHelperKind ||
-                tagHelperKind == ComponentMetadata.Ref.TagHelperKind;
-        }
+        
 
         internal abstract class DirectiveVisitor : SyntaxWalker
         {
@@ -157,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             public TagHelperDirectiveVisitor(IReadOnlyList<TagHelperDescriptor> tagHelpers)
             {
                 // We don't want to consider components in a view document.
-                _tagHelpers = tagHelpers.Where(t => !IsComponentTagHelperKind(t.Kind)).ToList();
+                _tagHelpers = tagHelpers.Where(t => !ComponentMetadata.IsComponentTagHelperKind(t.Kind)).ToList();
             }
 
             public override string TagHelperPrefix => _tagHelperPrefix;
@@ -268,7 +232,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 _filePath = filePath;
 
                 // We don't want to consider non-component tag helpers in a component document.
-                _tagHelpers = tagHelpers.Where(t => IsComponentTagHelperKind(t.Kind)).ToList();
+                _tagHelpers = tagHelpers.Where(t => ComponentMetadata.IsComponentTagHelperKind(t.Kind)).ToList();
 
                 for (var i = 0; i < _tagHelpers.Count; i++)
                 {
@@ -289,6 +253,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             public override HashSet<TagHelperDescriptor> Matches { get; } = new HashSet<TagHelperDescriptor>();
 
+            // There is no support for tag helper prefix in component documents.
             public override string TagHelperPrefix => null;
 
             public override void Visit(RazorSyntaxTree tree)
@@ -342,8 +307,14 @@ namespace Microsoft.AspNetCore.Razor.Language
                     }
                     else if (context.ChunkGenerator is AddImportChunkGenerator usingStatement && !usingStatement.IsStatic)
                     {
-                        // Get the namespace from the using statement. Split it at '=' in case there is an alias.
-                        var @namespace = usingStatement.ParsedNamespace.Split('=').LastOrDefault();
+                        // Get the namespace from the using statement.
+                        var @namespace = usingStatement.ParsedNamespace;
+                        if (@namespace.Contains('='))
+                        {
+                            // We don't support usings with alias.
+                            continue;
+                        }
+
                         for (var i = 0; i < _tagHelpers.Count; i++)
                         {
                             var tagHelper = _tagHelpers[i];
@@ -382,6 +353,11 @@ namespace Microsoft.AspNetCore.Razor.Language
                 return false;
             }
 
+            // Check if the given type is already in scope given the namespace of the current document.
+            // E.g,
+            // If the namespace of the document is `MyComponents.Components.Shared`,
+            // then the types `MyComponents.FooComponent`, `MyComponents.Components.BarComponent`, `MyComponents.Components.Shared.BazComponent` are all in scope.
+            // Whereas `MyComponents.SomethingElse.OtherComponent` is not in scope.
             private bool IsTypeInScope(string typeName, string currentNamespace)
             {
                 var namespaceLength = typeName.LastIndexOf('.');
