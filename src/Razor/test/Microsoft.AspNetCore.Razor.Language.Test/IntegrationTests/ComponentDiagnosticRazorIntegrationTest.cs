@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             Assert.Collection(result.Diagnostics,
                 item =>
                 {
-                    Assert.Equal("BL9981", item.Id);
+                    Assert.Equal("RZ9981", item.Id);
                     Assert.Equal("Unexpected closing tag 'mytag' with no matching start tag.", item.GetMessage());
                 });
         }
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
             // Assert
             var diagnostic = Assert.Single(generated.Diagnostics);
-            Assert.Equal("BL9979", diagnostic.Id);
+            Assert.Equal("RZ9979", diagnostic.Id);
         }
 
         [Fact]
@@ -57,7 +57,7 @@ Goodbye");
             Assert.Collection(result.Diagnostics,
                 item =>
                 {
-                    Assert.Equal("BL9992", item.Id);
+                    Assert.Equal("RZ9992", item.Id);
                     Assert.Equal("Script tags should not be placed inside components because they cannot be updated dynamically. To fix this, move the script tag to the 'index.html' file or another static location. For more information see https://go.microsoft.com/fwlink/?linkid=872131", item.GetMessage());
                     Assert.Equal(2, item.Span.LineIndex);
                     Assert.Equal(4, item.Span.CharacterIndex);

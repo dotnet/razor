@@ -241,9 +241,19 @@ namespace Microsoft.AspNetCore.Razor.Language
                     {
                         // If the component descriptor matches for a fully qualified name, using directives shouldn't matter.
                         Matches.Add(tagHelper);
+                        continue;
                     }
 
-                    if (currentNamespace != null && IsTypeInScope(tagHelper.GetTypeName(), currentNamespace))
+                    var typeName = tagHelper.GetTypeName();
+                    if (tagHelper.IsChildContentTagHelper())
+                    {
+                        var lastDot = typeName.LastIndexOf('.');
+                        if (lastDot != -1)
+                        {
+                            typeName = typeName.Substring(0, lastDot);
+                        }
+                    }
+                    if (currentNamespace != null && IsTypeInScope(typeName, currentNamespace))
                     {
                         // Also, if the type is already in scope of the document's namespace, using isn't necessary.
                         Matches.Add(tagHelper);

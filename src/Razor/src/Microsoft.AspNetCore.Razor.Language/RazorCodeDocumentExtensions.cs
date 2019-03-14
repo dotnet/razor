@@ -201,6 +201,11 @@ namespace Microsoft.AspNetCore.Razor.Language
         // set up correctly.
         internal static bool TryComputeNamespaceAndClass(this RazorCodeDocument document, out string @namespace, out string @class)
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             var filePath = document.Source.FilePath;
             var relativePath = document.Source.RelativePath;
             if (filePath == null || relativePath == null || filePath.Length <= relativePath.Length)
@@ -210,8 +215,8 @@ namespace Microsoft.AspNetCore.Razor.Language
                 return false;
             }
 
-            var options = document.GetCodeGenerationOptions();
-            var rootNamespace = options.RootNamespace;
+            var options = document.GetCodeGenerationOptions() ?? document.GetDocumentIntermediateNode()?.Options;
+            var rootNamespace = options?.RootNamespace;
             if (string.IsNullOrEmpty(rootNamespace))
             {
                 @namespace = null;
