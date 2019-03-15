@@ -292,6 +292,11 @@ namespace Microsoft.CodeAnalysis.Razor
                 CreateContextParameter(builder, attribute.Name);
             }
 
+            if (component.IsComponentFullyQualifiedNameMatch())
+            {
+                builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
+            }
+
             var descriptor = builder.Build();
 
             return descriptor;

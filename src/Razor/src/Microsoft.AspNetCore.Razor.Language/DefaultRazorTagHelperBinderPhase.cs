@@ -247,12 +247,15 @@ namespace Microsoft.AspNetCore.Razor.Language
                     var typeName = tagHelper.GetTypeName();
                     if (tagHelper.IsChildContentTagHelper())
                     {
+                        // If this is a child content tag helper, we want to add it if it's original type is in scope.
+                        // E.g, if the type name is `Test.MyComponent.ChildContent`, we want to add it if `Test.MyComponent` is in scope.
                         var lastDot = typeName.LastIndexOf('.');
                         if (lastDot != -1)
                         {
                             typeName = typeName.Substring(0, lastDot);
                         }
                     }
+
                     if (currentNamespace != null && IsTypeInScope(typeName, currentNamespace))
                     {
                         // Also, if the type is already in scope of the document's namespace, using isn't necessary.

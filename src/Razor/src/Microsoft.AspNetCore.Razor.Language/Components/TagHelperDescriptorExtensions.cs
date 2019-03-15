@@ -151,6 +151,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 string.Equals(ComponentMetadata.Ref.TagHelperKind, kind);
         }
 
+        /// <summary>
+        /// Gets whether the component matches a tag with a fully qualified name.
+        /// </summary>
+        /// <param name="tagHelper">The <see cref="TagHelperDescriptor"/>.</param>
         public static bool IsComponentFullyQualifiedNameMatch(this TagHelperDescriptor tagHelper)
         {
             if (tagHelper == null)
