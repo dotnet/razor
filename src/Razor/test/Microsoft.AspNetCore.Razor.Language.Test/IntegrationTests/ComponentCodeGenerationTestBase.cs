@@ -319,6 +319,40 @@ namespace Test
             CompileToAssembly(generated);
         }
 
+        [Fact]
+        public void Component_WithFullyQualifiedTagNames()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test2
+{
+    public class MyComponent2 : ComponentBase
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+<MyComponent />
+<Test.MyComponent />
+<Test2.MyComponent2 />");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
         #endregion
 
         #region Bind
@@ -1280,6 +1314,136 @@ namespace Test
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
             AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
             CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Component_WithUsingDirectives()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test2
+{
+    public class MyComponent2 : ComponentBase
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@page ""/MyPage""
+@page ""/AnotherRoute/{id}""
+@using Test2
+<MyComponent />
+<MyComponent2 />");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Component_WithUsingDirectives_AmbiguousImport()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test2
+{
+    public class SomeComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test3
+{
+    public class SomeComponent : ComponentBase
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using Test2
+@using Test3
+<MyComponent />
+<SomeComponent />");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            var result = CompileToAssembly(generated, throwOnFailure: !DesignTime);
+
+            if (DesignTime)
+            {
+                Assert.Collection(result.Diagnostics, d =>
+                {
+                    Assert.Equal("CS0104", d.Id);
+                    Assert.Equal(CodeAnalysis.DiagnosticSeverity.Error, d.Severity);
+                    Assert.Equal("'SomeComponent' is an ambiguous reference between 'Test2.SomeComponent' and 'Test3.SomeComponent'", d.GetMessage());
+                });
+            }
+        }
+
+        [Fact]
+        public void Component_IgnoresStaticAndAliasUsings()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test2
+{
+    public class SomeComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test3
+{
+    public class SomeComponent : ComponentBase
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using static Test2.SomeComponent
+@using Foo = Test3
+<MyComponent />
+<SomeComponent /> <!-- Not a component -->");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            var result = CompileToAssembly(generated);
         }
 
         #endregion

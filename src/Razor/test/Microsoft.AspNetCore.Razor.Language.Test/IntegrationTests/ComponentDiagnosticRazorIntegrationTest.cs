@@ -63,5 +63,47 @@ Goodbye");
                     Assert.Equal(4, item.Span.CharacterIndex);
                 });
         }
+
+        [Fact]
+        public void RejectsTagHelperDirectives()
+        {
+            // Arrange/Act
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+"));
+
+            var result = CompileToCSharp(@"
+@addTagHelper *, TestAssembly
+@tagHelperPrefix th
+
+<MyComponent />
+");
+
+            // Assert
+            Assert.Collection(result.Diagnostics,
+                item =>
+                {
+                    Assert.Equal("RZ9978", item.Id);
+                    Assert.Equal("The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document." +
+                "Use '@using <namespace>' directive instead.", item.GetMessage());
+                    Assert.Equal(0, item.Span.LineIndex);
+                    Assert.Equal(0, item.Span.CharacterIndex);
+                },
+                item =>
+                {
+                    Assert.Equal("RZ9978", item.Id);
+                    Assert.Equal("The directives @addTagHelper, @removeTagHelper and @tagHelperPrefix are not valid in a component document." +
+                "Use '@using <namespace>' directive instead.", item.GetMessage());
+                    Assert.Equal(1, item.Span.LineIndex);
+                    Assert.Equal(0, item.Span.CharacterIndex);
+                });
+        }
     }
 }
