@@ -35,7 +35,7 @@
   </Target>
 
   <Target Name="_IntrospectResolvedConfiguration">
-    <Message Text="ResolvedRazorLangVersion: $(ResolvedRazorLangVersion)" Importance="High" />
+    <Message Text="RazorLangVersion: $(RazorLangVersion)" Importance="High" />
     <Message Text="ResolvedRazorConfiguration: @(ResolvedRazorConfiguration)" Importance="High" />
   </Target>
 </Project>

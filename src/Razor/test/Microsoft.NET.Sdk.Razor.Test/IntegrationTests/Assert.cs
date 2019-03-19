@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         private static readonly Regex ErrorRegex = new Regex(@"^(?'location'.+): error (?'errorcode'[A-Z0-9]+): (?'message'.+) \[(?'project'.+)\]$");
         private static readonly Regex WarningRegex = new Regex(@"^(?'location'.+): warning (?'errorcode'[A-Z0-9]+): (?'message'.+) \[(?'project'.+)\]$");
 
-        public static void BuildPassed(MSBuildResult result, bool cleanBuild = true)
+        public static void BuildPassed(MSBuildResult result, bool allowWarnings = false)
         {
             if (result == null)
             {
@@ -33,9 +33,9 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             }
 
             var buildWarnings = GetBuildWarnings(result).Select(m => m.line);
-            if (cleanBuild && buildWarnings.Any())
+            if (!allowWarnings && buildWarnings.Any())
             {
-                throw new CleanBuildFailedException(result, buildWarnings);
+                throw new BuildWarningsException(result, buildWarnings);
             }
         }
 
@@ -530,9 +530,9 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             protected override string Heading => "Build failed.";
         }
 
-        private class CleanBuildFailedException : MSBuildXunitException
+        private class BuildWarningsException : MSBuildXunitException
         {
-            public CleanBuildFailedException(MSBuildResult result, IEnumerable<string> warnings)
+            public BuildWarningsException(MSBuildResult result, IEnumerable<string> warnings)
                 : base(result)
             {
                 Warnings = warnings.ToList();

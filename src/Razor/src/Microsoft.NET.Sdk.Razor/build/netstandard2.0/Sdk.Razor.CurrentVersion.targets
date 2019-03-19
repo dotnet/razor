@@ -32,34 +32,32 @@ Copyright (c) .NET Foundation. All rights reserved.
 
   <!-- Resolve the RazorLangVersion based on values imported or TFM. -->
   <PropertyGroup>
-    <ResolvedRazorLangVersion>$(RazorLangVersion)</ResolvedRazorLangVersion>
-
     <_TargetFrameworkVersionWithoutV>$(TargetFrameworkVersion.TrimStart('vV'))</_TargetFrameworkVersionWithoutV>
 
     <!--
       Infer the RazorLangVersion if no value was specified. When adding support for newer target frameworks, list newer language versions first.
     -->
-    <ResolvedRazorLangVersion Condition="'$(ResolvedRazorLangVersion)' == '' AND '$(_TargetFrameworkVersionWithoutV)' &gt; '2.9'">3.0</ResolvedRazorLangVersion>
+    <RazorLangVersion Condition="'$(RazorLangVersion)' == '' AND '$(_TargetFrameworkVersionWithoutV)' &gt; '2.9'">3.0</RazorLangVersion>
 
     <!--
       In 3.0, we expect RazorLangVersion to either be specified in the template or inferred via TFM. In 2.x, RazorLangVersion is
       specified via the Razor.Design package. We'll default to a version of 2.1, the earliest version that the SDK supports.
       A 2.1 version should result in a build warning if the project contains Components.
     -->
-    <ResolvedRazorLangVersion Condition="'$(ResolvedRazorLangVersion)' == ''">2.1</ResolvedRazorLangVersion>
+    <RazorLangVersion Condition="'$(RazorLangVersion)' == ''">2.1</RazorLangVersion>
 
-    <!-- Keep this in sync with RazorLangVersion if we introduce new text based values. -->
+    <!-- Keep this in sync with RazorLangVersion.cs if we introduce new text based values. -->
     <_Targeting30OrNewerRazorLangVersion Condition="
-        '$(ResolvedRazorLangVersion)' == 'Latest' OR
-        '$(ResolvedRazorLangVersion)' == 'Experimental' OR
-        '$(ResolvedRazorLangVersion)' &gt; '2.9'">true</_Targeting30OrNewerRazorLangVersion>
+        '$(RazorLangVersion)' == 'Latest' OR
+        '$(RazorLangVersion)' == 'Experimental' OR
+        ('$(RazorLangVersion)' != '' AND '$(RazorLangVersion)' &gt; '2.9')">true</_Targeting30OrNewerRazorLangVersion>
   </PropertyGroup>
 
 
   <PropertyGroup>
     <!--
-    The property IsRazorCompilerReferenced is defined by the 2.x Razor.Design package. We can use this as a best guess to determine if a project is targeting 2.x or earlier.
-    This is useful to provide 3.0 or newer specific build warnings. However, since it's not very reliable, we should not use this to make build-altering decisions.
+      The property IsRazorCompilerReferenced is defined by the 2.x Razor.Design package. We can use this as a best guess to determine if a project is targeting 2.x or earlier.
+      This is useful to provide 3.0 or newer specific build warnings. However, since it's not very reliable, we should not use this to make build-altering decisions.
     -->
     <_IsTargetingRazor2X Condition="'$(IsRazorCompilerReferenced)'=='true'">true</_IsTargetingRazor2X>
   </PropertyGroup>
@@ -406,7 +404,7 @@ A common cause is a reference to an incompatible version of the 'Microsoft.AspNe
     DependsOnTargets="ResolveRazorConfiguration">
     <ItemGroup>
       <_RazorAssemblyAttribute Include="Microsoft.AspNetCore.Razor.Hosting.RazorLanguageVersionAttribute">
-        <_Parameter1>$(ResolvedRazorLangVersion)</_Parameter1>
+        <_Parameter1>$(RazorLangVersion)</_Parameter1>
       </_RazorAssemblyAttribute>
       <_RazorAssemblyAttribute Include="Microsoft.AspNetCore.Razor.Hosting.RazorConfigurationNameAttribute">
         <_Parameter1>$(RazorDefaultConfiguration)</_Parameter1>

@@ -102,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration");
 
             Assert.BuildPassed(result);
-            Assert.BuildOutputContainsLine(result, "ResolvedRazorLangVersion: 3.0");
+            Assert.BuildOutputContainsLine(result, "RazorLangVersion: 3.0");
             Assert.BuildOutputContainsLine(result, "ResolvedRazorConfiguration: MVC-3.0");
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration");
 
             Assert.BuildPassed(result);
-            Assert.BuildOutputContainsLine(result, "ResolvedRazorLangVersion: 3.0");
+            Assert.BuildOutputContainsLine(result, "RazorLangVersion: 3.0");
             Assert.BuildOutputContainsLine(result, "ResolvedRazorConfiguration: Default");
         }
 
@@ -121,10 +121,13 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         [InitializeTestProject("ComponentLibrary")]
         public async Task RazorSdk_ResolvesRazorLangVersionTo21WhenUnspecified()
         {
-            var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration /p:RazorLangVersion=");
+            // This is equivalent to not specifying a value for RazorLangVersion
+            AddProjectFileContent("<PropertyGroup><RazorLangVersion /></PropertyGroup>");
 
-            Assert.BuildPassed(result, cleanBuild: false);
-            Assert.BuildOutputContainsLine(result, "ResolvedRazorLangVersion: 2.1");
+            var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration");
+
+            Assert.BuildPassed(result, allowWarnings: true);
+            Assert.BuildOutputContainsLine(result, "RazorLangVersion: 2.1");
             // BuildOutputContainsLine matches entire lines, so it's fine to Assert the following.
             Assert.BuildOutputContainsLine(result, "ResolvedRazorConfiguration:");
         }
@@ -136,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration /p:RazorLangVersion=Latest");
 
             Assert.BuildPassed(result);
-            Assert.BuildOutputContainsLine(result, "ResolvedRazorLangVersion: Latest");
+            Assert.BuildOutputContainsLine(result, "RazorLangVersion: Latest");
             Assert.BuildOutputContainsLine(result, "ResolvedRazorConfiguration: Default");
         }
 
@@ -147,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration");
 
             Assert.BuildPassed(result);
-            Assert.BuildOutputContainsLine(result, "ResolvedRazorLangVersion: 3.0");
+            Assert.BuildOutputContainsLine(result, "RazorLangVersion: 3.0");
             Assert.BuildOutputContainsLine(result, "ResolvedRazorConfiguration: MVC-3.0");
         }
     }

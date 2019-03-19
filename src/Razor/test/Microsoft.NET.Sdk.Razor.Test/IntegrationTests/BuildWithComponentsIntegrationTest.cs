@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             TargetFramework = "netstandard2.0";
             var result = await DotnetMSBuild("Build", "/p:RazorLangVersion=");
 
-            Assert.BuildPassed(result, cleanBuild: false);
+            Assert.BuildPassed(result, allowWarnings: true);
 
             // We should see a build warning
             Assert.BuildWarning(result, "RAZORSDK1005");
