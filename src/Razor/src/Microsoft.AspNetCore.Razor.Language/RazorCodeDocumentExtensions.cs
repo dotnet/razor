@@ -215,6 +215,8 @@ namespace Microsoft.AspNetCore.Razor.Language
                 return false;
             }
 
+            filePath = NormalizePath(filePath);
+            relativePath = NormalizePath(relativePath);
             var options = document.GetCodeGenerationOptions() ?? document.GetDocumentIntermediateNode()?.Options;
             var rootNamespace = options?.RootNamespace;
             if (string.IsNullOrEmpty(rootNamespace))
@@ -248,6 +250,13 @@ namespace Microsoft.AspNetCore.Razor.Language
             @class = CSharpIdentifier.SanitizeIdentifier(Path.GetFileNameWithoutExtension(relativePath));
 
             return true;
+        }
+
+        private static string NormalizePath(string path)
+        {
+            path = path.Replace('\\', '/');
+
+            return path;
         }
 
         private class ImportSyntaxTreesHolder
