@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override RazorLanguageVersion Version { get; }
 
-        public override string FileKind { get; }
+        internal override string FileKind { get; }
 
         internal override RazorParserFeatureFlags FeatureFlags { get; }
     }

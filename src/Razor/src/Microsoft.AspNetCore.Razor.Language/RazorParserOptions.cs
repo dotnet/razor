@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public virtual RazorLanguageVersion Version { get; } = RazorLanguageVersion.Latest;
 
-        public virtual string FileKind { get; }
+        internal virtual string FileKind { get; }
 
         internal virtual RazorParserFeatureFlags FeatureFlags { get; }
     }
