@@ -348,7 +348,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 }
             }
 
-            private bool IsTypeInNamespace(string typeName, string @namespace)
+            internal static bool IsTypeInNamespace(string typeName, string @namespace)
             {
                 var namespaceLength = typeName.LastIndexOf('.');
                 if (namespaceLength == -1)
@@ -371,7 +371,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             // If the namespace of the document is `MyComponents.Components.Shared`,
             // then the types `MyComponents.FooComponent`, `MyComponents.Components.BarComponent`, `MyComponents.Components.Shared.BazComponent` are all in scope.
             // Whereas `MyComponents.SomethingElse.OtherComponent` is not in scope.
-            private bool IsTypeInScope(string typeName, string currentNamespace)
+            internal static bool IsTypeInScope(string typeName, string currentNamespace)
             {
                 var namespaceLength = typeName.LastIndexOf('.');
                 if (namespaceLength == -1)

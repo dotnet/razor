@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
@@ -14,6 +15,7 @@ namespace Microsoft.AspNetCore.Razor.Language
     {
         protected override RazorLanguageVersion Version => RazorLanguageVersion.Latest;
 
+#region Legacy
         [Fact]
         public void Execute_CanHandleSingleLengthAddTagHelperDirective()
         {
@@ -1003,6 +1005,29 @@ namespace Microsoft.AspNetCore.Razor.Language
             Assert.Empty(visitor.Matches);
         }
 
+        [Fact]
+        public void TagHelperDirectiveVisitor_DoesNotMatch_Components()
+        {
+            // Arrange
+            var componentDescriptor = CreateComponentDescriptor("counter", "SomeProject.Counter", AssemblyA);
+            var legacyDescriptor = Valid_PlainTagHelperDescriptor;
+            var descriptors = new[]
+            {
+                legacyDescriptor,
+                componentDescriptor,
+            };
+            var visitor = new DefaultRazorTagHelperBinderPhase.TagHelperDirectiveVisitor(descriptors);
+            var sourceDocument = CreateTestSourceDocument();
+            var tree = RazorSyntaxTree.Parse(sourceDocument);
+
+            // Act
+            visitor.Visit(tree);
+
+            // Assert
+            var match = Assert.Single(visitor.Matches);
+            Assert.Same(legacyDescriptor, match);
+        }
+
         private static TagHelperDescriptor CreatePrefixedValidPlainDescriptor(string prefix)
         {
             return Valid_PlainTagHelperDescriptor;
@@ -1037,7 +1062,300 @@ namespace Microsoft.AspNetCore.Razor.Language
             IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null,
             IEnumerable<Action<TagMatchingRuleDescriptorBuilder>> ruleBuilders = null)
         {
-            var builder = TagHelperDescriptorBuilder.Create(typeName, assemblyName);
+            return CreateDescriptor(TagHelperConventions.DefaultKind, tagName, typeName, assemblyName, attributes, ruleBuilders);
+        }
+#endregion
+
+#region Components
+        [Fact]
+        public void ComponentDirectiveVisitor_DoesNotMatch_LegacyTagHelpers()
+        {
+            // Arrange
+            var currentNamespace = "SomeProject";
+            var componentDescriptor = CreateComponentDescriptor("counter", "SomeProject.Counter", AssemblyA);
+            var legacyDescriptor = Valid_PlainTagHelperDescriptor;
+            var descriptors = new[]
+            {
+                legacyDescriptor,
+                componentDescriptor,
+            };
+            var sourceDocument = CreateComponentTestSourceDocument(@"<Counter />", "C:\\SomeFolder\\SomeProject\\Counter.cshtml");
+            var tree = RazorSyntaxTree.Parse(sourceDocument);
+            var visitor = new DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor(sourceDocument.FilePath, descriptors, currentNamespace);
+
+            // Act
+            visitor.Visit(tree);
+
+            // Assert
+            Assert.Null(visitor.TagHelperPrefix);
+            var match = Assert.Single(visitor.Matches);
+            Assert.Same(componentDescriptor, match);
+        }
+
+        [Fact]
+        public void ComponentDirectiveVisitor_AddsErrorOnLegacyTagHelperDirectives()
+        {
+            // Arrange
+            var currentNamespace = "SomeProject";
+            var componentDescriptor = CreateComponentDescriptor("counter", "SomeProject.Counter", AssemblyA);
+            var legacyDescriptor = Valid_PlainTagHelperDescriptor;
+            var descriptors = new[]
+            {
+                legacyDescriptor,
+                componentDescriptor,
+            };
+            var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
+            var content = @"
+@tagHelperPrefix th:
+
+<Counter />
+";
+            var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
+            var tree = RazorSyntaxTree.Parse(sourceDocument);
+            var visitor = new DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor(sourceDocument.FilePath, descriptors, currentNamespace);
+
+            // Act
+            visitor.Visit(tree);
+
+            // Assert
+            Assert.Null(visitor.TagHelperPrefix);
+            var match = Assert.Single(visitor.Matches);
+            Assert.Same(componentDescriptor, match);
+            var directiveChunkGenerator = (TagHelperPrefixDirectiveChunkGenerator)tree.Root.DescendantNodes().First(n => n is CSharpStatementLiteralSyntax).GetSpanContext().ChunkGenerator;
+            var diagnostic = Assert.Single(directiveChunkGenerator.Diagnostics);
+            Assert.Equal("RZ9978", diagnostic.Id);
+        }
+
+        [Fact]
+        public void ComponentDirectiveVisitor_MatchesFullyQualifiedComponents()
+        {
+            // Arrange
+            var currentNamespace = "SomeProject";
+            var componentDescriptor = CreateComponentDescriptor(
+                "SomeProject.SomeOtherFolder.Counter",
+                "SomeProject.SomeOtherFolder.Counter",
+                AssemblyA,
+                fullyQualified: true);
+            var descriptors = new[]
+            {
+                componentDescriptor,
+            };
+            var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
+            var content = @"
+";
+            var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
+            var tree = RazorSyntaxTree.Parse(sourceDocument);
+            var visitor = new DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor(sourceDocument.FilePath, descriptors, currentNamespace);
+
+            // Act
+            visitor.Visit(tree);
+
+            // Assert
+            var match = Assert.Single(visitor.Matches);
+            Assert.Same(componentDescriptor, match);
+        }
+
+        [Fact]
+        public void ComponentDirectiveVisitor_ComponentInScope_MatchesChildContent()
+        {
+            // Arrange
+            var currentNamespace = "SomeProject";
+            var componentDescriptor = CreateComponentDescriptor(
+                "Counter",
+                "SomeProject.Counter",
+                AssemblyA);
+            var childContentDescriptor = CreateComponentDescriptor(
+                "ChildContent",
+                "SomeProject.Counter.ChildContent",
+                AssemblyA,
+                childContent: true);
+            var descriptors = new[]
+            {
+                componentDescriptor,
+                childContentDescriptor,
+            };
+            var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
+            var content = @"
+";
+            var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
+            var tree = RazorSyntaxTree.Parse(sourceDocument);
+            var visitor = new DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor(sourceDocument.FilePath, descriptors, currentNamespace);
+
+            // Act
+            visitor.Visit(tree);
+
+            // Assert
+            Assert.Equal(2, visitor.Matches.Count);
+        }
+
+        [Fact]
+        public void ComponentDirectiveVisitor_NullCurrentNamespace_MatchesOnlyFullyQualifiedComponents()
+        {
+            // Arrange
+            string currentNamespace = null;
+            var componentDescriptor = CreateComponentDescriptor(
+                "Counter",
+                "SomeProject.Counter",
+                AssemblyA);
+            var fullyQualifiedComponent = CreateComponentDescriptor(
+               "SomeProject.SomeOtherFolder.Counter",
+               "SomeProject.SomeOtherFolder.Counter",
+               AssemblyA,
+               fullyQualified: true);
+            var descriptors = new[]
+            {
+                componentDescriptor,
+                fullyQualifiedComponent,
+            };
+            var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
+            var content = @"
+";
+            var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
+            var tree = RazorSyntaxTree.Parse(sourceDocument);
+            var visitor = new DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor(sourceDocument.FilePath, descriptors, currentNamespace);
+
+            // Act
+            visitor.Visit(tree);
+
+            // Assert
+            var match = Assert.Single(visitor.Matches);
+            Assert.Same(fullyQualifiedComponent, match);
+        }
+
+        [Fact]
+        public void ComponentDirectiveVisitor_MatchesIfNamespaceInUsing()
+        {
+            // Arrange
+            var currentNamespace = "SomeProject";
+            var componentDescriptor = CreateComponentDescriptor(
+                "Counter",
+                "SomeProject.Counter",
+                AssemblyA);
+            var anotherComponentDescriptor = CreateComponentDescriptor(
+               "Foo",
+               "SomeProject.SomeOtherFolder.Foo",
+               AssemblyA);
+            var descriptors = new[]
+            {
+                componentDescriptor,
+                anotherComponentDescriptor,
+            };
+            var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
+            var content = @"
+@using SomeProject.SomeOtherFolder
+";
+            var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
+            var tree = RazorSyntaxTree.Parse(sourceDocument);
+            var visitor = new DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor(sourceDocument.FilePath, descriptors, currentNamespace);
+
+            // Act
+            visitor.Visit(tree);
+
+            // Assert
+            Assert.Equal(2, visitor.Matches.Count);
+        }
+
+        [Fact]
+        public void ComponentDirectiveVisitor_DoesNotMatchForUsingAliasAndStaticUsings()
+        {
+            // Arrange
+            var currentNamespace = "SomeProject";
+            var componentDescriptor = CreateComponentDescriptor(
+                "Counter",
+                "SomeProject.Counter",
+                AssemblyA);
+            var anotherComponentDescriptor = CreateComponentDescriptor(
+               "Foo",
+               "SomeProject.SomeOtherFolder.Foo",
+               AssemblyA);
+            var descriptors = new[]
+            {
+                componentDescriptor,
+                anotherComponentDescriptor,
+            };
+            var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
+            var content = @"
+@using Bar = SomeProject.SomeOtherFolder
+@using static SomeProject.SomeOtherFolder.Foo
+";
+            var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
+            var tree = RazorSyntaxTree.Parse(sourceDocument);
+            var visitor = new DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor(sourceDocument.FilePath, descriptors, currentNamespace);
+
+            // Act
+            visitor.Visit(tree);
+
+            // Assert
+            var match = Assert.Single(visitor.Matches);
+            Assert.Same(componentDescriptor, match);
+        }
+
+        [Theory]
+        [InlineData("", "", true)]
+        [InlineData("Foo", "Project", true)]
+        [InlineData("Project.Foo", "Project", true)]
+        [InlineData("Project.Bar.Foo", "Project.Bar", true)]
+        [InlineData("Project.Foo", "Project.Bar", false)]
+        [InlineData("Project.Bar.Foo", "Project", false)]
+        [InlineData("Bar.Foo", "Project", false)]
+        public void IsTypeInNamespace_WorksAsExpected(string typeName, string @namespace, bool expected)
+        {
+            // Arrange & Act
+            var result = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.IsTypeInNamespace(typeName, @namespace);
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        [Theory]
+        [InlineData("", "", true)]
+        [InlineData("Foo", "Project", true)]
+        [InlineData("Project.Foo", "Project", true)]
+        [InlineData("Project.Bar.Foo", "Project.Bar", true)]
+        [InlineData("Project.Foo", "Project.Bar", true)]
+        [InlineData("Project.Bar.Foo", "Project", false)]
+        [InlineData("Bar.Foo", "Project", false)]
+        public void IsTypeInScope_WorksAsExpected(string typeName, string currentNamespace, bool expected)
+        {
+            // Arrange & Act
+            var result = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.IsTypeInScope(typeName, currentNamespace);
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        private static RazorSourceDocument CreateComponentTestSourceDocument(string content, string filePath = null)
+        {
+            var sourceDocument = TestRazorSourceDocument.Create(content, filePath: filePath);
+            return sourceDocument;
+        }
+
+        private static TagHelperDescriptor CreateComponentDescriptor(
+            string tagName,
+            string typeName,
+            string assemblyName,
+            IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null,
+            IEnumerable<Action<TagMatchingRuleDescriptorBuilder>> ruleBuilders = null,
+            string kind = null,
+            bool fullyQualified = false,
+            bool childContent = false)
+        {
+            kind = kind ?? ComponentMetadata.Component.TagHelperKind;
+            return CreateDescriptor(kind, tagName, typeName, assemblyName, attributes, ruleBuilders, fullyQualified, childContent);
+        }
+#endregion
+
+        private static TagHelperDescriptor CreateDescriptor(
+            string kind,
+            string tagName,
+            string typeName,
+            string assemblyName,
+            IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null,
+            IEnumerable<Action<TagMatchingRuleDescriptorBuilder>> ruleBuilders = null,
+            bool componentFullyQualified = false,
+            bool componentChildContent = false)
+        {
+            var builder = TagHelperDescriptorBuilder.Create(kind, typeName, assemblyName);
             builder.TypeName(typeName);
 
             if (attributes != null)
@@ -1062,6 +1380,16 @@ namespace Microsoft.AspNetCore.Razor.Language
             else
             {
                 builder.TagMatchingRuleDescriptor(ruleBuilder => ruleBuilder.RequireTagName(tagName));
+            }
+
+            if (componentFullyQualified)
+            {
+                builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
+            }
+
+            if (componentChildContent)
+            {
+                builder.Metadata[ComponentMetadata.SpecialKindKey] = ComponentMetadata.ChildContent.TagHelperKind;
             }
 
             var descriptor = builder.Build();
