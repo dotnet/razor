@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X
             }
 
             // Don't add MVC imports for a component - this shouldn't happen for v1, but just in case.
-            if (FileKinds.IsComponent(projectItem.FileKind))
+            if (FileKinds.IsComponent(projectItem.FileKind) || FileKinds.IsComponentImport(projectItem.FileKind))
             {
                 return Array.Empty<RazorProjectItem>();
             }
