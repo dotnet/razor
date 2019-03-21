@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         public static bool IsComponent(string fileKind)
         {
             // fileKind might be null.
-            return string.Equals(fileKind, FileKinds.Component, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(fileKind, FileKinds.Component, StringComparison.OrdinalIgnoreCase) || IsComponentImport(fileKind);
         }
 
         public static bool IsComponentImport(string fileKind)

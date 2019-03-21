@@ -45,8 +45,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             // We need to decide up front if this document is a "component" file. This will affect how
             // lowering behaves.
             LoweringVisitor visitor;
-            var fileKind = codeDocument.GetFileKind();
-            if ((FileKinds.IsComponent(fileKind) || FileKinds.IsComponentImport(fileKind)) &&
+            if (FileKinds.IsComponent(codeDocument.GetFileKind()) &&
                 syntaxTree.Options.FeatureFlags.AllowComponentFileKind)
             {
                 visitor = new ComponentFileKindVisitor(document, builder, syntaxTree.Options.FeatureFlags)

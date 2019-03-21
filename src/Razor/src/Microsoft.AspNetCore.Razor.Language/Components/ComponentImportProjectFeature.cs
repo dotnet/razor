@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             }
 
             // Don't add Component imports for a non-component.
-            if (!FileKinds.IsComponent(projectItem.FileKind) && !FileKinds.IsComponentImport(projectItem.FileKind))
+            if (!FileKinds.IsComponent(projectItem.FileKind))
             {
                 return Array.Empty<RazorProjectItem>();
             }
