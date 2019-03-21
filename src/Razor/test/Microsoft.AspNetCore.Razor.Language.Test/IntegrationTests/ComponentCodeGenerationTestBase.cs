@@ -36,7 +36,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 @using Microsoft.AspNetCore.Components.RenderTree;
 
 @{ RenderChildComponent(builder); }
@@ -71,7 +70,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 @using Microsoft.AspNetCore.Components.RenderTree;
 @{
     void RenderChildComponent()
