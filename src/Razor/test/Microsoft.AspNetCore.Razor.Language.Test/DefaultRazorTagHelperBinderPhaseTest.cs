@@ -1324,6 +1324,24 @@ namespace Microsoft.AspNetCore.Razor.Language
             Assert.Equal(expected, result);
         }
 
+        [Fact]
+        public void IsTagHelperFromMangledClass_WorksAsExpected()
+        {
+            // Arrange
+            var className = "Counter";
+            var typeName = $"SomeProject.SomeNamespace.{ComponentMetadata.MangleClassName(className)}";
+            var descriptor = CreateComponentDescriptor(
+                tagName: "Counter",
+                typeName: typeName,
+                assemblyName: AssemblyA);
+
+            // Act
+            var result = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.IsTagHelperFromMangledClass(descriptor);
+
+            // Assert
+            Assert.True(result);
+        }
+
         private static RazorSourceDocument CreateComponentTestSourceDocument(string content, string filePath = null)
         {
             var sourceDocument = TestRazorSourceDocument.Create(content, filePath: filePath);

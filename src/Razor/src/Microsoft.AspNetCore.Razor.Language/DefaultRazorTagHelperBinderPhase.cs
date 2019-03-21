@@ -232,7 +232,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 _filePath = filePath;
 
                 // We don't want to consider non-component tag helpers in a component document.
-                _tagHelpers = tagHelpers.Where(t => ComponentMetadata.IsComponentTagHelperKind(t.Kind)).ToList();
+                _tagHelpers = tagHelpers.Where(t => ComponentMetadata.IsComponentTagHelperKind(t.Kind) && !IsTagHelperFromMangledClass(t)).ToList();
 
                 for (var i = 0; i < _tagHelpers.Count; i++)
                 {
@@ -397,6 +397,18 @@ namespace Microsoft.AspNetCore.Razor.Language
                 }
 
                 return true;
+            }
+
+            // We need to filter out the duplicate tag helper descriptors that come from the 
+            // open file in the editor. We mangle the class name for its generated code, so using that here to filter these out.
+            internal static bool IsTagHelperFromMangledClass(TagHelperDescriptor tagHelper)
+            {
+                var typeName = tagHelper.GetTypeName();
+                var namespaceLength = typeName.LastIndexOf('.');
+                var classNameStart = namespaceLength + 1;
+                var className = typeName.Substring(classNameStart, typeName.Length - classNameStart);
+
+                return ComponentMetadata.IsMangledClass(className);
             }
         }
     }

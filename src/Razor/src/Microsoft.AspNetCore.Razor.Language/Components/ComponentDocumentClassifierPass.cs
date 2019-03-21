@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
             if (MangleClassNames)
             {
-                computedClass = "__" + computedClass;
+                computedClass = ComponentMetadata.MangleClassName(computedClass);
             }
 
             @namespace.Content = computedNamespace;

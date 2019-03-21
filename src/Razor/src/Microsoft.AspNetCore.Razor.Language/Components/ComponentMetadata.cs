@@ -1,11 +1,15 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.AspNetCore.Razor.Language.Components
 {
     // Metadata used for Components interactions with the tag helper system
     internal static class ComponentMetadata
     {
+        private static readonly string MangledClassNamePrefix = "__generated__";
+
         // There's a bug in the 15.7 preview 1 Razor that prevents 'Kind' from being serialized
         // this affects both tooling and build. For now our workaround is to ignore 'Kind' and
         // use our own metadata entry to denote non-Component tag helpers.
@@ -20,6 +24,26 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 tagHelperKind == EventHandler.TagHelperKind ||
                 tagHelperKind == Bind.TagHelperKind ||
                 tagHelperKind == Ref.TagHelperKind;
+        }
+
+        public static string MangleClassName(string className)
+        {
+            if (string.IsNullOrEmpty(className))
+            {
+                return string.Empty;
+            }
+
+            return MangledClassNamePrefix + className;
+        }
+
+        public static bool IsMangledClass(string className)
+        {
+            if (string.IsNullOrEmpty(className))
+            {
+                return false;
+            }
+
+            return className.StartsWith(MangledClassNamePrefix, StringComparison.Ordinal);
         }
 
         public static class Bind
