@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -13,7 +12,6 @@ namespace Microsoft.AspNetCore.Razor.Language
 {
     internal class DefaultRazorTagHelperBinderPhase : RazorEnginePhaseBase, IRazorTagHelperBinderPhase
     {
-        private static readonly char[] PathSeparators = new char[] { '/', '\\' };
         private static readonly char[] NamespaceSeparators = new char[] { '.' };
 
         protected override void ExecuteCore(RazorCodeDocument codeDocument)
@@ -249,11 +247,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                     {
                         // If this is a child content tag helper, we want to add it if it's original type is in scope.
                         // E.g, if the type name is `Test.MyComponent.ChildContent`, we want to add it if `Test.MyComponent` is in scope.
-                        var lastDot = typeName.LastIndexOf('.');
-                        if (lastDot != -1)
-                        {
-                            typeName = typeName.Substring(0, lastDot);
-                        }
+                        TrySplitNamespaceAndType(typeName, out typeName, out var _);
                     }
 
                     if (currentNamespace != null && IsTypeInScope(typeName, currentNamespace))
@@ -350,20 +344,13 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             internal static bool IsTypeInNamespace(string typeName, string @namespace)
             {
-                var namespaceLength = typeName.LastIndexOf('.');
-                if (namespaceLength == -1)
+                if (!TrySplitNamespaceAndType(typeName, out var typeNamespace, out var _) || typeNamespace == string.Empty)
                 {
                     // Either the typeName is not the full type name or this type is at the top level.
                     return true;
                 }
 
-                var typeNamespace = typeName.Substring(0, namespaceLength);
-                if (typeNamespace.Equals(@namespace, StringComparison.Ordinal))
-                {
-                    return true;
-                }
-
-                return false;
+                return typeNamespace.Equals(@namespace, StringComparison.Ordinal);
             }
 
             // Check if the given type is already in scope given the namespace of the current document.
@@ -373,14 +360,12 @@ namespace Microsoft.AspNetCore.Razor.Language
             // Whereas `MyComponents.SomethingElse.OtherComponent` is not in scope.
             internal static bool IsTypeInScope(string typeName, string currentNamespace)
             {
-                var namespaceLength = typeName.LastIndexOf('.');
-                if (namespaceLength == -1)
+                if (!TrySplitNamespaceAndType(typeName, out var typeNamespace, out var _) || typeNamespace == string.Empty)
                 {
                     // Either the typeName is not the full type name or this type is at the top level.
                     return true;
                 }
 
-                var typeNamespace = typeName.Substring(0, namespaceLength);
                 var typeNamespaceSegments = typeNamespace.Split(NamespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
                 var currentNamespaceSegments = currentNamespace.Split(NamespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
                 if (typeNamespaceSegments.Length > currentNamespaceSegments.Length)
@@ -403,12 +388,60 @@ namespace Microsoft.AspNetCore.Razor.Language
             // open file in the editor. We mangle the class name for its generated code, so using that here to filter these out.
             internal static bool IsTagHelperFromMangledClass(TagHelperDescriptor tagHelper)
             {
-                var typeName = tagHelper.GetTypeName();
-                var namespaceLength = typeName.LastIndexOf('.');
-                var classNameStart = namespaceLength + 1;
-                var className = typeName.Substring(classNameStart, typeName.Length - classNameStart);
+                if (!TrySplitNamespaceAndType(tagHelper.GetTypeName(), out var _, out var className))
+                {
+                    return false;
+                }
 
                 return ComponentMetadata.IsMangledClass(className);
+            }
+
+            // Internal for testing.
+            internal static bool TrySplitNamespaceAndType(string fullTypeName, out string @namespace, out string typeName)
+            {
+                @namespace = string.Empty;
+                typeName = string.Empty;
+
+                if (string.IsNullOrEmpty(fullTypeName))
+                {
+                    return false;
+                }
+
+                var nestingLevel = 0;
+                var splitLocation = -1;
+                for (var i = fullTypeName.Length - 1; i >= 0; i--)
+                {
+                    var c = fullTypeName[i];
+                    if (c == Type.Delimiter && nestingLevel == 0)
+                    {
+                        splitLocation = i;
+                        break;
+                    }
+                    else if (c == '>')
+                    {
+                        nestingLevel++;
+                    }
+                    else if (c == '<')
+                    {
+                        nestingLevel--;
+                    }
+                }
+
+                if (splitLocation == -1)
+                {
+                    typeName = fullTypeName;
+                    return true;
+                }
+
+                @namespace = fullTypeName.Substring(0, splitLocation);
+
+                var typeNameStartLocation = splitLocation + 1;
+                if (typeNameStartLocation < fullTypeName.Length)
+                {
+                    typeName = fullTypeName.Substring(typeNameStartLocation, fullTypeName.Length - typeNameStartLocation);
+                }
+
+                return true;
             }
         }
     }
