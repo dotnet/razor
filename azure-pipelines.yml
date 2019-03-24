@@ -29,7 +29,6 @@ jobs:
     - job: Code_check
       displayName: Code check
       pool:
-        # agent pool can't be read from a user-defined variable (Azure DevOps limitation)
         ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
           name: NetCorePublic-Int-Pool
           queue: BuildPool.Windows.10.Amd64.VS2019.BT.Open
@@ -55,11 +54,12 @@ jobs:
     jobs:
     - job: Windows
       pool:
-        # agent pool can't be read from a user-defined variable (Azure DevOps limitation)
         ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
-          name: dotnet-external-vs2019-preview
+          name: NetCorePublic-Int-Pool
+          queue: BuildPool.Windows.10.Amd64.VS2019.BT.Open
         ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          name: dotnet-internal-vs2019-preview
+          name: NetCoreInternal-Int-Pool
+          queue: BuildPool.Windows.10.Amd64.VS2019.BT
       strategy:
         matrix:
           debug:
@@ -95,6 +95,8 @@ jobs:
         - group: DotNet-Blob-Feed
         - group: DotNet-Symbol-Server-Pats
       steps:
+      - powershell: ./eng/scripts/InstallVisualStudio.ps1 -Edition BuildTools -Quiet
+        displayName: Install Build Tools for Visual Studio 2019
       - script: eng\common\cibuild.cmd 
           -configuration $(_BuildConfig)
           -prepareMachine
