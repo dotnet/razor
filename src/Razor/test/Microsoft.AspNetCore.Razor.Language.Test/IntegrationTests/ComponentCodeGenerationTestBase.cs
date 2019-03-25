@@ -20,6 +20,74 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         #region Basics
 
         [Fact]
+        public void ChildComponent_InFunctionsDirective()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using Microsoft.AspNetCore.Components.RenderTree;
+
+@{ RenderChildComponent(builder); }
+
+@functions {
+    void RenderChildComponent(RenderTreeBuilder builder)
+    {
+        <MyComponent />
+    }
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void ChildComponent_InLocalFunction()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using Microsoft.AspNetCore.Components.RenderTree;
+@{
+    void RenderChildComponent()
+    {
+        <MyComponent />
+    }
+}
+
+@{ RenderChildComponent(); }
+");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
         public void ChildComponent_Simple()
         {
             // Arrange
@@ -36,7 +104,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent />");
 
             // Assert
@@ -70,7 +137,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent 
     IntProperty=""123""
     BoolProperty=""true""
@@ -132,7 +198,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent StringProperty=""@(42.ToString())"" />");
 
             // Assert
@@ -158,7 +223,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent some-attribute=""foo"" another-attribute=""@(43.ToString())""/>");
 
             // Assert
@@ -185,7 +249,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <CoolnessMeter Coolness=""@(""very-cool"")"" />
 ");
 
@@ -254,6 +317,40 @@ namespace Test
             CompileToAssembly(generated);
         }
 
+        [Fact]
+        public void Component_WithFullyQualifiedTagNames()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test2
+{
+    public class MyComponent2 : ComponentBase
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+<MyComponent />
+<Test.MyComponent />
+<Test2.MyComponent2 />");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
         #endregion
 
         #region Bind
@@ -280,7 +377,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Value=""ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -314,7 +410,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Value=""ParentValue"" />
 @functions {
     public string ParentValue { get; set; } = ""42"";
@@ -354,7 +449,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Value=""ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -388,7 +482,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Value=""ParentValue"" />
 @functions {
     public string ParentValue { get; set; } = ""42"";
@@ -426,7 +519,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Value=""ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -459,7 +551,6 @@ namespace Test
 }"));
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Value-OnChanged=""ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -490,7 +581,6 @@ namespace Test
 }"));
 
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Value-OnChanged=""ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -528,7 +618,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Value=""ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -566,7 +655,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Value=""ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -604,7 +692,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Value=""ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -644,7 +731,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-SomeParam=""ParentValue"" />
 @functions {
     public DateTime ParentValue { get; set; } = DateTime.Now;
@@ -682,7 +768,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-SomeParam=""ParentValue"" />
 @functions {
     public DateTime ParentValue { get; set; } = DateTime.Now;
@@ -712,7 +797,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <div bind=""@ParentValue"" />
 @functions {
     public string ParentValue { get; set; } = ""hi"";
@@ -741,7 +825,6 @@ namespace Test
 }"));
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <div bind-value=""@ParentValue"" />
 @functions {
     public string ParentValue { get; set; } = ""hi"";
@@ -760,7 +843,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <input bind=""@ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -779,7 +861,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <input type=""text"" bind=""@CurrentDate"" format-value=""MM/dd/yyyy""/>
 @functions {
     public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
@@ -798,7 +879,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <input type=""text"" bind=""@CurrentDate"" format-value=""@Format""/>
 @functions {
     public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
@@ -819,7 +899,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <input type=""text"" bind=""@ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -838,7 +917,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <input type=""checkbox"" bind=""@Enabled"" />
 @functions {
     public bool Enabled { get; set; }
@@ -857,7 +935,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <input type=""text"" bind-value-onchange=""@ParentValue"" />
 @functions {
     public int ParentValue { get; set; } = 42;
@@ -876,7 +953,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <input type=""text"" bind-value-onchange=""@CurrentDate"" format-value=""MM/dd"" />
 @functions {
     public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
@@ -914,7 +990,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent MyAttr=""abc"">Some text<some-child a='1'>Nested text</some-child></MyComponent>");
 
             // Assert
@@ -945,7 +1020,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent MyAttr=""abc"">Some text<some-child a='1'>@context.ToLowerInvariant()</some-child></MyComponent>");
 
             // Assert
@@ -977,7 +1051,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent MyAttr=""abc"">
   <ChildContent Context=""item"">
     Some text<some-child a='1'>@item.ToLowerInvariant()</some-child>
@@ -1012,7 +1085,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent MyAttr=""abc"" Context=""item"">
   <ChildContent>
     Some text<some-child a='1'>@item.ToLowerInvariant()</some-child>
@@ -1044,7 +1116,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent><child>hello</child></MyComponent>");
 
             // Assert
@@ -1072,7 +1143,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent><ChildContent>hello</ChildContent></MyComponent>");
 
             // Assert
@@ -1100,7 +1170,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent><ChildContent>@context</ChildContent></MyComponent>");
 
             // Assert
@@ -1131,7 +1200,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent>
     <Header>Hi!</Header>
     <Footer>@(""bye!"")</Footer>
@@ -1167,7 +1235,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 @{ RenderFragment<string> header = (context) => @<div>@context.ToLowerInvariant()</div>; }
 <MyComponent Header=@header>
     Some Content
@@ -1204,7 +1271,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 @{ RenderFragment<string> header = (context) => @<div>@context.ToLowerInvariant()</div>; }
 <MyComponent Header=@header>
   <ChildContent>Some Content</ChildContent>
@@ -1238,7 +1304,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 @page ""/MyPage""
 @page ""/AnotherRoute/{id}""
 <MyComponent />");
@@ -1247,6 +1312,136 @@ namespace Test
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
             AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
             CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Component_WithUsingDirectives()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test2
+{
+    public class MyComponent2 : ComponentBase
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@page ""/MyPage""
+@page ""/AnotherRoute/{id}""
+@using Test2
+<MyComponent />
+<MyComponent2 />");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Component_WithUsingDirectives_AmbiguousImport()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test2
+{
+    public class SomeComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test3
+{
+    public class SomeComponent : ComponentBase
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using Test2
+@using Test3
+<MyComponent />
+<SomeComponent />");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            var result = CompileToAssembly(generated, throwOnFailure: !DesignTime);
+
+            if (DesignTime)
+            {
+                Assert.Collection(result.Diagnostics, d =>
+                {
+                    Assert.Equal("CS0104", d.Id);
+                    Assert.Equal(CodeAnalysis.DiagnosticSeverity.Error, d.Severity);
+                    Assert.Equal("'SomeComponent' is an ambiguous reference between 'Test2.SomeComponent' and 'Test3.SomeComponent'", d.GetMessage());
+                });
+            }
+        }
+
+        [Fact]
+        public void Component_IgnoresStaticAndAliasUsings()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test2
+{
+    public class SomeComponent : ComponentBase
+    {
+    }
+}
+
+namespace Test3
+{
+    public class SomeComponent : ComponentBase
+    {
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+@using static Test2.SomeComponent
+@using Foo = Test3
+<MyComponent />
+<SomeComponent /> <!-- Not a component -->");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            var result = CompileToAssembly(generated);
         }
 
         #endregion
@@ -1273,7 +1468,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@(EventCallback.Factory.Create(this, Increment))""/>
 
 @functions {
@@ -1309,7 +1503,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@(EventCallback.Factory.Create<UIMouseEventArgs>(this, Increment))""/>
 
 @functions {
@@ -1345,7 +1538,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -1381,7 +1573,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -1417,7 +1608,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -1454,7 +1644,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -1491,7 +1680,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -1527,7 +1715,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -1563,7 +1750,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -1600,7 +1786,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -1637,7 +1822,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -1682,7 +1866,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@(e => { Increment(); })""/>
 
 @functions {
@@ -1718,7 +1901,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <DynamicElement onclick=""@OnClick"" />
 
 @functions {
@@ -1751,7 +1933,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent OnClick=""@Increment""/>
 
 @functions {
@@ -2003,7 +2184,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent TItem=string Item=""@(""hi"")""/>");
 
             // Assert
@@ -2030,7 +2210,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent Item=""@(""hi"")""/>");
 
             // Assert
@@ -2057,7 +2236,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent Item=""@(""hi"")""/>
 <MyComponent Item=""@(""how are you?"")""/>
 <MyComponent Item=""@(""bye!"")""/>");
@@ -2086,7 +2264,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent TItem=string Item=""@(""hi"")"" Other=""@(17)""/>");
 
             // Assert
@@ -2113,7 +2290,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent Item=""@(""hi"")"" Other=""@(17)""/>");
 
             // Assert
@@ -2145,7 +2321,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent TItem=string bind-Item=Value/>
 @functions {
     string Value;
@@ -2180,7 +2355,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Item=Value/>
 @functions {
     string Value;
@@ -2210,7 +2384,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent TItem=string bind-Item=Value/>
 @functions {
     string Value;
@@ -2241,7 +2414,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent bind-Item=Value Value=@(18)/>
 @functions {
     string Value;
@@ -2273,7 +2445,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent TItem=string Item=""@(""hi"")"">
   <div>@context.ToLower()</div>
 </MyComponent>");
@@ -2304,10 +2475,39 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent Item=""@(""hi"")"">
   <div>@context.ToLower()</div>
 </MyComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void GenericComponent_WithFullyQualifiedTagName()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<TItem> : ComponentBase
+    {
+        [Parameter] TItem Item { get; set; }
+
+        [Parameter] RenderFragment<TItem> ChildContent { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+<Test.MyComponent Item=""@(""hi"")"">
+  <div>@context.ToLower()</div>
+</Test.MyComponent>");
 
             // Assert
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -2342,7 +2542,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent TItem1=string TItem2=int Item=""@(""hi"")"">
   <ChildContent><div>@context.ToLower()</div></ChildContent>
 <AnotherChildContent Context=""item"">
@@ -2386,7 +2585,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent Item=""@(""hi"")"" Items=@(new List<long>())>
   <ChildContent><div>@context.ToLower()</div></ChildContent>
 <AnotherChildContent Context=""item"">
@@ -2418,7 +2616,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent TItem=int Item=""3"" ref=""_my"" />
 
 @functions {
@@ -2451,7 +2648,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent Item=""3"" ref=""_my"" />
 
 @functions {
@@ -2506,7 +2702,6 @@ namespace Test
 
             // Arrange/Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent ParamBefore=""before"" ref=""myInstance"" ParamAfter=""after"" />
 
 @functions {
@@ -2538,7 +2733,6 @@ namespace Test
 
             // Arrange/Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <MyComponent ref=""myInstance"" SomeProp=""val"">
     Some <el>further</el> content
 </MyComponent>
@@ -2664,7 +2858,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper ""*, TestAssembly""
 @{
     RenderFragment<Person> p = (person) => @<div><MyComponent Name=""@person.Name""/></div>;
 }
@@ -2700,7 +2893,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper ""*, TestAssembly""
 @{
     RenderFragment<Person> p = (person) => @<div><MyComponent Name=""@person.Name""/></div>;
 }
@@ -2739,7 +2931,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper ""*, TestAssembly""
 @{ RenderFragment template = @<div>Joey</div>; }
 <MyComponent Person=""@template""/>
 ");
@@ -2773,7 +2964,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper ""*, TestAssembly""
 @{ RenderFragment<Person> template = (person) => @<div>@person.Name</div>; }
 <MyComponent PersonTemplate=""@template""/>
 ");
@@ -2808,7 +2998,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper ""*, TestAssembly""
 @{ RenderFragment<Test.Context> template = (context) => @<li>#@context.Index - @context.Item.ToLower()</li>; }
 <MyComponent Template=""@template""/>
 ");
@@ -2872,8 +3061,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
-   
 <SomeOtherComponent />
 
 <h1>Hello</h1>");
@@ -2935,7 +3122,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <h1>Hello</h1>
 
 <SomeOtherComponent />
@@ -3039,7 +3225,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <Counter bind-v=""y"" />
 @functions {
     string y = null;
@@ -3074,7 +3259,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 <User bind-Name=""@UserName"" bind-IsActive=""@UserIsActive"" />
 
 @functions {
@@ -3107,7 +3291,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 @page ""/""
 
 <h1>Hello, world!</h1>
@@ -3146,7 +3329,6 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-@addTagHelper *, TestAssembly
 @page ""/""
 
 <h1>Hello, world!</h1>

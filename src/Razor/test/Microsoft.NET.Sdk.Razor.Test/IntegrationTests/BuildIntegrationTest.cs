@@ -372,19 +372,6 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 
         [Fact]
         [InitializeTestProject("SimpleMvc")]
-        public async Task Build_DoesNotAddRelatedAssemblyPart_IfToolSetIsNotRazorSdk()
-        {
-            var razorAssemblyInfo = Path.Combine(IntermediateOutputPath, "SimpleMvc.RazorAssemblyInfo.cs");
-            var result = await DotnetMSBuild("Build", "/p:RazorCompileToolSet=MvcPrecompilation");
-
-            Assert.BuildPassed(result);
-
-            Assert.FileDoesNotExist(result, razorAssemblyInfo);
-            Assert.FileDoesNotExist(result, IntermediateOutputPath, "SimpleMvc.RazorTargetAssemblyInfo.cs");
-        }
-
-        [Fact]
-        [InitializeTestProject("SimpleMvc")]
         public async Task Build_DoesNotAddRelatedAssemblyPart_IfViewCompilationIsDisabled()
         {
             var razorAssemblyInfo = Path.Combine(IntermediateOutputPath, "SimpleMvc.RazorAssemblyInfo.cs");
@@ -552,7 +539,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             File.AppendAllText(class2Path, Environment.NewLine + "// Some changes");
 
             // dotnet msbuild /p:BuildProjectReferences=false
-            result = await DotnetMSBuild(target: default, "/p:BuildProjectReferences=false", suppressRestore: true);
+            result = await DotnetMSBuild(target: default, "/p:BuildProjectReferences=false");
 
             Assert.BuildPassed(result);
         }
@@ -661,19 +648,15 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         }
 
         [Fact]
-        [InitializeTestProject("ComponentLibrary")]
-        public async Task Building_NetstandardComponentLibrary()
+        [InitializeTestProject("SimpleMvc")]
+        public async Task Build_Mvc_WithoutAddRazorSupportForMvc()
         {
-            TargetFramework = "netstandard2.0";
+            var result = await DotnetMSBuild(
+                "Build",
+                "/p:AddRazorSupportForMvc=false",
+                suppressBuildServer: true);
 
-            // Build
-            var result = await DotnetMSBuild("Build");
-
-            Assert.BuildPassed(result);
-            Assert.FileExists(result, OutputPath, "ComponentLibrary.dll");
-            Assert.FileExists(result, OutputPath, "ComponentLibrary.pdb");
-            Assert.FileDoesNotExist(result, OutputPath, "ComponentLibrary.Views.dll");
-            Assert.FileDoesNotExist(result, OutputPath, "ComponentLibrary.Views.pdb");
+            Assert.BuildWarning(result, "RAZORSDK1004");
         }
 
         private static DependencyContext ReadDependencyContext(string depsFilePath)

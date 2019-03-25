@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             Assert.FileExists(result, OutputPath, "ClassLibrary.dll");
             Assert.FileExists(result, OutputPath, "ClassLibrary.Views.dll");
 
-            result = await DotnetMSBuild(target: "GetCopyToOutputDirectoryItems", "/t:_IntrospectGetCopyToOutputDirectoryItems /p:BuildProjectReferences=false", suppressRestore: true);
+            result = await DotnetMSBuild(target: "GetCopyToOutputDirectoryItems", "/t:_IntrospectGetCopyToOutputDirectoryItems /p:BuildProjectReferences=false");
             Assert.BuildPassed(result);
             Assert.BuildOutputContainsLine(result, "AllItemsFullPathWithTargetPath: ClassLibrary.Views.dll");
             Assert.BuildOutputContainsLine(result, "AllItemsFullPathWithTargetPath: ClassLibrary.Views.pdb");
@@ -89,10 +89,69 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             Directory.Delete(Path.Combine(Project.DirectoryPath, "Views"), recursive: true);
 
             // dotnet msbuild /p:BuildProjectReferences=false
-            result = await DotnetMSBuild(target: "GetCopyToOutputDirectoryItems", "/t:_IntrospectGetCopyToOutputDirectoryItems /p:BuildProjectReferences=false", suppressRestore: true);
+            result = await DotnetMSBuild(target: "GetCopyToOutputDirectoryItems", "/t:_IntrospectGetCopyToOutputDirectoryItems /p:BuildProjectReferences=false");
 
             Assert.BuildOutputDoesNotContainLine(result, "AllItemsFullPathWithTargetPath: ClassLibrary.Views.dll");
             Assert.BuildOutputDoesNotContainLine(result, "AllItemsFullPathWithTargetPath: ClassLibrary.Views.pdb");
+        }
+
+        [Fact]
+        [InitializeTestProject("SimpleMvc")]
+        public async Task RazorSdk_ResolvesRazorLangVersionTo30ForNetCoreApp30Projects()
+        {
+            var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration");
+
+            Assert.BuildPassed(result);
+            Assert.BuildOutputContainsLine(result, "RazorLangVersion: 3.0");
+            Assert.BuildOutputContainsLine(result, "ResolvedRazorConfiguration: MVC-3.0");
+        }
+
+        [Fact]
+        [InitializeTestProject("ComponentLibrary")]
+        public async Task RazorSdk_ResolvesRazorLangVersionFromValueSpecified()
+        {
+            var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration");
+
+            Assert.BuildPassed(result);
+            Assert.BuildOutputContainsLine(result, "RazorLangVersion: 3.0");
+            Assert.BuildOutputContainsLine(result, "ResolvedRazorConfiguration: Default");
+        }
+
+        [Fact]
+        [InitializeTestProject("ComponentLibrary")]
+        public async Task RazorSdk_ResolvesRazorLangVersionTo21WhenUnspecified()
+        {
+            // This is equivalent to not specifying a value for RazorLangVersion
+            AddProjectFileContent("<PropertyGroup><RazorLangVersion /></PropertyGroup>");
+
+            var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration");
+
+            Assert.BuildPassed(result, allowWarnings: true);
+            Assert.BuildOutputContainsLine(result, "RazorLangVersion: 2.1");
+            // BuildOutputContainsLine matches entire lines, so it's fine to Assert the following.
+            Assert.BuildOutputContainsLine(result, "ResolvedRazorConfiguration:");
+        }
+
+        [Fact]
+        [InitializeTestProject("ComponentLibrary")]
+        public async Task RazorSdk_WithRazorLangVersionLatest()
+        {
+            var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration /p:RazorLangVersion=Latest");
+
+            Assert.BuildPassed(result);
+            Assert.BuildOutputContainsLine(result, "RazorLangVersion: Latest");
+            Assert.BuildOutputContainsLine(result, "ResolvedRazorConfiguration: Default");
+        }
+
+        [Fact]
+        [InitializeTestProject("SimpleMvc")]
+        public async Task RazorSdk_ResolvesRazorConfigurationToMvc30()
+        {
+            var result = await DotnetMSBuild("ResolveRazorConfiguration", "/t:_IntrospectResolvedConfiguration");
+
+            Assert.BuildPassed(result);
+            Assert.BuildOutputContainsLine(result, "RazorLangVersion: 3.0");
+            Assert.BuildOutputContainsLine(result, "ResolvedRazorConfiguration: MVC-3.0");
         }
     }
 }

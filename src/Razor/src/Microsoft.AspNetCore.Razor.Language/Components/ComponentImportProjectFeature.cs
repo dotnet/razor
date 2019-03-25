@@ -11,8 +11,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 {
     internal class ComponentImportProjectFeature : IImportProjectFeature
     {
-        private const string ImportsFileName = "_ViewImports.cshtml";
-
         private static readonly char[] PathSeparators = new char[]{ '/', '\\' };
 
         // Using explicit newlines here to avoid fooling our baseline tests
@@ -42,27 +40,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             var imports = new List<RazorProjectItem>()
             {
                  new VirtualProjectItem(DefaultUsingImportContent),
-                 new VirtualProjectItem(@"@addTagHelper ""*, Microsoft.AspNetCore.Components"""),
             };
-
-            // Try and infer a namespace from the project directory. We don't yet have the ability to pass
-            // the namespace through from the project.
-            if (projectItem.PhysicalPath != null && projectItem.FilePath != null)
-            {
-                // Avoiding the path-specific APIs here, we want to handle all styles of paths
-                // on all platforms
-                var trimLength = projectItem.FilePath.Length + (projectItem.FilePath.StartsWith("/") ? 0 : 1);
-                if (projectItem.PhysicalPath.Length > trimLength)
-                {
-                    var baseDirectory = projectItem.PhysicalPath.Substring(0, projectItem.PhysicalPath.Length - trimLength);
-                    var lastSlash = baseDirectory.LastIndexOfAny(PathSeparators);
-                    var baseNamespace = lastSlash == -1 ? baseDirectory : baseDirectory.Substring(lastSlash + 1);
-                    if (!string.IsNullOrEmpty(baseNamespace))
-                    {
-                        imports.Add(new VirtualProjectItem($@"@addTagHelper ""*, {baseNamespace}"""));
-                    }
-                }
-            }
 
             // We add hierarchical imports second so any default directive imports can be overridden.
             imports.AddRange(GetHierarchicalImports(ProjectEngine.FileSystem, projectItem));
@@ -74,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         public IEnumerable<RazorProjectItem> GetHierarchicalImports(RazorProject project, RazorProjectItem projectItem)
         {
             // We want items in descending order. FindHierarchicalItems returns items in ascending order.
-            return project.FindHierarchicalItems(projectItem.FilePath, ImportsFileName).Reverse();
+            return project.FindHierarchicalItems(projectItem.FilePath, ComponentMetadata.ImportsFileName).Reverse();
         }
 
         private class VirtualProjectItem : RazorProjectItem
@@ -98,6 +76,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             public override string PhysicalPath => null;
 
             public override bool Exists => true;
+
+            public override string FileKind => FileKinds.ComponentImport;
 
             public override Stream Read() => new MemoryStream(_bytes);
         }
