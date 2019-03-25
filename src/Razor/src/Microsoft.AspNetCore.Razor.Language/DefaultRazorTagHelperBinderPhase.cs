@@ -37,8 +37,9 @@ namespace Microsoft.AspNetCore.Razor.Language
             // The imports come logically before the main razor file and are in the order they
             // should be processed.
             DirectiveVisitor visitor = null;
+            var parserOptions = codeDocument.GetParserOptions();
             if (FileKinds.IsComponent(codeDocument.GetFileKind()) &&
-                codeDocument.GetParserOptions().FeatureFlags.AllowComponentFileKind)
+                (parserOptions == null || parserOptions.FeatureFlags.AllowComponentFileKind))
             {
                 codeDocument.TryComputeNamespaceAndClass(out var currentNamespace, out var _);
                 visitor = new ComponentDirectiveVisitor(codeDocument.Source.FilePath, descriptors, currentNamespace);
