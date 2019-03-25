@@ -3277,6 +3277,24 @@ namespace Test
             AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
             CompileToAssembly(generated);
         }
+
+        [Fact]
+        public void ComponentImports()
+        {
+            // Arrange & Act
+            var generated = CompileToCSharp("_Imports.razor", @"
+@using System.Text
+@using System.Reflection
+
+@Foo
+<div>Hello</div>
+", throwOnFailure: false, fileKind: FileKinds.ComponentImport);
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated, throwOnFailure: false);
+        }
         #endregion
 
         #region Misc

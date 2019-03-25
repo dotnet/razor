@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             return CompileToCSharp(DefaultFileName, cshtmlContent, throwOnFailure);
         }
 
-        protected CompileToCSharpResult CompileToCSharp(string cshtmlRelativePath, string cshtmlContent, bool throwOnFailure = true)
+        protected CompileToCSharpResult CompileToCSharp(string cshtmlRelativePath, string cshtmlContent, bool throwOnFailure = true, string fileKind = null)
         {
             if (DeclarationOnly && DesignTime)
             {
@@ -202,7 +202,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 }
 
                 // Result of generating declarations
-                var projectItem = CreateProjectItem(cshtmlRelativePath, cshtmlContent);
+                var projectItem = CreateProjectItem(cshtmlRelativePath, cshtmlContent, fileKind);
                 codeDocument = projectEngine.ProcessDeclarationOnly(projectItem);
                 var declaration = new CompileToCSharpResult
                 {
@@ -248,7 +248,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 // This will include the built-in components.
                 var projectEngine = CreateProjectEngine(Configuration, BaseCompilation.References.ToArray());
 
-                var projectItem = CreateProjectItem(cshtmlRelativePath, cshtmlContent);
+                var projectItem = CreateProjectItem(cshtmlRelativePath, cshtmlContent, fileKind);
 
                 RazorCodeDocument codeDocument;
                 if (DeclarationOnly)
