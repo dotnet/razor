@@ -8,6 +8,6 @@ Document -
         UsingDirective - (1:0,1 [19] x:\dir\subdir\Test\_Imports.razor) - System.Text
         UsingDirective - (21:1,1 [25] x:\dir\subdir\Test\_Imports.razor) - System.Reflection
         CSharpCode - 
-            IntermediateToken -  - CSharp - [Microsoft.AspNetCore.Components.Layouts.LayoutAttribute(typeof(MainLayout))]\n
+            IntermediateToken -  - CSharp - [Microsoft.AspNetCore.Components.Layouts.LayoutAttribute(typeof(MainLayout))]
         ClassDeclaration -  - public - _Imports - System.Object - 
             MethodDeclaration -  - protected - void - Execute

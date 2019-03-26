@@ -11,7 +11,6 @@ namespace Test
     using System.Text;
     using System.Reflection;
     [Microsoft.AspNetCore.Components.Layouts.LayoutAttribute(typeof(MainLayout))]
-
     public class _Imports : System.Object
     {
         #pragma warning disable 1998

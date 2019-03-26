@@ -23,7 +23,6 @@ using System.Reflection;
 #line hidden
 #nullable disable
     [Microsoft.AspNetCore.Components.Layouts.LayoutAttribute(typeof(MainLayout))]
-
     public class _Imports : System.Object
     {
         #pragma warning disable 219

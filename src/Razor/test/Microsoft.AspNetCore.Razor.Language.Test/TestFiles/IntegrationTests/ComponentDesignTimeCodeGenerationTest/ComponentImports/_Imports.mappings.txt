@@ -10,6 +10,6 @@ Generated Location: (448:19,0 [23] )
 
 Source Location: (56:3,8 [10] x:\dir\subdir\Test\_Imports.razor)
 |MainLayout|
-Generated Location: (851:33,0 [10] )
+Generated Location: (849:32,0 [10] )
 |MainLayout|
 
