@@ -3281,11 +3281,23 @@ namespace Test
         [Fact]
         public void ComponentImports()
         {
-            // Arrange & Act
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+namespace Test
+{
+    public class MainLayout : ComponentBase, ILayoutComponent
+    {
+        public RenderFragment Body { get; set; }
+    }
+}
+"));
+
+            // Act
             var generated = CompileToCSharp("_Imports.razor", @"
 @using System.Text
 @using System.Reflection
 
+@layout MainLayout
 @Foo
 <div>Hello</div>
 ", throwOnFailure: false, fileKind: FileKinds.ComponentImport);

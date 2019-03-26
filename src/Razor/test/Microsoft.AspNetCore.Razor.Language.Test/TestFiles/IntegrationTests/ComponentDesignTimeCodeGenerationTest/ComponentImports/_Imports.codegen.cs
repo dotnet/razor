@@ -8,20 +8,36 @@ namespace Test
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Components;
+#nullable restore
 #line 1 "x:\dir\subdir\Test\_Imports.razor"
 using System.Text;
 
 #line default
 #line hidden
+#nullable disable
+#nullable restore
 #line 2 "x:\dir\subdir\Test\_Imports.razor"
 using System.Reflection;
 
 #line default
 #line hidden
+#nullable disable
+    [Microsoft.AspNetCore.Components.Layouts.LayoutAttribute(typeof(MainLayout))]
+
     public class _Imports : System.Object
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
+        ((System.Action)(() => {
+#nullable restore
+#line 4 "x:\dir\subdir\Test\_Imports.razor"
+MainLayout __typeHelper = default(MainLayout);
+
+#line default
+#line hidden
+#nullable disable
+        }
+        ))();
         }
         #pragma warning restore 219
         #pragma warning disable 0414

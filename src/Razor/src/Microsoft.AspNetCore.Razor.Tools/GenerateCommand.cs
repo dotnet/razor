@@ -289,11 +289,7 @@ namespace Microsoft.AspNetCore.Razor.Tools
                 var fileKind = fileKinds.Count > 0 ? fileKinds[i] : "mvc";
                 if (Language.FileKinds.IsComponent(fileKind))
                 {
-                    var fileName = Path.GetFileName(sources[i]);
-                    if (string.Equals(fileName, ComponentMetadata.ImportsFileName, StringComparison.Ordinal))
-                    {
-                        fileKind = Language.FileKinds.ComponentImport;
-                    }
+                    fileKind = Language.FileKinds.GetComponentFileKindFromFilePath(sources[i]);
                 }
 
                 items[i] = new SourceItem(sources[i], outputs[i], relativePath[i], fileKind);

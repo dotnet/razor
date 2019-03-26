@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         !string.IsNullOrWhiteSpace(targetPath))
                     {
                         var filePath = CommonServices.UnconfiguredProject.MakeRooted(kvp.Key);
-                        var fileKind = GetComponentFileKind(filePath);
+                        var fileKind = FileKinds.GetComponentFileKindFromFilePath(filePath);
 
                         documents.Add(new HostDocument(filePath, targetPath, fileKind));
                     }
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                             !string.IsNullOrWhiteSpace(targetPath))
                         {
                             var filePath = CommonServices.UnconfiguredProject.MakeRooted(key);
-                            var fileKind = GetComponentFileKind(filePath);
+                            var fileKind = FileKinds.GetComponentFileKindFromFilePath(filePath);
 
                             documents.Add(new HostDocument(filePath, targetPath, fileKind));
                         }
@@ -418,16 +418,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             return documents.ToArray();
-        }
-
-        private static string GetComponentFileKind(string filePath)
-        {
-            if (string.Equals(Path.GetFileName(filePath), ComponentMetadata.ImportsFileName, StringComparison.Ordinal))
-            {
-                return FileKinds.ComponentImport;
-            }
-
-            return FileKinds.Component;
         }
     }
 }
