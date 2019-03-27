@@ -1,6 +1,10 @@
 Source Location: (18:0,18 [10] x:\dir\subdir\Test\TestComponent.cshtml)
 |myInstance|
+<<<<<<< HEAD
 Generated Location: (1062:27,18 [10] )
+=======
+Generated Location: (1112:28,18 [10] )
+>>>>>>> Prevent newlines from being encoded in the output
 |myInstance|
 
 Source Location: (112:4,12 [104] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -8,7 +12,11 @@ Source Location: (112:4,12 [104] x:\dir\subdir\Test\TestComponent.cshtml)
     private Test.MyComponent myInstance;
     public void Foo() { System.GC.KeepAlive(myInstance); }
 |
+<<<<<<< HEAD
 Generated Location: (1354:39,12 [104] )
+=======
+Generated Location: (1404:40,12 [104] )
+>>>>>>> Prevent newlines from being encoded in the output
 |
     private Test.MyComponent myInstance;
     public void Foo() { System.GC.KeepAlive(myInstance); }

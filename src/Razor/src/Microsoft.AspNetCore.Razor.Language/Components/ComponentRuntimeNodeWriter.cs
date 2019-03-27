@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             // Since we're not in the middle of writing an element, this must evaluate as some
             // text to display
             context.CodeWriter
-                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.AddContent)}")
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddContent}")
                 .Write((_sourceSequence++).ToString())
                 .WriteParameterSeparator();
 
@@ -158,7 +158,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             }
 
             context.CodeWriter
-                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.AddMarkupContent)}")
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddMarkupContent}")
                 .Write((_sourceSequence++).ToString())
                 .WriteParameterSeparator()
                 .WriteStringLiteral(node.Content)
@@ -178,7 +178,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             }
 
             context.CodeWriter
-                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.OpenElement)}")
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.OpenElement}")
                 .Write((_sourceSequence++).ToString())
                 .WriteParameterSeparator()
                 .WriteStringLiteral(node.TagName)
@@ -254,9 +254,16 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             }
 
             // Text node
-            var content = GetHtmlContent(node);
+            var content = node.GetHtmlContent();
+            var renderApi = ComponentsApi.RenderTreeBuilder.AddContent;
+            if (node.IsEncoded())
+            {
+                // This content is already encoded.
+                renderApi = ComponentsApi.RenderTreeBuilder.AddMarkupContent;
+            }
+
             context.CodeWriter
-                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.AddContent)}")
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{renderApi}")
                 .Write((_sourceSequence++).ToString())
                 .WriteParameterSeparator()
                 .WriteStringLiteral(content)
@@ -644,8 +651,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             var codeWriter = context.CodeWriter;
 
             var methodName = node.IsComponentCapture
-                ? nameof(ComponentsApi.RenderTreeBuilder.AddComponentReferenceCapture)
-                : nameof(ComponentsApi.RenderTreeBuilder.AddElementReferenceCapture);
+                ? ComponentsApi.RenderTreeBuilder.AddComponentReferenceCapture
+                : ComponentsApi.RenderTreeBuilder.AddElementReferenceCapture;
             codeWriter
                 .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{methodName}")
                 .Write((_sourceSequence++).ToString())
@@ -693,22 +700,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         protected override void BeginWriteAttribute(CodeWriter codeWriter, string key)
         {
             codeWriter
-                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.AddAttribute)}")
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.AddAttribute}")
                 .Write((_sourceSequence++).ToString())
                 .WriteParameterSeparator()
                 .WriteStringLiteral(key)
                 .WriteParameterSeparator();
-        }
-
-        private static string GetHtmlContent(HtmlContentIntermediateNode node)
-        {
-            var builder = new StringBuilder();
-            var htmlTokens = node.Children.OfType<IntermediateToken>().Where(t => t.IsHtml);
-            foreach (var htmlToken in htmlTokens)
-            {
-                builder.Append(htmlToken.Content);
-            }
-            return builder.ToString();
         }
 
         // There are a few cases here, we need to handle:

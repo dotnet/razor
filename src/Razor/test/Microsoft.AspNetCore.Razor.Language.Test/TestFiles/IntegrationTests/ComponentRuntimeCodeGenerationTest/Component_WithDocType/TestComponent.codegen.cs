@@ -13,7 +13,12 @@ namespace Test
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Components.RenderTree.RenderTreeBuilder builder)
         {
+<<<<<<< HEAD
             builder.AddContent(0, "<!DOCTYPE html>\r\n");
+=======
+            base.BuildRenderTree(builder);
+            builder.AddMarkupContent(0, "<!DOCTYPE html>\r\n");
+>>>>>>> Prevent newlines from being encoded in the output
             builder.AddMarkupContent(1, "<div>\r\n</div>");
         }
         #pragma warning restore 1998
