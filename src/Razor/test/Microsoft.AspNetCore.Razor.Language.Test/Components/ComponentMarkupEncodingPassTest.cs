@@ -2,28 +2,26 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components
 {
-    public class ComponentMarkupEntityPassTest
+    public class ComponentMarkupEncodingPassTest
     {
-        public ComponentMarkupEntityPassTest()
+        public ComponentMarkupEncodingPassTest()
         {
-            Pass = new ComponentMarkupEntityPass();
+            Pass = new ComponentMarkupEncodingPass();
             ProjectEngine = (DefaultRazorProjectEngine)RazorProjectEngine.Create(
                 RazorConfiguration.Default,
                 RazorProjectFileSystem.Create(Environment.CurrentDirectory),
                 b =>
                 {
-                    if (b.Features.OfType<ComponentMarkupEntityPass>().Any())
+                    if (b.Features.OfType<ComponentMarkupEncodingPass>().Any())
                     {
-                        b.Features.Remove(b.Features.OfType<ComponentMarkupEntityPass>().Single());
+                        b.Features.Remove(b.Features.OfType<ComponentMarkupEncodingPass>().Single());
                     }
                 });
             Engine = ProjectEngine.Engine;
@@ -35,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         private RazorEngine Engine { get; }
 
-        private ComponentMarkupEntityPass Pass { get; }
+        private ComponentMarkupEncodingPass Pass { get; }
 
         [Fact]
         public void Execute_StaticHtmlContent_RewrittenToBlock()
@@ -71,8 +69,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
             // Assert
             var node = documentNode.FindDescendantNodes<HtmlContentIntermediateNode>().Single();
-            Assert.Equal(expected, node.GetHtmlContent());
-            Assert.False(node.IsEncoded());
+            Assert.Equal(expected, GetHtmlContent(node));
+            Assert.False(node.IsEncoded);
         }
 
         [Fact]
@@ -92,8 +90,8 @@ The time is ");
 
             // Assert
             var node = documentNode.FindDescendantNodes<HtmlContentIntermediateNode>().Single();
-            Assert.Equal(expected, node.GetHtmlContent());
-            Assert.True(node.IsEncoded());
+            Assert.Equal(expected, GetHtmlContent(node));
+            Assert.True(node.IsEncoded);
         }
 
         [Fact]
@@ -111,8 +109,8 @@ The time is ");
 
             // Assert
             var node = documentNode.FindDescendantNodes<HtmlContentIntermediateNode>().Single();
-            Assert.Equal(expected, node.GetHtmlContent());
-            Assert.True(node.IsEncoded());
+            Assert.Equal(expected, GetHtmlContent(node));
+            Assert.True(node.IsEncoded);
         }
 
         [Fact]
@@ -130,8 +128,8 @@ The time is ");
 
             // Assert
             var node = documentNode.FindDescendantNodes<HtmlContentIntermediateNode>().Single();
-            Assert.Equal(expected, node.GetHtmlContent());
-            Assert.True(node.IsEncoded());
+            Assert.Equal(expected, GetHtmlContent(node));
+            Assert.True(node.IsEncoded);
         }
 
         private string NormalizeContent(string content)
@@ -169,6 +167,17 @@ The time is ");
             var document = codeDocument.GetDocumentIntermediateNode();
             Engine.Features.OfType<ComponentDocumentClassifierPass>().Single().Execute(codeDocument, document);
             return document;
+        }
+
+        private static string GetHtmlContent(HtmlContentIntermediateNode node)
+        {
+            var builder = new StringBuilder();
+            var htmlTokens = node.Children.OfType<IntermediateToken>().Where(t => t.IsHtml);
+            foreach (var htmlToken in htmlTokens)
+            {
+                builder.Append(htmlToken.Content);
+            }
+            return builder.ToString();
         }
     }
 }

@@ -9,6 +9,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
     {
         public override IntermediateNodeCollection Children { get; } = new IntermediateNodeCollection();
 
+        public bool IsEncoded { get; set; }
+
         public override void Accept(IntermediateNodeVisitor visitor)
         {
             if (visitor == null)

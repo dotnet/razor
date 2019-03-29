@@ -254,9 +254,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             }
 
             // Text node
-            var content = node.GetHtmlContent();
+            var content = GetHtmlContent(node);
             var renderApi = ComponentsApi.RenderTreeBuilder.AddContent;
-            if (node.IsEncoded())
+            if (node.IsEncoded)
             {
                 // This content is already encoded.
                 renderApi = ComponentsApi.RenderTreeBuilder.AddMarkupContent;
@@ -705,6 +705,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 .WriteParameterSeparator()
                 .WriteStringLiteral(key)
                 .WriteParameterSeparator();
+        }
+
+        private static string GetHtmlContent(HtmlContentIntermediateNode node)
+        {
+            var builder = new StringBuilder();
+            var htmlTokens = node.Children.OfType<IntermediateToken>().Where(t => t.IsHtml);
+            foreach (var htmlToken in htmlTokens)
+            {
+                builder.Append(htmlToken.Content);
+            }
+            return builder.ToString();
         }
 
         // There are a few cases here, we need to handle:
