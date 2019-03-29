@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             // Assert
             var node = documentNode.FindDescendantNodes<HtmlContentIntermediateNode>().Single();
             Assert.Equal(expected, GetHtmlContent(node));
-            Assert.False(node.IsEncoded);
+            Assert.False(node.IsEncoded());
         }
 
         [Fact]
@@ -91,7 +91,7 @@ The time is ");
             // Assert
             var node = documentNode.FindDescendantNodes<HtmlContentIntermediateNode>().Single();
             Assert.Equal(expected, GetHtmlContent(node));
-            Assert.True(node.IsEncoded);
+            Assert.True(node.IsEncoded());
         }
 
         [Fact]
@@ -110,7 +110,7 @@ The time is ");
             // Assert
             var node = documentNode.FindDescendantNodes<HtmlContentIntermediateNode>().Single();
             Assert.Equal(expected, GetHtmlContent(node));
-            Assert.True(node.IsEncoded);
+            Assert.True(node.IsEncoded());
         }
 
         [Fact]
@@ -129,7 +129,7 @@ The time is ");
             // Assert
             var node = documentNode.FindDescendantNodes<HtmlContentIntermediateNode>().Single();
             Assert.Equal(expected, GetHtmlContent(node));
-            Assert.True(node.IsEncoded);
+            Assert.True(node.IsEncoded());
         }
 
         private string NormalizeContent(string content)

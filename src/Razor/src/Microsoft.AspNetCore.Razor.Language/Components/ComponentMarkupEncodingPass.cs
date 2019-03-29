@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                         // ASCII range is 0 - 127
                         if (ch > 127 || EncodedCharacters.Contains(ch))
                         {
-                            node.IsEncoded = true;
+                            node.SetEncoded();
                             return;
                         }
                     }

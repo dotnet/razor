@@ -256,7 +256,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             // Text node
             var content = GetHtmlContent(node);
             var renderApi = ComponentsApi.RenderTreeBuilder.AddContent;
-            if (node.IsEncoded)
+            if (node.IsEncoded())
             {
                 // This content is already encoded.
                 renderApi = ComponentsApi.RenderTreeBuilder.AddMarkupContent;
