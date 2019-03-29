@@ -17,11 +17,7 @@ Generated Location: (847:27,12 [67] )
 Source Location: (197:8,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |    }
 |
-<<<<<<< HEAD
-Generated Location: (1206:40,0 [7] )
-=======
-Generated Location: (1256:41,0 [7] )
->>>>>>> Prevent newlines from being encoded in the output
+Generated Location: (1212:40,0 [7] )
 |    }
 |
 
