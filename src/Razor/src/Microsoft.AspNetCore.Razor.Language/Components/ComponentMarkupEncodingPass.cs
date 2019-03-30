@@ -1,8 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components
 {
@@ -38,17 +41,18 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             // We want to use AddMarkupContent to avoid aggresive encoding during prerendering.
             // Specifically, when one of the following characters are in the content,
             // 1. New lines (\r, \n), tabs(\t) - so they get rendered as actual new lines, tabs instead of &#xA;
-            // 2. Ampersands (&) - so that HTML entities are rendered correctly without getting encoded
-            // 3. Any character outside the ASCII range
+            // 2. Any character outside the ASCII range
 
-            private static readonly char[] EncodedCharacters = new[] { '\r', '\n', '\t', '&' };
+            private static readonly char[] EncodedCharacters = new[] { '\r', '\n', '\t' };
+
+            private readonly HashSet<string> _seenEntities = new HashSet<string>(StringComparer.Ordinal);
 
             public override void VisitHtml(HtmlContentIntermediateNode node)
             {
                 for (var i = 0; i < node.Children.Count; i++)
                 {
                     var child = node.Children[i];
-                    if (!(child is IntermediateToken token) || !token.IsHtml)
+                    if (!(child is IntermediateToken token) || !token.IsHtml || string.IsNullOrEmpty(token.Content))
                     {
                         // We only care about Html tokens.
                         continue;
@@ -64,7 +68,68 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                             return;
                         }
                     }
+
+                    token.Content = DecodeHtmlEntities(token.Content);
                 }
+            }
+
+            private string DecodeHtmlEntities(string content)
+            {
+                _seenEntities.Clear();
+                var i = 0;
+                while (i < content.Length)
+                {
+                    var ch = content[i];
+                    if (ch == '&' && TryGetHtmlEntity(content, i, out var entity))
+                    {
+                        _seenEntities.Add(entity);
+                        i += entity.Length;
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+
+                foreach (var entity in _seenEntities)
+                {
+                    if (ParserHelpers.HtmlEntities.TryGetValue(entity, out var replacement))
+                    {
+                        content = content.Replace(entity, replacement);
+                    }
+                }
+
+                return content;
+            }
+
+            private bool TryGetHtmlEntity(string content, int position, out string entity)
+            {
+                // We're at '&'. Check if it is the start of an HTML entity.
+                entity = null;
+                var endPosition = -1;
+                for (var i = position + 1; i < content.Length; i++)
+                {
+                    var ch = content[i];
+                    if (char.IsLetterOrDigit(ch) || ch == '#')
+                    {
+                        continue;
+                    }
+                    else if (ch == ';')
+                    {
+                        endPosition = i;
+                    }
+
+                    break;
+                }
+
+                if (endPosition != -1)
+                {
+                    entity = content.Substring(position, endPosition - position + 1);
+                    return true;
+                }
+
+                // The '&' is not part of an HTML entity.
+                return false;
             }
         }
     }
