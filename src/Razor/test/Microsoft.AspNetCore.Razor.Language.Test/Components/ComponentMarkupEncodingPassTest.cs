@@ -95,12 +95,12 @@ The time is ");
         }
 
         [Fact]
-        public void Execute_MixedHtmlContent_Ampersand_DoesNotSetEncoded()
+        public void Execute_MixedHtmlContent_Ampersand_SetsEncoded()
         {
             // Arrange
             var document = CreateDocument(@"
 <div>The time is &&nbsp;& @DateTime.Now</div>");
-            var expected = NormalizeContent("The time is &\u00A0& ");
+            var expected = NormalizeContent("The time is &&nbsp;& ");
 
             var documentNode = Lower(document);
 
@@ -110,7 +110,7 @@ The time is ");
             // Assert
             var node = documentNode.FindDescendantNodes<HtmlContentIntermediateNode>().Single();
             Assert.Equal(expected, GetHtmlContent(node));
-            Assert.False(node.IsEncoded());
+            Assert.True(node.IsEncoded());
         }
 
         [Fact]
@@ -156,8 +156,8 @@ The time is ");
         {
             // Arrange
             var document = CreateDocument(@"
-<div>The time &equals;&nbsp;&#61; @DateTime.Now</div>");
-            var expected = NormalizeContent("The time =\u00A0= ");
+<div>The time &equals;&nbsp;&#61;&#0x003D; @DateTime.Now</div>");
+            var expected = NormalizeContent("The time =\u00A0== ");
 
             var documentNode = Lower(document);
 

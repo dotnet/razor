@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -45,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
             private static readonly char[] EncodedCharacters = new[] { '\r', '\n', '\t' };
 
-            private readonly HashSet<string> _seenEntities = new HashSet<string>(StringComparer.Ordinal);
+            private readonly Dictionary<string, string> _seenEntities = new Dictionary<string, string>(StringComparer.Ordinal);
 
             public override void VisitHtml(HtmlContentIntermediateNode node)
             {
@@ -68,22 +69,55 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                             return;
                         }
                     }
+                }
 
-                    token.Content = DecodeHtmlEntities(token.Content);
+                // If we reach here, we don't have newlines, tabs or non-ascii characters in this node.
+                // If we can successfully decode all HTML entities(if any) in this node, we can safely let it call AddContent.
+                for (var i = 0; i < node.Children.Count; i++)
+                {
+                    var child = node.Children[i];
+                    if (!(child is IntermediateToken token) || !token.IsHtml || string.IsNullOrEmpty(token.Content))
+                    {
+                        // We only care about Html tokens.
+                        continue;
+                    }
+
+                    if (TryDecodeHtmlEntities(token.Content, out var decoded))
+                    {
+                        token.Content = decoded;
+                    }
+                    else
+                    {
+                        node.SetEncoded();
+                        return;
+                    }
                 }
             }
 
-            private string DecodeHtmlEntities(string content)
+            private bool TryDecodeHtmlEntities(string content, out string decoded)
             {
                 _seenEntities.Clear();
+                decoded = content;
                 var i = 0;
                 while (i < content.Length)
                 {
                     var ch = content[i];
-                    if (ch == '&' && TryGetHtmlEntity(content, i, out var entity))
+                    if (ch == '&')
                     {
-                        _seenEntities.Add(entity);
-                        i += entity.Length;
+                        if (TryGetHtmlEntity(content, i, out var entity, out var replacement))
+                        {
+                            if (!_seenEntities.ContainsKey(entity))
+                            {
+                                _seenEntities.Add(entity, replacement);
+                            }
+
+                            i += entity.Length;
+                        }
+                        else
+                        {
+                            // We found a '&' that we don't know what to do with. Don't try to decode further.
+                            return false;
+                        }
                     }
                     else
                     {
@@ -93,19 +127,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
                 foreach (var entity in _seenEntities)
                 {
-                    if (ParserHelpers.HtmlEntities.TryGetValue(entity, out var replacement))
-                    {
-                        content = content.Replace(entity, replacement);
-                    }
+                    decoded = decoded.Replace(entity.Key, entity.Value);
                 }
 
-                return content;
+                return true;
             }
 
-            private bool TryGetHtmlEntity(string content, int position, out string entity)
+            private bool TryGetHtmlEntity(string content, int position, out string entity, out string replacement)
             {
                 // We're at '&'. Check if it is the start of an HTML entity.
                 entity = null;
+                replacement = null;
                 var endPosition = -1;
                 for (var i = position + 1; i < content.Length; i++)
                 {
@@ -125,7 +157,39 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 if (endPosition != -1)
                 {
                     entity = content.Substring(position, endPosition - position + 1);
-                    return true;
+                    if (entity.StartsWith("&#"))
+                    {
+                        // Extract the codepoint and map it to an entity.
+
+                        // `entity` is guaranteed to be of the format &#****;
+                        var entityValue = entity.Substring(2, entity.Length - 3);
+                        var codePoint = -1;
+                        if (!int.TryParse(entityValue, out codePoint))
+                        {
+                            // If it is not an integer, check if it is hexadecimal like 0x00CD
+                            try
+                            {
+                                codePoint = Convert.ToInt32(entityValue, 16);
+                            }
+                            catch (FormatException)
+                            {
+                                // Do nothing.
+                            }
+                        }
+
+                        if (ParserHelpers.HtmlEntityCodePoints.TryGetValue(codePoint, out replacement))
+                        {
+                            // This is a known html entity unicode codepoint.
+                            return true;
+                        }
+
+                        // Unknown entity.
+                        return false;
+                    }
+                    else if (ParserHelpers.NamedHtmlEntities.TryGetValue(entity, out replacement))
+                    {
+                        return true;
+                    }
                 }
 
                 // The '&' is not part of an HTML entity.
