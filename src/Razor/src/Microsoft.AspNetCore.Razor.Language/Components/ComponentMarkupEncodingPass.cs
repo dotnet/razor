@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
                 // If we reach here, we don't have newlines, tabs or non-ascii characters in this node.
                 // If we can successfully decode all HTML entities(if any) in this node, we can safely let it call AddContent.
-                var decodedContent = new List<string>();
+                var decodedContent = new string[node.Children.Count];
                 for (var i = 0; i < node.Children.Count; i++)
                 {
                     var child = node.Children[i];
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
                     if (TryDecodeHtmlEntities(token.Content, out var decoded))
                     {
-                        decodedContent.Add(decoded);
+                        decodedContent[i] = decoded;
                     }
                     else
                     {
