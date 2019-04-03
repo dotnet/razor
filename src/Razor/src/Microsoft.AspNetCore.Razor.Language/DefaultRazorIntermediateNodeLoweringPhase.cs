@@ -1907,51 +1907,20 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             public override void VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
             {
-                if (node.FirstAncestorOrSelf<SyntaxNode>(n => n is MarkupStartTagSyntax || n is MarkupEndTagSyntax) != null)
-                {
-                    // We don't care about CSharp in attributes.
-                    return;
-                }
-
-                var expressionNode = new CSharpExpressionIntermediateNode();
-
-                _builder.Push(expressionNode);
-
-                base.VisitCSharpExplicitExpression(node);
-
-                _builder.Pop();
-
-                if (expressionNode.Children.Count > 0)
-                {
-                    var sourceRangeStart = expressionNode
-                        .Children
-                        .FirstOrDefault(child => child.Source != null)
-                        ?.Source;
-
-                    if (sourceRangeStart != null)
-                    {
-                        var contentLength = expressionNode.Children.Sum(child => child.Source?.Length ?? 0);
-
-                        expressionNode.Source = new SourceSpan(
-                            sourceRangeStart.Value.FilePath ?? SourceDocument.FilePath,
-                            sourceRangeStart.Value.AbsoluteIndex,
-                            sourceRangeStart.Value.LineIndex,
-                            sourceRangeStart.Value.CharacterIndex,
-                            contentLength);
-                    }
-                }
-
-                expressionNode.Diagnostics.Add(
-                    ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(expressionNode.Source));
+                _document.Diagnostics.Add(
+                    ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(BuildSourceSpanFromNode(node)));
 
                 base.VisitCSharpExplicitExpression(node);
             }
 
             public override void VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
             {
+                // We typically don't want C# in imports files except for directives. But since Razor directive intellisense
+                // is tied to C# intellisense during design time, we want to still generate and IR node for implicit expressions.
+                // Otherwise, there will be no source mapping when someone types an `@` leading to no intellisense.
                 if (node.FirstAncestorOrSelf<SyntaxNode>(n => n is MarkupStartTagSyntax || n is MarkupEndTagSyntax) != null)
                 {
-                    // We don't care about CSharp in attributes.
+                    // We don't care about implicit expresssion in attributes.
                     return;
                 }
 
@@ -1983,7 +1952,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                     }
                 }
 
-                expressionNode.Diagnostics.Add(
+                _document.Diagnostics.Add(
                     ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(expressionNode.Source));
 
                 base.VisitCSharpImplicitExpression(node);
@@ -1991,9 +1960,9 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             public override void VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
             {
-                if (node.FirstAncestorOrSelf<SyntaxNode>(n => n is MarkupStartTagSyntax || n is MarkupEndTagSyntax) != null)
+                if (node.FirstAncestorOrSelf<SyntaxNode>(n => n is CSharpImplicitExpressionSyntax) == null)
                 {
-                    // We don't care about CSharp in attributes.
+                    // We only care about implicit expressions.
                     return;
                 }
 
@@ -2005,37 +1974,12 @@ namespace Microsoft.AspNetCore.Razor.Language
                 });
             }
 
-            public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
+            public override void VisitCSharpStatement(CSharpStatementSyntax node)
             {
-                if (node.FirstAncestorOrSelf<SyntaxNode>(n => n is MarkupStartTagSyntax || n is MarkupEndTagSyntax) != null)
-                {
-                    // We don't care about CSharp in attributes.
-                    return;
-                }
+                _document.Diagnostics.Add(
+                    ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(BuildSourceSpanFromNode(node)));
 
-                var context = node.GetSpanContext();
-                if (context == null || context.ChunkGenerator is StatementChunkGenerator)
-                {
-                    var statementNode = new CSharpCodeIntermediateNode()
-                    {
-                        Source = BuildSourceSpanFromNode(node)
-                    };
-                    _builder.Push(statementNode);
-
-                    _builder.Add(new IntermediateToken()
-                    {
-                        Content = node.GetContent(),
-                        Kind = TokenKind.CSharp,
-                        Source = BuildSourceSpanFromNode(node),
-                    });
-
-                    _builder.Pop();
-
-                    statementNode.Diagnostics.Add(
-                        ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(statementNode.Source));
-                }
-
-                base.VisitCSharpStatementLiteral(node);
+                base.VisitCSharpStatement(node);
             }
         }
 
