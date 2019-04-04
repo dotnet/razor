@@ -55,16 +55,16 @@
 
   -->
   <PropertyGroup Label="Automated">
-    <MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>3.0.0-preview4.19203.1</MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>
-    <MicrosoftAspNetCoreTestingPackageVersion>3.0.0-preview4.19203.1</MicrosoftAspNetCoreTestingPackageVersion>
-    <MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>3.0.0-preview4.19203.1</MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>
-    <MicrosoftExtensionsDependencyModelPackageVersion>3.0.0-preview4-27603-11</MicrosoftExtensionsDependencyModelPackageVersion>
-    <MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>3.0.0-preview4.19203.1</MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>
-    <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>3.0.0-preview4.19203.1</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
-    <MicrosoftNETCoreAppPackageVersion>3.0.0-preview4-27603-11</MicrosoftNETCoreAppPackageVersion>
-    <MicrosoftNETCorePlatformsPackageVersion>3.0.0-preview4.19203.7</MicrosoftNETCorePlatformsPackageVersion>
-    <SystemDiagnosticsDiagnosticSourcePackageVersion>4.6.0-preview4.19203.7</SystemDiagnosticsDiagnosticSourcePackageVersion>
-    <SystemTextEncodingsWebPackageVersion>4.6.0-preview4.19203.7</SystemTextEncodingsWebPackageVersion>
+    <MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>3.0.0-preview4.19204.2</MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>
+    <MicrosoftAspNetCoreTestingPackageVersion>3.0.0-preview4.19204.2</MicrosoftAspNetCoreTestingPackageVersion>
+    <MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>3.0.0-preview4.19204.2</MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>
+    <MicrosoftExtensionsDependencyModelPackageVersion>3.0.0-preview4-27604-05</MicrosoftExtensionsDependencyModelPackageVersion>
+    <MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>3.0.0-preview4.19204.2</MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>
+    <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>3.0.0-preview4.19204.2</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
+    <MicrosoftNETCoreAppPackageVersion>3.0.0-preview4-27604-05</MicrosoftNETCoreAppPackageVersion>
+    <MicrosoftNETCorePlatformsPackageVersion>3.0.0-preview4.19204.1</MicrosoftNETCorePlatformsPackageVersion>
+    <SystemDiagnosticsDiagnosticSourcePackageVersion>4.6.0-preview4.19204.1</SystemDiagnosticsDiagnosticSourcePackageVersion>
+    <SystemTextEncodingsWebPackageVersion>4.6.0-preview4.19204.1</SystemTextEncodingsWebPackageVersion>
   </PropertyGroup>
   <!--
 
