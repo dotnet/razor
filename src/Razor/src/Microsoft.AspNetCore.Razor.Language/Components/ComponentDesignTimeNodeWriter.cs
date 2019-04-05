@@ -244,13 +244,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 return;
             }
 
-            var firstChild = node.Children[0];
-            if (firstChild.Source != null)
+            if (node.Source != null)
             {
-                using (context.CodeWriter.BuildLinePragma(firstChild.Source.Value, context))
+                using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
                 {
                     var offset = DesignTimeVariable.Length + " = ".Length;
-                    context.CodeWriter.WritePadding(offset, firstChild.Source, context);
+                    context.CodeWriter.WritePadding(offset, node.Source, context);
                     context.CodeWriter.WriteStartAssignment(DesignTimeVariable);
 
                     for (var i = 0; i < node.Children.Count; i++)

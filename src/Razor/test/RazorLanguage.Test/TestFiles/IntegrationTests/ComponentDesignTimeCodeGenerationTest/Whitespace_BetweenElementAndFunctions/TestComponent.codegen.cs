@@ -22,7 +22,7 @@ namespace Test
         {
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-      __o = Foo;
+     __o = Foo;
 
 #line default
 #line hidden

@@ -249,7 +249,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     valueNode.Diagnostics.Add(node.Diagnostics[i]);
                 }
 
-                valueNode.Children.Add(new CSharpExpressionAttributeValueIntermediateNode());
+                valueNode.Children.Add(new CSharpExpressionAttributeValueIntermediateNode()
+                {
+                    Source = node.Source
+                });
                 for (var i = 0; i < valueExpressionTokens.Count; i++)
                 {
                     valueNode.Children[0].Children.Add(valueExpressionTokens[i]);
@@ -264,7 +267,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     Suffix = "\"",
                 };
 
-                changeNode.Children.Add(new CSharpExpressionAttributeValueIntermediateNode());
+                changeNode.Children.Add(new CSharpExpressionAttributeValueIntermediateNode()
+                {
+                    Source = node.Source
+                });
                 for (var i = 0; i < changeExpressionTokens.Count; i++)
                 {
                     changeNode.Children[0].Children.Add(changeExpressionTokens[i]);

@@ -9,7 +9,7 @@ Document -
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (0:0,0 [73] x:\dir\subdir\Test\TestComponent.cshtml) - p
                     HtmlAttribute - (16:0,16 [17] x:\dir\subdir\Test\TestComponent.cshtml) - onmouseover=" - "
-                        CSharpExpressionAttributeValue -  - 
+                        CSharpExpressionAttributeValue - (16:0,16 [17] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.UIMouseEventArgs>(this, 
                             IntermediateToken - (17:0,17 [16] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - OnComponentHover
                             IntermediateToken -  - CSharp - )

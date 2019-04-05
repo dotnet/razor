@@ -19,12 +19,12 @@ Document -
                         HtmlAttributeValue - (13:0,13 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken - (13:0,13 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - text
                     HtmlAttribute - (40:0,40 [12] x:\dir\subdir\Test\TestComponent.cshtml) - value=" - "
-                        CSharpExpressionAttributeValue -  - 
+                        CSharpExpressionAttributeValue - (40:0,40 [12] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.BindMethods.GetValue(
                             IntermediateToken - (41:0,41 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute - (40:0,40 [12] x:\dir\subdir\Test\TestComponent.cshtml) - onchange=" - "
-                        CSharpExpressionAttributeValue -  - 
+                        CSharpExpressionAttributeValue - (40:0,40 [12] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => ParentValue = __value, ParentValue)
                 HtmlContent - (56:0,56 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     IntermediateToken - (56:0,56 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n

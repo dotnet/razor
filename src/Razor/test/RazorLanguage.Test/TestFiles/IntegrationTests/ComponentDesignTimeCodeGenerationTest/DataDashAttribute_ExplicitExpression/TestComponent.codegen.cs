@@ -30,7 +30,7 @@ namespace Test
 #nullable disable
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                     __o = myValue;
+                                   __o = myValue;
 
 #line default
 #line hidden

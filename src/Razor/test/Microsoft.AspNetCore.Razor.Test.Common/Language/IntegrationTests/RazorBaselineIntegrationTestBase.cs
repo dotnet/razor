@@ -154,6 +154,33 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             var actualMappings = SourceMappingsSerializer.Serialize(document, codeDocument.Source);
             actualMappings = actualMappings.Replace("\r", "").Replace("\n", "\r\n");
             Assert.Equal(baselineMappings, actualMappings);
+
+            AssertLinePragmas(codeDocument);
+        }
+
+        protected void AssertLinePragmas(RazorCodeDocument codeDocument)
+        {
+            var csharpDocument = codeDocument.GetCSharpDocument();
+            Assert.NotNull(csharpDocument);
+
+            var linePragmas = csharpDocument.LinePragmas;
+            var sourceMappings = csharpDocument.SourceMappings;
+            foreach (var sourceMapping in sourceMappings)
+            {
+                var foundMatchingPragma = false;
+                foreach (var linePragma in linePragmas)
+                {
+                    if (sourceMapping.OriginalSpan.LineIndex >= linePragma.StartLineIndex &&
+                        sourceMapping.OriginalSpan.LineIndex <= linePragma.EndLineIndex)
+                    {
+                        // Found a match.
+                        foundMatchingPragma = true;
+                        break;
+                    }
+                }
+
+                Assert.True(foundMatchingPragma, $"No line pragma found for code at line {sourceMapping.OriginalSpan.LineIndex + 1}.");
+            }
         }
 
         private string GetBaselineFilePath(RazorCodeDocument codeDocument, string extension)

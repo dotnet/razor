@@ -163,7 +163,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     result.Diagnostics.Add(node.Diagnostics[i]);
                 }
 
-                result.Children.Add(new CSharpExpressionAttributeValueIntermediateNode());
+                result.Children.Add(new CSharpExpressionAttributeValueIntermediateNode()
+                {
+                    Source = node.Source
+                });
                 for (var i = 0; i < tokens.Count; i++)
                 {
                     result.Children[0].Children.Add(tokens[i]);

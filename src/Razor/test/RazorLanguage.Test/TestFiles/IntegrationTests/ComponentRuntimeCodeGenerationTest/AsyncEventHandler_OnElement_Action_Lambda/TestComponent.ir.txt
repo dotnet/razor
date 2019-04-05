@@ -9,7 +9,7 @@ Document -
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (31:1,0 [55] x:\dir\subdir\Test\TestComponent.cshtml) - input
                     HtmlAttribute - (47:1,16 [35] x:\dir\subdir\Test\TestComponent.cshtml) - onclick=" - "
-                        CSharpExpressionAttributeValue -  - 
+                        CSharpExpressionAttributeValue - (47:1,16 [35] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.UIMouseEventArgs>(this, 
                             IntermediateToken - (49:1,18 [32] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - async () => await Task.Delay(10)
                             IntermediateToken -  - CSharp - )

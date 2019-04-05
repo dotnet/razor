@@ -12,12 +12,12 @@ Document -
                         HtmlAttributeValue - (13:0,13 [8] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken - (13:0,13 [8] x:\dir\subdir\Test\TestComponent.cshtml) - Html - checkbox
                     HtmlAttribute - (29:0,29 [8] x:\dir\subdir\Test\TestComponent.cshtml) - checked=" - "
-                        CSharpExpressionAttributeValue -  - 
+                        CSharpExpressionAttributeValue - (29:0,29 [8] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.BindMethods.GetValue(
                             IntermediateToken - (30:0,30 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Enabled
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute - (29:0,29 [8] x:\dir\subdir\Test\TestComponent.cshtml) - onchange=" - "
-                        CSharpExpressionAttributeValue -  - 
+                        CSharpExpressionAttributeValue - (29:0,29 [8] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => Enabled = __value, Enabled)
             CSharpCode - (55:1,12 [41] x:\dir\subdir\Test\TestComponent.cshtml)
                 IntermediateToken - (55:1,12 [41] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public bool Enabled { get; set; }\n

@@ -16,7 +16,7 @@ Document -
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (0:0,0 [23] x:\dir\subdir\Test\TestComponent.cshtml) - input
                     HtmlAttribute - (16:0,16 [3] x:\dir\subdir\Test\TestComponent.cshtml) - onclick=" - "
-                        CSharpExpressionAttributeValue -  - 
+                        CSharpExpressionAttributeValue - (16:0,16 [3] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.UIMouseEventArgs>(this, 
                             IntermediateToken -  - CSharp - "foo"
                             IntermediateToken -  - CSharp - )
