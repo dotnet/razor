@@ -32,7 +32,7 @@ IDisposable __typeHelper = default(IDisposable);
         {
 #nullable restore
 #line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicComponent.cshtml"
-       __o = this.ToString();
+      __o = this.ToString();
 
 #line default
 #line hidden
