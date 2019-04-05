@@ -979,6 +979,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
             AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument());
             AssertSourceMappingsMatchBaseline(codeDocument);
+            AssertLinePragmas(codeDocument);
         }
 
         private void RunTimeTest()

@@ -519,6 +519,37 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             }
         }
 
+        protected void AssertLinePragmas(RazorCodeDocument codeDocument)
+        {
+            if (FileName == null)
+            {
+                var message = $"{nameof(AssertSourceMappingsMatchBaseline)} should only be called from an integration test ({nameof(FileName)} is null).";
+                throw new InvalidOperationException(message);
+            }
+
+            var csharpDocument = codeDocument.GetCSharpDocument();
+            Assert.NotNull(csharpDocument);
+
+            var linePragmas = csharpDocument.LinePragmas;
+            var sourceMappings = csharpDocument.SourceMappings;
+            foreach (var sourceMapping in sourceMappings)
+            {
+                var foundMatchingPragma = false;
+                foreach (var linePragma in linePragmas)
+                {
+                    if (sourceMapping.OriginalSpan.LineIndex >= linePragma.StartLineIndex &&
+                        sourceMapping.OriginalSpan.LineIndex <= linePragma.EndLineIndex)
+                    {
+                        // Found a match.
+                        foundMatchingPragma = true;
+                        break;
+                    }
+                }
+
+                Assert.True(foundMatchingPragma, $"No line pragma found for code at line {sourceMapping.OriginalSpan.LineIndex + 1}.");
+            }
+        }
+
         private class CodeSpanVisitor : SyntaxRewriter
         {
             public List<Syntax.SyntaxNode> CodeSpans { get; } = new List<Syntax.SyntaxNode>();
