@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-
     [ExportCustomProjectEngineFactory("Default", SupportsSerialization = true)]
     internal class DefaultProjectEngineFactory : IProjectEngineFactory
     {

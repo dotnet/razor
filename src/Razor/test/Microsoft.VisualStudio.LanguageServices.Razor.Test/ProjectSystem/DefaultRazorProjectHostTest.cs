@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         [Fact]
-        public void TryGetConfiguredExtensionNames_SucceedsWithNoExtensions()
+        public void GetExtensionNames_SucceedsWithNoExtensions()
         {
             // Arrange
             var items = new ItemCollection(Rules.RazorConfiguration.SchemaName);
@@ -304,15 +304,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var item = items.ToSnapshot().Items.Single();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetExtensionNames(item, out var configuredExtensionnames);
+            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(item);
 
             // Assert
-            Assert.True(result);
-            Assert.Empty(configuredExtensionnames);
+            Assert.Empty(extensionNames);
         }
 
         [Fact]
-        public void TryGetConfiguredExtensionNames_SucceedsWithEmptyExtensions()
+        public void GetExtensionNames_SucceedsWithEmptyExtensions()
         {
             // Arrange
             var items = new ItemCollection(Rules.RazorConfiguration.SchemaName);
@@ -322,15 +321,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var item = items.ToSnapshot().Items.Single();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetExtensionNames(item, out var configuredExtensionNames);
+            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(item);
 
             // Assert
-            Assert.True(result);
-            Assert.Empty(configuredExtensionNames);
+            Assert.Empty(extensionNames);
         }
 
         [Fact]
-        public void TryGetConfiguredExtensionNames_SucceedsIfSingleExtension()
+        public void GetExtensionNames_SucceedsIfSingleExtension()
         {
             // Arrange
             var expectedExtensionName = "SomeExtensionName";
@@ -342,16 +340,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var item = items.ToSnapshot().Items.Single();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetExtensionNames(item, out var configuredExtensionNames);
+            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(item);
 
             // Assert
-            Assert.True(result);
-            var extensionName = Assert.Single(configuredExtensionNames);
+            var extensionName = Assert.Single(extensionNames);
             Assert.Equal(expectedExtensionName, extensionName);
         }
 
         [Fact]
-        public void TryGetConfiguredExtensionNames_SucceedsIfMultipleExtensions()
+        public void GetExtensionNames_SucceedsIfMultipleExtensions()
         {
             // Arrange
             var items = new ItemCollection(Rules.RazorConfiguration.SchemaName);
@@ -361,12 +358,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var item = items.ToSnapshot().Items.Single();
 
             // Act
-            var result = DefaultRazorProjectHost.TryGetExtensionNames(item, out var configuredExtensionNames);
+            var extensionNames = DefaultRazorProjectHost.GetExtensionNames(item);
 
             // Assert
-            Assert.True(result);
             Assert.Collection(
-                configuredExtensionNames,
+                extensionNames,
                 name => Assert.Equal("SomeExtensionName", name),
                 name => Assert.Equal("SomeOtherExtensionName", name));
         }

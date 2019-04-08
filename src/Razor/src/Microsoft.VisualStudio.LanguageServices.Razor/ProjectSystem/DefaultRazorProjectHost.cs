@@ -163,12 +163,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 return false;
             }
 
-            if (!TryGetExtensionNames(configurationItem, out var extensionNames))
-            {
-                configuration = null;
-                return false;
-            }
-
+            var extensionNames = GetExtensionNames(configurationItem);
             if (!TryGetExtensions(extensionNames, state, out var extensions))
             {
                 configuration = null;
@@ -264,20 +259,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         // Internal for testing
-        internal static bool TryGetExtensionNames(
-            Item configurationItem, 
-            out string[] configuredExtensionNames)
+        internal static string[] GetExtensionNames(Item configurationItem)
         {
             // The list of extension names might not be present, because the configuration may not have any.
             configurationItem.Value.TryGetValue(Rules.RazorConfiguration.ExtensionsProperty, out var extensionNames);
             if (string.IsNullOrEmpty(extensionNames))
             {
-                configuredExtensionNames = Array.Empty<string>();
-                return true;
+                return Array.Empty<string>();
             }
 
-            configuredExtensionNames = extensionNames.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-            return true;
+            return extensionNames.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         // Internal for testing
