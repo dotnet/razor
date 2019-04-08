@@ -268,16 +268,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Item configurationItem, 
             out string[] configuredExtensionNames)
         {
-            if (!configurationItem.Value.TryGetValue(Rules.RazorConfiguration.ExtensionsProperty, out var extensionNames))
-            {
-                configuredExtensionNames = null;
-                return false;
-            }
-
+            // The list of extension names might not be present, because the configuration may not have any.
+            configurationItem.Value.TryGetValue(Rules.RazorConfiguration.ExtensionsProperty, out var extensionNames);
             if (string.IsNullOrEmpty(extensionNames))
             {
-                configuredExtensionNames = null;
-                return false;
+                configuredExtensionNames = Array.Empty<string>();
+                return true;
             }
 
             configuredExtensionNames = extensionNames.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -290,13 +286,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             IImmutableDictionary<string, IProjectRuleSnapshot> state, 
             out ProjectSystemRazorExtension[] extensions)
         {
-            if (!state.TryGetValue(Rules.RazorExtension.PrimaryDataSourceItemType, out var rule))
-            {
-                extensions = null;
-                return false;
-            }
+            // The list of extensions might not be present, because the configuration may not have any.
+            state.TryGetValue(Rules.RazorExtension.PrimaryDataSourceItemType, out var rule);
 
-            var items = rule.Items;
+            var items = rule?.Items ?? ImmutableDictionary<string, IImmutableDictionary<string, string>>.Empty;
             var extensionList = new List<ProjectSystemRazorExtension>();
             foreach (var item in items)
             {
