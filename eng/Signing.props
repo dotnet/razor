@@ -1,6 +1,6 @@
 <Project>
 
-  <Import Project="MPack.props" />
+  <Import Project="MPack.props" Condition="Exists('MPack.props')" />
 
   <!--
     These are third party libraries that we use in this repo. We need to sign them even if they
