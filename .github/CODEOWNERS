@@ -2,9 +2,7 @@
 # See https://help.github.com/articles/about-code-owners/
 
 /azure-pipelines.yml                           @aspnet/build
-/eng/*                                         @aspnet/build @NTaylorMullen
-/eng/common/                                   @aspnet/build
-/eng/scripts/                                  @aspnet/build @NTaylorMullen
+/eng/                                          @aspnet/build
 /src/Razor/                                    @ajaybhargavb @NTaylorMullen @rynowak
 /src/Razor/src/Microsoft.NET.Sdk.Razor/        @ajaybhargavb @NTaylorMullen @rynowak @pranavkm
 /src/Razor/test/Microsoft.NET.Sdk.Razor.Test/  @ajaybhargavb @NTaylorMullen @rynowak @pranavkm
