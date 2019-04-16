@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Testing.xunit;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
@@ -38,7 +39,9 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             Assert.FileDoesNotExist(result, OutputPath, "SimpleMvc11.Views.pdb");
         }
 
-        [Fact]
+        [ConditionalFact]
+        [OSSkipCondition(OperatingSystems.Linux | OperatingSystems.MacOSX)]
+
         [InitializeTestProject("SimpleMvc11NetFx")]
         public async Task RazorSdk_DoesNotBuildViewsForNetFx11Projects()
         {
