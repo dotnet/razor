@@ -19,14 +19,14 @@ Document -
                         HtmlAttributeValue - (13:0,13 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken - (13:0,13 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - text
                     HtmlAttribute - (40:0,40 [12] x:\dir\subdir\Test\TestComponent.cshtml) - value=" - "
-                        CSharpExpressionAttributeValue - (40:0,40 [12] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                        CSharpExpressionAttributeValue -  - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.BindMethods.GetValue(
                             IntermediateToken - (41:0,41 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - CurrentDate
                             IntermediateToken -  - CSharp - , 
                             IntermediateToken -  - CSharp - "MM/dd"
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute - (40:0,40 [12] x:\dir\subdir\Test\TestComponent.cshtml) - onchange=" - "
-                        CSharpExpressionAttributeValue - (40:0,40 [12] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                        CSharpExpressionAttributeValue -  - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => CurrentDate = __value, CurrentDate, "MM/dd")
                 HtmlContent - (77:0,77 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     IntermediateToken - (77:0,77 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n

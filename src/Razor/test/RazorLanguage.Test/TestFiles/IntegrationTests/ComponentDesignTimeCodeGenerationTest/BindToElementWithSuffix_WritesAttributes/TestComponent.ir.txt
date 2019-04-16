@@ -16,12 +16,12 @@ Document -
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (0:0,0 [33] x:\dir\subdir\Test\TestComponent.cshtml) - div
                     HtmlAttribute - (17:0,17 [12] x:\dir\subdir\Test\TestComponent.cshtml) - myvalue=" - "
-                        CSharpExpressionAttributeValue - (17:0,17 [12] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                        CSharpExpressionAttributeValue -  - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.BindMethods.GetValue(
                             IntermediateToken - (18:0,18 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute - (17:0,17 [12] x:\dir\subdir\Test\TestComponent.cshtml) - myevent=" - "
-                        CSharpExpressionAttributeValue - (17:0,17 [12] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                        CSharpExpressionAttributeValue -  - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => ParentValue = __value, ParentValue)
                 HtmlContent - (33:0,33 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     IntermediateToken - (33:0,33 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n

@@ -519,34 +519,67 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             }
         }
 
-        protected void AssertLinePragmas(RazorCodeDocument codeDocument)
+        protected void AssertLinePragmas(RazorCodeDocument codeDocument, bool designTime)
         {
             if (FileName == null)
             {
-                var message = $"{nameof(AssertSourceMappingsMatchBaseline)} should only be called from an integration test ({nameof(FileName)} is null).";
+                var message = $"{nameof(AssertSourceMappingsMatchBaseline)} should only be called from an integration test. ({nameof(FileName)} is null).";
                 throw new InvalidOperationException(message);
             }
 
             var csharpDocument = codeDocument.GetCSharpDocument();
             Assert.NotNull(csharpDocument);
-
             var linePragmas = csharpDocument.LinePragmas;
-            var sourceMappings = csharpDocument.SourceMappings;
-            foreach (var sourceMapping in sourceMappings)
+            designTime = false;
+            if (designTime)
             {
-                var foundMatchingPragma = false;
-                foreach (var linePragma in linePragmas)
+                var sourceMappings = csharpDocument.SourceMappings;
+                foreach (var sourceMapping in sourceMappings)
                 {
-                    if (sourceMapping.OriginalSpan.LineIndex >= linePragma.StartLineIndex &&
-                        sourceMapping.OriginalSpan.LineIndex <= linePragma.EndLineIndex)
+                    var foundMatchingPragma = false;
+                    foreach (var linePragma in linePragmas)
                     {
-                        // Found a match.
-                        foundMatchingPragma = true;
-                        break;
+                        if (sourceMapping.OriginalSpan.LineIndex >= linePragma.StartLineIndex &&
+                            sourceMapping.OriginalSpan.LineIndex <= linePragma.EndLineIndex)
+                        {
+                            // Found a match.
+                            foundMatchingPragma = true;
+                            break;
+                        }
+                    }
+
+                    Assert.True(foundMatchingPragma, $"No line pragma found for code at line {sourceMapping.OriginalSpan.LineIndex + 1}.");
+                }
+            }
+            else
+            {
+                var syntaxTree = codeDocument.GetSyntaxTree();
+                var sourceBuffer = new char[syntaxTree.Source.Length];
+                syntaxTree.Source.CopyTo(0, sourceBuffer, 0, syntaxTree.Source.Length);
+                var sourceContent = new string(sourceBuffer);
+                var classifiedSpans = syntaxTree.GetClassifiedSpans();
+                foreach (var classifiedSpan in classifiedSpans)
+                {
+                    var content = sourceContent.Substring(classifiedSpan.Span.AbsoluteIndex, classifiedSpan.Span.Length);
+                    if (!string.IsNullOrWhiteSpace(content) &&
+                        classifiedSpan.BlockKind != BlockKindInternal.Directive &&
+                        classifiedSpan.SpanKind == SpanKindInternal.Code)
+                    {
+                        var foundMatchingPragma = false;
+                        foreach (var linePragma in linePragmas)
+                        {
+                            if (classifiedSpan.Span.LineIndex >= linePragma.StartLineIndex &&
+                                classifiedSpan.Span.LineIndex <= linePragma.EndLineIndex)
+                            {
+                                // Found a match.
+                                foundMatchingPragma = true;
+                                break;
+                            }
+                        }
+
+                        Assert.True(foundMatchingPragma, $"No line pragma found for code '{content}' at line {classifiedSpan.Span.LineIndex + 1}.");
                     }
                 }
-
-                Assert.True(foundMatchingPragma, $"No line pragma found for code at line {sourceMapping.OriginalSpan.LineIndex + 1}.");
             }
         }
 

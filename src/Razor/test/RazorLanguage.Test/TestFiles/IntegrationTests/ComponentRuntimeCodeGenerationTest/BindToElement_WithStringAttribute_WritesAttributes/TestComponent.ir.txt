@@ -9,12 +9,12 @@ Document -
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (0:0,0 [32] x:\dir\subdir\Test\TestComponent.cshtml) - div
                     HtmlAttribute - (17:0,17 [11] x:\dir\subdir\Test\TestComponent.cshtml) - myvalue=" - "
-                        CSharpExpressionAttributeValue - (17:0,17 [11] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                        CSharpExpressionAttributeValue -  - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.BindMethods.GetValue(
                             IntermediateToken - (17:0,17 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute - (17:0,17 [11] x:\dir\subdir\Test\TestComponent.cshtml) - myevent=" - "
-                        CSharpExpressionAttributeValue - (17:0,17 [11] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                        CSharpExpressionAttributeValue -  - 
                             IntermediateToken -  - CSharp - Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => ParentValue = __value, ParentValue)
             CSharpCode - (46:1,12 [55] x:\dir\subdir\Test\TestComponent.cshtml)
                 IntermediateToken - (46:1,12 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "hi";\n

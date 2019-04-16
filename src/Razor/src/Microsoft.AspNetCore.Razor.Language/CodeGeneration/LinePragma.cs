@@ -7,10 +7,20 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
 {
-    public sealed class LinePragma : IEquatable<LinePragma>
+    public readonly struct LinePragma : IEquatable<LinePragma>
     {
         public LinePragma(int startLineIndex, int lineCount, string filePath)
         {
+            if (startLineIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(startLineIndex));
+            }
+
+            if (lineCount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(lineCount));
+            }
+
             StartLineIndex = startLineIndex;
             LineCount = lineCount;
             FilePath = filePath;
@@ -26,17 +36,11 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
 
         public override bool Equals(object obj)
         {
-            var other = obj as LinePragma;
-            return Equals(other);
+            return obj is LinePragma other ? Equals(other) : false;
         }
 
         public bool Equals(LinePragma other)
         {
-            if (other is null)
-            {
-                return false;
-            }
-
             return StartLineIndex == other.StartLineIndex &&
                 LineCount == other.LineCount &&
                 string.Equals(FilePath, other.FilePath, StringComparison.Ordinal);
@@ -44,17 +48,16 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
 
         public override int GetHashCode()
         {
-            var hashCodeCombiner = HashCodeCombiner.Start();
-            hashCodeCombiner.Add(StartLineIndex);
-            hashCodeCombiner.Add(LineCount);
-            hashCodeCombiner.Add(FilePath);
-
-            return hashCodeCombiner;
+            var hash = HashCodeCombiner.Start();
+            hash.Add(StartLineIndex);
+            hash.Add(LineCount);
+            hash.Add(FilePath);
+            return hash;
         }
 
         public override string ToString()
         {
-            return string.Format(CultureInfo.CurrentCulture, "Line {0}, Count {1} - {2}", StartLineIndex, LineCount, FilePath);
+            return string.Format(CultureInfo.CurrentCulture, "Line index {0}, Count {1} - {2}", StartLineIndex, LineCount, FilePath);
         }
     }
 }

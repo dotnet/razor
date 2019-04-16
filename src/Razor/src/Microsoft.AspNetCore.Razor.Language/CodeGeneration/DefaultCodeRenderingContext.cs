@@ -204,11 +204,6 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
 
         public override void AddLinePragma(LinePragma linePragma)
         {
-            if (linePragma == null)
-            {
-                throw new ArgumentNullException(nameof(linePragma));
-            }
-
             LinePragmas.Add(linePragma);
         }
 
