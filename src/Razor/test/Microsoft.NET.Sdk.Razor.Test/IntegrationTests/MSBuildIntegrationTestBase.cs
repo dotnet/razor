@@ -82,7 +82,20 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 
             if (!string.IsNullOrEmpty(target))
             {
+                // Restore before build or publish
+                if (string.Equals("Build", target, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals("Publish", target, StringComparison.OrdinalIgnoreCase))
+                {
+                    buildArgumentList.Add($"/t:Restore");
+                }
+
                 buildArgumentList.Add($"/t:{target}");
+            }
+            else
+            {
+                // By default, restore then build
+                buildArgumentList.Add($"/t:Restore");
+                buildArgumentList.Add($"/t:Build");
             }
 
             buildArgumentList.Add($"/p:Configuration={Configuration} {args}");
