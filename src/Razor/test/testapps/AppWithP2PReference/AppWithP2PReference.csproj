@@ -6,6 +6,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+    <_ReferencesMicrosoftAspNetCoreApp>true</_ReferencesMicrosoftAspNetCoreApp>
   </PropertyGroup>
 
   <ItemGroup>

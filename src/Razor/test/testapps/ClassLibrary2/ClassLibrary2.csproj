@@ -7,6 +7,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <_ReferencesMicrosoftAspNetCoreApp>true</_ReferencesMicrosoftAspNetCoreApp>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(RunningAsTest)' == ''">

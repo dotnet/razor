@@ -10,7 +10,7 @@
   -->
   <PropertyGroup>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
-    <_ReferencesAspNetCoreApp>true</_ReferencesAspNetCoreApp>
+    <_ReferencesMicrosoftAspNetCoreApp>true</_ReferencesMicrosoftAspNetCoreApp>
   </PropertyGroup>
 
   <ItemGroup>

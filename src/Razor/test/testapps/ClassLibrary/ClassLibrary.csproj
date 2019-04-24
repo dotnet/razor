@@ -6,6 +6,7 @@
 
   <PropertyGroup>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <_ReferencesMicrosoftAspNetCoreApp>true</_ReferencesMicrosoftAspNetCoreApp>
   </PropertyGroup>
 
   <PropertyGroup>
