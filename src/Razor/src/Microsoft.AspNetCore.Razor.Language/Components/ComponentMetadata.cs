@@ -23,6 +23,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 tagHelperKind == ChildContent.TagHelperKind ||
                 tagHelperKind == EventHandler.TagHelperKind ||
                 tagHelperKind == Bind.TagHelperKind ||
+                tagHelperKind == Key.TagHelperKind ||
                 tagHelperKind == Ref.TagHelperKind;
         }
 

@@ -314,6 +314,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 // builder.OpenComponent<MyComponent>(0);
                 // builder.AddAttribute(1, "Foo", ...);
                 // builder.AddAttribute(2, "ChildContent", ...);
+                // builder.SetKey(someValue);
                 // builder.AddElementCapture(3, (__value) => _field = __value);
                 // builder.CloseComponent();
                 foreach (var typeArgument in node.TypeArguments)
@@ -347,6 +348,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     });
                 }
 
+                foreach (var setKey in node.SetKeys)
+                {
+                    context.RenderNode(setKey);
+                }
+
                 foreach (var capture in node.Captures)
                 {
                     context.RenderNode(capture);
@@ -362,7 +368,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 var attributes = node.Attributes.ToList();
                 var childContents = node.ChildContents.ToList();
                 var captures = node.Captures.ToList();
-                var remaining = attributes.Count + childContents.Count + captures.Count;
+                var setKeys = node.SetKeys.ToList();
+                var remaining = attributes.Count + childContents.Count + captures.Count + setKeys.Count;
 
                 context.CodeWriter.Write(node.TypeInferenceNode.FullTypeName);
                 context.CodeWriter.Write(".");
@@ -398,6 +405,20 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     context.CodeWriter.Write(", ");
 
                     WriteComponentChildContentInnards(context, childContents[i]);
+
+                    remaining--;
+                    if (remaining > 0)
+                    {
+                        context.CodeWriter.Write(", ");
+                    }
+                }
+
+                for (var i = 0; i < setKeys.Count; i++)
+                {
+                    context.CodeWriter.Write("-1");
+                    context.CodeWriter.Write(", ");
+
+                    WriteSetKeyInnards(context, setKeys[i]);
 
                     remaining--;
                     if (remaining > 0)
@@ -732,7 +753,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             // Looks like:
             //
             // builder.SetKey(_keyValue);
+            WriteSetKeyInnards(context, node);
+        }
 
+        private void WriteSetKeyInnards(CodeRenderingContext context, SetKeyIntermediateNode node)
+        {
             WriteCSharpCode(context, new CSharpCodeIntermediateNode
             {
                 Source = node.Source,
