@@ -651,6 +651,34 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             _scopeStack.CloseScope(context);
         }
 
+
+
+        public override void WriteSetKey(CodeRenderingContext context, SetKeyIntermediateNode node)
+        {
+            // Looks like:
+            //
+            // builder.SetKey(_keyValue);
+
+            WriteCSharpCode(context, new CSharpCodeIntermediateNode
+            {
+                Source = node.Source,
+                Children =
+                    {
+                        new IntermediateToken
+                        {
+                            Kind = TokenKind.CSharp,
+                            Content = $"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.SetKey)}("
+                        },
+                        node.KeyValueToken,
+                        new IntermediateToken
+                        {
+                            Kind = TokenKind.CSharp,
+                            Content = ");"
+                        },
+                    }
+            });
+        }
+
         public override void WriteReferenceCapture(CodeRenderingContext context, ReferenceCaptureIntermediateNode node)
         {
             // Looks like:
