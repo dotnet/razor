@@ -116,6 +116,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             public readonly static string TagHelperKind = "Components.EventHandler";
         }
 
+        public static class Key
+        {
+            public readonly static string TagHelperKind = "Components.Key";
+
+            public static readonly string RuntimeName = "Components.None";
+        }
+
         public static class Ref
         {
             public readonly static string TagHelperKind = "Components.Ref";
