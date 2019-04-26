@@ -160,6 +160,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 index++;
             }
 
+            foreach (var setKey in node.Component.SetKeys)
+            {
+                context.CodeWriter.WriteStartInstanceMethodInvocation("builder", ComponentsApi.RenderTreeBuilder.SetKey);
+                context.CodeWriter.Write(parameters[index].parameterName);
+                context.CodeWriter.WriteEndMethodInvocation();
+
+                index++;
+            }
+
             foreach (var capture in node.Component.Captures)
             {
                 context.CodeWriter.WriteStartInstanceMethodInvocation("builder", capture.IsComponentCapture ? ComponentsApi.RenderTreeBuilder.AddComponentReferenceCapture : ComponentsApi.RenderTreeBuilder.AddElementReferenceCapture);
@@ -198,6 +207,18 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                         typeName = "global::" + typeName;
                     }
                     p.Add(($"__seq{p.Count}", typeName, $"__arg{p.Count}"));
+                }
+
+                foreach (var capture in node.Component.SetKeys)
+                {
+                    // By declaring the type as "object", this unfortunately means
+                    // we're going to box any value-typed key values before calling
+                    // .GetHashCode() on them. Theoretically we could avoid this by
+                    // adding more generic type params, but that would impact a lot
+                    // the rest of the generic inference implementation. Since the
+                    // combination of generic type inference with keys is reasonably
+                    // uncommon, and one more boxing is not wildly expensive, accept it.
+                    p.Add(($"__seq{p.Count}", "object", $"__arg{p.Count}"));
                 }
 
                 foreach (var capture in node.Component.Captures)

@@ -753,7 +753,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             // Looks like:
             //
             // builder.SetKey(_keyValue);
+
+            var codeWriter = context.CodeWriter;
+
+            codeWriter
+                .WriteStartMethodInvocation($"{_scopeStack.BuilderVarName}.{ComponentsApi.RenderTreeBuilder.SetKey}");
             WriteSetKeyInnards(context, node);
+            codeWriter.WriteEndMethodInvocation();
         }
 
         private void WriteSetKeyInnards(CodeRenderingContext context, SetKeyIntermediateNode node)
@@ -763,17 +769,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 Source = node.Source,
                 Children =
                     {
-                        new IntermediateToken
-                        {
-                            Kind = TokenKind.CSharp,
-                            Content = $"{_scopeStack.BuilderVarName}.{nameof(ComponentsApi.RenderTreeBuilder.SetKey)}("
-                        },
-                        node.KeyValueToken,
-                        new IntermediateToken
-                        {
-                            Kind = TokenKind.CSharp,
-                            Content = ");"
-                        },
+                        node.KeyValueToken
                     }
             });
         }
