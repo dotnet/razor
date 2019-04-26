@@ -212,6 +212,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             // Directives (conditional on file kind)
             ComponentInjectDirective.Register(builder);
             ComponentLayoutDirective.Register(builder);
+            ComponentNamespaceDirective.Register(builder);
             ComponentPageDirective.Register(builder);
             ComponentTypeParamDirective.Register(builder);
 

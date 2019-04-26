@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 
@@ -377,6 +378,125 @@ namespace Microsoft.AspNetCore.Razor.Language
             // Assert
             Assert.Equal("Hel_o.World.Components_with_space", @namespace);
             Assert.Equal("Test_name", @class);
+        }
+
+        [Fact]
+        public void TryComputeNamespaceAndClass_RespectsNamespaceDirective()
+        {
+            // Arrange
+            var sourceDocument = TestRazorSourceDocument.Create(
+                content: "@namespace My.Custom.NS",
+                filePath: "C:\\Hello\\Components\\Test.cshtml",
+                relativePath: "\\Components\\Test.cshtml");
+            var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
+            codeDocument.SetFileKind(FileKinds.Component);
+            codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(options =>
+            {
+                options.Directives.Add(ComponentNamespaceDirective.Directive);
+            })));
+
+            var documentNode = new DocumentIntermediateNode()
+            {
+                Options = RazorCodeGenerationOptions.Create(c =>
+                {
+                    c.RootNamespace = "Hello.World";
+                })
+            };
+            codeDocument.SetDocumentIntermediateNode(documentNode);
+
+            // Act
+            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+
+            // Assert
+            Assert.Equal("My.Custom.NS.Components", @namespace);
+            Assert.Equal("Test", @class);
+        }
+
+        [Fact]
+        public void TryComputeNamespaceAndClass_RespectsImportsNamespaceDirective()
+        {
+            // Arrange
+            var sourceDocument = TestRazorSourceDocument.Create(
+                filePath: "C:\\Hello\\Components\\Test.cshtml",
+                relativePath: "\\Components\\Test.cshtml");
+            var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
+            codeDocument.SetFileKind(FileKinds.Component);
+            codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(options =>
+            {
+                options.Directives.Add(ComponentNamespaceDirective.Directive);
+            })));
+
+            var importSourceDocument = TestRazorSourceDocument.Create(
+                content: "@namespace My.Custom.NS",
+                filePath: "C:\\Hello\\_Imports.razor",
+                relativePath: "\\_Imports.razor");
+            codeDocument.SetImportSyntaxTrees(new[]
+            {
+                RazorSyntaxTree.Parse(importSourceDocument, RazorParserOptions.Create(options =>
+                {
+                    options.Directives.Add(ComponentNamespaceDirective.Directive);
+                }))
+            });
+
+            var documentNode = new DocumentIntermediateNode()
+            {
+                Options = RazorCodeGenerationOptions.Create(c =>
+                {
+                    c.RootNamespace = "Hello.World";
+                })
+            };
+            codeDocument.SetDocumentIntermediateNode(documentNode);
+
+            // Act
+            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+
+            // Assert
+            Assert.Equal("My.Custom.NS.Components", @namespace);
+            Assert.Equal("Test", @class);
+        }
+
+        [Fact]
+        public void TryComputeNamespaceAndClass_OverrideImportsNamespaceDirective()
+        {
+            // Arrange
+            var sourceDocument = TestRazorSourceDocument.Create(
+                content: "@namespace My.Custom.OverrideNS",
+                filePath: "C:\\Hello\\Components\\Test.cshtml",
+                relativePath: "\\Components\\Test.cshtml");
+            var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
+            codeDocument.SetFileKind(FileKinds.Component);
+            codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(options =>
+            {
+                options.Directives.Add(ComponentNamespaceDirective.Directive);
+            })));
+
+            var importSourceDocument = TestRazorSourceDocument.Create(
+                content: "@namespace My.Custom.NS",
+                filePath: "C:\\Hello\\_Imports.razor",
+                relativePath: "\\_Imports.razor");
+            codeDocument.SetImportSyntaxTrees(new[]
+            {
+                RazorSyntaxTree.Parse(importSourceDocument, RazorParserOptions.Create(options =>
+                {
+                    options.Directives.Add(ComponentNamespaceDirective.Directive);
+                }))
+            });
+
+            var documentNode = new DocumentIntermediateNode()
+            {
+                Options = RazorCodeGenerationOptions.Create(c =>
+                {
+                    c.RootNamespace = "Hello.World";
+                })
+            };
+            codeDocument.SetDocumentIntermediateNode(documentNode);
+
+            // Act
+            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+
+            // Assert
+            Assert.Equal("My.Custom.OverrideNS.Components", @namespace);
+            Assert.Equal("Test", @class);
         }
     }
 }
