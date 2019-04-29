@@ -2953,7 +2953,7 @@ namespace Test
 <MyComponent ParamBefore=""before"" key=""someDate.Day"" ParamAfter=""after"" />
 
 @functions {
-    private DateTime someDate;
+    private DateTime someDate = DateTime.Now;
 }
 ");
 

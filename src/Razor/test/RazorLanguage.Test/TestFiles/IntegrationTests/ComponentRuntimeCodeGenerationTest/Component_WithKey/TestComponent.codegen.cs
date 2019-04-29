@@ -31,7 +31,7 @@ namespace Test
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
             
-    private DateTime someDate;
+    private DateTime someDate = DateTime.Now;
 
 #line default
 #line hidden
