@@ -34,9 +34,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
                 throw new ArgumentNullException(nameof(formatter));
             }
             
-            formatter.WriteContent(KeyValueToken?.Content);
+            formatter.WriteContent(KeyValueToken.Content);
             
-            formatter.WriteProperty(nameof(KeyValueToken), KeyValueToken?.Content);
+            formatter.WriteProperty(nameof(KeyValueToken), KeyValueToken.Content);
         }
     }
 }
