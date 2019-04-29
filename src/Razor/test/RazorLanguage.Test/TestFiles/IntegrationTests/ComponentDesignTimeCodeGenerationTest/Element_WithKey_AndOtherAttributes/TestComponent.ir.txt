@@ -21,7 +21,7 @@ Document -
                     HtmlAttribute -  - data-slider-min=" - "
                         CSharpExpressionAttributeValue - (36:0,36 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             IntermediateToken - (37:0,37 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Min
-                    SetKey - (48:0,48 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+                    SetKey - (48:0,48 [10] x:\dir\subdir\Test\TestComponent.cshtml) - someObject
                 HtmlContent - (62:0,62 [4] x:\dir\subdir\Test\TestComponent.cshtml)
                     IntermediateToken - (62:0,62 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
                 HtmlContent - (191:6,5 [2] x:\dir\subdir\Test\TestComponent.cshtml)

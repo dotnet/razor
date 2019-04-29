@@ -19,7 +19,7 @@ Document -
                         IntermediateToken - (19:0,19 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - int
                     ComponentAttribute - (29:0,29 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Item - AttributeStructure.DoubleQuotes
                         IntermediateToken - (29:0,29 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 3
-                    SetKey - (37:0,37 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+                    SetKey - (37:0,37 [8] x:\dir\subdir\Test\TestComponent.cshtml) - _someKey
                 HtmlContent - (49:0,49 [4] x:\dir\subdir\Test\TestComponent.cshtml)
                     IntermediateToken - (49:0,49 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
                 HtmlContent - (113:4,1 [2] x:\dir\subdir\Test\TestComponent.cshtml)

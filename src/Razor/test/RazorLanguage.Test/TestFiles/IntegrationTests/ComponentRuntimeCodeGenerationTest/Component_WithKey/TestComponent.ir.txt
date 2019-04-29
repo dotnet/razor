@@ -11,7 +11,7 @@ Document -
                     ComponentAttribute -  - ParamBefore - AttributeStructure.DoubleQuotes
                         HtmlContent - (26:0,26 [6] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (26:0,26 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - before
-                    SetKey - (39:0,39 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+                    SetKey - (39:0,39 [12] x:\dir\subdir\Test\TestComponent.cshtml) - someDate.Day
                     ComponentAttribute -  - ParamAfter - AttributeStructure.DoubleQuotes
                         HtmlContent - (65:0,65 [5] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (65:0,65 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - after

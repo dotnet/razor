@@ -12,7 +12,7 @@ Document -
                         HtmlContent - (44:0,44 [11] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (44:0,44 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    Some 
                         MarkupBlock -  - <el>further</el> content\n
-                    SetKey - (18:0,18 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+                    SetKey - (18:0,18 [9] x:\dir\subdir\Test\TestComponent.cshtml) - 123 + 456
                     ComponentAttribute -  - SomeProp - AttributeStructure.DoubleQuotes
                         HtmlContent - (39:0,39 [3] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (39:0,39 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - val
