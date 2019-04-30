@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
@@ -229,67 +230,63 @@ namespace Microsoft.AspNetCore.Razor.Language
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_RootNamespaceNotSet_ReturnsNull()
+        public void TryComputeNamespace_RootNamespaceNotSet_ReturnsNull()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Test.cshtml", relativePath: "Test.cshtml");
             var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
             Assert.Null(@namespace);
-            Assert.Null(@class);
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_RelativePathNull_ReturnsNull()
+        public void TryComputeNamespace_RelativePathNull_ReturnsNull()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Test.cshtml", relativePath: null);
             var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
             Assert.Null(@namespace);
-            Assert.Null(@class);
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_FilePathNull_ReturnsNull()
+        public void TryComputeNamespace_FilePathNull_ReturnsNull()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(filePath: null, relativePath: "Test.cshtml");
             var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
             Assert.Null(@namespace);
-            Assert.Null(@class);
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_RelativePathLongerThanFilePath_ReturnsNull()
+        public void TryComputeNamespace_RelativePathLongerThanFilePath_ReturnsNull()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Test.cshtml", relativePath: "Some\\invalid\\relative\\path\\Test.cshtml");
             var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
             Assert.Null(@namespace);
-            Assert.Null(@class);
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_ComputesNamespaceAndClass()
+        public void TryComputeNamespace_ComputesNamespace()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Components\\Test.cshtml", relativePath: "\\Components\\Test.cshtml");
@@ -300,15 +297,14 @@ namespace Microsoft.AspNetCore.Razor.Language
             }));
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
             Assert.Equal("Hello.Components", @namespace);
-            Assert.Equal("Test", @class);
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_UsesIROptions_ComputesNamespaceAndClass()
+        public void TryComputeNamespace_UsesIROptions_ComputesNamespaceAndClass()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Components\\Test.cshtml", relativePath: "\\Components\\Test.cshtml");
@@ -323,15 +319,14 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
             Assert.Equal("Hello.Components", @namespace);
-            Assert.Equal("Test", @class);
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_PrefersOptionsFromCodeDocument_ComputesNamespaceAndClass()
+        public void TryComputeNamespace_PrefersOptionsFromCodeDocument_ComputesNamespaceAndClass()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Components\\Test.cshtml", relativePath: "\\Components\\Test.cshtml");
@@ -350,15 +345,14 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
             Assert.Equal("World.Components", @namespace);
-            Assert.Equal("Test", @class);
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_SanitizesNamespaceAndClassName()
+        public void TryComputeNamespace_SanitizesNamespaceName()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Components with space\\Test$name.cshtml", relativePath: "\\Components with space\\Test$name.cshtml");
@@ -373,15 +367,14 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
             Assert.Equal("Hel_o.World.Components_with_space", @namespace);
-            Assert.Equal("Test_name", @class);
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_RespectsNamespaceDirective()
+        public void TryComputeNamespace_RespectsNamespaceDirective()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(
@@ -392,7 +385,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetFileKind(FileKinds.Component);
             codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(options =>
             {
-                options.Directives.Add(ComponentNamespaceDirective.Directive);
+                options.Directives.Add(NamespaceDirective.Directive);
             })));
 
             var documentNode = new DocumentIntermediateNode()
@@ -405,15 +398,14 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
-            Assert.Equal("My.Custom.NS.Components", @namespace);
-            Assert.Equal("Test", @class);
+            Assert.Equal("My.Custom.NS", @namespace);
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_RespectsImportsNamespaceDirective()
+        public void TryComputeNamespace_RespectsImportsNamespaceDirective()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(
@@ -423,7 +415,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetFileKind(FileKinds.Component);
             codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(options =>
             {
-                options.Directives.Add(ComponentNamespaceDirective.Directive);
+                options.Directives.Add(NamespaceDirective.Directive);
             })));
 
             var importSourceDocument = TestRazorSourceDocument.Create(
@@ -434,7 +426,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             {
                 RazorSyntaxTree.Parse(importSourceDocument, RazorParserOptions.Create(options =>
                 {
-                    options.Directives.Add(ComponentNamespaceDirective.Directive);
+                    options.Directives.Add(NamespaceDirective.Directive);
                 }))
             });
 
@@ -448,15 +440,56 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
             Assert.Equal("My.Custom.NS.Components", @namespace);
-            Assert.Equal("Test", @class);
         }
 
         [Fact]
-        public void TryComputeNamespaceAndClass_OverrideImportsNamespaceDirective()
+        public void TryComputeNamespace_RespectsImportsNamespaceDirective_SameFolder()
+        {
+            // Arrange
+            var sourceDocument = TestRazorSourceDocument.Create(
+                filePath: "C:\\Hello\\Components\\Test.cshtml",
+                relativePath: "\\Components\\Test.cshtml");
+            var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
+            codeDocument.SetFileKind(FileKinds.Component);
+            codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(options =>
+            {
+                options.Directives.Add(NamespaceDirective.Directive);
+            })));
+
+            var importSourceDocument = TestRazorSourceDocument.Create(
+                content: "@namespace My.Custom.NS",
+                filePath: "C:\\Hello\\Components\\_Imports.razor",
+                relativePath: "\\Components\\_Imports.razor");
+            codeDocument.SetImportSyntaxTrees(new[]
+            {
+                RazorSyntaxTree.Parse(importSourceDocument, RazorParserOptions.Create(options =>
+                {
+                    options.Directives.Add(NamespaceDirective.Directive);
+                }))
+            });
+
+            var documentNode = new DocumentIntermediateNode()
+            {
+                Options = RazorCodeGenerationOptions.Create(c =>
+                {
+                    c.RootNamespace = "Hello.World";
+                })
+            };
+            codeDocument.SetDocumentIntermediateNode(documentNode);
+
+            // Act
+            codeDocument.TryComputeNamespace(out var @namespace);
+
+            // Assert
+            Assert.Equal("My.Custom.NS", @namespace);
+        }
+
+        [Fact]
+        public void TryComputeNamespace_OverrideImportsNamespaceDirective()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(
@@ -467,7 +500,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetFileKind(FileKinds.Component);
             codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(options =>
             {
-                options.Directives.Add(ComponentNamespaceDirective.Directive);
+                options.Directives.Add(NamespaceDirective.Directive);
             })));
 
             var importSourceDocument = TestRazorSourceDocument.Create(
@@ -478,7 +511,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             {
                 RazorSyntaxTree.Parse(importSourceDocument, RazorParserOptions.Create(options =>
                 {
-                    options.Directives.Add(ComponentNamespaceDirective.Directive);
+                    options.Directives.Add(NamespaceDirective.Directive);
                 }))
             });
 
@@ -492,11 +525,85 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespaceAndClass(out var @namespace, out var @class);
+            codeDocument.TryComputeNamespace(out var @namespace);
 
             // Assert
-            Assert.Equal("My.Custom.OverrideNS.Components", @namespace);
-            Assert.Equal("Test", @class);
+            Assert.Equal("My.Custom.OverrideNS", @namespace);
+        }
+
+        [Theory]
+        [InlineData("/", "foo.cshtml", "Base")]
+        [InlineData("/", "foo/bar.cshtml", "Base.foo")]
+        [InlineData("/", "foo/bar/baz.cshtml", "Base.foo.bar")]
+        [InlineData("/foo/", "bar/baz.cshtml", "Base.bar")]
+        [InlineData("/Foo/", "bar/baz.cshtml", "Base.bar")]
+        [InlineData("c:\\", "foo.cshtml", "Base")]
+        [InlineData("c:\\", "foo\\bar.cshtml", "Base.foo")]
+        [InlineData("c:\\", "foo\\bar\\baz.cshtml", "Base.foo.bar")]
+        [InlineData("c:\\foo\\", "bar\\baz.cshtml", "Base.bar")]
+        [InlineData("c:\\Foo\\", "bar\\baz.cshtml", "Base.bar")]
+        public void TryComputeNamespace_ComputesNamespaceWithSuffix(string basePath, string relativePath, string expectedNamespace)
+        {
+            // Arrange
+            var sourceDocument = TestRazorSourceDocument.Create(
+                filePath: Path.Combine(basePath, relativePath),
+                relativePath: relativePath);
+            var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
+            codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(options =>
+            {
+                options.Directives.Add(NamespaceDirective.Directive);
+            })));
+
+            var importRelativePath = "_ViewImports.cshtml";
+            var importSourceDocument = TestRazorSourceDocument.Create(
+                content: "@namespace Base",
+                filePath: Path.Combine(basePath, importRelativePath),
+                relativePath: importRelativePath);
+            codeDocument.SetImportSyntaxTrees(new[]
+            {
+                RazorSyntaxTree.Parse(importSourceDocument, RazorParserOptions.Create(options =>
+                {
+                    options.Directives.Add(NamespaceDirective.Directive);
+                }))
+            });
+
+            // Act
+            codeDocument.TryComputeNamespace(out var @namespace);
+
+            // Assert
+            Assert.Equal(expectedNamespace, @namespace);
+        }
+
+        [Fact]
+        public void TryComputeNamespace_ForNonRelatedFiles_UsesNamespaceVerbatim()
+        {
+            // Arrange
+            var sourceDocument = TestRazorSourceDocument.Create(
+                filePath: "c:\\foo\\bar\\bleh.cshtml",
+                relativePath: "bar\\bleh.cshtml");
+            var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
+            codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.Create(options =>
+            {
+                options.Directives.Add(NamespaceDirective.Directive);
+            })));
+
+            var importSourceDocument = TestRazorSourceDocument.Create(
+                content: "@namespace Base",
+                filePath: "c:\\foo\\baz\\bleh.cshtml",
+                relativePath: "baz\\bleh.cshtml");
+            codeDocument.SetImportSyntaxTrees(new[]
+            {
+                RazorSyntaxTree.Parse(importSourceDocument, RazorParserOptions.Create(options =>
+                {
+                    options.Directives.Add(NamespaceDirective.Directive);
+                }))
+            });
+
+            // Act
+            codeDocument.TryComputeNamespace(out var @namespace);
+
+            // Assert
+            Assert.Equal("Base", @namespace);
         }
     }
 }

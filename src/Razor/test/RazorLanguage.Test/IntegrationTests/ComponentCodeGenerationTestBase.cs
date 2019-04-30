@@ -3677,7 +3677,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace New.Test
 {
-    public class Counter : ComponentBase
+    public class Counter2 : ComponentBase
     {
         public int Count { get; set; }
     }
@@ -3687,7 +3687,7 @@ namespace New.Test
             // Act
             var generated = CompileToCSharp("Pages/Counter.razor", @"
 @namespace New.Test
-<Counter />
+<Counter2 />
 ");
 
             // Assert

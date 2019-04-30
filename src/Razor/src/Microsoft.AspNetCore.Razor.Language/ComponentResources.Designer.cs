@@ -205,33 +205,6 @@ namespace Microsoft.AspNetCore.Razor.Language {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specify the base namespace for the Razor component..
-        /// </summary>
-        internal static string NamespaceDirective_Description {
-            get {
-                return ResourceManager.GetString("NamespaceDirective_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The namespace for the Razor component..
-        /// </summary>
-        internal static string NamespaceDirective_NamespaceToken_Description {
-            get {
-                return ResourceManager.GetString("NamespaceDirective_NamespaceToken_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Namespace.
-        /// </summary>
-        internal static string NamespaceDirective_NamespaceToken_Name {
-            get {
-                return ResourceManager.GetString("NamespaceDirective_NamespaceToken_Name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Mark the page as a routable component..
         /// </summary>
         internal static string PageDirective_Description {

@@ -189,13 +189,4 @@
   <data name="TypeParamDirective_Token_Name" xml:space="preserve">
     <value>type parameter</value>
   </data>
-  <data name="NamespaceDirective_Description" xml:space="preserve">
-    <value>Specify the base namespace for the Razor component.</value>
-  </data>
-  <data name="NamespaceDirective_NamespaceToken_Description" xml:space="preserve">
-    <value>The namespace for the Razor component.</value>
-  </data>
-  <data name="NamespaceDirective_NamespaceToken_Name" xml:space="preserve">
-    <value>Namespace</value>
-  </data>
 </root>

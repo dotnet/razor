@@ -1,5 +1,5 @@
 Document - 
-    NamespaceDeclaration -  - New.Test.Pages
+    NamespaceDeclaration -  - New.Test
         UsingDirective - (3:1,1 [14] ) - System
         UsingDirective - (18:2,1 [34] ) - System.Collections.Generic
         UsingDirective - (53:3,1 [19] ) - System.Linq
@@ -9,4 +9,4 @@ Document -
         UsingDirective - (21:1,1 [25] x:\dir\subdir\Test\_Imports.razor) - System.Reflection
         ClassDeclaration -  - public - Counter - Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
-                Component - (21:1,0 [11] Counter.razor) - Counter
+                Component - (21:1,0 [12] Counter.razor) - Counter2

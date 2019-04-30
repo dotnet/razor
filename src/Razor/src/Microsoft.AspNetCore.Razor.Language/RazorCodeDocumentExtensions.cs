@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -196,56 +198,12 @@ namespace Microsoft.AspNetCore.Razor.Language
             document.Items[typeof(FileKinds)] = fileKind;
         }
 
-        internal static bool TryComputeBaseNamespace(this RazorCodeDocument document, out string baseNamespace)
-        {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            if (FileKinds.IsComponent(document.GetFileKind()))
-            {
-                // If the document or it's imports contains a @namespace directive, we want to use that over the root namespace.
-                var visitor = new ComponentNamespaceDirectiveVisitor();
-                var importSyntaxTrees = document.GetImportSyntaxTrees();
-                if (importSyntaxTrees != null)
-                {
-                    // ImportSyntaxTrees is usually set. Just being defensive.
-                    foreach (var syntaxTree in importSyntaxTrees)
-                    {
-                        visitor.Visit(syntaxTree.Root);
-                    }
-                }
-
-                visitor.Visit(document.GetSyntaxTree().Root);
-
-                // If there are multiple @namespace directives in the heirarchy,
-                // we want to pick the closest one to the current document.
-                if (!string.IsNullOrEmpty(visitor.LastNamespaceDirectiveContent))
-                {
-                    baseNamespace = visitor.LastNamespaceDirectiveContent;
-                    return true;
-                }
-            }
-
-            var options = document.GetCodeGenerationOptions() ?? document.GetDocumentIntermediateNode()?.Options;
-            var rootNamespace = options?.RootNamespace;
-            if (string.IsNullOrEmpty(rootNamespace))
-            {
-                baseNamespace = null;
-                return false;
-            }
-
-            baseNamespace = rootNamespace;
-            return true;
-        }
-
         // In general documents will have a relative path (relative to the project root).
-        // We can only really compute a nice class/namespace when we know a relative path.
+        // We can only really compute a nice namespace when we know a relative path.
         //
         // However all kinds of thing are possible in tools. We shouldn't barf here if the document isn't 
         // set up correctly.
-        internal static bool TryComputeNamespaceAndClass(this RazorCodeDocument document, out string @namespace, out string @class)
+        public static bool TryComputeNamespace(this RazorCodeDocument document, out string @namespace)
         {
             if (document == null)
             {
@@ -254,20 +212,73 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             var filePath = document.Source.FilePath;
             var relativePath = document.Source.RelativePath;
-            if (filePath == null || relativePath == null || filePath.Length <= relativePath.Length)
+            if (filePath == null || relativePath == null || filePath.Length < relativePath.Length)
             {
                 @namespace = null;
-                @class = null;
                 return false;
             }
 
             relativePath = NormalizePath(relativePath);
-            if (!document.TryComputeBaseNamespace(out var baseNamespace))
+            // If the document or it's imports contains a @namespace directive, we want to use that over the root namespace.
+            var baseNamespace = string.Empty;
+            var appendSuffix = true;
+            var lastNamespaceContent = string.Empty;
+            var lastNamespaceLocation = SourceSpan.Undefined;
+            var importSyntaxTrees = document.GetImportSyntaxTrees();
+            if (importSyntaxTrees != null)
             {
-                // Something went wrong when computing the base namespace. Bail.
-                @namespace = null;
-                @class = null;
-                return false;
+                // ImportSyntaxTrees is usually set. Just being defensive.
+                foreach (var importSyntaxTree in importSyntaxTrees)
+                {
+                    if (importSyntaxTree != null && NamespaceVisitor.TryGetLastNamespaceDirective(importSyntaxTree, out var importNamespaceContent, out var importNamespaceLocation))
+                    {
+                        lastNamespaceContent = importNamespaceContent;
+                        lastNamespaceLocation = importNamespaceLocation;
+                    }
+                }
+            }
+
+            var syntaxTree = document.GetSyntaxTree();
+            if (syntaxTree != null && NamespaceVisitor.TryGetLastNamespaceDirective(syntaxTree, out var namespaceContent, out var namespaceLocation))
+            {
+                lastNamespaceContent = namespaceContent;
+                lastNamespaceLocation = namespaceLocation;
+            }
+
+            // If there are multiple @namespace directives in the heirarchy,
+            // we want to pick the closest one to the current document.
+            if (!string.IsNullOrEmpty(lastNamespaceContent))
+            {
+                baseNamespace = lastNamespaceContent;
+                var directiveLocationDirectory = NormalizeDirectory(lastNamespaceLocation.FilePath);
+
+                // We're specifically using OrdinalIgnoreCase here because Razor treats all paths as case-insensitive.
+                if (!document.Source.FilePath.StartsWith(directiveLocationDirectory, StringComparison.OrdinalIgnoreCase) ||
+                    document.Source.FilePath.Length <= directiveLocationDirectory.Length)
+                {
+                    // The imports are not from the directory hierarchy, can't compute a suffix.
+                    appendSuffix = false;
+                }
+                else
+                {
+                    // We know that the document containing the namespace directive is in the current document's heirarchy.
+                    // Let's compute the actual relative path that we'll use to compute the namespace suffix.
+                    relativePath = document.Source.FilePath.Substring(directiveLocationDirectory.Length);
+                }
+            }
+            else
+            {
+                var options = document.GetCodeGenerationOptions() ?? document.GetDocumentIntermediateNode()?.Options;
+                var rootNamespace = options?.RootNamespace;
+                if (string.IsNullOrEmpty(rootNamespace))
+                {
+                    // Couldn't compute namespace in any way.
+                    @namespace = null;
+                    return false;
+                }
+
+                baseNamespace = rootNamespace;
+                appendSuffix = true;
             }
 
             var builder = new StringBuilder();
@@ -281,19 +292,49 @@ namespace Microsoft.AspNetCore.Razor.Language
                 builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[i]));
             }
 
-            segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
-
-            // Skip the last segment because it's the FileName.
-            for (var i = 0; i < segments.Length - 1; i++)
+            if (appendSuffix)
             {
-                builder.Append('.');
-                builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[i]));
+                // If we get here, we know that 
+                segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
+
+                // Skip the last segment because it's the FileName.
+                for (var i = 0; i < segments.Length - 1; i++)
+                {
+                    builder.Append('.');
+                    builder.Append(CSharpIdentifier.SanitizeIdentifier(segments[i]));
+                }
             }
 
             @namespace = builder.ToString();
-            @class = CSharpIdentifier.SanitizeIdentifier(Path.GetFileNameWithoutExtension(relativePath));
 
             return true;
+
+            // We want to normalize the path of the file containing the '@namespace' directive to just the containing
+            // directory with a trailing separator.
+            //
+            // Not using Path.GetDirectoryName here because it doesn't meet these requirements, and we want to handle
+            // both 'view engine' style paths and absolute paths.
+            //
+            // We also don't normalize the separators here. We expect that all documents are using a consistent style of path.
+            // 
+            // If we can't normalize the path, we just return null so it will be ignored.
+            string NormalizeDirectory(string path)
+            {
+                char[] Separators = new char[] { '\\', '/' };
+                if (string.IsNullOrEmpty(path))
+                {
+                    return null;
+                }
+
+                var lastSeparator = path.LastIndexOfAny(Separators);
+                if (lastSeparator == -1)
+                {
+                    return null;
+                }
+
+                // Includes the separator
+                return path.Substring(0, lastSeparator + 1);
+            }
         }
 
         private static string NormalizePath(string path)
@@ -333,20 +374,49 @@ namespace Microsoft.AspNetCore.Razor.Language
             public IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
         }
 
-        private class ComponentNamespaceDirectiveVisitor : SyntaxWalker
+        private class NamespaceVisitor : SyntaxWalker
         {
-            public string LastNamespaceDirectiveContent { get; set; }
+            private readonly RazorSourceDocument _source;
+
+            private NamespaceVisitor(RazorSourceDocument source)
+            {
+                _source = source;
+            }
+
+            public string LastNamespaceContent { get; set; }
+
+            public SourceSpan LastNamespaceLocation { get; set; }
+
+            public static bool TryGetLastNamespaceDirective(
+                RazorSyntaxTree syntaxTree,
+                out string namespaceDirectiveContent,
+                out SourceSpan namespaceDirectiveSpan)
+            {
+                var visitor = new NamespaceVisitor(syntaxTree.Source);
+                visitor.Visit(syntaxTree.Root);
+                if (string.IsNullOrEmpty(visitor.LastNamespaceContent))
+                {
+                    namespaceDirectiveContent = null;
+                    namespaceDirectiveSpan = SourceSpan.Undefined;
+                    return false;
+                }
+
+                namespaceDirectiveContent = visitor.LastNamespaceContent;
+                namespaceDirectiveSpan = visitor.LastNamespaceLocation;
+                return true;
+            }
 
             public override void VisitRazorDirective(RazorDirectiveSyntax node)
             {
-                if (node != null && node.DirectiveDescriptor == ComponentNamespaceDirective.Directive)
+                if (node != null && node.DirectiveDescriptor == NamespaceDirective.Directive)
                 {
                     var directiveContent = node.Body?.GetContent();
 
                     // In practice, this should never be null and always start with 'namespace'. Just being defensive here.
-                    if (directiveContent != null && directiveContent.StartsWith(ComponentNamespaceDirective.Directive.Directive))
+                    if (directiveContent != null && directiveContent.StartsWith(NamespaceDirective.Directive.Directive))
                     {
-                        LastNamespaceDirectiveContent = directiveContent.Substring(ComponentNamespaceDirective.Directive.Directive.Length).Trim();
+                        LastNamespaceContent = directiveContent.Substring(NamespaceDirective.Directive.Directive.Length).Trim();
+                        LastNamespaceLocation = node.GetSourceSpan(_source);
                     }
                 }
 
