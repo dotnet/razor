@@ -3,7 +3,7 @@
 
 using System;
 using System.IO;
-using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 
@@ -237,7 +237,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Null(@namespace);
@@ -251,7 +251,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Null(@namespace);
@@ -265,7 +265,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Null(@namespace);
@@ -279,7 +279,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Null(@namespace);
@@ -297,14 +297,14 @@ namespace Microsoft.AspNetCore.Razor.Language
             }));
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Equal("Hello.Components", @namespace);
         }
 
         [Fact]
-        public void TryComputeNamespace_UsesIROptions_ComputesNamespaceAndClass()
+        public void TryComputeNamespace_UsesIROptions_ComputesNamespace()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Components\\Test.cshtml", relativePath: "\\Components\\Test.cshtml");
@@ -319,14 +319,36 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Equal("Hello.Components", @namespace);
         }
 
         [Fact]
-        public void TryComputeNamespace_PrefersOptionsFromCodeDocument_ComputesNamespaceAndClass()
+        public void TryComputeNamespace_NoRootNamespaceFallback_ReturnsNull()
+        {
+            // Arrange
+            var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Components\\Test.cshtml", relativePath: "\\Components\\Test.cshtml");
+            var codeDocument = TestRazorCodeDocument.Create(sourceDocument, Array.Empty<RazorSourceDocument>());
+            var documentNode = new DocumentIntermediateNode()
+            {
+                Options = RazorCodeGenerationOptions.Create(c =>
+                {
+                    c.RootNamespace = "Hello";
+                })
+            };
+            codeDocument.SetDocumentIntermediateNode(documentNode);
+
+            // Act
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: false, out var @namespace);
+
+            // Assert
+            Assert.Null(@namespace);
+        }
+
+        [Fact]
+        public void TryComputeNamespace_PrefersOptionsFromCodeDocument_ComputesNamespace()
         {
             // Arrange
             var sourceDocument = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Components\\Test.cshtml", relativePath: "\\Components\\Test.cshtml");
@@ -345,7 +367,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Equal("World.Components", @namespace);
@@ -367,7 +389,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Equal("Hel_o.World.Components_with_space", @namespace);
@@ -398,7 +420,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Equal("My.Custom.NS", @namespace);
@@ -440,7 +462,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Equal("My.Custom.NS.Components", @namespace);
@@ -482,7 +504,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Equal("My.Custom.NS", @namespace);
@@ -525,7 +547,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             codeDocument.SetDocumentIntermediateNode(documentNode);
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Equal("My.Custom.OverrideNS", @namespace);
@@ -568,7 +590,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             });
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Equal(expectedNamespace, @namespace);
@@ -600,7 +622,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             });
 
             // Act
-            codeDocument.TryComputeNamespace(out var @namespace);
+            codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
 
             // Assert
             Assert.Equal("Base", @namespace);

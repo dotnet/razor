@@ -93,9 +93,9 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             Assert.AssemblyDoesNotContainType(result, Path.Combine(OutputPath, "MvcWithComponents.Views.dll"), "AspNetCore.Components_Counter");
 
             // Verify a regular View appears in the views dll, but not in the main assembly.
-            Assert.AssemblyDoesNotContainType(result, Path.Combine(OutputPath, "MvcWithComponents.dll"), "MvcWithComponents.Views.Home.Views_Home_Index");
+            Assert.AssemblyDoesNotContainType(result, Path.Combine(OutputPath, "MvcWithComponents.dll"), "AspNetCore.Views.Home.Index");
             Assert.AssemblyDoesNotContainType(result, Path.Combine(OutputPath, "MvcWithComponents.dll"), "AspNetCore.Views_Home_Index");
-            Assert.AssemblyContainsType(result, Path.Combine(OutputPath, "MvcWithComponents.Views.dll"), "MvcWithComponents.Views.Home.Views_Home_Index");
+            Assert.AssemblyContainsType(result, Path.Combine(OutputPath, "MvcWithComponents.Views.dll"), "AspNetCore.Views_Home_Index");
         }
     }
 }

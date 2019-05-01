@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             ClassDeclarationIntermediateNode @class,
             MethodDeclarationIntermediateNode method)
         {
-            if (!codeDocument.TryComputeNamespace(out var computedNamespace) ||
+            if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var computedNamespace) ||
                 !TryComputeClassName(codeDocument, out var computedClass))
             {
                 // If we can't compute a nice namespace (no relative path) then just generate something

@@ -3,9 +3,9 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Razor.Language.Components
+namespace Microsoft.AspNetCore.Razor.Language.Extensions
 {
-    internal class NamespaceDirective
+    public static class NamespaceDirective
     {
         public static readonly DirectiveDescriptor Directive = DirectiveDescriptor.CreateDirective(
             "namespace",

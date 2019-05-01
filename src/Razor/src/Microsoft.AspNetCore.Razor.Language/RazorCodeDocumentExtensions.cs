@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -203,7 +203,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         //
         // However all kinds of thing are possible in tools. We shouldn't barf here if the document isn't 
         // set up correctly.
-        public static bool TryComputeNamespace(this RazorCodeDocument document, out string @namespace)
+        public static bool TryComputeNamespace(this RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace)
         {
             if (document == null)
             {
@@ -256,7 +256,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 if (!document.Source.FilePath.StartsWith(directiveLocationDirectory, StringComparison.OrdinalIgnoreCase) ||
                     document.Source.FilePath.Length <= directiveLocationDirectory.Length)
                 {
-                    // The imports are not from the directory hierarchy, can't compute a suffix.
+                    // The most relevant directive is not from the directory hierarchy, can't compute a suffix.
                     appendSuffix = false;
                 }
                 else
@@ -266,19 +266,18 @@ namespace Microsoft.AspNetCore.Razor.Language
                     relativePath = document.Source.FilePath.Substring(directiveLocationDirectory.Length);
                 }
             }
-            else
+            else if (fallbackToRootNamespace)
             {
                 var options = document.GetCodeGenerationOptions() ?? document.GetDocumentIntermediateNode()?.Options;
-                var rootNamespace = options?.RootNamespace;
-                if (string.IsNullOrEmpty(rootNamespace))
-                {
-                    // Couldn't compute namespace in any way.
-                    @namespace = null;
-                    return false;
-                }
-
-                baseNamespace = rootNamespace;
+                baseNamespace = options?.RootNamespace;
                 appendSuffix = true;
+            }
+
+            if (string.IsNullOrEmpty(baseNamespace))
+            {
+                // There was no valid @namespace directive and we couldn't compute the RootNamespace.
+                @namespace = null;
+                return false;
             }
 
             var builder = new StringBuilder();
@@ -294,7 +293,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             if (appendSuffix)
             {
-                // If we get here, we know that 
+                // If we get here, we already have a base namespace and the relative path that should be used as the namespace suffix.
                 segments = relativePath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
 
                 // Skip the last segment because it's the FileName.

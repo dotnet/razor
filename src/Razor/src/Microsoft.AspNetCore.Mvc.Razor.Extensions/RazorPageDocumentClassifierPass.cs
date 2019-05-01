@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions
         {
             base.OnDocumentStructureCreated(codeDocument, @namespace, @class, method);
 
-            if (!codeDocument.TryComputeNamespace(out var namespaceName))
+            if (!codeDocument.TryComputeNamespace(fallbackToRootNamespace: false, out var namespaceName))
             {
                 @namespace.Content = "AspNetCore";
             }
@@ -150,10 +150,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions
 
         private bool TryComputeClassName(RazorCodeDocument codeDocument, out string className)
         {
-            className = null;
             var filePath = codeDocument.Source.RelativePath ?? codeDocument.Source.FilePath;
             if (string.IsNullOrEmpty(filePath))
             {
+                className = null;
                 return false;
             }
 
