@@ -333,6 +333,8 @@ Copyright (c) .NET Foundation. All rights reserved.
 
   <Import Project="Microsoft.NET.Sdk.Razor.Component.targets" Condition="'$(_Targeting30OrNewerRazorLangVersion)' == 'true'" />
 
+  <Import Project="Microsoft.NET.Sdk.Razor.StaticAssets.targets" Condition="'$(_Targeting30OrNewerRazorLangVersion)' == 'true'" />
+
   <Import Project="Microsoft.NET.Sdk.Razor.GenerateAssemblyInfo.targets" />
 
   <!-- 
