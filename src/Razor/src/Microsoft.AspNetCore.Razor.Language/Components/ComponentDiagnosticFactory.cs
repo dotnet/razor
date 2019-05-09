@@ -332,5 +332,34 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         {
             return RazorDiagnostic.Create(UnsupportedComponentImportContent, source ?? SourceSpan.Undefined);
         }
+
+        public static readonly RazorDiagnosticDescriptor BindAttributeParameter_MissingBind =
+            new RazorDiagnosticDescriptor(
+            $"{DiagnosticPrefix}10004",
+            () => "Could not find the non-parameterized bind attribute that corresponds to the attribute '{0}'.",
+            RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic CreateBindAttributeParameter_MissingBind(SourceSpan? source, string attribute)
+        {
+            var diagnostic = RazorDiagnostic.Create(
+                BindAttributeParameter_MissingBind,
+                source ?? SourceSpan.Undefined,
+                attribute);
+            return diagnostic;
+        }
+
+        public static readonly RazorDiagnosticDescriptor BindAttribute_UnsupportedFormat =
+            new RazorDiagnosticDescriptor(
+            $"{DiagnosticPrefix}10005",
+            () => "Specifying event handlers in bind attributes are no longer supported. Specify it using the bind:event=... attribute.",
+            RazorDiagnosticSeverity.Warning);
+
+        public static RazorDiagnostic CreateBindAttribute_UnsupportedFormat(SourceSpan? source)
+        {
+            var diagnostic = RazorDiagnostic.Create(
+                BindAttribute_UnsupportedFormat,
+                source ?? SourceSpan.Undefined);
+            return diagnostic;
+        }
     }
 }

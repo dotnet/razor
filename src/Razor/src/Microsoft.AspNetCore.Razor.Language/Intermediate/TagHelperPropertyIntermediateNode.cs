@@ -19,6 +19,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
 
         public bool IsIndexerNameMatch { get; set; }
 
+        public bool IsParameterMatch { get; set; }
+
+        public BoundAttributeParameterDescriptor BoundAttributeParameter { get; set; }
+
         public override void Accept(IntermediateNodeVisitor visitor)
         {
             if (visitor == null)

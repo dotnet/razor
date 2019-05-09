@@ -150,6 +150,24 @@ namespace Microsoft.CodeAnalysis.Razor
                 // a C# property will crash trying to create the toolips.
                 attribute.SetPropertyName("Bind");
                 attribute.TypeName = "System.Collections.Generic.Dictionary<string, object>";
+
+                attribute.BindAttributeParameter(parameter =>
+                {
+                    parameter.Name = "format";
+                    parameter.TypeName = typeof(string).FullName;
+                    parameter.Documentation = ComponentResources.BindTagHelper_Fallback_Format_Documentation;
+
+                    parameter.SetPropertyName("Format");
+                });
+
+                attribute.BindAttributeParameter(parameter =>
+                {
+                    parameter.Name = "event";
+                    parameter.TypeName = typeof(string).FullName;
+                    parameter.Documentation = "Fallback Event documentation";
+
+                    parameter.SetPropertyName("Event");
+                });
             });
 
             builder.BindAttribute(attribute =>
@@ -237,6 +255,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             return results;
         }
+
         private List<TagHelperDescriptor> CreateElementBindTagHelpers(List<ElementBindData> data)
         {
             var results = new List<TagHelperDescriptor>();
@@ -250,6 +269,8 @@ namespace Microsoft.CodeAnalysis.Razor
 
                 var formatName = entry.Suffix == null ? "Format_" + entry.ValueAttribute : "Format_" + entry.Suffix;
                 var formatAttributeName = entry.Suffix == null ? "format-" + entry.ValueAttribute : "format-" + entry.Suffix;
+
+                var eventName = entry.Suffix == null ? "Event_" + entry.ValueAttribute : "Event_" + entry.Suffix;
 
                 var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Bind.TagHelperKind, name, ComponentsApi.AssemblyName);
                 builder.Documentation = string.Format(
@@ -315,6 +336,24 @@ namespace Microsoft.CodeAnalysis.Razor
                     // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                     // a C# property will crash trying to create the toolips.
                     a.SetPropertyName(name);
+
+                    a.BindAttributeParameter(parameter =>
+                    {
+                        parameter.Name = "format";
+                        parameter.TypeName = typeof(string).FullName;
+                        parameter.Documentation = ComponentResources.BindTagHelper_Element_Format_Documentation;
+
+                        parameter.SetPropertyName(formatName);
+                    });
+
+                    a.BindAttributeParameter(parameter =>
+                    {
+                        parameter.Name = "event";
+                        parameter.TypeName = typeof(string).FullName;
+                        parameter.Documentation = "Element Event documentation";
+
+                        parameter.SetPropertyName(eventName);
+                    });
                 });
 
                 builder.BindAttribute(attribute =>
@@ -376,7 +415,6 @@ namespace Microsoft.CodeAnalysis.Razor
                         if (tagHelper.BoundAttributes[j].Name == valueAttributeName)
                         {
                             valueAttribute = tagHelper.BoundAttributes[j];
-                            
                         }
 
                         if (tagHelper.BoundAttributes[j].Name == expressionAttributeName)

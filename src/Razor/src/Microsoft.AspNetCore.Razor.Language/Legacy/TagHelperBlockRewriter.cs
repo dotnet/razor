@@ -294,11 +294,30 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         {
             var firstBoundAttribute = FindFirstBoundAttribute(name, descriptors);
             var isBoundAttribute = firstBoundAttribute != null;
-            var isBoundNonStringAttribute = isBoundAttribute && !firstBoundAttribute.ExpectsStringValue(name);
-            var isBoundBooleanAttribute = isBoundAttribute && firstBoundAttribute.ExpectsBooleanValue(name);
-            var isMissingDictionaryKey = isBoundAttribute &&
-                firstBoundAttribute.IndexerNamePrefix != null &&
-                name.Length == firstBoundAttribute.IndexerNamePrefix.Length;
+            var boundAttributeParameter = firstBoundAttribute?.BoundAttributeParameters.FirstOrDefault(p =>
+            {
+                return TagHelperMatchingConventions.SatisfiesBoundAttributeParameter(name, firstBoundAttribute, p);
+            });
+            var isBoundNonStringAttribute = false;
+            var isBoundBooleanAttribute = false;
+            var isMissingDictionaryKey = false;
+
+            if (isBoundAttribute)
+            {
+                if (boundAttributeParameter != null)
+                {
+                    isBoundNonStringAttribute = !boundAttributeParameter.IsStringProperty;
+                    isBoundBooleanAttribute = boundAttributeParameter.IsBooleanProperty;
+                    isMissingDictionaryKey = false;
+                }
+                else
+                {
+                    isBoundNonStringAttribute = !firstBoundAttribute.ExpectsStringValue(name);
+                    isBoundBooleanAttribute = firstBoundAttribute.ExpectsBooleanValue(name);
+                    isMissingDictionaryKey = firstBoundAttribute.IndexerNamePrefix != null &&
+                        name.Length == firstBoundAttribute.IndexerNamePrefix.Length;
+                }
+            }
 
             var isDuplicateAttribute = false;
             if (isBoundAttribute && !processedBoundAttributeNames.Add(name))

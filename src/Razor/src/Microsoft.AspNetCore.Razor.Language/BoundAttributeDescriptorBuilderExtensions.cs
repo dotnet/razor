@@ -51,5 +51,35 @@ namespace Microsoft.AspNetCore.Razor.Language
             builder.IndexerAttributeNamePrefix = attributeNamePrefix;
             builder.IndexerValueTypeName = valueTypeName;
         }
+
+        public static void SetPropertyName(this BoundAttributeParameterDescriptorBuilder builder, string propertyName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (propertyName == null)
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
+            builder.Metadata[TagHelperMetadata.Common.PropertyName] = propertyName;
+        }
+
+        public static string GetPropertyName(this BoundAttributeParameterDescriptorBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (builder.Metadata.ContainsKey(TagHelperMetadata.Common.PropertyName))
+            {
+                return builder.Metadata[TagHelperMetadata.Common.PropertyName];
+            }
+
+            return null;
+        }
     }
 }

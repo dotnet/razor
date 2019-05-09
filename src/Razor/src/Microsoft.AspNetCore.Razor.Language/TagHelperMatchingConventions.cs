@@ -128,7 +128,9 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static bool CanSatisfyBoundAttribute(string name, BoundAttributeDescriptor descriptor)
         {
-            return SatisfiesBoundAttributeName(name, descriptor) || SatisfiesBoundAttributeIndexer(name, descriptor);
+            return SatisfiesBoundAttributeName(name, descriptor) ||
+                SatisfiesBoundAttributeIndexer(name, descriptor) ||
+                descriptor.BoundAttributeParameters.Any(p => SatisfiesBoundAttributeParameter(name, descriptor, p));
         }
 
         public static bool SatisfiesBoundAttributeIndexer(string name, BoundAttributeDescriptor descriptor)
@@ -136,6 +138,18 @@ namespace Microsoft.AspNetCore.Razor.Language
             return descriptor.IndexerNamePrefix != null &&
                 !SatisfiesBoundAttributeName(name, descriptor) &&
                 name.StartsWith(descriptor.IndexerNamePrefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool SatisfiesBoundAttributeParameter(string name, BoundAttributeDescriptor parent, BoundAttributeParameterDescriptor descriptor)
+        {
+            if (name != null && name.IndexOf(':') != -1)
+            {
+                var segments = name.Split(':');
+                return (SatisfiesBoundAttributeName(segments[0], parent) || SatisfiesBoundAttributeIndexer(segments[0], parent)) &&
+                    string.Equals(descriptor.Name, segments[1], StringComparison.OrdinalIgnoreCase);
+            }
+
+            return false;
         }
 
         private static bool SatisfiesBoundAttributeName(string name, BoundAttributeDescriptor descriptor)

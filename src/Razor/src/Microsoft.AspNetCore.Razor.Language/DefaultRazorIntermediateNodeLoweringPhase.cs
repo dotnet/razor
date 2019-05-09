@@ -1728,14 +1728,21 @@ namespace Microsoft.AspNetCore.Razor.Language
                             return TagHelperMatchingConventions.CanSatisfyBoundAttribute(attributeName, a);
                         });
 
+                        var associatedAttributeParameterDescriptor = associatedAttributeDescriptor.BoundAttributeParameters.FirstOrDefault(p =>
+                        {
+                            return TagHelperMatchingConventions.SatisfiesBoundAttributeParameter(attributeName, associatedAttributeDescriptor, p);
+                        });
+
                         var setTagHelperProperty = new TagHelperPropertyIntermediateNode()
                         {
                             AttributeName = attributeName,
                             BoundAttribute = associatedAttributeDescriptor,
+                            BoundAttributeParameter = associatedAttributeParameterDescriptor,
                             TagHelper = associatedDescriptor,
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = BuildSourceSpanFromNode(attributeValueNode),
                             IsIndexerNameMatch = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName, associatedAttributeDescriptor),
+                            IsParameterMatch = associatedAttributeParameterDescriptor != null,
                         };
 
                         _builder.Push(setTagHelperProperty);
