@@ -171,6 +171,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 });
             });
 
+            // This is no longer supported. This is just here so we can add a diagnostic later on when this matches.
             builder.BindAttribute(attribute =>
             {
                 attribute.Documentation = ComponentResources.BindTagHelper_Fallback_Format_Documentation;
@@ -357,6 +358,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     });
                 });
 
+                // This is no longer supported. This is just here so we can add a diagnostic later on when this matches.
                 builder.BindAttribute(attribute =>
                 {
                     attribute.Documentation = 

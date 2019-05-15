@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 return DisplayName;
             }
 
-            return $"{_parent.DisplayName}:{Name}";
+            return $":{Name}";
         }
     }
 }

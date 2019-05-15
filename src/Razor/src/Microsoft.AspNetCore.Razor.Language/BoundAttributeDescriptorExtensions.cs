@@ -49,5 +49,26 @@ namespace Microsoft.AspNetCore.Razor.Language
             var isIndexerNameMatch = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(name, attribute);
             return isIndexerNameMatch && attribute.IsIndexerBooleanProperty;
         }
+
+        public static bool IsDefaultKind(this BoundAttributeParameterDescriptor parameter)
+        {
+            if (parameter == null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+
+            return string.Equals(parameter.Kind, TagHelperConventions.DefaultKind, StringComparison.Ordinal);
+        }
+
+        public static string GetPropertyName(this BoundAttributeParameterDescriptor parameter)
+        {
+            if (parameter == null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+
+            parameter.Metadata.TryGetValue(TagHelperMetadata.Common.PropertyName, out var propertyName);
+            return propertyName;
+        }
     }
 }
