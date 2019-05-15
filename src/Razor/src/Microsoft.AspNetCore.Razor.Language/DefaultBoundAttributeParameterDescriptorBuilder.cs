@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language
 {
@@ -49,7 +50,12 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public BoundAttributeParameterDescriptor Build()
         {
-            var diagnostics = Array.Empty<RazorDiagnostic>();
+            var validationDiagnostics = Validate();
+            var diagnostics = new HashSet<RazorDiagnostic>(validationDiagnostics);
+            if (_diagnostics != null)
+            {
+                diagnostics.UnionWith(_diagnostics);
+            }
             var descriptor = new DefaultBoundAttributeParameterDescriptor(
                 _kind,
                 Name,
@@ -58,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 Documentation,
                 GetDisplayName(),
                 new Dictionary<string, string>(Metadata),
-                diagnostics);
+                diagnostics.ToArray());
 
             return descriptor;
         }
@@ -71,6 +77,30 @@ namespace Microsoft.AspNetCore.Razor.Language
             }
 
             return $":{Name}";
+        }
+
+        private IEnumerable<RazorDiagnostic> Validate()
+        {
+            if (string.IsNullOrWhiteSpace(Name))
+            {
+                var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidBoundAttributeParameterNullOrWhitespace(_parent.Name);
+                yield return diagnostic;
+            }
+            else
+            {
+                foreach (var character in Name)
+                {
+                    if (char.IsWhiteSpace(character) || HtmlConventions.InvalidNonWhitespaceHtmlCharacters.Contains(character))
+                    {
+                        var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidBoundAttributeParameterName(
+                            _parent.Name,
+                            Name,
+                            character);
+
+                        yield return diagnostic;
+                    }
+                }
+            }
         }
     }
 }

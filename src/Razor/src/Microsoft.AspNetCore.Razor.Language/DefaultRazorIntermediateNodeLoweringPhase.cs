@@ -1742,7 +1742,6 @@ namespace Microsoft.AspNetCore.Razor.Language
                             AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                             Source = BuildSourceSpanFromNode(attributeValueNode),
                             IsIndexerNameMatch = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName, associatedAttributeDescriptor),
-                            IsParameterMatch = associatedAttributeParameterDescriptor != null,
                         };
 
                         _builder.Push(setTagHelperProperty);

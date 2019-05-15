@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 if (node.TagHelper.IsBindTagHelper() && node.AttributeName.StartsWith("bind") && node.IsParameterMatch)
                 {
                     var originalAttributeName = node.AttributeName.Split(':')[0];
-                    if (!bindEntries.ContainsKey(originalAttributeName))
+                    if (!bindEntries.TryGetValue(originalAttributeName, out var entry))
                     {
                         // There is no corresponding bind node. Add a diagnostic and move on.
                         reference.Parent.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttributeParameter_MissingBind(
@@ -85,15 +85,16 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     }
                     else if (node.BoundAttributeParameter.Name == "event")
                     {
-                        bindEntries[originalAttributeName].BindEventNode = node;
+                        entry.BindEventNode = node;
                     }
                     else if (node.BoundAttributeParameter.Name == "format")
                     {
-                        bindEntries[originalAttributeName].BindFormatNode = node;
+                        entry.BindFormatNode = node;
                     }
                     else
                     {
-                        // Unsupported bind attribute parameter.
+                        // Unsupported bind attribute parameter. This can only happen if bound attribute descriptor
+                        // is configured to expect a parameter other than 'event' and 'format'.
                     }
 
                     // We've extracted what we need from the parameterized bind node. Remove it.
