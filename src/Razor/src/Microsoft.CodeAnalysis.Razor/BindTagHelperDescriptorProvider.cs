@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Razor
             //
             // We handle a few different cases here:
             //
-            //  1.  When given an attribute like **anywhere**'bind-value-onchange="@FirstName"' we will
+            //  1.  When given an attribute like **anywhere**'bind-value="@FirstName"' and 'bind-value:event="onchange"' we will
             //      generate the 'value' attribute and 'onchange' attribute. 
             //
             //      We don't do any transformation or inference for this case, because the developer has
@@ -143,7 +143,8 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 attribute.Documentation = ComponentResources.BindTagHelper_Fallback_Documentation;
 
-                attribute.Name = "bind-...";
+                var attributeName = "bind-...";
+                attribute.Name = attributeName;
                 attribute.AsDictionary("bind-", typeof(object).FullName);
 
                 // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 {
                     parameter.Name = "event";
                     parameter.TypeName = typeof(string).FullName;
-                    parameter.Documentation = "Fallback Event documentation";
+                    parameter.Documentation = string.Format(ComponentResources.BindTagHelper_Fallback_Event_Documentation, attributeName);
 
                     parameter.SetPropertyName("Event");
                 });
@@ -341,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     {
                         parameter.Name = "format";
                         parameter.TypeName = typeof(string).FullName;
-                        parameter.Documentation = ComponentResources.BindTagHelper_Element_Format_Documentation;
+                        parameter.Documentation = string.Format(ComponentResources.BindTagHelper_Element_Format_Documentation, attributeName);
 
                         parameter.SetPropertyName(formatName);
                     });
@@ -350,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     {
                         parameter.Name = "event";
                         parameter.TypeName = typeof(string).FullName;
-                        parameter.Documentation = "Element Event documentation";
+                        parameter.Documentation = string.Format(ComponentResources.BindTagHelper_Element_Event_Documentation, attributeName);
 
                         parameter.SetPropertyName(eventName);
                     });
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
                 builder.BindAttribute(attribute =>
                 {
-                    attribute.Documentation = string.Format(ComponentResources.BindTagHelper_Element_Format_Documentation, attributeName);
+                    attribute.Documentation = 
 
                     attribute.Name = formatAttributeName;
                     attribute.TypeName = "System.String";

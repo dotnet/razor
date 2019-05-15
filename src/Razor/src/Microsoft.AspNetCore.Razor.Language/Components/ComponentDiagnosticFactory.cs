@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             new RazorDiagnosticDescriptor(
             $"{DiagnosticPrefix}9991",
             () => "The attribute names could not be inferred from bind attribute '{0}'. Bind attributes should be of the form" +
-                "'bind', 'bind-value' or 'bind-value-change'",
+                "'bind' or 'bind-value' along with their corresponding optional parameters like 'bind-value:event', 'bind:format' etc.",
             RazorDiagnosticSeverity.Error);
 
         public static RazorDiagnostic CreateBindAttribute_InvalidSyntax(SourceSpan? source, string attribute)
@@ -351,13 +351,27 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         public static readonly RazorDiagnosticDescriptor BindAttribute_UnsupportedFormat =
             new RazorDiagnosticDescriptor(
             $"{DiagnosticPrefix}10005",
-            () => "Specifying event handlers in bind attributes are no longer supported. Specify it using the bind:event=... attribute.",
+            () => "Specifying event handlers in bind attributes are no longer supported. Specify it using the bind:event=... attribute instead.",
             RazorDiagnosticSeverity.Warning);
 
         public static RazorDiagnostic CreateBindAttribute_UnsupportedFormat(SourceSpan? source)
         {
             var diagnostic = RazorDiagnostic.Create(
                 BindAttribute_UnsupportedFormat,
+                source ?? SourceSpan.Undefined);
+            return diagnostic;
+        }
+
+        public static readonly RazorDiagnosticDescriptor BindAttribute_FormatNode_Unsupported =
+            new RazorDiagnosticDescriptor(
+            $"{DiagnosticPrefix}10005",
+            () => "Specifying format using 'format-...' attributes are no longer supported. Specify it using the 'bind-...:format=...' attribute instead.",
+            RazorDiagnosticSeverity.Warning);
+
+        public static RazorDiagnostic CreateBindAttribute_FormatNode_Unsupported(SourceSpan? source)
+        {
+            var diagnostic = RazorDiagnostic.Create(
+                BindAttribute_FormatNode_Unsupported,
                 source ?? SourceSpan.Undefined);
             return diagnostic;
         }

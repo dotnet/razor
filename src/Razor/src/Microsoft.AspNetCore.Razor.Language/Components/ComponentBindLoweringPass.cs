@@ -42,6 +42,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 ProcessDuplicates(parent);
             }
 
+            // First, collect all the non-parameterized bind or bind-* attributes.
             var bindEntries = new Dictionary<string, BindEntry>();
             for (var i = 0; i < references.Count; i++)
             {
@@ -60,6 +61,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 }
             }
 
+            // Now collect all the parameterized attributes and store them along with their corresponding bind or bind-* attributes.
             for (var i = 0; i < references.Count; i++)
             {
                 var reference = references[i];
@@ -99,6 +101,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 }
             }
 
+            // We now have all the info we need to rewrite the tag helper.
             foreach (var entry in bindEntries)
             {
                 var reference = entry.Value.BindNodeReference;
@@ -247,6 +250,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             if (bindEntry.BindFormatNode != null)
             {
                 format = GetAttributeContent(bindEntry.BindFormatNode);
+            }
+
+            if (TryGetFormatNode(
+                parent,
+                node,
+                valueAttributeName,
+                out var formatNode))
+            {
+                // If there is a format- attribute present, add a warning to say that it's unsupported.
+                parent.Children.Remove(formatNode);
+                parent.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttribute_FormatNode_Unsupported(formatNode.Source));
             }
 
             var valueExpressionTokens = new List<IntermediateToken>();
@@ -415,6 +429,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
                 case 3:
                     valueAttributeName = segments[1];
+                    changeAttributeName = segments[2];
                     bindEntry.BindNode.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttribute_UnsupportedFormat(bindEntry.BindNode.Source));
                     return true;
 

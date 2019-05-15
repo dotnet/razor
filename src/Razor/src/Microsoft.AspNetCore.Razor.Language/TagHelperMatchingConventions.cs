@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         {
             return SatisfiesBoundAttributeName(name, descriptor) ||
                 SatisfiesBoundAttributeIndexer(name, descriptor) ||
-                descriptor.BoundAttributeParameters.Any(p => SatisfiesBoundAttributeParameter(name, descriptor, p));
+                descriptor.BoundAttributeParameters.Any(p => SatisfiesBoundAttributeWithParameter(name, descriptor, p));
         }
 
         public static bool SatisfiesBoundAttributeIndexer(string name, BoundAttributeDescriptor descriptor)
@@ -140,13 +140,15 @@ namespace Microsoft.AspNetCore.Razor.Language
                 name.StartsWith(descriptor.IndexerNamePrefix, StringComparison.OrdinalIgnoreCase);
         }
 
-        public static bool SatisfiesBoundAttributeParameter(string name, BoundAttributeDescriptor parent, BoundAttributeParameterDescriptor descriptor)
+        public static bool SatisfiesBoundAttributeWithParameter(string name, BoundAttributeDescriptor parent, BoundAttributeParameterDescriptor descriptor)
         {
             if (name != null && name.IndexOf(':') != -1)
             {
                 var segments = name.Split(':');
-                return (SatisfiesBoundAttributeName(segments[0], parent) || SatisfiesBoundAttributeIndexer(segments[0], parent)) &&
-                    string.Equals(descriptor.Name, segments[1], StringComparison.OrdinalIgnoreCase);
+                var satisfiesBoundAttributeName = SatisfiesBoundAttributeName(segments[0], parent);
+                var satisfiesBoundAttributeIndexer = SatisfiesBoundAttributeIndexer(segments[0], parent);
+                var matchesParameter = string.Equals(descriptor.Name, segments[1], StringComparison.OrdinalIgnoreCase);
+                return (satisfiesBoundAttributeName || satisfiesBoundAttributeIndexer) && matchesParameter;
             }
 
             return false;

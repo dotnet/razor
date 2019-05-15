@@ -296,7 +296,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             var isBoundAttribute = firstBoundAttribute != null;
             var boundAttributeParameter = firstBoundAttribute?.BoundAttributeParameters.FirstOrDefault(p =>
             {
-                return TagHelperMatchingConventions.SatisfiesBoundAttributeParameter(name, firstBoundAttribute, p);
+                return TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(name, firstBoundAttribute, p);
             });
             var isBoundNonStringAttribute = false;
             var isBoundBooleanAttribute = false;

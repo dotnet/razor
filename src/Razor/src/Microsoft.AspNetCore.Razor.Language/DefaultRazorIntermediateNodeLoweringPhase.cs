@@ -1730,7 +1730,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
                         var associatedAttributeParameterDescriptor = associatedAttributeDescriptor.BoundAttributeParameters.FirstOrDefault(p =>
                         {
-                            return TagHelperMatchingConventions.SatisfiesBoundAttributeParameter(attributeName, associatedAttributeDescriptor, p);
+                            return TagHelperMatchingConventions.SatisfiesBoundAttributeWithParameter(attributeName, associatedAttributeDescriptor, p);
                         });
 
                         var setTagHelperProperty = new TagHelperPropertyIntermediateNode()
