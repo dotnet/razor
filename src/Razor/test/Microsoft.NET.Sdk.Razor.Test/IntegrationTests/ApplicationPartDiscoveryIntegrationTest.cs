@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Testing.xunit;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
@@ -19,7 +20,8 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         public Task Build_ProjectWithDependencyThatReferencesMvc_AddsAttribute_WhenBuildingUsingDotnetMsbuild()
             => Build_ProjectWithDependencyThatReferencesMvc_AddsAttribute(MSBuildProcessKind.Dotnet);
 
-        [Fact]
+        [ConditionalFact]
+        [OSSkipCondition(OperatingSystems.Linux | OperatingSystems.MacOSX)]
         [InitializeTestProject("AppWithP2PReference", additionalProjects: "ClassLibrary")]
         public Task Build_ProjectWithDependencyThatReferencesMvc_AddsAttribute_WhenBuildingUsingDesktopMsbuild()
             => Build_ProjectWithDependencyThatReferencesMvc_AddsAttribute(MSBuildProcessKind.Desktop);
