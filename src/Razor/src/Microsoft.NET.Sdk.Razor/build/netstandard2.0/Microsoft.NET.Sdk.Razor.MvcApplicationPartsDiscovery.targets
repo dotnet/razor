@@ -41,7 +41,7 @@ Copyright (c) .NET Foundation. All rights reserved.
 
   <Target
     Name="_DiscoverMvcApplicationParts"
-    Inputs="$(MSBuildAllProjects);@(ResolveAssemblyReferencesStateFile)"
+    Inputs="$(MSBuildAllProjects);$(ResolveAssemblyReferencesStateFile)"
     Outputs="$(_MvcApplicationPartAttributeGeneratedFile)"
     DependsOnTargets="$(_DiscoverMvcApplicationPartsDependsOn)"
     Condition="'$(_ReferencesMicrosoftAspNetCoreApp)' == 'true'">
