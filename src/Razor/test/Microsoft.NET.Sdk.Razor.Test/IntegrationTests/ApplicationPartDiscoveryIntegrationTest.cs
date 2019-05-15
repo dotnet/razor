@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             Assert.BuildPassed(result);
 
             Assert.FileExists(result, IntermediateOutputPath, "AppWithP2PReference.MvcApplicationPartsAssemblyInfo.cs");
-            Assert.FileContains(result, Path.Combine(IntermediateOutputPath, "AppWithP2PReference.MvcApplicationPartsAssemblyInfo.cs"), "[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPart(\"ClassLibrary\")]");
+            Assert.FileContains(result, Path.Combine(IntermediateOutputPath, "AppWithP2PReference.MvcApplicationPartsAssemblyInfo.cs"), "[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute(\"ClassLibrary\")]");
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 
             var generatedAttributeFile = Path.Combine(IntermediateOutputPath, "AppWithP2PReference.MvcApplicationPartsAssemblyInfo.cs");
             Assert.FileExists(result, generatedAttributeFile);
-            Assert.FileContains(result, generatedAttributeFile, "[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPart(\"ClassLibrary\")]");
+            Assert.FileContains(result, generatedAttributeFile, "[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute(\"ClassLibrary\")]");
 
             var thumbPrint = GetThumbPrint(generatedAttributeFile);
 
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             Assert.BuildPassed(result);
 
             Assert.FileExists(result, IntermediateOutputPath, "SimpleMvcFSharp.MvcApplicationPartsAssemblyInfo.fs");
-            Assert.FileContains(result, Path.Combine(IntermediateOutputPath, "SimpleMvcFSharp.MvcApplicationPartsAssemblyInfo.fs"), "<assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPart(\"ClassLibrary\")>");
+            Assert.FileContains(result, Path.Combine(IntermediateOutputPath, "SimpleMvcFSharp.MvcApplicationPartsAssemblyInfo.fs"), "<assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute(\"ClassLibrary\")>");
         }
 
         [Fact]

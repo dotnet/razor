@@ -27,22 +27,15 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             var referenceItems = new List<ResolveReferenceItem>();
             foreach (var item in ResolvedReferences)
             {
-                string assemblyName = null;
-                var fusionName = item.GetMetadata("FusionName");
-                if (!string.IsNullOrEmpty(fusionName))
+                const string FusionNameKey = "FusionName";
+                var fusionName = item.GetMetadata(FusionNameKey);
+                if (string.IsNullOrEmpty(fusionName))
                 {
-                    assemblyName = new AssemblyName(fusionName).Name;
-                }
-                else
-                {
-                    assemblyName = GetAssemblyName(item.ItemSpec);
+                    Log.LogError($"Missing required metadata '{FusionNameKey}' for '{item.ItemSpec}.");
+                    return false;
                 }
 
-                if (assemblyName == null)
-                {
-                    continue;
-                }
-
+                var assemblyName = new AssemblyName(fusionName).Name;
                 referenceItems.Add(new ResolveReferenceItem
                 {
                     AssemblyName = assemblyName,
@@ -53,39 +46,14 @@ namespace Microsoft.AspNetCore.Razor.Tasks
 
             var mvcAssemblyNames = MvcAssemblyNames.Select(s => s.ItemSpec).ToList();
 
-            var provider = new ApplicationPartsProvider(mvcAssemblyNames, referenceItems);
+            var provider = new ReferencesToMvcResolver(mvcAssemblyNames, referenceItems);
             var assemblyNames = provider.ResolveAssemblies();
 
             ApplicationPartAssemblyNames = assemblyNames.Count > 0 ?
                 assemblyNames.ToArray() :
                 Array.Empty<string>();
-            return true;
-        }
 
-        // Based on https://github.com/microsoft/msbuild/blob/f82477f7cbc53febd3256a0c3004c34d5b3a0cb2/src/Shared/AssemblyNameExtension.cs#L183
-        private string GetAssemblyName(string assemblyPath)
-        {
-            try
-            {
-                return AssemblyName.GetAssemblyName(assemblyPath).Name;
-            }
-            catch (FileLoadException ex)
-            {
-                Log.LogWarningFromException(ex);
-
-                // Its pretty hard to get here, you need an assembly that contains a valid reference
-                // to a dependent assembly that, in turn, throws a FileLoadException during GetAssemblyName.
-                // Still it happened once, with an older version of the CLR.
-
-                // ...falling through and relying on the targetAssemblyName==null behavior below...
-            }
-            catch (FileNotFoundException ex)
-            {
-                // Its pretty hard to get here, also since we do a file existence check right before calling this method so it can only happen if the file got deleted between that check and this call.
-                Log.LogWarningFromException(ex);
-            }
-
-            return null;
+            return !Log.HasLoggedErrors;
         }
     }
 }

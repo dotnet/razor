@@ -44,9 +44,18 @@
     <MSBuildLocationFileOutput>$(IntermediateOutputPath)BuildVariables.generated.cs</MSBuildLocationFileOutput>
   </PropertyGroup>
 
-  <Target Name="GenerateMSBuildLocationFile" Condition="'$(TargetFramework)'!=''" AfterTargets="BeforeBuild" Inputs="$(MSBuildAllProjects)" Outputs="$(MSBuildLocationFileOutput)">
+  <Target 
+    Name="GenerateMSBuildLocationFile"
+    Condition="'$(TargetFramework)'!=''"
+    AfterTargets="BeforeBuild"
+    Inputs="$(MSBuildAllProjects)"
+    Outputs="$(MSBuildLocationFileOutput)">
 
-    <Exec Condition="'$(OS)' == 'Windows_NT'" Command="&quot;$(NuGetPackageRoot)vswhere\$(VSWhereVersion)\tools\vswhere.exe&quot; -latest -prerelease -property installationPath -requires Microsoft.Component.MSBuild" ConsoleToMsBuild="true" StandardErrorImportance="high">
+    <Exec
+      Condition="'$(OS)' == 'Windows_NT'"
+      Command='"$(NuGetPackageRoot)vswhere\$(VSWhereVersion)\tools\vswhere.exe" -latest -prerelease -property installationPath -requires Microsoft.Component.MSBuild'
+      ConsoleToMsBuild="true"
+      StandardErrorImportance="high">
       <Output TaskParameter="ConsoleOutput" PropertyName="_VSInstallDir" />
     </Exec>
     <Error Condition="'$(OS)' == 'Windows_NT' and '$(_VSInstallDir)'==''" Text="Visual Studio not found on Windows." />

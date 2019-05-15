@@ -9,12 +9,15 @@ using System.Reflection.PortableExecutable;
 
 namespace Microsoft.AspNetCore.Razor.Tasks
 {
-    public class ApplicationPartsProvider
+    /// <summary>
+    /// Resolves assemblies that reference MVC either directory or transitively
+    /// </summary>
+    public class ReferencesToMvcResolver
     {
         private readonly HashSet<string> _mvcAssemblies;
         private readonly Dictionary<string, AssemblyItem> _lookup = new Dictionary<string, AssemblyItem>(StringComparer.Ordinal);
 
-        public ApplicationPartsProvider(IReadOnlyList<string> mvcAssemblies, IReadOnlyList<ResolveReferenceItem> resolveReferenceResult)
+        public ReferencesToMvcResolver(IReadOnlyList<string> mvcAssemblies, IReadOnlyList<ResolveReferenceItem> resolveReferenceResult)
         {
             _mvcAssemblies = new HashSet<string>(mvcAssemblies, StringComparer.Ordinal);
 

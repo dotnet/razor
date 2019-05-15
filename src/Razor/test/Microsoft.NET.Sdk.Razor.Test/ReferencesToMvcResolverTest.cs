@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Tasks
 {
-    public class ApplicationPartsProviderTest
+    public class ReferencesToMvcResolverTest
     {
         internal static readonly string[] MvcAssemblies = new[]
         {
@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
         public void Resolve_ReturnsEmptySequence_IfNoAssemblyReferencesMvc()
         {
             // Arrange
-            var provider = new TestApplicationPartsProvider(new[]
+            var resolver = new TestReferencesToMvcResolver(new[]
             {
                 CreateReferenceItem("Microsoft.AspNetCore.Blazor"),
                 CreateReferenceItem("Microsoft.AspNetCore.Components"),
@@ -41,12 +41,12 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                 CreateReferenceItem("System.Runtime"),
             });
 
-            provider.Add("Microsoft.AspNetCore.Blazor", "Microsoft.AspNetCore.Components", "Microsoft.JSInterop");
-            provider.Add("Microsoft.AspNetCore.Components", "Microsoft.JSInterop", "System.Net.Http", "System.Runtime");
-            provider.Add("System.Net.Http", "System.Runtime");
+            resolver.Add("Microsoft.AspNetCore.Blazor", "Microsoft.AspNetCore.Components", "Microsoft.JSInterop");
+            resolver.Add("Microsoft.AspNetCore.Components", "Microsoft.JSInterop", "System.Net.Http", "System.Runtime");
+            resolver.Add("System.Net.Http", "System.Runtime");
 
             // Act
-            var assemblies = provider.ResolveAssemblies();
+            var assemblies = resolver.ResolveAssemblies();
 
             // Assert
             Assert.Empty(assemblies);
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
         public void Resolve_ReturnsEmptySequence_IfNoDependencyReferencesMvc()
         {
             // Arrange
-            var provider = new TestApplicationPartsProvider(new[]
+            var resolver = new TestReferencesToMvcResolver(new[]
             {
                 CreateReferenceItem("MyApp.Models"),
                 CreateReferenceItem("Microsoft.AspNetCore.Mvc", isSystemReference: true),
@@ -69,15 +69,15 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                 CreateReferenceItem("Microsoft.EntityFrameworkCore"),
             });
 
-            provider.Add("MyApp.Models", "Microsoft.EntityFrameworkCore");
-            provider.Add("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.HttpAbstractions");
-            provider.Add("Microsoft.AspNetCore.KestrelHttpServer", "Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.HttpAbstractions");
-            provider.Add("Microsoft.AspNetCore.StaticFiles", "Microsoft.AspNetCore.HttpAbstractions", "Microsoft.Extensions.Primitives");
-            provider.Add("Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.HttpAbstractions");
-            provider.Add("Microsoft.AspNetCore.HttpAbstractions", "Microsoft.Extensions.Primitives");
+            resolver.Add("MyApp.Models", "Microsoft.EntityFrameworkCore");
+            resolver.Add("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.HttpAbstractions");
+            resolver.Add("Microsoft.AspNetCore.KestrelHttpServer", "Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.HttpAbstractions");
+            resolver.Add("Microsoft.AspNetCore.StaticFiles", "Microsoft.AspNetCore.HttpAbstractions", "Microsoft.Extensions.Primitives");
+            resolver.Add("Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.HttpAbstractions");
+            resolver.Add("Microsoft.AspNetCore.HttpAbstractions", "Microsoft.Extensions.Primitives");
 
             // Act
-            var assemblies = provider.ResolveAssemblies();
+            var assemblies = resolver.ResolveAssemblies();
 
             // Assert
             Assert.Empty(assemblies);
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
         public void Resolve_ReturnsReferences_ThatReferenceMvc()
         {
             // Arrange
-            var provider = new TestApplicationPartsProvider(new[]
+            var resolver = new TestReferencesToMvcResolver(new[]
             {
                 CreateReferenceItem("Microsoft.AspNetCore.Mvc", isSystemReference: true),
                 CreateReferenceItem("Microsoft.AspNetCore.Mvc.TagHelpers", isSystemReference: true),
@@ -102,17 +102,17 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                 CreateReferenceItem("Microsoft.EntityFrameworkCore"),
             });
 
-            provider.Add("MyTagHelpers", "Microsoft.AspNetCore.Mvc.TagHelpers");
-            provider.Add("MyControllers", "Microsoft.AspNetCore.Mvc");
-            provider.Add("MyApp.Models", "Microsoft.EntityFrameworkCore");
-            provider.Add("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.HttpAbstractions", "Microsoft.AspNetCore.Mvc.TagHelpers");
-            provider.Add("Microsoft.AspNetCore.KestrelHttpServer", "Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.HttpAbstractions");
-            provider.Add("Microsoft.AspNetCore.StaticFiles", "Microsoft.AspNetCore.HttpAbstractions", "Microsoft.Extensions.Primitives");
-            provider.Add("Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.HttpAbstractions");
-            provider.Add("Microsoft.AspNetCore.HttpAbstractions", "Microsoft.Extensions.Primitives");
+            resolver.Add("MyTagHelpers", "Microsoft.AspNetCore.Mvc.TagHelpers");
+            resolver.Add("MyControllers", "Microsoft.AspNetCore.Mvc");
+            resolver.Add("MyApp.Models", "Microsoft.EntityFrameworkCore");
+            resolver.Add("Microsoft.AspNetCore.Mvc", "Microsoft.AspNetCore.HttpAbstractions", "Microsoft.AspNetCore.Mvc.TagHelpers");
+            resolver.Add("Microsoft.AspNetCore.KestrelHttpServer", "Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.HttpAbstractions");
+            resolver.Add("Microsoft.AspNetCore.StaticFiles", "Microsoft.AspNetCore.HttpAbstractions", "Microsoft.Extensions.Primitives");
+            resolver.Add("Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.HttpAbstractions");
+            resolver.Add("Microsoft.AspNetCore.HttpAbstractions", "Microsoft.Extensions.Primitives");
 
             // Act
-            var assemblies = provider.ResolveAssemblies();
+            var assemblies = resolver.ResolveAssemblies();
 
             // Assert
             Assert.Equal(new[] { "MyControllers", "MyTagHelpers" }, assemblies.OrderBy(a => a));
@@ -122,19 +122,19 @@ namespace Microsoft.AspNetCore.Razor.Tasks
         public void Resolve_ReturnsItemsThatTransitivelyReferenceMvc()
         {
             // Arrange
-            var provider = new TestApplicationPartsProvider(new[]
+            var resolver = new TestReferencesToMvcResolver(new[]
             {
                 CreateReferenceItem("MyCMS"),
                 CreateReferenceItem("MyCMS.Core"),
                 CreateReferenceItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isSystemReference: true),
             });
 
-            provider.Add("MyCMS", "MyCMS.Core");
-            provider.Add("MyCMS.Core", "Microsoft.AspNetCore.Mvc.ViewFeatures");
+            resolver.Add("MyCMS", "MyCMS.Core");
+            resolver.Add("MyCMS.Core", "Microsoft.AspNetCore.Mvc.ViewFeatures");
 
 
             // Act
-            var assemblies = provider.ResolveAssemblies();
+            var assemblies = resolver.ResolveAssemblies();
 
             // Assert
             Assert.Equal(new[] { "MyCMS", "MyCMS.Core" }, assemblies.OrderBy(a => a));
@@ -150,12 +150,12 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             };
         }
 
-        private class TestApplicationPartsProvider : ApplicationPartsProvider
+        private class TestReferencesToMvcResolver : ReferencesToMvcResolver
         {
             private readonly Dictionary<string, List<AssemblyItem>> _references = new Dictionary<string, List<AssemblyItem>>();
             private readonly Dictionary<string, AssemblyItem> _lookup;
 
-            public TestApplicationPartsProvider(ResolveReferenceItem[] referenceItems)
+            public TestReferencesToMvcResolver(ResolveReferenceItem[] referenceItems)
                 : base(MvcAssemblies, referenceItems)
             {
                 _lookup = referenceItems.ToDictionary(r => r.AssemblyName, r => new AssemblyItem(r));

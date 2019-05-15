@@ -25,26 +25,13 @@ Copyright (c) .NET Foundation. All rights reserved.
     </CoreCompileDependsOn>
 
     <_MvcApplicationPartAttributeGeneratedFile>$(IntermediateOutputPath)$(TargetName).MvcApplicationPartsAssemblyInfo$(DefaultLanguageSourceExtension)</_MvcApplicationPartAttributeGeneratedFile>
-
-    <_DiscoverMvcApplicationPartsDependsOn>
-      ResolveAssemblyReferences;
-      _InitializeDiscoverMvcApplicationParts;
-    </_DiscoverMvcApplicationPartsDependsOn>
   </PropertyGroup>
-
-  <Target Name="_InitializeDiscoverMvcApplicationParts">
-    <!-- Can be used by testassets which need to simulate a reference to Microsoft.AspNetCore.App -->
-    <PropertyGroup Condition="'$(_ReferencesMicrosoftAspNetCoreApp)' == ''">
-      <_ReferencesMicrosoftAspNetCoreApp>@(FrameworkReference->AnyHasMetadataValue('Identity', 'Microsoft.AspNetCore.App'))</_ReferencesMicrosoftAspNetCoreApp>
-    </PropertyGroup>
-  </Target>
 
   <Target
     Name="_DiscoverMvcApplicationParts"
-    Inputs="$(MSBuildAllProjects);$(ResolveAssemblyReferencesStateFile)"
+    Inputs="$(ProjectAssetsFile);$(MSBuildAllProjects)"
     Outputs="$(_MvcApplicationPartAttributeGeneratedFile)"
-    DependsOnTargets="$(_DiscoverMvcApplicationPartsDependsOn)"
-    Condition="'$(_ReferencesMicrosoftAspNetCoreApp)' == 'true'">
+    DependsOnTargets="ResolveAssemblyReferences">
 
     <ItemGroup>
       <_MvcAssemblyName Include="Microsoft.AspNetCore.Mvc" />
@@ -68,12 +55,12 @@ Copyright (c) .NET Foundation. All rights reserved.
     </DiscoverMvcApplicationParts>
 
     <ItemGroup>
-       <_MvcApplicationPartAttribute Include="Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPart">
+       <_MvcApplicationPartAttribute Include="Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute">
         <_Parameter1>%(_ApplicationPartAssemblyNames.Identity)</_Parameter1>
       </_MvcApplicationPartAttribute>
     </ItemGroup>
 
-    <!-- If we did found application part assemblies, generate attributes for it and add it to compilation list -->
+    <!-- If we found application part assemblies, generate attributes for it and add it to compilation list -->
     <WriteCodeFragment
       AssemblyAttributes="@(_MvcApplicationPartAttribute)"
       Language="$(Language)"
