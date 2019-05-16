@@ -10,16 +10,16 @@ using System.Reflection.PortableExecutable;
 namespace Microsoft.AspNetCore.Razor.Tasks
 {
     /// <summary>
-    /// Resolves assemblies that reference MVC either directory or transitively
+    /// Resolves assemblies that reference one of the specified "targetAssemblies" either directly or transitively.
     /// </summary>
-    public class ReferencesToMvcResolver
+    public class ReferenceResolver
     {
         private readonly HashSet<string> _mvcAssemblies;
         private readonly Dictionary<string, AssemblyItem> _lookup = new Dictionary<string, AssemblyItem>(StringComparer.Ordinal);
 
-        public ReferencesToMvcResolver(IReadOnlyList<string> mvcAssemblies, IReadOnlyList<ResolveReferenceItem> resolveReferenceResult)
+        public ReferenceResolver(IReadOnlyList<string> targetAssemblies, IReadOnlyList<ResolveReferenceItem> resolveReferenceResult)
         {
-            _mvcAssemblies = new HashSet<string>(mvcAssemblies, StringComparer.Ordinal);
+            _mvcAssemblies = new HashSet<string>(targetAssemblies, StringComparer.Ordinal);
 
             foreach (var item in resolveReferenceResult)
             {

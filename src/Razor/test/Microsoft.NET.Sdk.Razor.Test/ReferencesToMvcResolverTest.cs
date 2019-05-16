@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             };
         }
 
-        private class TestReferencesToMvcResolver : ReferencesToMvcResolver
+        private class TestReferencesToMvcResolver : ReferenceResolver
         {
             private readonly Dictionary<string, List<AssemblyItem>> _references = new Dictionary<string, List<AssemblyItem>>();
             private readonly Dictionary<string, AssemblyItem> _lookup;

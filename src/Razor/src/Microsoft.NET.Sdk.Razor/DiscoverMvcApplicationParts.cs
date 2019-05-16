@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
 
             var mvcAssemblyNames = MvcAssemblyNames.Select(s => s.ItemSpec).ToList();
 
-            var provider = new ReferencesToMvcResolver(mvcAssemblyNames, referenceItems);
+            var provider = new ReferenceResolver(mvcAssemblyNames, referenceItems);
             var assemblyNames = provider.ResolveAssemblies();
 
             ApplicationPartAssemblyNames = assemblyNames.Count > 0 ?
