@@ -58,6 +58,45 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         }
 
         [Fact]
+        [InitializeTestProject("AppWithPackageAndP2PReference", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
+        public async Task Publish_CopiesStaticWebAssetsToDestinationFolder()
+        {
+            var result = await DotnetMSBuild("Publish", "/restore");
+
+            Assert.BuildPassed(result);
+
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary", "js", "project-transitive-dep.js"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary", "js", "project-transitive-dep.v4.js"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary2", "css", "site.css"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary2", "js", "project-direct-dep.js"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryDirectDependency", "css", "site.css"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryDirectDependency", "js", "pkg-direct-dep.js"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryTransitiveDependency", "js", "pkg-transitive-dep.js"));
+        }
+
+        [Fact]
+        [InitializeTestProject("AppWithPackageAndP2PReference", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
+        public async Task Publish_WithBuildReferencesDisabled_CopiesStaticWebAssetsToDestinationFolder()
+        {
+            var build = await DotnetMSBuild("Build", "/restore");
+
+            Assert.BuildPassed(build);
+
+            var publish = await DotnetMSBuild("Publish", "/p:BuildProjectReferences=false");
+
+            Assert.BuildPassed(publish);
+
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary", "js", "project-transitive-dep.js"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary", "js", "project-transitive-dep.v4.js"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary2", "css", "site.css"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary2", "js", "project-direct-dep.js"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryDirectDependency", "css", "site.css"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryDirectDependency", "js", "pkg-direct-dep.js"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryTransitiveDependency", "js", "pkg-transitive-dep.js"));
+        }
+
+
+        [Fact]
         [InitializeTestProject("SimpleMvc")]
         public async Task Build_DoesNotEmbedManifestWhen_NoStaticResourcesAvailable()
         {

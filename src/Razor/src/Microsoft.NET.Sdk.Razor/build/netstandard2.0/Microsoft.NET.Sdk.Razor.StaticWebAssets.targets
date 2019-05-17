@@ -474,4 +474,43 @@ Copyright (c) .NET Foundation. All rights reserved.
 
   </Target>
 
+
+  <!--
+    ============================================================
+                                        Static web assets publish related targets
+
+    The main targets for publishing static web assets coming from referenced projects
+    and packages.
+    ============================================================
+    -->
+
+    <!--
+    Called after ComputeRefAssembliesToPublish but before CopyFilesToPublishDirectory - this target is called when 
+    publishing the project to get a list of files to the output directory.
+  -->
+  <Target
+    Name="_StaticWebAssetsComputeFilesToPublish"
+    AfterTargets="ComputeRefAssembliesToPublish"
+    DependsOnTargets="ResolveStaticWebAssetsInputs">
+
+    <ItemGroup>
+      
+      <!-- Filter the static web assets foreign to the project and then add them to the list of resolved
+           files to publish.
+       -->
+      <_ExternalPublishStaticWebAsset 
+        Include="%(StaticWebAsset.FullPath)"
+        Condition="'%(SourceType)' != ''">
+        
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <RelativePath>wwwroot\%(BasePath)\%(RelativePath)</RelativePath>
+        <TargetPath>wwwroot\%(BasePath)\%(RelativePath)</TargetPath>
+      
+      </_ExternalPublishStaticWebAsset>
+
+      <ResolvedFileToPublish Include="@(_ExternalPublishStaticWebAsset)" />
+    </ItemGroup>
+  
+  </Target>
+
 </Project>
