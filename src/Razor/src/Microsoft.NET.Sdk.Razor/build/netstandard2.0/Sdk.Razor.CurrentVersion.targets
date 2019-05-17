@@ -11,11 +11,8 @@ Copyright (c) .NET Foundation. All rights reserved.
 -->
 <Project ToolsVersion="14.0" TreatAsLocalProperty="_RazorSdkTasksTFM;_Targeting30OrNewerRazorLangVersion">
 
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets"
-          Condition=" '$(EnableRazorSdkContent)' == 'true' And Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets') AND '$(EnableTypeScriptNuGetTarget)' != 'true'"/>
-
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.DotNetCore.targets"
-          Condition=" '$(EnableRazorSdkContent)' == 'true' And Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.DotNetCore.targets') AND '$(EnableTypeScriptNuGetTarget)' != 'true'"/>
+  <Import Project="$(MSBuildThisFileDirectory)Sdk.Razor.StaticAssets.ProjectSystem.targets"
+          Condition=" '$(EnableRazorSdkContent)' == 'true' " />
 
   <PropertyGroup>
     <EnableDefaultContentItems Condition=" '$(EnableDefaultContentItems)' == '' ">true</EnableDefaultContentItems>
