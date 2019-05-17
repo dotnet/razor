@@ -12,7 +12,7 @@ Copyright (c) .NET Foundation. All rights reserved.
 
 <Project ToolsVersion="14.0">
   <UsingTask
-    TaskName="Microsoft.AspNetCore.Razor.Tasks.DiscoverMvcApplicationParts"
+    TaskName="Microsoft.AspNetCore.Razor.Tasks.FindAssembliesWithReferencesTo"
     AssemblyFile="$(RazorSdkBuildTasksAssembly)"
     Condition="'$(RazorSdkBuildTasksAssembly)' != ''" />
 
@@ -50,9 +50,9 @@ Copyright (c) .NET Foundation. All rights reserved.
       <_MvcAssemblyName Include="Microsoft.AspNetCore.Mvc.ViewFeatures" />
     </ItemGroup>
 
-    <DiscoverMvcApplicationParts ResolvedReferences="@(ReferencePath)" MvcAssemblyNames="@(_MvcAssemblyName)">
-      <Output TaskParameter="ApplicationPartAssemblyNames" ItemName="_ApplicationPartAssemblyNames"/>
-    </DiscoverMvcApplicationParts>
+    <FindAssembliesWithReferencesTo Assemblies="@(ReferencePath)" TargetAssemblyNames="@(_MvcAssemblyName)">
+      <Output TaskParameter="ResolvedAssemblies" ItemName="_ApplicationPartAssemblyNames"/>
+    </FindAssembliesWithReferencesTo>
 
     <ItemGroup>
        <_MvcApplicationPartAttribute Include="Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPartAttribute">

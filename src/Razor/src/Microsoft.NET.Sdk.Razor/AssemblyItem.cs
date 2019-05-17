@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.Tasks
 {
-    public class ResolveReferenceItem
+    public class AssemblyItem
     {
         public string Path { get; set; }
 

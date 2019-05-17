@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Build.Framework;
@@ -11,21 +9,21 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Tasks
 {
-    public class DiscoverMvcApplicationParts : Task
+    public class FindAssembliesWithReferencesTo : Task
     {
         [Required]
-        public ITaskItem[] MvcAssemblyNames { get; set; }
+        public ITaskItem[] TargetAssemblyNames { get; set; }
 
         [Required]
-        public ITaskItem[] ResolvedReferences { get; set; }
+        public ITaskItem[] Assemblies { get; set; }
 
         [Output]
-        public string[] ApplicationPartAssemblyNames { get; set; }
+        public string[] ResolvedAssemblies { get; set; }
 
         public override bool Execute()
         {
-            var referenceItems = new List<ResolveReferenceItem>();
-            foreach (var item in ResolvedReferences)
+            var referenceItems = new List<AssemblyItem>();
+            foreach (var item in Assemblies)
             {
                 const string FusionNameKey = "FusionName";
                 var fusionName = item.GetMetadata(FusionNameKey);
@@ -36,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                 }
 
                 var assemblyName = new AssemblyName(fusionName).Name;
-                referenceItems.Add(new ResolveReferenceItem
+                referenceItems.Add(new AssemblyItem
                 {
                     AssemblyName = assemblyName,
                     IsSystemReference = item.GetMetadata("IsSystemReference") == "true",
@@ -44,14 +42,12 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                 });
             }
 
-            var mvcAssemblyNames = MvcAssemblyNames.Select(s => s.ItemSpec).ToList();
+            var targetAssemblyNames = TargetAssemblyNames.Select(s => s.ItemSpec).ToList();
 
-            var provider = new ReferenceResolver(mvcAssemblyNames, referenceItems);
+            var provider = new ReferenceResolver(targetAssemblyNames, referenceItems);
             var assemblyNames = provider.ResolveAssemblies();
 
-            ApplicationPartAssemblyNames = assemblyNames.Count > 0 ?
-                assemblyNames.ToArray() :
-                Array.Empty<string>();
+            ResolvedAssemblies = assemblyNames.ToArray();
 
             return !Log.HasLoggedErrors;
         }

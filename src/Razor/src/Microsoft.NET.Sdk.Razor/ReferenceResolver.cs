@@ -15,16 +15,16 @@ namespace Microsoft.AspNetCore.Razor.Tasks
     public class ReferenceResolver
     {
         private readonly HashSet<string> _mvcAssemblies;
-        private readonly Dictionary<string, AssemblyItem> _lookup = new Dictionary<string, AssemblyItem>(StringComparer.Ordinal);
+        private readonly Dictionary<string, ClassifiedAssemblyItem> _lookup = new Dictionary<string, ClassifiedAssemblyItem>(StringComparer.Ordinal);
 
-        public ReferenceResolver(IReadOnlyList<string> targetAssemblies, IReadOnlyList<ResolveReferenceItem> resolveReferenceResult)
+        public ReferenceResolver(IReadOnlyList<string> targetAssemblies, IReadOnlyList<AssemblyItem> assemblyItems)
         {
             _mvcAssemblies = new HashSet<string>(targetAssemblies, StringComparer.Ordinal);
 
-            foreach (var item in resolveReferenceResult)
+            foreach (var item in assemblyItems)
             {
-                var assemblyItem = new AssemblyItem(item);
-                _lookup[item.AssemblyName] = assemblyItem;
+                var classifiedItem = new ClassifiedAssemblyItem(item);
+                _lookup[item.AssemblyName] = classifiedItem;
             }
         }
 
@@ -46,47 +46,47 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             return applicationParts;
         }
 
-        private DependencyClassification Resolve(AssemblyItem assemblyItem)
+        private DependencyClassification Resolve(ClassifiedAssemblyItem classifiedItem)
         {
-            if (assemblyItem.DependencyClassification != DependencyClassification.Unknown)
+            if (classifiedItem.DependencyClassification != DependencyClassification.Unknown)
             {
-                return assemblyItem.DependencyClassification;
+                return classifiedItem.DependencyClassification;
             }
 
-            if (assemblyItem.ResolveReferenceItem == null)
+            if (classifiedItem.AssemblyItem == null)
             {
                 // We encountered a dependency that isn't part of this assembly's dependency set. We'll see if it happens to be an MVC assembly.
                 // This might be useful in scenarios where the app does not have a framework reference at the entry point,
                 // but the transitive dependency does.
-                assemblyItem.DependencyClassification = _mvcAssemblies.Contains(assemblyItem.Name) ?
+                classifiedItem.DependencyClassification = _mvcAssemblies.Contains(classifiedItem.Name) ?
                     DependencyClassification.MvcReference :
                     DependencyClassification.DoesNotReferenceMvc;
 
-                return assemblyItem.DependencyClassification;
+                return classifiedItem.DependencyClassification;
             }
 
-            if (assemblyItem.ResolveReferenceItem.IsSystemReference)
+            if (classifiedItem.AssemblyItem.IsSystemReference)
             {
                 // We do not allow transitive references to MVC via a framework reference to count.
                 // e.g. depending on Microsoft.AspNetCore.SomeThingNewThatDependsOnMvc would not result in an assembly being treated as
                 // referencing MVC.
-                assemblyItem.DependencyClassification = _mvcAssemblies.Contains(assemblyItem.Name) ?
+                classifiedItem.DependencyClassification = _mvcAssemblies.Contains(classifiedItem.Name) ?
                     DependencyClassification.MvcReference :
                     DependencyClassification.DoesNotReferenceMvc;
 
-                return assemblyItem.DependencyClassification;
+                return classifiedItem.DependencyClassification;
             }
 
-            if (_mvcAssemblies.Contains(assemblyItem.Name))
+            if (_mvcAssemblies.Contains(classifiedItem.Name))
             {
-                assemblyItem.DependencyClassification = DependencyClassification.MvcReference;
-                return assemblyItem.DependencyClassification;
+                classifiedItem.DependencyClassification = DependencyClassification.MvcReference;
+                return classifiedItem.DependencyClassification;
             }
 
             var dependencyClassification = DependencyClassification.DoesNotReferenceMvc;
-            foreach (var referenceItem in GetReferences(assemblyItem.ResolveReferenceItem.Path))
+            foreach (var assemblyItem in GetReferences(classifiedItem.AssemblyItem.Path))
             {
-                var classification = Resolve(referenceItem);
+                var classification = Resolve(assemblyItem);
                 if (classification == DependencyClassification.MvcReference || classification == DependencyClassification.ReferencesMvc)
                 {
                     dependencyClassification = DependencyClassification.ReferencesMvc;
@@ -94,37 +94,37 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                 }
             }
 
-            assemblyItem.DependencyClassification = dependencyClassification;
+            classifiedItem.DependencyClassification = dependencyClassification;
             return dependencyClassification;
         }
 
-        protected virtual IReadOnlyList<AssemblyItem> GetReferences(string file)
+        protected virtual IReadOnlyList<ClassifiedAssemblyItem> GetReferences(string file)
         {
             try
             {
                 using var peReader = new PEReader(File.OpenRead(file));
                 if (!peReader.HasMetadata)
                 {
-                    return Array.Empty<AssemblyItem>(); // not a managed assembly
+                    return Array.Empty<ClassifiedAssemblyItem>(); // not a managed assembly
                 }
 
                 var metadataReader = peReader.GetMetadataReader();
 
-                var assemblyItems = new List<AssemblyItem>();
+                var assemblyItems = new List<ClassifiedAssemblyItem>();
                 foreach (var handle in metadataReader.AssemblyReferences)
                 {
                     var reference = metadataReader.GetAssemblyReference(handle);
                     var referenceName = metadataReader.GetString(reference.Name);
 
-                    if (_lookup.TryGetValue(referenceName, out var assemblyItem))
+                    if (_lookup.TryGetValue(referenceName, out var classifiedItem))
                     {
-                        assemblyItems.Add(assemblyItem);
+                        assemblyItems.Add(classifiedItem);
                     }
                     else
                     {
                         // A dependency references an item that isn't referenced by this project.
                         // We'll construct an item for so that we can calculate the classification based on it's name.
-                        assemblyItems.Add(new AssemblyItem(referenceName));
+                        assemblyItems.Add(new ClassifiedAssemblyItem(referenceName));
                     }
                 }
 
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                 // not a PE file, or invalid metadata
             }
 
-            return Array.Empty<AssemblyItem>(); // not a managed assembly
+            return Array.Empty<ClassifiedAssemblyItem>(); // not a managed assembly
         }
 
         protected enum DependencyClassification
@@ -146,22 +146,22 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             MvcReference,
         }
 
-        protected class AssemblyItem
+        protected class ClassifiedAssemblyItem
         {
-            public AssemblyItem(ResolveReferenceItem resolveReferenceItem)
-                : this(resolveReferenceItem.AssemblyName)
+            public ClassifiedAssemblyItem(AssemblyItem classifiedItem)
+                : this(classifiedItem.AssemblyName)
             {
-                ResolveReferenceItem = resolveReferenceItem;
+                AssemblyItem = classifiedItem;
             }
 
-            public AssemblyItem(string name)
+            public ClassifiedAssemblyItem(string name)
             {
                 Name = name;
             }
 
             public string Name { get; }
 
-            public ResolveReferenceItem ResolveReferenceItem { get; }
+            public AssemblyItem AssemblyItem { get; }
 
             public DependencyClassification DependencyClassification { get; set; }
         }

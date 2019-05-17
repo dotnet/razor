@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Tasks
 {
-    public class ReferencesToMvcResolverTest
+    public class ReferenceResolverTest
     {
         internal static readonly string[] MvcAssemblies = new[]
         {
@@ -34,11 +34,11 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             // Arrange
             var resolver = new TestReferencesToMvcResolver(new[]
             {
-                CreateReferenceItem("Microsoft.AspNetCore.Blazor"),
-                CreateReferenceItem("Microsoft.AspNetCore.Components"),
-                CreateReferenceItem("Microsoft.JSInterop"),
-                CreateReferenceItem("System.Net.Http"),
-                CreateReferenceItem("System.Runtime"),
+                CreateAssemblyItem("Microsoft.AspNetCore.Blazor"),
+                CreateAssemblyItem("Microsoft.AspNetCore.Components"),
+                CreateAssemblyItem("Microsoft.JSInterop"),
+                CreateAssemblyItem("System.Net.Http"),
+                CreateAssemblyItem("System.Runtime"),
             });
 
             resolver.Add("Microsoft.AspNetCore.Blazor", "Microsoft.AspNetCore.Components", "Microsoft.JSInterop");
@@ -58,15 +58,15 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             // Arrange
             var resolver = new TestReferencesToMvcResolver(new[]
             {
-                CreateReferenceItem("MyApp.Models"),
-                CreateReferenceItem("Microsoft.AspNetCore.Mvc", isSystemReference: true),
-                CreateReferenceItem("Microsoft.AspNetCore.Hosting", isSystemReference: true),
-                CreateReferenceItem("Microsoft.AspNetCore.HttpAbstractions", isSystemReference: true),
-                CreateReferenceItem("Microsoft.AspNetCore.KestrelHttpServer", isSystemReference: true),
-                CreateReferenceItem("Microsoft.AspNetCore.StaticFiles", isSystemReference: true),
-                CreateReferenceItem("Microsoft.Extensions.Primitives", isSystemReference: true),
-                CreateReferenceItem("System.Net.Http", isSystemReference: true),
-                CreateReferenceItem("Microsoft.EntityFrameworkCore"),
+                CreateAssemblyItem("MyApp.Models"),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.Hosting", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.HttpAbstractions", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.KestrelHttpServer", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.StaticFiles", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.Extensions.Primitives", isSystemReference: true),
+                CreateAssemblyItem("System.Net.Http", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.EntityFrameworkCore"),
             });
 
             resolver.Add("MyApp.Models", "Microsoft.EntityFrameworkCore");
@@ -89,17 +89,17 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             // Arrange
             var resolver = new TestReferencesToMvcResolver(new[]
             {
-                CreateReferenceItem("Microsoft.AspNetCore.Mvc", isSystemReference: true),
-                CreateReferenceItem("Microsoft.AspNetCore.Mvc.TagHelpers", isSystemReference: true),
-                CreateReferenceItem("MyTagHelpers"),
-                CreateReferenceItem("MyControllers"),
-                CreateReferenceItem("MyApp.Models"),
-                CreateReferenceItem("Microsoft.AspNetCore.Hosting", isSystemReference: true),
-                CreateReferenceItem("Microsoft.AspNetCore.HttpAbstractions", isSystemReference: true),
-                CreateReferenceItem("Microsoft.AspNetCore.KestrelHttpServer", isSystemReference: true),
-                CreateReferenceItem("Microsoft.AspNetCore.StaticFiles", isSystemReference: true),
-                CreateReferenceItem("Microsoft.Extensions.Primitives", isSystemReference: true),
-                CreateReferenceItem("Microsoft.EntityFrameworkCore"),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.TagHelpers", isSystemReference: true),
+                CreateAssemblyItem("MyTagHelpers"),
+                CreateAssemblyItem("MyControllers"),
+                CreateAssemblyItem("MyApp.Models"),
+                CreateAssemblyItem("Microsoft.AspNetCore.Hosting", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.HttpAbstractions", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.KestrelHttpServer", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.StaticFiles", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.Extensions.Primitives", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.EntityFrameworkCore"),
             });
 
             resolver.Add("MyTagHelpers", "Microsoft.AspNetCore.Mvc.TagHelpers");
@@ -124,9 +124,9 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             // Arrange
             var resolver = new TestReferencesToMvcResolver(new[]
             {
-                CreateReferenceItem("MyCMS"),
-                CreateReferenceItem("MyCMS.Core"),
-                CreateReferenceItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isSystemReference: true),
+                CreateAssemblyItem("MyCMS"),
+                CreateAssemblyItem("MyCMS.Core"),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isSystemReference: true),
             });
 
             resolver.Add("MyCMS", "MyCMS.Core");
@@ -140,9 +140,9 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             Assert.Equal(new[] { "MyCMS", "MyCMS.Core" }, assemblies.OrderBy(a => a));
         }
 
-        public ResolveReferenceItem CreateReferenceItem(string name, bool isSystemReference = false)
+        public AssemblyItem CreateAssemblyItem(string name, bool isSystemReference = false)
         {
-            return new ResolveReferenceItem
+            return new AssemblyItem
             {
                 AssemblyName = name,
                 IsSystemReference = isSystemReference,
@@ -152,13 +152,13 @@ namespace Microsoft.AspNetCore.Razor.Tasks
 
         private class TestReferencesToMvcResolver : ReferenceResolver
         {
-            private readonly Dictionary<string, List<AssemblyItem>> _references = new Dictionary<string, List<AssemblyItem>>();
-            private readonly Dictionary<string, AssemblyItem> _lookup;
+            private readonly Dictionary<string, List<ClassifiedAssemblyItem>> _references = new Dictionary<string, List<ClassifiedAssemblyItem>>();
+            private readonly Dictionary<string, ClassifiedAssemblyItem> _lookup;
 
-            public TestReferencesToMvcResolver(ResolveReferenceItem[] referenceItems)
+            public TestReferencesToMvcResolver(AssemblyItem[] referenceItems)
                 : base(MvcAssemblies, referenceItems)
             {
-                _lookup = referenceItems.ToDictionary(r => r.AssemblyName, r => new AssemblyItem(r));
+                _lookup = referenceItems.ToDictionary(r => r.AssemblyName, r => new ClassifiedAssemblyItem(r));
             }
 
             public void Add(string assembly, params string[] references)
@@ -167,15 +167,14 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                 _references[assembly] = assemblyItems;
             }
 
-
-            protected override IReadOnlyList<AssemblyItem> GetReferences(string file)
+            protected override IReadOnlyList<ClassifiedAssemblyItem> GetReferences(string file)
             {
                 if (_references.TryGetValue(file, out var result))
                 {
                     return result;
                 }
 
-                return Array.Empty<AssemblyItem>();
+                return Array.Empty<ClassifiedAssemblyItem>();
             }
         }
     }
