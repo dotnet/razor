@@ -84,11 +84,6 @@ Copyright (c) .NET Foundation. All rights reserved.
       $(PackDependsOn)
     </PackDependsOn>
 
-    <!-- <BuildDependsOn>
-      GenerateStaticWebAssetsPackTargets;
-      $(BuildDependsOn)
-    </BuildDependsOn> -->
-
   </PropertyGroup>
 
   <PropertyGroup>
@@ -190,6 +185,15 @@ Copyright (c) .NET Foundation. All rights reserved.
       <EmbeddedResource Condition="'@(_ExternalStaticWebAsset->Count())' != '0'"
         Include="$(_GeneratedStaticWebAssetsDevelopmentManifest)"
         LogicalName="Microsoft.AspNetCore.StaticWebAssets.xml" />
+
+      <!-- Include it as content as we plan to avoid using an embedded file for the manifest -->
+      <Content 
+        Condition="'@(_ExternalStaticWebAsset->Count())' != '0'"
+        Link="$(TargetName).StaticWebAssets.xml">
+
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>
@@ -339,7 +343,7 @@ Copyright (c) .NET Foundation. All rights reserved.
    -->
   <Target Name="_RemoveWebRootContentFromPackaging" DependsOnTargets="_CreateStaticWebAssetsCustomPropsCacheFile" >
     <ItemGroup>
-      <Content Remove="@(_CurrentProjectStaticWebAsset)"  />
+      <Content Remove="@(_CurrentProjectStaticWebAsset->'wwwroot\%(RelativePath)')"  />
     </ItemGroup>
   </Target>
 
@@ -443,24 +447,26 @@ Copyright (c) .NET Foundation. All rights reserved.
 
       <!-- MSBuild prop files -->
 
-      <TfmSpecificPackageFile Include="$(_GeneratedStaticWebAssetsPropsFile)">
+      <TfmSpecificPackageFile Include="$(_GeneratedStaticWebAssetsPropsFile)"
+        Condition="'$(DisableStaticWebAssetsBuildPropsFileGeneration)' == ''">
+
         <PackagePath>build\Microsoft.AspNetCore.StaticWebAssets.props</PackagePath>
       </TfmSpecificPackageFile>
 
       <TfmSpecificPackageFile Include="$(_GeneratedBuildPropsFile)"
-        Condition="'$(StaticWebAssetsEnableProjectBuildPropsFileGeneration)' == 'true'">
+        Condition="'$(StaticWebAssetsDisableProjectBuildPropsFileGeneration)' == ''">
         
         <PackagePath>build\$(PackageId).props</PackagePath>
       </TfmSpecificPackageFile>
 
       <TfmSpecificPackageFile Include="$(_GeneratedBuildMultitargetingPropsFile)"
-        Condition="'$(StaticWebAssetsEnableProjectBuildMultiTargetingPropsFileGeneration)' == 'true'">
+        Condition="'$(StaticWebAssetsDisableProjectBuildMultiTargetingPropsFileGeneration)' == ''">
         
         <PackagePath>buildMultiTargeting\$(PackageId).props</PackagePath>
       </TfmSpecificPackageFile>
 
       <TfmSpecificPackageFile Include="$(_GeneratedBuildTransitivePropsFile)"
-        Condition="'$(StaticWebAssetsEnableProjectBuildTransitivePropsFileGeneration)' == 'true'">
+        Condition="'$(StaticWebAssetsDisableProjectBuildTransitivePropsFileGeneration)' == ''">
         
         <PackagePath>buildTransitive\$(PackageId).props</PackagePath>
       </TfmSpecificPackageFile>
@@ -472,6 +478,48 @@ Copyright (c) .NET Foundation. All rights reserved.
       </TfmSpecificPackageFile>
     </ItemGroup>
 
+  </Target>
+
+
+  <!--
+    ============================================================
+                                        Static web assets publish related targets
+
+    The main targets for publishing static web assets coming from referenced projects
+    and packages.
+    ============================================================
+    -->
+
+    <!--
+    Called after ComputeRefAssembliesToPublish but before CopyFilesToPublishDirectory - this target is called when 
+    publishing the project to get a list of files to the output directory.
+  -->
+  <Target
+    Name="_StaticWebAssetsComputeFilesToPublish"
+    AfterTargets="ComputeRefAssembliesToPublish"
+    DependsOnTargets="ResolveStaticWebAssetsInputs">
+
+    <ItemGroup>
+      
+      <!-- Filter the static web assets foreign to the project and then add them to the list of resolved
+           files to publish.
+       -->
+      <_ExternalPublishStaticWebAsset 
+        Include="%(StaticWebAsset.FullPath)"
+        Condition="'%(SourceType)' != ''">
+        
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <RelativePath>wwwroot\%(BasePath)\%(RelativePath)</RelativePath>
+      
+      </_ExternalPublishStaticWebAsset>
+
+      <!-- Remove any existing external static web asset that might have been added as part of the 
+           regular publish pipeline. -->
+      <ResolvedFileToPublish Remove="@(_ExternalPublishStaticWebAsset)" />
+
+      <ResolvedFileToPublish Include="@(_ExternalPublishStaticWebAsset)" />
+    </ItemGroup>
+  
   </Target>
 
 </Project>

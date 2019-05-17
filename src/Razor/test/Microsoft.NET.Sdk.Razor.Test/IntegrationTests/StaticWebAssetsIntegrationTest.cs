@@ -45,6 +45,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             // GenerateStaticWebAssetsManifest should generate the manifest and the cache.
             Assert.FileExists(result, IntermediateOutputPath, "staticwebassets", "AppWithPackageAndP2PReference.StaticWebAssets.xml");
             Assert.FileExists(result, IntermediateOutputPath, "staticwebassets", "AppWithPackageAndP2PReference.StaticWebAssets.Manifest.cache");
+            Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.StaticWebAssets.xml");
 
             var path = Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.dll");
             var assembly = Assert.ContainsEmbeddedResource(path, "Microsoft.AspNetCore.StaticWebAssets.xml");
@@ -58,6 +59,52 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         }
 
         [Fact]
+        [InitializeTestProject("AppWithPackageAndP2PReference", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
+        public async Task Publish_CopiesStaticWebAssetsToDestinationFolder()
+        {
+            var result = await DotnetMSBuild("Publish", "/restore");
+
+            Assert.BuildPassed(result);
+
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary", "js", "project-transitive-dep.js"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary", "js", "project-transitive-dep.v4.js"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary2", "css", "site.css"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary2", "js", "project-direct-dep.js"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryDirectDependency", "css", "site.css"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryDirectDependency", "js", "pkg-direct-dep.js"));
+            Assert.FileExists(result, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryTransitiveDependency", "js", "pkg-transitive-dep.js"));
+
+            // Validate that static web assets don't get published as content too on their regular path
+            Assert.FileDoesNotExist(result, PublishOutputPath, Path.Combine("wwwroot", "js", "project-transitive-dep.js"));
+            Assert.FileDoesNotExist(result, PublishOutputPath, Path.Combine("wwwroot", "js", "project-transitive-dep.v4.js"));
+
+            // Validate that the manifest never gets copied
+            Assert.FileDoesNotExist(result, PublishOutputPath, "AppWithPackageAndP2PReference.StaticWebAssets.xml");
+        }
+
+        [Fact]
+        [InitializeTestProject("AppWithPackageAndP2PReference", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
+        public async Task Publish_WithBuildReferencesDisabled_CopiesStaticWebAssetsToDestinationFolder()
+        {
+            var build = await DotnetMSBuild("Build", "/restore");
+
+            Assert.BuildPassed(build);
+
+            var publish = await DotnetMSBuild("Publish", "/p:BuildProjectReferences=false");
+
+            Assert.BuildPassed(publish);
+
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary", "js", "project-transitive-dep.js"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary", "js", "project-transitive-dep.v4.js"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary2", "css", "site.css"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "classlibrary2", "js", "project-direct-dep.js"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryDirectDependency", "css", "site.css"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryDirectDependency", "js", "pkg-direct-dep.js"));
+            Assert.FileExists(publish, PublishOutputPath, Path.Combine("wwwroot", "_content", "PackageLibraryTransitiveDependency", "js", "pkg-transitive-dep.js"));
+        }
+
+
+        [Fact]
         [InitializeTestProject("SimpleMvc")]
         public async Task Build_DoesNotEmbedManifestWhen_NoStaticResourcesAvailable()
         {
@@ -68,6 +115,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             // GenerateStaticWebAssetsManifest should generate the manifest and the cache.
             Assert.FileExists(result, IntermediateOutputPath, "staticwebassets", "SimpleMvc.StaticWebAssets.xml");
             Assert.FileExists(result, IntermediateOutputPath, "staticwebassets", "SimpleMvc.StaticWebAssets.Manifest.cache");
+            Assert.FileDoesNotExist(result, OutputPath, "SimpleMvc.StaticWebAssets.xml");
 
             var path = Assert.FileExists(result, OutputPath, "SimpleMvc.dll");
             Assert.DoesNotContainEmbeddedResource(path, "SimpleMvc.StaticWebAssets.xml");
