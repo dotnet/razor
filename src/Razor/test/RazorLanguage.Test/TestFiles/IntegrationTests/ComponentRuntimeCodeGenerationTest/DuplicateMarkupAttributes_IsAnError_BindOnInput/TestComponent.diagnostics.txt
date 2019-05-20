@@ -1,0 +1,1 @@
+x:\dir\subdir\Test\TestComponent.cshtml(2,58): Error RZ10005: The attribute 'oninput' is used two or more times for this element. Attributes must be unique (case-insensitive). The attribute 'oninput' is used by the 'bind-value-oninput' directive attribute.

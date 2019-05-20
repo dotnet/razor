@@ -330,6 +330,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             {
                 var valueNode = new HtmlAttributeIntermediateNode()
                 {
+                    Annotations =
+                    {
+                        [ComponentMetadata.Common.OriginalNode] = node,
+                    },
                     AttributeName = valueAttributeName,
                     Source = node.Source,
 
@@ -350,6 +354,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
                 var changeNode = new HtmlAttributeIntermediateNode()
                 {
+                    Annotations =
+                    {
+                        [ComponentMetadata.Common.OriginalNode] = node,
+                    },
                     AttributeName = changeAttributeName,
                     Source = node.Source,
 
@@ -369,6 +377,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             {
                 var valueNode = new ComponentAttributeIntermediateNode(node)
                 {
+                    Annotations =
+                    {
+                        [ComponentMetadata.Common.OriginalNode] = node,
+                    },
                     AttributeName = valueAttributeName,
                     BoundAttribute = valueAttribute, // Might be null if it doesn't match a component attribute
                     PropertyName = valueAttribute?.GetPropertyName(),
@@ -385,6 +397,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
                 var changeNode = new ComponentAttributeIntermediateNode(node)
                 {
+                    Annotations =
+                    {
+                        [ComponentMetadata.Common.OriginalNode] = node,
+                    },
                     AttributeName = changeAttributeName,
                     BoundAttribute = changeAttribute, // Might be null if it doesn't match a component attribute
                     PropertyName = changeAttribute?.GetPropertyName(),
@@ -406,6 +422,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     expressionNode = new ComponentAttributeIntermediateNode(node)
                     {
+                        Annotations =
+                        {
+                            [ComponentMetadata.Common.OriginalNode] = node,
+                        },
                         AttributeName = expressionAttributeName,
                         BoundAttribute = expressionAttribute,
                         PropertyName = expressionAttribute.GetPropertyName(),
