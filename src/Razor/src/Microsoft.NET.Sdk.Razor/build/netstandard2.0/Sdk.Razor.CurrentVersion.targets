@@ -11,9 +11,6 @@ Copyright (c) .NET Foundation. All rights reserved.
 -->
 <Project ToolsVersion="14.0" TreatAsLocalProperty="_RazorSdkTasksTFM;_Targeting30OrNewerRazorLangVersion">
 
-  <Import Project="$(MSBuildThisFileDirectory)Sdk.Razor.StaticAssets.ProjectSystem.targets"
-          Condition=" '$(EnableRazorSdkContent)' == 'true' " />
-
   <PropertyGroup>
     <EnableDefaultContentItems Condition=" '$(EnableDefaultContentItems)' == '' ">true</EnableDefaultContentItems>
   </PropertyGroup>

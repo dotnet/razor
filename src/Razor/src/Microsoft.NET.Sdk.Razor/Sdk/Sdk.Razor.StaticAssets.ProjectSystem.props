@@ -1,6 +1,6 @@
 <!--
 ***********************************************************************************************
-Sdk.Razor.CurrentVersion.props
+Sdk.Razor.StaticAssets.ProjectSystem.props
 
 WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
           created a backup copy.  Incorrect changes to this file will make it
@@ -28,9 +28,14 @@ Copyright (c) .NET Foundation. All rights reserved.
   <ItemGroup Condition="'$(EnableDefaultItems)' == 'true' And '$(EnableDefaultContentItems)' == 'true' ">
     <!-- Publish everything under wwwroot, all JSON files, all config files and all Razor files -->
     <Content Include="wwwroot\**" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    <Content Include="**\*.config" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);$(DefaultWebContentItemExcludes)" />
+    <Content Include="**\*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);$(DefaultWebContentItemExcludes)" />
+
+    <!-- Set CopyToPublishDirectory to Never for items under AppDesignerFolder ("Properties", by default) to avoid publishing launchSettings.json -->
+    <Content Update="$(AppDesignerFolder)\**" CopyToPublishDirectory="Never" Condition="'$(AppDesignerFolder)' != ''"/>   
 
     <!-- Remove Content items from other item types (in a way that CPS understands) -->
-    <None Remove="wwwroot\**" />
+    <None Remove="wwwroot\**;**\*.json;**\*.config" />
     <Compile Remove="wwwroot\**" />
     <EmbeddedResource Remove="wwwroot\**" />
     
@@ -39,8 +44,5 @@ Copyright (c) .NET Foundation. All rights reserved.
     <_ContentIncludedByDefault Include="@(Content)" />
 
   </ItemGroup>
-
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props"
-      Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')"/>
 
 </Project>
