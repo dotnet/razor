@@ -100,7 +100,8 @@ namespace Microsoft.AspNetCore.Razor.Language
             var parameters = Array.Empty<BoundAttributeParameterDescriptor>();
             if (_attributeParameterBuilders != null)
             {
-                var parameterset = new HashSet<BoundAttributeParameterDescriptor>(BoundAttributeParameterDescriptorComparer.Default);
+                // Attribute parameters are case-sensitive.
+                var parameterset = new HashSet<BoundAttributeParameterDescriptor>(BoundAttributeParameterDescriptorComparer.CaseSensitive);
                 for (var i = 0; i < _attributeParameterBuilders.Count; i++)
                 {
                     parameterset.Add(_attributeParameterBuilders[i].Build());

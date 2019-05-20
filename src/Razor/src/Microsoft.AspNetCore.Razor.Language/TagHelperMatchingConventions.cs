@@ -146,7 +146,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             {
                 var satisfiesBoundAttributeName = SatisfiesBoundAttributeName(attributeName, parent);
                 var satisfiesBoundAttributeIndexer = SatisfiesBoundAttributeIndexer(attributeName, parent);
-                var matchesParameter = string.Equals(descriptor.Name, parameterName, StringComparison.OrdinalIgnoreCase);
+                var matchesParameter = string.Equals(descriptor.Name, parameterName, StringComparison.Ordinal);
                 return (satisfiesBoundAttributeName || satisfiesBoundAttributeIndexer) && matchesParameter;
             }
 
