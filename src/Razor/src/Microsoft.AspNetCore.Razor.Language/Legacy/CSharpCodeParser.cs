@@ -1356,10 +1356,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                             case DirectiveTokenKind.Attribute:
                                 if (At(SyntaxKind.LeftBracket))
                                 {
-                                    AcceptUntil(SyntaxKind.RightBracket, SyntaxKind.NewLine);
-                                    if (At(SyntaxKind.RightBracket))
+                                    if (Balance(directiveBuilder, BalancingModes.NoErrorOnFailure | BalancingModes.StopAtEndOfLine))
                                     {
-                                        AcceptAndMoveNext();
+                                        TryAccept(SyntaxKind.RightBracket);
                                     }
                                 }
                                 else
@@ -2446,7 +2445,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         {
             var startPosition = CurrentStart.AbsoluteIndex;
             var nesting = 1;
-            if (!EndOfFile)
+            var stopAtEndOfLine = (mode & BalancingModes.StopAtEndOfLine) == BalancingModes.StopAtEndOfLine;
+            if (!EndOfFile &&
+                !(stopAtEndOfLine && At(SyntaxKind.NewLine)))
             {
                 var tokens = new List<SyntaxToken>();
                 do
@@ -2475,7 +2476,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                         tokens.Add(CurrentToken);
                     }
                 }
-                while (nesting > 0 && NextToken());
+                while (nesting > 0 && NextToken() && !(stopAtEndOfLine && At(SyntaxKind.NewLine)));
 
                 if (nesting > 0)
                 {
