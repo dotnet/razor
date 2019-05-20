@@ -906,5 +906,36 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         {
             ParseDocumentTest("@{ class }");
         }
+
+        [Fact]
+        public void DirectiveDescriptor_UnderstandsAttributeTokens()
+        {
+            // Arrange
+            var descriptor = DirectiveDescriptor.CreateDirective(
+                "custom",
+                DirectiveKind.SingleLine,
+                b => b.AddAttributeToken());
+
+            // Act & Assert
+            ParseDocumentTest(@"
+@custom [Serializable]
+@custom [DllImport(""user32.dll"", SetLastError=false, ExactSpelling=false)]
+",
+                new[] { descriptor });
+        }
+
+        [Fact]
+        public void DirectiveDescriptor_AttributeToken_ErrorsIfDoesNotStartWithOpenBracket()
+        {
+            // Arrange
+            var descriptor = DirectiveDescriptor.CreateDirective(
+                "custom",
+                DirectiveKind.SingleLine,
+                b => b.AddAttributeToken());
+
+            // Act & Assert
+            ParseDocumentTest("@custom Serializable]",
+                new[] { descriptor });
+        }
     }
 }

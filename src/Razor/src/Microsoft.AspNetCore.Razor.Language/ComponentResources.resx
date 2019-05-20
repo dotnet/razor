@@ -117,6 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AttributeDirective_AttributeToken_Description" xml:space="preserve">
+    <value>The C# attribute that will be applied to the current document.</value>
+  </data>
+  <data name="AttributeDirective_AttributeToken_Name" xml:space="preserve">
+    <value>Attribute</value>
+  </data>
+  <data name="AttributeDirective_Description" xml:space="preserve">
+    <value>Specifies the C# attribute that will be applied to the current document.</value>
+  </data>
   <data name="BindTagHelper_Component_Documentation" xml:space="preserve">
     <value>Binds the provided expression to the '{0}' property and a change event delegate to the '{1}' property of the component.</value>
   </data>
