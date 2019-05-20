@@ -75,7 +75,7 @@ Copyright (c) .NET Foundation. All rights reserved.
   </ItemGroup>
 
   <Import 
-    Project="$(MSBuildThisFileDirectory)..\Sdk\Sdk.Razor.StaticAssets.ProjectSystem.props"
+    Project="$(MSBuildThisFileDirectory)..\..\Sdk\Sdk.Razor.StaticAssets.ProjectSystem.props"
     Condition=" '$(EnableRazorSdkContent)' == 'true' " />
 
 </Project>
