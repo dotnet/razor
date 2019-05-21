@@ -3889,7 +3889,7 @@ namespace New.Test
             // Act
             var generated = CompileToCSharp(@"
 <div>
-  <input type=""text"" bind-value-oninput=""@text"" oninput=""@(() => {})""></input>
+  <input type=""text"" bind-value=""@text"" bind-value:event=""oninput"" oninput=""@(() => {})""></input>
 </div>
 @functions {
     private string text = ""hi"";

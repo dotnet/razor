@@ -10,14 +10,17 @@ namespace Test
     using Microsoft.AspNetCore.Components;
     public class TestComponent : Microsoft.AspNetCore.Components.ComponentBase
     {
+        #pragma warning disable 219
+        private void __RazorDirectiveTokenHelpers__() {
+        }
+        #pragma warning restore 219
+        #pragma warning disable 0414
+        private static System.Object __o = null;
+        #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(Microsoft.AspNetCore.Components.RenderTree.RenderTreeBuilder builder)
         {
-            builder.OpenElement(0, "div");
-            builder.AddMarkupContent(1, "\r\n  ");
-            builder.OpenElement(2, "input");
-            builder.AddAttribute(3, "type", "text");
-            builder.AddAttribute(4, "oninput", Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.UIChangeEventArgs>(this, 
+            __o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.UIChangeEventArgs>(this, 
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                                               () => {}
@@ -25,8 +28,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ));
-            builder.AddAttribute(5, "value", Microsoft.AspNetCore.Components.BindMethods.GetValue(
+            );
+            __o = Microsoft.AspNetCore.Components.BindMethods.GetValue(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                   text
@@ -34,11 +37,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ));
-            builder.AddAttribute(6, "oninput", Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => text = __value, text));
-            builder.CloseElement();
-            builder.AddMarkupContent(7, "\r\n");
-            builder.CloseElement();
+            );
+            __o = Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => text = __value, text);
         }
         #pragma warning restore 1998
 #nullable restore
