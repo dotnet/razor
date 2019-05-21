@@ -29,9 +29,9 @@ namespace Microsoft.AspNetCore.Razor.Language
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (builder.Metadata.ContainsKey(TagHelperMetadata.Common.PropertyName))
+            if (builder.Metadata.TryGetValue(TagHelperMetadata.Common.PropertyName, out var value))
             {
-                return builder.Metadata[TagHelperMetadata.Common.PropertyName];
+                return value;
             }
 
             return null;
@@ -74,9 +74,9 @@ namespace Microsoft.AspNetCore.Razor.Language
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (builder.Metadata.ContainsKey(TagHelperMetadata.Common.PropertyName))
+            if (builder.Metadata.TryGetValue(TagHelperMetadata.Common.PropertyName, out var value))
             {
-                return builder.Metadata[TagHelperMetadata.Common.PropertyName];
+                return value;
             }
 
             return null;

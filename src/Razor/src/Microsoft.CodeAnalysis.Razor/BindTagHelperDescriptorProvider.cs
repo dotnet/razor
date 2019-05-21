@@ -361,10 +361,9 @@ namespace Microsoft.CodeAnalysis.Razor
                 // This is no longer supported. This is just here so we can add a diagnostic later on when this matches.
                 builder.BindAttribute(attribute =>
                 {
-                    attribute.Documentation = 
-
                     attribute.Name = formatAttributeName;
                     attribute.TypeName = "System.String";
+                    attribute.Documentation = string.Format(ComponentResources.BindTagHelper_Element_Format_Documentation, attributeName);
 
                     // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                     // a C# property will crash trying to create the toolips.
