@@ -941,6 +941,27 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         }
 
         [Fact]
+        public void DirectiveDescriptor_MultilineAttributeToken_BalancesBrackets()
+        {
+            // Arrange
+            var descriptor = DirectiveDescriptor.CreateDirective(
+                "custom",
+                DirectiveKind.SingleLine,
+                b => b.AddAttributeToken());
+
+            // Act & Assert
+            ParseDocumentTest(@"
+@custom [SomeCustom(new int[]
+    {
+        1,
+        2,
+        3
+    }]
+",
+                new[] { descriptor });
+        }
+
+        [Fact]
         public void DirectiveDescriptor_AttributeToken_ErrorsIfDoesNotStartWithOpenBracket()
         {
             // Arrange

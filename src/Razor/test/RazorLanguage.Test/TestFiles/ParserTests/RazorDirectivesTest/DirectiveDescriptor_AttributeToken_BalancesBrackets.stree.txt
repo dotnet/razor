@@ -12,7 +12,7 @@ RazorDocument - [0..45)::45 - [LF@custom [SomeCustom(new int[] { 1, 2, 3 }LF]
                     CSharpCodeBlock - [9..45)::36
                         CSharpStatementLiteral - [9..10)::1 - [ ] - Gen<None> - SpanEditHandler;Accepts:Whitespace
                             Whitespace;[ ];
-                        CSharpStatementLiteral - [10..43)::33 - [[SomeCustom(new int[] { 1, 2, 3 }] - Gen<DirectiveToken {;Attribute;Opt:False}> - DirectiveTokenEditHandler;Accepts:NonWhitespace
+                        CSharpStatementLiteral - [10..45)::35 - [[SomeCustom(new int[] { 1, 2, 3 }LF] - Gen<DirectiveToken {;Attribute;Opt:False}> - DirectiveTokenEditHandler;Accepts:NonWhitespace
                             LeftBracket;[[];
                             Identifier;[SomeCustom];
                             LeftParenthesis;[(];
@@ -33,7 +33,6 @@ RazorDocument - [0..45)::45 - [LF@custom [SomeCustom(new int[] { 1, 2, 3 }LF]
                             IntegerLiteral;[3];
                             Whitespace;[ ];
                             RightBrace;[}];
-                        MarkupEphemeralTextLiteral - [43..45)::2 - [LF] - Gen<None> - SpanEditHandler;Accepts:Whitespace
                             NewLine;[LF];
         MarkupTextLiteral - [45..45)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
             Marker;[];

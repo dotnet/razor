@@ -1356,7 +1356,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                             case DirectiveTokenKind.Attribute:
                                 if (At(SyntaxKind.LeftBracket))
                                 {
-                                    if (Balance(directiveBuilder, BalancingModes.NoErrorOnFailure | BalancingModes.StopAtEndOfLine))
+                                    if (Balance(directiveBuilder, BalancingModes.NoErrorOnFailure))
                                     {
                                         TryAccept(SyntaxKind.RightBracket);
                                     }
