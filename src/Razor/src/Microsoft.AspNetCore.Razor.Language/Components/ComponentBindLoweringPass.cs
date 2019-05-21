@@ -332,7 +332,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalNode] = node,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
                     },
                     AttributeName = valueAttributeName,
                     Source = node.Source,
@@ -356,7 +356,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalNode] = node,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
                     },
                     AttributeName = changeAttributeName,
                     Source = node.Source,
@@ -379,7 +379,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalNode] = node,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
                     },
                     AttributeName = valueAttributeName,
                     BoundAttribute = valueAttribute, // Might be null if it doesn't match a component attribute
@@ -399,7 +399,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalNode] = node,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
                     },
                     AttributeName = changeAttributeName,
                     BoundAttribute = changeAttribute, // Might be null if it doesn't match a component attribute
@@ -424,7 +424,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     {
                         Annotations =
                         {
-                            [ComponentMetadata.Common.OriginalNode] = node,
+                            [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
                         },
                         AttributeName = expressionAttributeName,
                         BoundAttribute = expressionAttribute,

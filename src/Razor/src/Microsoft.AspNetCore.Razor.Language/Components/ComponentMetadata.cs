@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
 
         public static class Common
         {
-            public static readonly string OriginalNode = "Common.OriginalNode";
+            public static readonly string OriginalAttributeName = "Common.OriginalAttributeName";
         }
 
         public static class Bind

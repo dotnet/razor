@@ -153,7 +153,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalNode] = node,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
                     },
                     AttributeName = node.AttributeName,
                     Source = node.Source,
@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalNode] = node,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
                     },
                 };
 

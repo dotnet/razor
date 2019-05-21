@@ -37,14 +37,14 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                             //
                             // Example: `bind-value` will set `value` and `onchange`.
 
-                            var original =
-                                attribute.Annotations[ComponentMetadata.Common.OriginalNode] as TagHelperPropertyIntermediateNode ??
-                                other.node.Annotations[ComponentMetadata.Common.OriginalNode] as TagHelperPropertyIntermediateNode;
-                            if (original != null)
+                            var originalAttributeName =
+                                attribute.Annotations[ComponentMetadata.Common.OriginalAttributeName] as string ??
+                                other.node.Annotations[ComponentMetadata.Common.OriginalAttributeName] as string;
+                            if (originalAttributeName != null)
                             {
                                 other.node.Diagnostics.Add(ComponentDiagnosticFactory.Create_DuplicateMarkupAttributeDirective(
                                     other.name,
-                                    original.AttributeName,
+                                    originalAttributeName,
                                     other.node.Source ?? node.Source));
                             }
                             else
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                             }
                         }
 
-                        // Replace this attribute we were previously tracking. Then if you have three, the two on the left will have
+                        // Replace the attribute we were previously tracking. Then if you have three, the two on the left will have
                         // diagnostics.
                         _attributes[attribute.AttributeName] = (attribute.AttributeName, attribute);
                     }
@@ -80,14 +80,14 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                             // of this construct, so it's easy to detect. We just need the original name to report the issue.
                             //
                             // Example: `bind-Value` will set `Value` and `ValueChanged`.
-                            var original =
-                                attribute.Annotations[ComponentMetadata.Common.OriginalNode] as TagHelperPropertyIntermediateNode ??
-                                other.node.Annotations[ComponentMetadata.Common.OriginalNode] as TagHelperPropertyIntermediateNode;
-                            if (original != null)
+                            var originalAttributeName =
+                                attribute.Annotations[ComponentMetadata.Common.OriginalAttributeName] as string ??
+                                other.node.Annotations[ComponentMetadata.Common.OriginalAttributeName] as string;
+                            if (originalAttributeName != null)
                             {
                                 other.node.Diagnostics.Add(ComponentDiagnosticFactory.Create_DuplicateComponentParameterDirective(
                                     other.name,
-                                    original.AttributeName,
+                                    originalAttributeName,
                                     other.node.Source ?? node.Source));
                             }
                             else
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                             }
                         }
 
-                        // Replace this attribute we were previously tracking. Then if you have three, the two on the left will have
+                        // Replace the attribute we were previously tracking. Then if you have three, the two on the left will have
                         // diagnostics.
                         _attributes[attribute.AttributeName] = (attribute.AttributeName, attribute);
                     }
