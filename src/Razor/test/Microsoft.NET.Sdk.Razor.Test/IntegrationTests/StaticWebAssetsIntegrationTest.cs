@@ -241,7 +241,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 
                 var result = await MSBuildProcessManager.RunProcessCoreAsync(
                     psi,
-                    TimeSpan.FromMinutes(2));
+                    TimeSpan.FromMinutes(5));
 
                 output.WriteLine(result.Output);
                 Assert.Equal(0, result.ExitCode);
