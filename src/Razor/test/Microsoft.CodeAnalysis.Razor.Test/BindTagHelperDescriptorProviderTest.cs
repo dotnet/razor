@@ -705,7 +705,7 @@ namespace Test
 
             Assert.Equal(
                 "Binds the provided expression to an attribute and a change event, based on the naming of " +
-                    "the bind attribute. For example: <code>bind-value=\"...\"</code> and <code>bind-value:event=\"onchange\"</code> will assign the " +
+                    "the bind attribute. For example: <code>@bind-value=\"...\"</code> and <code>@bind-value:event=\"onchange\"</code> will assign the " +
                     "current value of the expression to the 'value' attribute, and assign a delegate that attempts " +
                     "to set the value to the 'onchange' attribute.",
                 bind.Documentation);
@@ -748,7 +748,7 @@ namespace Test
 
             Assert.Equal(
                 "Binds the provided expression to an attribute and a change event, based on the naming of " +
-                    "the bind attribute. For example: <code>bind-value=\"...\"</code> and <code>bind-value:event=\"onchange\"</code> will assign the " +
+                    "the bind attribute. For example: <code>@bind-value=\"...\"</code> and <code>@bind-value:event=\"onchange\"</code> will assign the " +
                     "current value of the expression to the 'value' attribute, and assign a delegate that attempts " +
                     "to set the value to the 'onchange' attribute.",
                 attribute.Documentation);
@@ -775,8 +775,8 @@ namespace Test
 
             Assert.Equal(
                 "Specifies a format to convert the value specified by the corresponding bind attribute. " +
-                    "For example: <code>bind-value:format=\"...\"</code> will apply a format string to the value " +
-                    "specified in <code>bind-value=\"...\"</code>. The format string can currently only be used with " +
+                    "For example: <code>@bind-value:format=\"...\"</code> will apply a format string to the value " +
+                    "specified in <code>@bind-value=\"...\"</code>. The format string can currently only be used with " +
                     "expressions of type <code>DateTime</code>.",
                 parameter.Documentation);
 

@@ -99,6 +99,7 @@ namespace Test
 
             Assert.Collection(
                 attribute.Metadata.OrderBy(kvp => kvp.Key),
+                kvp => Assert.Equal(kvp, new KeyValuePair<string, string>(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString)),
                 kvp => Assert.Equal(kvp, new KeyValuePair<string, string>("Common.PropertyName", "onclick")),
                 kvp => Assert.Equal(kvp, new KeyValuePair<string, string>(ComponentMetadata.Component.WeaklyTypedKey, bool.TrueString)));
 

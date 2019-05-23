@@ -32,7 +32,7 @@ namespace Test
 
             // Act
             var result = CompileToCSharp(@"
-<div bind-value=""@ParentValue"" />
+<div @bind-value=""@ParentValue"" />
 @functions {
     public string ParentValue { get; set; } = ""hi"";
 }");
@@ -52,7 +52,7 @@ namespace Test
         {
             // Arrange & Act
             var generated = CompileToCSharp(@"
-<input type=""text"" bind-first-second-third=""Text"" />
+<input type=""text"" @bind-first-second-third=""Text"" />
 @functions {
     public string Text { get; set; } = ""text"";
 }");
@@ -67,7 +67,7 @@ namespace Test
         {
             // Arrange & Act
             var generated = CompileToCSharp(@"
-<input type=""text"" bind-first-=""Text"" />
+<input type=""text"" @bind-first-=""Text"" />
 @functions {
     public string Text { get; set; } = ""text"";
 }");
@@ -83,7 +83,7 @@ namespace Test
             // We're looking for VS crash issues. Meaning if the parser returns
             // diagnostics we don't want to throw.
             var generated = CompileToCSharp(@"
-<input type=""text"" bind=""@page"" />
+<input type=""text"" @bind=""@page"" />
 @functions {
     public string page { get; set; } = ""text"";
 }", throwOnFailure: false);

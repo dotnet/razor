@@ -135,13 +135,23 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public static bool SatisfiesBoundAttributeIndexer(string name, BoundAttributeDescriptor descriptor)
         {
+            if (!TryGetSanitizedAttributeName(name, descriptor.IsDirectiveAttribute(), out var sanitizedName))
+            {
+                return false;
+            }
+
             return descriptor.IndexerNamePrefix != null &&
                 !SatisfiesBoundAttributeName(name, descriptor) &&
-                name.StartsWith(descriptor.IndexerNamePrefix, StringComparison.OrdinalIgnoreCase);
+                sanitizedName.StartsWith(descriptor.IndexerNamePrefix, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool SatisfiesBoundAttributeWithParameter(string name, BoundAttributeDescriptor parent, BoundAttributeParameterDescriptor descriptor)
         {
+            if (!TryGetSanitizedAttributeName(name, parent.IsDirectiveAttribute(), out _))
+            {
+                return false;
+            }
+
             if (TryGetBoundAttributeParameter(name, out var attributeName, out var parameterName))
             {
                 var satisfiesBoundAttributeName = SatisfiesBoundAttributeName(attributeName, parent);
@@ -220,22 +230,32 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         private static bool SatisfiesBoundAttributeName(string name, BoundAttributeDescriptor descriptor)
         {
-            return string.Equals(descriptor.Name, name, StringComparison.OrdinalIgnoreCase);
+            if (!TryGetSanitizedAttributeName(name, descriptor.IsDirectiveAttribute(), out var sanitizedName))
+            {
+                return false;
+            }
+
+            return string.Equals(descriptor.Name, sanitizedName, StringComparison.OrdinalIgnoreCase);
         }
 
         // Internal for testing
         internal static bool SatisfiesRequiredAttribute(string attributeName, string attributeValue, RequiredAttributeDescriptor descriptor)
         {
+            if (!TryGetSanitizedAttributeName(attributeName, descriptor.IsDirectiveAttribute(), out var sanitizedName))
+            {
+                return false;
+            }
+
             var nameMatches = false;
             if (descriptor.NameComparison == RequiredAttributeDescriptor.NameComparisonMode.FullMatch)
             {
-                nameMatches = string.Equals(descriptor.Name, attributeName, StringComparison.OrdinalIgnoreCase);
+                nameMatches = string.Equals(descriptor.Name, sanitizedName, StringComparison.OrdinalIgnoreCase);
             }
             else if (descriptor.NameComparison == RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch)
             {
                 // attributeName cannot equal the Name if comparing as a PrefixMatch.
-                nameMatches = attributeName.Length != descriptor.Name.Length &&
-                    attributeName.StartsWith(descriptor.Name, StringComparison.OrdinalIgnoreCase);
+                nameMatches = sanitizedName.Length != descriptor.Name.Length &&
+                    sanitizedName.StartsWith(descriptor.Name, StringComparison.OrdinalIgnoreCase);
             }
             else
             {
@@ -261,6 +281,26 @@ namespace Microsoft.AspNetCore.Razor.Language
                     Debug.Assert(false, "Unknown value comparison.");
                     return false;
             }
+        }
+
+        public static bool TryGetSanitizedAttributeName(string name, bool isDirectiveAttribute, out string sanitizedName)
+        {
+            sanitizedName = name;
+            if (isDirectiveAttribute)
+            {
+                // Directive attributes are required to start with a '@'.
+                if (name.StartsWith("@"))
+                {
+                    sanitizedName = name.Substring(1);
+                    return true;
+                }
+
+                // An attribute categorized as a directive attribute but didn't start with '@'.
+                // This should never happen in a real scenario.
+                return false;
+            }
+
+            return true;
         }
     }
 }

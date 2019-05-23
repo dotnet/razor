@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 rule.Attribute(attribute =>
                 {
                     attribute.Name = "ref";
+                    attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                 });
             });
 
@@ -69,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 // a C# property will crash trying to create the tooltips.
                 attribute.SetPropertyName("Ref");
                 attribute.TypeName = typeof(object).FullName;
+                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
             });
 
             return builder.Build();

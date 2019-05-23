@@ -1646,7 +1646,10 @@ namespace Microsoft.AspNetCore.Razor.Language
             {
                 foreach (var child in node.Attributes)
                 {
-                    if (child is MarkupTagHelperAttributeSyntax || child is MarkupMinimizedTagHelperAttributeSyntax)
+                    if (child is MarkupTagHelperAttributeSyntax ||
+                        child is MarkupMinimizedTagHelperAttributeSyntax ||
+                        child is MarkupTagHelperDirectiveAttributeSyntax ||
+                        child is MarkupMinimizedTagHelperDirectiveAttributeSyntax)
                     {
                         Visit(child);
                     }
@@ -1672,30 +1675,34 @@ namespace Microsoft.AspNetCore.Razor.Language
                 {
                     foreach (var associatedDescriptor in associatedDescriptors)
                     {
-                        var associatedAttributeDescriptor = associatedDescriptor.BoundAttributes.First(a =>
+                        if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(
+                            attributeName,
+                            associatedDescriptor,
+                            out var associatedAttributeDescriptor,
+                            out var indexerMatch,
+                            out var parameterMatch,
+                            out var associatedAttributeParameterDescriptor))
                         {
-                            return TagHelperMatchingConventions.CanSatisfyBoundAttribute(attributeName, a);
-                        });
+                            var expectsBooleanValue = associatedAttributeDescriptor.ExpectsBooleanValue(attributeName);
 
-                        var expectsBooleanValue = associatedAttributeDescriptor.ExpectsBooleanValue(attributeName);
+                            if (!expectsBooleanValue)
+                            {
+                                // We do not allow minimized non-boolean bound attributes.
+                                return;
+                            }
 
-                        if (!expectsBooleanValue)
-                        {
-                            // We do not allow minimized non-boolean bound attributes.
-                            return;
+                            var setTagHelperProperty = new TagHelperPropertyIntermediateNode()
+                            {
+                                AttributeName = attributeName,
+                                BoundAttribute = associatedAttributeDescriptor,
+                                TagHelper = associatedDescriptor,
+                                AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
+                                Source = null,
+                                IsIndexerNameMatch = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName, associatedAttributeDescriptor),
+                            };
+
+                            _builder.Add(setTagHelperProperty);
                         }
-
-                        var setTagHelperProperty = new TagHelperPropertyIntermediateNode()
-                        {
-                            AttributeName = attributeName,
-                            BoundAttribute = associatedAttributeDescriptor,
-                            TagHelper = associatedDescriptor,
-                            AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
-                            Source = null,
-                            IsIndexerNameMatch = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName, associatedAttributeDescriptor),
-                        };
-
-                        _builder.Add(setTagHelperProperty);
                     }
                 }
                 else
@@ -1710,13 +1717,96 @@ namespace Microsoft.AspNetCore.Razor.Language
                 }
             }
 
+            public override void VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
+            {
+                if (!_featureFlags.AllowMinimizedBooleanTagHelperAttributes)
+                {
+                    // Minimized attributes are not valid for non-boolean bound attributes. TagHelperBlockRewriter
+                    // has already logged an error if it was a non-boolean bound attribute; so we can skip.
+                    return;
+                }
+
+                var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
+                var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
+                var fullAttributeName = node.FullName;
+                var associatedDescriptors = descriptors.Where(descriptor =>
+                    descriptor.BoundAttributes.Any(attributeDescriptor => TagHelperMatchingConventions.CanSatisfyBoundAttribute(fullAttributeName, attributeDescriptor)));
+
+                if (associatedDescriptors.Any() && _renderedBoundAttributeNames.Add(fullAttributeName))
+                {
+                    foreach (var associatedDescriptor in associatedDescriptors)
+                    {
+                        if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(
+                            fullAttributeName,
+                            associatedDescriptor,
+                            out var associatedAttributeDescriptor,
+                            out var indexerMatch,
+                            out var parameterMatch,
+                            out var associatedAttributeParameterDescriptor) &&
+                            TagHelperMatchingConventions.TryGetSanitizedAttributeName(
+                                fullAttributeName,
+                                associatedAttributeDescriptor.IsDirectiveAttribute(),
+                                out var attributeName))
+                        {
+                            var expectsBooleanValue = associatedAttributeDescriptor.ExpectsBooleanValue(attributeName);
+
+                            if (!expectsBooleanValue)
+                            {
+                                // We do not allow minimized non-boolean bound attributes.
+                                return;
+                            }
+
+                            IntermediateNode attributeNode;
+                            if (parameterMatch &&
+                                TagHelperMatchingConventions.TryGetBoundAttributeParameter(attributeName, out var attributeNameWithoutParameter, out var _))
+                            {
+                                attributeNode = new TagHelperAttributeParameterIntermediateNode()
+                                {
+                                    AttributeName = attributeName,
+                                    AttributeNameWithoutParameter = attributeNameWithoutParameter,
+                                    BoundAttributeParameter = associatedAttributeParameterDescriptor,
+                                    BoundAttribute = associatedAttributeDescriptor,
+                                    TagHelper = associatedDescriptor,
+                                    IsIndexerNameMatch = indexerMatch,
+                                    AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
+                                    Source = null,
+                                };
+                            }
+                            else
+                            {
+                                attributeNode = new TagHelperPropertyIntermediateNode()
+                                {
+                                    AttributeName = attributeName,
+                                    BoundAttribute = associatedAttributeDescriptor,
+                                    TagHelper = associatedDescriptor,
+                                    AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
+                                    Source = null,
+                                    IsIndexerNameMatch = indexerMatch,
+                                };
+                            }
+
+                            _builder.Add(attributeNode);
+                        }
+                    }
+                }
+                else
+                {
+                    var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
+                    {
+                        AttributeName = fullAttributeName,
+                        AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
+                    };
+
+                    _builder.Add(addHtmlAttribute);
+                }
+            }
+
             public override void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
             {
                 var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
                 var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
                 var attributeName = node.Name.GetContent();
                 var attributeValueNode = node.Value;
-
                 var associatedDescriptors = descriptors.Where(descriptor =>
                     descriptor.BoundAttributes.Any(attributeDescriptor => TagHelperMatchingConventions.CanSatisfyBoundAttribute(attributeName, attributeDescriptor)));
 
@@ -1731,6 +1821,63 @@ namespace Microsoft.AspNetCore.Razor.Language
                             out var indexerMatch,
                             out var parameterMatch,
                             out var associatedAttributeParameterDescriptor))
+                        {
+                            // We don't care about parameters for non-directive attributes.
+                            var setTagHelperProperty = new TagHelperPropertyIntermediateNode()
+                            {
+                                AttributeName = attributeName,
+                                BoundAttribute = associatedAttributeDescriptor,
+                                TagHelper = associatedDescriptor,
+                                AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
+                                Source = BuildSourceSpanFromNode(attributeValueNode),
+                                IsIndexerNameMatch = indexerMatch,
+                            };
+
+                            _builder.Push(setTagHelperProperty);
+                            VisitAttributeValue(attributeValueNode);
+                            _builder.Pop();
+                        }
+                    }
+                }
+                else
+                {
+                    var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
+                    {
+                        AttributeName = attributeName,
+                        AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
+                    };
+
+                    _builder.Push(addHtmlAttribute);
+                    VisitAttributeValue(attributeValueNode);
+                    _builder.Pop();
+                }
+            }
+
+            public override void VisitMarkupTagHelperDirectiveAttribute(MarkupTagHelperDirectiveAttributeSyntax node)
+            {
+                var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
+                var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
+                var fullAttributeName = node.FullName;
+                var attributeValueNode = node.Value;
+
+                var associatedDescriptors = descriptors.Where(descriptor =>
+                    descriptor.BoundAttributes.Any(attributeDescriptor => TagHelperMatchingConventions.CanSatisfyBoundAttribute(fullAttributeName, attributeDescriptor)));
+
+                if (associatedDescriptors.Any() && _renderedBoundAttributeNames.Add(fullAttributeName))
+                {
+                    foreach (var associatedDescriptor in associatedDescriptors)
+                    {
+                        if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(
+                            fullAttributeName,
+                            associatedDescriptor,
+                            out var associatedAttributeDescriptor,
+                            out var indexerMatch,
+                            out var parameterMatch,
+                            out var associatedAttributeParameterDescriptor) &&
+                            TagHelperMatchingConventions.TryGetSanitizedAttributeName(
+                                fullAttributeName,
+                                associatedAttributeDescriptor.IsDirectiveAttribute(),
+                                out var attributeName))
                         {
                             IntermediateNode attributeNode;
                             if (parameterMatch &&
@@ -1771,7 +1918,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 {
                     var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
                     {
-                        AttributeName = attributeName,
+                        AttributeName = fullAttributeName,
                         AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
                     };
 

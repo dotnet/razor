@@ -10,6 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Language
     internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDescriptorBuilder
     {
         private RazorDiagnosticCollection _diagnostics;
+        private readonly Dictionary<string, string> _metadata = new Dictionary<string, string>();
 
         public override string Name { get; set; }
 
@@ -32,6 +33,8 @@ namespace Microsoft.AspNetCore.Razor.Language
             }
         }
 
+        public override IDictionary<string, string> Metadata => _metadata;
+
         public RequiredAttributeDescriptor Build()
         {
             var validationDiagnostics = Validate();
@@ -48,7 +51,8 @@ namespace Microsoft.AspNetCore.Razor.Language
                 Value,
                 ValueComparisonMode,
                 displayName,
-                diagnostics?.ToArray() ?? Array.Empty<RazorDiagnostic>());
+                diagnostics?.ToArray() ?? Array.Empty<RazorDiagnostic>(),
+                new Dictionary<string, string>(Metadata));
 
             return rule;
         }

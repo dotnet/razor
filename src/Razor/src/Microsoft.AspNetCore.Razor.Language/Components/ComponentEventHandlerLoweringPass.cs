@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     continue;
                 }
 
-                if (node.TagHelper.IsEventHandlerTagHelper())
+                if (node.TagHelper.IsEventHandlerTagHelper() && node.IsDirectiveAttribute)
                 {
                     reference.Replace(RewriteUsage(reference.Parent, node));
                 }

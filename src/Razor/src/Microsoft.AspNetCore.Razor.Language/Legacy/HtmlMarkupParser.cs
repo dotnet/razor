@@ -1088,7 +1088,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         private bool TryParseAttributeName(out IEnumerable<SyntaxToken> nameTokens)
         {
             nameTokens = Enumerable.Empty<SyntaxToken>();
-            if (At(SyntaxKind.Transition) || At(SyntaxKind.RazorCommentTransition))
+            if (Context.FeatureFlags.AllowCSharpInMarkupAttributeArea &&
+                (At(SyntaxKind.Transition) || At(SyntaxKind.RazorCommentTransition)))
             {
                 return false;
             }
