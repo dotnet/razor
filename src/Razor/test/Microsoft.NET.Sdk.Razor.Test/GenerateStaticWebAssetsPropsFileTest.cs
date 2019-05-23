@@ -9,7 +9,7 @@ using Microsoft.Build.Utilities;
 using Moq;
 using Xunit;
 
-namespace Microsoft.NET.Sdk.Razor.Test
+namespace Microsoft.AspNetCore.Razor.Tasks
 {
     public class GenerateStaticWebAssetsPropsFileTest
     {

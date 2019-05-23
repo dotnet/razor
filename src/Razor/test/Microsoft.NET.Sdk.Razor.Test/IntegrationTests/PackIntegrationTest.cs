@@ -204,6 +204,30 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 
         [Fact]
         [InitializeTestProject("PackageLibraryDirectDependency", additionalProjects: new[] { "PackageLibraryTransitiveDependency" })]
+        public async Task Pack_StaticWebAssetsEnabledFalse_DoesNotPackAnyStaticWebAssets()
+        {
+            var result = await DotnetMSBuild("Pack", "/p:StaticWebAssetsEnabled=false");
+
+            Assert.BuildPassed(result, allowWarnings: true);
+
+            Assert.FileExists(result, OutputPath, "PackageLibraryDirectDependency.dll");
+
+            Assert.NupkgDoesNotContain(
+                result,
+                Path.Combine("..", "TestPackageRestoreSource", "PackageLibraryDirectDependency.1.0.0.nupkg"),
+                filePaths: new[]
+                {
+                    Path.Combine("staticwebassets", "js", "pkg-direct-dep.js"),
+                    Path.Combine("staticwebassets", "css", "site.css"),
+                    Path.Combine("build", "Microsoft.AspNetCore.StaticWebAssets.props"),
+                    Path.Combine("build", "PackageLibraryDirectDependency.props"),
+                    Path.Combine("buildMultiTargeting", "PackageLibraryDirectDependency.props"),
+                    Path.Combine("buildTransitive", "PackageLibraryDirectDependency.props")
+                });
+        }
+
+        [Fact]
+        [InitializeTestProject("PackageLibraryDirectDependency", additionalProjects: new[] { "PackageLibraryTransitiveDependency" })]
         public async Task Pack_NoBuild_IncludesStaticWebAssets()
         {
             var result = await DotnetMSBuild("Build");
