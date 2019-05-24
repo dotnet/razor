@@ -191,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     attributeBlock.Name);
 
                 rewritten = rewritten.WithTagHelperAttributeInfo(
-                        new TagHelperAttributeInfo(result.AttributeName, null, result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: false));
+                        new TagHelperAttributeInfo(result.AttributeName, parameterName: null, result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: false));
 
                 result.RewrittenAttribute = rewritten;
 
@@ -268,7 +268,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     attributeBlock.ValueSuffix);
 
                 rewritten = rewritten.WithTagHelperAttributeInfo(
-                    new TagHelperAttributeInfo(result.AttributeName, null, result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: false));
+                    new TagHelperAttributeInfo(result.AttributeName, parameterName: null, result.AttributeStructure, result.IsBoundAttribute, isDirectiveAttribute: false));
 
 
                 result.RewrittenAttribute = rewritten;
@@ -310,11 +310,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             if (attributeName.IndexOf(':') != -1)
             {
                 var segments = attributeName.Split(new[] { ':' }, 2);
-                var colonToken = SyntaxFactory.Token(SyntaxKind.Colon, ":");
-                colon = SyntaxFactory.RazorMetaCode(new SyntaxList<SyntaxToken>(colonToken));
 
                 var attributeNameToken = SyntaxFactory.Token(SyntaxKind.Text, segments[0]);
                 attributeNameSyntax = SyntaxFactory.MarkupTextLiteral().AddLiteralTokens(attributeNameToken);
+
+                var colonToken = SyntaxFactory.Token(SyntaxKind.Colon, ":");
+                colon = SyntaxFactory.RazorMetaCode(new SyntaxList<SyntaxToken>(colonToken));
 
                 var parameterNameToken = SyntaxFactory.Token(SyntaxKind.Text, segments[1]);
                 parameterName = SyntaxFactory.MarkupTextLiteral().AddLiteralTokens(parameterNameToken);
@@ -370,11 +371,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             if (attributeName.IndexOf(':') != -1)
             {
                 var segments = attributeName.Split(new[] { ':' }, 2);
-                var colonToken = SyntaxFactory.Token(SyntaxKind.Colon, ":");
-                colon = SyntaxFactory.RazorMetaCode(new SyntaxList<SyntaxToken>(colonToken));
 
                 var attributeNameToken = SyntaxFactory.Token(SyntaxKind.Text, segments[0]);
                 attributeNameSyntax = SyntaxFactory.MarkupTextLiteral().AddLiteralTokens(attributeNameToken);
+
+                var colonToken = SyntaxFactory.Token(SyntaxKind.Colon, ":");
+                colon = SyntaxFactory.RazorMetaCode(new SyntaxList<SyntaxToken>(colonToken));
 
                 var parameterNameToken = SyntaxFactory.Token(SyntaxKind.Text, segments[1]);
                 parameterName = SyntaxFactory.MarkupTextLiteral().AddLiteralTokens(parameterNameToken);

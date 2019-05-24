@@ -2172,15 +2172,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                             .RequireTagName("*")
                             .RequireAttributeDescriptor(r =>
                             {
-                                r.Name = "bind-";
+                                r.Name = "@bind-";
                                 r.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
                                 r.Metadata.Add(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString);
                             }))
                     .BoundAttributeDescriptor(attribute =>
                         attribute
-                        .Name("bind-...")
+                        .Name("@bind-...")
                         .PropertyName("Bind")
-                        .AsDictionaryAttribute("bind-", typeof(object).FullName)
+                        .AsDictionaryAttribute("@bind-", typeof(object).FullName)
                         .TypeName("System.Collections.Generic.Dictionary<string, object>")
                         .AddMetadata(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString)
                         .BindAttributeParameter(p =>
@@ -2216,15 +2216,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                             .RequireTagName("*")
                             .RequireAttributeDescriptor(r =>
                             {
-                                r.Name = "bind-";
+                                r.Name = "@bind-";
                                 r.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
                                 r.Metadata.Add(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString);
                             }))
                     .BoundAttributeDescriptor(attribute =>
                         attribute
-                        .Name("bind-...")
+                        .Name("@bind-...")
                         .PropertyName("Bind")
-                        .AsDictionaryAttribute("bind-", typeof(object).FullName)
+                        .AsDictionaryAttribute("@bind-", typeof(object).FullName)
                         .TypeName("System.Collections.Generic.Dictionary<string, object>")
                         .AddMetadata(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString)
                         .BindAttributeParameter(p =>

@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     continue;
                 }
 
-                if (node.TagHelper.IsBindTagHelper() && node.IsDirectiveAttribute && node.AttributeName.StartsWith("bind"))
+                if (node.TagHelper.IsBindTagHelper() && node.IsDirectiveAttribute)
                 {
                     bindEntries[(parent, node.AttributeName)] = new BindEntry(reference);
                 }
@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     continue;
                 }
 
-                if (node.TagHelper.IsBindTagHelper() && node.IsDirectiveAttribute && node.AttributeName.StartsWith("bind"))
+                if (node.TagHelper.IsBindTagHelper() && node.IsDirectiveAttribute)
                 {
                     // Check if this tag contains a corresponding non-parameterized bind node.
                     if (!bindEntries.TryGetValue((parent, node.AttributeNameWithoutParameter), out var entry))
@@ -463,7 +463,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             valueAttributeName = null;
             changeAttributeName = null;
 
-            if (!attributeName.StartsWith("bind"))
+            if (!attributeName.StartsWith("@bind"))
             {
                 return false;
             }
@@ -473,7 +473,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 changeAttributeName = GetAttributeContent(bindEntry.BindEventNode)?.Content?.Trim('"');
             }
 
-            if (attributeName == "bind")
+            if (attributeName == "@bind")
             {
                 return true;
             }

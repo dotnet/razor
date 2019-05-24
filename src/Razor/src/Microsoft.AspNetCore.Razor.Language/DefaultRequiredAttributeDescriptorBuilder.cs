@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 diagnostics.UnionWith(_diagnostics);
             }
 
-            var displayName = NameComparisonMode == RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch ? string.Concat(Name, "...") : Name;
+            var displayName = GetDisplayName();
             var rule = new DefaultRequiredAttributeDescriptor(
                 Name,
                 NameComparisonMode,
@@ -57,6 +57,11 @@ namespace Microsoft.AspNetCore.Razor.Language
             return rule;
         }
 
+        private string GetDisplayName()
+        {
+            return NameComparisonMode == RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch ? string.Concat(Name, "...") : Name;
+        }
+
         private IEnumerable<RazorDiagnostic> Validate()
         {
             if (string.IsNullOrWhiteSpace(Name))
@@ -67,7 +72,20 @@ namespace Microsoft.AspNetCore.Razor.Language
             }
             else
             {
-                foreach (var character in Name)
+                var name = Name;
+                var isDirectiveAttribute = this.IsDirectiveAttribute();
+                if (isDirectiveAttribute && name.StartsWith("@"))
+                {
+                    name = name.Substring(1);
+                }
+                else if (isDirectiveAttribute)
+                {
+                    var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidRequiredDirectiveAttributeName(GetDisplayName(), Name);
+
+                    yield return diagnostic;
+                }
+
+                foreach (var character in name)
                 {
                     if (char.IsWhiteSpace(character) || HtmlConventions.InvalidNonWhitespaceHtmlCharacters.Contains(character))
                     {

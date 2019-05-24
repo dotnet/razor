@@ -6,17 +6,17 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language
 {
-    public static class RequiredAttributeDescriptorExtensions
+    public static class RequiredAttributeDescriptorBuilderExtensions
     {
-        public static bool IsDirectiveAttribute(this RequiredAttributeDescriptor descriptor)
+        internal static bool IsDirectiveAttribute(this RequiredAttributeDescriptorBuilder builder)
         {
-            if (descriptor == null)
+            if (builder == null)
             {
-                throw new ArgumentNullException(nameof(descriptor));
+                throw new ArgumentNullException(nameof(builder));
             }
 
             return
-                descriptor.Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
+                builder.Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
                 string.Equals(bool.TrueString, value);
         }
     }

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 rule.TagName = "*";
                 rule.Attribute(attribute =>
                 {
-                    attribute.Name = "key";
+                    attribute.Name = "@key";
                     attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                 });
             });
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Razor
             builder.BindAttribute(attribute =>
             {
                 attribute.Documentation = ComponentResources.KeyTagHelper_Documentation;
-                attribute.Name = "key";
+                attribute.Name = "@key";
 
                 // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                 // a C# property will crash trying to create the tooltips.

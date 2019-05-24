@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 rule.TagName = "*";
                 rule.Attribute(attribute =>
                 {
-                    attribute.Name = "bind-";
+                    attribute.Name = "@bind-";
                     attribute.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
                     attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                 });
@@ -145,9 +145,9 @@ namespace Microsoft.CodeAnalysis.Razor
                 attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                 attribute.Documentation = ComponentResources.BindTagHelper_Fallback_Documentation;
 
-                var attributeName = "bind-...";
+                var attributeName = "@bind-...";
                 attribute.Name = attributeName;
-                attribute.AsDictionary("bind-", typeof(object).FullName);
+                attribute.AsDictionary("@bind-", typeof(object).FullName);
 
                 // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                 // a C# property will crash trying to create the toolips.
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 var entry = data[i];
 
                 var name = entry.Suffix == null ? "Bind" : "Bind_" + entry.Suffix;
-                var attributeName = entry.Suffix == null ? "bind" : "bind-" + entry.Suffix;
+                var attributeName = entry.Suffix == null ? "@bind" : "@bind-" + entry.Suffix;
 
                 var formatName = entry.Suffix == null ? "Format_" + entry.ValueAttribute : "Format_" + entry.Suffix;
                 var formatAttributeName = entry.Suffix == null ? "format-" + entry.ValueAttribute : "format-" + entry.Suffix;
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Razor
                         rule.TagName = tagHelper.TagMatchingRules.Single().TagName;
                         rule.Attribute(attribute =>
                         {
-                            attribute.Name = "bind-" + valueAttribute.Name;
+                            attribute.Name = "@bind-" + valueAttribute.Name;
                             attribute.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
                             attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                         });
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Razor
                             valueAttribute.Name,
                             changeAttribute.Name);
 
-                        attribute.Name = "bind-" + valueAttribute.Name;
+                        attribute.Name = "@bind-" + valueAttribute.Name;
                         attribute.TypeName = changeAttribute.TypeName;
                         attribute.IsEnum = valueAttribute.IsEnum;
 

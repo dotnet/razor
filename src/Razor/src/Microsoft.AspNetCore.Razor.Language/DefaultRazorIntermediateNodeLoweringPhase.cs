@@ -1680,8 +1680,8 @@ namespace Microsoft.AspNetCore.Razor.Language
                             associatedDescriptor,
                             out var associatedAttributeDescriptor,
                             out var indexerMatch,
-                            out var parameterMatch,
-                            out var associatedAttributeParameterDescriptor))
+                            out _,
+                            out _))
                         {
                             var expectsBooleanValue = associatedAttributeDescriptor.ExpectsBooleanValue(attributeName);
 
@@ -1698,7 +1698,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                                 TagHelper = associatedDescriptor,
                                 AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
                                 Source = null,
-                                IsIndexerNameMatch = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName, associatedAttributeDescriptor),
+                                IsIndexerNameMatch = indexerMatch,
                             };
 
                             _builder.Add(setTagHelperProperty);
@@ -1728,25 +1728,21 @@ namespace Microsoft.AspNetCore.Razor.Language
 
                 var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
                 var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
-                var fullAttributeName = node.FullName;
+                var attributeName = node.FullName;
                 var associatedDescriptors = descriptors.Where(descriptor =>
-                    descriptor.BoundAttributes.Any(attributeDescriptor => TagHelperMatchingConventions.CanSatisfyBoundAttribute(fullAttributeName, attributeDescriptor)));
+                    descriptor.BoundAttributes.Any(attributeDescriptor => TagHelperMatchingConventions.CanSatisfyBoundAttribute(attributeName, attributeDescriptor)));
 
-                if (associatedDescriptors.Any() && _renderedBoundAttributeNames.Add(fullAttributeName))
+                if (associatedDescriptors.Any() && _renderedBoundAttributeNames.Add(attributeName))
                 {
                     foreach (var associatedDescriptor in associatedDescriptors)
                     {
                         if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(
-                            fullAttributeName,
+                            attributeName,
                             associatedDescriptor,
                             out var associatedAttributeDescriptor,
                             out var indexerMatch,
                             out var parameterMatch,
-                            out var associatedAttributeParameterDescriptor) &&
-                            TagHelperMatchingConventions.TryGetSanitizedAttributeName(
-                                fullAttributeName,
-                                associatedAttributeDescriptor.IsDirectiveAttribute(),
-                                out var attributeName))
+                            out var associatedAttributeParameterDescriptor))
                         {
                             var expectsBooleanValue = associatedAttributeDescriptor.ExpectsBooleanValue(attributeName);
 
@@ -1758,7 +1754,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
                             IntermediateNode attributeNode;
                             if (parameterMatch &&
-                                TagHelperMatchingConventions.TryGetBoundAttributeParameter(attributeName, out var attributeNameWithoutParameter, out var _))
+                                TagHelperMatchingConventions.TryGetBoundAttributeParameter(attributeName, out var attributeNameWithoutParameter, out _))
                             {
                                 attributeNode = new TagHelperAttributeParameterIntermediateNode()
                                 {
@@ -1793,7 +1789,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 {
                     var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
                     {
-                        AttributeName = fullAttributeName,
+                        AttributeName = attributeName,
                         AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
                     };
 
@@ -1819,10 +1815,9 @@ namespace Microsoft.AspNetCore.Razor.Language
                             associatedDescriptor,
                             out var associatedAttributeDescriptor,
                             out var indexerMatch,
-                            out var parameterMatch,
-                            out var associatedAttributeParameterDescriptor))
+                            out _,
+                            out _))
                         {
-                            // We don't care about parameters for non-directive attributes.
                             var setTagHelperProperty = new TagHelperPropertyIntermediateNode()
                             {
                                 AttributeName = attributeName,
@@ -1857,31 +1852,27 @@ namespace Microsoft.AspNetCore.Razor.Language
             {
                 var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
                 var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
-                var fullAttributeName = node.FullName;
+                var attributeName = node.FullName;
                 var attributeValueNode = node.Value;
 
                 var associatedDescriptors = descriptors.Where(descriptor =>
-                    descriptor.BoundAttributes.Any(attributeDescriptor => TagHelperMatchingConventions.CanSatisfyBoundAttribute(fullAttributeName, attributeDescriptor)));
+                    descriptor.BoundAttributes.Any(attributeDescriptor => TagHelperMatchingConventions.CanSatisfyBoundAttribute(attributeName, attributeDescriptor)));
 
-                if (associatedDescriptors.Any() && _renderedBoundAttributeNames.Add(fullAttributeName))
+                if (associatedDescriptors.Any() && _renderedBoundAttributeNames.Add(attributeName))
                 {
                     foreach (var associatedDescriptor in associatedDescriptors)
                     {
                         if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(
-                            fullAttributeName,
+                            attributeName,
                             associatedDescriptor,
                             out var associatedAttributeDescriptor,
                             out var indexerMatch,
                             out var parameterMatch,
-                            out var associatedAttributeParameterDescriptor) &&
-                            TagHelperMatchingConventions.TryGetSanitizedAttributeName(
-                                fullAttributeName,
-                                associatedAttributeDescriptor.IsDirectiveAttribute(),
-                                out var attributeName))
+                            out var associatedAttributeParameterDescriptor))
                         {
                             IntermediateNode attributeNode;
                             if (parameterMatch &&
-                                TagHelperMatchingConventions.TryGetBoundAttributeParameter(attributeName, out var attributeNameWithoutParameter, out var _))
+                                TagHelperMatchingConventions.TryGetBoundAttributeParameter(attributeName, out var attributeNameWithoutParameter, out _))
                             {
                                 attributeNode = new TagHelperAttributeParameterIntermediateNode()
                                 {
@@ -1918,7 +1909,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 {
                     var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
                     {
-                        AttributeName = fullAttributeName,
+                        AttributeName = attributeName,
                         AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
                     };
 
