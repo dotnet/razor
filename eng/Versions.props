@@ -87,11 +87,11 @@
     <MicrosoftNETCoreApp30PackageVersion>$(MicrosoftNETCoreAppPackageVersion)</MicrosoftNETCoreApp30PackageVersion>
     <MicrosoftNETFrameworkReferenceAssemblies>1.0.0-alpha-5</MicrosoftNETFrameworkReferenceAssemblies>
     <MicrosoftNetRoslynDiagnosticsPackageVersion>2.6.2</MicrosoftNetRoslynDiagnosticsPackageVersion>
-    <MicrosoftVisualStudioComponentModelHostPackageVersion>16.0.198-g52de9c2988</MicrosoftVisualStudioComponentModelHostPackageVersion>
+    <MicrosoftVisualStudioComponentModelHostPackageVersion>16.0.467</MicrosoftVisualStudioComponentModelHostPackageVersion>
     <MicrosoftVisualStudioImageCatalogPackageVersion>16.0.28727</MicrosoftVisualStudioImageCatalogPackageVersion>
-    <MicrosoftVisualStudioEditorPackageVersion>16.0.177-g0ae5fa46a1</MicrosoftVisualStudioEditorPackageVersion>
-    <MicrosoftVisualStudioLanguagePackageVersion>16.0.177-g0ae5fa46a1</MicrosoftVisualStudioLanguagePackageVersion>
-    <MicrosoftVisualStudioLanguageIntellisensePackageVersion>16.0.177-g0ae5fa46a1</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
+    <MicrosoftVisualStudioEditorPackageVersion>16.0.467</MicrosoftVisualStudioEditorPackageVersion>
+    <MicrosoftVisualStudioLanguagePackageVersion>16.0.467</MicrosoftVisualStudioLanguagePackageVersion>
+    <MicrosoftVisualStudioLanguageIntellisensePackageVersion>16.0.467</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
     <MicrosoftVisualStudioLiveSharePackageVersion>0.3.1074</MicrosoftVisualStudioLiveSharePackageVersion>
     <MicrosoftVisualStudioOLEInteropPackageVersion>7.10.6071</MicrosoftVisualStudioOLEInteropPackageVersion>
     <MicrosoftVisualStudioProjectSystemAnalyzersPackageVersion>16.0.201-pre-g7d366164d0</MicrosoftVisualStudioProjectSystemAnalyzersPackageVersion>
