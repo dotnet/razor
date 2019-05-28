@@ -87,18 +87,18 @@
     <MicrosoftNETCoreApp30PackageVersion>$(MicrosoftNETCoreAppPackageVersion)</MicrosoftNETCoreApp30PackageVersion>
     <MicrosoftNETFrameworkReferenceAssemblies>1.0.0-alpha-5</MicrosoftNETFrameworkReferenceAssemblies>
     <MicrosoftNetRoslynDiagnosticsPackageVersion>2.6.2</MicrosoftNetRoslynDiagnosticsPackageVersion>
-    <MicrosoftVisualStudioComponentModelHostPackageVersion>16.0.189-g83e7c53a57</MicrosoftVisualStudioComponentModelHostPackageVersion>
-    <MicrosoftVisualStudioImageCatalogPackageVersion>16.0.28226-pre</MicrosoftVisualStudioImageCatalogPackageVersion>
+    <MicrosoftVisualStudioComponentModelHostPackageVersion>16.0.198-g52de9c2988</MicrosoftVisualStudioComponentModelHostPackageVersion>
+    <MicrosoftVisualStudioImageCatalogPackageVersion>16.0.28727</MicrosoftVisualStudioImageCatalogPackageVersion>
     <MicrosoftVisualStudioEditorPackageVersion>16.0.177-g0ae5fa46a1</MicrosoftVisualStudioEditorPackageVersion>
     <MicrosoftVisualStudioLanguagePackageVersion>16.0.177-g0ae5fa46a1</MicrosoftVisualStudioLanguagePackageVersion>
     <MicrosoftVisualStudioLanguageIntellisensePackageVersion>16.0.177-g0ae5fa46a1</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
     <MicrosoftVisualStudioLiveSharePackageVersion>0.3.1074</MicrosoftVisualStudioLiveSharePackageVersion>
     <MicrosoftVisualStudioOLEInteropPackageVersion>7.10.6071</MicrosoftVisualStudioOLEInteropPackageVersion>
     <MicrosoftVisualStudioProjectSystemAnalyzersPackageVersion>16.0.201-pre-g7d366164d0</MicrosoftVisualStudioProjectSystemAnalyzersPackageVersion>
-    <MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>3.0.0-beta1-63529-03</MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>
+    <MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>3.0.0-beta1-63607-01</MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>
     <MicrosoftVisualStudioProjectSystemSDKPackageVersion>16.0.201-pre-g7d366164d0</MicrosoftVisualStudioProjectSystemSDKPackageVersion>
     <MicrosoftVisualStudioSDKAnalyzersVersion>15.8.36</MicrosoftVisualStudioSDKAnalyzersVersion>
-    <MicrosoftVisualStudioShell150PackageVersion>16.0.28226-pre</MicrosoftVisualStudioShell150PackageVersion>
+    <MicrosoftVisualStudioShell150PackageVersion>16.0.28729</MicrosoftVisualStudioShell150PackageVersion>
     <MicrosoftVisualStudioShellInterop100PackageVersion>10.0.30320</MicrosoftVisualStudioShellInterop100PackageVersion>
     <MicrosoftVisualStudioShellInterop110PackageVersion>11.0.61031</MicrosoftVisualStudioShellInterop110PackageVersion>
     <MicrosoftVisualStudioShellInterop120PackageVersion>12.0.30111</MicrosoftVisualStudioShellInterop120PackageVersion>
@@ -116,6 +116,7 @@
     <VSMAC_NewtonsoftJsonPackageVersion>10.0.3</VSMAC_NewtonsoftJsonPackageVersion>
     <TEST_NewtonsoftJsonPackageVersion>11.0.1</TEST_NewtonsoftJsonPackageVersion>
     <StreamJsonRpcPackageVersion>2.0.167</StreamJsonRpcPackageVersion>
+    <VSIX_MicrosoftVisualStudioTelemetryPackageVersion>16.0.4-master</VSIX_MicrosoftVisualStudioTelemetryPackageVersion>
     <VSIX_MicrosoftCodeAnalysisPackageVersion>3.2.0-beta2-19277-03</VSIX_MicrosoftCodeAnalysisPackageVersion>
     <VSIX_MicrosoftCodeAnalysisCommonPackageVersion>3.2.0-beta2-19277-03</VSIX_MicrosoftCodeAnalysisCommonPackageVersion>
     <VSIX_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>3.2.0-beta2-19277-03</VSIX_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
