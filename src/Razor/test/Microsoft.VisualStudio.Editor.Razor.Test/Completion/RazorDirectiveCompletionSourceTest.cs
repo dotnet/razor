@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -17,7 +16,7 @@ using Moq;
 using Xunit;
 using Span = Microsoft.VisualStudio.Text.Span;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
     public class RazorDirectiveCompletionSourceTest : ForegroundDispatcherTestBase
     {
@@ -100,7 +99,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var completionItem = new CompletionItem("TestDirective", Mock.Of<IAsyncCompletionSource>());
-            var expectedDescription = "The expected description";
+            var expectedDescription = new DirectiveCompletionDescription("The expected description");
             completionItem.Properties.AddProperty(RazorDirectiveCompletionSource.DescriptionKey, expectedDescription);
             var completionSource = new RazorDirectiveCompletionSource(Dispatcher, Mock.Of<VisualStudioRazorParser>(), CompletionFactsService);
 
@@ -109,7 +108,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             // Assert
             var description = Assert.IsType<string>(descriptionObject);
-            Assert.Equal(expectedDescription, descriptionObject);
+            Assert.Equal(expectedDescription.Description, descriptionObject);
         }
 
         [Fact]
@@ -133,8 +132,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(item.FilterText, completionDisplayText);
             Assert.Equal(item.InsertText, directive.Directive);
             Assert.Same(item.Source, source);
-            Assert.True(item.Properties.TryGetProperty<string>(RazorDirectiveCompletionSource.DescriptionKey, out var actualDescription));
-            Assert.Equal(directive.Description, actualDescription);
+            Assert.True(item.Properties.TryGetProperty<DirectiveCompletionDescription>(RazorDirectiveCompletionSource.DescriptionKey, out var actualDescription));
+            Assert.Equal(directive.Description, actualDescription.Description);
 
             AssertRazorCompletionItemDefaults(item);
         }

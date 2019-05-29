@@ -10,13 +10,12 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Core.Imaging;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
     internal class RazorDirectiveCompletionSource : IAsyncCompletionSource
     {
@@ -103,7 +102,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         suffix: string.Empty,
                         sortText: razorCompletionItem.DisplayText,
                         attributeIcons: ImmutableArray<ImageElement>.Empty);
-                    completionItem.Properties.AddProperty(DescriptionKey, razorCompletionItem.Description);
+                    var completionDescription = razorCompletionItem.GetDirectiveCompletionDescription();
+                    completionItem.Properties.AddProperty(DescriptionKey, completionDescription);
                     completionItems.Add(completionItem);
                 }
                 var context = new CompletionContext(completionItems.ToImmutableArray());
@@ -117,12 +117,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public Task<object> GetDescriptionAsync(IAsyncCompletionSession session, CompletionItem item, CancellationToken token)
         {
-            if (!item.Properties.TryGetProperty<string>(DescriptionKey, out var directiveDescription))
+            if (!item.Properties.TryGetProperty(DescriptionKey, out DirectiveCompletionDescription directiveDescription))
             {
-                directiveDescription = string.Empty;
+                return Task.FromResult<object>(string.Empty);
             }
 
-            return Task.FromResult<object>(directiveDescription);
+            return Task.FromResult<object>(directiveDescription.Description);
         }
 
         public CompletionStartData InitializeCompletion(CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken token)
