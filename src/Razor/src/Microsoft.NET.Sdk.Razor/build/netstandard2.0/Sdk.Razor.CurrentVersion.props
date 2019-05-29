@@ -74,23 +74,6 @@ Copyright (c) .NET Foundation. All rights reserved.
     <None Remove="**\*.razor" />
   </ItemGroup>
 
-  <!-- Properties related to handling static web assets in the package  -->
-  <PropertyGroup>
-    
-    <!-- Used to indicate that a $(PackageId).props importing Microsoft.AspNetCore.StaticWebAssets.props file should be
-         automatically generated and included in the package under build\$(PackageId).props -->
-    <StaticWebAssetsEnableProjectBuildPropsFileGeneration>true</StaticWebAssetsEnableProjectBuildPropsFileGeneration>
-
-    <!-- Used to indicate that a $(PackageId).props importing build\$(PackageId).props file should be
-         automatically generated and included in the package under buildMultiTargeting\$(PackageId).props -->
-    <StaticWebAssetsEnableProjectBuildMultiTargetingPropsFileGeneration>true</StaticWebAssetsEnableProjectBuildMultiTargetingPropsFileGeneration>
-
-    <!-- Used to indicate that a $(PackageId).props importing buildMultiTargeting\$(PackageId).props file should be
-         automatically generated and included in the package under buildTransitive\$(PackageId).props -->
-    <StaticWebAssetsEnableProjectBuildTransitivePropsFileGeneration>true</StaticWebAssetsEnableProjectBuildTransitivePropsFileGeneration>
-
-  </PropertyGroup>
-
   <PropertyGroup>
     <EnableRazorSdkContent Condition=" '$(UsingMicrosoftNETSdkWeb)' == '' ">true</EnableRazorSdkContent>
   </PropertyGroup>
