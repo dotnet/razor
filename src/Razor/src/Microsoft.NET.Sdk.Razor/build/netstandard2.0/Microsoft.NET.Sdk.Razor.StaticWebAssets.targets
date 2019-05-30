@@ -510,7 +510,7 @@ Copyright (c) .NET Foundation. All rights reserved.
         Condition="'%(SourceType)' != ''">
 
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-        <RelativePath>wwwroot\%(BasePath)\%(RelativePath)</RelativePath>
+        <RelativePath>$([MSBuild]::MakeRelative('$(MSBuildProjectDirectory)','$([MSBuild]::NormalizePath('wwwroot\%(BasePath)\%(RelativePath)'))'))</RelativePath>
 
       </_ExternalPublishStaticWebAsset>
 
