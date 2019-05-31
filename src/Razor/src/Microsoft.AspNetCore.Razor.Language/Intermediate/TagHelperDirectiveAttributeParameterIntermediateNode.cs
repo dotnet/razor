@@ -13,6 +13,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
 
         public string AttributeNameWithoutParameter { get; set; }
 
+        public string OriginalAttributeName { get; set; }
+
         public AttributeStructure AttributeStructure { get; set; }
 
         public BoundAttributeParameterDescriptor BoundAttributeParameter { get; set; }
@@ -38,6 +40,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             formatter.WriteContent(AttributeName);
 
             formatter.WriteProperty(nameof(AttributeName), AttributeName);
+            formatter.WriteProperty(nameof(OriginalAttributeName), OriginalAttributeName);
             formatter.WriteProperty(nameof(AttributeStructure), AttributeStructure.ToString());
             formatter.WriteProperty(nameof(BoundAttribute), BoundAttribute?.DisplayName);
             formatter.WriteProperty(nameof(BoundAttributeParameter), BoundAttributeParameter?.DisplayName);

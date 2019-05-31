@@ -230,7 +230,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             {
                 node.Diagnostics.Add(ComponentDiagnosticFactory.CreateBindAttribute_Duplicates(
                     node.Source,
-                    duplicate.Key,
+                    duplicate.First().OriginalAttributeName,
                     duplicate.ToArray()));
                 foreach (var property in duplicate)
                 {
@@ -338,7 +338,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.OriginalAttributeName,
                     },
                     AttributeName = valueAttributeName,
                     Source = node.Source,
@@ -362,7 +362,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.OriginalAttributeName,
                     },
                     AttributeName = changeAttributeName,
                     Source = node.Source,
@@ -385,7 +385,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.OriginalAttributeName,
                     },
                     AttributeName = valueAttributeName,
                     BoundAttribute = valueAttribute, // Might be null if it doesn't match a component attribute
@@ -405,7 +405,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.OriginalAttributeName,
                     },
                     AttributeName = changeAttributeName,
                     BoundAttribute = changeAttribute, // Might be null if it doesn't match a component attribute
@@ -430,7 +430,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     {
                         Annotations =
                         {
-                            [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
+                            [ComponentMetadata.Common.OriginalAttributeName] = node.OriginalAttributeName,
                         },
                         AttributeName = expressionAttributeName,
                         BoundAttribute = expressionAttribute,
@@ -463,7 +463,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             valueAttributeName = null;
             changeAttributeName = null;
 
-            if (!attributeName.StartsWith("@bind"))
+            if (!attributeName.StartsWith("bind"))
             {
                 return false;
             }
@@ -473,7 +473,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 changeAttributeName = GetAttributeContent(bindEntry.BindEventNode)?.Content?.Trim('"');
             }
 
-            if (attributeName == "@bind")
+            if (attributeName == "bind")
             {
                 return true;
             }

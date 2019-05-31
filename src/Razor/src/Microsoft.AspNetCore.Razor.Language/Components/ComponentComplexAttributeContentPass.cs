@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             {
                 if (node.Children[i] is TagHelperPropertyIntermediateNode propertyNode)
                 {
-                    if (TrySimplifyContent(propertyNode) && node.TagHelpers.Any(t => t.IsComponentTagHelper()))
+                    if (!TrySimplifyContent(propertyNode) && node.TagHelpers.Any(t => t.IsComponentTagHelper()))
                     {
                         node.Diagnostics.Add(ComponentDiagnosticFactory.Create_UnsupportedComplexContent(
                             propertyNode,
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 }
                 else if (node.Children[i] is TagHelperHtmlAttributeIntermediateNode htmlNode)
                 {
-                    if (TrySimplifyContent(htmlNode) && node.TagHelpers.Any(t => t.IsComponentTagHelper()))
+                    if (!TrySimplifyContent(htmlNode) && node.TagHelpers.Any(t => t.IsComponentTagHelper()))
                     {
                         node.Diagnostics.Add(ComponentDiagnosticFactory.Create_UnsupportedComplexContent(
                             htmlNode,
@@ -58,11 +58,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 }
                 else if (node.Children[i] is TagHelperDirectiveAttributeIntermediateNode directiveAttributeNode)
                 {
-                    if (TrySimplifyContent(directiveAttributeNode) && node.TagHelpers.Any(t => t.IsComponentTagHelper()))
+                    if (!TrySimplifyContent(directiveAttributeNode))
                     {
                         node.Diagnostics.Add(ComponentDiagnosticFactory.Create_UnsupportedComplexContent(
                             directiveAttributeNode,
-                            directiveAttributeNode.AttributeName));
+                            directiveAttributeNode.OriginalAttributeName));
                         node.Children.RemoveAt(i);
                         continue;
                     }
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 htmlNode.Children.Count > 1)
             {
                 // This case can be hit for a 'string' attribute
-                return true;
+                return false;
             }
             else if (node.Children.Count == 1 &&
                 node.Children[0] is CSharpExpressionIntermediateNode cSharpNode &&
@@ -98,25 +98,25 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     cSharpNode.Children.RemoveAt(0);
 
                     // We were able to simplify it, all good.
-                    return false;
+                    return true;
                 }
 
-                return true;
+                return false;
             }
             else if (node.Children.Count == 1 &&
-                node.Children[0] is CSharpCodeIntermediateNode cSharpCodeNode)
+                node.Children[0] is CSharpCodeIntermediateNode)
             {
                 // This is the case when an attribute contains a code block @{ ... }
                 // We don't support this.
-                return true;
+                return false;
             }
             else if (node.Children.Count > 1)
             {
                 // This is the common case for 'mixed' content
-                return true;
+                return false;
             }
 
-            return false;
+            return true;
         }
     }
 }

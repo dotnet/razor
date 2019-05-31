@@ -69,15 +69,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
                 throw new ArgumentNullException(nameof(directiveAttributeNode));
             }
 
-            var attributeName = directiveAttributeNode.AttributeName;
-            if (attributeName.StartsWith("@"))
-            {
-                // Directive attributes start with a "@" but we don't want that to be included in the output attribute name.
-                // E.g, <input @onclick="..." /> should result in the creation of 'onclick' attribute.
-                attributeName = attributeName.Substring(1);
-            }
-
-            AttributeName = attributeName;
+            AttributeName = directiveAttributeNode.AttributeName;
             AttributeStructure = directiveAttributeNode.AttributeStructure;
             BoundAttribute = directiveAttributeNode.BoundAttribute;
             PropertyName = directiveAttributeNode.BoundAttribute.GetPropertyName();

@@ -148,12 +148,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             }
 
             var attributeName = node.AttributeName;
-            if (attributeName.StartsWith("@"))
-            {
-                // Directive attributes start with a "@" but we don't want that to be included in the output attribute name.
-                // E.g, <input @onclick="..." /> should result in the creation of 'onclick' attribute.
-                attributeName = attributeName.Substring(1);
-            }
 
             if (parent is MarkupElementIntermediateNode)
             {
@@ -161,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.OriginalAttributeName,
                     },
                     AttributeName = attributeName,
                     Source = node.Source,
@@ -189,7 +183,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 {
                     Annotations =
                     {
-                        [ComponentMetadata.Common.OriginalAttributeName] = node.AttributeName,
+                        [ComponentMetadata.Common.OriginalAttributeName] = node.OriginalAttributeName,
                     },
                 };
 

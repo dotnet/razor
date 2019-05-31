@@ -272,7 +272,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     else if (child is TagHelperDirectiveAttributeIntermediateNode directiveAttribute)
                     {
                         // We don't support directive attributes inside child content, this is possible if you try to do something like put '@ref' on a child content.
-                        childContent.Diagnostics.Add(ComponentDiagnosticFactory.Create_ChildContentHasInvalidAttribute(directiveAttribute.Source, directiveAttribute.AttributeName, attribute.Name));
+                        childContent.Diagnostics.Add(ComponentDiagnosticFactory.Create_ChildContentHasInvalidAttribute(directiveAttribute.Source, directiveAttribute.OriginalAttributeName, attribute.Name));
                     }
                     else
                     {
