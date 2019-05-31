@@ -1756,7 +1756,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                             if (parameterMatch &&
                                 TagHelperMatchingConventions.TryGetBoundAttributeParameter(attributeName, out var attributeNameWithoutParameter, out _))
                             {
-                                attributeNode = new TagHelperAttributeParameterIntermediateNode()
+                                attributeNode = new TagHelperDirectiveAttributeParameterIntermediateNode()
                                 {
                                     AttributeName = attributeName,
                                     AttributeNameWithoutParameter = attributeNameWithoutParameter,
@@ -1770,7 +1770,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                             }
                             else
                             {
-                                attributeNode = new TagHelperPropertyIntermediateNode()
+                                attributeNode = new TagHelperDirectiveAttributeIntermediateNode()
                                 {
                                     AttributeName = attributeName,
                                     BoundAttribute = associatedAttributeDescriptor,
@@ -1874,7 +1874,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                             if (parameterMatch &&
                                 TagHelperMatchingConventions.TryGetBoundAttributeParameter(attributeName, out var attributeNameWithoutParameter, out _))
                             {
-                                attributeNode = new TagHelperAttributeParameterIntermediateNode()
+                                attributeNode = new TagHelperDirectiveAttributeParameterIntermediateNode()
                                 {
                                     AttributeName = attributeName,
                                     AttributeNameWithoutParameter = attributeNameWithoutParameter,
@@ -1888,7 +1888,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                             }
                             else
                             {
-                                attributeNode = new TagHelperPropertyIntermediateNode()
+                                attributeNode = new TagHelperDirectiveAttributeIntermediateNode()
                                 {
                                     AttributeName = attributeName,
                                     BoundAttribute = associatedAttributeDescriptor,

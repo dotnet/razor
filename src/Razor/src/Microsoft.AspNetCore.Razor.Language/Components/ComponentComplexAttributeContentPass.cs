@@ -56,6 +56,17 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                         continue;
                     }
                 }
+                else if (node.Children[i] is TagHelperDirectiveAttributeIntermediateNode directiveAttributeNode)
+                {
+                    if (TrySimplifyContent(directiveAttributeNode) && node.TagHelpers.Any(t => t.IsComponentTagHelper()))
+                    {
+                        node.Diagnostics.Add(ComponentDiagnosticFactory.Create_UnsupportedComplexContent(
+                            directiveAttributeNode,
+                            directiveAttributeNode.AttributeName));
+                        node.Children.RemoveAt(i);
+                        continue;
+                    }
+                }
             }
         }
 
