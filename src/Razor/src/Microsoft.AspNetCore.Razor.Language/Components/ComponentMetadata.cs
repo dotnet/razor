@@ -131,6 +131,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             public static readonly string RuntimeName = "Components.None";
         }
 
+        public static class Splat
+        {
+            public readonly static string TagHelperKind = "Components.Splat";
+
+            public static readonly string RuntimeName = "Components.None";
+        }
+
         public static class Ref
         {
             public readonly static string TagHelperKind = "Components.Ref";
