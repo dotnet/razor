@@ -169,6 +169,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             VisitDefault(node);
         }
 
+
         public virtual void VisitMarkupBlock(MarkupBlockIntermediateNode node)
         {
             VisitDefault(node);
@@ -180,6 +181,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
         }
 
         public virtual void VisitSetKey(SetKeyIntermediateNode node)
+        {
+            VisitDefault(node);
+        }
+
+        public virtual void VisitSplat(SplatIntermediateNode node)
         {
             VisitDefault(node);
         }
