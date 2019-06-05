@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.Razor
 
                     a.Name = attributeName;
 
-                    // Use a string here so that we get HTML context by default.
-                    a.TypeName = typeof(string).FullName;
+                    // We want event handler directive attributes to default to C# context.
+                    a.TypeName = typeof(object).FullName;
 
                     // But make this weakly typed (don't type check) - delegates have their own type-checking
                     // logic that we don't want to interfere with.

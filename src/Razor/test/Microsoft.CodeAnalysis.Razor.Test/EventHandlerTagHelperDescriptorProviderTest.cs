@@ -111,11 +111,11 @@ namespace Test
 
             Assert.Equal("@onclick", attribute.Name);
             Assert.Equal("onclick", attribute.GetPropertyName());
-            Assert.Equal("string Test.EventHandlers.onclick", attribute.DisplayName);
+            Assert.Equal("object Test.EventHandlers.onclick", attribute.DisplayName);
 
             // Defined from the property type
-            Assert.Equal("System.String", attribute.TypeName);
-            Assert.True(attribute.IsStringProperty);
+            Assert.Equal("System.Object", attribute.TypeName);
+            Assert.False(attribute.IsStringProperty);
             Assert.False(attribute.IsBooleanProperty);
             Assert.False(attribute.IsEnum);
         }
