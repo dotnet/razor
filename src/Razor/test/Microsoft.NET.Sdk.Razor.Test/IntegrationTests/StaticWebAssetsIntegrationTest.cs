@@ -274,6 +274,9 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 
     public class PackageTestProjectsFixture
     {
+        private const int MaxPackRetries = 3;
+        private const int MaxPackTimeoutInMinutes = 5;
+
         private bool _packed;
 
         internal async Task PackAsync(ITestOutputHelper output)
@@ -305,12 +308,23 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                     RedirectStandardError = true
                 };
 
-                var result = await MSBuildProcessManager.RunProcessCoreAsync(
-                    psi,
-                    TimeSpan.FromMinutes(2));
+                for (int i = 0; i < MaxPackRetries; i++)
+                {
+                    try
+                    {
+                        var result = await MSBuildProcessManager.RunProcessCoreAsync(
+                            psi,
+                            TimeSpan.FromMinutes(MaxPackTimeoutInMinutes));
 
-                output.WriteLine(result.Output);
-                Assert.Equal(0, result.ExitCode);
+                        output.WriteLine(result.Output);
+                        Assert.Equal(0, result.ExitCode);
+                        break;
+                    }
+                    catch
+                    {
+                        await Task.Delay(1000);
+                    }
+                }
             }
 
             _packed = true;
