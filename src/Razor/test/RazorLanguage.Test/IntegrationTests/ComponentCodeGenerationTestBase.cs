@@ -1132,6 +1132,42 @@ namespace Test
             CompileToAssembly(generated);
         }
 
+        [Fact]
+        public void BuiltIn_BindToInputWithSuffix()
+        {
+            // Arrange
+
+            // Act
+            var generated = CompileToCSharp(@"
+<input @bind-value=""@CurrentDate"" @bind:format=""MM/dd"" />
+@code {
+    public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void BuiltIn_BindToInputWithSuffix_CanOverrideEvent()
+        {
+            // Arrange
+
+            // Act
+            var generated = CompileToCSharp(@"
+<input @bind-value=""@CurrentDate"" @bind-value:event=""oninput"" @bind:format=""MM/dd"" />
+@code {
+    public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
+}");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
         #endregion
 
         #region Child Content
