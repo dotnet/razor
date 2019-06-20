@@ -28,8 +28,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            );
-            __o = Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => CurrentDate = __value, CurrentDate);
+            , "MM/dd");
+            __o = Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => CurrentDate = __value, CurrentDate, "MM/dd");
         }
         #pragma warning restore 1998
 #nullable restore

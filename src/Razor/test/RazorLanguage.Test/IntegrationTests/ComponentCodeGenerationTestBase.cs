@@ -1139,7 +1139,7 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-<input @bind-value=""@CurrentDate"" @bind:format=""MM/dd"" />
+<input @bind-value=""@CurrentDate"" @bind-value:format=""MM/dd"" />
 @code {
     public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
 }");
@@ -1157,7 +1157,7 @@ namespace Test
 
             // Act
             var generated = CompileToCSharp(@"
-<input @bind-value=""@CurrentDate"" @bind-value:event=""oninput"" @bind:format=""MM/dd"" />
+<input @bind-value=""@CurrentDate"" @bind-value:event=""oninput"" @bind-value:format=""MM/dd"" />
 @code {
     public DateTime CurrentDate { get; set; } = new DateTime(2018, 1, 1);
 }");

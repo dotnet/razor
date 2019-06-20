@@ -24,6 +24,7 @@ namespace Test
 #nullable disable
             , "MM/dd"));
             builder.AddAttribute(2, "oninput", Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => CurrentDate = __value, CurrentDate, "MM/dd"));
+            builder.SetUpdatesAttributeName("value");
             builder.CloseElement();
         }
         #pragma warning restore 1998

@@ -14,8 +14,7 @@ namespace Test
         protected override void BuildRenderTree(Microsoft.AspNetCore.Components.RenderTree.RenderTreeBuilder builder)
         {
             builder.OpenElement(0, "input");
-            builder.AddAttribute(1, "@bind:format", "MM/dd");
-            builder.AddAttribute(2, "value", Microsoft.AspNetCore.Components.BindMethods.GetValue(
+            builder.AddAttribute(1, "value", Microsoft.AspNetCore.Components.BindMethods.GetValue(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                      CurrentDate
@@ -23,8 +22,9 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ));
-            builder.AddAttribute(3, "onchange", Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => CurrentDate = __value, CurrentDate));
+            , "MM/dd"));
+            builder.AddAttribute(2, "onchange", Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, __value => CurrentDate = __value, CurrentDate, "MM/dd"));
+            builder.SetUpdatesAttributeName("value");
             builder.CloseElement();
         }
         #pragma warning restore 1998
