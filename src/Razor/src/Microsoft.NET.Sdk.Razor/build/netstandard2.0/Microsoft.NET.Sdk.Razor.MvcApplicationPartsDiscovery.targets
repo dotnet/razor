@@ -73,7 +73,7 @@ Copyright (c) .NET Foundation. All rights reserved.
       In this case, delete the file so that future incremental builds can no longer pick it up.
     -->
     <Delete
-      File="$(_MvcApplicationPartAttributeGeneratedFile)"
+      Files="$(_MvcApplicationPartAttributeGeneratedFile)"
       Condition="'@(_ApplicationPartAssemblyNames->Count())' == '0' AND Exists('$(_MvcApplicationPartAttributeGeneratedFile)')" />
 
     <ItemGroup Condition="Exists('$(_MvcApplicationPartAttributeGeneratedFile)')">
