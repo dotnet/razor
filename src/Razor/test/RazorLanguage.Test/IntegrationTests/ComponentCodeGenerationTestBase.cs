@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         internal override bool UseTwoPhaseCompilation => true;
 
         protected ComponentCodeGenerationTestBase()
-            : base(generateBaselines: true)
+            : base(generateBaselines: null)
         {
         }
 

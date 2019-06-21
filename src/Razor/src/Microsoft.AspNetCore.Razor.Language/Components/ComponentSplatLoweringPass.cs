@@ -30,13 +30,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             {
                 var reference = references[i];
                 var node = (TagHelperDirectiveAttributeIntermediateNode)reference.Node;
-
-                if (!reference.Parent.Children.Contains(node))
-                {
-                    // This node was removed as a duplicate, skip it.
-                    continue;
-                }
-
                 if (node.TagHelper.IsSplatTagHelper())
                 {
                     reference.Replace(RewriteUsage(reference.Parent, node));

@@ -169,7 +169,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
             VisitDefault(node);
         }
 
-
         public virtual void VisitMarkupBlock(MarkupBlockIntermediateNode node)
         {
             VisitDefault(node);
