@@ -16,7 +16,8 @@
     <RestoreSources>
       $(RestoreSources);
       https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
-      https://dotnetfeed.blob.core.windows.net/aspnet-extensions/index.json;      
+      https://dotnetfeed.blob.core.windows.net/aspnet-extensions/index.json;
+      https://api.nuget.org/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
 
