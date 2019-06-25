@@ -257,8 +257,8 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             return $@"<StaticWebAssets Version=""1.0"">
   <ContentRoot BasePath=""_content/ClassLibrary"" Path=""{projects[2]}"" />
   <ContentRoot BasePath=""_content/ClassLibrary2"" Path=""{projects[3]}"" />
-  <ContentRoot BasePath=""_content/packagelibrarydirectdependency"" Path=""{projects[1]}"" />
-  <ContentRoot BasePath=""_content/packagelibrarytransitivedependency"" Path=""{projects[0]}"" />
+  <ContentRoot BasePath=""_content/PackageLibraryDirectDependency"" Path=""{projects[1]}"" />
+  <ContentRoot BasePath=""_content/PackageLibraryTransitiveDependency"" Path=""{projects[0]}"" />
 </StaticWebAssets>";
         }
     }
