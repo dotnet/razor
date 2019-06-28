@@ -3034,7 +3034,7 @@ namespace Test
 {
     public class MyComponent<TItem> : ComponentBase
     {
-        [Parameter] TItem Item { get; set; }
+        [Parameter] public TItem Item { get; set; }
     }
 }
 "));
@@ -3097,7 +3097,7 @@ namespace Test
 {
     public class MyComponent<TItem> : ComponentBase
     {
-        [Parameter] TItem Item { get; set; }
+        [Parameter] public TItem Item { get; set; }
     }
 }
 "));

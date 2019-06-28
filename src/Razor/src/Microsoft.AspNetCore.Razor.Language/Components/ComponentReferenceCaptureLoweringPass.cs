@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                         var position = 0;
                         while (position < @class.Children.Count && @class.Children[i] is FieldDeclarationIntermediateNode)
                         {
-                            i++;
+                            position++;
                         }
 
                         @class.Children.Insert(position, CreateField(rewritten.FieldTypeName, identifier));
@@ -87,9 +87,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         private bool ShouldGenerateField(IntermediateNode parent)
         {
             var parameters = parent.FindDescendantNodes<TagHelperDirectiveAttributeParameterIntermediateNode>();
-            for (var j = 0; j < parameters.Count; j++)
+            for (var i = 0; i < parameters.Count; i++)
             {
-                var parameter = parameters[j];
+                var parameter = parameters[i];
                 if (parameter.TagHelper.IsRefTagHelper() && parameter.BoundAttributeParameter.Name == "suppressField")
                 {
                     if (parameter.HasDiagnostics)
@@ -117,6 +117,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 // We cannot automatically generate a 'ref' field for generic components because we don't know
                 // how to write the type.
                 parent.Diagnostics.Add(ComponentDiagnosticFactory.Create_RefSuppressFieldRequiredForGeneric(parent.Source));
+                return false;
             }
 
             return true;
