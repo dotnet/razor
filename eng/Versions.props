@@ -41,7 +41,7 @@
       https://vside.myget.org/F/vsmac/api/v3/index.json;
       https://vside.myget.org/F/devcore/api/v3/index.json;
     </RestoreSources>
-    <RestoreSources Condition="'$(DotNetBuildOffline)' != 'true' AND $(MicrosoftNetCompilersToolsetVersion.Contains('-')) ">
+    <RestoreSources Condition="'$(DotNetBuildOffline)' != 'true' AND $(MicrosoftNetCompilersToolsetPackageVersion.Contains('-')) ">
       $(RestoreSources);
       https://dotnet.myget.org/F/roslyn/api/v3/index.json;
     </RestoreSources>
@@ -71,7 +71,7 @@
     <SystemTextEncodingsWebPackageVersion>4.6.0-preview7.19329.3</SystemTextEncodingsWebPackageVersion>
     <SystemReflectionMetadataPackageVersion>1.7.0-preview7.19329.3</SystemReflectionMetadataPackageVersion>
     <!-- Packages from dotnet/roslyn -->
-    <MicrosoftNetCompilersToolsetVersion>3.3.0-beta1-19351-01</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetPackageVersion>3.3.0-beta1-19351-01</MicrosoftNetCompilersToolsetPackageVersion>
   </PropertyGroup>
   <PropertyGroup Label="Dependency version settings">
     <!--
