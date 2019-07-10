@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public abstract string TagOutputHint { get; set; }
 
-        public abstract bool CaseSensitive { get; set; }
+        public virtual bool CaseSensitive { get; set; }
 
         public abstract string Documentation { get; set; }
 

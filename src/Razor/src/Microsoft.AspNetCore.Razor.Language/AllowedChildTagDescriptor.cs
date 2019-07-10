@@ -34,11 +34,6 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public bool Equals(AllowedChildTagDescriptor other)
         {
-            if (CaseSensitive)
-            {
-                return AllowedChildTagDescriptorComparer.CaseSensitive.Equals(this, other);
-            }
-
             return AllowedChildTagDescriptorComparer.Default.Equals(this, other);
         }
 
@@ -49,11 +44,6 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override int GetHashCode()
         {
-            if (CaseSensitive)
-            {
-                return AllowedChildTagDescriptorComparer.CaseSensitive.GetHashCode(this);
-            }
-
             return AllowedChildTagDescriptorComparer.Default.GetHashCode(this);
         }
     }

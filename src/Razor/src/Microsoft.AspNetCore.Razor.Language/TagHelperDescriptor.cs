@@ -75,11 +75,6 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public bool Equals(TagHelperDescriptor other)
         {
-            if (CaseSensitive)
-            {
-                return TagHelperDescriptorComparer.CaseSensitive.Equals(this, other);
-            }
-
             return TagHelperDescriptorComparer.Default.Equals(this, other);
         }
 
@@ -90,11 +85,6 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override int GetHashCode()
         {
-            if (CaseSensitive)
-            {
-                return TagHelperDescriptorComparer.CaseSensitive.GetHashCode(this);
-            }
-
             return TagHelperDescriptorComparer.Default.GetHashCode(this);
         }
     }

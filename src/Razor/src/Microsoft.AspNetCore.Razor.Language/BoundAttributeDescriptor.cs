@@ -68,11 +68,6 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public bool Equals(BoundAttributeDescriptor other)
         {
-            if (CaseSensitive)
-            {
-                return BoundAttributeDescriptorComparer.CaseSensitive.Equals(this, other);
-            }
-
             return BoundAttributeDescriptorComparer.Default.Equals(this, other);
         }
 
@@ -83,11 +78,6 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override int GetHashCode()
         {
-            if (CaseSensitive)
-            {
-                return BoundAttributeDescriptorComparer.CaseSensitive.GetHashCode(this);
-            }
-
             return BoundAttributeDescriptorComparer.Default.GetHashCode(this);
         }
     }
