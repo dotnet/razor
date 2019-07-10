@@ -16,6 +16,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override RequiredAttributeDescriptor.NameComparisonMode NameComparisonMode { get; set; }
 
+        public override bool CaseSensitive { get; set; }
+
         public override string Value { get; set; }
 
         public override RequiredAttributeDescriptor.ValueComparisonMode ValueComparisonMode { get; set; }
@@ -48,6 +50,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var rule = new DefaultRequiredAttributeDescriptor(
                 Name,
                 NameComparisonMode,
+                CaseSensitive,
                 Value,
                 ValueComparisonMode,
                 displayName,

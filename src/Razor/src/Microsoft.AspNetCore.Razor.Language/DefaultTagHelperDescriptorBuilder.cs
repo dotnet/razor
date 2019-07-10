@@ -40,6 +40,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override string TagOutputHint { get; set; }
 
+        public override bool CaseSensitive { get; set; }
+
         public override string Documentation { get; set; }
 
         public override IDictionary<string, string> Metadata => _metadata;
@@ -180,6 +182,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 GetDisplayName(),
                 Documentation,
                 TagOutputHint,
+                CaseSensitive,
                 tagMatchingRules,
                 attributes,
                 allowedChildTags,

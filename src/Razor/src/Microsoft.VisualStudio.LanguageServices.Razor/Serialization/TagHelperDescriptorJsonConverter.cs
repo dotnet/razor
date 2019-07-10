@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             var childTags = descriptor[nameof(TagHelperDescriptor.AllowedChildTags)].Value<JArray>();
             var documentation = descriptor[nameof(TagHelperDescriptor.Documentation)].Value<string>();
             var tagOutputHint = descriptor[nameof(TagHelperDescriptor.TagOutputHint)].Value<string>();
+            var caseSensitive = descriptor[nameof(TagHelperDescriptor.CaseSensitive)].Value<bool>();
             var diagnostics = descriptor[nameof(TagHelperDescriptor.Diagnostics)].Value<JArray>();
             var metadata = descriptor[nameof(TagHelperDescriptor.Metadata)].Value<JObject>();
 
@@ -41,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 
             builder.Documentation = documentation;
             builder.TagOutputHint = tagOutputHint;
+            builder.CaseSensitive = caseSensitive;
 
             foreach (var tagMatchingRule in tagMatchingRules)
             {
@@ -98,6 +100,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             writer.WritePropertyName(nameof(TagHelperDescriptor.TagOutputHint));
             writer.WriteValue(tagHelper.TagOutputHint);
 
+            writer.WritePropertyName(nameof(TagHelperDescriptor.CaseSensitive));
+            writer.WriteValue(tagHelper.CaseSensitive);
+
             writer.WritePropertyName(nameof(TagHelperDescriptor.TagMatchingRules));
             writer.WriteStartArray();
             foreach (var ruleDescriptor in tagHelper.TagMatchingRules)
@@ -141,6 +146,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             writer.WritePropertyName(nameof(AllowedChildTagDescriptor.DisplayName));
             writer.WriteValue(allowedChildTag.DisplayName);
 
+            writer.WritePropertyName(nameof(AllowedChildTagDescriptor.CaseSensitive));
+            writer.WriteValue(allowedChildTag.CaseSensitive);
+
             writer.WritePropertyName(nameof(AllowedChildTagDescriptor.Diagnostics));
             serializer.Serialize(writer, allowedChildTag.Diagnostics);
 
@@ -168,6 +176,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 
             writer.WritePropertyName(nameof(BoundAttributeDescriptor.IndexerTypeName));
             writer.WriteValue(boundAttribute.IndexerTypeName);
+
+            writer.WritePropertyName(nameof(BoundAttributeDescriptor.CaseSensitive));
+            writer.WriteValue(boundAttribute.CaseSensitive);
 
             writer.WritePropertyName(nameof(BoundAttributeDescriptor.Documentation));
             writer.WriteValue(boundAttribute.Documentation);
@@ -205,6 +216,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             writer.WritePropertyName(nameof(BoundAttributeParameterDescriptor.IsEnum));
             writer.WriteValue(boundAttributeParameter.IsEnum);
 
+            writer.WritePropertyName(nameof(BoundAttributeParameterDescriptor.CaseSensitive));
+            writer.WriteValue(boundAttributeParameter.CaseSensitive);
+
             writer.WritePropertyName(nameof(BoundAttributeParameterDescriptor.Documentation));
             writer.WriteValue(boundAttributeParameter.Documentation);
 
@@ -241,6 +255,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             writer.WritePropertyName(nameof(TagMatchingRuleDescriptor.TagStructure));
             writer.WriteValue(ruleDescriptor.TagStructure);
 
+            writer.WritePropertyName(nameof(TagMatchingRuleDescriptor.CaseSensitive));
+            writer.WriteValue(ruleDescriptor.CaseSensitive);
+
             writer.WritePropertyName(nameof(TagMatchingRuleDescriptor.Attributes));
             writer.WriteStartArray();
             foreach (var requiredAttribute in ruleDescriptor.Attributes)
@@ -265,6 +282,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             writer.WritePropertyName(nameof(RequiredAttributeDescriptor.NameComparison));
             writer.WriteValue(requiredAttribute.NameComparison);
 
+            writer.WritePropertyName(nameof(RequiredAttributeDescriptor.CaseSensitive));
+            writer.WriteValue(requiredAttribute.CaseSensitive);
+
             writer.WritePropertyName(nameof(RequiredAttributeDescriptor.Value));
             writer.WriteValue(requiredAttribute.Value);
 
@@ -286,11 +306,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             var attributes = rule[nameof(TagMatchingRuleDescriptor.Attributes)].Value<JArray>();
             var parentTag = rule[nameof(TagMatchingRuleDescriptor.ParentTag)].Value<string>();
             var tagStructure = rule[nameof(TagMatchingRuleDescriptor.TagStructure)].Value<int>();
+            var caseSensitive = rule[nameof(TagMatchingRuleDescriptor.CaseSensitive)].Value<bool>();
             var diagnostics = rule[nameof(TagMatchingRuleDescriptor.Diagnostics)].Value<JArray>();
 
             builder.TagName = tagName;
             builder.ParentTag = parentTag;
             builder.TagStructure = (TagStructure)tagStructure;
+            builder.CaseSensitive = caseSensitive;
 
             foreach (var attribute in attributes)
             {
@@ -310,6 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
         {
             var name = attribute[nameof(RequiredAttributeDescriptor.Name)].Value<string>();
             var nameComparison = attribute[nameof(RequiredAttributeDescriptor.NameComparison)].Value<int>();
+            var caseSensitive = attribute[nameof(RequiredAttributeDescriptor.CaseSensitive)].Value<bool>();
             var value = attribute[nameof(RequiredAttributeDescriptor.Value)].Value<string>();
             var valueComparison = attribute[nameof(RequiredAttributeDescriptor.ValueComparison)].Value<int>();
             var diagnostics = attribute[nameof(RequiredAttributeDescriptor.Diagnostics)].Value<JArray>();
@@ -317,6 +340,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 
             builder.Name = name;
             builder.NameComparisonMode = (RequiredAttributeDescriptor.NameComparisonMode)nameComparison;
+            builder.CaseSensitive = caseSensitive;
             builder.Value = value;
             builder.ValueComparisonMode = (RequiredAttributeDescriptor.ValueComparisonMode)valueComparison;
 
@@ -339,10 +363,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
         {
             var name = childTag[nameof(AllowedChildTagDescriptor.Name)].Value<string>();
             var displayName = childTag[nameof(AllowedChildTagDescriptor.DisplayName)].Value<string>();
+            var caseSensitive = childTag[nameof(AllowedChildTagDescriptor.CaseSensitive)].Value<bool>();
             var diagnostics = childTag[nameof(AllowedChildTagDescriptor.Diagnostics)].Value<JArray>();
 
             builder.Name = name;
             builder.DisplayName = displayName;
+            builder.CaseSensitive = caseSensitive;
 
             foreach (var diagnostic in diagnostics)
             {
@@ -360,6 +386,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             var isEnum = attribute[nameof(BoundAttributeDescriptor.IsEnum)].Value<bool>();
             var indexerNamePrefix = attribute[nameof(BoundAttributeDescriptor.IndexerNamePrefix)].Value<string>();
             var indexerTypeName = attribute[nameof(BoundAttributeDescriptor.IndexerTypeName)].Value<string>();
+            var caseSensitive = attribute[nameof(BoundAttributeDescriptor.CaseSensitive)].Value<bool>();
             var documentation = attribute[nameof(BoundAttributeDescriptor.Documentation)].Value<string>();
             var diagnostics = attribute[nameof(BoundAttributeDescriptor.Diagnostics)].Value<JArray>();
             var metadata = attribute[nameof(BoundAttributeDescriptor.Metadata)].Value<JObject>();
@@ -368,6 +395,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             builder.Name = name;
             builder.TypeName = typeName;
             builder.Documentation = documentation;
+            builder.CaseSensitive = caseSensitive;
 
             if (indexerNamePrefix != null)
             {
@@ -406,12 +434,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             var name = parameter[nameof(BoundAttributeParameterDescriptor.Name)].Value<string>();
             var typeName = parameter[nameof(BoundAttributeParameterDescriptor.TypeName)].Value<string>();
             var isEnum = parameter[nameof(BoundAttributeParameterDescriptor.IsEnum)].Value<bool>();
+            var caseSensitive = parameter[nameof(BoundAttributeParameterDescriptor.CaseSensitive)].Value<bool>();
             var documentation = parameter[nameof(BoundAttributeParameterDescriptor.Documentation)].Value<string>();
             var diagnostics = parameter[nameof(BoundAttributeParameterDescriptor.Diagnostics)].Value<JArray>();
             var metadata = parameter[nameof(BoundAttributeParameterDescriptor.Metadata)].Value<JObject>();
 
             builder.Name = name;
             builder.TypeName = typeName;
+            builder.CaseSensitive = caseSensitive;
             builder.Documentation = documentation;
 
             if (isEnum)

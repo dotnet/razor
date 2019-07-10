@@ -13,6 +13,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public NameComparisonMode NameComparison { get; protected set; }
 
+        public bool CaseSensitive { get; protected set; }
+
         public string Value { get; protected set; }
 
         public ValueComparisonMode ValueComparison { get; protected set; }
@@ -40,6 +42,11 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public bool Equals(RequiredAttributeDescriptor other)
         {
+            if (CaseSensitive)
+            {
+                return RequiredAttributeDescriptorComparer.CaseSensitive.Equals(this, other);
+            }
+
             return RequiredAttributeDescriptorComparer.Default.Equals(this, other);
         }
 
@@ -50,6 +57,11 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override int GetHashCode()
         {
+            if (CaseSensitive)
+            {
+                return RequiredAttributeDescriptorComparer.CaseSensitive.GetHashCode(this);
+            }
+
             return RequiredAttributeDescriptorComparer.Default.GetHashCode(this);
         }
 

@@ -52,6 +52,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public abstract string TagOutputHint { get; set; }
 
+        public abstract bool CaseSensitive { get; set; }
+
         public abstract string Documentation { get; set; }
 
         public abstract IDictionary<string, string> Metadata { get; }

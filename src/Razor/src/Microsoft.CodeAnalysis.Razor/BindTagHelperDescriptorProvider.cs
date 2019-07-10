@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Razor
         private TagHelperDescriptor CreateFallbackBindTagHelper()
         {
             var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Bind.TagHelperKind, "Bind", ComponentsApi.AssemblyName);
+            builder.CaseSensitive = true;
             builder.Documentation = ComponentResources.BindTagHelper_Fallback_Documentation;
 
             builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind);
@@ -139,10 +140,12 @@ namespace Microsoft.CodeAnalysis.Razor
             builder.TagMatchingRule(rule =>
             {
                 rule.TagName = "*";
+                rule.CaseSensitive = true;
                 rule.Attribute(attribute =>
                 {
                     attribute.Name = "@bind-";
                     attribute.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                    attribute.CaseSensitive = true;
                     attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                 });
             });
@@ -155,6 +158,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 var attributeName = "@bind-...";
                 attribute.Name = attributeName;
                 attribute.AsDictionary("@bind-", typeof(object).FullName);
+                attribute.CaseSensitive = true;
 
                 // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                 // a C# property will crash trying to create the toolips.
@@ -165,6 +169,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 {
                     parameter.Name = "format";
                     parameter.TypeName = typeof(string).FullName;
+                    parameter.CaseSensitive = true;
                     parameter.Documentation = ComponentResources.BindTagHelper_Fallback_Format_Documentation;
 
                     parameter.SetPropertyName("Format");
@@ -174,6 +179,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 {
                     parameter.Name = "event";
                     parameter.TypeName = typeof(string).FullName;
+                    parameter.CaseSensitive = true;
                     parameter.Documentation = string.Format(ComponentResources.BindTagHelper_Fallback_Event_Documentation, attributeName);
 
                     parameter.SetPropertyName("Event");
@@ -183,6 +189,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 {
                     parameter.Name = "culture";
                     parameter.TypeName = typeof(CultureInfo).FullName;
+                    parameter.CaseSensitive = true;
                     parameter.Documentation = ComponentResources.BindTagHelper_Element_Culture_Documentation;
 
                     parameter.SetPropertyName("Culture");
@@ -292,6 +299,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 var eventName = entry.Suffix == null ? "Event_" + entry.ValueAttribute : "Event_" + entry.Suffix;
 
                 var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Bind.TagHelperKind, name, ComponentsApi.AssemblyName);
+                builder.CaseSensitive = true;
                 builder.Documentation = string.Format(
                     ComponentResources.BindTagHelper_Element_Documentation,
                     entry.ValueAttribute,
@@ -326,12 +334,14 @@ namespace Microsoft.CodeAnalysis.Razor
                 builder.TagMatchingRule(rule =>
                 {
                     rule.TagName = entry.Element;
+                    rule.CaseSensitive = true;
                     if (entry.TypeAttribute != null)
                     {
                         rule.Attribute(a =>
                         {
                             a.Name = "type";
                             a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                            a.CaseSensitive = true;
                             a.Value = entry.TypeAttribute;
                             a.ValueComparisonMode = RequiredAttributeDescriptor.ValueComparisonMode.FullMatch;
                         });
@@ -341,6 +351,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     {
                         a.Name = attributeName;
                         a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                        a.CaseSensitive = true;
                         a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                     });
                 });
@@ -355,6 +366,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
                     a.Name = attributeName;
                     a.TypeName = typeof(object).FullName;
+                    a.CaseSensitive = true;
 
                     // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                     // a C# property will crash trying to create the toolips.
@@ -364,6 +376,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     {
                         parameter.Name = "format";
                         parameter.TypeName = typeof(string).FullName;
+                        parameter.CaseSensitive = true;
                         parameter.Documentation = string.Format(ComponentResources.BindTagHelper_Element_Format_Documentation, attributeName);
 
                         parameter.SetPropertyName(formatName);
@@ -373,6 +386,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     {
                         parameter.Name = "event";
                         parameter.TypeName = typeof(string).FullName;
+                        parameter.CaseSensitive = true;
                         parameter.Documentation = string.Format(ComponentResources.BindTagHelper_Element_Event_Documentation, attributeName);
 
                         parameter.SetPropertyName(eventName);
@@ -382,6 +396,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     {
                         parameter.Name = "culture";
                         parameter.TypeName = typeof(CultureInfo).FullName;
+                        parameter.CaseSensitive = true;
                         parameter.Documentation = ComponentResources.BindTagHelper_Element_Culture_Documentation;
 
                         parameter.SetPropertyName("Culture");
@@ -393,6 +408,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 {
                     attribute.Name = formatAttributeName;
                     attribute.TypeName = "System.String";
+                    attribute.CaseSensitive = true;
                     attribute.Documentation = string.Format(ComponentResources.BindTagHelper_Element_Format_Documentation, attributeName);
 
                     // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
@@ -469,6 +485,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
                     var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Bind.TagHelperKind, tagHelper.Name, tagHelper.AssemblyName);
                     builder.DisplayName = tagHelper.DisplayName;
+                    builder.CaseSensitive = true;
                     builder.Documentation = string.Format(
                         ComponentResources.BindTagHelper_Component_Documentation,
                         valueAttribute.Name,
@@ -492,10 +509,12 @@ namespace Microsoft.CodeAnalysis.Razor
                     builder.TagMatchingRule(rule =>
                     {
                         rule.TagName = tagHelper.TagMatchingRules.Single().TagName;
+                        rule.CaseSensitive = true;
                         rule.Attribute(attribute =>
                         {
                             attribute.Name = "@bind-" + valueAttribute.Name;
                             attribute.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                            attribute.CaseSensitive = true;
                             attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                         });
                     });
@@ -511,6 +530,7 @@ namespace Microsoft.CodeAnalysis.Razor
                         attribute.Name = "@bind-" + valueAttribute.Name;
                         attribute.TypeName = changeAttribute.TypeName;
                         attribute.IsEnum = valueAttribute.IsEnum;
+                        attribute.CaseSensitive = true;
 
                         // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                         // a C# property will crash trying to create the toolips.

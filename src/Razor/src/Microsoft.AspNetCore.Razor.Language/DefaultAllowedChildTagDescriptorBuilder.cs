@@ -21,6 +21,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override string DisplayName { get; set; }
 
+        public override bool CaseSensitive { get; set; }
+
         public override RazorDiagnosticCollection Diagnostics
         {
             get
@@ -47,6 +49,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             var descriptor = new DefaultAllowedChildTagDescriptor(
                 Name,
                 displayName,
+                CaseSensitive,
                 diagnostics?.ToArray() ?? Array.Empty<RazorDiagnostic>());
 
             return descriptor;

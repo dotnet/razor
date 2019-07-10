@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 var eventArgType = entry.EventArgsType.ToDisplayString();
 
                 var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.EventHandler.TagHelperKind, entry.Attribute, ComponentsApi.AssemblyName);
+                builder.CaseSensitive = true;
                 builder.Documentation = string.Format(
                     ComponentResources.EventHandlerTagHelper_Documentation,
                     attributeName,
@@ -123,11 +124,13 @@ namespace Microsoft.CodeAnalysis.Razor
                 builder.TagMatchingRule(rule =>
                 {
                     rule.TagName = "*";
+                    rule.CaseSensitive = true;
 
                     rule.Attribute(a =>
                     {
                         a.Name = attributeName;
                         a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                        a.CaseSensitive = true;
                         a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                     });
                 });
@@ -140,6 +143,7 @@ namespace Microsoft.CodeAnalysis.Razor
                         eventArgType);
 
                     a.Name = attributeName;
+                    a.CaseSensitive = true;
 
                     // We want event handler directive attributes to default to C# context.
                     a.TypeName = $"Microsoft.AspNetCore.Components.EventCallback<{eventArgType}>";

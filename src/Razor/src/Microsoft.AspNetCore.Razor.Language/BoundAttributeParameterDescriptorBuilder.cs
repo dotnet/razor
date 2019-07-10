@@ -17,6 +17,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public abstract string DisplayName { get; set; }
 
+        public abstract bool CaseSensitive { get; set; }
+
         public abstract IDictionary<string, string> Metadata { get; }
 
         public abstract RazorDiagnosticCollection Diagnostics { get; }

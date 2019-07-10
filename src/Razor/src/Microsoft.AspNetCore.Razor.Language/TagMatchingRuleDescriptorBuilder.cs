@@ -14,6 +14,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public abstract TagStructure TagStructure { get; set; }
 
+        public abstract bool CaseSensitive { get; set; }
+
         public abstract RazorDiagnosticCollection Diagnostics { get; }
 
         public abstract IReadOnlyList<RequiredAttributeDescriptorBuilder> Attributes { get; }

@@ -4870,6 +4870,35 @@ namespace Test
             CompileToAssembly(generated);
         }
 
+        [Fact]
+        public void Component_MatchingIsCaseSensitive()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter] int IntProperty { get; set; }
+        [Parameter] bool BoolProperty { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+<MyComponent />
+<Mycomponent />
+<MyComponent intproperty='1' BoolProperty='true' />");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
         #endregion
     }
 }

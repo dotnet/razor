@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Razor
         private TagHelperDescriptor CreateRefTagHelper()
         {
             var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Ref.TagHelperKind, "Ref", ComponentsApi.AssemblyName);
+            builder.CaseSensitive = true;
             builder.Documentation = ComponentResources.RefTagHelper_Documentation;
 
             builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind);
@@ -54,9 +55,11 @@ namespace Microsoft.CodeAnalysis.Razor
             builder.TagMatchingRule(rule =>
             {
                 rule.TagName = "*";
+                rule.CaseSensitive = true;
                 rule.Attribute(attribute =>
                 {
                     attribute.Name = "@ref";
+                    attribute.CaseSensitive = true;
                     attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                 });
             });
@@ -65,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 @ref.Documentation = ComponentResources.RefTagHelper_Documentation;
                 @ref.Name = "@ref";
+                @ref.CaseSensitive = true;
 
                 // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                 // a C# property will crash trying to create the tooltips.
@@ -75,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 @ref.BindAttributeParameter(suppressField =>
                 {
                     suppressField.Name = "suppressField";
+                    suppressField.CaseSensitive = true;
                     suppressField.Documentation = ComponentResources.RefTagHelper_SuppressField_Documentation;
                     suppressField.TypeName = typeof(bool).FullName;
                     suppressField.SetPropertyName("SuppressField");

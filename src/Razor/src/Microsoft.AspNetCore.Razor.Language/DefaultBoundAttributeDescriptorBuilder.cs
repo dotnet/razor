@@ -59,6 +59,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override string DisplayName { get; set; }
 
+        public override bool CaseSensitive { get; set; }
+
         public override IDictionary<string, string> Metadata => _metadata;
 
         public override RazorDiagnosticCollection Diagnostics
@@ -120,6 +122,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 IndexerValueTypeName,
                 Documentation,
                 GetDisplayName(),
+                CaseSensitive,
                 parameters,
                 new Dictionary<string, string>(Metadata),
                 diagnostics.ToArray());

@@ -23,6 +23,8 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override TagStructure TagStructure { get; set; }
 
+        public override bool CaseSensitive { get; set; }
+
         public override RazorDiagnosticCollection Diagnostics
         {
             get
@@ -85,6 +87,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 TagName,
                 ParentTag,
                 TagStructure,
+                CaseSensitive,
                 requiredAttributes,
                 diagnostics.ToArray());
 

@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Razor
         private TagHelperDescriptor CreateKeyTagHelper()
         {
             var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Key.TagHelperKind, "Key", ComponentsApi.AssemblyName);
+            builder.CaseSensitive = true;
             builder.Documentation = ComponentResources.KeyTagHelper_Documentation;
 
             builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Key.TagHelperKind);
@@ -54,9 +55,11 @@ namespace Microsoft.CodeAnalysis.Razor
             builder.TagMatchingRule(rule =>
             {
                 rule.TagName = "*";
+                rule.CaseSensitive = true;
                 rule.Attribute(attribute =>
                 {
                     attribute.Name = "@key";
+                    attribute.CaseSensitive = true;
                     attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                 });
             });
@@ -65,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 attribute.Documentation = ComponentResources.KeyTagHelper_Documentation;
                 attribute.Name = "@key";
+                attribute.CaseSensitive = true;
 
                 // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                 // a C# property will crash trying to create the tooltips.
