@@ -449,5 +449,20 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 source ?? SourceSpan.Undefined,
                 elementName);
         }
+
+        public static readonly RazorDiagnosticDescriptor InconsistentStartAndEndTagName =
+            new RazorDiagnosticDescriptor(
+                $"{DiagnosticPrefix}10015",
+                () => "The start tag name '{0}' does not match the end tag name '{1}'. Components must have matching start and end tag names (case-sensitive).",
+                RazorDiagnosticSeverity.Error);
+
+        public static RazorDiagnostic Create_InconsistentStartAndEndTagName(string startTagName, string endTagName, SourceSpan? source = null)
+        {
+            return RazorDiagnostic.Create(
+                InconsistentStartAndEndTagName,
+                source ?? SourceSpan.Undefined,
+                startTagName,
+                endTagName);
+        }
     }
 }

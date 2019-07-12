@@ -9,6 +9,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
     {
         internal override string FileKind => FileKinds.Component;
 
+        internal override bool UseTwoPhaseCompilation => true;
+
         [Fact]
         public void RejectsEndTagWithNoStartTag()
         {
@@ -134,7 +136,7 @@ namespace Test
 <input type=""text"" @bind=""Text"" />
 @functions {
     public string Text { get; set; } = ""text"";
-}");
+}", throwOnFailure: false);
 
             // Assert
             var diagnostic = Assert.Single(generated.Diagnostics);
@@ -161,6 +163,31 @@ namespace Test
             Assert.Equal(RazorDiagnosticSeverity.Warning, diagnostic.Severity);
             Assert.Equal(
                 "Found markup element with unexpected name 'PossibleComponent'. If this is intended to be a component, add a @using directive for its namespace.",
+                diagnostic.GetMessage());
+        }
+
+        [Fact]
+        public void Component_StartAndEndTagCaseMismatch_ReportsError()
+        {
+            // Arrange & Act
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+    }
+}
+"));
+            var generated = CompileToCSharp(@"
+<MyComponent></mycomponent>");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Equal("RZ10015", diagnostic.Id);
+            Assert.Equal(
+                "The start tag name 'MyComponent' does not match the end tag name 'mycomponent'. Components must have matching start and end tag names (case-sensitive).",
                 diagnostic.GetMessage());
         }
     }

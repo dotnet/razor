@@ -1846,12 +1846,12 @@ namespace Test3
 @using static Test2.SomeComponent
 @using Foo = Test3
 <MyComponent />
-<SomeComponent /> <!-- Not a component -->");
+<SomeComponent /> <!-- Not a component -->", throwOnFailure: false);
 
             // Assert
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
             AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-            var result = CompileToAssembly(generated);
+            CompileToAssembly(generated, throwOnFailure: false);
         }
 
         [Fact]
@@ -4530,7 +4530,6 @@ namespace New.Test
 }
 ");
 
-
             // Assert
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
             AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
@@ -4991,8 +4990,8 @@ namespace Test
 {
     public class MyComponent : ComponentBase
     {
-        [Parameter] int IntProperty { get; set; }
-        [Parameter] bool BoolProperty { get; set; }
+        [Parameter] public int IntProperty { get; set; }
+        [Parameter] public bool BoolProperty { get; set; }
     }
 }
 "));
@@ -5000,8 +4999,40 @@ namespace Test
             // Act
             var generated = CompileToCSharp(@"
 <MyComponent />
-<Mycomponent />
+<mycomponent />
 <MyComponent intproperty='1' BoolProperty='true' />");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
+        [Fact]
+        public void Component_MultipleComponentsDifferByCase()
+        {
+            // Arrange
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter] public int IntProperty { get; set; }
+    }
+
+    public class Mycomponent : ComponentBase
+    {
+        [Parameter] public int IntProperty { get; set; }
+    }
+}
+"));
+
+            // Act
+            var generated = CompileToCSharp(@"
+<MyComponent IntProperty='1' />
+<Mycomponent IntProperty='2' />");
 
             // Assert
             AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

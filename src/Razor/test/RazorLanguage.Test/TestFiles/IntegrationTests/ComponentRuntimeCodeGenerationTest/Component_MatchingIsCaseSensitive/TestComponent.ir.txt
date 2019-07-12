@@ -8,7 +8,7 @@ Document -
         ClassDeclaration -  - public - TestComponent - Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 Component - (0:0,0 [15] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
-                MarkupBlock -  - \n<Mycomponent></Mycomponent>\n
+                MarkupBlock -  - \n<mycomponent></mycomponent>\n
                 Component - (34:2,0 [51] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
                     ComponentAttribute -  - intproperty - AttributeStructure.SingleQuotes
                         HtmlContent - (60:2,26 [1] x:\dir\subdir\Test\TestComponent.cshtml)

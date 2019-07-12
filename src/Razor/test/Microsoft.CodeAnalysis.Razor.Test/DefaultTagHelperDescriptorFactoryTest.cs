@@ -200,12 +200,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             IEnumerable<Action<RequiredAttributeDescriptorBuilder>> configureBuilders)
         {
             // Arrange
-            var ruleBuilder = new DefaultTagMatchingRuleDescriptorBuilder();
+            var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
+            var ruleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
 
             var expectedRules = new List<RequiredAttributeDescriptor>();
             foreach (var configureBuilder in configureBuilders)
             {
-                var builder = new DefaultRequiredAttributeDescriptorBuilder();
+                var builder = new DefaultRequiredAttributeDescriptorBuilder(ruleBuilder);
                 configureBuilder(builder);
 
                 expectedRules.Add(builder.Build());
@@ -294,12 +295,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             IEnumerable<Action<RequiredAttributeDescriptorBuilder>> configureBuilders)
         {
             // Arrange
-            var ruleBuilder = new DefaultTagMatchingRuleDescriptorBuilder();
+            var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
+            var ruleBuilder = new DefaultTagMatchingRuleDescriptorBuilder(tagHelperBuilder);
 
             var expectedRules = new List<RequiredAttributeDescriptor>();
             foreach (var configureBuilder in configureBuilders)
             {
-                var builder = new DefaultRequiredAttributeDescriptorBuilder();
+                var builder = new DefaultRequiredAttributeDescriptorBuilder(ruleBuilder);
                 configureBuilder(builder);
 
                 expectedRules.Add(builder.Build());

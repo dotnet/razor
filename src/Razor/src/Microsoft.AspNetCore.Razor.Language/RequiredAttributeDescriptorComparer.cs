@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             }
 
             var hash = HashCodeCombiner.Start();
-            hash.Add(descriptor.Name, descriptor.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+            hash.Add(descriptor.Name, StringComparer.Ordinal);
 
             return hash.CombinedHash;
         }

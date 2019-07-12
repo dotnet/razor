@@ -58,8 +58,10 @@ namespace Test
             var generated = CompileToCSharp(@"<MyComponent attr=""@<div></div>"" />");
 
             // Assert
-            var diagnostic = Assert.Single(generated.Diagnostics);
-            Assert.Equal("RZ1005", diagnostic.Id);
+            Assert.Collection(
+                generated.Diagnostics,
+                d => Assert.Equal("RZ10014", d.Id),
+                d => Assert.Equal("RZ1005", d.Id));
         }
 
         [Fact]
@@ -80,8 +82,10 @@ namespace Test
             var generated = CompileToCSharp(@"<MyComponent attr=""@(@<div></div>)"" />");
 
             // Assert
-            var diagnostic = Assert.Single(generated.Diagnostics);
-            Assert.Equal("RZ9994", diagnostic.Id);
+            Assert.Collection(
+                generated.Diagnostics,
+                d => Assert.Equal("RZ10014", d.Id),
+                d => Assert.Equal("RZ9994", d.Id));
         }
 
         [Fact]
