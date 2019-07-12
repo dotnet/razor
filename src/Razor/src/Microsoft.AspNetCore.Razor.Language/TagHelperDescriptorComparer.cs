@@ -31,14 +31,6 @@ namespace Microsoft.AspNetCore.Razor.Language
                 return false;
             }
 
-            if (descriptorX.CaseSensitive != descriptorY.CaseSensitive)
-            {
-                return false;
-            }
-
-            var stringComparer = descriptorX.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-            var stringComparison = descriptorX.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-
             if (!string.Equals(descriptorX.Kind, descriptorY.Kind, StringComparison.Ordinal))
             {
                 return false;
@@ -55,16 +47,16 @@ namespace Microsoft.AspNetCore.Razor.Language
             }
 
             if (!Enumerable.SequenceEqual(
-                descriptorX.BoundAttributes.OrderBy(attribute => attribute.Name, stringComparer),
-                descriptorY.BoundAttributes.OrderBy(attribute => attribute.Name, stringComparer),
+                descriptorX.BoundAttributes.OrderBy(attribute => attribute.Name, StringComparer.Ordinal),
+                descriptorY.BoundAttributes.OrderBy(attribute => attribute.Name, StringComparer.Ordinal),
                 BoundAttributeDescriptorComparer.Default))
             {
                 return false;
             }
 
             if (!Enumerable.SequenceEqual(
-                descriptorX.TagMatchingRules.OrderBy(rule => rule.TagName, stringComparer),
-                descriptorY.TagMatchingRules.OrderBy(rule => rule.TagName, stringComparer),
+                descriptorX.TagMatchingRules.OrderBy(rule => rule.TagName, StringComparer.Ordinal),
+                descriptorY.TagMatchingRules.OrderBy(rule => rule.TagName, StringComparer.Ordinal),
                 TagMatchingRuleDescriptorComparer.Default))
             {
                 return false;
@@ -74,9 +66,14 @@ namespace Microsoft.AspNetCore.Razor.Language
                 (descriptorX.AllowedChildTags != null &&
                 descriptorY.AllowedChildTags != null &&
                 Enumerable.SequenceEqual(
-                    descriptorX.AllowedChildTags.OrderBy(childTag => childTag.Name, stringComparer),
-                    descriptorY.AllowedChildTags.OrderBy(childTag => childTag.Name, stringComparer),
+                    descriptorX.AllowedChildTags.OrderBy(childTag => childTag.Name, StringComparer.Ordinal),
+                    descriptorY.AllowedChildTags.OrderBy(childTag => childTag.Name, StringComparer.Ordinal),
                     AllowedChildTagDescriptorComparer.Default))))
+            {
+                return false;
+            }
+
+            if (descriptorX.CaseSensitive != descriptorY.CaseSensitive)
             {
                 return false;
             }
@@ -91,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 return false;
             }
 
-            if (!string.Equals(descriptorX.TagOutputHint, descriptorY.TagOutputHint, stringComparison))
+            if (!string.Equals(descriptorX.TagOutputHint, descriptorY.TagOutputHint, StringComparison.Ordinal))
             {
                 return false;
             }

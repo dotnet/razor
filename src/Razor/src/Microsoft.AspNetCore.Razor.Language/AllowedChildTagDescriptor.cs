@@ -13,8 +13,6 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public string DisplayName { get; protected set; }
 
-        public bool CaseSensitive { get; protected set; }
-
         public IReadOnlyList<RazorDiagnostic> Diagnostics { get; protected set; }
 
         public bool HasErrors

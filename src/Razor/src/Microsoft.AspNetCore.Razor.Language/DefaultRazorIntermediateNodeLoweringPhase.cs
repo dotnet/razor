@@ -1184,6 +1184,18 @@ namespace Microsoft.AspNetCore.Razor.Language
                             BuildSourceSpanFromNode(node.EndTag), node.EndTag.GetTagNameWithOptionalBang()));
                 }
 
+                if (node.StartTag != null)
+                {
+                    var startTagName = node.StartTag.GetTagNameWithOptionalBang();
+                    if (startTagName != null && startTagName.Length > 0 && !char.IsLower(startTagName, 0))
+                    {
+                        // A markup element that does not start with a lowercase character.
+                        // It is most likely intended to be a component. Add a warning.
+                        element.Diagnostics.Add(
+                            ComponentDiagnosticFactory.Create_UnexpectedMarkupElement(startTagName, BuildSourceSpanFromNode(node.StartTag)));
+                    }
+                }
+
                 _builder.Push(element);
 
                 base.VisitMarkupElement(node);

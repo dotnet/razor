@@ -43,18 +43,6 @@ namespace Microsoft.AspNetCore.Razor.Language
             return builder;
         }
 
-        public static TagMatchingRuleDescriptorBuilder SetCaseSensitive(this TagMatchingRuleDescriptorBuilder builder)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            builder.CaseSensitive = true;
-
-            return builder;
-        }
-
         public static TagMatchingRuleDescriptorBuilder AddDiagnostic(this TagMatchingRuleDescriptorBuilder builder, RazorDiagnostic diagnostic)
         {
             if (builder == null)

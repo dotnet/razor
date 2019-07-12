@@ -11,8 +11,6 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public abstract RequiredAttributeDescriptor.NameComparisonMode NameComparisonMode { get; set; }
 
-        public virtual bool CaseSensitive { get; set; }
-
         public abstract string Value { get; set; }
 
         public abstract RequiredAttributeDescriptor.ValueComparisonMode ValueComparisonMode { get; set; }

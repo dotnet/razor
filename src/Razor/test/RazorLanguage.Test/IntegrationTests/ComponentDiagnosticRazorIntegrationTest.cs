@@ -125,5 +125,43 @@ namespace Test
                 "Component attributes do not support complex content (mixed C# and markup). Attribute: '@key', text: 'Foo @Text'",
                 diagnostic.GetMessage());
         }
+
+        [Fact]
+        public void Component_StartsWithLowerCase_ReportsError()
+        {
+            // Arrange & Act
+            var generated = CompileToCSharp("lowerCase.razor", @"
+<input type=""text"" @bind=""Text"" />
+@functions {
+    public string Text { get; set; } = ""text"";
+}");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Equal("RZ10013", diagnostic.Id);
+            Assert.Equal(
+                "Component 'lowerCase' starts with a lowercase character. Component names cannot start with a lowercase character.",
+                diagnostic.GetMessage());
+        }
+
+        [Fact]
+        public void Element_DoesNotStartWithLowerCase_ReportsWarning()
+        {
+            // Arrange & Act
+            var generated = CompileToCSharp(@"
+<PossibleComponent></PossibleComponent>
+
+@functions {
+    public string Text { get; set; } = ""text"";
+}");
+
+            // Assert
+            var diagnostic = Assert.Single(generated.Diagnostics);
+            Assert.Equal("RZ10014", diagnostic.Id);
+            Assert.Equal(RazorDiagnosticSeverity.Warning, diagnostic.Severity);
+            Assert.Equal(
+                "Found markup element with unexpected name 'PossibleComponent'. If this is intended to be a component, add a @using directive for its namespace.",
+                diagnostic.GetMessage());
+        }
     }
 }

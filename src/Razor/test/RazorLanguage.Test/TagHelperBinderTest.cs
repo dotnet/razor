@@ -604,7 +604,8 @@ namespace Microsoft.AspNetCore.Razor.Language
         {
             // Arrange
             var divTagHelper = TagHelperDescriptorBuilder.Create("DivTagHelper", "SomeAssembly")
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div").SetCaseSensitive())
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("div"))
+                .SetCaseSensitive()
                 .Build();
             var expectedDescriptors = new[] { divTagHelper };
             var expectedAttributes = new[]
@@ -631,8 +632,8 @@ namespace Microsoft.AspNetCore.Razor.Language
             var divTagHelper = TagHelperDescriptorBuilder.Create("DivTagHelper", "SomeAssembly")
                 .TagMatchingRuleDescriptor(rule => rule
                     .RequireTagName("div")
-                    .SetCaseSensitive()
-                    .RequireAttributeDescriptor(attribute => attribute.Name("class").SetCaseSensitive()))
+                    .RequireAttributeDescriptor(attribute => attribute.Name("class")))
+                .SetCaseSensitive()
                 .Build();
             var expectedDescriptors = new[] { divTagHelper };
             var expectedAttributes = new[]

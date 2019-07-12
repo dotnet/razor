@@ -33,18 +33,6 @@ namespace Microsoft.AspNetCore.Razor.Language
             return builder;
         }
 
-        public static RequiredAttributeDescriptorBuilder SetCaseSensitive(this RequiredAttributeDescriptorBuilder builder)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            builder.CaseSensitive = true;
-
-            return builder;
-        }
-
         public static RequiredAttributeDescriptorBuilder Value(this RequiredAttributeDescriptorBuilder builder, string value)
         {
             if (builder == null)

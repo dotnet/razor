@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 descriptorX.CaseSensitive == descriptorY.CaseSensitive &&
                 descriptorX.NameComparison == descriptorY.NameComparison &&
                 descriptorX.ValueComparison == descriptorY.ValueComparison &&
-                string.Equals(descriptorX.Name, descriptorY.Name, descriptorX.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(descriptorX.Name, descriptorY.Name, StringComparison.Ordinal) &&
                 string.Equals(descriptorX.Value, descriptorY.Value, StringComparison.Ordinal) &&
                 string.Equals(descriptorX.DisplayName, descriptorY.DisplayName, StringComparison.Ordinal);
         }

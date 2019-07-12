@@ -1893,8 +1893,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 .TagMatchingRuleDescriptor(rule =>
                     rule
                     .RequireTagName("p")
-                    .SetCaseSensitive()
-                    .RequireAttributeDescriptor(attribute => attribute.Name("class").SetCaseSensitive()))
+                    .RequireAttributeDescriptor(attribute => attribute.Name("class")))
                 .Build(),
             TagHelperDescriptorBuilder.Create("catchAllTagHelper", "SomeAssembly")
                 .TagMatchingRuleDescriptor(rule =>

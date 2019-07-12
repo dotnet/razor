@@ -35,8 +35,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             }
 
             return
-                descriptorX.CaseSensitive == descriptorY.CaseSensitive &&
-                string.Equals(descriptorX.Name, descriptorY.Name, descriptorX.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(descriptorX.Name, descriptorY.Name, StringComparison.Ordinal) &&
                 string.Equals(descriptorX.DisplayName, descriptorY.DisplayName, StringComparison.Ordinal);
         }
 
@@ -44,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         public virtual int GetHashCode(AllowedChildTagDescriptor descriptor)
         {
             var hash = HashCodeCombiner.Start();
-            hash.Add(descriptor.Name, descriptor.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+            hash.Add(descriptor.Name, StringComparer.Ordinal);
 
             return hash.CombinedHash;
         }

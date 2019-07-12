@@ -9,14 +9,18 @@ namespace Microsoft.AspNetCore.Razor.Language
 {
     internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDescriptorBuilder
     {
+        private DefaultTagMatchingRuleDescriptorBuilder _parent;
         private RazorDiagnosticCollection _diagnostics;
         private readonly Dictionary<string, string> _metadata = new Dictionary<string, string>();
+
+        public DefaultRequiredAttributeDescriptorBuilder(DefaultTagMatchingRuleDescriptorBuilder parent)
+        {
+            _parent = parent;
+        }
 
         public override string Name { get; set; }
 
         public override RequiredAttributeDescriptor.NameComparisonMode NameComparisonMode { get; set; }
-
-        public override bool CaseSensitive { get; set; }
 
         public override string Value { get; set; }
 
@@ -36,6 +40,8 @@ namespace Microsoft.AspNetCore.Razor.Language
         }
 
         public override IDictionary<string, string> Metadata => _metadata;
+
+        internal bool CaseSensitive => _parent.CaseSensitive;
 
         public RequiredAttributeDescriptor Build()
         {

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -33,8 +32,6 @@ namespace Microsoft.AspNetCore.Razor.Language
 
         public override string DisplayName { get; set; }
 
-        public override bool CaseSensitive { get; set; }
-
         public override IDictionary<string, string> Metadata => _metadata;
 
         public override RazorDiagnosticCollection Diagnostics
@@ -49,6 +46,8 @@ namespace Microsoft.AspNetCore.Razor.Language
                 return _diagnostics;
             }
         }
+
+        internal bool CaseSensitive => _parent.CaseSensitive;
 
         public BoundAttributeParameterDescriptor Build()
         {

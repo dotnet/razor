@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.Language
 
             EnsureTagMatchingRuleBuilders();
 
-            var builder = new DefaultTagMatchingRuleDescriptorBuilder();
+            var builder = new DefaultTagMatchingRuleDescriptorBuilder(this);
             configure(builder);
             _tagMatchingRuleBuilders.Add(builder);
         }

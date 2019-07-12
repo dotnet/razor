@@ -5,11 +5,10 @@ namespace Microsoft.AspNetCore.Razor.Language
 {
     internal class DefaultAllowedChildTagDescriptor : AllowedChildTagDescriptor
     {
-        public DefaultAllowedChildTagDescriptor(string name, string displayName, bool caseSensitive, RazorDiagnostic[] diagnostics)
+        public DefaultAllowedChildTagDescriptor(string name, string displayName, RazorDiagnostic[] diagnostics)
         {
             Name = name;
             DisplayName = displayName;
-            CaseSensitive = caseSensitive;
             Diagnostics = diagnostics;
         }
     }

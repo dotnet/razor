@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.Razor
             builder.TagMatchingRule(r =>
             {
                 r.TagName = type.Name;
-                r.CaseSensitive = true;
             });
 
             return builder.Build();
@@ -108,7 +107,6 @@ namespace Microsoft.CodeAnalysis.Razor
             builder.TagMatchingRule(r =>
             {
                 r.TagName = fullName;
-                r.CaseSensitive = true;
             });
             builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
 
@@ -176,7 +174,6 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 pb.Name = property.Name;
                 pb.TypeName = property.Type.ToDisplayString(FullNameTypeDisplayFormat);
-                pb.CaseSensitive = true;
                 pb.SetPropertyName(property.Name);
 
                 if (kind == PropertyKind.Enum)
@@ -259,7 +256,6 @@ namespace Microsoft.CodeAnalysis.Razor
                 pb.DisplayName = typeParameter.Name;
                 pb.Name = typeParameter.Name;
                 pb.TypeName = typeof(Type).FullName;
-                pb.CaseSensitive = true;
                 pb.SetPropertyName(typeParameter.Name);
 
                 pb.Metadata[ComponentMetadata.Component.TypeParameterKey] = bool.TrueString;
@@ -295,7 +291,6 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 r.TagName = attribute.Name;
                 r.ParentTag = component.TagMatchingRules.First().TagName;
-                r.CaseSensitive = true;
             });
 
             if (attribute.IsParameterizedChildContentProperty())
@@ -321,7 +316,6 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 b.Name = ComponentMetadata.ChildContent.ParameterAttributeName;
                 b.TypeName = typeof(string).FullName;
-                b.CaseSensitive = true;
                 b.Metadata.Add(ComponentMetadata.Component.ChildContentParameterNameKey, bool.TrueString);
 
                 if (childContentName == null)

@@ -67,18 +67,6 @@ namespace Microsoft.AspNetCore.Razor.Language
             return builder;
         }
 
-        public static BoundAttributeDescriptorBuilder SetCaseSensitive(this BoundAttributeDescriptorBuilder builder)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            builder.CaseSensitive = true;
-
-            return builder;
-        }
-
         public static BoundAttributeDescriptorBuilder AsDictionaryAttribute(
             this BoundAttributeDescriptorBuilder builder,
             string attributeNamePrefix,

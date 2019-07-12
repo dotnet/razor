@@ -31,16 +31,10 @@ namespace Microsoft.AspNetCore.Razor.Language
                 return false;
             }
 
-            if (ruleX.CaseSensitive != ruleX.CaseSensitive)
-            {
-                return false;
-            }
-
-            var stringComparison = ruleX.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-
             return
-                string.Equals(ruleX.TagName, ruleY.TagName, stringComparison) &&
-                string.Equals(ruleX.ParentTag, ruleY.ParentTag, stringComparison) &&
+                string.Equals(ruleX.TagName, ruleY.TagName, StringComparison.Ordinal) &&
+                string.Equals(ruleX.ParentTag, ruleY.ParentTag, StringComparison.Ordinal) &&
+                ruleX.CaseSensitive == ruleY.CaseSensitive &&
                 ruleX.TagStructure == ruleY.TagStructure &&
                 Enumerable.SequenceEqual(ruleX.Attributes, ruleY.Attributes, RequiredAttributeDescriptorComparer.Default);
         }
@@ -53,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.Language
             }
 
             var hash = HashCodeCombiner.Start();
-            hash.Add(rule.TagName, rule.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+            hash.Add(rule.TagName, StringComparer.Ordinal);
 
             return hash.CombinedHash;
         }
