@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             Assert.FileExists(result, OutputPath, "SimpleMvcWithContent.Views.dll");
             Assert.FileExists(result, OutputPath, "SimpleMvcWithContent.Views.pdb");
             Assert.FileExists(result, OutputPath, "appsettings.json");
-            Assert.FileExists(result, OutputPath, "appsettings.development.json");
+            Assert.FileExists(result, OutputPath, "appsettings.Development.json");
             Assert.FileDoesNotExist(result, OutputPath, Path.Combine("Properties", "launchSettings.json"));
 
             Assert.FileExists(result, PublishOutputPath, "SimpleMvcWithContent.dll");
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             Assert.FileCountEquals(result, 0, Path.Combine(PublishOutputPath, "Views"), "*.cshtml");
         }
 
-        [Fact(Skip = "Single file publish is currently broken")]
+        [Fact]
         [InitializeTestProject("SimpleMvcWithContent")]
         public async Task PublishSingleFile_PublishesContentOutsideOfSingleFile()
         {
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 
             Assert.FileExists(result, OutputPath, "SimpleMvcWithContent.exe");
             Assert.FileExists(result, OutputPath, "appsettings.json");
-            Assert.FileExists(result, OutputPath, "appsettings.development.json");
+            Assert.FileExists(result, OutputPath, "appsettings.Development.json");
             Assert.FileDoesNotExist(result, OutputPath, Path.Combine("Properties", "launchSettings.json"));
 
             // Verify assets get published
