@@ -61,6 +61,53 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         }
 
         [Fact]
+        [InitializeTestProject("SimpleMvcWithContent")]
+        public async Task Publish_PublishesContent()
+        {
+            var result = await DotnetMSBuild("Publish");
+
+            Assert.BuildPassed(result);
+
+            Assert.FileExists(result, OutputPath, "SimpleMvcWithContent.dll");
+            Assert.FileExists(result, OutputPath, "SimpleMvcWithContent.pdb");
+            Assert.FileExists(result, OutputPath, "SimpleMvcWithContent.Views.dll");
+            Assert.FileExists(result, OutputPath, "SimpleMvcWithContent.Views.pdb");
+            Assert.FileExists(result, OutputPath, "appsettings.json");
+            Assert.FileExists(result, OutputPath, "appsettings.development.json");
+            Assert.FileDoesNotExist(result, OutputPath, Path.Combine("Properties", "launchSettings.json"));
+
+            Assert.FileExists(result, PublishOutputPath, "SimpleMvcWithContent.dll");
+            Assert.FileExists(result, PublishOutputPath, "SimpleMvcWithContent.pdb");
+            Assert.FileExists(result, PublishOutputPath, "SimpleMvcWithContent.Views.dll");
+            Assert.FileExists(result, PublishOutputPath, "SimpleMvcWithContent.Views.pdb");
+            Assert.FileExists(result, PublishOutputPath, "appsettings.json");
+            Assert.FileExists(result, PublishOutputPath, "appsettings.development.json");
+            Assert.FileDoesNotExist(result, PublishOutputPath, Path.Combine("Properties", "launchSettings.json"));
+
+            // By default refs and .cshtml files will not be copied on publish
+            Assert.FileCountEquals(result, 0, Path.Combine(PublishOutputPath, "refs"), "*.dll");
+            Assert.FileCountEquals(result, 0, Path.Combine(PublishOutputPath, "Views"), "*.cshtml");
+        }
+
+        [Fact(Skip = "Single file publish is currently broken")]
+        [InitializeTestProject("SimpleMvcWithContent")]
+        public async Task PublishSingleFile_PublishesContentOutsideOfSingleFile()
+        {
+            var result = await DotnetMSBuild("Publish", "/p:PublishSingleFile=true /p:RuntimeIdentifier=win-x64");
+
+            Assert.BuildPassed(result);
+
+            Assert.FileExists(result, OutputPath, "SimpleMvcWithContent.exe");
+            Assert.FileExists(result, OutputPath, "appsettings.json");
+            Assert.FileExists(result, OutputPath, "appsettings.development.json");
+            Assert.FileDoesNotExist(result, OutputPath, Path.Combine("Properties", "launchSettings.json"));
+
+            // Verify assets get published
+            Assert.FileExists(result, PublishOutputPath, "wwwroot", "js", "SimpleMvc.js");
+            Assert.FileExists(result, PublishOutputPath, "wwwroot", "css", "site.css");
+        }
+
+        [Fact]
         [InitializeTestProject("SimpleMvc")]
         public async Task Publish_WithRazorCompileOnPublish_PublishesAssembly()
         {
