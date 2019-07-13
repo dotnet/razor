@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             Assert.FileExists(result, PublishOutputPath, "SimpleMvcWithContent.Views.dll");
             Assert.FileExists(result, PublishOutputPath, "SimpleMvcWithContent.Views.pdb");
             Assert.FileExists(result, PublishOutputPath, "appsettings.json");
-            Assert.FileExists(result, PublishOutputPath, "appsettings.development.json");
+            Assert.FileExists(result, PublishOutputPath, "appsettings.Development.json");
             Assert.FileDoesNotExist(result, PublishOutputPath, Path.Combine("Properties", "launchSettings.json"));
 
             // By default refs and .cshtml files will not be copied on publish
@@ -97,10 +97,10 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 
             Assert.BuildPassed(result);
 
-            Assert.FileExists(result, OutputPath, "SimpleMvcWithContent.exe");
-            Assert.FileExists(result, OutputPath, "appsettings.json");
-            Assert.FileExists(result, OutputPath, "appsettings.Development.json");
-            Assert.FileDoesNotExist(result, OutputPath, Path.Combine("Properties", "launchSettings.json"));
+            Assert.FileExists(result, PublishOutputPath, "SimpleMvcWithContent.exe");
+            Assert.FileExists(result, PublishOutputPath, "appsettings.json");
+            Assert.FileExists(result, PublishOutputPath, "appsettings.Development.json");
+            Assert.FileDoesNotExist(result, PublishOutputPath, Path.Combine("Properties", "launchSettings.json"));
 
             // Verify assets get published
             Assert.FileExists(result, PublishOutputPath, "wwwroot", "js", "SimpleMvc.js");
