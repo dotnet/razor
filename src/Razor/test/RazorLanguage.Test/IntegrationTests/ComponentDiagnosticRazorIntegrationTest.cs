@@ -167,6 +167,17 @@ namespace Test
         }
 
         [Fact]
+        public void Element_DoesNotStartWithLowerCase_OverrideWithBang_NoWarning()
+        {
+            // Arrange & Act
+            var generated = CompileToCSharp(@"
+<!PossibleComponent></!PossibleComponent>");
+
+            // Assert
+            Assert.Empty(generated.Diagnostics);
+        }
+
+        [Fact]
         public void Component_StartAndEndTagCaseMismatch_ReportsError()
         {
             // Arrange & Act

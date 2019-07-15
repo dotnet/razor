@@ -5040,6 +5040,20 @@ namespace Test
             CompileToAssembly(generated);
         }
 
+        [Fact]
+        public void ElementWithUppercaseTagName_CanHideWarningWithBang()
+        {
+            // Arrange & Act
+            var generated = CompileToCSharp(@"
+<!NotAComponent />
+<!DefinitelyNotAComponent></!DefinitelyNotAComponent>");
+
+            // Assert
+            AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+            AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+            CompileToAssembly(generated);
+        }
+
         #endregion
     }
 }
