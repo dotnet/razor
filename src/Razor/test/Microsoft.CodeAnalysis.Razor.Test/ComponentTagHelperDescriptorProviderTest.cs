@@ -1455,7 +1455,7 @@ namespace Test
         public virtual string Footer { get; set; }
     }
 
-    public abstract class MyDerivedComponent1 : ComponentBase
+    public abstract class MyDerivedComponent1 : MyBaseComponent
     {
         public override string Header { get; set; }
 
@@ -1484,7 +1484,7 @@ namespace Test
 
             // Assert
             var components = ExcludeBuiltInComponents(context);
-            components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 4);
+            components = AssertAndExcludeFullyQualifiedNameMatchComponents(components, expectedCount: 1);
             var component = Assert.Single(components, c => c.IsComponentTagHelper());
 
             Assert.Equal("TestAssembly", component.AssemblyName);
