@@ -332,7 +332,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             var valueExpressionTokens = new List<IntermediateToken>();
             var changeExpressionTokens = new List<IntermediateToken>();
 
-            // DOM-based event handlers use EventCallback, so if we see a delegate here it's a component.
+            // There are a few cases to handle for @bind:
+            // 1. This is a component using a delegate (int Value & Action<int> Value)
+            // 2. This is a component using EventCallback (int value & EventCallback<int>)
+            // 3. This is an element
             if (parent is ComponentIntermediateNode && changeAttribute != null && changeAttribute.IsDelegateProperty())
             {
                 RewriteNodesForComponentDelegateBind(
@@ -601,6 +604,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             List<IntermediateToken> valueExpressionTokens,
             List<IntermediateToken> changeExpressionTokens)
         {
+            // For a component using @bind we want to:
+            //  - use the value as-is
+            //  - create a delegate to handle changes
             valueExpressionTokens.Add(original);
 
             // Now rewrite the content of the change-handler node. Since it's a component attribute,
@@ -619,6 +625,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             List<IntermediateToken> valueExpressionTokens,
             List<IntermediateToken> changeExpressionTokens)
         {
+            // For a component using @bind we want to:
+            //  - use the value as-is
+            //  - create a delegate to handle changes
             valueExpressionTokens.Add(original);
 
             changeExpressionTokens.Add(new IntermediateToken()
