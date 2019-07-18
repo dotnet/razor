@@ -75,4 +75,14 @@
     </ItemGroup>
   </Target>
 
+  <!--This Target is used when this AddIn is built side-by-side with monodevelop folder so it "injects" itself as AddIn instead of downloaded AddIn-->
+  <Target Name="RegisterAddin" AfterTargets="Build" Condition="Exists ('$(_MonoDevelopPath)')" >
+    <MakeDir Directories="$(_MDLocalConfigDir)" />
+    <PropertyGroup>
+      <MPackDirectoryInclude>%3CDirectory include-subdirs='true'%3E$(OutputPath)%3C/Directory%3E</MPackDirectoryInclude>
+      <BundledMPackExclude>%3CExclude%3E$(_VSMXamarinExtensionsPathBundled)razor/%3C/Exclude%3E</BundledMPackExclude>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_MDLocalConfigDir)xamarin-addins_$(AssemblyName).addins" Lines="%3CAddins%3E $(MPackDirectoryInclude) $(BundledMPackExclude) %3C/Addins%3E" Overwrite="true" />
+  </Target>
+
 </Project>

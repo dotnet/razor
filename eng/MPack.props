@@ -1,5 +1,8 @@
 <Project>
   <PropertyGroup>
     <ArtifactsMPackDir>$(ArtifactsDir)MPack\$(Configuration)\</ArtifactsMPackDir>
+    <_MonoDevelopPath>$(MSBuildThisFileDirectory)..\..\monodevelop\</_MonoDevelopPath>
+    <_MDLocalConfigDir>$(_MonoDevelopPath)local-config\</_MDLocalConfigDir>
+    <_VSMXamarinExtensionsPathBundled>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\..\md-addins\external-addins\))</_VSMXamarinExtensionsPathBundled>
   </PropertyGroup>
 </Project>
