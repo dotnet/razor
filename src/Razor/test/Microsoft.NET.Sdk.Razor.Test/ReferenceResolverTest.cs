@@ -132,12 +132,66 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             resolver.Add("MyCMS", "MyCMS.Core");
             resolver.Add("MyCMS.Core", "Microsoft.AspNetCore.Mvc.ViewFeatures");
 
+            // Act
+            var assemblies = resolver.ResolveAssemblies();
+
+            // Assert
+            Assert.Equal(new[] { "MyCMS", "MyCMS.Core" }, assemblies.OrderBy(a => a));
+        }
+
+        [Fact]
+        public void Resolve_Works_WhenAssemblyReferencesAreRecursive()
+        {
+            // Test for https://github.com/aspnet/AspNetCore/issues/12693
+            // Arrange
+            var resolver = new TestReferencesToMvcResolver(new[]
+            {
+                CreateAssemblyItem("PresentationFramework"),
+                CreateAssemblyItem("ReachFramework"),
+                CreateAssemblyItem("MyCMS"),
+                CreateAssemblyItem("MyCMS.Core"),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isSystemReference: true),
+            });
+
+            resolver.Add("PresentationFramework", "ReachFramework");
+            resolver.Add("ReachFramework", "PresentationFramework");
+
+            resolver.Add("MyCMS", "MyCMS.Core");
+            resolver.Add("MyCMS.Core", "Microsoft.AspNetCore.Mvc.ViewFeatures");
 
             // Act
             var assemblies = resolver.ResolveAssemblies();
 
             // Assert
             Assert.Equal(new[] { "MyCMS", "MyCMS.Core" }, assemblies.OrderBy(a => a));
+        }
+
+        [Fact]
+        public void Resolve_Works_WhenAssemblyReferencesAreRecursive_ButAlsoReferencesMvc()
+        {
+            // Arrange
+            var resolver = new TestReferencesToMvcResolver(new[]
+            {
+                CreateAssemblyItem("MyCoolLibrary"),
+                CreateAssemblyItem("PresentationFramework"),
+                CreateAssemblyItem("ReachFramework"),
+                CreateAssemblyItem("MyCMS"),
+                CreateAssemblyItem("MyCMS.Core"),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isSystemReference: true),
+            });
+
+            resolver.Add("MyCoolLibrary", "PresentationFramework");
+            resolver.Add("PresentationFramework", "ReachFramework");
+            resolver.Add("ReachFramework", "PresentationFramework", "MyCMS");
+
+            resolver.Add("MyCMS", "MyCMS.Core");
+            resolver.Add("MyCMS.Core", "Microsoft.AspNetCore.Mvc.ViewFeatures");
+
+            // Act
+            var assemblies = resolver.ResolveAssemblies();
+
+            // Assert
+            Assert.Equal(new[] { "MyCMS", "MyCMS.Core", "MyCoolLibrary", "PresentationFramework", "ReachFramework" }, assemblies.OrderBy(a => a));
         }
 
         public AssemblyItem CreateAssemblyItem(string name, bool isSystemReference = false)
@@ -153,17 +207,15 @@ namespace Microsoft.AspNetCore.Razor.Tasks
         private class TestReferencesToMvcResolver : ReferenceResolver
         {
             private readonly Dictionary<string, List<ClassifiedAssemblyItem>> _references = new Dictionary<string, List<ClassifiedAssemblyItem>>();
-            private readonly Dictionary<string, ClassifiedAssemblyItem> _lookup;
 
             public TestReferencesToMvcResolver(AssemblyItem[] referenceItems)
                 : base(MvcAssemblies, referenceItems)
             {
-                _lookup = referenceItems.ToDictionary(r => r.AssemblyName, r => new ClassifiedAssemblyItem(r));
             }
 
             public void Add(string assembly, params string[] references)
             {
-                var assemblyItems = references.Select(r => _lookup[r]).ToList();
+                var assemblyItems = references.Select(r => Lookup[r]).ToList();
                 _references[assembly] = assemblyItems;
             }
 

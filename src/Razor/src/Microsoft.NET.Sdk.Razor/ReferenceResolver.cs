@@ -15,7 +15,6 @@ namespace Microsoft.AspNetCore.Razor.Tasks
     public class ReferenceResolver
     {
         private readonly HashSet<string> _mvcAssemblies;
-        private readonly Dictionary<string, ClassifiedAssemblyItem> _lookup = new Dictionary<string, ClassifiedAssemblyItem>(StringComparer.Ordinal);
 
         public ReferenceResolver(IReadOnlyList<string> targetAssemblies, IReadOnlyList<AssemblyItem> assemblyItems)
         {
@@ -24,17 +23,21 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             foreach (var item in assemblyItems)
             {
                 var classifiedItem = new ClassifiedAssemblyItem(item);
-                _lookup[item.AssemblyName] = classifiedItem;
+                Lookup[item.AssemblyName] = classifiedItem;
             }
         }
+
+        protected Dictionary<string, ClassifiedAssemblyItem> Lookup { get; } = new Dictionary<string, ClassifiedAssemblyItem>(StringComparer.Ordinal);
 
         public IReadOnlyList<string> ResolveAssemblies()
         {
             var applicationParts = new List<string>();
-            foreach (var item in _lookup)
+            var visited = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (var item in Lookup)
             {
-                var classification = Resolve(item.Value);
-                if (classification == DependencyClassification.ReferencesMvc)
+                Resolve(item.Value, visited);
+                if (item.Value.DependencyClassification == DependencyClassification.ReferencesMvc)
                 {
                     applicationParts.Add(item.Key);
                 }
@@ -46,11 +49,17 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             return applicationParts;
         }
 
-        private DependencyClassification Resolve(ClassifiedAssemblyItem classifiedItem)
+        private void Resolve(ClassifiedAssemblyItem classifiedItem, HashSet<string> visited)
         {
             if (classifiedItem.DependencyClassification != DependencyClassification.Unknown)
             {
-                return classifiedItem.DependencyClassification;
+                return;
+            }
+
+            if (!visited.Add(classifiedItem.Name))
+            {
+                // Are we in a cycle?
+                return;
             }
 
             if (classifiedItem.AssemblyItem == null)
@@ -62,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                     DependencyClassification.MvcReference :
                     DependencyClassification.DoesNotReferenceMvc;
 
-                return classifiedItem.DependencyClassification;
+                return;
             }
 
             if (classifiedItem.AssemblyItem.IsSystemReference)
@@ -74,19 +83,21 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                     DependencyClassification.MvcReference :
                     DependencyClassification.DoesNotReferenceMvc;
 
-                return classifiedItem.DependencyClassification;
+                return;
             }
 
             if (_mvcAssemblies.Contains(classifiedItem.Name))
             {
                 classifiedItem.DependencyClassification = DependencyClassification.MvcReference;
-                return classifiedItem.DependencyClassification;
+                return;
             }
 
             var dependencyClassification = DependencyClassification.DoesNotReferenceMvc;
             foreach (var assemblyItem in GetReferences(classifiedItem.AssemblyItem.Path))
             {
-                var classification = Resolve(assemblyItem);
+                Resolve(assemblyItem, visited);
+                var classification = assemblyItem.DependencyClassification;
+
                 if (classification == DependencyClassification.MvcReference || classification == DependencyClassification.ReferencesMvc)
                 {
                     dependencyClassification = DependencyClassification.ReferencesMvc;
@@ -95,7 +106,6 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             }
 
             classifiedItem.DependencyClassification = dependencyClassification;
-            return dependencyClassification;
         }
 
         protected virtual IReadOnlyList<ClassifiedAssemblyItem> GetReferences(string file)
@@ -116,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                     var reference = metadataReader.GetAssemblyReference(handle);
                     var referenceName = metadataReader.GetString(reference.Name);
 
-                    if (_lookup.TryGetValue(referenceName, out var classifiedItem))
+                    if (Lookup.TryGetValue(referenceName, out var classifiedItem))
                     {
                         assemblyItems.Add(classifiedItem);
                     }
