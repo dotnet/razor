@@ -206,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
 
         private class TestReferencesToMvcResolver : ReferenceResolver
         {
-            private readonly Dictionary<string, List<ClassifiedAssemblyItem>> _references = new Dictionary<string, List<ClassifiedAssemblyItem>>();
+            private readonly Dictionary<string, string[]> _references = new Dictionary<string, string[]>();
 
             public TestReferencesToMvcResolver(AssemblyItem[] referenceItems)
                 : base(MvcAssemblies, referenceItems)
@@ -215,18 +215,17 @@ namespace Microsoft.AspNetCore.Razor.Tasks
 
             public void Add(string assembly, params string[] references)
             {
-                var assemblyItems = references.Select(r => Lookup[r]).ToList();
-                _references[assembly] = assemblyItems;
+                _references.Add(assembly, references);
             }
 
-            protected override IReadOnlyList<ClassifiedAssemblyItem> GetReferences(string file)
+            protected override IReadOnlyList<AssemblyItem> GetReferences(string file)
             {
                 if (_references.TryGetValue(file, out var result))
                 {
-                    return result;
+                    return result.Select(r => Lookup[r]).ToArray();
                 }
 
-                return Array.Empty<ClassifiedAssemblyItem>();
+                return Array.Empty<AssemblyItem>();
             }
         }
     }
