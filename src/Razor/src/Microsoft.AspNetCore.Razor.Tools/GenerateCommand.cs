@@ -222,13 +222,15 @@ namespace Microsoft.AspNetCore.Razor.Tools
                         success = false;
                     }
 
-                    Error.WriteLine(error.ToString());
-
-                    // Only show the first 100 errors to prevent massive string allocations.
-                    if (i == 99)
+                    if (i < 100)
                     {
-                        Error.WriteLine($"And {errorCount - i + 1} more errors.");
-                        break;
+                        Error.WriteLine(error.ToString());
+
+                        // Only show the first 100 errors to prevent massive string allocations.
+                        if (i == 99)
+                        {
+                            Error.WriteLine($"And {errorCount - i + 1} more warnings/errors.");
+                        }
                     }
                 }
 

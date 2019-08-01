@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         {
             var result = await DotnetMSBuild("Build");
 
-            Assert.BuildPassed(result);
+            Assert.BuildPassed(result, allowWarnings: true);
 
             Assert.FileExists(result, OutputPath, "ComponentApp.dll");
             Assert.FileExists(result, OutputPath, "ComponentApp.pdb");
