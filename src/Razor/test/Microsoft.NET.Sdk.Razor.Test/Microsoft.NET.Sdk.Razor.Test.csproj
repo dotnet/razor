@@ -37,12 +37,6 @@
       <_Parameter1>Testing.ProjectToPack</_Parameter1>
       <_Parameter2>$(MSBuildThisFileDirectory)..\testapps\PackageLibraryTransitiveDependency</_Parameter2>
     </AssemblyAttribute>
-
-    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>Testing.AdditionalRestoreSources</_Parameter1>
-      <_Parameter2>$(MSBuildThisFileDirectory)..\testapps\TestPackageRestoreSource</_Parameter2>
-    </AssemblyAttribute>
-
   </ItemGroup>
 
   <!-- The test projects rely on these binaries being available -->

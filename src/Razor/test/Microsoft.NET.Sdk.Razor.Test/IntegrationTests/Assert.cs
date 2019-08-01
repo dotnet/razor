@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -495,16 +494,14 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 
         private static IEnumerable<string> GetDeclaredTypeNames(string assemblyPath)
         {
-            using (var file = File.OpenRead(assemblyPath))
+            using var file = File.OpenRead(assemblyPath);
+            var peReader = new PEReader(file);
+            var metadataReader = peReader.GetMetadataReader();
+            return metadataReader.TypeDefinitions.Where(t => !t.IsNil).Select(t =>
             {
-                var peReader = new PEReader(file);
-                var metadataReader = peReader.GetMetadataReader();
-                return metadataReader.TypeDefinitions.Where(t => !t.IsNil).Select(t =>
-                {
-                    var type = metadataReader.GetTypeDefinition(t);
-                    return metadataReader.GetString(type.Namespace) + "." + metadataReader.GetString(type.Name);
-                }).ToArray();
-            }
+                var type = metadataReader.GetTypeDefinition(t);
+                return metadataReader.GetString(type.Namespace) + "." + metadataReader.GetString(type.Name);
+            }).ToArray();
         }
 
         private abstract class MSBuildXunitException : Xunit.Sdk.XunitException

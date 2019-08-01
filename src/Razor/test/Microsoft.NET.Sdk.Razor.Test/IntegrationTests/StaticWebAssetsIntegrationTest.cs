@@ -1,36 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Microsoft.Extensions.CommandLineUtils;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 {
-    public class StaticWebAssetsIntegrationTest : MSBuildIntegrationTestBase, IClassFixture<BuildServerTestFixture>, IClassFixture<PackageTestProjectsFixture>, IAsyncLifetime
+    public class StaticWebAssetsIntegrationTest : MSBuildIntegrationTestBase, IClassFixture<BuildServerTestFixture>
     {
-        public StaticWebAssetsIntegrationTest(
-            BuildServerTestFixture buildServer,
-            PackageTestProjectsFixture packageTestProjects,
-            ITestOutputHelper output)
+        public StaticWebAssetsIntegrationTest(BuildServerTestFixture buildServer)
             : base(buildServer)
         {
             UseLocalPackageCache = true;
-            PackageTestProjects = packageTestProjects;
-            Output = output;
         }
-
-        public PackageTestProjectsFixture PackageTestProjects { get; private set; }
-
-        public ITestOutputHelper Output { get; private set; }
 
         [Fact]
         [InitializeTestProject("AppWithPackageAndP2PReference",language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
@@ -53,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                 Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.StaticWebAssets.xml");
             }
 
-            var path = Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.dll");
+            Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.dll");
             var manifest = Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.StaticWebAssets.xml");
             var data = File.ReadAllText(manifest);
             Assert.Equal(expectedManifest, data);
@@ -118,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             Assert.FileExists(result, IntermediateOutputPath, "staticwebassets", "SimpleMvc.StaticWebAssets.Manifest.cache");
             Assert.FileDoesNotExist(result, OutputPath, "SimpleMvc.StaticWebAssets.xml");
 
-            var path = Assert.FileExists(result, OutputPath, "SimpleMvc.dll");
+            Assert.FileExists(result, OutputPath, "SimpleMvc.dll");
         }
 
         [Fact]
@@ -183,7 +168,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                 Assert.NotEqual(thumbPrints[file], thumbprint);
             }
 
-            var path = Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.dll");
+            Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.dll");
             var manifest = Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.StaticWebAssets.xml");
             var data = File.ReadAllText(manifest);
             Assert.Equal(expectedManifest, data);
@@ -228,16 +213,6 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             }
         }
 
-        public Task InitializeAsync()
-        {
-            return PackageTestProjects.PackAsync(Output);
-        }
-
-        public Task DisposeAsync()
-        {
-            return Task.CompletedTask;
-        }
-
         private string GetExpectedManifest()
         {
             // We need to do this for Mac as apparently the temp folder in mac is prepended by /private by the os, even though the current user
@@ -260,73 +235,6 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
   <ContentRoot BasePath=""_content/packagelibrarydirectdependency"" Path=""{projects[1]}"" />
   <ContentRoot BasePath=""_content/packagelibrarytransitivedependency"" Path=""{projects[0]}"" />
 </StaticWebAssets>";
-        }
-    }
-
-    public class PackageTestProjectsFixture
-    {
-        private const int MaxPackRetries = 3;
-        private const int MaxPackTimeoutInMinutes = 5;
-
-        private bool _packed;
-
-        internal async Task PackAsync(ITestOutputHelper output)
-        {
-            if (_packed)
-            {
-                return;
-            }
-
-            var projectsToPack = GetProjectsToPack();
-
-            foreach (var project in projectsToPack)
-            {
-                output.WriteLine(project);
-            }
-
-            foreach (var project in projectsToPack)
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = DotNetMuxer.MuxerPathOrDefault(),
-#if DEBUG
-                    Arguments = "msbuild /t:Restore;Pack /p:Configuration=Debug",
-#else
-                    Arguments = "msbuild /t:Restore;Pack /p:Configuration=Release",
-#endif
-                    WorkingDirectory = project,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-
-                for (int i = 0; i < MaxPackRetries; i++)
-                {
-                    try
-                    {
-                        var result = await MSBuildProcessManager.RunProcessCoreAsync(
-                            psi,
-                            TimeSpan.FromMinutes(MaxPackTimeoutInMinutes));
-
-                        output.WriteLine(result.Output);
-                        Assert.Equal(0, result.ExitCode);
-                        break;
-                    }
-                    catch
-                    {
-                        await Task.Delay(1000);
-                    }
-                }
-            }
-
-            _packed = true;
-        }
-
-        public static string[] GetProjectsToPack()
-        {
-            return typeof(PackageTestProjectsFixture).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
-                .Where(a => a.Key == "Testing.ProjectToPack")
-                .Select(a => a.Value)
-                .ToArray();
         }
     }
 }

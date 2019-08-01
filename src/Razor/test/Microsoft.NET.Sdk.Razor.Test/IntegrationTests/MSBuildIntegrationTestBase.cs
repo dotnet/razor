@@ -4,8 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +11,7 @@ using Moq;
 
 namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 {
+    [Xunit.Collection(ProjectTestCollection.CollectionName)]
     public abstract class MSBuildIntegrationTestBase
     {
         internal static readonly string LocalNugetPackagesCacheTempPath =
@@ -74,14 +73,6 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         {
             var timeout = suppressTimeout ? (TimeSpan?)Timeout.InfiniteTimeSpan : null;
 
-            // Additional restore sources for packages used in testing
-            var additionalRestoreSources = string.Join(
-                ',',
-                typeof(PackageTestProjectsFixture).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
-                    .Where(a => a.Key == "Testing.AdditionalRestoreSources")
-                    .Select(a => a.Value)
-                    .ToArray());
-
             var buildArgumentList = new List<string>
             {
                 // Disable node-reuse. We don't want msbuild processes to stick around
@@ -95,16 +86,13 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                 "/p:RunningAsTest=true",
 
                 $"/p:MicrosoftNETCoreApp30PackageVersion={BuildVariables.MicrosoftNETCoreApp30PackageVersion}",
-
-                // Additional restore sources for projects that require built packages
-                $"/p:RuntimeAdditionalRestoreSources={additionalRestoreSources}",
             };
 
             if (UseLocalPackageCache)
             {
                 if (!Directory.Exists(LocalNugetPackagesCacheTempPath))
                 {
-                    // The local cache folder needs to exist so that nuget 
+                    // The local cache folder needs to exist so that nuget
                     Directory.CreateDirectory(LocalNugetPackagesCacheTempPath);
                 }
             }
