@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         {
             var result = await DotnetMSBuild("Build");
 
-            Assert.BuildPassed(result, allowWarnings: true);
+            Assert.BuildPassed(result);
 
             Assert.FileExists(result, OutputPath, "ComponentApp.dll");
             Assert.FileExists(result, OutputPath, "ComponentApp.pdb");
@@ -49,6 +49,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         [InitializeTestProject("ComponentApp")]
         public async Task Build_Successful_WhenThereAreWarnings()
         {
+            ReplaceContent("<UnrecognizedComponent />", "Components", "Pages", "Index.razor");
             var result = await DotnetMSBuild("Build");
 
             Assert.BuildPassed(result, allowWarnings: true);
