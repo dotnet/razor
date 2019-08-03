@@ -6,21 +6,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Microsoft.AspNetCore.Testing;
 
 namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 {
     internal class ProjectDirectory : IDisposable
     {
-#if PRESERVE_WORKING_DIRECTORY
-        public bool PreserveWorkingDirectory { get; set; } = true;
-#else
-        public bool PreserveWorkingDirectory { get; set; }
-#endif
+        public static string RazorRoot { get; } = Path.Combine(Path.GetTempPath(), "Razor");
+
+        public static string RepositoryRoot { get; } = SearchUp(AppContext.BaseDirectory, "global.json") ??
+            throw new InvalidOperationException("Could not find repository root.");
+        public static string SolutionRoot { get; } = Path.Combine(RepositoryRoot, "src", "Razor");
+        public static string TestAppsRoot { get; } = Path.Combine(SolutionRoot, "test", "testapps");
 
         public static ProjectDirectory Create(string originalProjectName, string targetProjectName, string baseDirectory, string[] additionalProjects, string language)
         {
-            var destinationPath = Path.Combine(Path.GetTempPath(), "Razor", baseDirectory, Path.GetRandomFileName());
+            var destinationPath = Path.Combine(RazorRoot, baseDirectory, Path.GetRandomFileName());
             Directory.CreateDirectory(destinationPath);
 
             try
@@ -30,19 +30,11 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                     throw new InvalidOperationException($"{destinationPath} should be empty");
                 }
 
-                var repositoryRoot = SearchUp(AppContext.BaseDirectory, "global.json");
-                if (repositoryRoot == null)
-                {
-                    throw new InvalidOperationException("Could not find repository root.");
-                }
-
-                var solutionRoot = Path.Combine(repositoryRoot, "src", "Razor");
                 var binariesRoot = Path.GetDirectoryName(typeof(ProjectDirectory).Assembly.Location);
 
                 foreach (var project in new string[] { originalProjectName, }.Concat(additionalProjects))
                 {
-                    var testAppsRoot = Path.Combine(solutionRoot, "test", "testapps");
-                    var projectRoot = Path.Combine(testAppsRoot, project);
+                    var projectRoot = Path.Combine(TestAppsRoot, project);
                     if (!Directory.Exists(projectRoot))
                     {
                         throw new InvalidOperationException($"Could not find project at '{projectRoot}'");
@@ -51,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                     var projectDestination = Path.Combine(destinationPath, project);
                     var projectDestinationDir = Directory.CreateDirectory(projectDestination);
                     CopyDirectory(new DirectoryInfo(projectRoot), projectDestinationDir);
-                    SetupDirectoryBuildFiles(solutionRoot, binariesRoot, testAppsRoot, projectDestination);
+                    SetupDirectoryBuildFiles(SolutionRoot, binariesRoot, TestAppsRoot, projectDestination);
                 }
 
                 // Rename the csproj/fsproj
@@ -68,12 +60,11 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                 {
                     throw new InvalidOperationException($"Language {language} is not supported.");
                 }
+
                 var directoryPath = Path.Combine(destinationPath, originalProjectName);
                 var oldProjectFilePath = Path.Combine(directoryPath, originalProjectName + extension);
                 var newProjectFilePath = Path.Combine(directoryPath, targetProjectName + extension);
                 File.Move(oldProjectFilePath, newProjectFilePath);
-
-                CopyGlobalJson(repositoryRoot, destinationPath);
 
                 return new ProjectDirectory(
                     destinationPath,
@@ -86,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                 throw;
             }
 
-            void CopyDirectory(DirectoryInfo source, DirectoryInfo destination, bool recursive = true)
+            static void CopyDirectory(DirectoryInfo source, DirectoryInfo destination, bool recursive = true)
             {
                 foreach (var file in source.EnumerateFiles())
                 {
@@ -139,18 +130,6 @@ $@"<Project>
                         File.Copy(source, destination);
                     });
             }
-
-            void CopyGlobalJson(string repositoryRoot, string projectRoot)
-            {
-                var srcGlobalJson = Path.Combine(repositoryRoot, "global.json");
-                if (!File.Exists(srcGlobalJson))
-                {
-                    throw new InvalidOperationException("global.json at the root of the repository could not be found. Run './build /t:Noop' at the repository root and re-run these tests.");
-                }
-
-                var destinationGlobalJson = Path.Combine(projectRoot, "global.json");
-                File.Copy(srcGlobalJson, destinationGlobalJson);
-            }
         }
 
         protected ProjectDirectory(string solutionPath, string directoryPath, string projectFilePath)
@@ -168,14 +147,11 @@ $@"<Project>
 
         public void Dispose()
         {
-            if (PreserveWorkingDirectory)
-            {
-                Console.WriteLine($"Skipping deletion of working directory {SolutionPath}");
-            }
-            else
-            {
-                CleanupDirectory(SolutionPath);
-            }
+#if PRESERVE_WORKING_DIRECTORY
+            Console.WriteLine($"Skipping deletion of working directory {SolutionPath}");
+#else
+            CleanupDirectory(SolutionPath);
+#endif
         }
 
         internal static void CleanupDirectory(string filePath)

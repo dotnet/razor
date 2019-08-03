@@ -6,4 +6,9 @@
     <!-- aspnet/BuildTools#662 Don't police what version of NetCoreApp we use -->
     <NETCoreAppMaximumVersion>99.9</NETCoreAppMaximumVersion>
   </PropertyGroup>
+
+  <!-- Make sure test apps can be restored in any order. -->
+  <Target Name="_CreatePackageSourceDirectory" BeforeTargets="_GenerateRestoreGraph">
+    <MakeDir Directories="$(MSBuildThisFileDirectory)TestPackageRestoreSource" />
+  </Target>
 </Project>

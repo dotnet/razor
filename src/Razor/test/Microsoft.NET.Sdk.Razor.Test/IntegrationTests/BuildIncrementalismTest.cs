@@ -232,8 +232,6 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         {
             // Act - 1
             var tagHelperOutputCache = Path.Combine(IntermediateOutputPath, "MvcWithComponents.TagHelpers.output.cache");
-
-            var file = Path.Combine(Project.DirectoryPath, "Views", "Shared", "NavMenu.razor.g.cs");
             var generatedFile = Path.Combine(RazorIntermediateOutputPath, "Views", "Shared", "NavMenu.razor.g.cs");
             var generatedDefinitionFile = Path.Combine(RazorComponentIntermediateOutputPath, "Views", "Shared", "NavMenu.razor.g.cs");
 
