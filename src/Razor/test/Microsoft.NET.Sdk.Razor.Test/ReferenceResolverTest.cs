@@ -59,13 +59,13 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             var resolver = new TestReferencesToMvcResolver(new[]
             {
                 CreateAssemblyItem("MyApp.Models"),
-                CreateAssemblyItem("Microsoft.AspNetCore.Mvc", isSystemReference: true),
-                CreateAssemblyItem("Microsoft.AspNetCore.Hosting", isSystemReference: true),
-                CreateAssemblyItem("Microsoft.AspNetCore.HttpAbstractions", isSystemReference: true),
-                CreateAssemblyItem("Microsoft.AspNetCore.KestrelHttpServer", isSystemReference: true),
-                CreateAssemblyItem("Microsoft.AspNetCore.StaticFiles", isSystemReference: true),
-                CreateAssemblyItem("Microsoft.Extensions.Primitives", isSystemReference: true),
-                CreateAssemblyItem("System.Net.Http", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc", isFrameworkReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.Hosting", isFrameworkReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.HttpAbstractions", isFrameworkReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.KestrelHttpServer", isFrameworkReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.StaticFiles", isFrameworkReference: true),
+                CreateAssemblyItem("Microsoft.Extensions.Primitives", isFrameworkReference: true),
+                CreateAssemblyItem("System.Net.Http", isFrameworkReference: true),
                 CreateAssemblyItem("Microsoft.EntityFrameworkCore"),
             });
 
@@ -89,16 +89,16 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             // Arrange
             var resolver = new TestReferencesToMvcResolver(new[]
             {
-                CreateAssemblyItem("Microsoft.AspNetCore.Mvc", isSystemReference: true),
-                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.TagHelpers", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc", isFrameworkReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.TagHelpers", isFrameworkReference: true),
                 CreateAssemblyItem("MyTagHelpers"),
                 CreateAssemblyItem("MyControllers"),
                 CreateAssemblyItem("MyApp.Models"),
-                CreateAssemblyItem("Microsoft.AspNetCore.Hosting", isSystemReference: true),
-                CreateAssemblyItem("Microsoft.AspNetCore.HttpAbstractions", isSystemReference: true),
-                CreateAssemblyItem("Microsoft.AspNetCore.KestrelHttpServer", isSystemReference: true),
-                CreateAssemblyItem("Microsoft.AspNetCore.StaticFiles", isSystemReference: true),
-                CreateAssemblyItem("Microsoft.Extensions.Primitives", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.Hosting", isFrameworkReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.HttpAbstractions", isFrameworkReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.KestrelHttpServer", isFrameworkReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.StaticFiles", isFrameworkReference: true),
+                CreateAssemblyItem("Microsoft.Extensions.Primitives", isFrameworkReference: true),
                 CreateAssemblyItem("Microsoft.EntityFrameworkCore"),
             });
 
@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             {
                 CreateAssemblyItem("MyCMS"),
                 CreateAssemblyItem("MyCMS.Core"),
-                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isFrameworkReference: true),
             });
 
             resolver.Add("MyCMS", "MyCMS.Core");
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                 CreateAssemblyItem("ReachFramework"),
                 CreateAssemblyItem("MyCMS"),
                 CreateAssemblyItem("MyCMS.Core"),
-                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isFrameworkReference: true),
             });
 
             resolver.Add("PresentationFramework", "ReachFramework");
@@ -177,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                 CreateAssemblyItem("ReachFramework"),
                 CreateAssemblyItem("MyCMS"),
                 CreateAssemblyItem("MyCMS.Core"),
-                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isSystemReference: true),
+                CreateAssemblyItem("Microsoft.AspNetCore.Mvc.ViewFeatures", isFrameworkReference: true),
             });
 
             resolver.Add("MyCoolLibrary", "PresentationFramework");
@@ -194,12 +194,12 @@ namespace Microsoft.AspNetCore.Razor.Tasks
             Assert.Equal(new[] { "MyCMS", "MyCMS.Core", "MyCoolLibrary", "PresentationFramework", "ReachFramework" }, assemblies.OrderBy(a => a));
         }
 
-        public AssemblyItem CreateAssemblyItem(string name, bool isSystemReference = false)
+        public AssemblyItem CreateAssemblyItem(string name, bool isFrameworkReference = false)
         {
             return new AssemblyItem
             {
                 AssemblyName = name,
-                IsSystemReference = isSystemReference,
+                IsFrameworkReference = isFrameworkReference,
                 Path = name,
             };
         }

@@ -18,19 +18,22 @@ namespace Microsoft.AspNetCore.Razor.Tasks
     {
         private readonly HashSet<string> _mvcAssemblies;
         private readonly IReadOnlyList<AssemblyItem> _assemblyItems;
-        private readonly Dictionary<AssemblyItem, Classification> _classifications = new Dictionary<AssemblyItem, Classification>();
+        private readonly Dictionary<AssemblyItem, Classification> _classifications;
 
         public ReferenceResolver(IReadOnlyList<string> targetAssemblies, IReadOnlyList<AssemblyItem> assemblyItems)
         {
             _mvcAssemblies = new HashSet<string>(targetAssemblies, StringComparer.Ordinal);
             _assemblyItems = assemblyItems;
+            _classifications = new Dictionary<AssemblyItem, Classification>();
+
+            Lookup = new Dictionary<string, AssemblyItem>(StringComparer.Ordinal);
             foreach (var item in assemblyItems)
             {
                 Lookup[item.AssemblyName] = item;
             }
         }
 
-        protected Dictionary<string, AssemblyItem> Lookup { get; } = new Dictionary<string, AssemblyItem>(StringComparer.Ordinal);
+        protected Dictionary<string, AssemblyItem> Lookup { get; }
 
         public IReadOnlyList<string> ResolveAssemblies()
         {
@@ -67,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.Tasks
                     Classification.IsMvc :
                     Classification.DoesNotReferenceMvc;
             }
-            else if (assemblyItem.IsSystemReference)
+            else if (assemblyItem.IsFrameworkReference)
             {
                 // We do not allow transitive references to MVC via a framework reference to count.
                 // e.g. depending on Microsoft.AspNetCore.SomeThingNewThatDependsOnMvc would not result in an assembly being treated as
