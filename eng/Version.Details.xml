@@ -52,9 +52,9 @@
       <Uri>https://github.com/aspnet/Extensions</Uri>
       <Sha>60e7a31b8d3bdf84cc8a6bf053ee81ac8aefe37d</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="1.0.0-beta.19378.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="1.0.0-beta.19404.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>a8e982d3bac01d8f4f91a4c57191147570079448</Sha>
+      <Sha>b1c2f33f0cef32d1df6e7f388017fd6761d3fcad</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
