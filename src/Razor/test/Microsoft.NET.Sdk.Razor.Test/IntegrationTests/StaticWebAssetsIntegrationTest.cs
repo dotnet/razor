@@ -33,12 +33,49 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         public ITestOutputHelper Output { get; private set; }
 
         [Fact]
-        [InitializeTestProject("AppWithPackageAndP2PReference",language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
+        [InitializeTestProject("AppWithPackageAndP2PReference", language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
         public async Task Build_GeneratesStaticWebAssetsManifest_Success_CreatesManifest()
         {
             var result = await DotnetMSBuild("Build", "/restore");
 
             var expectedManifest = GetExpectedManifest();
+
+            Assert.BuildPassed(result);
+
+            // GenerateStaticWebAssetsManifest should generate the manifest and the cache.
+            Assert.FileExists(result, IntermediateOutputPath, "staticwebassets", "AppWithPackageAndP2PReference.StaticWebAssets.xml");
+            Assert.FileExists(result, IntermediateOutputPath, "staticwebassets", "AppWithPackageAndP2PReference.StaticWebAssets.Manifest.cache");
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                // Skip this check on mac as the CI seems to use a somewhat different path on OSX.
+                // This check works just fine on a local OSX instance, but the CI path seems to require prepending /private.
+                // There is nothing OS specific about publishing this file, so the chances of this breaking are infinitesimal.
+                Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.StaticWebAssets.xml");
+            }
+
+            var path = Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.dll");
+            var manifest = Assert.FileExists(result, OutputPath, "AppWithPackageAndP2PReference.StaticWebAssets.xml");
+            var data = File.ReadAllText(manifest);
+            Assert.Equal(expectedManifest, data);
+        }
+
+        [Fact]
+        [InitializeTestProject("AppWithPackageAndP2PReference", language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
+        public async Task Build_GeneratesStaticWebAssetsManifest_Success_CreatesDockerManifest()
+        {
+            var packagesRoot = LocalNugetPackagesCacheTempPath;
+            var solutionFolder = Path.GetDirectoryName(Project.DirectoryPath) + Path.DirectorySeparatorChar;
+
+            var result = await DotnetMSBuild(
+                "Build",
+                $"/restore " +
+                $"/p:SolutionFolder={solutionFolder} " +
+                $"/p:PackagesRoot={packagesRoot} " +
+                $"/p:UpdatePathsForDocker=true");
+
+            var expectedManifest = GetExpectedManifest("/app/packages/", "/app/")
+                .Replace("\\", "/")
+                .Replace("C:","");
 
             Assert.BuildPassed(result);
 
@@ -122,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         }
 
         [Fact]
-        [InitializeTestProject("AppWithPackageAndP2PReference",language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
+        [InitializeTestProject("AppWithPackageAndP2PReference", language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
         public async Task Clean_Success_RemovesManifestAndCache()
         {
             var result = await DotnetMSBuild("Build", "/restore");
@@ -143,7 +180,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         }
 
         [Fact]
-        [InitializeTestProject("AppWithPackageAndP2PReference",language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
+        [InitializeTestProject("AppWithPackageAndP2PReference", language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
         public async Task Rebuild_Success_RecreatesManifestAndCache()
         {
             // Arrange
@@ -190,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
         }
 
         [Fact]
-        [InitializeTestProject("AppWithPackageAndP2PReference",language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
+        [InitializeTestProject("AppWithPackageAndP2PReference", language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
         public async Task GenerateStaticWebAssetsManifest_IncrementalBuild_ReusesManifest()
         {
             var result = await DotnetMSBuild("GenerateStaticWebAssetsManifest", "/restore");
@@ -246,6 +283,11 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             var source = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"/private{Project.SolutionPath}" : Project.SolutionPath;
 
             var restorePath = LocalNugetPackagesCacheTempPath;
+            return GetExpectedManifest(restorePath, source);
+        }
+
+        private string GetExpectedManifest(string restorePath, string source)
+        {
             var projects = new[]
             {
                 Path.Combine(restorePath, "packagelibrarytransitivedependency", "1.0.0", "build", "..", "staticwebassets") + Path.DirectorySeparatorChar,

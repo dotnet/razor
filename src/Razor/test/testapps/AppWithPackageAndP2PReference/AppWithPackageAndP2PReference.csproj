@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-  
+
   <PropertyGroup>
     <RazorSdkDirectoryRoot>$(RazorSdkArtifactsDirectory)$(Configuration)\sdk-output\</RazorSdkDirectoryRoot>
   </PropertyGroup>
@@ -37,6 +37,43 @@
     <!-- In test scenarios $(BinariesRoot) is defined in a generated Directory.Build.props file -->
     <BinariesRoot>$(RepositoryRoot)artifacts\bin\Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib\$(Configuration)\netstandard2.0\</BinariesRoot>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <CreateStaticWebAssetsInputsCacheFileDependsOn>
+      $(CreateStaticWebAssetsInputsCacheFileDependsOn);
+      UpdateContainerPaths
+    </CreateStaticWebAssetsInputsCacheFileDependsOn>
+  </PropertyGroup>
+
+  <Target
+    Name="UpdateContainerPaths"
+    DependsOnTargets="ResolveStaticWebAssetContentRoots"
+    Condition="'$(UpdatePathsForDocker)' == 'true'">
+
+    <PropertyGroup>
+      <!-- This simulates re-mapping the path into a container folder -->
+      <ContainerNugetFolder>/app/packages/</ContainerNugetFolder>
+      <!-- This is normally $(SolutionDir) -->
+      <ContainerSolutionFolder>/app/</ContainerSolutionFolder>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <UpdatedPackageContentRoot
+        Condition="$([System.String]::new('%(StaticWebAssetContentRoot.Identity)').StartsWith('$(PackagesRoot)'))"
+        Include="@(StaticWebAssetContentRoot->'$([System.String]::new('%(Identity)').Replace('$(PackagesRoot)','$(ContainerNugetFolder)').Replace('\','/'))')">
+        <OriginalPath>%(Identity)</OriginalPath>
+      </UpdatedPackageContentRoot>
+
+      <UpdatedPackageContentRoot
+        Condition="$([System.String]::new('%(StaticWebAssetContentRoot.Identity)').StartsWith('$(SolutionFolder)'))"
+        Include="@(StaticWebAssetContentRoot->'$([System.String]::new('%(Identity)').Replace('$(SolutionFolder)','$(ContainerSolutionFolder)').Replace('\','/'))')">
+        <OriginalPath>%(Identity)</OriginalPath>
+      </UpdatedPackageContentRoot>
+
+      <StaticWebAssetContentRoot Remove="@(UpdatedPackageContentRoot->'%(OriginalPath)')" />
+      <StaticWebAssetContentRoot Include="@(UpdatedPackageContentRoot)" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup Condition="'$(BinariesRoot)'!=''">
     <Reference Include="$(BinariesRoot)\Microsoft.AspNetCore.Razor.Test.ComponentShim.dll" />
