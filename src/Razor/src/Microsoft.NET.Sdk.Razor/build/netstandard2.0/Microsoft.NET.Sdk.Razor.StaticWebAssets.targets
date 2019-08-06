@@ -45,7 +45,7 @@ Copyright (c) .NET Foundation. All rights reserved.
   <PropertyGroup>
     <GenerateStaticWebAssetsManifestDependsOn>
       ResolveStaticWebAssetsInputs;
-      _CreateStaticWebAssetsInputsCacheFile;
+      CreateStaticWebAssetsInputsCacheFile;
       $(GenerateStaticWebAssetsManifestDependsOn)
     </GenerateStaticWebAssetsManifestDependsOn>
 
@@ -78,6 +78,12 @@ Copyright (c) .NET Foundation. All rights reserved.
       _RemoveWebRootContentFromPackaging;
       $(PackDependsOn)
     </PackDependsOn>
+
+    <CreateStaticWebAssetsInputsCacheFileDependsOn>
+      ResolveStaticWebAssetContentRoots;
+      _PrepareForStaticWebAssets;
+      $(CreateStaticWebAssetsInputsCacheFileDependsOn)
+    </CreateStaticWebAssetsInputsCacheFileDependsOn>
 
   </PropertyGroup>
 
@@ -122,24 +128,31 @@ Copyright (c) .NET Foundation. All rights reserved.
     ============================================================
     -->
 
-  <Target
-    Name="_CreateStaticWebAssetsInputsCacheFile"
-    DependsOnTargets="ResolveStaticWebAssetsInputs;_PrepareForStaticWebAssets">
+  <!--
+  This is the list of inputs that will be used for generating the manifest used during development.
+  -->
 
+  <Target
+    Name="ResolveStaticWebAssetContentRoots"
+    DependsOnTargets="$(ResolveStaticWebAssetContentRootsDependsOn)">
     <ItemGroup>
-      <!--
-      This is the list of inputs that will be used for generating the manifest used during development.
-      -->
-      <_ExternalStaticWebAsset
-        Include="%(StaticWebAsset.Identity)"
+
+      <StaticWebAssetContentRoot
+        Include="%(StaticWebAsset.ContentRoot)"
         Condition="'%(SourceType)' != ''">
           <BasePath>%(StaticWebAsset.BasePath)</BasePath>
-          <ContentRoot>%(StaticWebAsset.ContentRoot)</ContentRoot>
-      </_ExternalStaticWebAsset>
+          <OriginalItemSpec>%(StaticWebAsset.Identity)</OriginalItemSpec>
+      </StaticWebAssetContentRoot>
+
     </ItemGroup>
+  </Target>
+
+  <Target
+    Name="CreateStaticWebAssetsInputsCacheFile"
+    DependsOnTargets="$(CreateStaticWebAssetsInputsCacheFileDependsOn)">
 
     <!-- We need a transform here to make sure we hash the metadata -->
-    <Hash ItemsToHash="@(_ExternalStaticWebAsset->'%(Identity)%(BasePath)%(ContentRoot)')">
+    <Hash ItemsToHash="@(StaticWebAssetContentRoot->'%(OriginalItemSpec)%(BasePath)%(Identity)')">
       <Output TaskParameter="HashResult" PropertyName="_StaticWebAssetsCacheHash" />
     </Hash>
 
@@ -171,15 +184,21 @@ Copyright (c) .NET Foundation. All rights reserved.
     Outputs="$(_GeneratedStaticWebAssetsDevelopmentManifest)"
     DependsOnTargets="$(GenerateStaticWebAssetsManifestDependsOn)">
 
+    <ItemGroup>
+      <_ContentRootDefinitions Include="@(StaticWebAssetContentRoot)">
+        <ContentRoot>%(StaticWebAssetContentRoot.Identity)</ContentRoot>
+      </_ContentRootDefinitions>
+    </ItemGroup>
+
     <GenerateStaticWebAssetsManifest
-      ContentRootDefinitions="@(_ExternalStaticWebAsset)"
+      ContentRootDefinitions="@(_ContentRootDefinitions)"
       TargetManifestPath="$(_GeneratedStaticWebAssetsDevelopmentManifest)" />
 
       <!-- This is the list of inputs that will be used for generating the manifest used during development. -->
     <ItemGroup>
       <Content
         Include="$(_GeneratedStaticWebAssetsDevelopmentManifest)"
-        Condition="'@(_ExternalStaticWebAsset->Count())' != '0'"
+        Condition="'@(StaticWebAssetContentRoot->Count())' != '0'"
         Link="$(TargetName).StaticWebAssets.xml">
 
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
