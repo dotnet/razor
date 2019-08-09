@@ -1314,11 +1314,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                         }
 
                         var tokenDescriptor = descriptor.Tokens[i];
-                        AcceptWhile(IsSpacingToken(includeNewLines: false, includeComments: true));
-                        var seenWhitespace = TokenBuilder.Count > 0;
 
-                        if (seenWhitespace)
+                        if (At(SyntaxKind.Whitespace))
                         {
+                            AcceptWhile(IsSpacingToken(includeNewLines: false, includeComments: true));
+
                             if (tokenDescriptor.Kind == DirectiveTokenKind.Member ||
                                 tokenDescriptor.Kind == DirectiveTokenKind.Namespace ||
                                 tokenDescriptor.Kind == DirectiveTokenKind.Type ||
