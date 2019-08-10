@@ -50,7 +50,7 @@ Copyright (c) .NET Foundation. All rights reserved.
     </GenerateStaticWebAssetsManifestDependsOn>
 
     <GetCurrentProjectStaticWebAssetsDependsOn>
-      ResolveStaticWebAssetsInputs;
+      ResolveCurrentProjectStaticWebAssetsInputs;
       $(GetCurrentProjectStaticWebAssetsDependsOn)
     </GetCurrentProjectStaticWebAssetsDependsOn>
 
@@ -59,10 +59,20 @@ Copyright (c) .NET Foundation. All rights reserved.
       $(AssignTargetPathsDependsOn)
     </AssignTargetPathsDependsOn>
 
-    <ResolveStaticWebAssetsInputsDependsOn Condition="$(NoBuild) != 'true'">
-      _ResolveStaticWebAssetsProjectReferences;
+    <ResolveStaticWebAssetsInputsDependsOn>
+      ResolveCurrentProjectStaticWebAssetsInputs;
       $(ResolveStaticWebAssetsInputsDependsOn)
     </ResolveStaticWebAssetsInputsDependsOn>
+
+    <ResolveStaticWebAssetsInputsDependsOn Condition="$(NoBuild) != 'true'">
+      ResolveReferencedProjectsStaticWebAssets;
+      $(ResolveStaticWebAssetsInputsDependsOn)
+    </ResolveStaticWebAssetsInputsDependsOn>
+
+    <ResolveReferencedProjectsStaticWebAssetsDependsOn>
+      _ResolveStaticWebAssetsProjectReferences;
+      $(ResolveReferencedProjectsStaticWebAssetsDependsOn)
+    </ResolveReferencedProjectsStaticWebAssetsDependsOn>
 
     <GenerateStaticWebAssetsPackTargetsDependsOn>
       _CreateStaticWebAssetsCustomPropsCacheFile;
@@ -209,17 +219,56 @@ Copyright (c) .NET Foundation. All rights reserved.
        * Assets from the referenced packages. These will be implicitly included when nuget
          restores the package and includes the package props file for the package.
   -->
+
+    <!-- StaticWebAssets from the current project come from ResolveCurrentProjectStaticWebAssetsInputs which is a dependency of this target. -->
+    <!-- StaticWebAssets from referenced projects come from ResolveReferencedProjectsStaticWebAssets which is a dependency of this target. -->
+    <!-- StaticWebAssets from packages are already available, so we don't do anything. -->
   <Target
     Name="ResolveStaticWebAssetsInputs"
-    DependsOnTargets="$(ResolveStaticWebAssetsInputsDependsOn)">
+    DependsOnTargets="$(ResolveStaticWebAssetsInputsDependsOn)" />
 
-    <!-- StaticWebAssets from the current project -->
-
-    <PropertyGroup>
-      <StaticWebAssetBasePath Condition="$(StaticWebAssetBasePath) == ''">_content/$(PackageId)</StaticWebAssetBasePath>
-    </PropertyGroup>
+  <!-- This is a helper task to compute the project references we need to invoke to retrieve
+       the static assets for a given application. We do it this way so that we can
+       pass additional build properties to compute the assets from the package when referenced
+       as a project. For example, Identity uses this hook to extend the project reference and
+       pass in the bootstrap version to use.
+  -->
+  <Target Name="_ResolveStaticWebAssetsProjectReferences"
+    DependsOnTargets="ResolveReferences">
 
     <ItemGroup>
+      <_StaticWebAssetsProjectReference
+        Include="%(ReferencePath.MSBuildSourceProjectFile)"
+        Condition="'%(ReferencePath.MSBuildSourceProjectFile)' != ''" />
+    </ItemGroup>
+
+  </Target>
+
+  <Target Name="ResolveReferencedProjectsStaticWebAssets" DependsOnTargets="$(ResolveReferencedProjectsStaticWebAssetsDependsOn)">
+
+    <MSBuild
+      Condition="'@(_StaticWebAssetsProjectReference->Count())' != '0'"
+      Projects="@(_StaticWebAssetsProjectReference)"
+      BuildInParallel="$(BuildInParallel)"
+      ContinueOnError="!$(BuildingProject)"
+      Targets="GetCurrentProjectStaticWebAssets"
+      SkipNonexistentTargets="true">
+      <Output TaskParameter="TargetOutputs" ItemName="_ReferencedProjectStaticWebAssets" />
+    </MSBuild>
+
+    <ItemGroup>
+      <StaticWebAsset Include="@(_ReferencedProjectStaticWebAssets)" />
+    </ItemGroup>
+
+  </Target>
+
+  <Target Name="ResolveCurrentProjectStaticWebAssetsInputs" DependsOnTargets="$(ResolveCurrentProjectStaticWebAssetsInputsDependsOn)">
+
+      <PropertyGroup>
+        <StaticWebAssetBasePath Condition="$(StaticWebAssetBasePath) == ''">_content/$(PackageId)</StaticWebAssetBasePath>
+      </PropertyGroup>
+
+      <ItemGroup>
 
       <_ThisProjectStaticWebAsset
         Include="$(MSBuildProjectDirectory)\wwwroot\**"
@@ -244,44 +293,11 @@ Copyright (c) .NET Foundation. All rights reserved.
         <!-- Subsection (folder) from the url space where content for this library will be served. -->
         <BasePath>$(StaticWebAssetBasePath)</BasePath>
         <!-- Relative path from the content root for the file. At publish time, we combine the BasePath + Relative
-  path to determine the final path for the file. -->
+             path to determine the final path for the file.
+        -->
         <RelativePath>%(RecursiveDir)%(FileName)%(Extension)</RelativePath>
 
       </StaticWebAsset>
-    </ItemGroup>
-
-    <!-- StaticWebAssets from referenced projects. -->
-
-    <MSBuild
-      Condition="'@(_StaticWebAssetsProjectReference->Count())' != '0'"
-      Projects="@(_StaticWebAssetsProjectReference)"
-      BuildInParallel="$(BuildInParallel)"
-      ContinueOnError="!$(BuildingProject)"
-      Targets="GetCurrentProjectStaticWebAssets"
-      Properties="_StaticWebAssetsSkipDependencies=true"
-      SkipNonexistentTargets="true">
-      <Output TaskParameter="TargetOutputs" ItemName="_ReferencedProjectStaticWebAssets" />
-    </MSBuild>
-
-    <ItemGroup>
-      <StaticWebAsset Include="@(_ReferencedProjectStaticWebAssets)" />
-    </ItemGroup>
-
-    <!-- StaticWebAssets from packages are already available, so we don't do anything. -->
-  </Target>
-
-  <!-- This is a helper task to compute the project references we need to invoke to retrieve
-       the static assets for a given application. We do it this way so that we can
-       pass additional build properties to compute the assets from the package when referenced
-       as a project. For example, Identity uses this hook to extend the project reference and
-       pass in the bootstrap version to use.
-  -->
-  <Target Name="_ResolveStaticWebAssetsProjectReferences"
-    DependsOnTargets="ResolveReferences"
-    Condition="'$(_StaticWebAssetsSkipDependencies)' == ''">
-
-    <ItemGroup>
-      <_StaticWebAssetsProjectReference Include="%(ReferencePath.MSBuildSourceProjectFile)" />
     </ItemGroup>
 
   </Target>
@@ -317,9 +333,11 @@ Copyright (c) .NET Foundation. All rights reserved.
        prevents the content from being packed even though we are including it explictily in
        GenerateStaticWebAssetsPackTargets
    -->
-  <Target Name="_RemoveWebRootContentFromPackaging" DependsOnTargets="_CreateStaticWebAssetsCustomPropsCacheFile" >
+  <Target Name="_RemoveWebRootContentFromPackaging" DependsOnTargets="ResolveStaticWebAssetsInputs">
     <ItemGroup>
-      <Content Remove="@(_CurrentProjectStaticWebAsset->'wwwroot\%(RelativePath)')"  />
+      <Content
+        Condition="'%(StaticWebAsset.SourceType)' == ''"
+        Remove="@(StaticWebAsset->'wwwroot\%(RelativePath)')"  />
     </ItemGroup>
   </Target>
 
