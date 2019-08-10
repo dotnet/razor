@@ -18,10 +18,6 @@ variables:
 - name: _HelixRepo
   value: aspnet/AspNetCore-Tooling
 
-# increase timeout since BAR publishing (if enabled) might wait a long time
-- name: _TimeoutInMinutes
-  value: 120
-
 # Variables for public PR builds
 - ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest'), contains(variables['Build.DefinitionName'], 'github')) }}:
   # These are needed to suppress a warning in the cibuild invocation since AzDO leaves the `$(_SignArgs)` in place and it fails to resolve.
@@ -58,7 +54,7 @@ pr:
 jobs:
 - template: /eng/common/templates/jobs/jobs.yml
   parameters:
-    timeoutInMinutes: $(_TimeoutInMinutes)
+    timeoutInMinutes: 120
     enablePublishBuildArtifacts: true # publishes artifacts/log files
     enablePublishTestResults: true
     helixRepo: $(_HelixRepo)
