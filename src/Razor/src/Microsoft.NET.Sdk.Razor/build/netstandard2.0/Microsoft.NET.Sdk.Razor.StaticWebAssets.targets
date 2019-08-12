@@ -70,7 +70,7 @@ Copyright (c) .NET Foundation. All rights reserved.
     </ResolveStaticWebAssetsInputsDependsOn>
 
     <ResolveReferencedProjectsStaticWebAssetsDependsOn>
-      _ResolveStaticWebAssetsProjectReferences;
+      ResolveReferences;
       $(ResolveReferencedProjectsStaticWebAssetsDependsOn)
     </ResolveReferencedProjectsStaticWebAssetsDependsOn>
 
@@ -233,31 +233,34 @@ Copyright (c) .NET Foundation. All rights reserved.
        as a project. For example, Identity uses this hook to extend the project reference and
        pass in the bootstrap version to use.
   -->
-  <Target Name="_ResolveStaticWebAssetsProjectReferences"
-    DependsOnTargets="ResolveReferences">
-
-    <ItemGroup>
-      <_StaticWebAssetsProjectReference
-        Include="%(ReferencePath.MSBuildSourceProjectFile)"
-        Condition="'%(ReferencePath.MSBuildSourceProjectFile)' != ''" />
-    </ItemGroup>
-
-  </Target>
 
   <Target Name="ResolveReferencedProjectsStaticWebAssets" DependsOnTargets="$(ResolveReferencedProjectsStaticWebAssetsDependsOn)">
 
+    <ItemGroup>
+      <_StaticWebAssetsProjectReference Include="@(AnnotatedProjects)" />
+    </ItemGroup>
+
     <MSBuild
-      Condition="'@(_StaticWebAssetsProjectReference->Count())' != '0'"
+      Condition="'@(_StaticWebAssetsProjectReference->Count())' != '0' and '%(_StaticWebAssetsProjectReference.BuildReference)' == 'true' and '@(ProjectReferenceWithConfiguration)' != ''"
+      Targets="GetCurrentProjectStaticWebAssets"
+      Properties="%(_StaticWebAssetsProjectReference.SetConfiguration); %(_StaticWebAssetsProjectReference.SetPlatform);  %(_StaticWebAssetsProjectReference.SetTargetFramework)"
+      RemoveProperties="%(_StaticWebAssetsProjectReference.GlobalPropertiesToRemove)"
       Projects="@(_StaticWebAssetsProjectReference)"
       BuildInParallel="$(BuildInParallel)"
       ContinueOnError="!$(BuildingProject)"
-      Targets="GetCurrentProjectStaticWebAssets"
       SkipNonexistentTargets="true">
+
       <Output TaskParameter="TargetOutputs" ItemName="_ReferencedProjectStaticWebAssets" />
     </MSBuild>
 
     <ItemGroup>
-      <StaticWebAsset Include="@(_ReferencedProjectStaticWebAssets)" />
+      <StaticWebAsset Include="%(_ReferencedProjectStaticWebAssets.Identity)">
+        <ContentRoot>%(ContentRoot)</ContentRoot>
+        <BasePath>%(BasePath)</BasePath>
+        <RelativePath>%(RelativePath)</RelativePath>
+        <SourceId>%(SourceId)</SourceId>
+        <SourceType>%(SourceType)</SourceType>
+      </StaticWebAsset>
     </ItemGroup>
 
   </Target>
