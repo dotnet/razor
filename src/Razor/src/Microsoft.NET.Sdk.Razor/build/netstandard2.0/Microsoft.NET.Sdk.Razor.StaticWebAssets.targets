@@ -237,7 +237,9 @@ Copyright (c) .NET Foundation. All rights reserved.
   <Target Name="ResolveReferencedProjectsStaticWebAssets" DependsOnTargets="$(ResolveReferencedProjectsStaticWebAssetsDependsOn)">
 
     <ItemGroup>
-      <_StaticWebAssetsProjectReference Include="@(AnnotatedProjects)" />
+      <!-- It is explicitly ok to take a dependency on _MSBuildProjectReferenceExistent as it is
+        something many other products already take a dependency on. -->
+      <_StaticWebAssetsProjectReference Include="@(_MSBuildProjectReferenceExistent)" />
     </ItemGroup>
 
     <MSBuild
@@ -254,12 +256,9 @@ Copyright (c) .NET Foundation. All rights reserved.
     </MSBuild>
 
     <ItemGroup>
-      <StaticWebAsset Include="%(_ReferencedProjectStaticWebAssets.Identity)">
-        <ContentRoot>%(ContentRoot)</ContentRoot>
-        <BasePath>%(BasePath)</BasePath>
-        <RelativePath>%(RelativePath)</RelativePath>
-        <SourceId>%(SourceId)</SourceId>
-        <SourceType>%(SourceType)</SourceType>
+      <StaticWebAsset
+        Include="@(_ReferencedProjectStaticWebAssets)"
+        KeepMetadata="ContentRoot;BasePath;RelativePath;SourceId;SourceType" />
       </StaticWebAsset>
     </ItemGroup>
 
@@ -274,8 +273,8 @@ Copyright (c) .NET Foundation. All rights reserved.
       <ItemGroup>
 
       <_ThisProjectStaticWebAsset
-        Include="$(MSBuildProjectDirectory)\wwwroot\**"
-        Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+        Include="@(Content)"
+        Condition="$([System.String]::Copy('%(Identity)').StartsWith('wwwroot'))" />
       <!--
         Should we promote 'wwwroot\**'' to a property?
         We don't want to capture any content outside the content root, that's why we don't do
