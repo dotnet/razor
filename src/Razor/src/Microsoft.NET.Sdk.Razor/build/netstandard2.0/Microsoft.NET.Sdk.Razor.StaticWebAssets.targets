@@ -243,7 +243,7 @@ Copyright (c) .NET Foundation. All rights reserved.
     </ItemGroup>
 
     <MSBuild
-      Condition="'@(_StaticWebAssetsProjectReference->Count())' != '0' and '%(_StaticWebAssetsProjectReference.BuildReference)' == 'true' and '@(ProjectReferenceWithConfiguration)' != ''"
+      Condition="'@(_StaticWebAssetsProjectReference)' != '' and '%(_StaticWebAssetsProjectReference.BuildReference)' == 'true' and '@(ProjectReferenceWithConfiguration)' != ''"
       Targets="GetCurrentProjectStaticWebAssets"
       Properties="%(_StaticWebAssetsProjectReference.SetConfiguration); %(_StaticWebAssetsProjectReference.SetPlatform);  %(_StaticWebAssetsProjectReference.SetTargetFramework)"
       RemoveProperties="%(_StaticWebAssetsProjectReference.GlobalPropertiesToRemove)"
@@ -259,7 +259,6 @@ Copyright (c) .NET Foundation. All rights reserved.
       <StaticWebAsset
         Include="@(_ReferencedProjectStaticWebAssets)"
         KeepMetadata="ContentRoot;BasePath;RelativePath;SourceId;SourceType" />
-      </StaticWebAsset>
     </ItemGroup>
 
   </Target>
