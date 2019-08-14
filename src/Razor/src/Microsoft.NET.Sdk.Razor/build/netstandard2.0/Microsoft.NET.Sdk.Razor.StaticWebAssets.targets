@@ -272,14 +272,10 @@ Copyright (c) .NET Foundation. All rights reserved.
       <ItemGroup>
 
       <_ThisProjectStaticWebAsset
-        Include="@(Content->'$(MSBuildProjectDirectory)\%(Identity)')"
+        Include="@(Content)"
         Condition="$([System.String]::Copy('%(Identity)').StartsWith('wwwroot'))" />
-      <!--
-        Should we promote 'wwwroot\**'' to a property?
-        We don't want to capture any content outside the content root, that's why we don't do
-        @(Content) here.
-      -->
-      <StaticWebAsset Include="@(_ThisProjectStaticWebAsset)" RemoveMetadata="CopyToPublishDirectory;ExcludeFromSingleFile">
+
+      <StaticWebAsset Include="@(_ThisProjectStaticWebAsset->'%(FullPath)')" RemoveMetadata="CopyToPublishDirectory;ExcludeFromSingleFile">
         <!-- (Package, Project, '' (CurrentProject)) -->
         <SourceType></SourceType>
         <!-- Identifier describing the source, the package id, the project name, empty for the current project.  -->
@@ -296,7 +292,7 @@ Copyright (c) .NET Foundation. All rights reserved.
         <!-- Relative path from the content root for the file. At publish time, we combine the BasePath + Relative
              path to determine the final path for the file.
         -->
-        <RelativePath>$([MSBuild]::MakeRelative('$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))', %(_ThisProjectStaticWebAsset.Identity)))</RelativePath>
+        <RelativePath>$([MSBuild]::MakeRelative('$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))', '%(FullPath)'))</RelativePath>
 
       </StaticWebAsset>
     </ItemGroup>
