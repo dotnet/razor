@@ -272,7 +272,7 @@ Copyright (c) .NET Foundation. All rights reserved.
       <ItemGroup>
 
       <_ThisProjectStaticWebAsset
-        Include="@(Content->'$(MSBuildProjectDirectory)/%(Identity)')"
+        Include="@(Content->'$(MSBuildProjectDirectory)\%(Identity)')"
         Condition="$([System.String]::Copy('%(Identity)').StartsWith('wwwroot'))" />
       <!--
         Should we promote 'wwwroot\**'' to a property?
@@ -296,7 +296,7 @@ Copyright (c) .NET Foundation. All rights reserved.
         <!-- Relative path from the content root for the file. At publish time, we combine the BasePath + Relative
              path to determine the final path for the file.
         -->
-        <RelativePath>$([MSBuild]::MakeRelative('$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))', '%(Identity)'))</RelativePath>
+        <RelativePath>$([MSBuild]::MakeRelative('$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))', %(_ThisProjectStaticWebAsset.Identity)))</RelativePath>
 
       </StaticWebAsset>
     </ItemGroup>
