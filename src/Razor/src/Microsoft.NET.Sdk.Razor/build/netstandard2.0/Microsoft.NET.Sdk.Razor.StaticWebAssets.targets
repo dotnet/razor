@@ -267,13 +267,18 @@ Copyright (c) .NET Foundation. All rights reserved.
 
       <PropertyGroup>
         <StaticWebAssetBasePath Condition="$(StaticWebAssetBasePath) == ''">_content/$(PackageId)</StaticWebAssetBasePath>
+        <_NormalizedCurrentProjectWwwroot>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))</_NormalizedCurrentProjectWwwroot
       </PropertyGroup>
 
       <ItemGroup>
 
       <_ThisProjectStaticWebAsset
         Include="@(Content)"
-        Condition="$([System.String]::Copy('%(Identity)').StartsWith('wwwroot'))" />
+        Condition="$([System.String]::Copy('%(Identity)').StartsWith('wwwroot'))">
+
+        <RelativePath>$([MSBuild]::MakeRelative('$(_NormalizedCurrentProjectWwwroot)', '%(Identity)'))</RelativePath>
+
+      </_ThisProjectStaticWebAsset>
 
       <StaticWebAsset Include="@(_ThisProjectStaticWebAsset->'%(FullPath)')" RemoveMetadata="CopyToPublishDirectory;ExcludeFromSingleFile">
         <!-- (Package, Project, '' (CurrentProject)) -->
@@ -286,13 +291,13 @@ Copyright (c) .NET Foundation. All rights reserved.
           * For referenced projects it corresponds to <<FullProjectRefPath>>/wwwroot
           * For the current projects it corresponds to $(MSBuildProjectDirectory)wwwroot\
         -->
-        <ContentRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))</ContentRoot>
+        <ContentRoot>$(_NormalizedCurrentProjectWwwroot)</ContentRoot>
         <!-- Subsection (folder) from the url space where content for this library will be served. -->
         <BasePath>$(StaticWebAssetBasePath)</BasePath>
         <!-- Relative path from the content root for the file. At publish time, we combine the BasePath + Relative
              path to determine the final path for the file.
         -->
-        <RelativePath>$([MSBuild]::MakeRelative('$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))', '%(FullPath)'))</RelativePath>
+        <RelativePath>%(RelativePath)</RelativePath>
 
       </StaticWebAsset>
     </ItemGroup>
