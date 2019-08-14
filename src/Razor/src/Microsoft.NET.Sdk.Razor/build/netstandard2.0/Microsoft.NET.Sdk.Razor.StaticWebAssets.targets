@@ -267,7 +267,6 @@ Copyright (c) .NET Foundation. All rights reserved.
 
       <PropertyGroup>
         <StaticWebAssetBasePath Condition="$(StaticWebAssetBasePath) == ''">_content/$(PackageId)</StaticWebAssetBasePath>
-        <_NormalizedCurrentProjectWwwroot>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))</_NormalizedCurrentProjectWwwroot
       </PropertyGroup>
 
       <ItemGroup>
@@ -276,7 +275,8 @@ Copyright (c) .NET Foundation. All rights reserved.
         Include="@(Content)"
         Condition="$([System.String]::Copy('%(Identity)').StartsWith('wwwroot'))">
 
-        <RelativePath>$([MSBuild]::MakeRelative('$(_NormalizedCurrentProjectWwwroot)', '%(Identity)'))</RelativePath>
+        <!-- Remove the wwwroot\ prefix -->
+        <RelativePath>$([System.String]::Copy('%(Identity)').Substring(8))</RelativePath>
 
       </_ThisProjectStaticWebAsset>
 
@@ -291,7 +291,7 @@ Copyright (c) .NET Foundation. All rights reserved.
           * For referenced projects it corresponds to <<FullProjectRefPath>>/wwwroot
           * For the current projects it corresponds to $(MSBuildProjectDirectory)wwwroot\
         -->
-        <ContentRoot>$(_NormalizedCurrentProjectWwwroot)</ContentRoot>
+        <ContentRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))</ContentRoot>
         <!-- Subsection (folder) from the url space where content for this library will be served. -->
         <BasePath>$(StaticWebAssetBasePath)</BasePath>
         <!-- Relative path from the content root for the file. At publish time, we combine the BasePath + Relative
