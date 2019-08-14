@@ -272,14 +272,14 @@ Copyright (c) .NET Foundation. All rights reserved.
       <ItemGroup>
 
       <_ThisProjectStaticWebAsset
-        Include="@(Content)"
+        Include="@(Content->'$(MSBuildProjectDirectory)/%(Identity)')"
         Condition="$([System.String]::Copy('%(Identity)').StartsWith('wwwroot'))" />
       <!--
         Should we promote 'wwwroot\**'' to a property?
         We don't want to capture any content outside the content root, that's why we don't do
         @(Content) here.
       -->
-      <StaticWebAsset Include="@(_ThisProjectStaticWebAsset)">
+      <StaticWebAsset Include="@(_ThisProjectStaticWebAsset)" RemoveMetadata="CopyToPublishDirectory;ExcludeFromSingleFile">
         <!-- (Package, Project, '' (CurrentProject)) -->
         <SourceType></SourceType>
         <!-- Identifier describing the source, the package id, the project name, empty for the current project.  -->
@@ -288,15 +288,15 @@ Copyright (c) .NET Foundation. All rights reserved.
           Full path to the content root for the item:
           * For packages it corresponds to %userprofile%/.nuget/packages/<<PackageId>>/<<PackageVersion>>/razorContent
           * For referenced projects it corresponds to <<FullProjectRefPath>>/wwwroot
-          * For the current projects it corresponds to $(MSBuildThisProjectFileDirectory)wwwroot\
+          * For the current projects it corresponds to $(MSBuildProjectDirectory)wwwroot\
         -->
-        <ContentRoot>$(MSBuildProjectDirectory)\wwwroot\</ContentRoot>
+        <ContentRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))</ContentRoot>
         <!-- Subsection (folder) from the url space where content for this library will be served. -->
         <BasePath>$(StaticWebAssetBasePath)</BasePath>
         <!-- Relative path from the content root for the file. At publish time, we combine the BasePath + Relative
              path to determine the final path for the file.
         -->
-        <RelativePath>%(RecursiveDir)%(FileName)%(Extension)</RelativePath>
+        <RelativePath>$([MSBuild]::MakeRelative('$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\wwwroot\'))', '%(Identity)'))</RelativePath>
 
       </StaticWebAsset>
     </ItemGroup>
