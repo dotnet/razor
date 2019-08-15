@@ -13,7 +13,7 @@ Copyright (c) .NET Foundation. All rights reserved.
 <Project ToolsVersion="14.0">
   <!--
   What follows in this file is based on:
-     https://github.com/dotnet/roslyn/blob/db4f836b97db1e7ad261e51c67cc80c6f3c28791/src/Compilers/Core/MSBuildTask/Microsoft.CSharp.Core.targets
+     https://github.com/dotnet/roslyn/blob/21263069b7e8522441d829fc59a3aa5b3a3cf938/src/Compilers/Core/MSBuildTask/Microsoft.CSharp.Core.targets
 
   We need to keep this basically up to date, as well as track the set of modifications we've made. Try to keep the formatting
   similar to the original to reduce noise. In general try to only deviate from the CoreCompile target when we need to for
