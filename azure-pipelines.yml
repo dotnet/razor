@@ -59,11 +59,11 @@ jobs:
     enablePublishTestResults: true
     helixRepo: $(_HelixRepo)
     enableTelemetry: true
+    # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
+    ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+      enableMicrobuild: true
     jobs:
     - job: Windows
-      # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
-      ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-        enableMicrobuild: true
       pool:
         ${{ if eq(variables['System.TeamProject'], 'public') }}:
           name: NetCorePublic-Pool
