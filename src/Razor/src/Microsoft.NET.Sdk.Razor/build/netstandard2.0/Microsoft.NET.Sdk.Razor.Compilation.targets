@@ -111,6 +111,7 @@ Copyright (c) .NET Foundation. All rights reserved.
       <UseSharedCompilation>true</UseSharedCompilation>
     </PropertyGroup>
 
+    <!-- TODO: does this need to be updated for 5.0? -->
     <PropertyGroup Condition="('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(TargetFrameworkVersion)' != 'v3.0') AND
                             ('$(TargetFrameworkIdentifier)' != '.NETStandard' OR '$(TargetFrameworkVersion)' != 'v2.1')">
       <MaxSupportedLangVersion Condition="'$(MaxSupportedLangVersion)' == ''">7.3</MaxSupportedLangVersion>

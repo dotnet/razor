@@ -19,7 +19,7 @@ Copyright (c) .NET Foundation. All rights reserved.
       The properties and items here are designed to be read by CPS so they should be just simple evaluation-time values
       and should not require targets to initialize.
 
-      Also, these values are based on whether the library is targeting netcoreapp3.0 for now. A better heuristic
+      Also, these values are based on whether the library is targeting netcoreapp5.0 for now. A better heuristic
       would be to detect whether the ASP.NET Core shared framework is referenced.
   -->
   <PropertyGroup>
