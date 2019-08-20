@@ -39,7 +39,6 @@ Copyright (c) .NET Foundation. All rights reserved.
   <PropertyGroup>
     <_TargetFrameworkVersionWithoutV>$(TargetFrameworkVersion.TrimStart('vV'))</_TargetFrameworkVersionWithoutV>
 
-    <!-- TODO: Do we need to update _TargetingNETCoreApp30OrLater, _Targeting30OrNewerRazorLangVersion, and/or RazorLangVersion for 5.0? -->
     <_TargetingNETCoreApp30OrLater Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' >= '3.0'">true</_TargetingNETCoreApp30OrLater>
 
     <!--
