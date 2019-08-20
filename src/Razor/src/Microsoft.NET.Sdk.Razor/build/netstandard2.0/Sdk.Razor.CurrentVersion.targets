@@ -38,7 +38,6 @@ Copyright (c) .NET Foundation. All rights reserved.
   <!-- Resolve the RazorLangVersion based on values imported or TFM. -->
   <PropertyGroup>
     <_TargetFrameworkVersionWithoutV>$(TargetFrameworkVersion.TrimStart('vV'))</_TargetFrameworkVersionWithoutV>
-
     <_TargetingNETCoreApp30OrLater Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' >= '3.0'">true</_TargetingNETCoreApp30OrLater>
 
     <!--
