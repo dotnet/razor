@@ -21,6 +21,14 @@
     <NETCoreAppMaximumVersion>5.0</NETCoreAppMaximumVersion>
   </PropertyGroup>
 
+  <!-- Workaround while there is no publicly released 5.0 SDK available for source build -->
+  <FrameworkReference 
+    Update="Microsoft.NETCore.App"
+    Condition="'$(TargetFramework)' == '$(DefaultNetCoreTargetFramework)' and '$(DotNetBuildFromSource)' == 'true'"
+    RuntimeFrameworkVersion="$(MicrosoftNETCoreAppRuntimeVersion)"
+    TargetingPackVersion="$(MicrosoftNETCoreAppRefPackageVersion)"
+  />
+
   <ItemGroup>
     <!-- Track compiler separately from Arcade.-->
     <PackageReference Include="Microsoft.Net.Compilers.Toolset"
