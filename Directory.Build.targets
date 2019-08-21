@@ -25,7 +25,7 @@
   <ItemGroup>
     <FrameworkReference 
       Update="Microsoft.NETCore.App"
-      Condition="'$(TargetFramework)' == '$(DefaultNetCoreTargetFramework)' and '$(DotNetBuildFromSource)' == 'true'"
+      Condition="'$(TargetFramework)' == 'netcoreapp5.0' and '$(DotNetBuildFromSource)' == 'true'"
       RuntimeFrameworkVersion="$(MicrosoftNETCoreAppRuntimeVersion)"
       TargetingPackVersion="$(MicrosoftNETCoreAppRefPackageVersion)"
     />
