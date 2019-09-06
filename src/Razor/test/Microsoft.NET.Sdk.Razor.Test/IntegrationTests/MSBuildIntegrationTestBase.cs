@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                     (string.Equals("Build", target, StringComparison.OrdinalIgnoreCase)
                         || string.Equals("Publish", target, StringComparison.OrdinalIgnoreCase)))
                 {
-                    buildArgumentList.Add($"/t:Restore");
+                    //buildArgumentList.Add($"/t:Restore");
                 }
 
                 buildArgumentList.Add($"/t:{target}");
@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                 // By default, restore then build
                 if (runRestoreBeforeBuildOrPublish)
                 {
-                    buildArgumentList.Add($"/t:Restore");
+                    //buildArgumentList.Add($"/t:Restore");
                 }
                 buildArgumentList.Add($"/t:Build");
             }
