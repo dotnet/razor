@@ -199,14 +199,13 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                     RedirectStandardError = true
                 };
 
-
                 var procDumpProcess = Process.Start(procDumpStartInfo);
                 var tcs = new TaskCompletionSource<object>();
 
                 procDumpProcess.Exited += (s, a) => tcs.TrySetResult(null);
                 procDumpProcess.EnableRaisingEvents = true;
 
-                await Task.WhenAny(tcs.Task, Task.Delay(timeout ?? TimeSpan.FromSeconds(5)));
+                await Task.WhenAny(tcs.Task, Task.Delay(timeout ?? TimeSpan.FromSeconds(30)));
                 return procDumpProcess;
             }
         }
