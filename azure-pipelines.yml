@@ -107,7 +107,6 @@ stages:
       enablePublishTestResults: true
       enablePublishUsingPipelines: $(_PublishUsingPipelines)
       enableTelemetry: true
-      timeoutInMinutes: '20'
       helixRepo: aspnet/AspNetCore-Tooling
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
@@ -168,7 +167,7 @@ stages:
 
         - powershell: ./eng/scripts/InstallProcDump.ps1
           displayName: Install ProcDump
-        - powershell: ./eng/scripts/StartDumpCollectionForHangingBuilds.ps1 $(ProcDumpPath)procdump.exe artifacts/log/$(_BuildConfig) (Get-Date).AddMinutes(5) dotnet
+        - powershell: ./eng/scripts/StartDumpCollectionForHangingBuilds.ps1 $(ProcDumpPath)procdump.exe artifacts/log/$(_BuildConfig) (Get-Date).AddMinutes(25) dotnet, msbuild
           displayName: Start background dump collection
         - script: eng\common\cibuild.cmd
             -configuration $(_BuildConfig)
