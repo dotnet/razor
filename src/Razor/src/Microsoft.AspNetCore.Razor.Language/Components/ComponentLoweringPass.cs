@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 var node = (TagHelperIntermediateNode)reference.Node;
                 if (node.TagHelpers.Any(t => t.IsChildContentTagHelper()))
                 {
-                    // Ignore, this will be handled when we rewrite the parent.
+                    // This is a child content tag helper. This will be rewritten when we visit its parent.
                     continue;
                 }
 
