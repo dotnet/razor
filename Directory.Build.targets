@@ -16,6 +16,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Reference base shared framework at incoming dependency flow version, not bundled sdk version. -->
+    <FrameworkReference
+      Update="Microsoft.NETCore.App"
+      Condition="'$(TargetFramework)' == '$(DefaultNetCoreTargetFramework)'"
+      RuntimeFrameworkVersion="$(MicrosoftNETCoreAppRuntimeVersion)"
+      TargetingPackVersion="$(MicrosoftNETCoreAppRefPackageVersion)"
+      />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Track compiler separately from Arcade.-->
     <PackageReference Include="Microsoft.Net.Compilers.Toolset"
         Version="$(MicrosoftNetCompilersToolsetPackageVersion)"
