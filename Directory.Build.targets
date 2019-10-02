@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <!-- Reference base shared framework at incoming dependency flow version, not bundled sdk version. -->
-    <FrameworkReference
+    <KnownFrameworkReference
       Update="Microsoft.NETCore.App"
       Condition="'$(TargetFramework)' == '$(DefaultNetCoreTargetFramework)'"
       RuntimeFrameworkVersion="$(MicrosoftNETCoreAppRuntimeVersion)"
