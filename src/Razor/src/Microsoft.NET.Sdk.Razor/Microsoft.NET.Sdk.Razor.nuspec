@@ -5,10 +5,10 @@
     <dependencies>
       <group targetFramework=".NETStandard2.0" />
     </dependencies>
-    $CommonFileElements$
   </metadata>
 
   <files>
+    $CommonFileElements$
     <file src="Sdk\*" target="Sdk" />
     <file src="build\**" target="build" />
     <file src="buildMultiTargeting\**" target="buildMultiTargeting" />
