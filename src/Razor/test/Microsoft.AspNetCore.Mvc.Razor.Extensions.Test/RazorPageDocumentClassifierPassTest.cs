@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions
             var pageDirectives = irDocument.FindDirectiveReferences(PageDirective.Directive);
             var directive = Assert.Single(pageDirectives);
             var diagnostic = Assert.Single(directive.Node.Diagnostics);
-            Assert.Equal(expectedDiagnostic, diagnostic);
+            Assert.Equal(expectedDiagnostic, diagnostic, ignoreCase = false, ignoreLineEndingDifferences = true);
         }
 
         [Fact]
@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions
             // Arrange
             var content = @"
 @* some comment *@
-     
+
 @page
 ";
             var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(content, "Test.cshtml"));

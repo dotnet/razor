@@ -1,0 +1,101 @@
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * ------------------------------------------------------------------------------------------ */
+
+ import * as assert from 'assert';
+ import { afterEach, before, beforeEach } from 'mocha';
+ import * as path from 'path';
+ import * as vscode from 'vscode';
+ import {
+     mvcWithComponentsRoot,
+     pollUntil,
+     waitForProjectReady,
+} from './TestUtil';
+
+ let cshtmlDoc: vscode.TextDocument;
+ let editor: vscode.TextEditor;
+ let cshtmlPath: string;
+
+ suite('Definition', () => {
+    before(async () => {
+        await waitForProjectReady(mvcWithComponentsRoot);
+    });
+
+    beforeEach(async () => {
+        cshtmlPath = path.join(mvcWithComponentsRoot, 'Views', 'Home', 'Index.cshtml');
+        cshtmlDoc = await vscode.workspace.openTextDocument(cshtmlPath);
+        editor = await vscode.window.showTextDocument(cshtmlDoc);
+    });
+
+    afterEach(async () => {
+        await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
+        await pollUntil(() => vscode.window.visibleTextEditors.length === 0, 1000);
+    });
+
+    test('Definition of injection gives nothing', async () => {
+        const imports = path.join(mvcWithComponentsRoot, 'Views', '_ViewImports.cshtml');
+        const importDoc = await vscode.workspace.openTextDocument(imports);
+        const importEditor = await vscode.window.showTextDocument(importDoc);
+        const firstLine = new vscode.Position(0, 0);
+        await importEditor.edit(edit => edit.insert(firstLine, '@inject DateTime SecondTime\n'));
+        await importEditor.edit(edit => edit.insert(firstLine, '@SecondTime\n'));
+        const definitions = await vscode.commands.executeCommand<vscode.Location[]>(
+            'vscode.executeDefinitionProvider',
+            importDoc.uri,
+            new vscode.Position(0, 18));
+
+        assert.equal(definitions!.length, 0, 'Should have had no results');
+    });
+
+    test('Definition inside file works', async () => {
+        const imports = path.join(mvcWithComponentsRoot, 'Views', '_ViewImports.cshtml');
+        const importDoc = await vscode.workspace.openTextDocument(imports);
+        const importEditor = await vscode.window.showTextDocument(importDoc);
+        const firstLine = new vscode.Position(0, 0);
+        await importEditor.edit(edit => edit.insert(firstLine, '@functions{\n void Action()\n{\n}\n}\n'));
+        await importEditor.edit(edit => edit.insert(firstLine, '@{\nAction();\n}\n'));
+        const definitions = await vscode.commands.executeCommand<vscode.Location[]>(
+            'vscode.executeDefinitionProvider',
+            importDoc.uri,
+            new vscode.Position(1, 2));
+
+        assert.equal(definitions!.length, 1, 'Should have had exactly one result');
+        const definition = definitions![0];
+        assert.ok(definition.uri.path.endsWith('_ViewImports.cshtml'));
+        assert.equal(definition.range.start.line, 4);
+    });
+
+    test('Definition outside file works', async () => {
+        const firstLine = new vscode.Position(0, 0);
+        await editor.edit(edit => edit.insert(firstLine, '@{\nvar x = typeof(Program);\n}\n'));
+
+        const definitions = await vscode.commands.executeCommand<vscode.Location[]>(
+            'vscode.executeDefinitionProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(1, 17));
+
+        assert.equal(definitions!.length, 1, 'Should have had exactly one result');
+        const definition = definitions![0];
+        assert.ok(definition.uri.path.endsWith('Program.cs'), `Expected def to point to "Program.cs", but it pointed to ${definition.uri.path}`);
+        assert.equal(definition.range.start.line, 3);
+    });
+
+    test('Definition of javascript works', async () => {
+        const firstLine = new vscode.Position(0, 0);
+        await editor.edit(edit => edit.insert(firstLine, `<script>
+    var abc = 1;
+    abc.toString();
+</script>
+`));
+        const definitions = await vscode.commands.executeCommand<vscode.Location[]>(
+            'vscode.executeDefinitionProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(2, 5));
+
+        assert.equal(definitions!.length, 1, 'Should have had exactly one result');
+        const definition = definitions![0];
+        assert.ok(definition.uri.path.endsWith('Index.cshtml'), `Expected 'Index.cshtml', but got ${definition.uri.path}`);
+        assert.equal(definition.range.start.line, 2);
+    });
+ });
