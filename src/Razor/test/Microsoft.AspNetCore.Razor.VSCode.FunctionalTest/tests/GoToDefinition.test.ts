@@ -96,6 +96,6 @@
         assert.equal(definitions!.length, 1, 'Should have had exactly one result');
         const definition = definitions![0];
         assert.ok(definition.uri.path.endsWith('Index.cshtml'), `Expected 'Index.cshtml', but got ${definition.uri.path}`);
-        assert.equal(definition.range.start.line, 2);
+        assert.equal(definition.range.start.line, 1);
     });
  });
