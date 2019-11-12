@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X
             var pageDirectives = irDocument.FindDirectiveReferences(PageDirective.Directive);
             var directive = Assert.Single(pageDirectives);
             var diagnostic = Assert.Single(directive.Node.Diagnostics);
-            Assert.Equal(expectedDiagnostic, diagnostic, ignoreCase = false, ignoreLineEndingDifferences = true);
+            Assert.Equal(expectedDiagnostic, diagnostic);
         }
 
         [Fact]

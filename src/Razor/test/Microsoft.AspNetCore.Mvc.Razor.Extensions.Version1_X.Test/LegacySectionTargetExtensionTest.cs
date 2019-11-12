@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Extensions
 ";
 
             var output = context.CodeWriter.GenerateCode();
-            Assert.Equal(expected, output, ignoreCase = false, ignoreLineEndingDifferences = true);
+            Assert.Equal(expected, output);
         }
     }
 }
