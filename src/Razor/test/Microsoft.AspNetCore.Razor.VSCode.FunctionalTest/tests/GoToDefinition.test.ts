@@ -81,7 +81,7 @@
         assert.equal(definition.range.start.line, 3);
     });
 
-    test('Definition of javascript works', async () => {
+    test('Definition of javascript works in cshtml', async () => {
         const firstLine = new vscode.Position(0, 0);
         await editor.edit(edit => edit.insert(firstLine, `<script>
     var abc = 1;
@@ -96,6 +96,27 @@
         assert.equal(definitions!.length, 1, 'Should have had exactly one result');
         const definition = definitions![0];
         assert.ok(definition.uri.path.endsWith('Index.cshtml'), `Expected 'Index.cshtml', but got ${definition.uri.path}`);
+        assert.equal(definition.range.start.line, 1);
+    });
+
+    test('Definition of javascript works in razor', async () => {
+        const firstLine = new vscode.Position(0, 0);
+        const razorPath = path.join(mvcWithComponentsRoot, 'Components', 'Counter.razor');
+        const razorDoc = await vscode.workspace.openTextDocument(razorPath);
+        const razorEditor = await vscode.window.showTextDocument(razorDoc);
+        await razorEditor.edit(edit => edit.insert(firstLine, `<script>
+    var abc = 1;
+    abc.toString();
+</script>
+`));
+        const definitions = await vscode.commands.executeCommand<vscode.Location[]>(
+            'vscode.executeDefinitionProvider',
+            razorDoc.uri,
+            new vscode.Position(2, 5));
+
+        assert.equal(definitions!.length, 1, 'Should have had exactly one result');
+        const definition = definitions![0];
+        assert.ok(definition.uri.path.endsWith('Counter.razor'), `Expected 'Index.cshtml', but got ${definition.uri.path}`);
         assert.equal(definition.range.start.line, 1);
     });
  });
