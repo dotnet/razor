@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -21,6 +23,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private const string RazorConfigurationItemType = "RazorConfiguration";
         private const string RazorConfigurationItemTypeExtensionsProperty = "Extensions";
         private const string RootNamespaceProperty = "RootNamespace";
+
+        private IEnumerable<string> _componentFiles = Array.Empty<string>();
 
         public DefaultRazorProjectHost(
             DotNetProject project,
@@ -44,6 +48,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                     TryGetRootNamespace(projectProperties, out var rootNamespace);
                     var hostProject = new HostProject(DotNetProject.FileName.FullPath, configuration, rootNamespace);
                     await UpdateHostProjectUnsafeAsync(hostProject).ConfigureAwait(false);
+                    UpdateDocuments(hostProject, projectItems);
                 }
                 else
                 {
@@ -51,6 +56,47 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                     await UpdateHostProjectUnsafeAsync(null).ConfigureAwait(false);
                 }
             });
+        }
+
+        private void UpdateDocuments(HostProject hostProject, IEnumerable<IMSBuildItemEvaluated> projectItems)
+        {
+            var projectDirectory = Path.GetDirectoryName(hostProject.FilePath);
+
+            var currentComponentFiles = projectItems
+                .Where(item => item.Name == "Content" && item.Include.EndsWith(".razor", StringComparison.OrdinalIgnoreCase))
+                .Select(item => GetAbsolutePath(projectDirectory, item.Include))
+                .ToList();
+
+            var oldFiles = this._componentFiles;
+            var newFiles = currentComponentFiles.ToImmutableHashSet();
+
+            var addedFiles = newFiles.Except(oldFiles);
+            var removedFiles = oldFiles.Except(newFiles);
+
+            foreach (var document in removedFiles)
+            {
+                RemoveDocument(hostProject, document);
+            }
+
+            foreach (var document in addedFiles)
+            {
+                AddDocument(hostProject, document, document.Substring(projectDirectory.Length + 1));
+            }
+
+            _componentFiles = currentComponentFiles;
+        }
+
+        private string GetAbsolutePath(string projectDirectory, string relativePath)
+        {
+            if (!Path.IsPathRooted(relativePath))
+            {
+                relativePath = Path.Combine(projectDirectory, relativePath);
+            }
+
+            // normalize the path separator characters in case they're mixed
+            relativePath = relativePath.Replace('\\', Path.DirectorySeparatorChar);
+
+            return relativePath;
         }
 
         // Internal for testing
