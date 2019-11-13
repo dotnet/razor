@@ -34,15 +34,12 @@
     });
 
     test('Definition of injection gives nothing', async () => {
-        const imports = path.join(mvcWithComponentsRoot, 'Views', '_ViewImports.cshtml');
-        const importDoc = await vscode.workspace.openTextDocument(imports);
-        const importEditor = await vscode.window.showTextDocument(importDoc);
         const firstLine = new vscode.Position(0, 0);
-        await importEditor.edit(edit => edit.insert(firstLine, '@inject DateTime SecondTime\n'));
-        await importEditor.edit(edit => edit.insert(firstLine, '@SecondTime\n'));
+        await editor.edit(edit => edit.insert(firstLine, '@inject DateTime SecondTime\n'));
+        await editor.edit(edit => edit.insert(firstLine, '@SecondTime\n'));
         const definitions = await vscode.commands.executeCommand<vscode.Location[]>(
             'vscode.executeDefinitionProvider',
-            importDoc.uri,
+            cshtmlDoc.uri,
             new vscode.Position(0, 18));
 
         assert.equal(definitions!.length, 0, 'Should have had no results');
