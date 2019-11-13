@@ -46,20 +46,17 @@
     });
 
     test('Definition inside file works', async () => {
-        const imports = path.join(mvcWithComponentsRoot, 'Views', '_ViewImports.cshtml');
-        const importDoc = await vscode.workspace.openTextDocument(imports);
-        const importEditor = await vscode.window.showTextDocument(importDoc);
         const firstLine = new vscode.Position(0, 0);
-        await importEditor.edit(edit => edit.insert(firstLine, '@functions{\n void Action()\n{\n}\n}\n'));
-        await importEditor.edit(edit => edit.insert(firstLine, '@{\nAction();\n}\n'));
+        await editor.edit(edit => edit.insert(firstLine, '@functions{\n void Action()\n{\n}\n}\n'));
+        await editor.edit(edit => edit.insert(firstLine, '@{\nAction();\n}\n'));
         const definitions = await vscode.commands.executeCommand<vscode.Location[]>(
             'vscode.executeDefinitionProvider',
-            importDoc.uri,
+            cshtmlDoc.uri,
             new vscode.Position(1, 2));
 
         assert.equal(definitions!.length, 1, 'Should have had exactly one result');
         const definition = definitions![0];
-        assert.ok(definition.uri.path.endsWith('_ViewImports.cshtml'));
+        assert.ok(definition.uri.path.endsWith('Index.cshtml'));
         assert.equal(definition.range.start.line, 4);
     });
 
@@ -113,7 +110,7 @@
 
         assert.equal(definitions!.length, 1, 'Should have had exactly one result');
         const definition = definitions![0];
-        assert.ok(definition.uri.path.endsWith('Counter.razor'), `Expected 'Index.cshtml', but got ${definition.uri.path}`);
+        assert.ok(definition.uri.path.endsWith('Counter.razor'), `Expected 'Counter.razor', but got ${definition.uri.path}`);
         assert.equal(definition.range.start.line, 1);
     });
  });

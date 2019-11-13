@@ -11,7 +11,7 @@ import { HtmlProjectedDocumentContentProvider } from './Html/HtmlProjectedDocume
 import { IRazorDocument } from './IRazorDocument';
 import { getUriPath } from './UriPaths';
 
-export const virtualCsSuffix = '__virtual.cs';
+export const virtualCSharpSuffix = '__virtual.cs';
 export const virtualHtmlSuffix = '__virtual.html';
 
 export function createDocument(uri: vscode.Uri) {
@@ -40,7 +40,7 @@ function createProjectedHtmlDocument(hostDocumentUri: vscode.Uri) {
 
 function createProjectedCSharpDocument(hostDocumentUri: vscode.Uri) {
     // Index.cshtml => Index.cshtml__virtual.cs
-    const projectedPath = `${hostDocumentUri.path}${virtualCsSuffix}`;
+    const projectedPath = `${hostDocumentUri.path}${virtualCSharpSuffix}`;
     const projectedUri = vscode.Uri.parse(`${CSharpProjectedDocumentContentProvider.scheme}://${projectedPath}`);
     const projectedDocument = new CSharpProjectedDocument(projectedUri);
 
