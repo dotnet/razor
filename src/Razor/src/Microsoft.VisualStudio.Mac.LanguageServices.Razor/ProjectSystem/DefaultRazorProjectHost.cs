@@ -7,9 +7,11 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Gtk;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using MonoDevelop.Core;
 using MonoDevelop.Projects;
 using MonoDevelop.Projects.MSBuild;
 
@@ -73,17 +75,20 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var addedFiles = newFiles.Except(oldFiles);
             var removedFiles = oldFiles.Except(newFiles);
 
-            foreach (var document in removedFiles)
-            {
-                RemoveDocument(hostProject, document);
-            }
-
-            foreach (var document in addedFiles)
-            {
-                AddDocument(hostProject, document, document.Substring(projectDirectory.Length + 1));
-            }
-
             _componentFiles = currentComponentFiles;
+
+            MonoDevelop.Core.Runtime.RunInMainThread(() =>
+            {
+                foreach (var document in removedFiles)
+                {
+                    RemoveDocument(hostProject, document);
+                }
+
+                foreach (var document in addedFiles)
+                {
+                    AddDocument(hostProject, document, document.Substring(projectDirectory.Length + 1));
+                }
+            });
         }
 
         private string GetAbsolutePath(string projectDirectory, string relativePath)
