@@ -6,12 +6,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Gtk;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using MonoDevelop.Core;
 using MonoDevelop.Projects;
 using MonoDevelop.Projects.MSBuild;
 
@@ -25,8 +24,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private const string RazorConfigurationItemType = "RazorConfiguration";
         private const string RazorConfigurationItemTypeExtensionsProperty = "Extensions";
         private const string RootNamespaceProperty = "RootNamespace";
+        private const string ContentItemType = "Content";
 
-        private IEnumerable<string> _componentFiles = Array.Empty<string>();
+        private IReadOnlyList<string> _currentRazorFilePaths = Array.Empty<string>();
 
         public DefaultRazorProjectHost(
             DotNetProject project,
@@ -60,24 +60,29 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             });
         }
 
-        private void UpdateDocuments(HostProject hostProject, IEnumerable<IMSBuildItemEvaluated> projectItems)
+        internal IReadOnlyList<string> GetRazorDocuments(string projectDirectory, IEnumerable<IMSBuildItemEvaluated> projectItems)
         {
-            var projectDirectory = Path.GetDirectoryName(hostProject.FilePath);
-
-            var currentComponentFiles = projectItems
-                .Where(item => item.Name == "Content" && item.Include.EndsWith(".razor", StringComparison.OrdinalIgnoreCase))
+            var documentFilePaths = projectItems
+                .Where(IsRazorDocumentItem)
                 .Select(item => GetAbsolutePath(projectDirectory, item.Include))
                 .ToList();
 
-            var oldFiles = this._componentFiles;
-            var newFiles = currentComponentFiles.ToImmutableHashSet();
+            return documentFilePaths;
+        }
 
+        private void UpdateDocuments(HostProject hostProject, IEnumerable<IMSBuildItemEvaluated> projectItems)
+        {
+            var projectDirectory = Path.GetDirectoryName(hostProject.FilePath);
+            var documentFilePaths = GetRazorDocuments(projectDirectory, projectItems);
+
+            var oldFiles = _currentRazorFilePaths;
+            var newFiles = documentFilePaths.ToImmutableHashSet();
             var addedFiles = newFiles.Except(oldFiles);
             var removedFiles = oldFiles.Except(newFiles);
 
-            _componentFiles = currentComponentFiles;
+            _currentRazorFilePaths = documentFilePaths;
 
-            MonoDevelop.Core.Runtime.RunInMainThread(() =>
+            Task.Factory.StartNew(() =>
             {
                 foreach (var document in removedFiles)
                 {
@@ -86,9 +91,41 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
                 foreach (var document in addedFiles)
                 {
-                    AddDocument(hostProject, document, document.Substring(projectDirectory.Length + 1));
+                    var relativeFilePath = document.Substring(projectDirectory.Length + 1);
+                    AddDocument(hostProject, document, relativeFilePath);
                 }
-            });
+            },
+            CancellationToken.None,
+            TaskCreationOptions.None,
+            ForegroundDispatcher.ForegroundScheduler);
+        }
+
+        // Internal for testing
+        internal static bool IsRazorDocumentItem(IMSBuildItemEvaluated item)
+        {
+            if (item is null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
+            if (item.Name != ContentItemType)
+            {
+                // We only inspect content items for Razor documents.
+                return false;
+            }
+
+            if (item.Include == null)
+            {
+                return false;
+            }
+
+            if (!item.Include.EndsWith(".razor") && !item.Include.EndsWith(".cshtml"))
+            {
+                // Doesn't have a Razor looking file extension
+                return false;
+            }
+
+            return true;
         }
 
         private string GetAbsolutePath(string projectDirectory, string relativePath)
@@ -98,7 +135,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 relativePath = Path.Combine(projectDirectory, relativePath);
             }
 
-            // normalize the path separator characters in case they're mixed
+            // Normalize the path separator characters in case they're mixed
             relativePath = relativePath.Replace('\\', Path.DirectorySeparatorChar);
 
             return relativePath;
@@ -194,7 +231,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             {
                 return Array.Empty<string>();
             }
-            
+
             return extensionNamesValue.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
         }
 

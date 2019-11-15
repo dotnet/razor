@@ -12,6 +12,83 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
     public class DefaultRazorProjectHostTest
     {
         [Fact]
+        public void IsRazorDocumentItem_NonContentItem_ReturnsFalse()
+        {
+            // Arrange
+            var item = new TestMSBuildItem("NonContent")
+            {
+                Include = "\\Path\\To\\File.razor",
+            };
+
+            // Act
+            var result = DefaultRazorProjectHost.IsRazorDocumentItem(item);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void IsRazorDocumentItem_NoInclude_ReturnsFalse()
+        {
+            // Arrange
+            var item = new TestMSBuildItem("Content");
+
+            // Act
+            var result = DefaultRazorProjectHost.IsRazorDocumentItem(item);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void IsRazorDocumentItem_NonRazorFile_ReturnsFalse()
+        {
+            // Arrange
+            var item = new TestMSBuildItem("Content")
+            {
+                Include = "\\Path\\To\\File.notrazor",
+            };
+
+            // Act
+            var result = DefaultRazorProjectHost.IsRazorDocumentItem(item);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void IsRazorDocumentItem_RazorFile_ReturnsTrue()
+        {
+            // Arrange
+            var item = new TestMSBuildItem("Content")
+            {
+                Include = "\\Path\\To\\File.razor",
+            };
+
+            // Act
+            var result = DefaultRazorProjectHost.IsRazorDocumentItem(item);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsRazorDocumentItem_CSHTMLFile_ReturnsTrue()
+        {
+            // Arrange
+            var item = new TestMSBuildItem("Content")
+            {
+                Include = "\\Path\\To\\File.cshtml",
+            };
+
+            // Act
+            var result = DefaultRazorProjectHost.IsRazorDocumentItem(item);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
         public void TryGetDefaultConfiguration_FailsIfNoConfiguration()
         {
             // Arrange
