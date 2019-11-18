@@ -72,6 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _documentResolver.TryResolveDocument(request.Uri.AbsolutePath, out documentSnapshot);
                 if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
                 {
+                    // This typically happens for closed documents.
                     documentVersion = UndefinedDocumentVersion;
                 }
 

@@ -23,6 +23,20 @@ export class RazorRenameProvider
         super(documentSynchronizer, documentManager, serviceClient, logger);
     }
 
+    public async prepareRename(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        token: vscode.CancellationToken) {
+
+        const projection = await this.getProjection(document, position, token);
+        if (!projection || projection.languageKind !== LanguageKind.CSharp) {
+            // We only support C# renames for now.
+            return Promise.reject('Cannot rename this symbol.');
+        }
+
+        return;
+    }
+
     public async provideRenameEdits(
         document: vscode.TextDocument,
         position: vscode.Position,
@@ -39,6 +53,7 @@ export class RazorRenameProvider
             return;
         }
 
+        // Send a rename command to Omnisharp which in turn would call our command to get the Razor documents re-mapped.
         const response = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
             'vscode.executeDocumentRenameProvider',
             projection.uri,

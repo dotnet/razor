@@ -14,15 +14,13 @@ import { RazorRenameProvider } from './RazorRenameProvider';
 import { LanguageKind } from './RPC/LanguageKind';
 
 export class RazorRenameFeature {
-    public readonly serviceClient: RazorLanguageServiceClient;
-    public readonly renameProvider: RazorRenameProvider;
+    private readonly renameProvider: RazorRenameProvider;
 
     constructor(
         documentSynchronizer: RazorDocumentSynchronizer,
         documentManager: RazorDocumentManager,
-        serviceClient: RazorLanguageServiceClient,
+        private readonly serviceClient: RazorLanguageServiceClient,
         logger: RazorLogger) {
-            this.serviceClient = serviceClient;
             this.renameProvider = new RazorRenameProvider(
                 documentSynchronizer,
                 documentManager,
@@ -33,17 +31,21 @@ export class RazorRenameFeature {
     public register() {
         const registrations = [
             vscode.languages.registerRenameProvider(RazorLanguage.id, this.renameProvider),
+
+            // Register a command that will be called whenever an edit happens to any CSharp file.
+            // It takes in the edits that Omnisharp is planning to do and re-map any Razor edits to the
+            // original Razor documents.
             vscode.commands.registerCommand(
                 'razor.remapRenameEdit', async (
                     document: vscode.TextDocument,
                     position: vscode.Position,
                     newText: string,
                     cSharpEdit: vscode.WorkspaceEdit) => {
-                    const remappedEdit = await this.remapRazorCSharpEdits(
-                    cSharpEdit,
-                    this.serviceClient);
-                    return remappedEdit;
-                }),
+                        const remappedEdit = await this.remapRazorCSharpEdits(
+                        cSharpEdit,
+                        this.serviceClient);
+                        return remappedEdit;
+                    }),
         ];
 
         return vscode.Disposable.from(...registrations);
@@ -78,9 +80,8 @@ export class RazorRenameFeature {
                     edit.range,
                     documentUri);
 
-                if (!remappedResponse) {
-                    // Something went wrong when re-mapping to the original document. Accept the edit as is.
-                    newEdits.push(edit);
+                if (!remappedResponse || !remappedResponse.range) {
+                    // Something went wrong when re-mapping to the original document. Ignore this edit.
                     continue;
                 }
 

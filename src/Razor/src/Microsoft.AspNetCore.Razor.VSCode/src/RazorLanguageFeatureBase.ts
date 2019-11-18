@@ -8,8 +8,8 @@ import { ProjectionResult } from './ProjectionResult';
 import { RazorDocumentManager } from './RazorDocumentManager';
 import { RazorDocumentSynchronizer } from './RazorDocumentSynchronizer';
 import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
-import { LanguageKind } from './RPC/LanguageKind';
 import { RazorLogger } from './RazorLogger';
+import { LanguageKind } from './RPC/LanguageKind';
 import { getUriPath } from './UriPaths';
 
 export class RazorLanguageFeatureBase {
@@ -36,15 +36,14 @@ export class RazorLanguageFeatureBase {
                     ? razorDocument.csharpDocument
                     : razorDocument.htmlDocument;
 
-                if (languageResponse.hostDocumentVersion == this.undefinedDocumentVersion) {
+                if (languageResponse.hostDocumentVersion === this.undefinedDocumentVersion) {
                     // There should always be a document version attached to an open document.
                     // Log it and move on as if it was synchronized.
                     if (this.logger.verboseEnabled) {
                         this.logger.logVerbose(
                             `Could not find a document version associated with the document '${getUriPath(document.uri)}'.`);
                     }
-                }
-                else {
+                } else {
                     const synchronized = await this.documentSynchronizer.trySynchronizeProjectedDocument(
                         document,
                         projectedDocument,
