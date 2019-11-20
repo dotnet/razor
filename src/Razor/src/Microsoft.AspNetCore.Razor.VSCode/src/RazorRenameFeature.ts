@@ -41,7 +41,7 @@ export class RazorRenameFeature {
                     position: vscode.Position,
                     newText: string,
                     cSharpEdit: vscode.WorkspaceEdit) => {
-                        const remappedEdit = await this.remapRazorCSharpEdits(
+                        const remappedEdit = await this.remapWorkspaceEdit(
                         cSharpEdit,
                         this.serviceClient);
                         return remappedEdit;
@@ -52,7 +52,7 @@ export class RazorRenameFeature {
     }
 
     // Given a set of C# edits, we need to map edits to Razor CSharp documents back to the original Razor documents.
-    private async remapRazorCSharpEdits(
+    private async remapWorkspaceEdit(
         cSharpEdit: vscode.WorkspaceEdit,
         serviceClient: RazorLanguageServiceClient) {
 
