@@ -18,6 +18,7 @@ export class RazorReferenceProvider
         position: vscode.Position,
         context: vscode.ReferenceContext,
         token: vscode.CancellationToken) {
+
         const projection = await this.getProjection(document, position, token);
         if (!projection) {
             return;
@@ -33,7 +34,7 @@ export class RazorReferenceProvider
                 const uriPath = getUriPath(reference.uri);
                 if (uriPath.endsWith(virtualCSharpSuffix)) {
                     let razorFilePath = uriPath.replace(backgroundVirtualCSharpSuffix, '');
-                    razorFilePath = uriPath.replace(virtualCSharpSuffix, '');
+                    razorFilePath = razorFilePath.replace(virtualCSharpSuffix, '');
                     const razorFile = vscode.Uri.file(razorFilePath);
                     const res = await this.serviceClient.mapToDocumentRange(
                         projection.languageKind,
