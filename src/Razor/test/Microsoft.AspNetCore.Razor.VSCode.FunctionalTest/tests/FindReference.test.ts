@@ -54,10 +54,11 @@ suite('References', () => {
 
     test('Reference background file works', async () => {
         const firstLine = new vscode.Position(0, 0);
+
         await editor.edit(edit => edit.insert(firstLine, `@{
-MvcWithComponents.Views.Shared.NavMenu.Tester();
-MvcWithComponents.Views.Shared.NavMenu.Tester();
-}\n`));
+            MvcWithComponents.Views.Shared.NavMenu.Tester();
+            MvcWithComponents.Views.Shared.NavMenu.Tester();
+            }\n`));
 
         vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 
@@ -65,14 +66,17 @@ MvcWithComponents.Views.Shared.NavMenu.Tester();
         const razorDoc = await vscode.workspace.openTextDocument(razorPath);
         const razorEditor = await vscode.window.showTextDocument(razorDoc);
         await razorEditor.edit(edit => edit.insert(firstLine, `@functions{
-void Tester() {
+public static void Tester() {
 }
-}`));
+}
+`));
+
+        await new Promise(r => setTimeout(r, 3000));
 
         const references = await vscode.commands.executeCommand<vscode.Location[]>(
             'vscode.executeReferenceProvider',
             razorDoc.uri,
-            new vscode.Position(1, 9));
+            new vscode.Position(1, 23));
 
         assert.equal(references!.length, 2, 'Should have had exactly one result');
         const reference = references![0];
@@ -85,20 +89,21 @@ void Tester() {
         await editor.edit(edit => edit.insert(firstLine, `@{
 MvcWithComponents.Views.Shared.NavMenu.Tester();
 MvcWithComponents.Views.Shared.NavMenu.Tester();
-}\n`));
+}
+`));
 
         const razorPath = path.join(mvcWithComponentsRoot, 'Views', 'Shared', 'NavMenu.razor');
         const razorDoc = await vscode.workspace.openTextDocument(razorPath);
         const razorEditor = await vscode.window.showTextDocument(razorDoc);
         await razorEditor.edit(edit => edit.insert(firstLine, `@functions{
-void Tester() {
+public static void Tester() {}
 }
-}`));
-
+`));
+        await new Promise(r => setTimeout(r, 3000));
         const references = await vscode.commands.executeCommand<vscode.Location[]>(
             'vscode.executeReferenceProvider',
             razorDoc.uri,
-            new vscode.Position(1, 9));
+            new vscode.Position(1, 23));
 
         assert.equal(references!.length, 2, 'Should have had exactly one result');
         const reference = references![0];

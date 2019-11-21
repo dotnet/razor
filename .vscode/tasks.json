@@ -26,7 +26,7 @@
         },
         {
             "label": "CompileLibrary",
-            "command": "npm",
+            "command": "dotnet",
             "args": [
                 "build"
             ],
@@ -56,9 +56,8 @@
         },
         {
             "label": "CompileExtension",
-            "command": "yarn",
+            "command": "dotnet",
             "args": [
-                "run",
                 "build"
             ],
             "options": {
@@ -74,9 +73,8 @@
         },
         {
             "label": "CompileUnitTests",
-            "command": "yarn",
+            "command": "dotnet",
             "args": [
-                "run",
                 "build"
             ],
             "options": {
@@ -103,9 +101,8 @@
         },
         {
             "label": "CompileFunctionalTest",
-            "command": "npm",
+            "command": "dotnet",
             "args": [
-                "run-script",
                 "build"
             ],
             "options": {
