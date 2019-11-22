@@ -29,8 +29,8 @@ import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
 import { RazorLogger } from './RazorLogger';
 import { RazorProjectManager } from './RazorProjectManager';
 import { RazorProjectTracker } from './RazorProjectTracker';
-import { RazorRenameFeature } from './RazorRenameFeature';
 import { RazorReferenceProvider } from './RazorReferenceProvider';
+import { RazorRenameFeature } from './RazorRenameFeature';
 import { RazorSignatureHelpProvider } from './RazorSignatureHelpProvider';
 import { TelemetryReporter } from './TelemetryReporter';
 

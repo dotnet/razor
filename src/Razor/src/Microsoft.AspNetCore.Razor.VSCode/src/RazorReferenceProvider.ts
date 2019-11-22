@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { backgroundVirtualCSharpSuffix, virtualCSharpSuffix, virtualHtmlSuffix } from './RazorDocumentFactory';
+import { backgroundVirtualCSharpSuffix, virtualCSharpSuffix, virtualHtmlSuffix } from './RazorConventions';
 import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
 import { LanguageKind } from './RPC/LanguageKind';
 import { getUriPath } from './UriPaths';
