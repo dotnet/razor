@@ -49,9 +49,9 @@
   </ProductDependencies>
   <ToolsetDependencies>
     <!-- Listed as a dependency to workaround https://github.com/dotnet/cli/issues/10528 -->
-    <Dependency Name="Microsoft.NETCore.Platforms" Version="3.0.1-servicing.19576.7" CoherentParentDependency="Microsoft.NETCore.App.Runtime.win-x64">
+    <Dependency Name="Microsoft.NETCore.Platforms" Version="3.0.0" CoherentParentDependency="Microsoft.NETCore.App.Runtime.win-x64">
       <Uri>https://github.com/dotnet/corefx</Uri>
-      <Sha>552078bd73ff238b312f8b92ad49f535c3445f25</Sha>
+      <Sha>4ac4c0367003fe3973a3648eb0715ddb0e3bbcea</Sha>
     </Dependency>
     <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.0.2-servicing.19577.2">
       <Uri>https://github.com/aspnet/Extensions</Uri>
@@ -61,9 +61,9 @@
       <Uri>https://github.com/aspnet/Extensions</Uri>
       <Sha>1941c100fb94be5a7b5b7ed056e55e88a385d64a</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="1.0.0-beta.19572.3">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="1.0.0-beta.19577.5">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>0e0d227c57e69c03427d6e668716d62cf4ceb36e</Sha>
+      <Sha>99c6b59a8afff97fe891341b39abe985f1d3c565</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="3.3.1-beta4-19462-11" CoherentParentDependency="Microsoft.Extensions.Logging">
       <Uri>https://github.com/dotnet/roslyn</Uri>
