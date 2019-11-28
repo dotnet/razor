@@ -33,6 +33,42 @@ suite('References', () => {
         await pollUntil(() => vscode.window.visibleTextEditors.length === 0, 1000);
     });
 
+    test('Reference for javascript', async () => {
+        const firstLine = new vscode.Position(0, 0);
+        const razorPath = path.join(mvcWithComponentsRoot, 'Components', 'Counter.razor');
+        const razorDoc = await vscode.workspace.openTextDocument(razorPath);
+        const razorEditor = await vscode.window.showTextDocument(razorDoc);
+        await razorEditor.edit(edit => edit.insert(firstLine, `<script>
+    var abc = 1;
+    abc.toString();
+</script>
+`));
+        const references = await vscode.commands.executeCommand<vscode.Location[]>(
+            'vscode.executeReferenceProvider',
+            razorDoc.uri,
+            new vscode.Position(1, 10));
+
+        assert.equal(references!.length, 2, 'Should have had exactly two results');
+        const definition = references![1];
+        assert.ok(definition.uri.path.endsWith('Counter.razor'), `Expected 'Counter.razor', but got ${definition.uri.path}`);
+        assert.equal(definition.range.start.line, 2);
+    });
+
+    test('Reference outside file works', async () => {
+        const firstLine = new vscode.Position(0, 0);
+        await editor.edit(edit => edit.insert(firstLine, '@{\nvar x = typeof(Program);\n}\n'));
+
+        const references = await vscode.commands.executeCommand<vscode.Location[]>(
+            'vscode.executeReferenceProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(1, 17));
+
+        assert.equal(references!.length, 2 , 'Should have had exactly 2 results');
+
+        assert.ok(references![1].uri.path.endsWith('Index.cshtml'), `Expected ref to point to "Index.cshtml" but got ${references![1].uri.path}`);
+        assert.equal(references![1].range.start.line, 1);
+    });
+
     test('Reference inside file works', async () => {
         const firstLine = new vscode.Position(0, 0);
         await editor.edit(edit => edit.insert(firstLine, '@{\nTester();\n}\n'));

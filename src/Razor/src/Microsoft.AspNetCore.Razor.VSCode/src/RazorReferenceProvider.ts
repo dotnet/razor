@@ -33,14 +33,14 @@ export class RazorReferenceProvider
             for (const reference of references) {
                 const razorFile = getRazorDocumentUri(reference.uri);
 
-                // Re-map the projected hover range to the host document range
-                const res = await this.serviceClient.mapToDocumentRange(
+                // Re-map the projected reference range to the host document range
+                const result = await this.serviceClient.mapToDocumentRange(
                     projection.languageKind,
                     reference.range,
                     razorFile);
 
-                if (res && document.version === res.hostDocumentVersion) {
-                    results.push(new vscode.Location(razorFile, res.range));
+                if (result && document.version === result.hostDocumentVersion) {
+                    results.push(new vscode.Location(razorFile, result.range));
                 }
             }
         }
