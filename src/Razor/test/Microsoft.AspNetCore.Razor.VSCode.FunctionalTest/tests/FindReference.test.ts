@@ -62,6 +62,8 @@ suite('References', () => {
         await programEditor.edit(edit => edit.insert(programLine, `var x = typeof(Program);`));
 
         const firstLine = new vscode.Position(0, 0);
+        cshtmlDoc = await vscode.workspace.openTextDocument(cshtmlPath);
+        editor = await vscode.window.showTextDocument(cshtmlDoc);
         await editor.edit(edit => edit.insert(firstLine, '@{\nvar x = typeof(Program);\n}\n'));
 
         const references = await vscode.commands.executeCommand<vscode.Location[]>(
@@ -77,6 +79,8 @@ suite('References', () => {
         const cshtmlRef = references![1];
         assert.ok(cshtmlRef.uri.path.endsWith('Index.cshtml'), `Expected ref to point to "Index.cshtml" but got ${references![1].uri.path}`);
         assert.equal(cshtmlRef.range.start.line, 1);
+
+        await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
     });
 
     test('Reference inside file works', async () => {

@@ -45,7 +45,7 @@ export class RazorReferenceProvider
                     result = {
                         range: reference.range,
                         hostDocumentVersion: document.version,
-                    }
+                    };
                 }
 
                 if (result && document.version === result.hostDocumentVersion) {
