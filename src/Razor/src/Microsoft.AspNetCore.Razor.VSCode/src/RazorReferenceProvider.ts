@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { getRazorDocumentUri } from './RazorConventions';
 import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
 import { LanguageKind } from './RPC/LanguageKind';
+import { RazorMapToDocumentRangeResponse } from './RPC/RazorMapToDocumentRangeResponse';
 
 export class RazorReferenceProvider
     extends RazorLanguageFeatureBase
@@ -33,11 +34,19 @@ export class RazorReferenceProvider
             for (const reference of references) {
                 const razorFile = getRazorDocumentUri(reference.uri);
 
-                // Re-map the projected reference range to the host document range
-                const result = await this.serviceClient.mapToDocumentRange(
-                    projection.languageKind,
-                    reference.range,
-                    razorFile);
+                let result: RazorMapToDocumentRangeResponse | undefined;
+                if (razorFile.path !== reference.uri.path) {
+                    // Re-map the projected reference range to the host document range
+                    result = await this.serviceClient.mapToDocumentRange(
+                        projection.languageKind,
+                        reference.range,
+                        razorFile);
+                } else {
+                    result = {
+                        range: reference.range,
+                        hostDocumentVersion: document.version,
+                    }
+                }
 
                 if (result && document.version === result.hostDocumentVersion) {
                     results.push(new vscode.Location(razorFile, result.range));

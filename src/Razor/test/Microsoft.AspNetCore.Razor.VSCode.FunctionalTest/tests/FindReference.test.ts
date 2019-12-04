@@ -55,6 +55,12 @@ suite('References', () => {
     });
 
     test('Reference outside file works', async () => {
+        const programLine = new vscode.Position(7, 0);
+        const programPath = path.join(mvcWithComponentsRoot, 'Program.cs');
+        const programDoc = await vscode.workspace.openTextDocument(programPath);
+        const programEditor = await vscode.window.showTextDocument(programDoc);
+        await programEditor.edit(edit => edit.insert(programLine, `var x = typeof(Program);`));
+
         const firstLine = new vscode.Position(0, 0);
         await editor.edit(edit => edit.insert(firstLine, '@{\nvar x = typeof(Program);\n}\n'));
 
@@ -64,9 +70,13 @@ suite('References', () => {
             new vscode.Position(1, 17));
 
         assert.equal(references!.length, 2 , 'Should have had exactly 2 results');
+        const programRef = references![0];
+        assert.ok(programRef.uri.path.endsWith('Program.cs'), `Expected ref to point to "Program.cs" but got ${references![1].uri.path}`);
+        assert.equal(programRef.range.start.line, 7);
 
-        assert.ok(references![1].uri.path.endsWith('Index.cshtml'), `Expected ref to point to "Index.cshtml" but got ${references![1].uri.path}`);
-        assert.equal(references![1].range.start.line, 1);
+        const cshtmlRef = references![1];
+        assert.ok(cshtmlRef.uri.path.endsWith('Index.cshtml'), `Expected ref to point to "Index.cshtml" but got ${references![1].uri.path}`);
+        assert.equal(cshtmlRef.range.start.line, 1);
     });
 
     test('Reference inside file works', async () => {
