@@ -4,21 +4,11 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { isRazorCSharpFile, getRazorDocumentUri } from './RazorConventions';
+import { CancellationToken } from 'vscode-jsonrpc';
+import { RazorCodeLens } from './RazorCodeLens';
+import { getRazorDocumentUri, isRazorCSharpFile } from './RazorConventions';
 import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
 import { LanguageKind } from './RPC/LanguageKind';
-import { CancellationToken } from 'vscode-jsonrpc';
-
-class RazorCodeLens extends vscode.CodeLens {
-    constructor(
-        range: vscode.Range,
-        public uri: vscode.Uri,
-        public document: vscode.TextDocument,
-        command?: vscode.Command) {
-
-        super(range, command);
-    }
-}
 
 export class RazorCodeLensProvider
     extends RazorLanguageFeatureBase
@@ -37,6 +27,9 @@ export class RazorCodeLensProvider
             const codeLenses = await vscode.commands.executeCommand<vscode.CodeLens[]>(
                 'vscode.executeCodeLensProvider',
                 csharpDocument.uri) as vscode.CodeLens[];
+            if (!codeLenses) {
+                return;
+            }
 
             // Re-map the CodeLens locations to the original Razor document.
             const remappedCodeLenses = new Array<vscode.CodeLens>();
@@ -56,13 +49,14 @@ export class RazorCodeLensProvider
             return remappedCodeLenses;
 
         } catch (error) {
+            this.logger.logWarning(`provideCodeLens failed with ${error}`);
             return [];
         }
     }
 
     public async resolveCodeLens(codeLens: vscode.CodeLens, token: vscode.CancellationToken) {
         if (codeLens instanceof RazorCodeLens) {
-            return await this.resolveRazorCodeLens(codeLens, token);
+            return this.resolveRazorCodeLens(codeLens, token);
         }
     }
 
@@ -71,7 +65,7 @@ export class RazorCodeLensProvider
         codeLens.command = {
             title: '',
             command: '',
-            arguments: []
+            arguments: [],
         };
 
         try {
@@ -82,7 +76,7 @@ export class RazorCodeLensProvider
 
             // Make sure this CodeLens is for a valid location in the projected C# document.
             const projection = await this.getProjection(codeLens.document, codeLens.range.start, token);
-            if (!projection || projection.languageKind != LanguageKind.CSharp) {
+            if (!projection || projection.languageKind !== LanguageKind.CSharp) {
                 return codeLens;
             }
 
@@ -119,11 +113,13 @@ export class RazorCodeLensProvider
             codeLens.command = {
                 title: count === 1 ? '1 reference' : `${count} references`,
                 command: 'editor.action.showReferences',
-                arguments: [razorDocument.uri, codeLens.range.start, remappedLocations]
+                arguments: [razorDocument.uri, codeLens.range.start, remappedLocations],
             };
 
             return codeLens;
+
         } catch (error) {
+            this.logger.logWarning(`resolveCodeLens failed with ${error}`);
             return codeLens;
         }
     }
