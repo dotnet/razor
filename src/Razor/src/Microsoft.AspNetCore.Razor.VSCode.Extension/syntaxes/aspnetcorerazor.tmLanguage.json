@@ -870,7 +870,7 @@
     },
     "using-directive": {
       "name": "meta.directive.using.cshtml",
-      "match": "(@)(using)\\b\\s*(?!=\\()(.+?)?(;)?$",
+      "match": "(@)(using)\\b\\s*(?!\\()(.+?)?(;)?$",
       "captures": {
         "1": {
           "patterns": [
