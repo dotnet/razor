@@ -3,10 +3,21 @@
 * Licensed under the MIT License. See License.txt in the project root for license information.
 * ------------------------------------------------------------------------------------------ */
 
+import { RunAddTagHelperDirectiveSuite } from './AddTagHelperDirective';
+import { RunAttributeDirectiveSuite } from './AttributeDirective';
+import { RunCodeBlockSuite } from './CodeBlock';
 import { RunCodeDirectiveSuite } from './CodeDirective';
 import { RunExplicitExpressionSuite } from './ExplicitExpressions';
 import { RunFunctionsDirectiveSuite } from './FunctionsDirective';
+import { RunImplementsDirectiveSuite } from './ImplementsDirective';
 import { RunImplicitExpressionSuite } from './ImplicitExpressions';
+import { RunInheritsDirectiveSuite } from './InheritsDirective';
+import { RunInjectDirectiveSuite } from './InjectDirective';
+import { RunModelDirectiveSuite } from './ModelDirective';
+import { RunNamespaceDirectiveSuite } from './NamespaceDirective';
+import { RunPageDirectiveSuite } from './PageDirective';
+import { RunRemoveTagHelperDirectiveSuite } from './RemoveTagHelperDirective';
+import { RunTagHelperPrefixDirectiveSuite } from './TagHelperPrefixDirective';
 import { RunTransitionsSuite } from './Transitions';
 
 // We bring together all test suites and wrap them in one here. The reason behind this is that
@@ -18,6 +29,19 @@ describe('Grammar tests', () => {
     RunTransitionsSuite();
     RunExplicitExpressionSuite();
     RunImplicitExpressionSuite();
+    RunCodeBlockSuite();
+
+    // Directives
     RunCodeDirectiveSuite();
     RunFunctionsDirectiveSuite();
+    RunPageDirectiveSuite();
+    RunAddTagHelperDirectiveSuite();
+    RunRemoveTagHelperDirectiveSuite();
+    RunTagHelperPrefixDirectiveSuite();
+    RunModelDirectiveSuite();
+    RunImplementsDirectiveSuite();
+    RunInheritsDirectiveSuite();
+    RunNamespaceDirectiveSuite();
+    RunInjectDirectiveSuite();
+    RunAttributeDirectiveSuite();
 });
