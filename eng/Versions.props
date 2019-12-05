@@ -55,6 +55,7 @@
     <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>3.0.2-servicing.19604.3</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
     <MicrosoftNETCoreAppRefPackageVersion>3.0.0</MicrosoftNETCoreAppRefPackageVersion>
     <MicrosoftNETCoreAppRuntimewinx64PackageVersion>3.0.2-servicing-19576-08</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
+    <MicrosoftNETCoreAppInternalPackageVersion>3.0.2-servicing-19576-08</MicrosoftNETCoreAppInternalPackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>3.0.0</MicrosoftNETCorePlatformsPackageVersion>
     <SystemDiagnosticsDiagnosticSourcePackageVersion>4.6.0</SystemDiagnosticsDiagnosticSourcePackageVersion>
     <SystemTextEncodingsWebPackageVersion>4.6.0</SystemTextEncodingsWebPackageVersion>
