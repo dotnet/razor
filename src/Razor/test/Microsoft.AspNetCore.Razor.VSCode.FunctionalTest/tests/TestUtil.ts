@@ -14,13 +14,22 @@ export const testAppsRoot = path.join(razorRoot, 'test', 'testapps');
 export const mvcWithComponentsRoot = path.join(testAppsRoot, 'MvcWithComponents');
 export const simpleMvc21Root = path.join(testAppsRoot, 'SimpleMvc21');
 
-export async function pollUntil(fn: () => boolean, timeoutMs: number, pollInterval?: number) {
+export async function pollUntil(fn: () => (boolean | Promise<boolean>), timeoutMs: number, pollInterval?: number, suppressError?: boolean) {
     const resolvedPollInterval = pollInterval ? pollInterval : 50;
 
     let timeWaited = 0;
-    while (!fn()) {
+    let fnEval = fn();
+    if (fnEval instanceof Promise) {
+        fnEval = await fnEval;
+    }
+
+    while (!fnEval) {
         if (timeWaited >= timeoutMs) {
-            throw new Error(`Timed out after ${timeoutMs}ms.`);
+            if (suppressError) {
+                return;
+            } else {
+                throw new Error(`Timed out after ${timeoutMs}ms.`);
+            }
         }
 
         await new Promise(r => setTimeout(r, resolvedPollInterval));
@@ -112,6 +121,7 @@ export async function waitForProjectReady(directory: string) {
     await csharpExtensionReady();
     await htmlLanguageFeaturesExtensionReady();
     await dotnetRestore(directory);
+    await restartOmnisharp();
     await razorExtensionReady();
     await waitForProjectConfigured(directory);
 }
@@ -131,6 +141,16 @@ export async function waitForProjectConfigured(directory: string) {
 
         return false;
     }, /* timeout */ 60000, /* pollInterval */ 250);
+}
+
+export async function restartOmnisharp() {
+    await vscode.commands.executeCommand('o.restart')
+        .then(async () => {
+            console.log('Omnisharp restarted successfully.');
+            await new Promise(r => setTimeout(r, 30000));
+        }, err => {
+            console.log(`Omnisharp restart failed with ${err}.`);
+        });
 }
 
 export async function cleanBinAndObj(directory: string): Promise<void> {
@@ -202,7 +222,12 @@ export async function htmlLanguageFeaturesExtensionReady() {
 }
 
 async function razorExtensionReady() {
-    await vscode.commands.executeCommand('extension.razorActivated');
+    await vscode.commands.executeCommand('extension.razorActivated')
+        .then(async () => {
+            console.log('Razor activated successfully.');
+        }, err => {
+            console.log(`Razor activation failed with ${err}.`);
+        });
 }
 
 function findInDir(directoryPath: string, fileQuery: string): string | undefined {

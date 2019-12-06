@@ -30,8 +30,14 @@ suite('Html Typing', () => {
     });
 
     afterEach(async () => {
-        await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
-        await pollUntil(() => vscode.window.visibleTextEditors.length === 0, 1000);
+        await pollUntil(async () => {
+            await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
+            if (vscode.window.visibleTextEditors.length === 0) {
+                return true;
+            }
+
+            return false;
+        }, /* timeout */ 3000, /* pollInterval */ 500, true /* suppress timeout */);
     });
 
     test('Can auto-close start and end Html tags', async () => {
