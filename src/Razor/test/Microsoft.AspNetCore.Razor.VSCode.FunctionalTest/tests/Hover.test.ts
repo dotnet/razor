@@ -28,8 +28,9 @@ suite('Completions', () => {
     });
 
     afterEach(async () => {
+        await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
         await pollUntil(async () => {
-            await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
+            await vscode.commands.executeCommand('workbench.action.closeAllEditors');
             if (vscode.window.visibleTextEditors.length === 0) {
                 return true;
             }

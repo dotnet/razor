@@ -146,13 +146,13 @@ export async function waitForProjectConfigured(directory: string) {
 }
 
 export async function restartOmnisharp() {
-    await vscode.commands.executeCommand('o.restart')
-        .then(async () => {
-            console.log('Omnisharp restarted successfully.');
-            await new Promise(r => setTimeout(r, 30000));
-        }, err => {
-            console.log(`Omnisharp restart failed with ${err}.`);
-        });
+    try {
+        await vscode.commands.executeCommand('o.restart');
+        console.log('Omnisharp restarted successfully.');
+        await new Promise(r => setTimeout(r, 30000));
+    } catch (error) {
+        console.log(`Omnisharp restart failed with ${error}.`);
+    }
 }
 
 export async function cleanBinAndObj(directory: string): Promise<void> {
@@ -224,12 +224,12 @@ export async function htmlLanguageFeaturesExtensionReady() {
 }
 
 async function razorExtensionReady() {
-    await vscode.commands.executeCommand('extension.razorActivated')
-        .then(async () => {
-            console.log('Razor activated successfully.');
-        }, err => {
-            console.log(`Razor activation failed with ${err}.`);
-        });
+    try {
+        await vscode.commands.executeCommand('extension.razorActivated');
+        console.log('Razor activated successfully.');
+    } catch (error) {
+        console.log(`Razor activation failed with ${error}.`);
+    }
 }
 
 function findInDir(directoryPath: string, fileQuery: string): string | undefined {
