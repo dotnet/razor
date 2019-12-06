@@ -71,6 +71,8 @@ export async function waitForDocumentUpdate(
         }
     };
 
+    // Add a slight delay before checking for the first time.
+    await new Promise(r => setTimeout(r, 500));
     checkUpdated(updatedDocument);
 
     const registration = vscode.workspace.onDidChangeTextDocument(args => {

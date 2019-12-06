@@ -59,35 +59,6 @@ suite('Implementation', () => {
         assert.equal(implementation.range.start.line, 2);
     });
 
-    test('Implementation background file works', async () => {
-        const firstLine = new vscode.Position(0, 0);
-        await editor.edit(edit => edit.insert(firstLine, `@{
-    var x = typeof(Cheese);
-}
-@functions{
-    public class Goat : Cheese {}
-}`));
-        vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-
-        const programPath = path.join(mvcWithComponentsRoot, 'Program.cs');
-        const programDoc = await vscode.workspace.openTextDocument(programPath);
-        const programEditor = await vscode.window.showTextDocument(programDoc);
-        await programEditor.edit(edit => edit.insert(new vscode.Position(3, 0), `    public abstract class Cheese {}
-    public class Cheddar : Cheese {}
-`));
-
-        const position = new vscode.Position(1, 23);
-        const implementations = await vscode.commands.executeCommand<vscode.Location[]>(
-            'vscode.executeImplementationProvider',
-            cshtmlDoc.uri,
-            position);
-
-        assert.equal(implementations!.length, 2, 'Should have had exactly two results');
-        const implementation = implementations![0];
-        assert.ok(implementation.uri.path.endsWith('Program.cs'), `Expected def to point to "Program.cs", but it pointed to ${implementation.uri.path}`);
-        assert.equal(implementation.range.start.line, 4);
-    });
-
     test('Implementation outside file works', async () => {
         const firstLine = new vscode.Position(0, 0);
         await editor.edit(edit => edit.insert(firstLine, `@{
@@ -106,6 +77,8 @@ suite('Implementation', () => {
             'vscode.executeImplementationProvider',
             cshtmlDoc.uri,
             position);
+
+        await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
 
         assert.equal(implementations!.length, 1, 'Should have had exactly one result');
         const implementation = implementations![0];
