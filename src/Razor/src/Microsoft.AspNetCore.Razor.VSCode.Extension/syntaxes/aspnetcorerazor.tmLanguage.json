@@ -13,6 +13,9 @@
     "razor-control-structures": {
       "patterns": [
         {
+          "include": "#razor-comment"
+        },
+        {
           "include": "#razor-codeblock"
         },
         {
@@ -119,6 +122,35 @@
       "endCaptures": {
         "1": {
           "name": "keyword.control.cshtml.transition.textTag.close"
+        }
+      }
+    },
+    "razor-comment": {
+      "begin": "(@)(\\*)",
+      "beginCaptures": {
+        "1": {
+          "patterns": [
+            {
+              "include": "#transition"
+            }
+          ]
+        },
+        "2": {
+          "name": "keyword.control.razor.comment.star"
+        }
+      },
+      "contentName": "comment.block.razor",
+      "end": "(\\*)(@)",
+      "endCaptures": {
+        "1": {
+          "name": "keyword.control.razor.comment.star"
+        },
+        "2": {
+          "patterns": [
+            {
+              "include": "#transition"
+            }
+          ]
         }
       }
     },
