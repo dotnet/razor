@@ -23,6 +23,7 @@ import { RunNamespaceDirectiveSuite } from './NamespaceDirective';
 import { RunPageDirectiveSuite } from './PageDirective';
 import { RunRemoveTagHelperDirectiveSuite } from './RemoveTagHelperDirective';
 import { RunSectionDirectiveSuite } from './SectionDirective';
+import { RunSwitchStatementSuite } from './SwitchStatement';
 import { RunTagHelperPrefixDirectiveSuite } from './TagHelperPrefixDirective';
 import { RunTransitionsSuite } from './Transitions';
 import { RunUsingDirectiveSuite } from './UsingDirective';
@@ -64,4 +65,5 @@ describe('Grammar tests', () => {
     RunForStatementSuite();
     RunForeachStatementSuite();
     RunWhileStatementSuite();
+    RunSwitchStatementSuite();
 });
