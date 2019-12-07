@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -25,7 +24,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorHoverInfoService _hoverInfoService;
-        private readonly TagHelperDescriptionFactory _tagHelperDescriptionFactory;
 
         public RazorHoverEndpoint(
             ForegroundDispatcher foregroundDispatcher,
@@ -91,15 +89,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 throw new NotImplementedException();
             }
 
-            var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
             var sourceText = await document.GetTextAsync();
             var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceSpan(hostDocumentIndex, 0);
+            var location = new SourceSpan(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character, 0);
 
-            var hoverItem = _hoverInfoService.GetHoverInfo(syntaxTree, tagHelperDocumentContext, location);
+            var hoverItem = _hoverInfoService.GetHoverInfo(codeDocument, tagHelperDocumentContext, location);
+            _logger.LogTrace($"Found hover info for '{hoverItem.Name}'.");
 
             return hoverItem;
         }

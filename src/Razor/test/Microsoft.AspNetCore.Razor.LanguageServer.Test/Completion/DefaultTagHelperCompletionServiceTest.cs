@@ -153,7 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
 
             // Act
-            var attributes = DefaultTagHelperCompletionService.StringifyAttributes(startTag.Attributes);
+            var attributes = TagHelperStaticMethods.StringifyAttributes(startTag.Attributes);
 
             // Assert
             Assert.Collection(
@@ -176,7 +176,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
 
             // Act
-            var attributes = DefaultTagHelperCompletionService.StringifyAttributes(startTag.Attributes);
+            var attributes = TagHelperStaticMethods.StringifyAttributes(startTag.Attributes);
 
             // Assert
             Assert.Collection(
@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
 
             // Act
-            var attributes = DefaultTagHelperCompletionService.StringifyAttributes(startTag.Attributes);
+            var attributes = TagHelperStaticMethods.StringifyAttributes(startTag.Attributes);
 
             // Assert
             Assert.Collection(
@@ -222,7 +222,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
 
             // Act
-            var attributes = DefaultTagHelperCompletionService.StringifyAttributes(startTag.Attributes);
+            var attributes = TagHelperStaticMethods.StringifyAttributes(startTag.Attributes);
 
             // Assert
             Assert.Collection(
@@ -254,7 +254,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
 
             // Act
-            var attributes = DefaultTagHelperCompletionService.StringifyAttributes(startTag.Attributes);
+            var attributes = TagHelperStaticMethods.StringifyAttributes(startTag.Attributes);
 
             // Assert
             Assert.Collection(
@@ -286,7 +286,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var startTag = (MarkupTagHelperStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
 
             // Act
-            var attributes = DefaultTagHelperCompletionService.StringifyAttributes(startTag.Attributes);
+            var attributes = TagHelperStaticMethods.StringifyAttributes(startTag.Attributes);
 
             // Assert
             Assert.Collection(
@@ -309,7 +309,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var startTag = (MarkupStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
 
             // Act
-            var attributes = DefaultTagHelperCompletionService.StringifyAttributes(startTag.Attributes);
+            var attributes = TagHelperStaticMethods.StringifyAttributes(startTag.Attributes);
 
             // Assert
             Assert.Collection(
@@ -332,7 +332,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var startTag = (MarkupStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
 
             // Act
-            var attributes = DefaultTagHelperCompletionService.StringifyAttributes(startTag.Attributes);
+            var attributes = TagHelperStaticMethods.StringifyAttributes(startTag.Attributes);
 
             // Assert
             Assert.Collection(
@@ -355,7 +355,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var startTag = (MarkupStartTagSyntax)syntaxTree.Root.LocateOwner(sourceChangeLocation).Parent;
 
             // Act
-            var attributes = DefaultTagHelperCompletionService.StringifyAttributes(startTag.Attributes);
+            var attributes = TagHelperStaticMethods.StringifyAttributes(startTag.Attributes);
 
             // Assert
             Assert.Collection(

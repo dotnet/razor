@@ -174,45 +174,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             var parent = owner.Parent;
-            if (TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
+            if (TagHelperStaticMethods.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
                 containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
             {
-                var stringifiedAttributes = StringifyAttributes(attributes);
+                var stringifiedAttributes = TagHelperStaticMethods.StringifyAttributes(attributes);
                 var elementCompletions = GetElementCompletions(parent, containingTagNameToken.Content, stringifiedAttributes, codeDocument);
                 return elementCompletions;
             }
 
-            if (TryGetAttributeInfo(parent, out containingTagNameToken, out var selectedAttributeName, out attributes) &&
+            if (TagHelperStaticMethods.TryGetAttributeInfo(parent, out containingTagNameToken, out var selectedAttributeName, out attributes) &&
                 attributes.Span.IntersectsWith(location.AbsoluteIndex))
             {
-                var stringifiedAttributes = StringifyAttributes(attributes);
+                var stringifiedAttributes = TagHelperStaticMethods.StringifyAttributes(attributes);
                 var attributeCompletions = GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, codeDocument);
                 return attributeCompletions;
             }
 
             // Invalid location for TagHelper completions.
             return Array.Empty<CompletionItem>();
-        }
-
-        private static bool TryGetAttributeInfo(SyntaxNode attribute, out SyntaxToken containingTagNameToken, out string selectedAttributeName, out SyntaxList<RazorSyntaxNode> attributeNodes)
-        {
-            if ((attribute is MarkupMiscAttributeContentSyntax ||
-                attribute is MarkupMinimizedAttributeBlockSyntax ||
-                attribute is MarkupAttributeBlockSyntax ||
-                attribute is MarkupTagHelperAttributeSyntax ||
-                attribute is MarkupMinimizedTagHelperAttributeSyntax ||
-                attribute is MarkupTagHelperDirectiveAttributeSyntax ||
-                attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax) &&
-                TryGetElementInfo(attribute.Parent, out containingTagNameToken, out attributeNodes))
-            {
-                selectedAttributeName = null;
-                return true;
-            }
-
-            containingTagNameToken = null;
-            selectedAttributeName = null;
-            attributeNodes = default;
-            return false;
         }
 
         private IReadOnlyList<CompletionItem> GetAttributeCompletions(
@@ -328,52 +307,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         // Internal for testing
-        internal static IEnumerable<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)
-        {
-            var stringifiedAttributes = new List<KeyValuePair<string, string>>();
-
-            for (var i = 0; i < attributes.Count; i++)
-            {
-                var attribute = attributes[i];
-                if (attribute is MarkupTagHelperAttributeSyntax tagHelperAttribute)
-                {
-                    var name = tagHelperAttribute.Name.GetContent();
-                    var value = tagHelperAttribute.Value?.GetContent() ?? string.Empty;
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, value));
-                }
-                else if (attribute is MarkupMinimizedTagHelperAttributeSyntax minimizedTagHelperAttribute)
-                {
-                    var name = minimizedTagHelperAttribute.Name.GetContent();
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, string.Empty));
-                }
-                else if (attribute is MarkupAttributeBlockSyntax markupAttribute)
-                {
-                    var name = markupAttribute.Name.GetContent();
-                    var value = markupAttribute.Value?.GetContent() ?? string.Empty;
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, value));
-                }
-                else if (attribute is MarkupMinimizedAttributeBlockSyntax minimizedMarkupAttribute)
-                {
-                    var name = minimizedMarkupAttribute.Name.GetContent();
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, string.Empty));
-                }
-                else if (attribute is MarkupTagHelperDirectiveAttributeSyntax directiveAttribute)
-                {
-                    var name = directiveAttribute.FullName;
-                    var value = directiveAttribute.Value?.GetContent() ?? string.Empty;
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, value));
-                }
-                else if (attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedDirectiveAttribute)
-                {
-                    var name = minimizedDirectiveAttribute.FullName;
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, string.Empty));
-                }
-            }
-
-            return stringifiedAttributes;
-        }
-
-        // Internal for testing
         internal static (string ancestorTagName, bool ancestorIsTagHelper) GetNearestAncestorTagInfo(IEnumerable<SyntaxNode> ancestors)
         {
             foreach (var ancestor in ancestors)
@@ -393,27 +326,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             return (ancestorTagName: null, ancestorIsTagHelper: false);
-        }
-
-        private static bool TryGetElementInfo(SyntaxNode element, out SyntaxToken containingTagNameToken, out SyntaxList<RazorSyntaxNode> attributeNodes)
-        {
-            if (element is MarkupStartTagSyntax startTag)
-            {
-                containingTagNameToken = startTag.Name;
-                attributeNodes = startTag.Attributes;
-                return true;
-            }
-
-            if (element is MarkupTagHelperStartTagSyntax startTagHelper)
-            {
-                containingTagNameToken = startTagHelper.Name;
-                attributeNodes = startTagHelper.Attributes;
-                return true;
-            }
-
-            containingTagNameToken = null;
-            attributeNodes = default;
-            return false;
         }
 
         private bool TryResolveAttributeInsertionSnippet(
