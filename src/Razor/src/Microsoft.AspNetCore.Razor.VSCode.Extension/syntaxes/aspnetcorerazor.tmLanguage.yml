@@ -63,10 +63,10 @@ repository:
     endCaptures:
       1: { name: 'keyword.control.cshtml.transition.textTag.close' }
 
-
 # --------- Razor Comment -----------
 
   razor-comment:
+    name: 'meta.comment.razor'
     begin: '(@)(\*)'
     beginCaptures:
       1: { patterns: [ include: '#transition' ] }
@@ -76,7 +76,6 @@ repository:
     endCaptures:
       1: { name: 'keyword.control.razor.comment.star' }
       2: { patterns: [ include: '#transition']}
-
 
 # ----------  HTML ------------
 

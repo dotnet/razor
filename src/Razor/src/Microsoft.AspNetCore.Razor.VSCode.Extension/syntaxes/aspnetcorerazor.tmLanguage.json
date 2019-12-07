@@ -126,6 +126,7 @@
       }
     },
     "razor-comment": {
+      "name": "meta.comment.razor",
       "begin": "(@)(\\*)",
       "beginCaptures": {
         "1": {
