@@ -7,6 +7,7 @@ import { RunAddTagHelperDirectiveSuite } from './AddTagHelperDirective';
 import { RunAttributeDirectiveSuite } from './AttributeDirective';
 import { RunCodeBlockSuite } from './CodeBlock';
 import { RunCodeDirectiveSuite } from './CodeDirective';
+import { RunDoStatementSuite } from './DoStatement';
 import { RunElsePartSuite } from './ElsePart';
 import { RunExplicitExpressionSuite } from './ExplicitExpressions';
 import { RunForeachStatementSuite } from './ForeachStatement';
@@ -68,4 +69,5 @@ describe('Grammar tests', () => {
     RunWhileStatementSuite();
     RunSwitchStatementSuite();
     RunLockStatementSuite();
+    RunDoStatementSuite();
 });
