@@ -16,7 +16,7 @@ import {
 let cshtmlDoc: vscode.TextDocument;
 let editor: vscode.TextEditor;
 
-suite('Completions', () => {
+suite('Hover', () => {
     before(async () => {
         await waitForProjectReady(mvcWithComponentsRoot);
     });

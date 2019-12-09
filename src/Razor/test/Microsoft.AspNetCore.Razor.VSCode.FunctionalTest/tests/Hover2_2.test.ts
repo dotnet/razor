@@ -55,6 +55,37 @@ suite('Hover 2.2', () => {
         assert.fail('hover over the attribute and confirm that it is reported as a TagHelper');
     });
 
+    test('Can perform hovers on TagHelpers that need attributes', async () => {
+        const firstLine = new vscode.Position(0, 0);
+        await editor.edit(edit => edit.insert(firstLine, '<input class="someName" />\n'));
+        let hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
+            'vscode.executeHoverProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(0, 3));
+
+        assert.ok(!hoverResult, 'Should not have a hover result for InputTagHelper because it does not have the correct attrs yet.');
+
+        await editor.edit(edit => edit.insert(firstLine, '<input asp-for="D" class="someName" />\n'));
+        hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
+            'vscode.executeHoverProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(0, 3));
+        const expectedRange = new vscode.Range(
+            new vscode.Position(0, 0),
+            new vscode.Position(0, 26));
+
+        assert.ok(hoverResult, 'Should have a hover result for InputTagHelper.');
+        if (hoverResult) {
+            assert.equal(hoverResult.length, 1, 'Something else may be providing hover results');
+
+            const envResult = hoverResult[0];
+            assert.deepEqual(envResult.range, expectedRange, 'TagHelper range should be <input>');
+            assert.fail('Check the content');
+        }
+
+        assert.fail('hover over the attribute and confirm that it is not reported as a TagHelper');
+    });
+
     // MvcWithComponents doesn't find TagHelpers because of test setup foibles.
     test('Can perform hovers on TagHelpers', async () => {
         const firstLine = new vscode.Position(0, 0);
