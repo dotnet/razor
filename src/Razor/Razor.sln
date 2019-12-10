@@ -106,10 +106,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.OmniSharpPlugin.Test", "test\Microsoft.AspNetCore.Razor.OmniSharpPlugin.Test\Microsoft.AspNetCore.Razor.OmniSharpPlugin.Test.csproj", "{4ED6CC87-11C4-4ECD-B9A1-AFC5C2DACABE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "testapps", "testapps", "{CED1CA43-E449-4953-9474-0FC4429A714E}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleMvc22", "test\testapps\SimpleMvc22\SimpleMvc22.csproj", "{E3F94C54-3221-4965-B52B-CE6EACB9B957}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -494,14 +490,6 @@ Global
 		{4ED6CC87-11C4-4ECD-B9A1-AFC5C2DACABE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4ED6CC87-11C4-4ECD-B9A1-AFC5C2DACABE}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
 		{4ED6CC87-11C4-4ECD-B9A1-AFC5C2DACABE}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
-		{E3F94C54-3221-4965-B52B-CE6EACB9B957}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E3F94C54-3221-4965-B52B-CE6EACB9B957}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E3F94C54-3221-4965-B52B-CE6EACB9B957}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
-		{E3F94C54-3221-4965-B52B-CE6EACB9B957}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
-		{E3F94C54-3221-4965-B52B-CE6EACB9B957}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E3F94C54-3221-4965-B52B-CE6EACB9B957}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E3F94C54-3221-4965-B52B-CE6EACB9B957}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
-		{E3F94C54-3221-4965-B52B-CE6EACB9B957}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -554,8 +542,6 @@ Global
 		{525CCD97-7E6E-404C-8CD3-736E5649C858} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 		{305354FD-5ED7-4E89-8B1D-58FCCA3E08AD} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 		{4ED6CC87-11C4-4ECD-B9A1-AFC5C2DACABE} = {92463391-81BE-462B-AC3C-78C6C760741F}
-		{CED1CA43-E449-4953-9474-0FC4429A714E} = {92463391-81BE-462B-AC3C-78C6C760741F}
-		{E3F94C54-3221-4965-B52B-CE6EACB9B957} = {CED1CA43-E449-4953-9474-0FC4429A714E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0035341D-175A-4D05-95E6-F1C2785A1E26}
