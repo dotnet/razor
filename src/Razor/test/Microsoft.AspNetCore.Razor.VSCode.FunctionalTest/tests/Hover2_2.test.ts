@@ -39,6 +39,27 @@ suite('Hover 2.2', () => {
         }, /* timeout */ 3000, /* pollInterval */ 500, true /* suppress timeout */);
     });
 
+    test('Hovers over tags with multiple possible TagHelpers should return both', async () => {
+        const firstLine = new vscode.Position(0, 0);
+        await editor.edit(edit => edit.insert(firstLine, '<environment exclude="d" />\n'));
+        await editor.edit(edit => edit.insert(firstLine, '@addTagHelper *, SimpleMvc22'));
+        let hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
+            'vscode.executeHoverProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(1, 3));
+
+        assert.ok(hoverResult, 'Should have returned a result');
+        assert.equal(hoverResult!.length, 2, 'Should have a hover result for both EnvironmentTagHelpers');
+
+        hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
+            'vscode.executeHoverProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(1, 15));
+
+        assert.ok(hoverResult, 'Should have returned a result');
+        assert.equal(hoverResult!.length, 2, 'Should have a hover result for both EnvironmentTagHelpers');
+    });
+
     test('Can perform hovers on TagHelpers that need attributes', async () => {
         const firstLine = new vscode.Position(0, 0);
         await editor.edit(edit => edit.insert(firstLine, '<input class="someName" />\n'));

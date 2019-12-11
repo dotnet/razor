@@ -97,7 +97,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             var location = new SourceSpan(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character, 0);
 
             var hoverItem = _hoverInfoService.GetHoverInfo(codeDocument, tagHelperDocumentContext, location);
-            _logger.LogTrace($"Found hover info for '{hoverItem.Name}'.");
 
             return hoverItem;
         }

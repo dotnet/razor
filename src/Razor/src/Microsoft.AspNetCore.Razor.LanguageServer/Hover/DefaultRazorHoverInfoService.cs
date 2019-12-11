@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -12,11 +13,10 @@ using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
 using RangeModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
-    [Shared]
-    [Export(typeof(RazorHoverInfoService))]
     internal class DefaultRazorHoverInfoService : RazorHoverInfoService
     {
         private readonly TagHelperFactsService _tagHelperFactsService;
@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             _tagHelperDescriptionFactory = tagHelperDescriptionFactory;
         }
 
-        public override ExpandedHoverModel GetHoverInfo(RazorCodeDocument codeDocument, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override HoverModel GetHoverInfo(RazorCodeDocument codeDocument, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
         {
             if (codeDocument is null)
             {
@@ -67,6 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             if (TagHelperStaticMethods.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
                 containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
             {
+                // Hovering over HTML tag name
                 var stringifiedAttributes = TagHelperStaticMethods.StringifyAttributes(attributes);
                 var binding = _tagHelperFactsService.GetTagHelperBinding(
                     tagHelperDocumentContext,
@@ -84,7 +85,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 {
                     Debug.Assert(binding.Descriptors.Count() > 0);
 
-                    return ElementInfoToHover(binding.Descriptors.First(), position);
+                    var result = ElementInfoToHover(binding.Descriptors, position);
+                    return result;
                 }
             }
 
@@ -101,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     parentIsTagHelper: false);
 
                 var tagHelperAttrs = _tagHelperFactsService.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
-                var attrHoverModel = AttributeInfoToHover(tagHelperAttrs.First(), position);
+                var attrHoverModel = AttributeInfoToHover(tagHelperAttrs, position);
 
                 return attrHoverModel;
             }
@@ -109,17 +111,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return null;
         }
 
-        private ExpandedHoverModel AttributeInfoToHover(BoundAttributeDescriptor descriptor, Position position)
+        private HoverModel AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, Position position)
         {
-            var attrDescriptionInfo = new AttributeDescriptionInfo(
-                new[] {
-                    new TagHelperAttributeDescriptionInfo(descriptor.DisplayName, descriptor.GetPropertyName(), descriptor.TypeName, descriptor.Documentation)
-                });
+            var descriptionInfos = descriptors.Select(d => new TagHelperAttributeDescriptionInfo(d.DisplayName, d.GetPropertyName(), d.TypeName, d.Documentation))
+                .ToList()
+                .AsReadOnly();
+            var attrDescriptionInfo = new AttributeDescriptionInfo(descriptionInfos);
 
             _tagHelperDescriptionFactory.TryCreateDescription(attrDescriptionInfo, out var markdown);
 
-            var hover = new ExpandedHoverModel {
-                Name = descriptor.DisplayName,
+            var hover = new HoverModel {
                 Contents = new MarkedStringsOrMarkupContent(new MarkupContent
                 {
                     Kind = MarkupKind.Markdown,
@@ -131,17 +132,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return hover;
         }
 
-        private ExpandedHoverModel ElementInfoToHover(TagHelperDescriptor descriptor, Position position)
+        private HoverModel ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, Position position)
         {
-            var elementDescriptionInfo = new ElementDescriptionInfo(
-                new [] {
-                    new TagHelperDescriptionInfo(descriptor.DisplayName, descriptor.Documentation)
-                });
+            var descriptionInfos = descriptors.Select(d => new TagHelperDescriptionInfo(d.DisplayName, d.Documentation))
+                .ToList()
+                .AsReadOnly();
+            var elementDescriptionInfo = new ElementDescriptionInfo(descriptionInfos);
 
             _tagHelperDescriptionFactory.TryCreateDescription(elementDescriptionInfo, out var markdown);
-            var hover = new ExpandedHoverModel
+
+            var hover = new HoverModel
             {
-                Name = descriptor.DisplayName,
                 Contents = new MarkedStringsOrMarkupContent(new MarkupContent
                 {
                     Kind = MarkupKind.Markdown,
