@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.Extensions.CommandLineUtils.Sources" Version="3.0.2-servicing.19607.2">
+    <Dependency Name="Microsoft.Extensions.CommandLineUtils.Sources" Version="3.0.2-servicing.19611.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>3ba3e89a2c0f3639257ba2ad2bc2db14857a88ed</Sha>
+      <Sha>2380077b886ff0a7b09508729f0e640779bb219b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.HashCodeCombiner.Sources" Version="3.0.2-servicing.19607.2">
+    <Dependency Name="Microsoft.Extensions.HashCodeCombiner.Sources" Version="3.0.2-servicing.19611.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>3ba3e89a2c0f3639257ba2ad2bc2db14857a88ed</Sha>
+      <Sha>2380077b886ff0a7b09508729f0e640779bb219b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.NonCapturingTimer.Sources" Version="3.0.2-servicing.19607.2">
+    <Dependency Name="Microsoft.Extensions.NonCapturingTimer.Sources" Version="3.0.2-servicing.19611.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>3ba3e89a2c0f3639257ba2ad2bc2db14857a88ed</Sha>
+      <Sha>2380077b886ff0a7b09508729f0e640779bb219b</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Extensions.Logging" Version="3.0.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>3ba3e89a2c0f3639257ba2ad2bc2db14857a88ed</Sha>
+      <Sha>2380077b886ff0a7b09508729f0e640779bb219b</Sha>
     </Dependency>
     <Dependency Name="System.Diagnostics.DiagnosticSource" Version="4.6.0" CoherentParentDependency="Microsoft.NETCore.App.Runtime.win-x64">
       <Uri>https://github.com/dotnet/corefx</Uri>
@@ -53,17 +53,17 @@
   </ProductDependencies>
   <ToolsetDependencies>
     <!-- Listed as a dependency to workaround https://github.com/dotnet/cli/issues/10528 -->
-    <Dependency Name="Microsoft.NETCore.Platforms" Version="3.0.1" CoherentParentDependency="Microsoft.NETCore.App.Runtime.win-x64">
+    <Dependency Name="Microsoft.NETCore.Platforms" Version="3.0.0" CoherentParentDependency="Microsoft.NETCore.App.Runtime.win-x64">
       <Uri>https://github.com/dotnet/corefx</Uri>
-      <Sha>e14c43ea3f727d1ed8844014aae8b168cc608b22</Sha>
+      <Sha>4ac4c0367003fe3973a3648eb0715ddb0e3bbcea</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.0.2-servicing.19607.2">
+    <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.0.2-servicing.19611.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>3ba3e89a2c0f3639257ba2ad2bc2db14857a88ed</Sha>
+      <Sha>2380077b886ff0a7b09508729f0e640779bb219b</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Testing" Version="3.0.2-servicing.19607.2">
+    <Dependency Name="Microsoft.AspNetCore.Testing" Version="3.0.2-servicing.19611.2">
       <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>3ba3e89a2c0f3639257ba2ad2bc2db14857a88ed</Sha>
+      <Sha>2380077b886ff0a7b09508729f0e640779bb219b</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="1.0.0-beta.19607.3">
       <Uri>https://github.com/dotnet/arcade</Uri>
