@@ -145,15 +145,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             "wbr",
         };
         private readonly RazorTagHelperCompletionService _razorTagHelperCompletionService;
+        private readonly HtmlFactsService _htmlFactsService;
+        private readonly TagHelperFactsService _tagHelperFactsService;
 
-        public DefaultTagHelperCompletionService(RazorTagHelperCompletionService razorCompletionService)
+        public DefaultTagHelperCompletionService(
+            RazorTagHelperCompletionService razorCompletionService,
+            HtmlFactsService htmlFactsService,
+            TagHelperFactsService tagHelperFactsService)
         {
-            if (razorCompletionService == null)
+            if (razorCompletionService is null)
             {
                 throw new ArgumentNullException(nameof(razorCompletionService));
             }
 
+            if (htmlFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(htmlFactsService));
+            }
+
+            if (tagHelperFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperFactsService));
+            }
+
             _razorTagHelperCompletionService = razorCompletionService;
+            _htmlFactsService = htmlFactsService;
+            _tagHelperFactsService = tagHelperFactsService;
         }
 
         public override IReadOnlyList<CompletionItem> GetCompletionsAt(SourceSpan location, RazorCodeDocument codeDocument)
@@ -174,18 +191,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             var parent = owner.Parent;
-            if (TagHelperStaticMethods.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
+            if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
                 containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
             {
-                var stringifiedAttributes = TagHelperStaticMethods.StringifyAttributes(attributes);
+                var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
                 var elementCompletions = GetElementCompletions(parent, containingTagNameToken.Content, stringifiedAttributes, codeDocument);
                 return elementCompletions;
             }
 
-            if (TagHelperStaticMethods.TryGetAttributeInfo(parent, out containingTagNameToken, out var selectedAttributeName, out attributes) &&
+            if (_htmlFactsService.TryGetAttributeInfo(parent, out containingTagNameToken, out var selectedAttributeName, out attributes) &&
                 attributes.Span.IntersectsWith(location.AbsoluteIndex))
             {
-                var stringifiedAttributes = TagHelperStaticMethods.StringifyAttributes(attributes);
+                var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
                 var attributeCompletions = GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, codeDocument);
                 return attributeCompletions;
             }

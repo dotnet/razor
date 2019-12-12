@@ -107,6 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
+                        services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
                         var documentVersionCache = new DefaultDocumentVersionCache(foregroundDispatcher);
                         services.AddSingleton<DocumentVersionCache>(documentVersionCache);
                         services.AddSingleton<ProjectSnapshotChangeTrigger>(documentVersionCache);

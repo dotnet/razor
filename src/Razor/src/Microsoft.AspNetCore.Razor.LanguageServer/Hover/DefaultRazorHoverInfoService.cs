@@ -21,9 +21,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
     {
         private readonly TagHelperFactsService _tagHelperFactsService;
         private readonly TagHelperDescriptionFactory _tagHelperDescriptionFactory;
+        private readonly HtmlFactsService _htmlFactsService;
 
         [ImportingConstructor]
-        public DefaultRazorHoverInfoService(TagHelperFactsService tagHelperFactsService, TagHelperDescriptionFactory tagHelperDescriptionFactory)
+        public DefaultRazorHoverInfoService(
+            TagHelperFactsService tagHelperFactsService,
+            TagHelperDescriptionFactory tagHelperDescriptionFactory,
+            HtmlFactsService htmlFactsService)
         {
             if (tagHelperFactsService is null)
             {
@@ -35,20 +39,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 throw new ArgumentNullException(nameof(tagHelperDescriptionFactory));
             }
 
+            if (htmlFactsService is null)
+            {
+                throw new ArgumentNullException(nameof(htmlFactsService));
+            }
+
             _tagHelperFactsService = tagHelperFactsService;
             _tagHelperDescriptionFactory = tagHelperDescriptionFactory;
+            _htmlFactsService = htmlFactsService;
         }
 
-        public override HoverModel GetHoverInfo(RazorCodeDocument codeDocument, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override HoverModel GetHoverInfo(RazorCodeDocument codeDocument, SourceSpan location)
         {
             if (codeDocument is null)
             {
                 throw new ArgumentNullException(nameof(codeDocument));
-            }
-
-            if (tagHelperDocumentContext is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelperDocumentContext));
             }
 
             var syntaxTree = codeDocument.GetSyntaxTree();
@@ -63,12 +68,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
             var parent = owner.Parent;
             var position = new Position(location.LineIndex, location.CharacterIndex);
+            var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
-            if (TagHelperStaticMethods.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
+            if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
                 containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
             {
                 // Hovering over HTML tag name
-                var stringifiedAttributes = TagHelperStaticMethods.StringifyAttributes(attributes);
+                var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
                 var binding = _tagHelperFactsService.GetTagHelperBinding(
                     tagHelperDocumentContext,
                     containingTagNameToken.Content,
@@ -90,10 +96,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 }
             }
 
-            if (TagHelperStaticMethods.TryGetAttributeInfo(parent, out containingTagNameToken, out var selectedAttributeName, out attributes) &&
+            if (_htmlFactsService.TryGetAttributeInfo(parent, out containingTagNameToken, out var selectedAttributeName, out attributes) &&
                 attributes.Span.IntersectsWith(location.AbsoluteIndex))
             {
-                var stringifiedAttributes = TagHelperStaticMethods.StringifyAttributes(attributes);
+                // Hovering over HTML attribute name
+                var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
 
                 var binding = _tagHelperFactsService.GetTagHelperBinding(
                     tagHelperDocumentContext,
@@ -102,10 +109,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     parentTag: null,
                     parentIsTagHelper: false);
 
-                var tagHelperAttrs = _tagHelperFactsService.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
-                var attrHoverModel = AttributeInfoToHover(tagHelperAttrs, position);
+                var tagHelperAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
+                var attributeHoverModel = AttributeInfoToHover(tagHelperAttributes, position);
 
-                return attrHoverModel;
+                return attributeHoverModel;
             }
 
             return null;
@@ -118,7 +125,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 .AsReadOnly();
             var attrDescriptionInfo = new AttributeDescriptionInfo(descriptionInfos);
 
-            _tagHelperDescriptionFactory.TryCreateDescription(attrDescriptionInfo, out var markdown);
+            if(!_tagHelperDescriptionFactory.TryCreateDescription(attrDescriptionInfo, out var markdown))
+            {
+                return null;
+            }
 
             var hover = new HoverModel {
                 Contents = new MarkedStringsOrMarkupContent(new MarkupContent

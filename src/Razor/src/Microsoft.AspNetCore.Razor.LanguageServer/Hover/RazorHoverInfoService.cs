@@ -8,6 +8,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
     internal abstract class RazorHoverInfoService
     {
-        public abstract HoverModel GetHoverInfo(RazorCodeDocument codeDocument, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location);
+        public abstract HoverModel GetHoverInfo(RazorCodeDocument codeDocument, SourceSpan location);
     }
 }

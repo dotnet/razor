@@ -31,22 +31,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             RazorHoverInfoService hoverInfoService,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (documentResolver == null)
+            if (documentResolver is null)
             {
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (hoverInfoService == null)
+            if (hoverInfoService is null)
             {
                 throw new ArgumentNullException(nameof(hoverInfoService));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
@@ -67,6 +67,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
         public async Task<HoverModel> Handle(HoverParams request, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             var document = await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.AbsolutePath, out var documentSnapshot);
@@ -74,19 +79,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
-            HoverModel result;
-
             if(document is null)
             {
-                result = new HoverModel();
-
-                return result;
+                return null;
             }
 
             var codeDocument = await document.GetGeneratedOutputAsync();
             if (codeDocument.IsUnsupported())
             {
-                throw new NotImplementedException();
+                return null;
             }
 
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
@@ -96,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceSpan(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character, 0);
 
-            var hoverItem = _hoverInfoService.GetHoverInfo(codeDocument, tagHelperDocumentContext, location);
+            var hoverItem = _hoverInfoService.GetHoverInfo(codeDocument, location);
 
             return hoverItem;
         }
