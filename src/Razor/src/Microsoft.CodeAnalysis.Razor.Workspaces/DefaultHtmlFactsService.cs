@@ -39,9 +39,29 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax) &&
                 TryGetElementInfo(attribute.Parent, out containingTagNameToken, out attributeNodes))
             {
-                if (attribute is MarkupTagHelperAttributeSyntax)
+                if (attribute is MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock)
                 {
-                    selectedAttributeName = ((MarkupTagHelperAttributeSyntax)attribute).Name.GetContent();
+                    selectedAttributeName = minimizedAttributeBlock.Name.GetContent();
+                }
+                else if (attribute is MarkupAttributeBlockSyntax attributeBlock)
+                {
+                    selectedAttributeName = attributeBlock.Name.GetContent();
+                }
+                else if (attribute is MarkupTagHelperAttributeSyntax tagHelperAttribute)
+                {
+                    selectedAttributeName = tagHelperAttribute.Name.GetContent();
+                }
+                else if (attribute is MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute)
+                {
+                    selectedAttributeName = minimizedAttribute.Name.GetContent();
+                }
+                else if (attribute is MarkupTagHelperDirectiveAttributeSyntax tagHelperDirectiveAttribute)
+                {
+                    selectedAttributeName = tagHelperDirectiveAttribute.Name.GetContent();
+                }
+                else if (attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedTagHelperDirectiveAttribute)
+                {
+                    selectedAttributeName = minimizedTagHelperDirectiveAttribute.Name.GetContent();
                 }
                 else
                 {

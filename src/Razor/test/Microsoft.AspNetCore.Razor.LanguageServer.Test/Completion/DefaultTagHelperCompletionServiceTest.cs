@@ -633,7 +633,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Assert
             Assert.Collection(
                 completions,
-                completion => Assert.Equal("bool-val", completion.FilterText));
+                completion => Assert.Equal("bool-val", completion.FilterText),
+                completion => Assert.Equal("int-val", completion.FilterText));
         }
 
         [Fact]
@@ -641,7 +642,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int-val='>", DefaultTagHelpers);
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int-val='>";
+            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
 
             // Act
@@ -650,7 +652,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Assert
             Assert.Collection(
                 completions,
-                completion => Assert.Equal("bool-val", completion.FilterText));
+                completion => Assert.Equal("bool-val", completion.FilterText),
+                completion => Assert.Equal("int-val", completion.FilterText));
         }
 
         [Fact]
