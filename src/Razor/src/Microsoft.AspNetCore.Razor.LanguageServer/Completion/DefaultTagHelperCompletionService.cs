@@ -222,7 +222,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var nonDirectiveAttributeTagHelpers = tagHelperDocumentContext.TagHelpers.Where(tagHelper => !tagHelper.BoundAttributes.Any(attribute => attribute.IsDirectiveAttribute()));
             var filteredContext = TagHelperDocumentContext.Create(tagHelperDocumentContext.Prefix, nonDirectiveAttributeTagHelpers);
-            var (ancestorTagName, ancestorIsTagHelper) = GetNearestAncestorTagInfo(ancestors);
+            var (ancestorTagName, ancestorIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
             var attributeCompletionContext = new AttributeCompletionContext(
                 filteredContext,
                 existingCompletions: Enumerable.Empty<string>(),
@@ -290,7 +290,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             var ancestors = containingTag.Ancestors();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
-            var (ancestorTagName, ancestorIsTagHelper) = GetNearestAncestorTagInfo(ancestors);
+            var (ancestorTagName, ancestorIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
             var elementCompletionContext = new ElementCompletionContext(
                 tagHelperDocumentContext,
                 existingCompletions: Enumerable.Empty<string>(),
@@ -321,28 +321,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             return completionItems;
-        }
-
-        // Internal for testing
-        internal static (string ancestorTagName, bool ancestorIsTagHelper) GetNearestAncestorTagInfo(IEnumerable<SyntaxNode> ancestors)
-        {
-            foreach (var ancestor in ancestors)
-            {
-                if (ancestor is MarkupElementSyntax element)
-                {
-                    // It's possible for start tag to be null in malformed cases.
-                    var name = element.StartTag?.Name?.Content ?? string.Empty;
-                    return (name, ancestorIsTagHelper: false);
-                }
-                else if (ancestor is MarkupTagHelperElementSyntax tagHelperElement)
-                {
-                    // It's possible for start tag to be null in malformed cases.
-                    var name = tagHelperElement.StartTag?.Name?.Content ?? string.Empty;
-                    return (name, ancestorIsTagHelper: true);
-                }
-            }
-
-            return (ancestorTagName: null, ancestorIsTagHelper: false);
         }
 
         private bool TryResolveAttributeInsertionSnippet(

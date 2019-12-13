@@ -3,12 +3,12 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Xunit;
 using DefaultRazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.DefaultTagHelperCompletionService;
 using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
@@ -121,9 +121,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var owner = syntaxTree.Root.LocateOwner(new SourceChange(sourceSpan, string.Empty));
             var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
+            var service = new DefaultTagHelperFactsService();
 
             // Act
-            var (ancestorName, ancestorIsTagHelper) = DefaultTagHelperCompletionService.GetNearestAncestorTagInfo(element.Ancestors());
+            var (ancestorName, ancestorIsTagHelper) = service.GetNearestAncestorTagInfo(element.Ancestors());
 
             // Assert
             Assert.Equal("p", ancestorName);
@@ -139,9 +140,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var owner = syntaxTree.Root.LocateOwner(new SourceChange(sourceSpan, string.Empty));
             var element = owner.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
+            var service = new DefaultTagHelperFactsService();
 
             // Act
-            var (ancestorName, ancestorIsTagHelper) = DefaultTagHelperCompletionService.GetNearestAncestorTagInfo(element.Ancestors());
+            var (ancestorName, ancestorIsTagHelper) = service.GetNearestAncestorTagInfo(element.Ancestors());
 
             // Assert
             Assert.Equal("test1", ancestorName);
@@ -598,6 +600,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Assert
             Assert.Collection(
                 completions,
+                completion => Assert.Equal("bool-val", completion.FilterText),
                 completion => Assert.Equal("int-val", completion.FilterText));
         }
 

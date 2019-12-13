@@ -62,5 +62,27 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             return stringifiedAttributes;
         }
+
+        // Internal for testing
+        internal virtual (string ancestorTagName, bool ancestorIsTagHelper) GetNearestAncestorTagInfo(IEnumerable<SyntaxNode> ancestors)
+        {
+            foreach (var ancestor in ancestors)
+            {
+                if (ancestor is MarkupElementSyntax element)
+                {
+                    // It's possible for start tag to be null in malformed cases.
+                    var name = element.StartTag?.Name?.Content ?? string.Empty;
+                    return (name, ancestorIsTagHelper: false);
+                }
+                else if (ancestor is MarkupTagHelperElementSyntax tagHelperElement)
+                {
+                    // It's possible for start tag to be null in malformed cases.
+                    var name = tagHelperElement.StartTag?.Name?.Content ?? string.Empty;
+                    return (name, ancestorIsTagHelper: true);
+                }
+            }
+
+            return (ancestorTagName: null, ancestorIsTagHelper: false);
+        }
     }
 }

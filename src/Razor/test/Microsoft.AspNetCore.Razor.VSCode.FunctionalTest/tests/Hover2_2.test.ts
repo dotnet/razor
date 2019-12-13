@@ -39,6 +39,48 @@ suite('Hover 2.2', () => {
         }, /* timeout */ 3000, /* pollInterval */ 500, true /* suppress timeout */);
     });
 
+    test('Hover over attribute value does not return TagHelper info', async () => {
+        const firstLine = new vscode.Position(0, 0);
+        await editor.edit(edit => edit.insert(firstLine, '<environment exclude="drain" />\n'));
+
+        const hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
+            'vscode.executeHoverProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(0, 24));
+
+        assert.ok(hoverResult, 'Should have returned a result');
+        assert.equal(hoverResult!.length, 0, 'Should only have one hover result since the markdown is presented as one.');
+    });
+
+    test('Hover over multiple attributes gives the correct one', async () => {
+        const firstLine = new vscode.Position(0, 0);
+        await editor.edit(edit => edit.insert(firstLine, '<environment exclude="drain" include="fountain" />\n'));
+
+        let hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
+            'vscode.executeHoverProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(0, 16));
+
+        assert.ok(hoverResult, 'Should have returned a result');
+        assert.equal(hoverResult!.length, 1, 'Should only have one hover result');
+
+        let mdString = hoverResult![0].contents[0] as vscode.MarkdownString;
+        assert.ok(mdString.value.includes('Exclude'), `Expected "Exclude" in ${mdString.value}`);
+        assert.ok(!mdString.value.includes('Include'), `Expected 'Include' not to be in ${mdString.value}`);
+
+        hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
+            'vscode.executeHoverProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(0, 32));
+
+        assert.ok(hoverResult, 'Should have returned a result');
+        assert.equal(hoverResult!.length, 1, 'Should only have one hover result');
+
+        mdString = hoverResult![0].contents[0] as vscode.MarkdownString;
+        assert.ok(!mdString.value.includes('Exclude'), `Expected "Exclude" not to be in ${mdString.value}`);
+        assert.ok(mdString.value.includes('Include'), `Expected 'Include' in ${mdString.value}`);
+    });
+
     test('Hovers over tags with multiple possible TagHelpers should return both', async () => {
         const firstLine = new vscode.Position(0, 0);
         await editor.edit(edit => edit.insert(firstLine, '<environment exclude="d" />\n'));

@@ -8,12 +8,13 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
 using RangeModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
@@ -70,6 +71,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             var position = new Position(location.LineIndex, location.CharacterIndex);
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
+            var ancestors = owner.Ancestors();
+            var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
+
             if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
                 containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
             {
@@ -79,8 +83,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     tagHelperDocumentContext,
                     containingTagNameToken.Content,
                     stringifiedAttributes,
-                    parentTag: null,
-                    parentIsTagHelper: false);
+                    parentTag: parentTag,
+                    parentIsTagHelper: parentIsTagHelper);
 
                 if (binding is null)
                 {
@@ -91,7 +95,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 {
                     Debug.Assert(binding.Descriptors.Count() > 0);
 
-                    var result = ElementInfoToHover(binding.Descriptors, position);
+                    var range = GetRangeFromSyntaxNode(containingTagNameToken, codeDocument);
+
+                    var result = ElementInfoToHover(binding.Descriptors, range);
                     return result;
                 }
             }
@@ -106,19 +112,68 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     tagHelperDocumentContext,
                     containingTagNameToken.Content,
                     stringifiedAttributes,
-                    parentTag: null,
-                    parentIsTagHelper: false);
+                    parentTag: parentTag,
+                    parentIsTagHelper: parentIsTagHelper);
 
-                var tagHelperAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
-                var attributeHoverModel = AttributeInfoToHover(tagHelperAttributes, position);
+                if (binding is null)
+                {
+                    // No matching TagHelpers, it's just HTML
+                    return null;
+                }
+                else
+                {
+                    Debug.Assert(binding.Descriptors.Count() > 0);
+                    var tagHelperAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
 
-                return attributeHoverModel;
+                    var attribute = attributes.Single(a => a.Span.IntersectsWith(location.AbsoluteIndex));
+                    var range = GetRangeFromSyntaxNode(attribute, codeDocument);
+                    var attributeHoverModel = AttributeInfoToHover(tagHelperAttributes, range);
+
+                    return attributeHoverModel;
+                }
             }
 
             return null;
         }
 
-        private HoverModel AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, Position position)
+        private RangeModel GetRangeFromSyntaxNode(RazorSyntaxNode syntaxNode, RazorCodeDocument codeDocument)
+        {
+            try
+            {
+                int startPosition;
+                int endPosition;
+                if(syntaxNode is MarkupTagHelperAttributeSyntax thAttributeSyntax)
+                {
+                    startPosition = thAttributeSyntax.Name.Position;
+                    endPosition = thAttributeSyntax.Name.EndPosition;
+                }
+                else if (syntaxNode is MarkupMinimizedTagHelperAttributeSyntax thAttrSyntax)
+                {
+                    startPosition = thAttrSyntax.Name.Position;
+                    endPosition = thAttrSyntax.Name.EndPosition;
+                }
+                else
+                {
+                    startPosition = syntaxNode.Position;
+                    endPosition = syntaxNode.EndPosition;
+                }
+                var startLocation = codeDocument.Source.Lines.GetLocation(startPosition);
+                var endLocation = codeDocument.Source.Lines.GetLocation(endPosition);
+
+                return new RangeModel
+                {
+                    Start = new Position(startLocation.LineIndex, startLocation.CharacterIndex),
+                    End = new Position(endLocation.LineIndex, endLocation.CharacterIndex)
+                };
+            }
+            catch (IndexOutOfRangeException)
+            {
+                Debug.Assert(false, "Node position should stay within document length.");
+                return null;
+            }
+        }
+
+        private HoverModel AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, RangeModel range)
         {
             var descriptionInfos = descriptors.Select(d => new TagHelperAttributeDescriptionInfo(d.DisplayName, d.GetPropertyName(), d.TypeName, d.Documentation))
                 .ToList()
@@ -136,13 +191,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     Kind = MarkupKind.Markdown,
                     Value = markdown
                 }),
-                Range = new RangeModel(start: position, end: position)
+                Range = range
             };
 
             return hover;
         }
 
-        private HoverModel ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, Position position)
+        private HoverModel ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, RangeModel range)
         {
             var descriptionInfos = descriptors.Select(d => new TagHelperDescriptionInfo(d.DisplayName, d.Documentation))
                 .ToList()
@@ -158,7 +213,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     Kind = MarkupKind.Markdown,
                     Value = markdown,
                 }),
-                Range = new RangeModel(start: position, end: position)
+                Range = range
             };
 
             return hover;

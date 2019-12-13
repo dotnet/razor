@@ -4,16 +4,16 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
-            if(document is null)
+            if (document is null)
             {
                 return null;
             }
@@ -98,6 +98,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             var location = new SourceSpan(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character, 0);
 
             var hoverItem = _hoverInfoService.GetHoverInfo(codeDocument, location);
+
+            _logger.LogTrace($"Found hover info items.");
 
             return hoverItem;
         }
