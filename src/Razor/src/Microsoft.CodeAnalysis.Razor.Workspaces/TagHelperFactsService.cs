@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -20,69 +21,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal virtual IEnumerable<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)
         {
-            var stringifiedAttributes = new List<KeyValuePair<string, string>>();
-
-            for (var i = 0; i < attributes.Count; i++)
-            {
-                var attribute = attributes[i];
-                if (attribute is MarkupTagHelperAttributeSyntax tagHelperAttribute)
-                {
-                    var name = tagHelperAttribute.Name.GetContent();
-                    var value = tagHelperAttribute.Value?.GetContent() ?? string.Empty;
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, value));
-                }
-                else if (attribute is MarkupMinimizedTagHelperAttributeSyntax minimizedTagHelperAttribute)
-                {
-                    var name = minimizedTagHelperAttribute.Name.GetContent();
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, string.Empty));
-                }
-                else if (attribute is MarkupAttributeBlockSyntax markupAttribute)
-                {
-                    var name = markupAttribute.Name.GetContent();
-                    var value = markupAttribute.Value?.GetContent() ?? string.Empty;
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, value));
-                }
-                else if (attribute is MarkupMinimizedAttributeBlockSyntax minimizedMarkupAttribute)
-                {
-                    var name = minimizedMarkupAttribute.Name.GetContent();
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, string.Empty));
-                }
-                else if (attribute is MarkupTagHelperDirectiveAttributeSyntax directiveAttribute)
-                {
-                    var name = directiveAttribute.FullName;
-                    var value = directiveAttribute.Value?.GetContent() ?? string.Empty;
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, value));
-                }
-                else if (attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedDirectiveAttribute)
-                {
-                    var name = minimizedDirectiveAttribute.FullName;
-                    stringifiedAttributes.Add(new KeyValuePair<string, string>(name, string.Empty));
-                }
-            }
-
-            return stringifiedAttributes;
+            throw new NotImplementedException();
         }
 
         // Internal for testing
         internal virtual (string ancestorTagName, bool ancestorIsTagHelper) GetNearestAncestorTagInfo(IEnumerable<SyntaxNode> ancestors)
         {
-            foreach (var ancestor in ancestors)
-            {
-                if (ancestor is MarkupElementSyntax element)
-                {
-                    // It's possible for start tag to be null in malformed cases.
-                    var name = element.StartTag?.Name?.Content ?? string.Empty;
-                    return (name, ancestorIsTagHelper: false);
-                }
-                else if (ancestor is MarkupTagHelperElementSyntax tagHelperElement)
-                {
-                    // It's possible for start tag to be null in malformed cases.
-                    var name = tagHelperElement.StartTag?.Name?.Content ?? string.Empty;
-                    return (name, ancestorIsTagHelper: true);
-                }
-            }
-
-            return (ancestorTagName: null, ancestorIsTagHelper: false);
+            throw new NotImplementedException();
         }
     }
 }

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
@@ -108,6 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 // Hovering over HTML attribute name
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
 
+
                 var binding = _tagHelperFactsService.GetTagHelperBinding(
                     tagHelperDocumentContext,
                     containingTagNameToken.Content,
@@ -142,7 +142,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             {
                 int startPosition;
                 int endPosition;
-                if(syntaxNode is MarkupTagHelperAttributeSyntax thAttributeSyntax)
+                if (syntaxNode is MarkupTagHelperAttributeSyntax thAttributeSyntax)
                 {
                     startPosition = thAttributeSyntax.Name.Position;
                     endPosition = thAttributeSyntax.Name.EndPosition;
@@ -180,12 +180,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 .AsReadOnly();
             var attrDescriptionInfo = new AttributeDescriptionInfo(descriptionInfos);
 
-            if(!_tagHelperDescriptionFactory.TryCreateDescription(attrDescriptionInfo, out var markdown))
+            if (!_tagHelperDescriptionFactory.TryCreateDescription(attrDescriptionInfo, out var markdown))
             {
                 return null;
             }
 
-            var hover = new HoverModel {
+            var hover = new HoverModel
+            {
                 Contents = new MarkedStringsOrMarkupContent(new MarkupContent
                 {
                     Kind = MarkupKind.Markdown,
@@ -204,7 +205,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 .AsReadOnly();
             var elementDescriptionInfo = new ElementDescriptionInfo(descriptionInfos);
 
-            _tagHelperDescriptionFactory.TryCreateDescription(elementDescriptionInfo, out var markdown);
+            if (!_tagHelperDescriptionFactory.TryCreateDescription(elementDescriptionInfo, out var markdown))
+            {
+                return null;
+            }
 
             var hover = new HoverModel
             {

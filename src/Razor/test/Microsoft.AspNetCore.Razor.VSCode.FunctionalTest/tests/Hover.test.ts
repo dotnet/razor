@@ -51,10 +51,13 @@ suite('Hover', () => {
             new vscode.Position(0, 12));
 
         assert.ok(hoverResult, 'Should have a hover result for DateTime.Now');
-        if (hoverResult) {
-            assert.equal(hoverResult.length, 1, 'Someone else unexpectedly may be providing hover results');
-            assert.deepEqual(hoverResult[0].range, expectedRange, 'C# hover range should be DateTime.Now');
+        if (!hoverResult) {
+            // Not possible, but strict TypeScript doesn't know about assert.ok above.
+            return;
         }
+
+        assert.equal(hoverResult.length, 1, 'Someone else unexpectedly may be providing hover results');
+        assert.deepEqual(hoverResult[0].range, expectedRange, 'C# hover range should be DateTime.Now');
     });
 
     test('Can perform hovers on HTML', async () => {
@@ -69,9 +72,12 @@ suite('Hover', () => {
             new vscode.Position(0, 2));
 
         assert.ok(hoverResult, 'Should have a hover result for <p>');
-        if (hoverResult) {
-            assert.equal(hoverResult.length, 1, 'Someone else unexpectedly may be providing hover results');
-            assert.deepEqual(hoverResult[0].range, expectedRange, 'HTML hover range should be p');
+        if (!hoverResult) {
+            // Not possible, but strict TypeScript doesn't know about assert.ok above.
+            return;
         }
+
+        assert.equal(hoverResult.length, 1, 'Someone else unexpectedly may be providing hover results');
+        assert.deepEqual(hoverResult[0].range, expectedRange, 'HTML hover range should be p');
     });
 });

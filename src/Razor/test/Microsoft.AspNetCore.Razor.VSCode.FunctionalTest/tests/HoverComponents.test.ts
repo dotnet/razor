@@ -47,17 +47,20 @@ suite('Hover Components', () => {
             cshtmlDoc.uri,
             new vscode.Position(0, 3));
         const expectedRange = new vscode.Range(
-            new vscode.Position(0, 3),
-            new vscode.Position(0, 3));
+            new vscode.Position(0, 1),
+            new vscode.Position(0, 8));
 
         assert.ok(hoverResult, 'Should have a hover result for NavMenu');
-        if (hoverResult) {
-            assert.equal(hoverResult.length, 1, 'Something else may be providing hover results');
-
-            const navMenuResult = hoverResult[0];
-            assert.deepEqual(navMenuResult.range, expectedRange, 'Component range should be <NavMenu>');
-            const mStr = navMenuResult.contents[0] as vscode.MarkdownString;
-            assert.ok(mStr.value.includes('**NavMenu**'), `**NavMenu** not included in '${mStr.value}'`);
+        if (!hoverResult) {
+            // Not possible, but strict TypeScript doesn't know about assert.ok above.
+            return;
         }
+
+        assert.equal(hoverResult.length, 1, 'Something else may be providing hover results');
+
+        const navMenuResult = hoverResult[0];
+        assert.deepEqual(navMenuResult.range, expectedRange, 'Component range should be <NavMenu>');
+        const mStr = navMenuResult.contents[0] as vscode.MarkdownString;
+        assert.ok(mStr.value.includes('**NavMenu**'), `**NavMenu** not included in '${mStr.value}'`);
     });
 });
