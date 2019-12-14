@@ -108,7 +108,7 @@ suite('Hover 2.2', () => {
         assert.ok(mdString.value.includes('Exclude it!'));
     });
 
-    test('Can perform hovers on TagHelpers that need attributes', async () => {
+    test('Can perform hovers on TagHelper Elements and Attribute', async () => {
         const firstLine = new vscode.Position(0, 0);
         await editor.edit(edit => edit.insert(firstLine, '<input class="someName" />\n'));
         let hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
