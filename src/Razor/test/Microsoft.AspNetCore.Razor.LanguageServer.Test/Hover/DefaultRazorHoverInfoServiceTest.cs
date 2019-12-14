@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
     public class DefaultRazorHoverInfoServiceTest : DefaultTagHelperServiceTestBase
     {
         [Fact]
-        public void GetHoverInfo_Element()
+        public void GetHoverInfo_TagHelper_Element()
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         }
 
         [Fact]
-        public void GetHoverInfo_Attribute()
+        public void GetHoverInfo_TagHelper_Attribute()
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true'></test1>";
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         }
 
         [Fact]
-        public void GetHoverInfo_MinimizedAttribute()
+        public void GetHoverInfo_TagHelper_MinimizedAttribute()
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val></test1>";
@@ -70,7 +70,44 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         }
 
         [Fact]
-        public void GetHoverInfo_MarkupElement()
+        public void GetHoverInfo_TagHelper_MalformedElement()
+        {
+            // Arrange
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1<hello";
+            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var service = GetDefaultRazorHoverInfoService();
+            var location = new SourceSpan(txt.IndexOf("test1"), 0);
+
+            // Act
+            var hover = service.GetHoverInfo(codeDocument, location);
+
+            // Assert
+            Assert.Contains("**Test1TagHelper**", hover.Contents.MarkupContent.Value);
+            var expectedRange = new RangeModel(new Position(1, 1), new Position(1, 6));
+            Assert.Equal(expectedRange, hover.Range);
+        }
+
+        [Fact]
+        public void GetHoverInfo_TagHelper_MalformedAttribute()
+        {
+            // Arrange
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val=\"aslj alsk<strong>";
+            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var service = GetDefaultRazorHoverInfoService();
+            var location = new SourceSpan(txt.IndexOf("bool-val"), 0);
+
+            // Act
+            var hover = service.GetHoverInfo(codeDocument, location);
+
+            // Assert
+            Assert.Contains("**BoolVal**", hover.Contents.MarkupContent.Value);
+            Assert.DoesNotContain("**IntVal**", hover.Contents.MarkupContent.Value);
+            var expectedRange = new RangeModel(new Position(1, 7), new Position(1, 15));
+            Assert.Equal(expectedRange, hover.Range);
+        }
+
+        [Fact]
+        public void GetHoverInfo_HTML_MarkupElement()
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p><strong></strong></p>";

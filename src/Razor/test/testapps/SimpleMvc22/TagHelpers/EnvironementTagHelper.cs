@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
+// Used for testing purposes to verify multiple TagHelpers applying to a single element.
 namespace SimpleMvc22.TagHelpers
 {
     /// <summary>

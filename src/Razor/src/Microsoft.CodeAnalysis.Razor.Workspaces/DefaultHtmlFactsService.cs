@@ -30,49 +30,52 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override bool TryGetAttributeInfo(SyntaxNode attribute, out SyntaxToken containingTagNameToken, out string selectedAttributeName, out SyntaxList<RazorSyntaxNode> attributeNodes)
         {
-            if ((attribute is MarkupMiscAttributeContentSyntax ||
-                attribute is MarkupMinimizedAttributeBlockSyntax ||
-                attribute is MarkupAttributeBlockSyntax ||
-                attribute is MarkupTagHelperAttributeSyntax ||
-                attribute is MarkupMinimizedTagHelperAttributeSyntax ||
-                attribute is MarkupTagHelperDirectiveAttributeSyntax ||
-                attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax) &&
-                TryGetElementInfo(attribute.Parent, out containingTagNameToken, out attributeNodes))
+            if (!TryGetElementInfo(attribute.Parent, out containingTagNameToken, out attributeNodes))
             {
-                if (attribute is MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock)
-                {
-                    selectedAttributeName = minimizedAttributeBlock.Name.GetContent();
-                }
-                else if (attribute is MarkupAttributeBlockSyntax attributeBlock)
-                {
-                    selectedAttributeName = attributeBlock.Name.GetContent();
-                }
-                else if (attribute is MarkupTagHelperAttributeSyntax tagHelperAttribute)
-                {
-                    selectedAttributeName = tagHelperAttribute.Name.GetContent();
-                }
-                else if (attribute is MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute)
-                {
-                    selectedAttributeName = minimizedAttribute.Name.GetContent();
-                }
-                else if (attribute is MarkupTagHelperDirectiveAttributeSyntax tagHelperDirectiveAttribute)
-                {
-                    selectedAttributeName = tagHelperDirectiveAttribute.Name.GetContent();
-                }
-                else if (attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedTagHelperDirectiveAttribute)
-                {
-                    selectedAttributeName = minimizedTagHelperDirectiveAttribute.Name.GetContent();
-                }
-                else
-                {
-                    selectedAttributeName = null;
-                }
+                containingTagNameToken = null;
+                selectedAttributeName = null;
+                attributeNodes = default;
+                return false;
+            }
+
+            if (attribute is MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock)
+            {
+                selectedAttributeName = minimizedAttributeBlock.Name.GetContent();
+                return true;
+            }
+            else if (attribute is MarkupAttributeBlockSyntax attributeBlock)
+            {
+                selectedAttributeName = attributeBlock.Name.GetContent();
+                return true;
+            }
+            else if (attribute is MarkupTagHelperAttributeSyntax tagHelperAttribute)
+            {
+                selectedAttributeName = tagHelperAttribute.Name.GetContent();
+                return true;
+            }
+            else if (attribute is MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute)
+            {
+                selectedAttributeName = minimizedAttribute.Name.GetContent();
+                return true;
+            }
+            else if (attribute is MarkupTagHelperDirectiveAttributeSyntax tagHelperDirectiveAttribute)
+            {
+                selectedAttributeName = tagHelperDirectiveAttribute.Name.GetContent();
+                return true;
+            }
+            else if (attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedTagHelperDirectiveAttribute)
+            {
+                selectedAttributeName = minimizedTagHelperDirectiveAttribute.Name.GetContent();
+                return true;
+            }
+            else if (attribute is MarkupMiscAttributeContentSyntax)
+            {
+                selectedAttributeName = null;
                 return true;
             }
 
-            containingTagNameToken = null;
+            // Not an attribute type that we know of
             selectedAttributeName = null;
-            attributeNodes = default;
             return false;
         }
     }
