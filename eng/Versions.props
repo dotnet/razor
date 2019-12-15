@@ -56,7 +56,7 @@
     <MicrosoftNETCoreAppRefPackageVersion>3.0.0</MicrosoftNETCoreAppRefPackageVersion>
     <MicrosoftNETCoreAppRuntimewinx64PackageVersion>3.0.2</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNETCoreAppInternalPackageVersion>3.0.2-servicing-19604-02</MicrosoftNETCoreAppInternalPackageVersion>
-    <MicrosoftNETCorePlatformsPackageVersion>3.0.0</MicrosoftNETCorePlatformsPackageVersion>
+    <MicrosoftNETCorePlatformsPackageVersion>3.0.1</MicrosoftNETCorePlatformsPackageVersion>
     <SystemDiagnosticsDiagnosticSourcePackageVersion>4.6.0</SystemDiagnosticsDiagnosticSourcePackageVersion>
     <SystemTextEncodingsWebPackageVersion>4.6.0</SystemTextEncodingsWebPackageVersion>
     <SystemReflectionMetadataPackageVersion>1.7.0</SystemReflectionMetadataPackageVersion>
