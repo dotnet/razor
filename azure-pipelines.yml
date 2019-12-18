@@ -297,6 +297,12 @@ stages:
           name: Build
           displayName: Build
           condition: succeeded()
+        - script: |
+            pushd $(Build.SourcesDirectory)/src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.FunctionalTests
+            yarn && yarn test
+            popd
+          displayName: Run VSCode integration tests
+          condition: succeeded()
         - task: PublishBuildArtifacts@1
           displayName: Upload TestResults
           condition: always()
@@ -338,6 +344,12 @@ stages:
             $(_InternalRuntimeDownloadArgs)
           name: Build
           displayName: Build
+          condition: succeeded()
+        - script: |
+            pushd $(Build.SourcesDirectory)/src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.FunctionalTests
+            yarn && yarn test
+            popd
+          displayName: Run VSCode integration tests
           condition: succeeded()
         - task: PublishBuildArtifacts@1
           displayName: Upload TestResults
