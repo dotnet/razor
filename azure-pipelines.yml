@@ -298,6 +298,7 @@ stages:
           displayName: Build
           condition: succeeded()
         - script: |
+            unset npm_config_prefix
             pushd $(Build.SourcesDirectory)/src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.FunctionalTest
             yarn && yarn test
             popd
@@ -345,6 +346,18 @@ stages:
           name: Build
           displayName: Build
           condition: succeeded()
+        - script: |
+            if command -v yarn; then exit 1; fi
+            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+            echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+          displayName: Install yarn if not exists step 1
+          condition: always()
+        - script: |
+            if command -v yarn; then exit 1; fi
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends yarn
+          displayName: Install yarn if not exists step 2
+          condition: always()
         - script: |
             pushd $(Build.SourcesDirectory)/src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.FunctionalTest
             yarn && yarn test
