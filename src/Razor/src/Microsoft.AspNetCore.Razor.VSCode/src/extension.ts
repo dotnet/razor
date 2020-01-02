@@ -23,6 +23,7 @@ import { RazorDefinitionProvider } from './RazorDefinitionProvider';
 import { RazorDocumentManager } from './RazorDocumentManager';
 import { RazorDocumentSynchronizer } from './RazorDocumentSynchronizer';
 import { RazorDocumentTracker } from './RazorDocumentTracker';
+import { RazorFormattingFeature } from './RazorFormattingFeature';
 import { RazorHoverProvider } from './RazorHoverProvider';
 import { RazorImplementationProvider } from './RazorImplementationProvider';
 import { RazorLanguage } from './RazorLanguage';
@@ -67,6 +68,7 @@ export async function activate(context: ExtensionContext, languageServerDir: str
         const documentTracker = new RazorDocumentTracker(documentManager, languageServiceClient);
         const localRegistrations: vscode.Disposable[] = [];
         const reportIssueCommand = new ReportIssueCommand(vscode, documentManager, logger);
+        const razorFormattingFeature = new RazorFormattingFeature(languageServerClient, documentManager, logger);
 
         const onStartRegistration = languageServerClient.onStart(() => {
             vscode.commands.executeCommand<void>('omnisharp.registerLanguageMiddleware', razorLanguageMiddleware);
@@ -163,6 +165,8 @@ export async function activate(context: ExtensionContext, languageServerDir: str
                 htmlFeature.register(),
                 documentSynchronizer.register(),
                 reportIssueCommand.register());
+
+            razorFormattingFeature.register();
         });
 
         const onStopRegistration = languageServerClient.onStop(() => {
