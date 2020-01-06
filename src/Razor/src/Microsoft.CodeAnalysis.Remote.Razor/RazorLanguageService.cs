@@ -18,10 +18,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         {
         }
 
-        public async Task<TagHelperResolutionResult> GetTagHelpersAsync(ProjectSnapshotHandle projectHandle, string factoryTypeName, CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Called remotely.
+        /// </summary>
+        public async Task<TagHelperResolutionResult> GetTagHelpersAsync(object solutionInfo, ProjectSnapshotHandle projectHandle, string factoryTypeName, CancellationToken cancellationToken = default)
         {
             var projectSnapshot = await GetProjectSnapshotAsync(projectHandle, cancellationToken).ConfigureAwait(false);
-            var solution = await GetSolutionAsync(cancellationToken);
+            var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
             var workspaceProject = solution
                 .Projects
                 .FirstOrDefault(project => FilePathComparer.Instance.Equals(project.FilePath, projectSnapshot.FilePath));

@@ -107,19 +107,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 var client = await RazorLanguageServiceClientFactory.CreateAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
                 if (client != null)
                 {
-                    using (var session = await client.CreateSessionAsync(workspaceProject.Solution).ConfigureAwait(false))
-                    {
-                        if (session != null)
-                        {
-                            var args = new object[]
-                            {
-                                Serialize(projectSnapshot),
-                                factory == null ? null : factory.GetType().AssemblyQualifiedName,
-                            };
+                    var json = await client.TryRunRemoteAsync<JObject>(
+                        "GetTagHelpersAsync",
+                        workspaceProject.Solution,
+                        new object[] { Serialize(projectSnapshot), factory?.GetType().AssemblyQualifiedName },
+                        callbackTarget: null,
+                        CancellationToken.None).ConfigureAwait(false);
 
-                            var json = await session.InvokeAsync<JObject>("GetTagHelpersAsync", args, CancellationToken.None).ConfigureAwait(false);
-                            return Deserialize(json);
-                        }
+                    if (json.HasValue)
+                    {
+                        return Deserialize(json.Value);
                     }
                 }
             }
