@@ -31,16 +31,28 @@ export class RazorCodeActionProvider
         context: vscode.CodeActionContext,
         token: vscode.CancellationToken) {
         try {
-            const position = new vscode.Position(range.start.line, range.start.character);
-            const projection = await this.getProjection(document, position, token);
-            if (!projection) {
+            const startPosition = new vscode.Position(range.start.line, range.start.character);
+            const startProjection = await this.getProjection(document, startPosition, token);
+            if (!startProjection) {
                 return null;
             }
-            const projectedRange = new vscode.Range(projection.position, projection.position);
+
+            const endPosition = new vscode.Position(range.end.line, range.end.character);
+            const endProjection = await this.getProjection(document, endPosition, token);
+            if (!endProjection) {
+                return null;
+            }
+
+            // This is just a sanity check, they should always be the same.
+            if (startProjection.uri !== endProjection.uri) {
+                return null;
+            }
+
+            const projectedRange = new vscode.Range(startProjection.position, endProjection.position);
 
             const codeActions = await vscode.commands.executeCommand<vscode.Command[]>(
                 'vscode.executeCodeActionProvider',
-                projection.uri,
+                startProjection.uri,
                 projectedRange) as vscode.Command[];
 
             if (codeActions.length > 0) {

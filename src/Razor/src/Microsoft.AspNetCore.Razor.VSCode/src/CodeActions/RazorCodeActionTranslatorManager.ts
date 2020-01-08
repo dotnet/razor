@@ -27,12 +27,12 @@ export class RazorCodeActionTranslatorManager {
     public applyEdit(
         uri: vscode.Uri,
         edit: vscode.TextEdit,
-    ): [vscode.Uri | undefined, vscode.TextEdit | undefined] {
+    ): [vscode.Uri?, vscode.TextEdit?] {
         for (const actionTranslator of this.codeActionTranslators) {
             if (actionTranslator.canHandleEdit(uri, edit)) {
                 return actionTranslator.applyEdit(uri, edit);
             }
         }
-        throw new Error('Method not implemented.');
+        throw new Error('ApplyEdit should always be handled by one of the ActionTranslators because it should either automatically remap or they should manually fiddle with it.');
     }
 }

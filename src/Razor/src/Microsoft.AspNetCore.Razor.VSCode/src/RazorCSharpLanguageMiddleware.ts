@@ -134,7 +134,7 @@ export class RazorCSharpLanguageMiddleware implements LanguageMiddleware {
         }
     }
 
-    private tryApplyingCodeActions(uri: vscode.Uri, edit: vscode.TextEdit): [ vscode.Uri | undefined, vscode.TextEdit | undefined] {
+    private tryApplyingCodeActions(uri: vscode.Uri, edit: vscode.TextEdit): [ vscode.Uri?, vscode.TextEdit?] {
         return this.razorCodeActionTranslatorManager.applyEdit(uri, edit);
     }
 }

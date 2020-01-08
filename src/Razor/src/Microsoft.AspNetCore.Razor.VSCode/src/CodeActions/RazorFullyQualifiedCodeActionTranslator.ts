@@ -27,20 +27,21 @@ export class RazorFullyQualifiedCodeActionTranslator implements IRazorCodeAction
         codeContext: vscode.CodeActionContext,
         document: vscode.TextDocument): boolean {
         const isMissingDiag = (value: vscode.Diagnostic) => {
-            return value.severity === vscode.DiagnosticSeverity.Error
-            && value.code === RazorFullyQualifiedCodeActionTranslator.expectedCode;
+            return value.severity === vscode.DiagnosticSeverity.Error &&
+                value.code === RazorFullyQualifiedCodeActionTranslator.expectedCode;
         };
 
         const diagnostic = codeContext.diagnostics.find(isMissingDiag);
-        if (diagnostic) {
-            const codeRange = diagnostic.range;
-            const codeValue = document.getText(codeRange);
-            if (codeAction.arguments) {
-                if (!codeAction.title.includes(' ')
-                    && codeAction.title.endsWith(codeValue)) {
-                    return true;
-                }
-            }
+        if (!diagnostic) {
+            return false;
+        }
+
+        const codeRange = diagnostic.range;
+        const associatedValue = document.getText(codeRange);
+        if (codeAction.arguments &&
+            !codeAction.title.includes(' ') &&
+            codeAction.title.endsWith(associatedValue)) {
+            return true;
         }
 
         return false;

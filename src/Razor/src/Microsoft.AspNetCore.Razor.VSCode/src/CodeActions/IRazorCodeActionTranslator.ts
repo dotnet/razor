@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 
 export interface IRazorCodeActionTranslator {
-    applyEdit(uri: vscode.Uri, edit: vscode.TextEdit): [vscode.Uri | undefined, vscode.TextEdit | undefined];
+    applyEdit(uri: vscode.Uri, edit: vscode.TextEdit): [vscode.Uri?, vscode.TextEdit?];
     canHandleCodeAction(
         codeAction: vscode.Command,
         codeContext: vscode.CodeActionContext,
