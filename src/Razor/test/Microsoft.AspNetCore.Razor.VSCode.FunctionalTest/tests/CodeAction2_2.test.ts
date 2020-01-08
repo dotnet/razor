@@ -8,24 +8,23 @@ import { afterEach, before, beforeEach } from 'mocha';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
-    mvcWithComponentsRoot,
     pollUntil,
+    simpleMvc22Root,
     waitForProjectReady,
 } from './TestUtil';
 
-let razorPath: string;
-let razorDoc: vscode.TextDocument;
-let razorEditor: vscode.TextEditor;
+let cshtmlDoc: vscode.TextDocument;
+let editor: vscode.TextEditor;
 
-suite('Code Actions', () => {
+suite('Hover 2.2', () => {
     before(async () => {
-        await waitForProjectReady(mvcWithComponentsRoot);
+        await waitForProjectReady(simpleMvc22Root);
     });
 
     beforeEach(async () => {
-        razorPath = path.join(mvcWithComponentsRoot, 'Views', 'Shared', 'NavMenu.razor');
-        razorDoc = await vscode.workspace.openTextDocument(razorPath);
-        razorEditor = await vscode.window.showTextDocument(razorDoc);
+        const filePath = path.join(simpleMvc22Root, 'Views', 'Home', 'Index.cshtml');
+        cshtmlDoc = await vscode.workspace.openTextDocument(filePath);
+        editor = await vscode.window.showTextDocument(cshtmlDoc);
     });
 
     afterEach(async () => {
@@ -40,12 +39,12 @@ suite('Code Actions', () => {
         }, /* timeout */ 3000, /* pollInterval */ 500, true /* suppress timeout */);
     });
 
-    test('Can provide FullQualified CodeAction .razor file', async () => {
+    test('Can provide FullQualified CodeAction .cshtml file', async () => {
         const firstLine = new vscode.Position(0, 0);
-        await razorEditor.edit(edit => edit.insert(firstLine, '@{ var x = new HtmlString("sdf"); }\n'));
+        await editor.edit(edit => edit.insert(firstLine, '@{ var x = new HtmlString("sdf"); }\n'));
 
         const position = new vscode.Position(0, 21);
-        const codeAction = await GetCodeAction(razorDoc.uri, new vscode.Range(position, position));
+        const codeAction = await GetCodeAction(cshtmlDoc.uri, new vscode.Range(position, position));
 
         assert.equal(codeAction.length, 1);
         assert.equal(codeAction[0].title, 'Microsoft.AspNetCore.Html.HtmlString');

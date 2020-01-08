@@ -20,12 +20,10 @@ export async function pollUntil(fn: () => (boolean | Promise<boolean>), timeoutM
     const resolvedPollInterval = pollInterval ? pollInterval : 50;
 
     let timeWaited = 0;
-    let fnEval = fn();
-    if (fnEval instanceof Promise) {
-        fnEval = await fnEval;
-    }
+    let fnEval;
 
-    while (!fnEval) {
+    do {
+        fnEval = fn();
         if (timeWaited >= timeoutMs) {
             if (suppressError) {
                 return;
@@ -37,6 +35,7 @@ export async function pollUntil(fn: () => (boolean | Promise<boolean>), timeoutM
         await new Promise(r => setTimeout(r, resolvedPollInterval));
         timeWaited += resolvedPollInterval;
     }
+    while (!fnEval);
 }
 
 export async function ensureNoChangesFor(documentUri: vscode.Uri, durationMs: number) {
