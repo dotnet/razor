@@ -54,6 +54,11 @@ export class RazorCSharpLanguageMiddleware implements LanguageMiddleware {
                     documentUri);
 
                 if (!remappedResponse || !remappedResponse.range) {
+                    // This is kind of wrong. Workspace edits commonly consist of a bunch of different edits which
+                    // don't make sense individually. If we try to introspect on them individually there won't be
+                    // enough context to do anything intelligent. But we also need to know if the edit can just be handled by mapToDocumentRange.
+                    // We're not solving that now, because we're going to have to change how we handle CodeAction edits from a per-action model
+                    // to a symantic model anyway, but I needed to call it out here so we remember.
                     const [codeActionUri, codeActionEdit] = this.tryApplyingCodeActions(uri, edit);
 
                     if (codeActionUri && codeActionEdit) {
