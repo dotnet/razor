@@ -27,5 +27,4 @@ async function main() {
     }
 }
 
-// tslint:disable-next-line: no-floating-promises
 main();
