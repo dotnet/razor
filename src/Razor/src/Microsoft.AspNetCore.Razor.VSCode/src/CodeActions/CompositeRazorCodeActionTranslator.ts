@@ -33,7 +33,7 @@ export class CompositeCodeActionTranslator implements IRazorCodeActionTranslator
             }
         }
 
-        throw new Error('ApplyEdit should always be handled by one of the ActionTranslators because it should either automatically remap or they should manually fiddle with it.');
+        throw new Error('ApplyEdit should be handled by one of the ActionTranslators or LanguageMiddleware.remap.');
     }
 
     public canHandleEdit(uri: vscode.Uri, edit: vscode.TextEdit): boolean {
