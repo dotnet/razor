@@ -16,7 +16,7 @@ import {
 let cshtmlDoc: vscode.TextDocument;
 let editor: vscode.TextEditor;
 
-suite('Hover 2.2', () => {
+suite('Code Actions 2.2', () => {
     before(async () => {
         await waitForProjectReady(simpleMvc22Root);
     });
@@ -39,18 +39,62 @@ suite('Hover 2.2', () => {
         }, /* timeout */ 3000, /* pollInterval */ 500, true /* suppress timeout */);
     });
 
-    test('Can provide FullQualified CodeAction .cshtml file', async () => {
+    test('Can provide FullQualified CodeAction 2.2 .cshtml file', async () => {
         const firstLine = new vscode.Position(0, 0);
-        await editor.edit(edit => edit.insert(firstLine, '@{ var x = new HtmlString("sdf"); }\n'));
+        await MakeEditAndFindDiagnostic('@{ var x = new HtmlString("sdf"); }\n', firstLine);
 
         const position = new vscode.Position(0, 21);
-        const codeAction = await GetCodeAction(cshtmlDoc.uri, new vscode.Range(position, position));
+        const codeActions = await GetCodeActions(cshtmlDoc.uri, new vscode.Range(position, position));
 
-        assert.equal(codeAction.length, 1);
-        assert.equal(codeAction[0].title, 'Microsoft.AspNetCore.Html.HtmlString');
+        assert.equal(codeActions.length, 1);
+        const codeAction = codeActions[0];
+        assert.equal(codeAction.title, 'Microsoft.AspNetCore.Html.HtmlString');
+
+        await DoCodeAction(cshtmlDoc.uri, codeAction);
+        const reloadedDoc = await vscode.workspace.openTextDocument(cshtmlDoc.uri);
+        const editedText = reloadedDoc.getText();
+        assert.ok(editedText.includes('var x = new Microsoft.AspNetCore.Html.HtmlString("sdf");'));
     });
 
-    async function GetCodeAction(fileUri: vscode.Uri, position: vscode.Range): Promise<vscode.CodeAction[]> {
+    async function MakeEditAndFindDiagnostic(editText: string, position: vscode.Position) {
+        let diagnosticsChanged = false;
+        vscode.languages.onDidChangeDiagnostics(diagnosticsChangedEvent => {
+            const diagnostics = vscode.languages.getDiagnostics(cshtmlDoc.uri);
+            if (diagnostics.length > 0) {
+                diagnosticsChanged = true;
+            }
+        });
+
+        for (let i = 0; i < 3; i++) {
+            await editor.edit(edit => edit.insert(position, editText));
+            await pollUntil(() => {
+                return diagnosticsChanged;
+            }, /* timeout */ 5000, /* pollInterval */ 1000, true /* suppress timeout */);
+            if (diagnosticsChanged) {
+                break;
+            }
+        }
+    }
+
+    async function DoCodeAction(fileUri: vscode.Uri, codeAction: vscode.Command) {
+        let diagnosticsChanged = false;
+        vscode.languages.onDidChangeDiagnostics(diagnosticsChangedEvent => {
+            const diagnostics = vscode.languages.getDiagnostics(fileUri);
+            if (diagnostics.length === 0) {
+                diagnosticsChanged = true;
+            }
+        });
+
+        if (codeAction.command && codeAction.arguments) {
+            vscode.commands.executeCommand(codeAction.command, codeAction.arguments);
+        }
+
+        await pollUntil(() => {
+            return diagnosticsChanged;
+        }, /* timeout */ 20000, /* pollInterval */ 1000, false /* suppress timeout */);
+    }
+
+    async function GetCodeActions(fileUri: vscode.Uri, position: vscode.Range): Promise<vscode.Command[]> {
         let diagnosticsChanged = false;
         vscode.languages.onDidChangeDiagnostics(diagnosticsChangedEvent => {
             const diagnostics = vscode.languages.getDiagnostics(fileUri);
@@ -61,8 +105,8 @@ suite('Hover 2.2', () => {
 
         await pollUntil(() => {
             return diagnosticsChanged;
-        }, /* timeout */ 20000, /* pollInterval */ 1000, true /* suppress timeout */);
+        }, /* timeout */ 20000, /* pollInterval */ 1000, false /* suppress timeout */);
 
-        return await vscode.commands.executeCommand('vscode.executeCodeActionProvider', fileUri, position) as vscode.CodeAction[];
+        return await vscode.commands.executeCommand('vscode.executeCodeActionProvider', fileUri, position) as vscode.Command[];
     }
 });

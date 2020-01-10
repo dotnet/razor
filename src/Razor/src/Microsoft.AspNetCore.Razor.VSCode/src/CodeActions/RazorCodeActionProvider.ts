@@ -9,7 +9,7 @@ import { RazorDocumentSynchronizer } from '../RazorDocumentSynchronizer';
 import { RazorLanguageFeatureBase } from '../RazorLanguageFeatureBase';
 import { RazorLanguageServiceClient } from '../RazorLanguageServiceClient';
 import { RazorLogger } from '../RazorLogger';
-import { RazorCodeActionTranslatorManager } from './RazorCodeActionTranslatorManager';
+import { CompositeCodeActionTranslator } from './CompositeRazorCodeActionTranslator';
 
 export class RazorCodeActionProvider
     extends RazorLanguageFeatureBase
@@ -20,7 +20,7 @@ export class RazorCodeActionProvider
         documentManager: RazorDocumentManager,
         serviceClient: RazorLanguageServiceClient,
         logger: RazorLogger,
-        private readonly razorCodeActionTranslatorManager: RazorCodeActionTranslatorManager,
+        private readonly compositeCodeActionTranslator: CompositeCodeActionTranslator,
         ) {
         super(documentSynchronizer, documentManager, serviceClient, logger);
     }
@@ -71,7 +71,7 @@ export class RazorCodeActionProvider
     private filterCodeActions(codeActions: vscode.Command[], context: vscode.CodeActionContext, document: vscode.TextDocument) {
         const result = new Array<vscode.Command>();
         for (const codeAction of codeActions) {
-            if (this.razorCodeActionTranslatorManager.canHandle(codeAction, context, document)) {
+            if (this.compositeCodeActionTranslator.canHandleCodeAction(codeAction, context, document)) {
                 result.push(codeAction);
             }
         }

@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { RazorCodeActionTranslatorManager } from './CodeActions/RazorCodeActionTranslatorManager';
+import { CompositeCodeActionTranslator } from './CodeActions/CompositeRazorCodeActionTranslator';
 import { getRazorDocumentUri, isRazorCSharpFile } from './RazorConventions';
 import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
 import { RazorLogger } from './RazorLogger';
@@ -27,7 +27,7 @@ export class RazorCSharpLanguageMiddleware implements LanguageMiddleware {
     constructor(
         private readonly serviceClient: RazorLanguageServiceClient,
         private readonly logger: RazorLogger,
-        private readonly razorCodeActionTranslatorManager: RazorCodeActionTranslatorManager) {}
+        private readonly compositeCodeActionTranslator: CompositeCodeActionTranslator) {}
 
     public async remapWorkspaceEdit(workspaceEdit: vscode.WorkspaceEdit, token: vscode.CancellationToken) {
         const map = new Map<vscode.Uri, vscode.TextEdit[]>();
@@ -135,6 +135,6 @@ export class RazorCSharpLanguageMiddleware implements LanguageMiddleware {
     }
 
     private tryApplyingCodeActions(uri: vscode.Uri, edit: vscode.TextEdit): [ vscode.Uri?, vscode.TextEdit?] {
-        return this.razorCodeActionTranslatorManager.applyEdit(uri, edit);
+        return this.compositeCodeActionTranslator.applyEdit(uri, edit);
     }
 }

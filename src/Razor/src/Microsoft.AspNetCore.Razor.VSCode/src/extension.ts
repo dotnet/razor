@@ -5,8 +5,8 @@
 
 import * as vscode from 'vscode';
 import { ExtensionContext } from 'vscode';
+import { CompositeCodeActionTranslator } from './CodeActions/CompositeRazorCodeActionTranslator';
 import { RazorCodeActionProvider } from './CodeActions/RazorCodeActionProvider';
-import { RazorCodeActionTranslatorManager } from './CodeActions/RazorCodeActionTranslatorManager';
 import { RazorFullyQualifiedCodeActionTranslator } from './CodeActions/RazorFullyQualifiedCodeActionTranslator';
 import { RazorCSharpFeature } from './CSharp/RazorCSharpFeature';
 import { ReportIssueCommand } from './Diagnostics/ReportIssueCommand';
@@ -54,9 +54,9 @@ export async function activate(context: ExtensionContext, languageServerDir: str
         const codeActionTranslators = [
             new RazorFullyQualifiedCodeActionTranslator(),
         ];
-        const razorCodeActionTranslatorManager = new RazorCodeActionTranslatorManager(codeActionTranslators);
+        const compositeCodeActionTranslator = new CompositeCodeActionTranslator(codeActionTranslators);
 
-        const razorLanguageMiddleware = new RazorCSharpLanguageMiddleware(languageServiceClient, logger, razorCodeActionTranslatorManager);
+        const razorLanguageMiddleware = new RazorCSharpLanguageMiddleware(languageServiceClient, logger, compositeCodeActionTranslator);
 
         const documentManager = new RazorDocumentManager(languageServerClient, logger);
         reportTelemetryForDocuments(documentManager, telemetryReporter);
@@ -83,7 +83,7 @@ export async function activate(context: ExtensionContext, languageServerDir: str
                 documentManager,
                 languageServiceClient,
                 logger,
-                razorCodeActionTranslatorManager);
+                compositeCodeActionTranslator);
             const completionItemProvider = new RazorCompletionItemProvider(
                 documentSynchronizer,
                 documentManager,

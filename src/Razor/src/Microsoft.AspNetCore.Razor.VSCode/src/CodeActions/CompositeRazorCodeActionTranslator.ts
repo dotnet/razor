@@ -6,11 +6,10 @@
 import * as vscode from 'vscode';
 import { IRazorCodeActionTranslator } from './IRazorCodeActionTranslator';
 
-export class RazorCodeActionTranslatorManager {
-
+export class CompositeCodeActionTranslator implements IRazorCodeActionTranslator {
     constructor(private readonly codeActionTranslators: IRazorCodeActionTranslator[]) { }
 
-    public canHandle(
+    public canHandleCodeAction(
         codeAction: vscode.Command,
         codeContext: vscode.CodeActionContext,
         document: vscode.TextDocument,
@@ -33,6 +32,17 @@ export class RazorCodeActionTranslatorManager {
                 return actionTranslator.applyEdit(uri, edit);
             }
         }
+
         throw new Error('ApplyEdit should always be handled by one of the ActionTranslators because it should either automatically remap or they should manually fiddle with it.');
+    }
+
+    public canHandleEdit(uri: vscode.Uri, edit: vscode.TextEdit): boolean {
+        for (const actionTranslator of this.codeActionTranslators) {
+            if (actionTranslator.canHandleEdit(uri, edit)) {
+                return actionTranslator.canHandleEdit(uri, edit);
+            }
+        }
+
+        return false;
     }
 }
