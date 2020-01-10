@@ -40,9 +40,9 @@ export class RazorFullyQualifiedCodeActionTranslator implements IRazorCodeAction
         const associatedValue = document.getText(codeRange);
 
         // Once we have the correct diagnostic we want to make sure we have the correct CodeAction.
-        // Unfortunatly there's no ID for CodeActions, so we have to examine the human-readable title.
+        // Unfortunately there's no ID for CodeActions, so we have to examine the human-readable title.
         // The title for the fully-qualified code action is just the fully qualified type, so we just ensure
-        // 1. It's not a sentance (no spaces).
+        // 1. It's not a sentence (no spaces).
         // 2. It ends with the short TypeName (so it at least COULD be the Fully-Qualified type).
         if (codeAction.arguments &&
             !codeAction.title.includes(' ') &&
