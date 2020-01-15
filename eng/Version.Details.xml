@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.Extensions.CommandLineUtils.Sources" Version="3.0.2-servicing.19614.1">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>c3451e0be4af1482b4ed0c7c3132f34487764b81</Sha>
+    <Dependency Name="Microsoft.Extensions.CommandLineUtils.Sources" Version="3.0.3-servicing.20064.5">
+      <Uri>https://github.com/dotnet/extensions</Uri>
+      <Sha>e2bb93bf8d42ce499f65d2f11f6953d2d2a81471</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.HashCodeCombiner.Sources" Version="3.0.2-servicing.19614.1">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>c3451e0be4af1482b4ed0c7c3132f34487764b81</Sha>
+    <Dependency Name="Microsoft.Extensions.HashCodeCombiner.Sources" Version="3.0.3-servicing.20064.5">
+      <Uri>https://github.com/dotnet/extensions</Uri>
+      <Sha>e2bb93bf8d42ce499f65d2f11f6953d2d2a81471</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.NonCapturingTimer.Sources" Version="3.0.2-servicing.19614.1">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>c3451e0be4af1482b4ed0c7c3132f34487764b81</Sha>
+    <Dependency Name="Microsoft.Extensions.NonCapturingTimer.Sources" Version="3.0.3-servicing.20064.5">
+      <Uri>https://github.com/dotnet/extensions</Uri>
+      <Sha>e2bb93bf8d42ce499f65d2f11f6953d2d2a81471</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.0.2-servicing.19614.1">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>c3451e0be4af1482b4ed0c7c3132f34487764b81</Sha>
+    <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.0.3-servicing.20064.5">
+      <Uri>https://github.com/dotnet/extensions</Uri>
+      <Sha>e2bb93bf8d42ce499f65d2f11f6953d2d2a81471</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Testing" Version="3.0.2-servicing.19614.1">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>c3451e0be4af1482b4ed0c7c3132f34487764b81</Sha>
+    <Dependency Name="Microsoft.AspNetCore.Testing" Version="3.0.3-servicing.20064.5">
+      <Uri>https://github.com/dotnet/extensions</Uri>
+      <Sha>e2bb93bf8d42ce499f65d2f11f6953d2d2a81471</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="3.0.2">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/aspnet-Extensions</Uri>
-      <Sha>c3451e0be4af1482b4ed0c7c3132f34487764b81</Sha>
+    <Dependency Name="Microsoft.Extensions.Logging" Version="3.0.3">
+      <Uri>https://github.com/dotnet/extensions</Uri>
+      <Sha>e2bb93bf8d42ce499f65d2f11f6953d2d2a81471</Sha>
     </Dependency>
     <!--
       Win-x64 is used here because we have picked an arbitrary runtime identifier to flow the version of the latest NETCore.App runtime.
@@ -54,9 +54,9 @@
       <Sha>a2c3406f47bed9f53fea5205c07d22be382f19b8</Sha>
     </Dependency>
     <!-- Listed as a dependency to workaround https://github.com/dotnet/cli/issues/10528 -->
-    <Dependency Name="Microsoft.NETCore.Platforms" Version="3.0.1" CoherentParentDependency="Microsoft.NETCore.App.Runtime.win-x64">
+    <Dependency Name="Microsoft.NETCore.Platforms" Version="3.0.0" CoherentParentDependency="Microsoft.NETCore.App.Runtime.win-x64">
       <Uri>https://github.com/dotnet/corefx</Uri>
-      <Sha>e14c43ea3f727d1ed8844014aae8b168cc608b22</Sha>
+      <Sha>4ac4c0367003fe3973a3648eb0715ddb0e3bbcea</Sha>
     </Dependency>
     <!-- Keep this dependency at the bottom of ProductDependencies, else it will be picked as the parent for CoherentParentDependencies -->
     <Dependency Name="Microsoft.NETCore.App.Ref" Version="3.0.0" Pinned="true">
