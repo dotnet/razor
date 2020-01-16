@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.Build.Execution;
 using OmniSharp.MSBuild.Notification;
 
@@ -17,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     {
         private const string MSBuildProjectFullPathPropertyName = "MSBuildProjectFullPath";
         private const string MSBuildProjectDirectoryPropertyName = "MSBuildProjectDirectory";
-        private static readonly IReadOnlyList<string> RazorFileExtensions = new[] { "razor", "cshtml" };
+        private static readonly IReadOnlyList<string> RazorFileExtensions = new[] { ".razor", ".cshtml" };
 
         private readonly Dictionary<string, IReadOnlyList<FileSystemWatcher>> _watcherMap;
         private readonly IReadOnlyList<IRazorDocumentChangeListener> _documentChangeListeners;
@@ -76,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var watchers = new List<FileSystemWatcher>(RazorFileExtensions.Count);
             for (var i = 0; i < RazorFileExtensions.Count; i++)
             {
-                var documentWatcher = new FileSystemWatcher(projectDirectory, "*." + RazorFileExtensions[i])
+                var documentWatcher = new FileSystemWatcher(projectDirectory, "*" + RazorFileExtensions[i])
                 {
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
                     IncludeSubdirectories = true,
@@ -87,13 +88,23 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 documentWatcher.Changed += (sender, args) => FileSystemWatcher_RazorDocumentEvent(args.FullPath, projectInstance, RazorFileChangeKind.Changed);
                 documentWatcher.Renamed += (sender, args) =>
                 {
-                    // Translate file renames into remove->add
-                    FileSystemWatcher_RazorDocumentEvent(args.OldFullPath, projectInstance, RazorFileChangeKind.Removed);
-                    FileSystemWatcher_RazorDocumentEvent(args.FullPath, projectInstance, RazorFileChangeKind.Added);
+                    // Translate file renames into remove / add
+
+                    if (RazorFileExtensions.Any(extension => args.OldFullPath.EndsWith(extension, StringComparison.Ordinal)))
+                    {
+                        // Renaming from Razor file to something else.
+                        FileSystemWatcher_RazorDocumentEvent(args.OldFullPath, projectInstance, RazorFileChangeKind.Removed);
+                    }
+
+                    if (RazorFileExtensions.Any(extension => args.FullPath.EndsWith(extension, StringComparison.Ordinal)))
+                    {
+                        // Renaming into a Razor file. This typically occurs when users go from .cshtml => .razor
+                        FileSystemWatcher_RazorDocumentEvent(args.FullPath, projectInstance, RazorFileChangeKind.Added);
+                    }
                 };
                 watchers.Add(documentWatcher);
 
-                var documentOutputWatcher = new FileSystemWatcher(projectDirectory, "*." + RazorFileExtensions[i] + ".g.cs")
+                var documentOutputWatcher = new FileSystemWatcher(projectDirectory, "*" + RazorFileExtensions[i] + ".g.cs")
                 {
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
                     IncludeSubdirectories = true,
@@ -104,9 +115,19 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 documentOutputWatcher.Changed += (sender, args) => FileSystemWatcher_RazorDocumentOutputEvent(args.FullPath, projectInstance, RazorFileChangeKind.Changed);
                 documentOutputWatcher.Renamed += (sender, args) =>
                 {
-                    // Translate file renames into remove->add
-                    FileSystemWatcher_RazorDocumentOutputEvent(args.OldFullPath, projectInstance, RazorFileChangeKind.Removed);
-                    FileSystemWatcher_RazorDocumentOutputEvent(args.FullPath, projectInstance, RazorFileChangeKind.Added);
+                    // Translate file renames into remove / add
+
+                    if (RazorFileExtensions.Any(extension => args.OldFullPath.EndsWith(extension + ".g.cs", StringComparison.Ordinal)))
+                    {
+                        // Renaming from Razor background file to something else.
+                        FileSystemWatcher_RazorDocumentOutputEvent(args.OldFullPath, projectInstance, RazorFileChangeKind.Removed);
+                    }
+
+                    if (RazorFileExtensions.Any(extension => args.FullPath.EndsWith(extension + ".g.cs", StringComparison.Ordinal)))
+                    {
+                        // Renaming into a Razor generated file.
+                        FileSystemWatcher_RazorDocumentOutputEvent(args.FullPath, projectInstance, RazorFileChangeKind.Added);
+                    }
                 };
                 watchers.Add(documentOutputWatcher);
 
