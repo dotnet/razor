@@ -49,7 +49,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (clientSettings.RootUri == null)
             {
                 // RootUri was added in LSP3, fallback to RootPath
-
                 return clientSettings.RootPath;
             }
 

@@ -10,17 +10,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public static readonly JsonFileDeserializer Instance = new DefaultJsonFileDeserializer();
 
-        public abstract TValue Deserialize<TValue>(string filePath);
+        public abstract TValue Deserialize<TValue>(string filePath) where TValue : class;
 
         private class DefaultJsonFileDeserializer : JsonFileDeserializer
         {
-            public override TValue Deserialize<TValue>(string filePath)
+            public override TValue Deserialize<TValue>(string filePath) where TValue : class
             {
                 using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 using (var reader = new StreamReader(stream))
                 {
-                    var deserializedValue = (TValue)Serializer.Instance.JsonSerializer.Deserialize(reader, typeof(TValue));
-                    return deserializedValue;
+                    try
+                    {
+                        var deserializedValue = (TValue)Serializer.Instance.JsonSerializer.Deserialize(reader, typeof(TValue));
+                        return deserializedValue;
+                    }
+                    catch
+                    {
+                        // Swallow deserialization exceptions. There's many reasons they can happen, all out of our control.
+                        return null;
+                    }
                 }
             }
         }

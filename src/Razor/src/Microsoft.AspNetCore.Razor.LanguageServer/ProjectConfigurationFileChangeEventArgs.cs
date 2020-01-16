@@ -75,6 +75,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return true;
         }
-
     }
 }
