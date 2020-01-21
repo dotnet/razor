@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Converters;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -17,8 +18,10 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using System.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using OmniSharp.Extensions.LanguageServer.Server;
+using OmniSharp.Extensions.JsonRpc.Serialization.Converters;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -56,6 +59,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
+            // ClientResponseConverter will not serializer the "result" property in the case that it is null (which is legal in a couple spots)
+            // For now we've written our own serializer which handler this scenario.
+            var responseConverter = Serializer.Instance.JsonSerializer.Converters.FirstOrDefault(converter =>
+            {
+                return converter.GetType() == typeof(ClientResponseConverter);
+            });
+
+            if (responseConverter != null)
+            {
+                Serializer.Instance.Settings.Converters.Remove(responseConverter);
+            }
+
+            Serializer.Instance.Settings.Converters.Add(new ResponseRazorConverter());
             Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
 
             ILanguageServer server = null;
