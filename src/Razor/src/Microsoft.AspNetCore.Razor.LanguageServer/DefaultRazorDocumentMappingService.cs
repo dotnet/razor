@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
@@ -11,28 +11,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     {
+
         public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, out Range originalRange)
         {
-            originalRange = default;
-            if (codeDocument.IsUnsupported())
+            if (codeDocument is null)
             {
-                // All mapping requests on unsupported documents return undefined ranges. This is equivalent to what pre-VSCode Razor was capable of.
-                return false;
+                throw new ArgumentNullException(nameof(codeDocument));
             }
+
+            if (projectedRange is null)
+            {
+                throw new ArgumentNullException(nameof(projectedRange));
+            }
+
+            originalRange = default;
 
             var csharpSourceText = SourceText.From(codeDocument.GetCSharpDocument().GeneratedCode);
             var range = projectedRange;
-            var startPosition = range.Start;
-            var lineStartPosition = new LinePosition((int)startPosition.Line, (int)startPosition.Character);
-            var startIndex = csharpSourceText.Lines.GetPosition(lineStartPosition);
+            var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText);
             if (!TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out var _))
             {
                 return false;
             }
 
-            var endPosition = range.End;
-            var lineEndPosition = new LinePosition((int)endPosition.Line, (int)endPosition.Character);
-            var endIndex = csharpSourceText.Lines.GetPosition(lineEndPosition);
+            var endIndex = range.End.GetAbsoluteIndex(csharpSourceText);
             if (!TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out var _))
             {
                 return false;
@@ -47,6 +49,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Range originalRange, out Range projectedRange)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
+            if (originalRange is null)
+            {
+                throw new ArgumentNullException(nameof(originalRange));
+            }
+
             projectedRange = default;
             var source = codeDocument.Source;
             var charBuffer = new char[source.Length];
@@ -54,17 +66,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = SourceText.From(new string(charBuffer));
             var range = originalRange;
 
-            var startPosition = range.Start;
-            var lineStartPosition = new LinePosition((int)startPosition.Line, (int)startPosition.Character);
-            var startIndex = sourceText.Lines.GetPosition(lineStartPosition);
+            var startIndex = range.Start.GetAbsoluteIndex(sourceText);
             if (!TryMapToProjectedDocumentPosition(codeDocument, startIndex, out var projectedStart, out var _))
             {
                 return false;
             }
 
-            var endPosition = range.End;
-            var lineEndPosition = new LinePosition((int)endPosition.Line, (int)endPosition.Character);
-            var endIndex = sourceText.Lines.GetPosition(lineEndPosition);
+            var endIndex = range.End.GetAbsoluteIndex(sourceText);
             if (!TryMapToProjectedDocumentPosition(codeDocument, endIndex, out var projectedEnd, out var _))
             {
                 return false;
@@ -79,6 +87,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, out Position originalPosition, out int originalIndex)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
             var csharpDoc = codeDocument.GetCSharpDocument();
             foreach (var mapping in csharpDoc.SourceMappings)
             {
@@ -108,6 +121,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, out Position projectedPosition, out int projectedIndex)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
             var csharpDoc = codeDocument.GetCSharpDocument();
             foreach (var mapping in csharpDoc.SourceMappings)
             {

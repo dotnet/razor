@@ -20,6 +20,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public FormattingVisitor(RazorSourceDocument source)
         {
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             _source = source;
             _spans = new List<FormattingSpan>();
             _currentBlockKind = FormattingBlockKind.Markup;
@@ -104,14 +109,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public override void VisitMarkupElement(MarkupElementSyntax node)
         {
+            Visit(node.StartTag);
             _currentIndentationLevel++;
-            base.VisitMarkupElement(node);
+            foreach (var child in node.Body)
+            {
+                Visit(child);
+            }
             _currentIndentationLevel--;
+            Visit(node.EndTag);
         }
 
         public override void VisitMarkupStartTag(MarkupStartTagSyntax node)
         {
-            _currentIndentationLevel--;
             WriteBlock(node, FormattingBlockKind.Tag, n =>
             {
                 var children = GetRewrittenMarkupStartTagChildren(node);
@@ -120,12 +129,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     Visit(child);
                 }
             });
-            _currentIndentationLevel++;
         }
 
         public override void VisitMarkupEndTag(MarkupEndTagSyntax node)
         {
-            _currentIndentationLevel--;
             WriteBlock(node, FormattingBlockKind.Tag, n =>
             {
                 var children = GetRewrittenMarkupEndTagChildren(node);
@@ -134,19 +141,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     Visit(child);
                 }
             });
-            _currentIndentationLevel++;
         }
 
         public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
         {
+            Visit(node.StartTag);
             _currentIndentationLevel++;
-            WriteBlock(node, FormattingBlockKind.Tag, base.VisitMarkupTagHelperElement);
+            foreach (var child in node.Body)
+            {
+                Visit(child);
+            }
             _currentIndentationLevel--;
+            Visit(node.EndTag);
         }
 
         public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
         {
-            _currentIndentationLevel--;
             WriteBlock(node, FormattingBlockKind.Tag, n =>
             {
                 foreach (var child in n.Children)
@@ -154,12 +164,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     Visit(child);
                 }
             });
-            _currentIndentationLevel++;
         }
 
         public override void VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
         {
-            _currentIndentationLevel--;
             WriteBlock(node, FormattingBlockKind.Tag, n =>
             {
                 foreach (var child in n.Children)
@@ -167,7 +175,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     Visit(child);
                 }
             });
-            _currentIndentationLevel++;
         }
 
         public override void VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)

@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using LSPFormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using RoslynFormattingOptions = Microsoft.CodeAnalysis.Formatting.FormattingOptions;
-using OmniSharpFormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -67,8 +67,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _server = server;
         }
 
-        public override Task<TextEdit[]> FormatAsync(Uri uri, RazorCodeDocument codeDocument, Range range, OmniSharpFormattingOptions options)
+        public override Task<TextEdit[]> FormatAsync(Uri uri, RazorCodeDocument codeDocument, Range range, LSPFormattingOptions options)
         {
+            if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             var syntaxTree = codeDocument.GetSyntaxTree();
             var formattingSpans = syntaxTree.GetFormattingSpans();
             var indentations = GetLineIndentationMap(codeDocument.Source, formattingSpans);
@@ -141,9 +161,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 // position now contains the first non-whitespace character or 0. Get the corresponding FormattingSpan.
-                if (TryGetFormattingSpanIndex(total + nonWsChar, formattingSpans, out var index))
+                if (TryGetFormattingSpan(total + nonWsChar, formattingSpans, out var span))
                 {
-                    var span = formattingSpans[index];
                     result[i] = new IndentationContext
                     {
                         Line = i,
@@ -169,9 +188,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return result;
         }
 
-        internal static bool TryGetFormattingSpanIndex(int absoluteIndex, IReadOnlyList<FormattingSpan> formattingspans, out int index)
+        internal static bool TryGetFormattingSpan(int absoluteIndex, IReadOnlyList<FormattingSpan> formattingspans, out FormattingSpan result)
         {
-            index = -1;
+            result = null;
             for (var i = 0; i < formattingspans.Count; i++)
             {
                 var formattingspan = formattingspans[i];
@@ -184,11 +203,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         if (span.End == absoluteIndex && span.Length > 0)
                         {
                             // We're at an edge.
-                            // Non-marker spans do not own the edges after it
+                            // Non-marker spans (spans.length == 0) do not own the edges after it
                             continue;
                         }
 
-                        index = i;
+                        result = formattingspan;
                         return true;
                     }
                 }
@@ -201,7 +220,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorCodeDocument codeDocument,
             Range range,
             string documentPath,
-            OmniSharpFormattingOptions options)
+            LSPFormattingOptions options)
         {
             var @params = new RazorDocumentRangeFormattingParams()
             {
@@ -217,7 +236,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return result.Edits;
         }
 
-        private async Task<TextEdit[]> FormatProjectedCSharpDocument(RazorCodeDocument codeDocument, OmniSharpFormattingOptions options)
+        private async Task<TextEdit[]> FormatProjectedCSharpDocument(RazorCodeDocument codeDocument, LSPFormattingOptions options)
         {
             var workspace = _projectSnapshotManagerAccessor.Instance.Workspace;
 

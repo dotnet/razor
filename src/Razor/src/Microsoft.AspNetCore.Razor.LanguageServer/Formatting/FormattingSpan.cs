@@ -26,31 +26,4 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public int IndentationLevel { get; }
     }
-
-    internal enum FormattingBlockKind
-    {
-        // Code
-        Statement,
-        Directive,
-        Expression,
-
-        // Markup
-        Markup,
-        Template,
-
-        // Special
-        Comment,
-        Tag,
-        HtmlComment
-    }
-
-    internal enum FormattingSpanKind
-    {
-        Transition,
-        MetaCode,
-        Comment,
-        Code,
-        Markup,
-        None
-    }
 }
