@@ -59,19 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
-            // ClientResponseConverter will not serializer the "result" property in the case that it is null (which is legal in a couple spots)
-            // For now we've written our own serializer which handler this scenario.
-            var responseConverter = Serializer.Instance.JsonSerializer.Converters.FirstOrDefault(converter =>
-            {
-                return converter.GetType() == typeof(ClientResponseConverter);
-            });
-
-            if (responseConverter != null)
-            {
-                Serializer.Instance.Settings.Converters.Remove(responseConverter);
-            }
-
-            Serializer.Instance.Settings.Converters.Add(new ResponseRazorConverter());
+            ReplaceResponseConverter();
             Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
 
             ILanguageServer server = null;
@@ -166,6 +154,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             await server.WaitForExit;
 
             TempDirectory.Instance.Dispose();
+        }
+
+        // This is a temporary workaround for https://github.com/OmniSharp/csharp-language-server-protocol/issues/202
+        // The fix was not available on a non-alpha release, but this can be reverted once it is.
+        private static void ReplaceResponseConverter()
+        {
+            var responseConverter = Serializer.Instance.JsonSerializer.Converters.FirstOrDefault(converter =>
+            {
+                return converter.GetType() == typeof(ClientResponseConverter);
+            });
+
+            if (responseConverter != null)
+            {
+                Serializer.Instance.Settings.Converters.Remove(responseConverter);
+            }
+
+            Serializer.Instance.Settings.Converters.Add(new ResponseRazorConverter());
         }
     }
 }

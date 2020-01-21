@@ -7,6 +7,8 @@ using OmniSharp.Extensions.JsonRpc.Client;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Converters
 {
+    // This is a temporary workaround for https://github.com/OmniSharp/csharp-language-server-protocol/issues/202
+    // The fix was not available on a non-alpha release, but this can be reverted once it is.
     internal class ResponseRazorConverter : JsonConverter<Response>
     {
         public override bool CanRead => false;
