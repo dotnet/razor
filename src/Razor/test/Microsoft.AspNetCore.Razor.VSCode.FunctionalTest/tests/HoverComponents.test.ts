@@ -41,9 +41,11 @@ suite('Hover Components', () => {
 
     test('Can perform hovers on directive attributes', async () => {
         // Hover over '@onclick'
+        const counterPath = path.join(componentRoot, 'Components', 'Pages', 'Counter.razor');
+        const counterDoc = await vscode.workspace.openTextDocument(counterPath);
         const hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
             'vscode.executeHoverProvider',
-            cshtmlDoc.uri,
+            counterDoc.uri,
             new vscode.Position(6, 36));
 
         assert.ok(hoverResult, 'Should have a hover result for @onclick');
@@ -56,9 +58,9 @@ suite('Hover Components', () => {
 
         const onClickResult = hoverResult[0];
         const expectedRange = new vscode.Range(
-            new vscode.Position(7, 35),
-            new vscode.Position(7, 40));
-        assert.deepEqual(expectedRange, 'Directive range should be @onclick');
+            new vscode.Position(6, 31),
+            new vscode.Position(6, 58));
+        assert.deepEqual(hoverResult[0].range, expectedRange, 'Directive range should be @onclick');
         const mStr = onClickResult.contents[0] as vscode.MarkdownString;
         assert.ok(mStr.value.includes('EventHandlers.**onclick**'), `**onClick** not included in '${mStr.value}'`);
     });

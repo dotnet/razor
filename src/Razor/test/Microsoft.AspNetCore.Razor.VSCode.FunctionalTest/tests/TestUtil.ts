@@ -136,7 +136,7 @@ export async function waitForProjectReady(directory: string) {
 export async function waitForProjectsConfigured() {
     await pollUntil(() => {
         const files = glob.sync(`**/${projectConfigFile}`, { cwd: testAppsRoot});
-        return files.length === 16;
+        return files.length === 17;
     }, /* timeout */10000, /* pollInterval */ 500);
 }
 
@@ -151,8 +151,6 @@ async function removeOldProjectRazorJsons() {
             count++;
         }
     }
-
-    console.log(`${count} project.razor.json's`);
 }
 
 export async function waitForProjectConfigured(directory: string) {
