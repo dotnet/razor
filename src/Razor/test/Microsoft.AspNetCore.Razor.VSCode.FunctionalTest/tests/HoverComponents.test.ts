@@ -39,6 +39,30 @@ suite('Hover Components', () => {
         }, /* timeout */ 3000, /* pollInterval */ 500, true /* suppress timeout */);
     });
 
+    test('Can perform hovers on directive attributes', async () => {
+        // Hover over '@onclick'
+        const hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
+            'vscode.executeHoverProvider',
+            cshtmlDoc.uri,
+            new vscode.Position(6, 36));
+
+        assert.ok(hoverResult, 'Should have a hover result for @onclick');
+        if (!hoverResult) {
+            // Not possible, but strict TypeScript doesn't know about assert.ok above.
+            return;
+        }
+
+        assert.equal(hoverResult.length, 1, 'Something else may be providing hover results');
+
+        const onClickResult = hoverResult[0];
+        const expectedRange = new vscode.Range(
+            new vscode.Position(7, 35),
+            new vscode.Position(7, 40));
+        assert.deepEqual(expectedRange, 'Directive range should be @onclick');
+        const mStr = onClickResult.contents[0] as vscode.MarkdownString;
+        assert.ok(mStr.value.includes('EventHandlers.**onclick**'), `**onClick** not included in '${mStr.value}'`);
+    });
+
     test('Can perform hovers on Components', async () => {
         const firstLine = new vscode.Position(0, 0);
         await editor.edit(edit => edit.insert(firstLine, '<NavMenu />\n'));
