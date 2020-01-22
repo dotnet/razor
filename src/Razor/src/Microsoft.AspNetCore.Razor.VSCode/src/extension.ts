@@ -14,7 +14,6 @@ import { reportTelemetryForDocuments } from './DocumentTelemetryListener';
 import { HostEventStream } from './HostEventStream';
 import { RazorHtmlFeature } from './Html/RazorHtmlFeature';
 import { IEventEmitterFactory } from './IEventEmitterFactory';
-import { reportTelemetryForProjects } from './ProjectTelemetryListener';
 import { ProvisionalCompletionOrchestrator } from './ProvisionalCompletionOrchestrator';
 import { RazorCodeLensProvider } from './RazorCodeLensProvider';
 import { RazorCompletionItemProvider } from './RazorCompletionItemProvider';
@@ -59,7 +58,6 @@ export async function activate(context: ExtensionContext, languageServerDir: str
         const documentManager = new RazorDocumentManager(languageServerClient, logger);
         reportTelemetryForDocuments(documentManager, telemetryReporter);
         const projectManager = new RazorProjectManager(logger);
-        reportTelemetryForProjects(projectManager, telemetryReporter);
         const languageConfiguration = new RazorLanguageConfiguration();
         const csharpFeature = new RazorCSharpFeature(documentManager, eventEmitterFactory, logger);
         const htmlFeature = new RazorHtmlFeature(documentManager, languageServiceClient, eventEmitterFactory, logger);
