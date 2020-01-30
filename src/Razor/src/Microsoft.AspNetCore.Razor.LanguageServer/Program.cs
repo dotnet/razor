@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.JsonRpc.Serialization.Converters;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
@@ -34,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public static async Task MainAsync(string[] args)
         {
-            var logLevel = LogLevel.Information;
+            var trace = Trace.Messages;
             for (var i = 0; i < args.Length; i++)
             {
                 if (args[i].IndexOf("debug", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -48,13 +49,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     continue;
                 }
 
-                if (args[i] == "--logLevel" && i + 1 < args.Length)
+                if (args[i] == "--trace" && i + 1 < args.Length)
                 {
-                    var logLevelString = args[++i];
-                    if (!Enum.TryParse(logLevelString, out logLevel))
+                    var traceArg = args[++i];
+                    if (!Enum.TryParse(traceArg, out trace))
                     {
-                        logLevel = LogLevel.Information;
-                        Console.WriteLine($"Invalid log level '{logLevelString}'. Defaulting to {logLevel.ToString()}.");
+                        trace = Trace.Messages;
+                        Console.WriteLine($"Invalid Razor trace '{traceArg}'. Defaulting to {trace.ToString()}.");
                     }
                 }
             }
@@ -69,11 +70,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithOutput(Console.OpenStandardOutput())
                     .ConfigureLogging(builder => builder
                         .AddLanguageServer()
-                        .SetMinimumLevel(logLevel))
+                        .SetMinimumLevel(RazorLSPOptions.GetLogLevelForTrace(trace)))
                     .OnInitialized(async (languageServer, request, response) =>
                     {
                         var fileChangeDetectorManager = languageServer.Services.GetRequiredService<RazorFileChangeDetectorManager>();
                         await fileChangeDetectorManager.InitializedAsync(languageServer);
+
+                        _ = Task.Delay(1000).ContinueWith(async task =>
+                        {
+                            // Adding a delay to workaround a bug (insert-link).
+                            var optionsMonitor = server.Services.GetRequiredService<IOptionsMonitor<RazorLSPOptions>>() as RazorLSPOptionsMonitor;
+                            await optionsMonitor.UpdateAsync();
+                        });
                     })
                     .WithHandler<RazorDocumentSynchronizationEndpoint>()
                     .WithHandler<RazorCompletionEndpoint>()
@@ -88,6 +96,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorProjectService, DefaultRazorProjectService>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger, BackgroundDocumentGenerator>();
                         services.AddSingleton<RazorFileChangeDetectorManager>();
+
+                        // Options
+                        services.AddSingleton<RazorConfigurationService>();
+                        services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>();
 
                         // File change listeners
                         services.AddSingleton<IProjectConfigurationFileChangeListener, ProjectConfigurationStateSynchronizer>();
