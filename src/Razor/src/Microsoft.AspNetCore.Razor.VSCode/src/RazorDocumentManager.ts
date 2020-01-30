@@ -128,6 +128,7 @@ export class RazorDocumentManager implements IRazorDocumentManager {
 
         // This might happen in the case that a file is opened outside the workspace
         if (!document) {
+            this.logger.logMessage(`File '${path}' didn't exist in the Razor document list. This is likely because it's from outside the workspace.`);
             document = this.addDocument(uri);
         }
 
