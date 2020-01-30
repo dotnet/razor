@@ -124,10 +124,11 @@ export class RazorDocumentManager implements IRazorDocumentManager {
 
     private _getDocument(uri: vscode.Uri) {
         const path = getUriPath(uri);
-        const document = this.razorDocuments[path];
+        let document = this.razorDocuments[path];
 
+        // This might happen in the case that a file is opened outside the workspace
         if (!document) {
-            throw new Error('Requested document does not exist.');
+            document = this.addDocument(uri);
         }
 
         return document;
