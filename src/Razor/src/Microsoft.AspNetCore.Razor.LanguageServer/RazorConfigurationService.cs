@@ -7,13 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorConfigurationService
+    internal class RazorConfigurationService : IRazorConfigurationService
     {
         private readonly ILanguageServer _server;
         private readonly ILogger _logger;
@@ -34,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<RazorConfigurationService>();
         }
 
-        public async Task<RazorLSPOptions> GetLatestOptions()
+        public async Task<RazorLSPOptions> GetLatestOptionsAsync()
         {
             try
             {
@@ -50,31 +49,41 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
 
                 var result = await _server.Client.SendRequest<ConfigurationParams, object[]>("workspace/configuration", request);
-                if (result == null || result.Length < 1)
+                if (result == null || result.Length < 1 || result[0] == null)
                 {
+                    _logger.LogWarning($"Client failed to provide the expected configuration.");
                     return null;
                 }
 
                 var jsonString = result[0].ToString();
                 var builder = new ConfigurationBuilder();
-                var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
+                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
                 builder.AddJsonStream(stream);
                 var config = builder.Build();
 
-                var instance = new RazorLSPOptions();
-                instance.EnableFormatting = bool.Parse(config["format:enable"]);
-                if (Enum.TryParse(config["trace"], out Trace value))
-                {
-                    instance.Trace = value;
-                }
-
+                var instance = BuildOptions(config);
                 return instance;
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Failed to obtain configuration from the client: {ex.Message}");
+                _logger.LogWarning($"Failed to sync client configuration on the server: {ex}");
                 return null;
             }
+        }
+
+        private RazorLSPOptions BuildOptions(IConfiguration config)
+        {
+            var instance = RazorLSPOptions.Default;
+
+            Enum.TryParse(config["trace"], out Trace trace);
+
+            var enableFormatting = instance.EnableFormatting;
+            if (config["format:enable"] != null)
+            {
+                enableFormatting = bool.Parse(config["format:enable"]);
+            }
+
+            return new RazorLSPOptions(trace, enableFormatting);
         }
     }
 }

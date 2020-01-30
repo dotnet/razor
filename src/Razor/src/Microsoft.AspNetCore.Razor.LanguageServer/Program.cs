@@ -75,18 +75,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     {
                         var fileChangeDetectorManager = languageServer.Services.GetRequiredService<RazorFileChangeDetectorManager>();
                         await fileChangeDetectorManager.InitializedAsync(languageServer);
-
-                        _ = Task.Delay(1000).ContinueWith(async task =>
-                        {
-                            // Adding a delay to workaround a bug (insert-link).
-                            var optionsMonitor = server.Services.GetRequiredService<IOptionsMonitor<RazorLSPOptions>>() as RazorLSPOptionsMonitor;
-                            await optionsMonitor.UpdateAsync();
-                        });
                     })
                     .WithHandler<RazorDocumentSynchronizationEndpoint>()
                     .WithHandler<RazorCompletionEndpoint>()
                     .WithHandler<RazorHoverEndpoint>()
                     .WithHandler<RazorLanguageEndpoint>()
+                    .WithHandler<RazorConfigurationEndpoint>()
                     .WithServices(services =>
                     {
                         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
@@ -98,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorFileChangeDetectorManager>();
 
                         // Options
-                        services.AddSingleton<RazorConfigurationService>();
+                        services.AddSingleton<IRazorConfigurationService, RazorConfigurationService>();
                         services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>();
 
                         // File change listeners
@@ -151,6 +145,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Workaround for https://github.com/OmniSharp/csharp-language-server-protocol/issues/106
             var languageServer = (OmniSharp.Extensions.LanguageServer.Server.LanguageServer)server;
+
+            // Initialize our options for the first time.
+            var optionsMonitor = languageServer.Services.GetRequiredService<IOptionsMonitor<RazorLSPOptions>>() as RazorLSPOptionsMonitor;
+            await optionsMonitor.UpdateAsync();
 
             try
             {

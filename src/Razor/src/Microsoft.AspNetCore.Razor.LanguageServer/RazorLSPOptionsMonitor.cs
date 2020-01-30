@@ -3,27 +3,19 @@
 
 using System;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.Extensions.Options;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorLSPOptionsMonitor : IOptionsMonitor<RazorLSPOptions>
     {
-        private readonly ILanguageServer _server;
-        private readonly RazorConfigurationService _configurationService;
+        private readonly IRazorConfigurationService _configurationService;
         private readonly IOptionsMonitorCache<RazorLSPOptions> _cache;
         internal event Action<RazorLSPOptions, string> _onChange;
         private RazorLSPOptions _currentValue;
 
-        public RazorLSPOptionsMonitor(ILanguageServer server, RazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache)
+        public RazorLSPOptionsMonitor(IRazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache)
         {
-            if (server is null)
-            {
-                throw new ArgumentNullException(nameof(server));
-            }
-
             if (configurationService is null)
             {
                 throw new ArgumentNullException(nameof(configurationService));
@@ -34,10 +26,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(cache));
             }
 
-            _server = server;
             _configurationService = configurationService;
             _cache = cache;
-            Initialize();
+            _currentValue = RazorLSPOptions.Default;
         }
 
         public RazorLSPOptions CurrentValue => Get(Options.DefaultName);
@@ -55,9 +46,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return disposable;
         }
 
-        public async Task UpdateAsync()
+        public virtual async Task UpdateAsync()
         {
-            var latestOptions = await _configurationService.GetLatestOptions();
+            var latestOptions = await _configurationService.GetLatestOptionsAsync();
             if (latestOptions != null)
             {
                 _currentValue = latestOptions;
@@ -70,20 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var name = Options.DefaultName;
             _cache.TryRemove(name);
             var options = Get(name);
-            if (_onChange != null)
-            {
-                _onChange.Invoke(options, name);
-            }
-        }
-
-        private void Initialize()
-        {
-            _currentValue = new RazorLSPOptions();
-            _server.OnDidChangeConfiguration(async (request, token) =>
-            {
-                await UpdateAsync();
-                return new Unit();
-            });
+            _onChange?.Invoke(options, name);
         }
 
         internal class ChangeTrackerDisposable : IDisposable
