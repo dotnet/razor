@@ -31,7 +31,7 @@ async function main() {
             launchArgs: [ testAppFolder ],
         });
     } catch (err) {
-        console.error('Failed to run functional tests');
+        console.error(`Failed to run functional tests. Error: ${err.message} Stack: ${err.stack}`);
         process.exit(1);
     }
 }
