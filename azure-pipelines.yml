@@ -353,7 +353,7 @@ stages:
             set -e
             export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
             sudo apt-get update
-            sudo apt-get install ia32-libs
+            sudo apt-get install lib32z1 lib32ncurses5 lib32bz2-1.0
             pushd $(Build.SourcesDirectory)/src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.FunctionalTest
             . $(Build.SourcesDirectory)/activate.sh
             yarn && yarn test
