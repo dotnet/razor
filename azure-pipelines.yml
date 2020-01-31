@@ -298,9 +298,10 @@ stages:
           displayName: Build
           condition: succeeded()
         - script: |
-            unset npm_config_prefix
+            . $(Build.SourcesDirectory)/activate.sh
             pushd $(Build.SourcesDirectory)/src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.FunctionalTest
             yarn && yarn test
+            deactivate
             popd
           displayName: Run VSCode integration tests
           condition: succeeded()
@@ -359,11 +360,24 @@ stages:
           displayName: Install yarn if not exists step 2
           condition: always()
         - script: |
+            curl -o- -L https://yarnpkg.com/install.sh | bash
+          displayName: "Install Yarn"
+          condition: always()
+        - script: |
+            set -e
+            export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+            node -v
+            yarn -v
+          displayName: "Print versions"
+          condition: always()
+        - script: |
             pushd $(Build.SourcesDirectory)/src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.FunctionalTest
+            . $(Build.SourcesDirectory)/activate.sh
             yarn && yarn test
+            deactivate
             popd
           displayName: Run VSCode integration tests
-          condition: succeeded()
+          condition: always()
         - task: PublishBuildArtifacts@1
           displayName: Upload TestResults
           condition: always()
