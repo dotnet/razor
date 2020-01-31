@@ -348,32 +348,17 @@ stages:
           displayName: Build
           condition: succeeded()
         - script: |
-            if command -v yarn; then exit 1; fi
-            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-            echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-          displayName: Install yarn if not exists step 1
-          condition: always()
-        - script: |
-            if command -v yarn; then exit 1; fi
-            sudo apt-get update
-            sudo apt-get install -y --no-install-recommends yarn
-          displayName: Install yarn if not exists step 2
-          condition: always()
-        - script: |
+            rm -rf $HOME/.yarn
             curl -o- -L https://yarnpkg.com/install.sh | bash
-          displayName: "Install Yarn"
-          condition: always()
-        - script: |
             set -e
             export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
-            node -v
-            yarn -v
-          displayName: "Print versions"
-          condition: always()
-        - script: |
+            sudo apt-get update
+            sudo apt-get install ia32-libs
             pushd $(Build.SourcesDirectory)/src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.FunctionalTest
             . $(Build.SourcesDirectory)/activate.sh
             yarn && yarn test
+            sudo apt-get install gcc-multilib
+            yarn test
             deactivate
             popd
           displayName: Run VSCode integration tests
