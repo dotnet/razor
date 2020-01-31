@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class RazorConfigurationServiceTest : LanguageServerTestBase
+    public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
     {
         [Fact]
         public async Task GetLatestOptionsAsync_ReturnsExpectedOptions()
@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 ".Trim();
             var result = new object[] { jsonString };
             var languageServer = GetLanguageServer(result);
-            var configurationService = new RazorConfigurationService(languageServer, LoggerFactory);
+            var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
 
             // Act
             var options = await configurationService.GetLatestOptionsAsync();
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Arrange
             var languageServer = GetLanguageServer(new object[] { });
-            var configurationService = new RazorConfigurationService(languageServer, LoggerFactory);
+            var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
 
             // Act
             var options = await configurationService.GetLatestOptionsAsync();
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Arrange
             var languageServer = GetLanguageServer(new object[] { }, shouldThrow: true);
-            var configurationService = new RazorConfigurationService(languageServer, LoggerFactory);
+            var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
 
             // Act
             var options = await configurationService.GetLatestOptionsAsync();

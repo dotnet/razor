@@ -19,12 +19,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var services = new ServiceCollection().AddOptions();
             Cache = services.BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>();
 
-            ConfigurationService = Mock.Of<IRazorConfigurationService>();
+            ConfigurationService = Mock.Of<RazorConfigurationService>();
         }
 
         private IOptionsMonitorCache<RazorLSPOptions> Cache { get; }
 
-        private IRazorConfigurationService ConfigurationService { get; }
+        private RazorConfigurationService ConfigurationService { get; }
 
         [Fact]
         public async Task Handle_UpdatesOptions()
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
         {
-            public TestRazorLSPOptionsMonitor(IRazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache) : base(configurationService, cache)
+            public TestRazorLSPOptionsMonitor(RazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache) : base(configurationService, cache)
             {
             }
 

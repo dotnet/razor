@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Arrange
             var expectedOptions = new RazorLSPOptions(Trace.Messages, enableFormatting: false);
-            var configService = Mock.Of<IRazorConfigurationService>(f => f.GetLatestOptionsAsync() == Task.FromResult(expectedOptions));
+            var configService = Mock.Of<RazorConfigurationService>(f => f.GetLatestOptionsAsync() == Task.FromResult(expectedOptions));
             var optionsMonitor = new RazorLSPOptionsMonitor(configService, Cache);
             var called = false;
 
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Arrange
             var expectedOptions = new RazorLSPOptions(Trace.Messages, enableFormatting: false);
-            var configService = Mock.Of<IRazorConfigurationService>(f => f.GetLatestOptionsAsync() == Task.FromResult(expectedOptions));
+            var configService = Mock.Of<RazorConfigurationService>(f => f.GetLatestOptionsAsync() == Task.FromResult(expectedOptions));
             var optionsMonitor = new RazorLSPOptionsMonitor(configService, Cache);
             var called = false;
             var onChangeToken = optionsMonitor.OnChange(options =>
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task UpdateAsync_ConfigReturnsNull_DoesNotInvoke_OnChangeRegistration()
         {
             // Arrange
-            var configService = Mock.Of<IRazorConfigurationService>();
+            var configService = Mock.Of<RazorConfigurationService>();
             var optionsMonitor = new RazorLSPOptionsMonitor(configService, Cache);
             var called = false;
             var onChangeToken = optionsMonitor.OnChange(options =>

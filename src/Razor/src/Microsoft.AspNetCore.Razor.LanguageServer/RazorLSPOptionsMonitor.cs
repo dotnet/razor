@@ -9,12 +9,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorLSPOptionsMonitor : IOptionsMonitor<RazorLSPOptions>
     {
-        private readonly IRazorConfigurationService _configurationService;
+        private readonly RazorConfigurationService _configurationService;
         private readonly IOptionsMonitorCache<RazorLSPOptions> _cache;
         internal event Action<RazorLSPOptions, string> _onChange;
         private RazorLSPOptions _currentValue;
 
-        public RazorLSPOptionsMonitor(IRazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache)
+        public RazorLSPOptionsMonitor(RazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache)
         {
             if (configurationService is null)
             {

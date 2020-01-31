@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorFileChangeDetectorManager>();
 
                         // Options
-                        services.AddSingleton<IRazorConfigurationService, RazorConfigurationService>();
+                        services.AddSingleton<RazorConfigurationService, DefaultRazorConfigurationService>();
                         services.AddSingleton<RazorLSPOptionsMonitor>();
                         services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>();
 
