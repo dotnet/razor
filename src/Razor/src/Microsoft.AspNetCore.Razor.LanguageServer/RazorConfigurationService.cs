@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var result = await _server.Client.SendRequest<ConfigurationParams, object[]>("workspace/configuration", request);
                 if (result == null || result.Length < 1 || result[0] == null)
                 {
-                    _logger.LogWarning($"Client failed to provide the expected configuration.");
+                    _logger.LogWarning("Client failed to provide the expected configuration.");
                     return null;
                 }
 
@@ -78,9 +78,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Enum.TryParse(config["trace"], out Trace trace);
 
             var enableFormatting = instance.EnableFormatting;
-            if (config["format:enable"] != null)
+            if (bool.TryParse(config["format:enable"], out var parsedEnableFormatting))
             {
-                enableFormatting = bool.Parse(config["format:enable"]);
+                enableFormatting = parsedEnableFormatting;
             }
 
             return new RazorLSPOptions(trace, enableFormatting);

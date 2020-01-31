@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
@@ -15,11 +14,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorConfigurationEndpoint : IDidChangeConfigurationHandler
     {
-        private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+        private readonly RazorLSPOptionsMonitor _optionsMonitor;
         private readonly ILogger _logger;
         private DidChangeConfigurationCapability _capability;
 
-        public RazorConfigurationEndpoint(IOptionsMonitor<RazorLSPOptions> optionsMonitor, ILoggerFactory loggerFactory)
+        public RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor, ILoggerFactory loggerFactory)
         {
             if (optionsMonitor is null)
             {
@@ -45,12 +44,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<Unit> Handle(DidChangeConfigurationParams request, CancellationToken cancellationToken)
         {
-            if (_optionsMonitor is RazorLSPOptionsMonitor razorLSPOptions)
-            {
-                _logger.LogTrace("Settings changed. Updating the server.");
+            _logger.LogTrace("Settings changed. Updating the server.");
 
-                await razorLSPOptions.UpdateAsync();
-            }
+            await _optionsMonitor.UpdateAsync();
 
             return new Unit();
         }

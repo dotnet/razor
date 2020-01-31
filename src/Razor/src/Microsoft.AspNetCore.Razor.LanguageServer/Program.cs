@@ -93,6 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Options
                         services.AddSingleton<IRazorConfigurationService, RazorConfigurationService>();
+                        services.AddSingleton<RazorLSPOptionsMonitor>();
                         services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>();
 
                         // File change listeners
@@ -147,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var languageServer = (OmniSharp.Extensions.LanguageServer.Server.LanguageServer)server;
 
             // Initialize our options for the first time.
-            var optionsMonitor = languageServer.Services.GetRequiredService<IOptionsMonitor<RazorLSPOptions>>() as RazorLSPOptionsMonitor;
+            var optionsMonitor = languageServer.Services.GetRequiredService<RazorLSPOptionsMonitor>();
             await optionsMonitor.UpdateAsync();
 
             try
