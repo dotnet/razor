@@ -5,8 +5,9 @@
 
 // This file is used at the command line to download VSCode insiders and run all of our functional tests.
 
+import * as cp from 'child_process';
 import * as path from 'path';
-import { runTests } from 'vscode-test';
+import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath, runTests } from 'vscode-test';
 
 async function main() {
     try {
@@ -14,15 +15,23 @@ async function main() {
         const extensionTestsPath = path.resolve(__dirname, './index');
         const testAppFolder = path.resolve(__dirname, '../../testapps');
 
+        const vscodeExecutablePath = await downloadAndUnzipVSCode('stable');
+        const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
+
+        cp.spawnSync(cliPath, ['--install-extension', 'ms-vscode.csharp'], {
+            encoding: 'utf-8',
+            stdio: 'inherit',
+        });
+
         // Download VS Code, unzip it and run the integration test
         await runTests({
+            vscodeExecutablePath,
             extensionDevelopmentPath,
             extensionTestsPath,
-            version: 'insiders',
             launchArgs: [ testAppFolder ],
         });
     } catch (err) {
-        console.error('Failed to run functional tests');
+        console.error(`Failed to run functional tests. Error: ${err.message} Stack: ${err.stack}`);
         process.exit(1);
     }
 }
