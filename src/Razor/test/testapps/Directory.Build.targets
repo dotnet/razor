@@ -6,4 +6,14 @@
     <!-- aspnet/BuildTools#662 Don't police what version of NetCoreApp we use -->
     <NETCoreAppMaximumVersion>99.9</NETCoreAppMaximumVersion>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- Reference base shared framework at incoming dependency flow version, not bundled sdk version. -->
+    <FrameworkReference
+      Update="Microsoft.NETCore.App"
+      Condition="'$(TargetFramework)' == 'netcoreapp5.0'"
+      RuntimeFrameworkVersion="$(MicrosoftNETCoreApp50PackageVersion)"
+      TargetingPackVersion="$(MicrosoftNETCoreAppRefPackageVersion)"
+      />
+  </ItemGroup>
 </Project>
