@@ -27,7 +27,7 @@ export async function run(): Promise<void> {
     }
 
     return new Promise((c, e) => {
-        glob('**/**.test.js', { cwd: testsRoot }, (err, files) => {
+        glob('**/Hover.test.js', { cwd: testsRoot }, (err, files) => {
             if (err) {
                 return e(err);
             }
