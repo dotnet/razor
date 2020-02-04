@@ -182,7 +182,7 @@ export async function waitForProjectConfigured(directory: string) {
         }
 
         return false;
-    }, /* timeout */ 60000, /* pollInterval */ 250);
+    }, /* timeout */ 240000, /* pollInterval */ 250);
 }
 
 export async function restartOmniSharp() {
