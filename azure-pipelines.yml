@@ -207,11 +207,6 @@ stages:
           inputs:
             command: custom
             arguments: 'locals all -clear'
-
-        - powershell: ./eng/scripts/InstallProcDump.ps1
-          displayName: Install ProcDump
-        - powershell: ./eng/scripts/StartDumpCollectionForHangingBuilds.ps1 $(ProcDumpPath)procdump.exe artifacts/log/$(_BuildConfig) (Get-Date).AddMinutes(25) dotnet, msbuild
-          displayName: Start background dump collection
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: PowerShell@2
             displayName: Setup Private Feeds Credentials
@@ -220,14 +215,18 @@ stages:
               arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - script: eng\common\cibuild.cmd
+        - script: eng\common\build.cmd --restore --build --pack --ci
             -configuration $(_BuildConfig)
             -prepareMachine
-            $(_BuildArgs)
-            $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Build
           displayName: Build
+          condition: succeeded()
+        - script: |
+            pushd pushd $(Build.SourcesDirectory)/src/Razor/test/VSCode.FunctionalTest
+            yarn && yarn test
+            popd
+          displayName: Run VSCode integration tests
           condition: succeeded()
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
