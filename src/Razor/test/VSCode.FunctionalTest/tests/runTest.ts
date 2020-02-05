@@ -31,11 +31,13 @@ async function main() {
 
         const vscodeExecutablePath = await downloadAndUnzipVSCode('stable');
         const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
+        console.log(`EXPERIMENTAL - CLI Path ${cliPath}`);
 
-        cp.spawnSync(cliPath, ['--install-extension', 'ms-vscode.csharp'], {
+        const result = cp.spawnSync(cliPath, ['--install-extension', 'ms-vscode.csharp'], {
             encoding: 'utf-8',
             stdio: 'inherit',
         });
+        console.log(`EXPERIMENTAL - Adding extension has result '${result.status}'`);
 
         // Download VS Code, unzip it and run the integration test
         await runTests({
