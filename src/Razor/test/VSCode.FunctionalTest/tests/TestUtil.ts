@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
+import { Stopwatch } from 'ts-stopwatch';
 import * as vscode from 'vscode';
 
 export const razorRoot = path.join(__dirname, '..', '..', '..');
@@ -138,15 +139,28 @@ export async function dotnetRestore(cwd: string): Promise<void> {
 }
 
 export async function waitForProjectReady(directory: string) {
+    const sw = new Stopwatch();
+    sw.start();
+    console.log(`starting removeOldProjectRazorJsons ${sw.getTime()}ms`);
     await removeOldProjectRazorJsons();
+    console.log(`ending removeOldProjectRazorJsons ${sw.getTime()}ms`);
     await cleanBinAndObj(directory);
+    console.log(`ending cleanBinAndObj ${sw.getTime()}ms`);
     await csharpExtensionReady();
+    console.log(`ending csharpExtensionReady ${sw.getTime()}ms`);
     await htmlLanguageFeaturesExtensionReady();
+    console.log(`ending htmlLanguageFeaturesExtensionReady ${sw.getTime()}ms`);
     await dotnetRestore(directory);
+    console.log(`ending dotnetRestore ${sw.getTime()}ms`);
     await restartOmniSharp();
+    console.log(`ending restartOmniSharp ${sw.getTime()}ms`);
     await razorExtensionReady();
+    console.log(`ending razorExtensionReady ${sw.getTime()}ms`);
     await waitForProjectConfigured(directory);
+    console.log(`ending waitForProjectConfigured ${sw.getTime()}ms`);
     await waitForProjectsConfigured();
+    console.log(`ending waitForProjectsConfigured ${sw.getTime()}ms`);
+    sw.stop();
 }
 
 export async function waitForProjectsConfigured() {
