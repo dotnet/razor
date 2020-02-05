@@ -743,6 +743,11 @@ ts-node@^7.0.1:
     source-map-support "^0.5.6"
     yn "^2.0.0"
 
+ts-stopwatch@0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/ts-stopwatch/-/ts-stopwatch-0.0.4.tgz#9bf07edbd1d3d16c48a1b6deccd0dd2f11e68b9e"
+  integrity sha512-YUAV6lT4YiCrLckGkUsUp12Eo77NX3DK7HzFuFeDV702g/+Jz/IU80s7Boq+JhrqlocLELdgmpH+/y5XGBxLCQ==
+
 tslib@^1.8.0, tslib@^1.8.1:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
