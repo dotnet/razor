@@ -22,7 +22,7 @@ async function main() {
             console.log(`- ${content}`);
         }
 
-        const extensionTestsPath = path.resolve(__dirname, './index');
+        const extensionTestsPath = path.resolve(__dirname, './index.js');
         console.log(`EXPERIMENTAL - Extension Test Path: ${extensionTestsPath}`);
         console.log(`EXPERIMENTAL - Existence check for Test Path: ${fs.existsSync(extensionTestsPath)}`);
         const testAppFolder = path.resolve(__dirname, '../../testapps');
