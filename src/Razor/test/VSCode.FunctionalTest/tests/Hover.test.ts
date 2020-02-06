@@ -42,10 +42,7 @@ suite('Hover', () => {
     test('Can perform hovers on C#', async () => {
         const firstLine = new vscode.Position(0, 0);
         await editor.edit(edit => edit.insert(firstLine, '<p>@DateTime.Now</p>\n'));
-        const hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
-            'vscode.executeHoverProvider',
-            cshtmlDoc.uri,
-            new vscode.Position(0, 6));
+        const hoverResult = await WaitForHover(cshtmlDoc.uri, new vscode.Position(0, 6));
         const expectedRange = new vscode.Range(
             new vscode.Position(0, 4),
             new vscode.Position(0, 12));
@@ -63,10 +60,7 @@ suite('Hover', () => {
     test('Can perform hovers on HTML', async () => {
         const firstLine = new vscode.Position(0, 0);
         await editor.edit(edit => edit.insert(firstLine, '<p>@DateTime.Now</p>\n'));
-        const hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
-            'vscode.executeHoverProvider',
-            cshtmlDoc.uri,
-            new vscode.Position(0, 1));
+        const hoverResult = await WaitForHover(cshtmlDoc.uri, new vscode.Position(0, 1));
         const expectedRange = new vscode.Range(
             new vscode.Position(0, 1),
             new vscode.Position(0, 2));
@@ -80,4 +74,24 @@ suite('Hover', () => {
         assert.equal(hoverResult.length, 1, 'Someone else unexpectedly may be providing hover results');
         assert.deepEqual(hoverResult[0].range, expectedRange, 'HTML hover range should be p');
     });
+
+    async function WaitForHover(fileUri: vscode.Uri, position: vscode.Position) {
+        await pollUntil(async () => {
+            const hover = await vscode.commands.executeCommand<vscode.Hover[]>(
+                'vscode.executeHoverProvider',
+                fileUri,
+                position);
+
+            if (hover!.length > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }, /* timeout */ 5000, /* pollInterval */ 1000, /* suppressError */ false);
+
+        return vscode.commands.executeCommand<vscode.Hover[]>(
+            'vscode.executeHoverProvider',
+            fileUri,
+            position);
+    }
 });
