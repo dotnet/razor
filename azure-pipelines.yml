@@ -215,7 +215,8 @@ stages:
               arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - script: eng\common\build.ps1 --restore --build --pack --ci
+        - powershell: |
+            eng\common\build.ps1 -restore -build -pack -ci
             -configuration $(_BuildConfig)
             -prepareMachine
             $(_InternalRuntimeDownloadArgs)
