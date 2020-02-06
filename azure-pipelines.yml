@@ -204,6 +204,7 @@ stages:
         - powershell: npm install -g yarn
           displayName: Install yarn
           condition: succeeded()
+
         - task: NuGetCommand@2
           displayName: 'Clear NuGet caches'
           condition: succeeded()
@@ -222,10 +223,8 @@ stages:
           name: Build
           displayName: Build
           condition: succeeded()
-        - script: |
-            pushd pushd $(Build.SourcesDirectory)/src/Razor/test/VSCode.FunctionalTest
-            yarn && yarn test
-            popd
+        - powershell: yarn && yarn test
+          workingDirectory: $(Build.SourcesDirectory)/src/Razor/test/VSCode.FunctionalTest
           displayName: Run VSCode integration tests
           condition: succeeded()
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
