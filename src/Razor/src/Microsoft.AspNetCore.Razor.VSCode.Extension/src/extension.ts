@@ -50,10 +50,16 @@ export async function activate(context: vscode.ExtensionContext) {
             context,
             languageServerDir,
             hostEventStream);
+    } else if (isAutomated(context)) {
+        await vscode.commands.executeCommand('extension.configureRazorDevMode');
     } else {
         console.log('Razor workspace was not configured, extension activation skipped.');
         console.log('To configure your workspace run the following command (ctrl+shift+p) in the experimental instance "Razor: Configure workspace for Razor extension development"');
     }
 
     activationResolver();
+}
+
+function isAutomated(context: vscode.ExtensionContext): boolean {
+    return true;
 }
