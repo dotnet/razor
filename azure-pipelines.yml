@@ -223,7 +223,7 @@ stages:
           name: Build
           displayName: Build
           condition: succeeded()
-        - powershell: yarn && yarn test
+        - powershell: yarn test
           workingDirectory: $(Build.SourcesDirectory)/src/Razor/test/VSCode.FunctionalTest
           displayName: Run VSCode integration tests
           condition: succeeded()
