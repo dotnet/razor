@@ -101,21 +101,6 @@ suite('Completions', () => {
         assertHasCompletion(completions, 'DateTimeOffset');
     });
 
-    test('Can perform Completions on file with "#" in the name', async () => {
-        const firstLine = new vscode.Position(1, 0);
-        const fileNamePath = path.join(homeDirectory, '#FileName.cshtml');
-        const fileNameDoc = await vscode.workspace.openTextDocument(fileNamePath);
-        const fileNameEditor = await vscode.window.showTextDocument(fileNameDoc);
-        await fileNameEditor.edit(edit => edit.insert(firstLine, '@Da'));
-
-        const completions = await vscode.commands.executeCommand<vscode.CompletionList>(
-            'vscode.executeCompletionItemProvider',
-            fileNameDoc.uri,
-            new vscode.Position(1, 2));
-
-        assertHasCompletion(completions, 'DateTime');
-    });
-
     test('Can complete imported C# in .cshtml', async () => {
         const lastLine = new vscode.Position(cshtmlDoc.lineCount - 1, 0);
         await editor.edit(edit => edit.insert(lastLine, '@'));
