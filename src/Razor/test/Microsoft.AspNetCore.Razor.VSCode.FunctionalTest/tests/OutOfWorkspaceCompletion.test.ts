@@ -3,12 +3,12 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as assert from 'assert';
 import * as fs from 'fs';
 import { after, afterEach, before } from 'mocha';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
+    assertHasCompletion,
     mvcWithComponentsRoot,
     pollUntil,
     testAppsRoot,
@@ -50,9 +50,7 @@ suite('Out of workspace Completions', () => {
             outOfWorkspaceDoc.uri,
             new vscode.Position(0, 3));
 
-        const hasCompletion = (text: string) => completions!.items.some(item => item.insertText === text);
-
-        assert.ok(hasCompletion('inject'), 'Should have completion for "inject"');
+        assertHasCompletion(completions, 'inject');
     });
 
     test('C# completions out of Workspace work', async () => {
@@ -65,9 +63,7 @@ suite('Out of workspace Completions', () => {
             outOfWorkspaceDoc.uri,
             new vscode.Position(0, 2));
 
-        const hasCompletion = (text: string) => completions!.items.some(item => item.insertText === text);
-
-        assert.ok(hasCompletion('DateTime'), 'Should have completion for "DateTime"');
+        assertHasCompletion(completions, 'DateTime');
     });
 
     test('HTML completions out of Workspace work', async () => {
@@ -80,8 +76,6 @@ suite('Out of workspace Completions', () => {
             outOfWorkspaceDoc.uri,
             new vscode.Position(0, 2));
 
-        const hasCompletion = (text: string) => completions!.items.some(item => item.insertText === text);
-
-        assert.ok(hasCompletion('a'), 'Should have completion for "a"');
+        assertHasCompletion(completions, 'a');
     });
 });

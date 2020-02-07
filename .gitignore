@@ -140,4 +140,4 @@ dist/
 out/
 
 # Test generated
-src/Razor/test/OutOfWorkspaceFile.cshtml
+src/Razor/test/OutOfWorkspaceFile.razor
