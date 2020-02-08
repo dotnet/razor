@@ -154,6 +154,13 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         csharpProjectedDocument.reset();
         htmlProjectedDocument.reset();
 
+        // Files outside of the workspace will return undefined from getWorkspaceFolder
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+        if (!workspaceFolder) {
+            // Out of workspace files should be removed once they're closed
+            this.removeDocument(uri);
+        }
+
         this.notifyDocumentChange(document, RazorDocumentChangeKind.closed);
     }
 
