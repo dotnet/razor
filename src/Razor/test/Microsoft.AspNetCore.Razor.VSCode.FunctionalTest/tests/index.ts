@@ -30,13 +30,14 @@ export async function run(): Promise<void> {
     if (process.env.runSingleTest === 'true') {
         testFilter = await vscode.window.showInputBox({
                 prompt: 'Test file filter',
+                placeHolder: '**.test.js',
             });
     }
 
     if (!testFilter) {
         testFilter = '**.test.js';
-    } else if (!testFilter.endsWith('*') && !testFilter.endsWith('.test.js')) {
-        testFilter += '.test.js';
+    } else if (!testFilter.endsWith('.test.js')) {
+        testFilter += '**.test.js';
     }
 
     return new Promise((c, e) => {
