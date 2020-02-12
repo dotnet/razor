@@ -80,13 +80,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 hostDocument =>
                 {
                     Assert.Equal(Path.Combine(projectDirectory, "file.cshtml"), hostDocument.FilePath);
-                    Assert.Equal("path/file.cshtml", hostDocument.TargetPath);
+                    Assert.Equal("path\\file.cshtml", hostDocument.TargetPath);
                     Assert.Equal(FileKinds.Legacy, hostDocument.FileKind);
                 },
                 hostDocument =>
                 {
                     Assert.Equal(Path.Combine(projectDirectory, "otherfile.cshtml"), hostDocument.FilePath);
-                    Assert.Equal("other/path/otherfile.cshtml", hostDocument.TargetPath);
+                    Assert.Equal("other\\path\\otherfile.cshtml", hostDocument.TargetPath);
                     Assert.Equal(FileKinds.Legacy, hostDocument.FileKind);
                 });
         }
@@ -115,13 +115,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 hostDocument =>
                 {
                     Assert.Equal(Path.Combine(projectDirectory, "path/file.razor"), hostDocument.FilePath);
-                    Assert.Equal("path/file.razor", hostDocument.TargetPath);
+                    Assert.Equal("path\\file.razor", hostDocument.TargetPath);
                     Assert.Equal(FileKinds.Component, hostDocument.FileKind);
                 },
                 hostDocument =>
                 {
                     Assert.Equal(Path.Combine(projectDirectory, "other/path/otherfile.razor"), hostDocument.FilePath);
-                    Assert.Equal("other/path/otherfile.razor", hostDocument.TargetPath);
+                    Assert.Equal("other\\path\\otherfile.razor", hostDocument.TargetPath);
                     Assert.Equal(FileKinds.Component, hostDocument.FileKind);
                 });
         }
@@ -150,13 +150,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 hostDocument =>
                 {
                     Assert.Equal(Path.Combine(projectDirectory, "file.razor"), hostDocument.FilePath);
-                    Assert.Equal("path/file.razor", hostDocument.TargetPath);
+                    Assert.Equal("path\\file.razor", hostDocument.TargetPath);
                     Assert.Equal(FileKinds.Component, hostDocument.FileKind);
                 },
                 hostDocument =>
                 {
                     Assert.Equal(Path.Combine(projectDirectory, "otherfile.cshtml"), hostDocument.FilePath);
-                    Assert.Equal("other/path/otherfile.cshtml", hostDocument.TargetPath);
+                    Assert.Equal("other\\path\\otherfile.cshtml", hostDocument.TargetPath);
                     Assert.Equal(FileKinds.Legacy, hostDocument.FileKind);
                 });
         }

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private readonly DocumentSnapshot _documentSnapshot;
         private OmniSharpHostDocument _hostDocument;
         private OmniSharpProjectSnapshot _project;
-        private object _projectLock;
+        private readonly object _projectLock;
 
         internal OmniSharpDocumentSnapshot(DocumentSnapshot documentSnapshot)
         {
