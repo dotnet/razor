@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
 
             var result = await _server.Client.SendRequest<RazorDocumentRangeFormattingParams, RazorDocumentRangeFormattingResponse>(
-                "razor/rangeFormatting", @params);
+                LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
 
             var mappedEdits = MapEditsToHostDocument(codeDocument, result.Edits);
 

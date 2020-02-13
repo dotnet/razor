@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
 
             var result = await _server.Client.SendRequest<RazorDocumentRangeFormattingParams, RazorDocumentRangeFormattingResponse>(
-                "razor/rangeFormatting", @params);
+                LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
 
             return result.Edits;
         }

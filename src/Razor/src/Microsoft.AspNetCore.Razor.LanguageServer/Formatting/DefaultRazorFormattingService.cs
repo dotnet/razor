@@ -219,6 +219,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
                 else
                 {
+                    // At this point we assume the C# formatter has relatively indented this line to the correct level.
+                    // All we want to do at this point is to indent/unindent this line based on the absolute indentation of the block
+                    // and the minimum C# indent level. We don't need to worry about the actual existing indentation here because it doesn't matter.
                     var effectiveDesiredIndentationLevel = desiredIndentationLevel - minCSharpIndentLevel;
                     var effectiveDesiredIndentation = GetIndentationString(context, Math.Abs(effectiveDesiredIndentationLevel));
                     if (effectiveDesiredIndentationLevel < 0)
@@ -298,11 +301,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
             else
             {
+                //
                 // The code inside the code block directive is on its own line. Ideally the C# formatter would have already taken care of it.
                 // Except, the first line of the code block is not indented because of how our SourceMappings work.
-                // The edit for the first line is filtered out due to lack of a matching source mapping.
-                // So we should manually indent that line here.
-
+                // E.g,
+                // @code {
+                //     ...
+                // }
+                // Our source mapping for this code block only ranges between the { and }, exclusive.
+                // If the C# formatter provides any edits that start from before the {, we won't be able to map it back and we will ignore it.
+                // Unfortunately because of this, we partially lose some edits which would have indented the first line of the code block correctly.
+                // So let's manually indent the first line here.
+                //
                 var innerCodeBlockText = changedText.GetSubTextString(changedInnerCodeBlockSpan);
                 if (!string.IsNullOrWhiteSpace(innerCodeBlockText))
                 {

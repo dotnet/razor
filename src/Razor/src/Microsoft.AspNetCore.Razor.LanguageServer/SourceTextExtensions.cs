@@ -8,6 +8,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal static class SourceTextExtensions
     {
+        /// <summary>
+        /// Gets the minimal range of text that changed between the two versions.
+        /// </summary>
         public static TextChangeRange GetEncompassingTextChangeRange(this SourceText newText, SourceText oldText)
         {
             if (newText is null)

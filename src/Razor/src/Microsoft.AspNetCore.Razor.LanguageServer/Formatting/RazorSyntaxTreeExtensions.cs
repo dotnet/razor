@@ -31,6 +31,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(syntaxTree));
             }
 
+            // We want all nodes of type RazorDirectiveSyntax which will contain code.
+            // Since code block directives occur at the top-level, we don't need to dive deeper into unrelated nodes.
             var codeBlockDirectives = syntaxTree.Root
                 .DescendantNodes(node => node is RazorDocumentSyntax || node is MarkupBlockSyntax || node is CSharpCodeBlockSyntax)
                 .OfType<RazorDirectiveSyntax>()
