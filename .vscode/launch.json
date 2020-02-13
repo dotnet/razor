@@ -72,7 +72,7 @@
         "--extensionTestsPath=${workspaceFolder}/src/Razor/test/VSCode.FunctionalTest/dist/index.js",
       ],
       "env": {
-        "runSingleTest": "true"
+        "runSingleTest": "false"
       },
       "outFiles": [
         "${workspaceFolder}/src/Razor/test/VSCode.FunctionalTest/dist/**/*.js",

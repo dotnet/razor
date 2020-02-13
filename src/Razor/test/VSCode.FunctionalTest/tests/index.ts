@@ -35,7 +35,7 @@ export async function run(): Promise<void> {
     }
 
     if (!testFilter) {
-        testFilter = '**.test.js';
+        testFilter = 'Hover.test.js';
     } else if (!testFilter.endsWith('.test.js')) {
         testFilter += '**.test.js';
     }

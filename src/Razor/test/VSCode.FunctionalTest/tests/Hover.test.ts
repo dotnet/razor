@@ -81,21 +81,22 @@ suite('Hover', () => {
     // });
 
     async function WaitForHover(fileUri: vscode.Uri, position: vscode.Position) {
-        await pollUntil(async () => {
-            console.log('polling');
-            const hover = await vscode.commands.executeCommand<vscode.Hover[]>(
-                'vscode.executeHoverProvider',
-                fileUri,
-                position);
+        // await pollUntil(async () => {
+        //     console.log('polling');
+        //     const hover = await vscode.commands.executeCommand<vscode.Hover[]>(
+        //         'vscode.executeHoverProvider',
+        //         fileUri,
+        //         position);
 
-            if (hover!.length > 0) {
-                console.log('returning true');
-                return true;
-            } else {
-                console.log('returning false');
-                return false;
-            }
-        }, /* timeout */ 5000, /* pollInterval */ 1000, /* suppressError */ false);
+        //     if (hover!.length > 0) {
+        //         console.log('returning true');
+        //         return true;
+        //     } else {
+        //         console.log('returning false');
+        //         return false;
+        //     }
+        // }, /* timeout */ 5000, /* pollInterval */ 1000, /* suppressError */ false);
+        await new Promise(r => setTimeout(r, 10000));
 
         console.log('Done polling. Returning');
         return vscode.commands.executeCommand<vscode.Hover[]>(
