@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 export async function run(): Promise<void> {
     const mocha = new Mocha({
         ui: 'tdd',
-        timeout: 249000,
+        timeout: 349000,
     });
     mocha.useColors(true);
 
