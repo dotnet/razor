@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -11,12 +12,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (newText is null)
             {
-                throw new System.ArgumentNullException(nameof(newText));
+                throw new ArgumentNullException(nameof(newText));
             }
 
             if (oldText is null)
             {
-                throw new System.ArgumentNullException(nameof(oldText));
+                throw new ArgumentNullException(nameof(oldText));
             }
 
             var ranges = newText.GetChangeRanges(oldText);
@@ -38,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (source is null)
             {
-                throw new System.ArgumentNullException(nameof(source));
+                throw new ArgumentNullException(nameof(source));
             }
 
             var line = source.Lines.GetLineFromPosition(position);
@@ -57,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (source is null)
             {
-                throw new System.ArgumentNullException(nameof(source));
+                throw new ArgumentNullException(nameof(source));
             }
 
             source.GetLineAndOffset(textSpan.Start, out startLineNumber, out startOffset);
@@ -68,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (source is null)
             {
-                throw new System.ArgumentNullException(nameof(source));
+                throw new ArgumentNullException(nameof(source));
             }
 
             var charBuffer = new char[span.Length];

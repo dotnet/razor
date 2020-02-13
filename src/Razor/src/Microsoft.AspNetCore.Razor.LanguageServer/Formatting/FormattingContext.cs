@@ -25,22 +25,4 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public Dictionary<int, IndentationContext> Indentations { get; } = new Dictionary<int, IndentationContext>();
     }
-
-    internal class IndentationContext
-    {
-        public int Line { get; set; }
-
-        public int IndentationLevel { get; set; }
-
-        public int RelativeIndentationLevel { get; set; }
-
-        public int ExistingIndentation { get; set; }
-
-        public FormattingSpan FirstSpan { get; set; }
-
-        public override string ToString()
-        {
-            return $"Line: {Line}, IndentationLevel: {IndentationLevel}, RelativeIndentationLevel: {RelativeIndentationLevel}, ExistingIndentation: {ExistingIndentation}";
-        }
-    }
 }

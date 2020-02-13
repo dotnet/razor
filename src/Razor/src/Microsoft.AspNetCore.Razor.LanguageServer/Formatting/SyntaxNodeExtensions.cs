@@ -40,8 +40,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var startLocation = source.Lines.GetLocation(start);
             var endLocation = source.Lines.GetLocation(end);
+            var startPosition = GetLinePosition(startLocation);
+            var endPosition = GetLinePosition(endLocation);
 
-            return new LinePositionSpan(GetLinePosition(startLocation), GetLinePosition(endLocation));
+            return new LinePositionSpan(startPosition, endPosition);
 
             static LinePosition GetLinePosition(SourceLocation location)
             {

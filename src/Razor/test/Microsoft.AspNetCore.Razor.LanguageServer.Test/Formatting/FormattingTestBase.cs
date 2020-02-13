@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class FormattingTestBase : LanguageServerTestBase
     {
-        protected async Task RunFormattingTestAsync(string input, string expected, int tabSize = 4, bool insertSpaces = true)
+        protected async Task RunFormattingTestAsync(string input, string expected, int tabSize = 4, bool insertSpaces = true, string fileKind = default)
         {
             // Arrange
             var start = input.IndexOf('|');
@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var path = "file:///path/to/document.razor";
             var uri = new Uri(path);
-            var codeDocument = CreateCodeDocument(source, uri.AbsolutePath);
+            var codeDocument = CreateCodeDocument(source, uri.AbsolutePath, fileKind: fileKind);
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,
@@ -55,12 +55,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return source.WithChanges(changes);
         }
 
-        private static RazorCodeDocument CreateCodeDocument(SourceText text, string path, IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+        private static RazorCodeDocument CreateCodeDocument(SourceText text, string path, IReadOnlyList<TagHelperDescriptor> tagHelpers = null, string fileKind = default)
         {
+            fileKind ??= FileKinds.Component;
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = text.GetRazorSourceDocument(path, path);
             var projectEngine = RazorProjectEngine.Create(builder => { });
-            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Legacy, Array.Empty<RazorSourceDocument>(), tagHelpers);
+            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, Array.Empty<RazorSourceDocument>(), tagHelpers);
             return codeDocument;
         }
 

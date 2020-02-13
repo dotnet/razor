@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
-            if (document is null)
+            if (document is null || cancellationToken.IsCancellationRequested)
             {
                 return null;
             }

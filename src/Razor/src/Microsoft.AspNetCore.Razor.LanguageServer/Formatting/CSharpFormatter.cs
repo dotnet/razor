@@ -65,12 +65,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var result = await _server.Client.SendRequest<RazorDocumentRangeFormattingParams, RazorDocumentRangeFormattingResponse>(
                 "razor/rangeFormatting", @params);
 
-            var mappedEdits = MapProjectedCSharpEdits(codeDocument, result.Edits);
+            var mappedEdits = MapEditsToHostDocument(codeDocument, result.Edits);
 
             return mappedEdits;
         }
 
-        private TextEdit[] MapProjectedCSharpEdits(RazorCodeDocument codeDocument, TextEdit[] csharpEdits)
+        private TextEdit[] MapEditsToHostDocument(RazorCodeDocument codeDocument, TextEdit[] csharpEdits)
         {
             var actualEdits = new List<TextEdit>();
             foreach (var edit in csharpEdits)
