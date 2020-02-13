@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     internal class DefaultRazorFormattingService : RazorFormattingService
     {
         private readonly ILanguageServer _server;
-        private readonly CSharpFormatter _cSharpFormatter;
+        private readonly CSharpFormatter _csharpFormatter;
         private readonly HtmlFormatter _htmlFormatter;
         private readonly ILogger _logger;
 
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             _server = server;
-            _cSharpFormatter = new CSharpFormatter(documentMappingService, server, filePathNormalizer);
+            _csharpFormatter = new CSharpFormatter(documentMappingService, server, filePathNormalizer);
             _htmlFormatter = new HtmlFormatter(server, filePathNormalizer);
             _logger = loggerFactory.CreateLogger<DefaultRazorFormattingService>();
         }
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var rangeToFormat = codeBlockRange.Overlap(context.Range);
                 if (rangeToFormat != null)
                 {
-                    var codeEdits = await _cSharpFormatter.FormatAsync(context.CodeDocument, rangeToFormat, context.Uri, context.Options);
+                    var codeEdits = await _csharpFormatter.FormatAsync(context.CodeDocument, rangeToFormat, context.Uri, context.Options);
                     changedText = ApplyCSharpEdits(context, codeBlockRange, codeEdits, minCSharpIndentLevel: 2);
                 }
 
@@ -144,8 +144,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return allEdits.ToArray();
         }
 
-        // minCSharpIndentLevel refers to the minimum level of how much the C# formatter would indent code.
-        // This is typically 2 for @code/@functions blocks and 3 for @{} blocks and other Razor blocks.
+        //
+        // 'minCSharpIndentLevel' refers to the minimum level of how much the C# formatter would indent code.
+        // @code/@functions blocks contain class members and so are typically indented by 2 levels.
+        // @{} blocks are put inside method body which means they are typically indented by 3 levels.
+        //
         private SourceText ApplyCSharpEdits(FormattingContext context, Range codeBlockRange, TextEdit[] edits, int minCSharpIndentLevel)
         {
             var originalText = context.SourceText;
@@ -187,7 +190,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 var leadingWhitespace = line.GetLeadingWhitespace();
-                var minCSharpIndentLength = context.Options.TabSize * minCSharpIndentLevel;
+                var minCSharpIndentLength = GetIndentationString(context, minCSharpIndentLevel).Length;
                 if (leadingWhitespace.Length < minCSharpIndentLength)
                 {
                     // For whatever reason, the C# formatter decided to not indent this. Leave it as is.
@@ -196,17 +199,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 else
                 {
                     var effectiveDesiredIndentationLevel = desiredIndentationLevel - minCSharpIndentLevel;
+                    var effectiveDesiredIndentation = GetIndentationString(context, Math.Abs(effectiveDesiredIndentationLevel));
                     if (effectiveDesiredIndentationLevel < 0)
                     {
                         // This means that we need to unindent.
-                        var length = Math.Abs(effectiveDesiredIndentationLevel * context.Options.TabSize);
-                        var span = new TextSpan(line.Start, (int)length);
+                        var span = new TextSpan(line.Start, effectiveDesiredIndentation.Length);
                         editsToApply.Add(new TextChange(span, string.Empty));
                     }
                     else if (effectiveDesiredIndentationLevel > 0)
                     {
                         // This means that we need to indent.
-                        var effectiveDesiredIndentation = GetIndentationString(context, effectiveDesiredIndentationLevel);
                         var span = new TextSpan(line.Start, 0);
                         editsToApply.Add(new TextChange(span, effectiveDesiredIndentation));
                     }
@@ -363,13 +365,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private void TrackChangeInSpan(SourceText oldText, TextSpan originalSpan, SourceText newText, out TextSpan changedSpan, out TextSpan changeEncompassingSpan)
         {
             var affectedRange = newText.GetEncompassingTextChangeRange(oldText);
+
+            // The span of text before the edit which is being changed
             changeEncompassingSpan = affectedRange.Span;
+
             if (!originalSpan.Contains(changeEncompassingSpan))
             {
                 _logger.LogDebug($"The changed region {changeEncompassingSpan} was not a subset of the span {originalSpan} being tracked. This is unexpected.");
             }
 
-            changedSpan = TextSpan.FromBounds(originalSpan.Start, originalSpan.End + affectedRange.NewLength - affectedRange.Span.Length);
+            // We now know what was the range that changed and the length of that span after the change.
+            // Let's now compute what the original span looks like after the change.
+            // We know it still starts from the same location but could have grown or shrunk in length.
+            // Compute the change in length and then update the original span.
+            var changeInOriginalSpanLength = affectedRange.NewLength - changeEncompassingSpan.Length;
+            changedSpan = TextSpan.FromBounds(originalSpan.Start, originalSpan.End + changeInOriginalSpanLength);
         }
 
         private TextChange[] Diff(SourceText oldText, SourceText newText, TextSpan? spanToDiff = default)
@@ -395,7 +405,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private static string GetIndentationString(FormattingContext context, int indentationLevel)
         {
             var indentChar = context.Options.InsertSpaces ? ' ' : '\t';
-            var indentation = new string(indentChar, (int)context.Options.TabSize * indentationLevel);
+            var indentationLength = indentationLevel;
+            if (context.Options.InsertSpaces)
+            {
+                indentationLength *= (int)context.Options.TabSize;
+            }
+            var indentation = new string(indentChar, indentationLength);
             return indentation;
         }
 

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -13,14 +14,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             await RunFormattingTestAsync(
 input: @"
-|@functions {
+|@code {
  public class Foo{}
         public interface Bar {
 }
 }|
 ",
 expected: @"
-@functions {
+@code {
     public class Foo { }
     public interface Bar
     {
@@ -74,14 +75,14 @@ void Method() { <div></div> }
         {
             await RunFormattingTestAsync(
 input: @"
-|@functions {
+|@code {
  public class Foo{
 void Method() { @DateTime.Now }
 }
 }|
 ",
 expected: @"
-@functions {
+@code {
  public class Foo{
 void Method() { @DateTime.Now }
 }
@@ -106,7 +107,8 @@ expected: @"
 void Method() { @(DateTime.Now) }
 }
 }
-");
+",
+fileKind: FileKinds.Legacy);
         }
 
         [Fact]
@@ -207,7 +209,8 @@ Hello World
         { }
     }
 }
-");
+",
+fileKind: FileKinds.Legacy);
         }
 
         [Fact]
@@ -216,7 +219,7 @@ Hello World
             await RunFormattingTestAsync(
 input: @"|
 Hello World
-@functions {
+@code {
 public class HelloWorld
 {
 }
@@ -229,7 +232,7 @@ public class HelloWorld
 |",
 expected: @"
 Hello World
-@functions {
+@code {
     public class HelloWorld
     {
     }
@@ -378,6 +381,117 @@ expected: @"
     }
 }
 ");
+        }
+
+        [Fact]
+        public async Task CodeBlockDirective_UseTabs()
+        {
+            await RunFormattingTestAsync(
+input: @"
+|@code {
+ public class Foo{}
+        void Method(  ) {
+}
+}|
+",
+expected: @"
+@code {
+	public class Foo { }
+	void Method()
+	{
+	}
+}
+",
+insertSpaces: false);
+        }
+
+        [Fact]
+        public async Task CodeBlockDirective_UseTabsWithTabSize8()
+        {
+            await RunFormattingTestAsync(
+input: @"
+|@code {
+ public class Foo{}
+        void Method(  ) {
+}
+}|
+",
+expected: @"
+@code {
+	public class Foo { }
+	void Method()
+	{
+	}
+}
+",
+tabSize: 8,
+insertSpaces: false);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/18996")]
+        public async Task CodeBlockDirective_WithTabSize3()
+        {
+            await RunFormattingTestAsync(
+input: @"
+|@code {
+ public class Foo{}
+        void Method(  ) {
+}
+}|
+",
+expected: @"
+@code {
+   public class Foo { }
+   void Method()
+   {
+   }
+}
+",
+tabSize: 3);
+        }
+
+        [Fact]
+        public async Task CodeBlockDirective_WithTabSize8()
+        {
+            await RunFormattingTestAsync(
+input: @"
+|@code {
+ public class Foo{}
+        void Method(  ) {
+}
+}|
+",
+expected: @"
+@code {
+        public class Foo { }
+        void Method()
+        {
+        }
+}
+",
+tabSize: 8);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/18996")]
+        public async Task CodeBlockDirective_WithTabSize12()
+        {
+            await RunFormattingTestAsync(
+input: @"
+|@code {
+ public class Foo{}
+        void Method(  ) {
+}
+}|
+",
+expected: @"
+@code {
+            public class Foo { }
+            void Method()
+            {
+            }
+}
+",
+tabSize: 12);
         }
     }
 }
