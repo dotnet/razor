@@ -23,6 +23,7 @@ export async function run(): Promise<void> {
     const devmode = razorConfiguration.get('devmode');
 
     if (!devmode) {
+        console.log('Dev mode detected as disabled, configuring Razor Dev Mode');
         await vscode.commands.executeCommand('extension.configureRazorDevMode');
     }
 

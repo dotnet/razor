@@ -278,6 +278,7 @@ export async function htmlLanguageFeaturesExtensionReady() {
 
 async function razorExtensionReady() {
     try {
+        console.log('Razor activation started.');
         await vscode.commands.executeCommand('extension.razorActivated');
         console.log('Razor activated successfully.');
     } catch (error) {
