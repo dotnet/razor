@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.Extensions.CommandLineUtils.Sources" Version="3.0.3-servicing.20072.2">
+    <Dependency Name="Microsoft.Extensions.CommandLineUtils.Sources" Version="3.0.3-servicing.20113.6">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>3ba81a83537d2a08144e66f6266bab9f8846d762</Sha>
+      <Sha>2afdb24b9897814fbd7d04c6797aabbdd076d9a2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.HashCodeCombiner.Sources" Version="3.0.3-servicing.20072.2">
+    <Dependency Name="Microsoft.Extensions.HashCodeCombiner.Sources" Version="3.0.3-servicing.20113.6">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>3ba81a83537d2a08144e66f6266bab9f8846d762</Sha>
+      <Sha>2afdb24b9897814fbd7d04c6797aabbdd076d9a2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.NonCapturingTimer.Sources" Version="3.0.3-servicing.20072.2">
+    <Dependency Name="Microsoft.Extensions.NonCapturingTimer.Sources" Version="3.0.3-servicing.20113.6">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>3ba81a83537d2a08144e66f6266bab9f8846d762</Sha>
+      <Sha>2afdb24b9897814fbd7d04c6797aabbdd076d9a2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.0.3-servicing.20072.2">
+    <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.0.3-servicing.20113.6">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>3ba81a83537d2a08144e66f6266bab9f8846d762</Sha>
+      <Sha>2afdb24b9897814fbd7d04c6797aabbdd076d9a2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Testing" Version="3.0.3-servicing.20072.2">
+    <Dependency Name="Microsoft.AspNetCore.Testing" Version="3.0.3-servicing.20113.6">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>3ba81a83537d2a08144e66f6266bab9f8846d762</Sha>
+      <Sha>2afdb24b9897814fbd7d04c6797aabbdd076d9a2</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Extensions.Logging" Version="3.0.3">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>3ba81a83537d2a08144e66f6266bab9f8846d762</Sha>
+      <Sha>2afdb24b9897814fbd7d04c6797aabbdd076d9a2</Sha>
     </Dependency>
     <!--
       Win-x64 is used here because we have picked an arbitrary runtime identifier to flow the version of the latest NETCore.App runtime.
