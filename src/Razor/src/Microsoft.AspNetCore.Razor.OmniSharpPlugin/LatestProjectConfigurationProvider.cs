@@ -216,7 +216,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         }
 
         /// <summary>
-        /// TargetPath is defined as using '\\' but some Tasks used to set that parameter don't respect that, so we normalize.
+        /// TargetPath is defined as using '\' but some Tasks used to set that parameter don't respect that, so we normalize.
         /// </summary>
         /// <param name="targetPath">The TargetPath to be normalized.</param>
         /// <returns>A normalized TargetPath</returns>
