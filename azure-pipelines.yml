@@ -223,7 +223,10 @@ stages:
           name: Build
           displayName: Build
           condition: succeeded()
-        - powershell: yarn test
+        - powershell: |
+            . ../../../../activate.ps1
+            yarn test
+            deactivate
           workingDirectory: $(Build.SourcesDirectory)/src/Razor/test/VSCode.FunctionalTest
           displayName: Run VSCode integration tests
           condition: succeeded()
