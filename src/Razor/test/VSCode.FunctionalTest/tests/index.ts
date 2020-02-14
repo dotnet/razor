@@ -5,10 +5,36 @@
 
 import * as glob from 'glob';
 import * as Mocha from 'mocha';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
 // This file controls which tests are run during the functional test process.
+
+function getInstalledExtensions() {
+    const extensions: Array<vscode.Extension<any>> = vscode.extensions.all
+        .filter(extension => extension.packageJSON.isBuiltin === false);
+
+    return extensions.sort((a, b) =>
+        a.packageJSON.name.toLowerCase().localeCompare(b.packageJSON.name.toLowerCase()));
+}
+
+function generateExtensionTable() {
+    const extensions = getInstalledExtensions();
+    if (extensions.length <= 0) {
+        return 'none';
+    }
+
+    const tableHeader = `|Extension|Author|Version|${os.EOL}|---|---|---|`;
+    const table = extensions.map(
+        (e) => `|${e.packageJSON.name}|${e.packageJSON.publisher}|${e.packageJSON.version}|`).join(os.EOL);
+
+    const extensionTable = `
+${tableHeader}${os.EOL}${table};
+`;
+
+    return extensionTable;
+}
 
 export async function run(): Promise<void> {
     const mocha = new Mocha({
@@ -21,6 +47,10 @@ export async function run(): Promise<void> {
 
     const razorConfiguration = vscode.workspace.getConfiguration('razor');
     const devmode = razorConfiguration.get('devmode');
+
+    const extensionTable = generateExtensionTable();
+    console.log('Installed Extensions:');
+    console.log(extensionTable);
 
     if (!devmode) {
         console.log('Dev mode detected as disabled, configuring Razor Dev Mode');
