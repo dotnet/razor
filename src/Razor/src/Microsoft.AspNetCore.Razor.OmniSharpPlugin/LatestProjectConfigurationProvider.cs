@@ -220,8 +220,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         /// </summary>
         /// <param name="targetPath">The TargetPath to be normalized.</param>
         /// <returns>A normalized TargetPath</returns>
-        private static string NormalizeTargetPath(string targetPath)
+        internal static string NormalizeTargetPath(string targetPath)
         {
+            if (targetPath is null)
+            {
+                throw new ArgumentNullException(nameof(targetPath));
+            }
+
             var normalizedTargetPath = targetPath.Replace('/', '\\');
             normalizedTargetPath = normalizedTargetPath.TrimStart('\\');
             return normalizedTargetPath;

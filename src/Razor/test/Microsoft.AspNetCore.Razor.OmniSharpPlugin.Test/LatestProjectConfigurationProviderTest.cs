@@ -580,5 +580,28 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 extension => Assert.Equal(expectedExtension2Name, extension.ExtensionName));
             Assert.Equal(expectedRootNamespace, configuration.RootNamespace);
         }
+
+        [Theory]
+        [InlineData("//Views//_Import.cshtml", "Views\\\\_Import.cshtml")]
+        [InlineData("/Views/_Import.cshtml", "Views\\_Import.cshtml")]
+        [InlineData("Views/_Import.cshtml", "Views\\_Import.cshtml")]
+        [InlineData("\\Views\\_Import.cshtml", "Views\\_Import.cshtml")]
+        [InlineData("Views\\_Import.cshtml", "Views\\_Import.cshtml")]
+        [InlineData("_Import.cshtml", "_Import.cshtml")]
+        public void NormalizeTargetPath_BehavesAccordingToTargetPathSpec(string originalTargetPath, string expectedTargetPath)
+        {
+            // Arrange & Act
+            var normalizedPath = LatestProjectConfigurationProvider.NormalizeTargetPath(originalTargetPath);
+
+            // Assert
+            Assert.Equal(expectedTargetPath, normalizedPath);
+        }
+
+        [Fact]
+        public void NormalizeTargetPath_HandlesNull()
+        {
+            // Arrange, Act & Assert
+            Assert.Throws<ArgumentNullException>(() => LatestProjectConfigurationProvider.NormalizeTargetPath(null));
+        }
     }
 }

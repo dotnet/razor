@@ -10,9 +10,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     public sealed class OmniSharpDocumentSnapshot
     {
         private readonly DocumentSnapshot _documentSnapshot;
+        private readonly object _projectLock;
         private OmniSharpHostDocument _hostDocument;
         private OmniSharpProjectSnapshot _project;
-        private readonly object _projectLock;
 
         internal OmniSharpDocumentSnapshot(DocumentSnapshot documentSnapshot)
         {
