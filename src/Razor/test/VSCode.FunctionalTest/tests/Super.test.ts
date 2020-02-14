@@ -254,7 +254,6 @@ suite('SUPER', () => {
     // ------------- Completions Tests
 
     test('Can complete Razor directive in .razor', async () => {
-        const filePath = path.join(homeDirectory, 'Index.cshtml');
         const razorFilePath = path.join(mvcWithComponentsRoot, 'Views', 'Shared', 'NavMenu.razor');
         const razorDoc = await vscode.workspace.openTextDocument(razorFilePath);
         const razorEditor = await vscode.window.showTextDocument(razorDoc);
