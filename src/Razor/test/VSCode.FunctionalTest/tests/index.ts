@@ -66,7 +66,7 @@ export async function run(): Promise<void> {
     }
 
     if (!testFilter) {
-        testFilter = 'Rename.test.js';
+        testFilter = 'Super.test.js';
     } else if (!testFilter.endsWith('.test.js')) {
         testFilter += '**.test.js';
     }
