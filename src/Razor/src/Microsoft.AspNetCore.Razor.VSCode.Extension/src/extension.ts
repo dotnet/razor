@@ -15,6 +15,16 @@ export const extensionActivated = new Promise(resolve => {
 });
 
 export async function activate(context: vscode.ExtensionContext) {
+    // const defaultLog = (message) => {
+    //     console.log(message);
+    // };
+
+    // vscode.commands.registerCommand('razor.replaceLog', (logReplacement) => {
+
+    // })
+
+    console.log('Razor Extension: Activating Razor dev mode extension');
+
     // Because this extension is only used for local development and tests in CI,
     // we know the Razor Language Server is at a specific path within this repo
     const languageServerDir = path.join(
@@ -24,6 +34,8 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage(`The Razor Language Server project has not yet been built - could not find ${languageServerDir}`);
         return;
     }
+
+    console.log('Razor Extension: Registering commands');
 
     const hostEventStream = {
         post: (event: any) => {
@@ -43,13 +55,18 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('extension.razorActivated', () => extensionActivated);
 
     await registerRazorDevModeHelpers(context);
+
+    console.log('Razor Extension: Dev Mode helpers registered');
+
     const workspaceConfigured = ensureWorkspaceIsConfigured();
 
     if (workspaceConfigured) {
+        console.log('Razor Extension: Calling activate start');
         await razorExtensionPackage.activate(
             context,
             languageServerDir,
             hostEventStream);
+        console.log('Razor Extension: Activate called');
     } else if (isAutomated(context)) {
         await vscode.commands.executeCommand('extension.configureRazorDevMode');
     } else {
