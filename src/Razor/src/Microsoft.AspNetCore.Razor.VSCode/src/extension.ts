@@ -34,15 +34,43 @@ import { RazorLogger } from './RazorLogger';
 import { RazorReferenceProvider } from './RazorReferenceProvider';
 import { RazorRenameProvider } from './RazorRenameProvider';
 import { RazorSignatureHelpProvider } from './RazorSignatureHelpProvider';
+import { RazorDocumentSemanticTokensProvider } from './Semantic/RazorDocumentSemanticTokensProvider';
 import { TelemetryReporter } from './TelemetryReporter';
 
+class SemanticTokensLegend {
+    public readonly tokenTypes: string[];
+    public readonly tokenModifiers: string[];
+
+    constructor(tokenTypes: string[], tokenModifiers: string[]) {
+        this.tokenTypes = tokenTypes;
+        this.tokenModifiers = tokenModifiers;
+    }
+}
+
 export async function activate(context: ExtensionContext, languageServerDir: string, eventStream: HostEventStream) {
+    const provider = new RazorDocumentSemanticTokensProvider();
+
+    const tokenTypes = [
+        'comment', 'string', 'keyword', 'number', 'regexp', 'operator', 'namespace',
+        'type', 'struct', 'class', 'interface', 'enum', 'typeParameter', 'function',
+        'member', 'macro', 'variable', 'parameter', 'property', 'label',
+    ];
+    const tokenModifiersLegend = [
+        'declaration', 'documentation', 'readonly', 'static', 'abstract', 'deprecated',
+        'modification', 'async',
+    ];
+    const legend = new SemanticTokensLegend(tokenTypes, tokenModifiersLegend);
+
+    context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({language: 'aspnetcorerazor'}, provider, legend));
+
     const telemetryReporter = new TelemetryReporter(eventStream);
     const eventEmitterFactory: IEventEmitterFactory = {
         create: <T>() => new vscode.EventEmitter<T>(),
     };
+
     const languageServerTrace = resolveRazorLanguageServerTrace(vscode);
     const logger = new RazorLogger(vscode, eventEmitterFactory, languageServerTrace);
+
     try {
         const languageServerOptions = resolveRazorLanguageServerOptions(vscode, languageServerDir, languageServerTrace, logger);
         const languageServerClient = new RazorLanguageServerClient(languageServerOptions, telemetryReporter, logger);
