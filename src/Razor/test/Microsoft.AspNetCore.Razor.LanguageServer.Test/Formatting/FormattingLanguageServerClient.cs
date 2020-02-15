@@ -36,7 +36,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public void AddCodeDocument(RazorCodeDocument codeDocument)
         {
             var path = _filePathNormalizer.Normalize(codeDocument.Source.FilePath);
-            _documents.TryAdd(path, codeDocument);
+            if(!_documents.ContainsKey(path))
+            {
+                _documents.Add(path, codeDocument);
+            }
         }
 
         async Task<TResponse> IResponseRouter.SendRequest<T, TResponse>(string method, T @params)

@@ -4,16 +4,21 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Editor.Razor;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class DefaultRazorSemanticTokenInfoService : RazorSemanticTokenInfoService
     {
-        public DefaultRazorSemanticTokenInfoService()
+        private readonly TagHelperFactsService _tagHelperFactsService;
+        public DefaultRazorSemanticTokenInfoService(TagHelperFactsService tagHelperFactsService)
         {
+            _tagHelperFactsService = tagHelperFactsService;
         }
 
         public override SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, SourceLocation? location = null)
@@ -22,28 +27,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 throw new ArgumentNullException(nameof(codeDocument));
             }
-            var syntaxTree = codeDocument.GetSyntaxTree();
 
-            var syntaxNodes = VisitAllNodes(syntaxTree);
+            var syntaxNodes = VisitAllNodes(codeDocument, _tagHelperFactsService);
 
             var semanticTokens = ConvertSyntaxTokensToSemanticTokens(syntaxNodes, codeDocument);
 
             return semanticTokens;
         }
 
-        private static IEnumerable<SyntaxNode> VisitAllNodes(RazorSyntaxTree syntaxTree)
+        private static IEnumerable<(SyntaxNode, SyntaxKind)> VisitAllNodes(RazorCodeDocument razorCodeDocument, TagHelperFactsService tagHelperFactsService)
         {
             var visitor = new TagHelperSpanVisitor();
-            visitor.Visit(syntaxTree.Root);
+            visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 
             return visitor.TagHelperNodes;
         }
 
         private static SemanticTokens ConvertSyntaxTokensToSemanticTokens(
-            IEnumerable<SyntaxNode> syntaxTokens,
+            IEnumerable<(SyntaxNode, SyntaxKind)> syntaxTokens,
             RazorCodeDocument razorCodeDocument)
         {
-            SyntaxNode previousToken = null;
+            (SyntaxNode, SyntaxKind)? previousToken = null;
 
             var data = new List<uint>();
             foreach (var token in syntaxTokens)
@@ -69,12 +73,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
          *  - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
         **/
         private static IEnumerable<uint> GetData(
-            SyntaxNode currentNode,
-            SyntaxNode previousNode,
+            (SyntaxNode, SyntaxKind) currentNode,
+            (SyntaxNode, SyntaxKind)? previousNode,
             RazorCodeDocument razorCodeDocument)
         {
-            var previousRange = previousNode?.GetRange(razorCodeDocument.Source);
-            var currentRange = currentNode.GetRange(razorCodeDocument.Source);
+            var previousRange = previousNode?.Item1.GetRange(razorCodeDocument.Source);
+            var currentRange = currentNode.Item1.GetRange(razorCodeDocument.Source);
 
             // deltaLine
             var previousLineIndex = previousNode == null ? 0 : previousRange.Start.Line;
@@ -91,54 +95,65 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             // length
-            Debug.Assert(currentNode.Span.Length > 0);
-            yield return (uint)currentNode.Span.Length;
+            Debug.Assert(currentNode.Item1.Span.Length > 0);
+            yield return (uint)currentNode.Item1.Span.Length;
 
             // tokenType
-            yield return GetTokenTypeData(currentNode);
+            yield return GetTokenTypeData(currentNode.Item2);
 
             // tokenModifiers
             // We don't currently have any need for tokenModifiers
             yield return 0;
         }
 
-        private static uint GetTokenTypeData(SyntaxNode syntaxToken)
+        private static uint GetTokenTypeData(SyntaxKind kind)
         {
-            switch (syntaxToken.Parent.Kind)
+            switch (kind)
             {
+                case SyntaxKind.MarkupTagHelperDirectiveAttribute:
+                case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
+                    return SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorDirectiveAttribute];
                 case SyntaxKind.MarkupTagHelperStartTag:
                 case SyntaxKind.MarkupTagHelperEndTag:
-                    return (uint)SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorTagHelperElement];
+                    return SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorTagHelperElement];
                 case SyntaxKind.MarkupTagHelperAttribute:
-                case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                case SyntaxKind.MarkupTagHelperDirectiveAttribute:
                 case SyntaxKind.MarkupMinimizedTagHelperAttribute:
-                    return (uint)SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorTagHelperAttribute];
+                    return SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorTagHelperAttribute];
+                case SyntaxKind.Transition:
+                    return SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorTransition];
+                case SyntaxKind.Colon:
+                    return SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorDirectiveColon];
                 default:
                     throw new NotImplementedException();
             }
         }
 
-        private class TagHelperSpanVisitor : SyntaxWalker
+        private class TagHelperSpanVisitor : Language.Syntax.SyntaxWalker
         {
-            private readonly List<SyntaxNode> _syntaxNodes;
+            private readonly List<(SyntaxNode, SyntaxKind)> _syntaxNodes;
 
             public TagHelperSpanVisitor()
             {
-                _syntaxNodes = new List<SyntaxNode>();
+                _syntaxNodes = new List<(SyntaxNode, SyntaxKind)>();
             }
 
-            public IReadOnlyList<SyntaxNode> TagHelperNodes => _syntaxNodes;
+            public IReadOnlyList<(SyntaxNode, SyntaxKind)> TagHelperNodes => _syntaxNodes;
 
             public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
             {
-                _syntaxNodes.Add(node.Name);
+                if (IsTagHelper((MarkupTagHelperElementSyntax)node.Parent))
+                {
+                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupTagHelperStartTag));
+                }
                 base.VisitMarkupTagHelperStartTag(node);
             }
 
             public override void VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
             {
-                _syntaxNodes.Add(node.Name);
+                if (IsTagHelper((MarkupTagHelperElementSyntax)node.Parent))
+                {
+                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupTagHelperEndTag));
+                }
                 base.VisitMarkupTagHelperEndTag(node);
             }
 
@@ -146,7 +161,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 if (node.TagHelperAttributeInfo.Bound)
                 {
-                    _syntaxNodes.Add(node.Name);
+                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupMinimizedTagHelperAttribute));
                 }
 
                 base.VisitMarkupMinimizedTagHelperAttribute(node);
@@ -156,10 +171,62 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 if (node.TagHelperAttributeInfo.Bound)
                 {
-                    _syntaxNodes.Add(node.Name);
+                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupTagHelperAttribute));
                 }
 
                 base.VisitMarkupTagHelperAttribute(node);
+            }
+
+            public override void VisitMarkupTagHelperDirectiveAttribute(MarkupTagHelperDirectiveAttributeSyntax node)
+            {
+                if (node.TagHelperAttributeInfo.Bound)
+                {
+                    _syntaxNodes.Add((node.Transition, SyntaxKind.Transition));
+                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupTagHelperDirectiveAttribute));
+
+                    if (node.Colon != null && node.ParameterName != null)
+                    {
+                        _syntaxNodes.Add((node.Colon, SyntaxKind.Colon));
+                        _syntaxNodes.Add((node.ParameterName, SyntaxKind.MarkupTagHelperDirectiveAttribute));
+                    }
+                }
+
+                base.VisitMarkupTagHelperDirectiveAttribute(node);
+            }
+
+            public override void VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
+            {
+                if (node.TagHelperAttributeInfo.Bound)
+                {
+                    _syntaxNodes.Add((node.Transition, SyntaxKind.Transition));
+                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute));
+
+                    if (node.Colon != null && node.ParameterName != null)
+                    {
+                        _syntaxNodes.Add((node.Colon, SyntaxKind.Colon));
+                        _syntaxNodes.Add((node.ParameterName, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute));
+                    }
+                }
+
+                base.VisitMarkupMinimizedTagHelperDirectiveAttribute(node);
+            }
+
+            private bool IsTagHelper(MarkupTagHelperElementSyntax node)
+            {
+                var name = node.StartTag.Name.Content;
+                if (IsHtmlTagName(name))
+                {
+                    var binding = node.TagHelperInfo.BindingResult;
+                    var isCaseSensitive = binding.Descriptors.All(thd => thd.CaseSensitive);
+                    return isCaseSensitive && name.Any(c => char.IsUpper(c));
+                }
+
+                return true;
+            }
+
+            private bool IsHtmlTagName(string name)
+            {
+                return HtmlFactsService.HtmlSchemaTagNames.Contains(name);
             }
         }
     }
