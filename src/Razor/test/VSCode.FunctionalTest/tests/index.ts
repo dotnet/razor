@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
+import * as fs from 'fs';
 import * as glob from 'glob';
 import * as Mocha from 'mocha';
 import * as os from 'os';
@@ -76,6 +77,12 @@ export async function run(): Promise<void> {
             if (err) {
                 return e(err);
             }
+            const testResults = path.join(testsRoot, '..', '..', '..', '..', 'artifacts', 'TestResults');
+            const resolvedTestResults = path.resolve(testResults);
+            ensureDirectory(resolvedTestResults);
+            const file = path.join(resolvedTestResults, 'VSCode-FunctionalTests.xml');
+
+            mocha.reporter('xunit', {output: file});
 
             // Add files to the test suite
             files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
@@ -94,4 +101,10 @@ export async function run(): Promise<void> {
             }
         });
     });
+}
+
+function ensureDirectory(directory: string) {
+    if (!fs.existsSync(directory)) {
+        fs.mkdirSync(directory);
+    }
 }
