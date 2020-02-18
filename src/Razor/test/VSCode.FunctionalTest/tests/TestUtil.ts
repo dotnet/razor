@@ -21,6 +21,13 @@ export const simpleMvc21Root = path.join(testAppsRoot, 'SimpleMvc21');
 export const simpleMvc22Root = path.join(testAppsRoot, 'SimpleMvc22');
 const projectConfigFile = 'project.razor.json';
 
+export async function getEditorForFile(filePath: string) {
+    const doc = await vscode.workspace.openTextDocument(filePath);
+    const editor = await vscode.window.showTextDocument(doc);
+
+    return {doc, editor};
+}
+
 export async function pollUntil(fn: () => (boolean | Promise<boolean>), timeoutMs: number, pollInterval?: number, suppressError?: boolean, errorMessage?: string) {
     const resolvedPollInterval = pollInterval ? pollInterval : 50;
 
@@ -114,49 +121,62 @@ export async function waitForDocumentUpdate(
     return updatedDocument;
 }
 
-export async function dotnetRestore(cwd: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        const dotnet = cp.spawn('dotnet', ['restore'], { cwd, env: process.env });
+export async function dotnetRestore(directories: string[]): Promise<void> {
+    const promiseList = new Array<Promise<void>>();
 
-        dotnet.stdout.on('data', (data: any) => {
-            console.log(data.toString());
-        });
+    for (const cwd of directories) {
+        const promise = new Promise<void>((resolve, reject) => {
+            const dotnet = cp.spawn('dotnet', ['restore'], { cwd, env: process.env });
 
-        dotnet.stderr.on('err', (error: any) => {
-            console.log(`Error: ${error}`);
-        });
+            dotnet.stdout.on('data', (data: any) => {
+                console.log(data.toString());
+            });
 
-        dotnet.on('close', (exitCode) => {
-            console.log(`Done: ${exitCode}.`);
-            resolve();
-        });
+            dotnet.stderr.on('err', (error: any) => {
+                console.log(`Error: ${error}`);
+            });
 
-        dotnet.on('error', error => {
-            console.log(`Error: ${error}`);
-            reject(error);
+            dotnet.on('close', (exitCode) => {
+                console.log(`Done: ${exitCode}.`);
+                resolve();
+            });
+
+            dotnet.on('error', error => {
+                console.log(`Error: ${error}`);
+                reject(error);
+            });
         });
-    });
+        promiseList.push(promise);
+    }
+
+    for (const promise of promiseList) {
+        await promise;
+    }
 }
 
 export async function waitForProjectReady(directory: string) {
+    await waitForProjectsReady([directory]);
+}
+
+export async function waitForProjectsReady(directories: string[]) {
     const sw = new Stopwatch();
     sw.start();
     console.log(`starting removeOldProjectRazorJsons ${sw.getTime()}ms`);
     await removeOldProjectRazorJsons();
     console.log(`ending removeOldProjectRazorJsons ${sw.getTime()}ms`);
-    await cleanBinAndObj(directory);
+    await cleanBinAndObj(directories);
     console.log(`ending cleanBinAndObj ${sw.getTime()}ms`);
     await csharpExtensionReady();
     console.log(`ending csharpExtensionReady ${sw.getTime()}ms`);
     await htmlLanguageFeaturesExtensionReady();
     console.log(`ending htmlLanguageFeaturesExtensionReady ${sw.getTime()}ms`);
-    await dotnetRestore(directory);
+    await dotnetRestore(directories);
     console.log(`ending dotnetRestore ${sw.getTime()}ms`);
     await restartOmniSharp();
     console.log(`ending restartOmniSharp ${sw.getTime()}ms`);
     await razorExtensionReady();
     console.log(`ending razorExtensionReady ${sw.getTime()}ms`);
-    await waitForProjectConfigured(directory);
+    await waitForObjDirectories(directories);
     console.log(`ending waitForProjectConfigured ${sw.getTime()}ms`);
     await waitForProjectsConfigured();
     console.log(`ending waitForProjectsConfigured ${sw.getTime()}ms`);
@@ -173,6 +193,23 @@ export async function waitForProjectsConfigured() {
     }, /* timeout */10000, /* pollInterval */ 500, /*suppressError */ false, `Expected to have ${expectedProjects} ${projectConfigFile}'s`);
 }
 
+export async function waitForObjDirectories(directories: string[]) {
+    for (const directory of directories) {
+        if (!fs.existsSync(directory)) {
+            throw new Error(`Project does not exist: ${directory}`);
+        }
+
+        const objDirectory = path.join(directory, 'obj');
+        await pollUntil(() => {
+            if (findInDir(objDirectory, projectConfigFile)) {
+                return true;
+            }
+
+            return false;
+        }, /* timeout */ 240000, /* pollInterval */ 250);
+    }
+}
+
 async function removeOldProjectRazorJsons() {
     const folders = fs.readdirSync(testAppsRoot);
     for (const folder of folders) {
@@ -182,21 +219,6 @@ async function removeOldProjectRazorJsons() {
             fs.unlinkSync(projFile);
         }
     }
-}
-
-export async function waitForProjectConfigured(directory: string) {
-    if (!fs.existsSync(directory)) {
-        throw new Error(`Project does not exist: ${directory}`);
-    }
-
-    const objDirectory = path.join(directory, 'obj');
-    await pollUntil(() => {
-        if (findInDir(objDirectory, projectConfigFile)) {
-            return true;
-        }
-
-        return false;
-    }, /* timeout */ 240000, /* pollInterval */ 250);
 }
 
 export async function restartOmniSharp() {
@@ -209,43 +231,51 @@ export async function restartOmniSharp() {
     }
 }
 
-export async function cleanBinAndObj(directory: string): Promise<void> {
-    const binDirectory = path.join(directory, 'bin');
-    const cleanBinPromise = new Promise<void>((resolve, reject) => {
-        if (!fs.existsSync(binDirectory)) {
-            // Already clean;
-            resolve();
-            return;
-        }
+export async function cleanBinAndObj(directories: string[]): Promise<void> {
+    const promiseList = Array<Promise<void>>();
 
-        rimraf(binDirectory, (error) => {
-            if (error) {
-                reject(error);
-            } else {
+    for (const directory of directories) {
+        const binDirectory = path.join(directory, 'bin');
+        const cleanBinPromise = new Promise<void>((resolve, reject) => {
+            if (!fs.existsSync(binDirectory)) {
+                // Already clean;
                 resolve();
+                return;
             }
+
+            rimraf(binDirectory, (error) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
         });
-    });
 
-    const objDirectory = path.join(directory, 'obj');
-    const cleanObjPromise = new Promise<void>((resolve, reject) => {
-        if (!fs.existsSync(objDirectory)) {
-            // Already clean;
-            resolve();
-            return;
-        }
-
-        rimraf(objDirectory, (error) => {
-            if (error) {
-                reject(error);
-            } else {
+        const objDirectory = path.join(directory, 'obj');
+        const cleanObjPromise = new Promise<void>((resolve, reject) => {
+            if (!fs.existsSync(objDirectory)) {
+                // Already clean;
                 resolve();
+                return;
             }
-        });
-    });
 
-    await cleanBinPromise;
-    await cleanObjPromise;
+            rimraf(objDirectory, (error) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
+
+        promiseList.push(cleanBinPromise);
+        promiseList.push(cleanObjPromise);
+    }
+
+    for (const promise of promiseList) {
+        await promise;
+    }
 }
 
 export async function extensionActivated<T>(identifier: string) {
