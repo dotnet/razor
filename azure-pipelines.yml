@@ -223,14 +223,13 @@ stages:
           name: Build
           displayName: Build
           condition: succeeded()
-        - ${{ if eq(variables['_BuildConfig'], 'Debug') }}:
-          - powershell: |
-              . ../../../../activate.ps1
-              yarn test
-              deactivate
-            workingDirectory: $(Build.SourcesDirectory)/src/Razor/test/VSCode.FunctionalTest
-            displayName: Run VSCode integration tests
-            condition: succeeded()
+        - powershell: |
+            . ../../../../activate.ps1
+            yarn test
+            deactivate
+          workingDirectory: $(Build.SourcesDirectory)/src/Razor/test/VSCode.FunctionalTest
+          displayName: Run VSCode integration tests
+          condition: succeeded()
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
           continueOnError: true
