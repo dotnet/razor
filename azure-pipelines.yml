@@ -223,7 +223,7 @@ stages:
           name: Build
           displayName: Build
           condition: succeeded()
-        - ${{ if eq(variables['_BuildConfig'], 'Debug') }}:
+        - ${{ if eq($('_BuildConfig'), 'Debug') }}:
           - powershell: |
               . ../../../../activate.ps1
               yarn test
