@@ -43,22 +43,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     {
                         new ConfigurationItem()
                         {
+                            Section = "editor"
+                        },
+                        new ConfigurationItem()
+                        {
                             Section = "razor"
                         },
                     }
                 };
 
                 var result = await _server.Client.SendRequest<ConfigurationParams, object[]>("workspace/configuration", request);
-                if (result == null || result.Length < 1 || result[0] == null)
+                if (result == null || result.Length < 2 || result[0] == null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");
                     return null;
                 }
 
-                var jsonString = result[0].ToString();
                 var builder = new ConfigurationBuilder();
-                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
-                builder.AddJsonStream(stream);
+
+                var editorJsonString = result[0].ToString();
+                using var editorStream = new MemoryStream(Encoding.UTF8.GetBytes(editorJsonString));
+                builder.AddJsonStream(editorStream);
+
+                var razorJsonString = result[1].ToString();
+                using var razorStream = new MemoryStream(Encoding.UTF8.GetBytes(razorJsonString));
+                builder.AddJsonStream(razorStream);
+
                 var config = builder.Build();
 
                 var instance = BuildOptions(config);
@@ -83,7 +93,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 enableFormatting = parsedEnableFormatting;
             }
 
-            return new RazorLSPOptions(trace, enableFormatting);
+            var tabSize = instance.TabSize;
+            if (int.TryParse(config["tabSize"], out var parsedTabSize))
+            {
+                tabSize = parsedTabSize;
+            }
+
+            var insertSpaces = instance.InsertSpaces;
+            if (bool.TryParse(config["insertSpaces"], out var parsedInsertSpaces))
+            {
+                insertSpaces = parsedInsertSpaces;
+            }
+
+            return new RazorLSPOptions(trace, enableFormatting, tabSize, insertSpaces);
         }
     }
 }

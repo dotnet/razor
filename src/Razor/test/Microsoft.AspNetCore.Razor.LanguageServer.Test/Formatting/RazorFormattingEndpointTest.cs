@@ -111,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting)
         {
             var monitor = new Mock<IOptionsMonitor<RazorLSPOptions>>();
-            monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting));
+            monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting, tabSize: 4, insertSpaces: true));
             return monitor.Object;
         }
 

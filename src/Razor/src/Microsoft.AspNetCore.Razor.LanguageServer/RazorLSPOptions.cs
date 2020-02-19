@@ -10,19 +10,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorLSPOptions : IEquatable<RazorLSPOptions>
     {
-        public RazorLSPOptions(Trace trace, bool enableFormatting)
+        public RazorLSPOptions(Trace trace, bool enableFormatting, int tabSize, bool insertSpaces)
         {
             Trace = trace;
             EnableFormatting = enableFormatting;
+            TabSize = tabSize;
+            InsertSpaces = insertSpaces;
         }
 
-        public static RazorLSPOptions Default => new RazorLSPOptions(trace: default, enableFormatting: true);
+        public static RazorLSPOptions Default => new RazorLSPOptions(trace: default, enableFormatting: true, tabSize: 4, insertSpaces: true);
 
         public Trace Trace { get; }
 
         public LogLevel MinLogLevel => GetLogLevelForTrace(Trace);
 
         public bool EnableFormatting { get; }
+
+        public int TabSize { get; }
+
+        public bool InsertSpaces { get; }
 
         public static LogLevel GetLogLevelForTrace(Trace trace)
         {
