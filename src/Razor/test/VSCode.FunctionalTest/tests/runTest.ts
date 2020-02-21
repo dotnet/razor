@@ -29,7 +29,7 @@ async function main() {
         console.log(`EXPERIMENTAL - Test App Folder: ${testAppFolder}`);
         console.log(`EXPERIMENTAL - Existence check for Test App Folder: ${fs.existsSync(testAppFolder)}`);
 
-        const vscodeExecutablePath = await downloadAndUnzipVSCode('stable');
+        const vscodeExecutablePath = await downloadAndUnzipVSCode('insiders');
         const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
         console.log(`EXPERIMENTAL - CLI Path ${cliPath}`);
 

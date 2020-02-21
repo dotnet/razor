@@ -77,7 +77,9 @@ export async function run(): Promise<void> {
             if (err) {
                 return e(err);
             }
-            const testResults = path.join(testsRoot, '..', '..', '..', '..', 'artifacts', 'TestResults');
+            const testArtifacts = path.join(testsRoot, '..', '..', '..', '..', 'artifacts', 'TestResults');
+            ensureDirectory(testArtifacts);
+            const testResults = path.join(testArtifacts, 'Debug');
             const resolvedTestResults = path.resolve(testResults);
             ensureDirectory(resolvedTestResults);
             const file = path.join(resolvedTestResults, 'VSCode-FunctionalTests.xml');
