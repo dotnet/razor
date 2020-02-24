@@ -27,8 +27,7 @@
         "C:\\Users\\rybrande\\projects\\temp\\CleanComponents",
         "--extensionDevelopmentPath=${workspaceFolder}/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.Extension",
         "--enable-proposed-api razor-vscode",
-        "--enable-proposed-api ms-vscode.csharp",
-        "--enable-proposed-api nullExtensionDescription"
+        "--enable-proposed-api ms-vscode.csharp"
       ],
       "outFiles": [
         "${workspaceFolder}/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.Extension/dist/**/*.js",

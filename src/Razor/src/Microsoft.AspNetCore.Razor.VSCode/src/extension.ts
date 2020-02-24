@@ -59,9 +59,10 @@ export async function activate(context: ExtensionContext, languageServerDir: str
         'declaration', 'documentation', 'readonly', 'static', 'abstract', 'deprecated',
         'modification', 'async',
     ];
+
     const legend = new SemanticTokensLegend(tokenTypes, tokenModifiersLegend);
 
-    context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({language: 'aspnetcorerazor'}, provider, legend));
+    context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider(RazorLanguage.id, provider, legend));
 
     const telemetryReporter = new TelemetryReporter(eventStream);
     const eventEmitterFactory: IEventEmitterFactory = {
