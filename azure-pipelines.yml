@@ -239,7 +239,7 @@ stages:
             deactivate
           workingDirectory: $(Build.SourcesDirectory)/src/Razor/test/VSCode.FunctionalTest
           displayName: Run VSCode Tests
-          condition: succeeded()
+          condition: and(succeeded(), ne(variables['_BuildConfig'], 'Release')) # Temporary: Don't run on Release
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
           continueOnError: true
