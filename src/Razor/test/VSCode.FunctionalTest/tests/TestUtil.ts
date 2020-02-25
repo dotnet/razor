@@ -6,7 +6,6 @@
 import * as assert from 'assert';
 import * as cp from 'child_process';
 import * as fs from 'fs';
-import * as glob from 'glob';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
 import * as vscode from 'vscode';
