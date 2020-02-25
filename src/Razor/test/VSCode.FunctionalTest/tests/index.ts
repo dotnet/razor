@@ -10,23 +10,6 @@ import * as vscode from 'vscode';
 
 // This file controls which tests are run during the functional test process.
 export async function run(): Promise<void> {
-    const mocha = new Mocha({
-        ui: 'tdd',
-        timeout: 60000,
-    });
-    mocha.useColors(true);
-
-    const testsRoot = path.resolve(__dirname, '..');
-    const testArtifacts = path.join(testsRoot, '..', '..', '..', '..', 'artifacts', 'TestResults');
-    ensureDirectory(testArtifacts);
-    const config = process.env.config ? process.env.config : 'Debug';
-    const testResults = path.join(testArtifacts, config);
-    ensureDirectory(testResults);
-    const resolvedTestResults = path.resolve(testResults);
-    ensureDirectory(resolvedTestResults);
-    const file = path.join(resolvedTestResults, 'VSCode-FunctionalTests.xml');
-    mocha.reporter('xunit', { output: file });
-
     const razorConfiguration = vscode.workspace.getConfiguration('razor');
     const devmode = razorConfiguration.get('devmode');
     if (!devmode) {
@@ -51,6 +34,24 @@ export async function run(): Promise<void> {
     }
 
     process.env.testFilter = testFilter;
+
+    // Configure Mocha
+    const mocha = new Mocha({
+        ui: 'tdd',
+        timeout: 60000,
+    });
+    mocha.useColors(true);
+
+    const testsRoot = path.resolve(__dirname, '..');
+    const testArtifacts = path.join(testsRoot, '..', '..', '..', '..', 'artifacts', 'TestResults');
+    ensureDirectory(testArtifacts);
+    const config = process.env.config ? process.env.config : 'Debug';
+    const testResults = path.join(testArtifacts, config);
+    ensureDirectory(testResults);
+    const resolvedTestResults = path.resolve(testResults);
+    ensureDirectory(resolvedTestResults);
+    const file = path.join(resolvedTestResults, 'VSCode-FunctionalTests.xml');
+    mocha.reporter('xunit', { output: file });
 
     return new Promise((c, e) => {
         mocha.addFile(path.resolve(testsRoot, __dirname, 'Main.test.js'));

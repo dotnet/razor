@@ -271,7 +271,7 @@ stages:
             testResultsFiles: '*.xml'
             searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
           continueOnError: true
-          condition: always()
+          condition: ne(variables['_BuildConfig'], 'Release') # Temporary: Don't publish Release test results
         - task: PublishBuildArtifacts@1
           displayName: Publish VSIX Artifacts
           inputs:
