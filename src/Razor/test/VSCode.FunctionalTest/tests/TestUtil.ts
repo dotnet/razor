@@ -191,9 +191,6 @@ export async function waitForProjectsReady(...directories: string[]) {
     console.log('Ensuring Obj directory in test apps');
     await waitForObjDirectories(directories);
 
-    console.log('Ensuring project.razor.json in test apps');
-    await waitForProjectsConfigured();
-
     console.log('Test projects ready');
 }
 
@@ -212,16 +209,6 @@ export async function waitForObjDirectories(directories: string[]) {
             return false;
         }, /* timeout */ 10000, /* pollInterval */ 250, /* suppressError */ true, `Couldn't find obj directory in ${directory}.`);
     }
-}
-
-export async function waitForProjectsConfigured() {
-    const csProjFiles = glob.sync(`**/*.csproj`, { cwd: testAppsRoot });
-    const expectedProjects = csProjFiles.length - 1;
-
-    await pollUntil(() => {
-        const files = glob.sync(`**/${projectConfigFile}`, { cwd: testAppsRoot });
-        return files.length === expectedProjects;
-    }, /* timeout */ 10000, /* pollInterval */ 500, /*suppressError */ true, `Expected to have ${expectedProjects} ${projectConfigFile}'s`);
 }
 
 async function removeOldProjectRazorJsons() {
