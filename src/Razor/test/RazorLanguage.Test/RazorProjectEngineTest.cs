@@ -82,8 +82,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 feature => Assert.IsType<ImplementsDirectivePass>(feature),
                 feature => Assert.IsType<InheritsDirectivePass>(feature),
                 feature => Assert.IsType<MetadataAttributePass>(feature),
-                feature => Assert.IsType<PreallocatedTagHelperAttributeOptimizationPass>(feature),
-                feature => Assert.IsType<RazorHtmlLoweringPass>(feature));
+                feature => Assert.IsType<PreallocatedTagHelperAttributeOptimizationPass>(feature));
         }
 
         private static void AssertDefaultDirectives(RazorProjectEngine engine)
