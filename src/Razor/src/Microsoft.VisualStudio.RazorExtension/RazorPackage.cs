@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.RazorExtension
     [ProvideEditorFactory(typeof(RazorEditorFactory), 101, CommonPhysicalViewAttributes = (int)__VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview)]
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [AboutDialogInfo(PackageGuidString, "ASP.NET Core Razor Language Services", "#110", "#112", IconResourceID = "#400")]
+    [ProvideBindingPath]
     [Guid(PackageGuidString)]
     public sealed class RazorPackage : AsyncPackage
     {
