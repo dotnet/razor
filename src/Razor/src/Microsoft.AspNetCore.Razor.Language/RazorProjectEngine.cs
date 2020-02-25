@@ -164,6 +164,9 @@ namespace Microsoft.AspNetCore.Razor.Language
             features.Add(new DefaultDirectiveSyntaxTreePass());
             features.Add(new HtmlNodeOptimizationPass());
 
+            // This works over the syntax tree but needs to happen after the tag helper binder phase.
+            features.Add(new RazorHtmlLoweringPass());
+
             // Intermediate Node Passes
             features.Add(new DefaultDocumentClassifierPass());
             features.Add(new MetadataAttributePass());
