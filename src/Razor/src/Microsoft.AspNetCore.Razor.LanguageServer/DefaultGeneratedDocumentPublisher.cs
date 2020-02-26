@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -11,15 +12,16 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class DefaultCSharpPublisher : CSharpPublisher
+    internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
     {
         private static readonly SourceText EmptySourceText = SourceText.From(string.Empty);
-        private readonly Dictionary<string, SourceText> _publishedSourceText;
+        private readonly Dictionary<string, SourceText> _publishedCSharpSourceText;
+        private readonly Dictionary<string, SourceText> _publishedHtmlSourceText;
         private readonly Lazy<ILanguageServer> _server;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
-        public DefaultCSharpPublisher(
+        public DefaultGeneratedDocumentPublisher(
             ForegroundDispatcher foregroundDispatcher,
             Lazy<ILanguageServer> server)
         {
@@ -35,7 +37,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             _foregroundDispatcher = foregroundDispatcher;
             _server = server;
-            _publishedSourceText = new Dictionary<string, SourceText>(FilePathComparer.Instance);
+            _publishedCSharpSourceText = new Dictionary<string, SourceText>(FilePathComparer.Instance);
+            _publishedHtmlSourceText = new Dictionary<string, SourceText>(FilePathComparer.Instance);
         }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
@@ -44,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
-        public override void Publish(string filePath, SourceText sourceText, long hostDocumentVersion)
+        public override void PublishCSharp(string filePath, SourceText sourceText, long hostDocumentVersion)
         {
             if (filePath is null)
             {
@@ -58,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             _foregroundDispatcher.AssertForegroundThread();
 
-            if (!_publishedSourceText.TryGetValue(filePath, out var previouslyPublishedText))
+            if (!_publishedCSharpSourceText.TryGetValue(filePath, out var previouslyPublishedText))
             {
                 previouslyPublishedText = EmptySourceText;
             }
@@ -69,16 +72,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 textChanges = sourceText.GetTextChanges(previouslyPublishedText);
             }
 
-            _publishedSourceText[filePath] = sourceText;
+            _publishedCSharpSourceText[filePath] = sourceText;
 
-            var request = new UpdateCSharpBufferRequest()
+            var request = new UpdateBufferRequest()
             {
                 HostDocumentFilePath = filePath,
                 Changes = textChanges,
                 HostDocumentVersion = hostDocumentVersion,
             };
 
-            _server.Value.Client.SendRequest("updateCSharpBuffer", request);
+            _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
+        }
+
+        public override void PublishHtml(string filePath, SourceText sourceText, long hostDocumentVersion)
+        {
+            if (filePath is null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            _foregroundDispatcher.AssertForegroundThread();
+
+            if (!_publishedHtmlSourceText.TryGetValue(filePath, out var previouslyPublishedText))
+            {
+                previouslyPublishedText = EmptySourceText;
+            }
+
+            IReadOnlyList<TextChange> textChanges = Array.Empty<TextChange>();
+            if (!sourceText.ContentEquals(previouslyPublishedText))
+            {
+                textChanges = sourceText.GetTextChanges(previouslyPublishedText);
+            }
+
+            _publishedHtmlSourceText[filePath] = sourceText;
+
+            var request = new UpdateBufferRequest()
+            {
+                HostDocumentFilePath = filePath,
+                Changes = textChanges,
+                HostDocumentVersion = hostDocumentVersion,
+            };
+
+            _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);
         }
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
@@ -89,11 +129,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 case ProjectChangeKind.DocumentChanged:
                 case ProjectChangeKind.DocumentRemoved:
-                    if (_publishedSourceText.ContainsKey(args.DocumentFilePath) &&
+                    if (_publishedCSharpSourceText.ContainsKey(args.DocumentFilePath) &&
                         !_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                     {
                         // Document closed or removed, evict published source text.
-                        var removed = _publishedSourceText.Remove(args.DocumentFilePath);
+                        var removed = _publishedCSharpSourceText.Remove(args.DocumentFilePath);
+
+                        Debug.Assert(removed, "Published source text should be protected by the foreground thread and should never fail to remove.");
+                    }
+                    if (_publishedHtmlSourceText.ContainsKey(args.DocumentFilePath) &&
+                        !_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
+                    {
+                        // Document closed or removed, evict published source text.
+                        var removed = _publishedHtmlSourceText.Remove(args.DocumentFilePath);
 
                         Debug.Assert(removed, "Published source text should be protected by the foreground thread and should never fail to remove.");
                     }
