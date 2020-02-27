@@ -17,7 +17,6 @@ suite('Hover Components', () => {
         const filePath = path.join(componentRoot, 'Components', 'Shared', 'MainLayout.razor');
         cshtmlDoc = await vscode.workspace.openTextDocument(filePath);
         editor = await vscode.window.showTextDocument(cshtmlDoc);
-        await new Promise(r => setTimeout(r, 5000));
     });
 
     test('Can perform hovers on directive attributes', async () => {
@@ -38,7 +37,7 @@ suite('Hover Components', () => {
             return;
         }
 
-        assert.equal(hoverResult.length, 1, 'Something else may be providing hover results');
+        assert.ok(hoverResult.length > 0, 'Should have atleast one result.');
 
         const onClickResult = hoverResult[0];
         const expectedRange = new vscode.Range(
