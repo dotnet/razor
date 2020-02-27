@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Assert
             Assert.False(LegacyDocument.TryGetGeneratedOutput(out _));
             Assert.False(LegacyDocument.TryGetGeneratedCSharpOutputVersionAsync(out _));
+            Assert.False(LegacyDocument.TryGetGeneratedHtmlOutputVersionAsync(out _));
         }
 
         [Fact]
@@ -92,10 +93,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             GC.Collect();
 
             // Act
-            var regeneratedOutputVersion = await LegacyDocument.GetGeneratedCSharpOutputVersionAsync();
+            var regeneratedCSharpOutputVersion = await LegacyDocument.GetGeneratedCSharpOutputVersionAsync();
+            var regeneratedHtmlOutputVersion = await LegacyDocument.GetGeneratedHtmlOutputVersionAsync();
 
             // Assert
-            Assert.Equal(initialOutputVersion, regeneratedOutputVersion);
+            Assert.Equal(initialOutputVersion, regeneratedCSharpOutputVersion);
+            Assert.Equal(initialOutputVersion, regeneratedHtmlOutputVersion);
         }
 
         [Fact]
@@ -110,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Act & Assert
             Assert.True(LegacyDocument.TryGetGeneratedOutput(out _));
             Assert.True(LegacyDocument.TryGetGeneratedCSharpOutputVersionAsync(out _));
+            Assert.True(LegacyDocument.TryGetGeneratedHtmlOutputVersionAsync(out _));
         }
 
         [Fact]
@@ -120,6 +124,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Assert
             Assert.NotNull(LegacyHostDocument.GeneratedDocumentContainer.OutputCSharp);
+            Assert.NotNull(LegacyHostDocument.GeneratedDocumentContainer.OutputHtml);
             Assert.Same(SourceText, LegacyHostDocument.GeneratedDocumentContainer.Source);
         }
 
@@ -190,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Assert
             Assert.NotNull(LegacyHostDocument.GeneratedDocumentContainer.OutputCSharp);
             Assert.Same(newSourceText, LegacyHostDocument.GeneratedDocumentContainer.Source);
+            Assert.Equal("NEW!", LegacyHostDocument.GeneratedDocumentContainer.OutputHtml.GeneratedHtml);
         }
 
         [Fact]
@@ -209,6 +215,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Assert
             Assert.NotNull(LegacyHostDocument.GeneratedDocumentContainer.OutputCSharp);
             Assert.Same(newSourceText, LegacyHostDocument.GeneratedDocumentContainer.Source);
+            Assert.Equal("NEW!", LegacyHostDocument.GeneratedDocumentContainer.OutputHtml.GeneratedHtml);
         }
     }
 }

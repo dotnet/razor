@@ -128,21 +128,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             switch (args.Kind)
             {
                 case ProjectChangeKind.DocumentChanged:
-                case ProjectChangeKind.DocumentRemoved:
-                    if (_publishedCSharpSourceText.ContainsKey(args.DocumentFilePath) &&
-                        !_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
+                    if (!_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                     {
-                        // Document closed or removed, evict published source text.
+                        // Document closed, evict published source text.
+                        if (_publishedCSharpSourceText.ContainsKey(args.DocumentFilePath))
+                        {
+                            var removed = _publishedCSharpSourceText.Remove(args.DocumentFilePath);
+                            Debug.Assert(removed, "Published source text should be protected by the foreground thread and should never fail to remove.");
+                        }
+                        if (_publishedHtmlSourceText.ContainsKey(args.DocumentFilePath))
+                        {
+                            var removed = _publishedHtmlSourceText.Remove(args.DocumentFilePath);
+                            Debug.Assert(removed, "Published source text should be protected by the foreground thread and should never fail to remove.");
+                        }
+                    }
+                    break;
+                case ProjectChangeKind.DocumentRemoved:
+                    // Document removed, evict published source text.
+                    if (_publishedCSharpSourceText.ContainsKey(args.DocumentFilePath))
+                    {
                         var removed = _publishedCSharpSourceText.Remove(args.DocumentFilePath);
-
                         Debug.Assert(removed, "Published source text should be protected by the foreground thread and should never fail to remove.");
                     }
-                    if (_publishedHtmlSourceText.ContainsKey(args.DocumentFilePath) &&
-                        !_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
+                    if (_publishedHtmlSourceText.ContainsKey(args.DocumentFilePath))
                     {
-                        // Document closed or removed, evict published source text.
                         var removed = _publishedHtmlSourceText.Remove(args.DocumentFilePath);
-
                         Debug.Assert(removed, "Published source text should be protected by the foreground thread and should never fail to remove.");
                     }
                     break;

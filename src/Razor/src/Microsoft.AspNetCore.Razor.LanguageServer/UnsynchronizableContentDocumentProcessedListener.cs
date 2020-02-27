@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return;
             }
 
-            if (IdenticalOutputAfterParse(document, latestSynchronizedDocument, syncVersion))
+            if (UnchangedHostDocument(document, latestSynchronizedDocument, syncVersion))
             {
                 // Documents are identical but we didn't synchronize them because they didn't need to be re-evaluated.
                 _generatedDocumentPublisher.PublishCSharp(document.FilePath, documentContainer.CSharpSourceTextContainer.CurrentText, syncVersion);
@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectManager = projectManager;
         }
 
-        private bool IdenticalOutputAfterParse(DocumentSnapshot document, DocumentSnapshot latestSynchronizedDocument, long syncVersion)
+        private bool UnchangedHostDocument(DocumentSnapshot document, DocumentSnapshot latestSynchronizedDocument, long syncVersion)
         {
             return latestSynchronizedDocument.TryGetTextVersion(out var latestSourceVersion) &&
                 document.TryGetTextVersion(out var documentSourceVersion) &&
