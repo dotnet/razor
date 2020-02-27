@@ -6,6 +6,7 @@
     <EnableApiCheck>false</EnableApiCheck>
     <!-- Suppress warnings about depending on non-stable version of Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X -->
     <NoWarn>$(NoWarn);NU5104</NoWarn>
+    <IsShippingPackage>false</IsShippingPackage>
   </PropertyGroup>
 
   <ItemGroup>
