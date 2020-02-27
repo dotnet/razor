@@ -90,8 +90,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 return null;
             }
 
-            var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
-
             var sourceText = await document.GetTextAsync();
             var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);

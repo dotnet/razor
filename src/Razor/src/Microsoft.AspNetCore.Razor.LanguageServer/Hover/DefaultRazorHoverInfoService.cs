@@ -57,6 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }
 
             var syntaxTree = codeDocument.GetSyntaxTree();
+
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: "");
             var owner = syntaxTree.Root.LocateOwner(change);
 
@@ -94,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 {
                     Debug.Assert(binding.Descriptors.Count() > 0);
 
-                    var range = GetRangeFromSyntaxNode(containingTagNameToken, codeDocument);
+                    var range = containingTagNameToken.GetRange(codeDocument);
 
                     var result = ElementInfoToHover(binding.Descriptors, range);
                     return result;
@@ -126,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     var tagHelperAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
 
                     var attribute = attributes.Single(a => a.Span.IntersectsWith(location.AbsoluteIndex));
-                    var range = GetRangeFromSyntaxNode(attribute, codeDocument);
+                    var range = attribute.GetRange(codeDocument);
                     var attributeHoverModel = AttributeInfoToHover(tagHelperAttributes, range);
 
                     return attributeHoverModel;
@@ -134,43 +135,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }
 
             return null;
-        }
-
-        private RangeModel GetRangeFromSyntaxNode(RazorSyntaxNode syntaxNode, RazorCodeDocument codeDocument)
-        {
-            try
-            {
-                int startPosition;
-                int endPosition;
-                if (syntaxNode is MarkupTagHelperAttributeSyntax thAttributeSyntax)
-                {
-                    startPosition = thAttributeSyntax.Name.Position;
-                    endPosition = thAttributeSyntax.Name.EndPosition;
-                }
-                else if (syntaxNode is MarkupMinimizedTagHelperAttributeSyntax thAttrSyntax)
-                {
-                    startPosition = thAttrSyntax.Name.Position;
-                    endPosition = thAttrSyntax.Name.EndPosition;
-                }
-                else
-                {
-                    startPosition = syntaxNode.Position;
-                    endPosition = syntaxNode.EndPosition;
-                }
-                var startLocation = codeDocument.Source.Lines.GetLocation(startPosition);
-                var endLocation = codeDocument.Source.Lines.GetLocation(endPosition);
-
-                return new RangeModel
-                {
-                    Start = new Position(startLocation.LineIndex, startLocation.CharacterIndex),
-                    End = new Position(endLocation.LineIndex, endLocation.CharacterIndex)
-                };
-            }
-            catch (IndexOutOfRangeException)
-            {
-                Debug.Assert(false, "Node position should stay within document length.");
-                return null;
-            }
         }
 
         private HoverModel AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, RangeModel range)

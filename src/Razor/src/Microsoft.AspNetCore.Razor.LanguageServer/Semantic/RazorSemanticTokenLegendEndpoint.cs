@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,9 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     public class SemanticTokenLegend
     {
         private static readonly string[] _tokenTypes = new string[] {
-            "comment", "string", "keyword", "number", "regexp", "operator", "namespace",
-            "type", "class", "interface", "enum", "function", "variable", "parameter",
-            "property", "label"
+            "razorTagHelperElement", "razorTagHelperAttribute"
         };
 
         private static readonly string[] _tokenModifiers = new string[] {

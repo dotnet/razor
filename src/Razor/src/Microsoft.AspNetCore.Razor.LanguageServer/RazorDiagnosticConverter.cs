@@ -41,6 +41,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 case RazorDiagnosticSeverity.Error:
                     return DiagnosticSeverity.Error;
+                case RazorDiagnosticSeverity.Warning:
+                    return DiagnosticSeverity.Warning;
                 default:
                     return DiagnosticSeverity.Information;
             }

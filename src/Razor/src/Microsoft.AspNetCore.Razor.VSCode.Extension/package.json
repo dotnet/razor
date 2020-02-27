@@ -46,6 +46,42 @@
     ],
     "main": "./dist/extension",
     "contributes": {
+        "semanticTokenTypes": [
+          {
+            "id": "razorTagHelperElement",
+            "description": "A Razor TagHelper Element"
+          },
+          {
+            "id": "razorTagHelperAttribute",
+            "description": "A Razor TagHelper Attribute"
+          }
+        ],
+        "semanticTokenStyleDefaults": [
+          {
+            "selector": "razorTagHelperElement",
+            "scope": [ "razor.TagHelpers.Element" ],
+            "light": {
+              "foreground": "#eb9834",
+              "fontStyle": "bold"
+            },
+            "dark": {
+              "foreground": "#eb9834",
+              "fontStyle": "bold"
+            }
+          },
+          {
+            "selector": "razorTagHelperAttribute",
+            "scope": [ "razor.TagHelpers.Attribute"],
+            "light": {
+              "foreground": "#eb34d9",
+              "fontStyle": "bold"
+            },
+            "dark": {
+              "foreground": "#eb34d9",
+              "fontStyle": "bold"
+            }
+          }
+        ],
         "languages": [
             {
                 "id": "aspnetcorerazor",

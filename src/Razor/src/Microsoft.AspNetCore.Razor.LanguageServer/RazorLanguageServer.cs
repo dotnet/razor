@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -122,6 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorFormattingService, DefaultRazorFormattingService>();
 
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
+                        services.AddSingleton<RazorSemanticTokenInfoService, DefaultRazorSemanticTokenInfoService>();
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
                         var documentVersionCache = new DefaultDocumentVersionCache(foregroundDispatcher);

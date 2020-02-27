@@ -219,6 +219,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     if (workspaceConfigured) {
         await razorExtensionPackage.activate(
+            vscode,
             context,
             languageServerDir,
             hostEventStream);

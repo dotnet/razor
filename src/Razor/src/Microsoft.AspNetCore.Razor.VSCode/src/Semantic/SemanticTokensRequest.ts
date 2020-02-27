@@ -3,13 +3,15 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
- export class SemanticTokensEdit {
-    public readonly start: number;
-    public readonly deleteCount: number;
-    public readonly data?: Uint32Array;
-    constructor(start: number, deleteCount: number, data?: Uint32Array) {
-        this.start = start;
-        this.deleteCount = deleteCount;
-        this.data = data;
+import * as vscode from 'vscode';
+import { LanguageKind } from '../RPC/LanguageKind';
+
+export class SemanticTokensRequest {
+    public readonly razorDocumentUri: string;
+
+    constructor(
+        public readonly kind: LanguageKind,
+        razorDocumentUri: vscode.Uri) {
+        this.razorDocumentUri = razorDocumentUri.toString();
     }
 }
