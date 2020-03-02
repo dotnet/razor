@@ -42,7 +42,9 @@ export class RazorCompletionItemProvider
             for (const completionItem of completionItems) {
                 const doc = completionItem.documentation as vscode.MarkdownString;
                 if (doc) {
+                    // Without this, the documentation doesn't get rendered in the editor.
                     const newDoc = new vscode.MarkdownString(doc.value);
+                    newDoc.isTrusted = doc.isTrusted;
                     completionItem.documentation = newDoc;
                 }
 
