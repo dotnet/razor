@@ -48,8 +48,12 @@
     "contributes": {
         "semanticTokenTypes": [
           {
-            "id": "razorTagHelperElement",
-            "description": "A Razor TagHelper Element"
+            "id": "razorTagHelperElementStartTag",
+            "description": "A Razor TagHelper Element Start Tag"
+          },
+          {
+            "id": "razorTagHelperElementEndTag",
+            "description": "A Razor TagHelper Element End Tag"
           },
           {
             "id": "razorTagHelperAttribute",
@@ -58,8 +62,20 @@
         ],
         "semanticTokenStyleDefaults": [
           {
-            "selector": "razorTagHelperElement",
-            "scope": [ "razor.TagHelpers.Element" ],
+            "selector": "razorTagHelperElementStartTag",
+            "scope": [ "razor.taghelpers.element.starttag" ],
+            "light": {
+              "foreground": "#eb9834",
+              "fontStyle": "bold"
+            },
+            "dark": {
+              "foreground": "#eb9834",
+              "fontStyle": "bold"
+            }
+          },
+          {
+            "selector": "razorTagHelperElementEndTag",
+            "scope": [ "razor.taghelpers.element.endtag" ],
             "light": {
               "foreground": "#eb9834",
               "fontStyle": "bold"

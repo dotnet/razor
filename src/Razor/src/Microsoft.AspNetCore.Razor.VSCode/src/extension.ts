@@ -38,16 +38,6 @@ import { RazorSignatureHelpProvider } from './RazorSignatureHelpProvider';
 import { RazorDocumentSemanticTokensProvider } from './Semantic/RazorDocumentSemanticTokensProvider';
 import { TelemetryReporter } from './TelemetryReporter';
 
-class SemanticTokensLegend {
-    public readonly tokenTypes: string[];
-    public readonly tokenModifiers: string[];
-
-    constructor(tokenTypes: string[], tokenModifiers: string[]) {
-        this.tokenTypes = tokenTypes;
-        this.tokenModifiers = tokenModifiers;
-    }
-}
-
 export async function activate(vscodeType: typeof vscodeapi, context: ExtensionContext, languageServerDir: string, eventStream: HostEventStream) {
     const telemetryReporter = new TelemetryReporter(eventStream);
     const eventEmitterFactory: IEventEmitterFactory = {
@@ -140,16 +130,11 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 logger);
 
             const tokenTypes = [
-                'comment', 'string', 'keyword', 'number', 'regexp', 'operator', 'namespace',
-                'type', 'struct', 'class', 'interface', 'enum', 'typeParameter', 'function',
-                'member', 'macro', 'variable', 'parameter', 'property', 'label',
+                'razorTagHelperElementStartTag', 'razorTagHelperElementEndTag', 'razorTagHelperAttribute',
             ];
-            const tokenModifiersLegend = [
-                'declaration', 'documentation', 'readonly', 'static', 'abstract', 'deprecated',
-                'modification', 'async',
-            ];
+            const tokenModifiersLegend: string[] = [];
 
-            const legend = new SemanticTokensLegend(tokenTypes, tokenModifiersLegend);
+            const legend = new vscode.SemanticTokensLegend(tokenTypes, tokenModifiersLegend);
 
             localRegistrations.push(
                 languageConfiguration.register(),

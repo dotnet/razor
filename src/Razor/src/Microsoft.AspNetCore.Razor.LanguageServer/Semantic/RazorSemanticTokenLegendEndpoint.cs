@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     public class SemanticTokenLegend
     {
         private static readonly string[] _tokenTypes = new string[] {
-            "razorTagHelperElement", "razorTagHelperAttribute"
+            "razorTagHelperElementStartTag", "razorTagHelperElementEndTag", "razorTagHelperAttribute"
         };
 
         private static readonly string[] _tokenModifiers = new string[] {

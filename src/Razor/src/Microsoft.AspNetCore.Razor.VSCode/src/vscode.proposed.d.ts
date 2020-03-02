@@ -39,7 +39,7 @@ declare module 'vscode' {
          * This is the id that will be passed to `DocumentSemanticTokensProvider.provideDocumentSemanticTokensEdits` (if implemented).
          */
         public readonly resultId?: string;
-        public readonly data: Uint32Array;
+        public data: Uint32Array;
 
         constructor(data: Uint32Array, resultId?: string);
     }

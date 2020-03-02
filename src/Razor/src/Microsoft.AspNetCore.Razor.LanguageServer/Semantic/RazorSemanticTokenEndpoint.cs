@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     public class SemanticTokens
     {
         public string ResultId { get; }
-        public IEnumerable<long> Data { get; set; }
+        public IEnumerable<uint> Data { get; set; }
     }
 
     public class SemanticTokenCapability : DynamicCapability

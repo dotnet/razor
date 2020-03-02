@@ -58,91 +58,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
             var syntaxTree = codeDocument.GetSyntaxTree();
 
-            var tagHelperSpans = syntaxTree.GetTagHelperSpans();
-
             var syntaxTokens = VisitAllNodes(syntaxTree);
-            syntaxTokens = syntaxTokens
-                .Where(token => tagHelperSpans
-                    .Any(tag => token.Span.IntersectsWith(new TextSpan(tag.Span.AbsoluteIndex, tag.Span.Length))));
 
-            var elements = GetElementItem(tagHelperSpans, syntaxTree);
-
-            var semanticTokens =  ConvertSyntaxTokensToSemanticTokens(elements, codeDocument, _symanticTokenLegend);
+            var semanticTokens =  ConvertSyntaxTokensToSemanticTokens(syntaxTokens, codeDocument, _symanticTokenLegend);
 
             return semanticTokens;
         }
 
-        private IEnumerable<SyntaxToken> GetElementItem(IEnumerable<TagHelperSpanInternal> tokens, RazorSyntaxTree syntaxTree)
-        {
-            var result = new List<SyntaxToken>();
-            foreach (var token in tokens)
-            {
-                var change = new SourceChange(token.Span.AbsoluteIndex, length: 0, newText: "");
-                var owner = syntaxTree.Root.LocateOwner(change);
-
-                if (owner == null)
-                {
-                    Debug.Fail("Owner should never be null.");
-                    throw new NotImplementedException();
-                }
-                var parent = owner.Parent;
-
-                if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes))
-                {
-                    result.Add(containingTagNameToken);
-                    var tagHelperAttributes = attributes.Where(node => node.GetType() == typeof(MarkupTagHelperAttributeSyntax)).Select(node => ((MarkupTagHelperAttributeSyntax)node).Name.LiteralTokens[0]);
-                    //throw new NotImplementedException();
-                    result.AddRange(tagHelperAttributes);
-                }
-            }
-
-            return result;
-        }
-
-        //private IEnumerable<SyntaxToken> GetElementItem(IEnumerable<SyntaxToken> tokens, RazorSyntaxTree syntaxTree)
-        //{
-        //    var result = new List<SyntaxToken>();
-        //    foreach(var token in tokens)
-        //    {
-        //        var change = new SourceChange(token.FullSpan.Start, length: 0, newText: "");
-        //        var owner = syntaxTree.Root.LocateOwner(change);
-
-        //        if (owner == null)
-        //        {
-        //            Debug.Fail("Owner should never be null.");
-        //            throw new NotImplementedException();
-        //        }
-        //        var parent = owner.Parent;
-
-        //        if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes))
-        //        {
-        //            result.Add(containingTagNameToken);
-        //            var tagHelperAttributes = attributes.Where(node => node.GetType() == typeof(MarkupTagHelperAttributeSyntax)).Select(node => ((MarkupTagHelperAttributeSyntax)node).Name.LiteralTokens[0]);
-        //            //throw new NotImplementedException();
-        //            result.AddRange(tagHelperAttributes);
-        //        }
-        //    }
-
-        //    return result;
-        //}
-
-        private static IEnumerable<SyntaxToken> VisitAllNodes(RazorSyntaxTree syntaxTree)
+        private static IEnumerable<SyntaxNode> VisitAllNodes(RazorSyntaxTree syntaxTree)
         {
             return VisitNode(syntaxTree.Root);
         }
 
-        private static IReadOnlyList<SyntaxToken> VisitNode(SyntaxNode syntaxNode)
+        private static IReadOnlyList<SyntaxNode> VisitNode(SyntaxNode syntaxNode)
         {
-            var result = new List<SyntaxToken>();
+            var result = new List<SyntaxNode>();
 
             if (syntaxNode is null)
             {
                 return result;
             }
 
-            if (syntaxNode.IsToken)
+            switch(syntaxNode.Kind)
             {
-                result.Add((SyntaxToken)syntaxNode);
+                case SyntaxKind.MarkupTagHelperStartTag:
+                    var startTag = (MarkupTagHelperStartTagSyntax)syntaxNode;
+                    result.Add(startTag.Name);
+                    break;
+                case SyntaxKind.MarkupTagHelperEndTag:
+                    var endTag = (MarkupTagHelperEndTagSyntax)syntaxNode;
+                    result.Add(endTag.Name);
+                    break;
+                case SyntaxKind.MarkupTagHelperAttribute:
+                    var attributeTag = (MarkupTagHelperAttributeSyntax)syntaxNode;
+                    if(attributeTag.TagHelperAttributeInfo.Bound)
+                    {
+                        result.Add(attributeTag.Name);
+                    }
+                    break;
+                default:
+                    break;
             }
 
             var children = syntaxNode.ChildNodes();
@@ -155,13 +110,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         private static SemanticTokens ConvertSyntaxTokensToSemanticTokens(
-            IEnumerable<SyntaxToken> syntaxTokens,
+            IEnumerable<SyntaxNode> syntaxTokens,
             RazorCodeDocument razorCodeDocument,
             SemanticTokenLegend semanticTokensLegend)
         {
-            SyntaxToken previousToken = null;
+            SyntaxNode previousToken = null;
 
-            var data = new List<long>();
+            var data = new List<uint>();
             foreach (var token in syntaxTokens)
             {
                 var newData = GetData(token, previousToken, razorCodeDocument, semanticTokensLegend);
@@ -184,9 +139,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
          *  - at index `5*i+3` - `tokenType`: will be looked up in `SemanticTokensLegend.tokenTypes`
          *  - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
         **/
-        private static IEnumerable<long> GetData(
-            SyntaxToken currentNode,
-            SyntaxToken previousNode,
+        private static IEnumerable<uint> GetData(
+            SyntaxNode currentNode,
+            SyntaxNode previousNode,
             RazorCodeDocument razorCodeDocument,
             SemanticTokenLegend legend)
         {
@@ -195,46 +150,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             // deltaLine
             var previousLineIndex = previousNode == null ? 0 : previousRange.Start.Line;
-            yield return currentRange.Start.Line - previousLineIndex;
+            yield return (uint)(currentRange.Start.Line - previousLineIndex);
 
             // deltaStart
             if (previousRange != null && previousRange?.Start.Line == currentRange.Start.Line)
             {
-                yield return currentRange.Start.Character - previousRange.Start.Character;
+                yield return (uint)(currentRange.Start.Character - previousRange.Start.Character);
             }
             else
             {
-                yield return currentRange.Start.Character;
+                yield return (uint)(currentRange.Start.Character);
             }
 
             // length
-            yield return currentNode.Span.Length;
-
-            // tokenType]
-            yield return GetTokenTypeData(currentNode, legend);
-
-            // tokenModifiers
-            yield return GetTokenModifierData(currentNode, legend);
-        }
-
-        private static long GetTokenTypeData(SyntaxToken syntaxToken, SemanticTokenLegend legend)
-        {
-            var type = syntaxToken.Parent.GetType();
-            if (typeof(MarkupTagHelperStartTagSyntax) == syntaxToken.Parent.GetType())
-            {
-                return legend.TokenTypesLegend["razorTagHelperElement"];
-            }
-            else if (typeof(MarkupTagHelperAttributeSyntax) == syntaxToken.Parent.Parent.GetType())
-            {
-                return legend.TokenTypesLegend["razorTagHelperAttribute"];
-            }
-            else
+            if(currentNode.Span.Length <= 0)
             {
                 throw new NotImplementedException();
             }
+            yield return (uint)currentNode.Span.Length;
+
+            // tokenType]
+            yield return (uint)GetTokenTypeData(currentNode, legend);
+
+            // tokenModifiers
+            yield return (uint)GetTokenModifierData(currentNode, legend);
         }
 
-        private static long GetTokenModifierData(SyntaxToken syntaxToken, SemanticTokenLegend legend)
+        private static long GetTokenTypeData(SyntaxNode syntaxToken, SemanticTokenLegend legend)
+        {
+            switch(syntaxToken.Parent.Kind)
+            {
+                case SyntaxKind.MarkupTagHelperStartTag:
+                    return legend.TokenTypesLegend["razorTagHelperElementStartTag"];
+                case SyntaxKind.MarkupTagHelperEndTag:
+                    return legend.TokenTypesLegend["razorTagHelperElementEndTag"];
+                case SyntaxKind.MarkupTagHelperAttribute:
+                    return legend.TokenTypesLegend["razorTagHelperAttribute"];
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        private static long GetTokenModifierData(SyntaxNode syntaxToken, SemanticTokenLegend legend)
         {
             // Real talk: We're not doing this yet.
 
