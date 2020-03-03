@@ -25,7 +25,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             "razorTagHelperElementStartTag",
             "razorTagHelperElementEndTag",
             "razorTagHelperAttribute",
-            "tagHelperDirectiveAttribute"
+            "tagHelperDirectiveAttribute",
+            "tagHelperMinimizedAttribute"
         };
 
         private static readonly string[] _tokenModifiers = new string[] {

@@ -135,6 +135,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 'razorTagHelperElementEndTag',
                 'razorTagHelperAttribute',
                 'tagHelperDirectiveAttribute',
+                'tagHelperMinimizedAttribute',
             ];
             const tokenModifiersLegend: string[] = [];
 

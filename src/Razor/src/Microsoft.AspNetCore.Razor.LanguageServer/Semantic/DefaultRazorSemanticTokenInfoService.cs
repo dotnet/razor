@@ -17,36 +17,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class DefaultRazorSemanticTokenInfoService : RazorSemanticTokenInfoService
     {
-        private readonly TagHelperFactsService _tagHelperFactsService;
-        private readonly TagHelperDescriptionFactory _tagHelperDescriptionFactory;
-        private readonly HtmlFactsService _htmlFactsService;
         private readonly SemanticTokenLegend _symanticTokenLegend;
 
         [ImportingConstructor]
-        public DefaultRazorSemanticTokenInfoService(
-            TagHelperFactsService tagHelperFactsService,
-            TagHelperDescriptionFactory tagHelperDescriptionFactory,
-            HtmlFactsService htmlFactsService)
+        public DefaultRazorSemanticTokenInfoService()
         {
-            if (tagHelperFactsService is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelperFactsService));
-            }
-
-            if (tagHelperDescriptionFactory is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelperDescriptionFactory));
-            }
-
-            if (htmlFactsService is null)
-            {
-                throw new ArgumentNullException(nameof(htmlFactsService));
-            }
-
-            _tagHelperFactsService = tagHelperFactsService;
-            _tagHelperDescriptionFactory = tagHelperDescriptionFactory;
-            _htmlFactsService = htmlFactsService;
-
             _symanticTokenLegend = new SemanticTokenLegend();
         }
 
@@ -96,6 +71,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 case SyntaxKind.MarkupTagHelperEndTag:
                     var endTag = (MarkupTagHelperEndTagSyntax)syntaxNode;
                     result.Add(endTag.Name);
+                    break;
+                case SyntaxKind.MarkupMinimizedTagHelperAttribute:
+                    var minimizedAttributeTag = (MarkupMinimizedTagHelperAttributeSyntax)syntaxNode;
+                    if (minimizedAttributeTag.TagHelperAttributeInfo.Bound)
+                    {
+                        result.Add(minimizedAttributeTag.Name);
+                    }
                     break;
                 case SyntaxKind.MarkupTagHelperAttribute:
                     var tagHelperAttributeTag = (MarkupTagHelperAttributeSyntax)syntaxNode;
@@ -198,6 +180,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     return legend.TokenTypesLegend["minimizedTagHelperDirectiveAttribute"];
                 case SyntaxKind.MarkupTagHelperDirectiveAttribute:
                     return legend.TokenTypesLegend["tagHelperDirectiveAttribute"];
+                case SyntaxKind.MarkupMinimizedTagHelperAttribute:
+                    return legend.TokenTypesLegend["tagHelperMinimizedAttribute"];
                 default:
                     throw new NotImplementedException();
             }
