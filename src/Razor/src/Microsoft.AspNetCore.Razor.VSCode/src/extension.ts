@@ -130,7 +130,11 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 logger);
 
             const tokenTypes = [
-                'razorTagHelperElementStartTag', 'razorTagHelperElementEndTag', 'razorTagHelperAttribute',
+                'minimizedTagHelperDirectiveAttribute',
+                'razorTagHelperElementStartTag',
+                'razorTagHelperElementEndTag',
+                'razorTagHelperAttribute',
+                'tagHelperDirectiveAttribute',
             ];
             const tokenModifiersLegend: string[] = [];
 

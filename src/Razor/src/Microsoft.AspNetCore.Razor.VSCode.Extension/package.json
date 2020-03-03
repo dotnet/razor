@@ -48,6 +48,14 @@
     "contributes": {
         "semanticTokenTypes": [
           {
+            "id": "minimizedTagHelperDirectiveAttribute",
+            "description": "A TagHelper Directive Attribute"
+          },
+          {
+            "id": "tagHelperDirectiveAttribute",
+            "description": "A TagHelper Directive Attribute"
+          },
+          {
             "id": "razorTagHelperElementStartTag",
             "description": "A Razor TagHelper Element Start Tag"
           },
@@ -87,7 +95,31 @@
           },
           {
             "selector": "razorTagHelperAttribute",
-            "scope": [ "razor.TagHelpers.Attribute"],
+            "scope": [ "razor.taghelpers.attribute"],
+            "light": {
+              "foreground": "#eb34d9",
+              "fontStyle": "bold"
+            },
+            "dark": {
+              "foreground": "#eb34d9",
+              "fontStyle": "bold"
+            }
+          },
+          {
+            "selector": "minimizedTagHelperDirectiveAttribute",
+            "scope": [ "razor.taghelpers.attribute.directive.minimized"],
+            "light": {
+              "foreground": "#eb34d9",
+              "fontStyle": "bold"
+            },
+            "dark": {
+              "foreground": "#eb34d9",
+              "fontStyle": "bold"
+            }
+          },
+          {
+            "selector": "tagHelperDirectiveAttribute",
+            "scope": [ "razor.taghelpers.attribute.directive"],
             "light": {
               "foreground": "#eb34d9",
               "fontStyle": "bold"

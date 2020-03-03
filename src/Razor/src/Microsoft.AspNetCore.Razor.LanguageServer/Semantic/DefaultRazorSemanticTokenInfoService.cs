@@ -81,6 +81,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             switch(syntaxNode.Kind)
             {
+                case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
+                    var minimized = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)syntaxNode;
+                    result.Add(minimized.Name);
+                    break;
+                case SyntaxKind.MarkupTagHelperDirectiveAttribute:
+                    var directive = (MarkupTagHelperDirectiveAttributeSyntax)syntaxNode;
+                    result.Add(directive.Name);
+                    break;
                 case SyntaxKind.MarkupTagHelperStartTag:
                     var startTag = (MarkupTagHelperStartTagSyntax)syntaxNode;
                     result.Add(startTag.Name);
@@ -90,10 +98,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     result.Add(endTag.Name);
                     break;
                 case SyntaxKind.MarkupTagHelperAttribute:
-                    var attributeTag = (MarkupTagHelperAttributeSyntax)syntaxNode;
-                    if(attributeTag.TagHelperAttributeInfo.Bound)
+                    var tagHelperAttributeTag = (MarkupTagHelperAttributeSyntax)syntaxNode;
+                    if(tagHelperAttributeTag.TagHelperAttributeInfo.Bound)
                     {
-                        result.Add(attributeTag.Name);
+                        result.Add(tagHelperAttributeTag.Name);
                     }
                     break;
                 default:
@@ -186,6 +194,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     return legend.TokenTypesLegend["razorTagHelperElementEndTag"];
                 case SyntaxKind.MarkupTagHelperAttribute:
                     return legend.TokenTypesLegend["razorTagHelperAttribute"];
+                case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
+                    return legend.TokenTypesLegend["minimizedTagHelperDirectiveAttribute"];
+                case SyntaxKind.MarkupTagHelperDirectiveAttribute:
+                    return legend.TokenTypesLegend["tagHelperDirectiveAttribute"];
                 default:
                     throw new NotImplementedException();
             }
