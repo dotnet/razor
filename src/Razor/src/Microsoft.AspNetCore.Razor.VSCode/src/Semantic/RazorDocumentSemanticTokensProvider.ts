@@ -15,8 +15,7 @@ export class RazorDocumentSemanticTokensProvider
         const semanticTokenResponse = await this.serviceClient.mapSemanticTokens(LanguageKind.Razor, document.uri);
 
         if (semanticTokenResponse) {
-            // HAHHAHAHAHAHAHAHAHAHAHAHAH OH GOD WHY
-            // Ok, so here's the deal. However we're serializing into Uint32Array doesn't set byteLength, which is checked by some stuff under the covers.
+            // However we're serializing into Uint32Array doesn't set byteLength, which is checked by some stuff under the covers.
             // Solution? Create a new one, blat it over the old one, go home for the weekend.
             semanticTokenResponse.data = new Uint32Array(semanticTokenResponse.data);
         }

@@ -2,54 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    public class SemanticTokenParams : IRequest<SemanticTokens>
-    {
-        public RazorLanguageKind Kind { get; set; }
-        public Uri RazorDocumentUri { get; set; }
-    }
-
-    public class SemanticTokens
-    {
-        public string ResultId { get; }
-        public IEnumerable<uint> Data { get; set; }
-    }
-
-    public class SemanticTokenCapability : DynamicCapability
-    {
-
-    }
-
-    [Method("razor/semanticTokens")]
-    [Parallel]
-    internal interface ISemanticTokenHandler :
-        IJsonRpcRequestHandler<SemanticTokenParams, SemanticTokens>,
-        IRequestHandler<SemanticTokenParams, SemanticTokens>,
-        IJsonRpcHandler,
-        ICapability<SemanticTokenCapability>
-    {
-        
-    }
-
-    internal abstract class RazorSemanticTokenInfoService
-    {
-        public abstract SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, SourceLocation? location = null);
-    }
-
     internal class RazorSemanticTokenEndpoint : ISemanticTokenHandler
     {
         private SemanticTokenCapability _capability;
@@ -119,8 +80,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = await document.GetTextAsync();
 
             var tokens = _semanticTokenInfoService.GetSemanticTokens(codeDocument);
-
-            _logger.LogTrace($"Found semantic token info items.");
 
             return tokens;
         }

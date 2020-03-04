@@ -38,6 +38,8 @@ import { RazorSignatureHelpProvider } from './RazorSignatureHelpProvider';
 import { RazorDocumentSemanticTokensProvider } from './Semantic/RazorDocumentSemanticTokensProvider';
 import { TelemetryReporter } from './TelemetryReporter';
 
+// We specifically need to take a reference to a particular instance of the vscode namespace,
+// otherwise providers attempt to operate on the null extension.
 export async function activate(vscodeType: typeof vscodeapi, context: ExtensionContext, languageServerDir: string, eventStream: HostEventStream) {
     const telemetryReporter = new TelemetryReporter(eventStream);
     const eventEmitterFactory: IEventEmitterFactory = {
@@ -130,12 +132,8 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 logger);
 
             const tokenTypes = [
-                'minimizedTagHelperDirectiveAttribute',
-                'razorTagHelperElementStartTag',
-                'razorTagHelperElementEndTag',
+                'razorTagHelperElement',
                 'razorTagHelperAttribute',
-                'tagHelperDirectiveAttribute',
-                'tagHelperMinimizedAttribute',
             ];
             const tokenModifiersLegend: string[] = [];
 

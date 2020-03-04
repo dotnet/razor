@@ -14,6 +14,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         internal static Range GetRange(this SyntaxNode syntaxNode, RazorCodeDocument codeDocument)
         {
+            if (syntaxNode is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxNode));
+            }
+
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
             try
             {
                 int startPosition;

@@ -4,13 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.VisualStudio.Editor.Razor;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -153,13 +148,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             // length
-            if(currentNode.Span.Length <= 0)
-            {
-                throw new NotImplementedException();
-            }
             yield return (uint)currentNode.Span.Length;
 
-            // tokenType]
+            // tokenType
             yield return (uint)GetTokenTypeData(currentNode, legend);
 
             // tokenModifiers
@@ -171,17 +162,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             switch(syntaxToken.Parent.Kind)
             {
                 case SyntaxKind.MarkupTagHelperStartTag:
-                    return legend.TokenTypesLegend["razorTagHelperElementStartTag"];
                 case SyntaxKind.MarkupTagHelperEndTag:
-                    return legend.TokenTypesLegend["razorTagHelperElementEndTag"];
+                    return legend.TokenTypesLegend["razorTagHelperElement"];
                 case SyntaxKind.MarkupTagHelperAttribute:
-                    return legend.TokenTypesLegend["razorTagHelperAttribute"];
                 case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                    return legend.TokenTypesLegend["minimizedTagHelperDirectiveAttribute"];
                 case SyntaxKind.MarkupTagHelperDirectiveAttribute:
-                    return legend.TokenTypesLegend["tagHelperDirectiveAttribute"];
                 case SyntaxKind.MarkupMinimizedTagHelperAttribute:
-                    return legend.TokenTypesLegend["tagHelperMinimizedAttribute"];
+                    return legend.TokenTypesLegend["razorTagHelperAttribute"];
                 default:
                     throw new NotImplementedException();
             }
