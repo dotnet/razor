@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Razor
             var path = uri.GetAbsoluteOrUNCPath();
 
             // Assert
-            Assert.NotEqual(uri.AbsolutePath, path);
             Assert.Equal(uri.LocalPath, path);
         }
     }
