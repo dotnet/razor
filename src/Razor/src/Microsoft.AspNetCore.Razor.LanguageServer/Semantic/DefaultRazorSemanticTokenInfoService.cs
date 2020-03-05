@@ -35,9 +35,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticTokens;
         }
 
+        private class TagHelperSpanVisitor : SyntaxWalker
+        {
+            private RazorSourceDocument _source;
+            private List<SyntaxNode> _syntaxNodes;
+
+            public TagHelperSpanVisitor(RazorSourceDocument source)
+            {
+                _source = source;
+                _syntaxNodes = new List<SyntaxNode>();
+            }
+
+            public IReadOnlyList<SyntaxNode> TagHelperNodes => _syntaxNodes;
+
+            public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
+            {
+                _syntaxNodes.Add(node.StartTag.Name);
+
+                if (node.EndTag != null)
+                {
+                    _syntaxNodes.Add(node.EndTag.Name);
+                }
+
+                base.VisitMarkupTagHelperElement(node);
+            }
+        }
+
         private static IEnumerable<SyntaxNode> VisitAllNodes(RazorSyntaxTree syntaxTree)
         {
-            return VisitNode(syntaxTree.Root);
+            var visitor = new TagHelperSpanVisitor(syntaxTree.Source);
+            visitor.Visit(syntaxTree.Root);
+
+            return visitor.TagHelperNodes;
         }
 
         private static IReadOnlyList<SyntaxNode> VisitNode(SyntaxNode syntaxNode)
