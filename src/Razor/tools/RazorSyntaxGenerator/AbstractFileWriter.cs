@@ -347,6 +347,7 @@ namespace RazorSyntaxGenerator
                 case "event":
                 case "enum":
                 case "unsafe":
+                case "text":
                     return true;
                 default:
                     return false;
