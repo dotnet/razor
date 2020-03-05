@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
@@ -95,7 +96,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 {
                     Debug.Assert(binding.Descriptors.Count() > 0);
 
-                    var range = containingTagNameToken.GetRange(codeDocument);
+                    var range = containingTagNameToken.GetRange(codeDocument.Source);
 
                     var result = ElementInfoToHover(binding.Descriptors, range);
                     return result;
@@ -127,7 +128,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     var tagHelperAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
 
                     var attribute = attributes.Single(a => a.Span.IntersectsWith(location.AbsoluteIndex));
-                    var range = attribute.GetRange(codeDocument);
+                    if(attribute is MarkupTagHelperAttributeSyntax thAttributeSyntax)
+                    {
+                        attribute = thAttributeSyntax.Name;
+                    }
+                    else if(attribute is MarkupMinimizedTagHelperAttributeSyntax thMinimizedAttribute)
+                    {
+                        attribute = thMinimizedAttribute.Name;
+                    }
+                    var range = attribute.GetRange(codeDocument.Source);
                     var attributeHoverModel = AttributeInfoToHover(tagHelperAttributes, range);
 
                     return attributeHoverModel;

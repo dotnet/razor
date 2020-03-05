@@ -3,13 +3,13 @@
 
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    [Method("razor/semanticTokenLegend")]
-    [Parallel]
+    [Method(LanguageServerConstants.RazorSemanticTokenLegend)]
     internal interface ISemanticTokenLegendHandler :
         IJsonRpcRequestHandler<SemanticTokenLegendParams, SemanticTokenLegend>,
         IRequestHandler<SemanticTokenLegendParams, SemanticTokenLegend>,

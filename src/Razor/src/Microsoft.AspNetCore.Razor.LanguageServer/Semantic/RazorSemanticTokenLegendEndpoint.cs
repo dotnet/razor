@@ -9,6 +9,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     public class RazorSemanticTokenLegendEndpoint : ISemanticTokenLegendHandler
     {
+        private SemanticTokenLegendCapability _capability;
+
         public Task<SemanticTokenLegend> Handle(SemanticTokenLegendParams request, CancellationToken cancellationToken)
         {
             return Task.FromResult(new SemanticTokenLegend());
@@ -16,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public void SetCapability(SemanticTokenLegendCapability capability)
         {
-            throw new NotImplementedException();
+            _capability = capability;
         }
     }
 }

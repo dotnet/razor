@@ -3,19 +3,19 @@
 
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    [Method("razor/semanticTokens")]
-    [Parallel]
+    [Method(LanguageServerConstants.RazorSemanticTokens)]
     internal interface ISemanticTokenHandler :
         IJsonRpcRequestHandler<SemanticTokenParams, SemanticTokens>,
         IRequestHandler<SemanticTokenParams, SemanticTokens>,
         IJsonRpcHandler,
         ICapability<SemanticTokenCapability>
     {
-        
+
     }
 }

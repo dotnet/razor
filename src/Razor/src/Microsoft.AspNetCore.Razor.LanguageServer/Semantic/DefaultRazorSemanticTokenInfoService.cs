@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -14,7 +16,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private readonly SemanticTokenLegend _symanticTokenLegend;
 
-        [ImportingConstructor]
         public DefaultRazorSemanticTokenInfoService()
         {
             _symanticTokenLegend = new SemanticTokenLegend();
@@ -28,9 +29,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
             var syntaxTree = codeDocument.GetSyntaxTree();
 
-            var syntaxTokens = VisitAllNodes(syntaxTree);
+            var syntaxNodes = VisitAllNodes(syntaxTree);
 
-            var semanticTokens =  ConvertSyntaxTokensToSemanticTokens(syntaxTokens, codeDocument, _symanticTokenLegend);
+            var semanticTokens =  ConvertSyntaxTokensToSemanticTokens(syntaxNodes, codeDocument, _symanticTokenLegend);
 
             return semanticTokens;
         }
@@ -125,8 +126,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             RazorCodeDocument razorCodeDocument,
             SemanticTokenLegend legend)
         {
-            var previousRange = previousNode?.GetRange(razorCodeDocument);
-            var currentRange = currentNode.GetRange(razorCodeDocument);
+            var previousRange = previousNode?.GetRange(razorCodeDocument.Source);
+            var currentRange = currentNode.GetRange(razorCodeDocument.Source);
 
             // deltaLine
             var previousLineIndex = previousNode == null ? 0 : previousRange.Start.Line;
@@ -143,37 +144,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             // length
+            Debug.Assert(currentNode.Span.Length > 0);
             yield return (uint)currentNode.Span.Length;
 
             // tokenType
-            yield return (uint)GetTokenTypeData(currentNode, legend);
+            yield return GetTokenTypeData(currentNode, legend);
 
             // tokenModifiers
-            yield return (uint)GetTokenModifierData(currentNode, legend);
+            // We don't currently have any need for tokenModifiers
+            yield return 0;
         }
 
-        private static long GetTokenTypeData(SyntaxNode syntaxToken, SemanticTokenLegend legend)
+        private static uint GetTokenTypeData(SyntaxNode syntaxToken, SemanticTokenLegend legend)
         {
             switch(syntaxToken.Parent.Kind)
             {
                 case SyntaxKind.MarkupTagHelperStartTag:
                 case SyntaxKind.MarkupTagHelperEndTag:
-                    return legend.TokenTypesLegend["razorTagHelperElement"];
+                    return (uint)legend.TokenTypesLegend[SemanticTokenLegend.RazorTagHelperElement];
                 case SyntaxKind.MarkupTagHelperAttribute:
                 case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
                 case SyntaxKind.MarkupTagHelperDirectiveAttribute:
                 case SyntaxKind.MarkupMinimizedTagHelperAttribute:
-                    return legend.TokenTypesLegend["razorTagHelperAttribute"];
+                    return (uint)legend.TokenTypesLegend[SemanticTokenLegend.RazorTagHelperAttribute];
                 default:
                     throw new NotImplementedException();
             }
-        }
-
-        private static long GetTokenModifierData(SyntaxNode syntaxToken, SemanticTokenLegend legend)
-        {
-            // Real talk: We're not doing this yet.
-
-            return 0;
         }
     }
 }

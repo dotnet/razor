@@ -5,58 +5,70 @@ using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public static class SyntaxNodeExtensions
+    internal static class SyntaxNodeExtensions
     {
-        internal static Range GetRange(this SyntaxNode syntaxNode, RazorCodeDocument codeDocument)
+        public static LinePositionSpan GetLinePositionSpan(this SyntaxNode node, RazorSourceDocument source)
         {
-            if (syntaxNode is null)
+            if (node is null)
             {
-                throw new ArgumentNullException(nameof(syntaxNode));
+                throw new ArgumentNullException(nameof(node));
             }
 
-            if (codeDocument is null)
+            if (source is null)
             {
-                throw new ArgumentNullException(nameof(codeDocument));
+                throw new ArgumentNullException(nameof(source));
             }
 
-            try
-            {
-                int startPosition;
-                int endPosition;
-                if (syntaxNode is MarkupTagHelperAttributeSyntax thAttributeSyntax)
-                {
-                    startPosition = thAttributeSyntax.Name.Position;
-                    endPosition = thAttributeSyntax.Name.EndPosition;
-                }
-                else if (syntaxNode is MarkupMinimizedTagHelperAttributeSyntax thAttrSyntax)
-                {
-                    startPosition = thAttrSyntax.Name.Position;
-                    endPosition = thAttrSyntax.Name.EndPosition;
-                }
-                else
-                {
-                    startPosition = syntaxNode.Position;
-                    endPosition = syntaxNode.EndPosition;
-                }
-                var startLocation = codeDocument.Source.Lines.GetLocation(startPosition);
-                var endLocation = codeDocument.Source.Lines.GetLocation(endPosition);
+            var start = node.Position;
+            var end = node.EndPosition;
 
-                return new Range
-                {
-                    Start = new Position(startLocation.LineIndex, startLocation.CharacterIndex),
-                    End = new Position(endLocation.LineIndex, endLocation.CharacterIndex)
-                };
-            }
-            catch (IndexOutOfRangeException)
+            Debug.Assert(start <= source.Length && end <= source.Length, "Node position exceeds source length.");
+
+            if (start == source.Length && node.FullWidth == 0)
             {
-                Debug.Assert(false, "Node position should stay within document length.");
-                return null;
+                // Marker symbol at the end of the document.
+                var location = node.GetSourceLocation(source);
+                var position = GetLinePosition(location);
+                return new LinePositionSpan(position, position);
             }
+
+            var startLocation = source.Lines.GetLocation(start);
+            var endLocation = source.Lines.GetLocation(end);
+            var startPosition = GetLinePosition(startLocation);
+            var endPosition = GetLinePosition(endLocation);
+
+            return new LinePositionSpan(startPosition, endPosition);
+
+            static LinePosition GetLinePosition(SourceLocation location)
+            {
+                return new LinePosition(location.LineIndex, location.CharacterIndex);
+            }
+        }
+
+        public static Range GetRange(this SyntaxNode node, RazorSourceDocument source)
+        {
+            if (node is null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            var lineSpan = node.GetLinePositionSpan(source);
+            var range = new Range(
+                new Position(lineSpan.Start.Line, lineSpan.Start.Character),
+                new Position(lineSpan.End.Line, lineSpan.End.Character));
+
+            return range;
         }
     }
 }

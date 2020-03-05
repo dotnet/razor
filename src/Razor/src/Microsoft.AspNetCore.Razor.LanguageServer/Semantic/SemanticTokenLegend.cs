@@ -8,9 +8,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     public class SemanticTokenLegend
     {
+        public const string RazorTagHelperElement = "razorTagHelperElement";
+        public const string RazorTagHelperAttribute = "razorTagHelperAttribute";
         private static readonly string[] _tokenTypes = new string[] {
-            "razorTagHelperElement",
-            "razorTagHelperAttribute",
+            RazorTagHelperElement,
+            RazorTagHelperAttribute,
         };
 
         private static readonly string[] _tokenModifiers = new string[] {
@@ -42,7 +44,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             return result;
-
         }
     }
 }

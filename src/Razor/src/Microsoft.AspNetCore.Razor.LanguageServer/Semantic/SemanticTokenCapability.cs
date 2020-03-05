@@ -7,6 +7,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     public class SemanticTokenCapability : DynamicCapability
     {
-
     }
 }
