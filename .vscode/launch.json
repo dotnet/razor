@@ -24,7 +24,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "C:\\Users\\rybrande\\projects\\temp\\CleanComponents",
+        "${workspaceFolder}/src/Razor/test/testapps/",
         "--extensionDevelopmentPath=${workspaceFolder}/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.Extension",
         "--enable-proposed-api razor-vscode",
         "--enable-proposed-api ms-vscode.csharp"

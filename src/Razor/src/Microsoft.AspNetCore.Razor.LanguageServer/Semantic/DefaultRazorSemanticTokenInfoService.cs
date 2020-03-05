@@ -52,12 +52,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 _syntaxNodes.Add(node.StartTag.Name);
 
+                base.VisitMarkupTagHelperElement(node);
+
                 if (node.EndTag != null)
                 {
                     _syntaxNodes.Add(node.EndTag.Name);
                 }
+            }
 
-                base.VisitMarkupTagHelperElement(node);
+            public override void VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
+            {
+                if(node.TagHelperAttributeInfo.Bound)
+                {
+                    _syntaxNodes.Add(node.Name);
+                }
+
+                base.VisitMarkupMinimizedTagHelperAttribute(node);
+            }
+
+            public override void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
+            {
+                if(node.TagHelperAttributeInfo.Bound)
+                {
+                    _syntaxNodes.Add(node.Name);
+                }
+
+                base.VisitMarkupTagHelperAttribute(node);
             }
         }
 
@@ -67,60 +87,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             visitor.Visit(syntaxTree.Root);
 
             return visitor.TagHelperNodes;
-        }
-
-        private static IReadOnlyList<SyntaxNode> VisitNode(SyntaxNode syntaxNode)
-        {
-            var result = new List<SyntaxNode>();
-
-            if (syntaxNode is null)
-            {
-                return result;
-            }
-
-            switch(syntaxNode.Kind)
-            {
-                case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                    var minimized = (MarkupMinimizedTagHelperDirectiveAttributeSyntax)syntaxNode;
-                    result.Add(minimized.Name);
-                    break;
-                case SyntaxKind.MarkupTagHelperDirectiveAttribute:
-                    var directive = (MarkupTagHelperDirectiveAttributeSyntax)syntaxNode;
-                    result.Add(directive.Name);
-                    break;
-                case SyntaxKind.MarkupTagHelperStartTag:
-                    var startTag = (MarkupTagHelperStartTagSyntax)syntaxNode;
-                    result.Add(startTag.Name);
-                    break;
-                case SyntaxKind.MarkupTagHelperEndTag:
-                    var endTag = (MarkupTagHelperEndTagSyntax)syntaxNode;
-                    result.Add(endTag.Name);
-                    break;
-                case SyntaxKind.MarkupMinimizedTagHelperAttribute:
-                    var minimizedAttributeTag = (MarkupMinimizedTagHelperAttributeSyntax)syntaxNode;
-                    if (minimizedAttributeTag.TagHelperAttributeInfo.Bound)
-                    {
-                        result.Add(minimizedAttributeTag.Name);
-                    }
-                    break;
-                case SyntaxKind.MarkupTagHelperAttribute:
-                    var tagHelperAttributeTag = (MarkupTagHelperAttributeSyntax)syntaxNode;
-                    if(tagHelperAttributeTag.TagHelperAttributeInfo.Bound)
-                    {
-                        result.Add(tagHelperAttributeTag.Name);
-                    }
-                    break;
-                default:
-                    break;
-            }
-
-            var children = syntaxNode.ChildNodes();
-            foreach (var child in children)
-            {
-                result.AddRange(VisitNode(child));
-            }
-
-            return result;
         }
 
         private static SemanticTokens ConvertSyntaxTokensToSemanticTokens(
