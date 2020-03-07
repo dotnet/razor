@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 }
                 else
                 {
-                    throw new InvalidOperationException("Unknown edit type when updating LSP C# buffer.");
+                    throw new InvalidOperationException("Unknown edit type when updating LSP HTML buffer.");
                 }
             }
 
