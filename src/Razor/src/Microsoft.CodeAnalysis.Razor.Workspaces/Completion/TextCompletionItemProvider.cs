@@ -12,8 +12,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
-    [Shared]
-    [Export(typeof(RazorCompletionItemProvider))]
     internal class TextCompletionItemProvider : RazorCompletionItemProvider
     {
         private static readonly string TextTag = "text";
