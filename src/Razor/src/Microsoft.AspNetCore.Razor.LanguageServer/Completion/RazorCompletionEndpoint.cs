@@ -296,6 +296,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         completionItem = parameterCompletionItem;
                         return true;
                     }
+                case RazorCompletionItemKind.Text:
+                    {
+                        var descriptionInfo = razorCompletionItem.GetDirectiveCompletionDescription();
+                        var directiveCompletionItem = new CompletionItem()
+                        {
+                            Label = razorCompletionItem.DisplayText,
+                            InsertText = razorCompletionItem.InsertText,
+                            FilterText = razorCompletionItem.DisplayText,
+                            SortText = razorCompletionItem.DisplayText,
+                            Detail = descriptionInfo.Description,
+                            Documentation = descriptionInfo.Description,
+                            Kind = CompletionItemKind.TypeParameter,
+                            CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters)
+                        };
+
+                        completionItem = directiveCompletionItem;
+                        return true;
+                    }
             }
 
             completionItem = null;

@@ -102,10 +102,13 @@ export class HtmlTagCompletionProvider {
             return;
         }
 
-        const languageResponse = await this.serviceClient.languageQuery(lastChange.range.start, document.uri);
-        if (languageResponse.kind !== LanguageKind.Html) {
-            // This prevents auto-completion of things like C# generics.
-            return;
+        if (documentContent.substring(changeOffset - 'text'.length, changeOffset) !== 'text') {
+            // Proceed with completion for <text> tag, otherwise check language kind
+            const languageResponse = await this.serviceClient.languageQuery(lastChange.range.start, document.uri);
+            if (languageResponse.kind !== LanguageKind.Html) {
+                // This prevents auto-completion of things like C# generics
+                return;
+            }
         }
 
         const version = document.version;

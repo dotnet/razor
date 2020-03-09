@@ -5,13 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.VisualStudio.Editor.Razor;
-using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
@@ -20,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     internal class TextCompletionItemProvider : RazorCompletionItemProvider
     {
         private static readonly string TextTag = "text";
+        private static readonly HashSet<string> ElementCommitCharacters = new HashSet<string>{" ", ">"};
         private readonly HtmlFactsService _htmlFactsService;
 
         public TextCompletionItemProvider(HtmlFactsService htmlFactsService)
@@ -55,19 +53,16 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
                     containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
                 {
-                    // var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
-                    // var elementCompletions = GetElementCompletions(parent, containingTagNameToken.Content, stringifiedAttributes, codeDocument);
-
                     if (TextTag.StartsWith(containingTagNameToken.Content, StringComparison.OrdinalIgnoreCase)) {
                         var completionDisplayText = TextTag;
                         var completionItem = new RazorCompletionItem(
                             completionDisplayText,
-                            completionDisplayText, //directive.Directive,
-                            RazorCompletionItemKind.Directive);
+                            completionDisplayText,
+                            RazorCompletionItemKind.Text,
+                            ElementCommitCharacters);
                         var completionDescription = new DirectiveCompletionDescription("Create a inline HTML element without tags.");
                         completionItem.SetDirectiveCompletionDescription(completionDescription);
                         completions.Add(completionItem);
-                        // completions.Add(new RazorCompletionItem("text", "text", RazorCompletionItemKind.Directive));
                     }
                 }
             }
@@ -77,30 +72,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         internal static bool AtTextCompletionPoint(Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode owner)
         {
-
-            // Do not provide IntelliSense for explicit expressions. Explicit expressions will usually look like:
-            // [@] [(] [DateTime.Now] [)]
-            var implicitExpression = owner.FirstAncestorOrSelf<CSharpImplicitExpressionSyntax>();
+            // Only provide IntelliSense for C# code blocks, of the form:
+            // @{ }, @code{ }, @functions{ }, @if(true){ }
+            var implicitExpression = owner.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
             if (implicitExpression == null)
             {
-                return false;
-            }
-
-            if (owner.ChildNodes().Any(n => !n.IsToken || !IsDirectiveCompletableToken((AspNetCore.Razor.Language.Syntax.SyntaxToken)n)))
-            {
-                // Implicit expression contains invalid directive tokens
-                return false;
-            }
-
-            if (implicitExpression.FirstAncestorOrSelf<RazorDirectiveSyntax>() != null)
-            {
-                // Implicit expression is nested in a directive
-                return false;
-            }
-
-            if (implicitExpression.FirstAncestorOrSelf<CSharpStatementSyntax>() != null)
-            {
-                // Implicit expression is nested in a statement
                 return false;
             }
 
@@ -117,14 +93,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             }
 
             return true;
-        }
-
-        // Internal for testing
-        internal static bool IsDirectiveCompletableToken(AspNetCore.Razor.Language.Syntax.SyntaxToken token)
-        {
-            return token.Kind == SyntaxKind.Identifier ||
-                // Marker symbol
-                token.Kind == SyntaxKind.Marker;
         }
     }
 }
