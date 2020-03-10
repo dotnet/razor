@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             string displayText,
             string insertText,
             RazorCompletionItemKind kind,
-            HashSet<string> commitCharacters = null)
+            IReadOnlyCollection<string> commitCharacters = null)
         {
             if (displayText == null)
             {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         public RazorCompletionItemKind Kind { get; }
 
-        public HashSet<string> CommitCharacters { get; }
+        public IReadOnlyCollection<string> CommitCharacters { get; }
 
         public ItemCollection Items
         {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
             if ((CommitCharacters == null ^ other.CommitCharacters == null) ||
                 (CommitCharacters != null && other.CommitCharacters != null &&
-                    !CommitCharacters.SetEquals(other.CommitCharacters)))
+                    !CommitCharacters.SequenceEqual(other.CommitCharacters)))
             {
                 return false;
             }

@@ -296,10 +296,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         completionItem = parameterCompletionItem;
                         return true;
                     }
-                case RazorCompletionItemKind.Text:
+                case RazorCompletionItemKind.MarkupTransition:
                     {
-                        var descriptionInfo = razorCompletionItem.GetDirectiveCompletionDescription();
-                        var directiveCompletionItem = new CompletionItem()
+                        var descriptionInfo = razorCompletionItem.GetMarkupTransitionCompletionDescription();
+                        var markupTransitionCompletionItem = new CompletionItem()
                         {
                             Label = razorCompletionItem.DisplayText,
                             InsertText = razorCompletionItem.InsertText,
@@ -311,7 +311,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters)
                         };
 
-                        completionItem = directiveCompletionItem;
+                        completionItem = markupTransitionCompletionItem;
                         return true;
                     }
             }

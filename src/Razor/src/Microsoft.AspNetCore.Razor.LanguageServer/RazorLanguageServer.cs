@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveAttributeCompletionItemProvider>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveAttributeParameterCompletionItemProvider>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveAttributeTransitionCompletionItemProvider>();
-                        services.AddSingleton<RazorCompletionItemProvider, TextCompletionItemProvider>();
+                        services.AddSingleton<RazorCompletionItemProvider, MarkupTransitionCompletionItemProvider>();
 
                         var foregroundDispatcher = new VSCodeForegroundDispatcher();
                         services.AddSingleton<ForegroundDispatcher>(foregroundDispatcher);

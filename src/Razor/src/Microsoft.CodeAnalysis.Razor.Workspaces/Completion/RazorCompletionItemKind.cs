@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         Directive,
         DirectiveAttribute,
         DirectiveAttributeParameter,
-        Text
+        MarkupTransition
     }
 }
