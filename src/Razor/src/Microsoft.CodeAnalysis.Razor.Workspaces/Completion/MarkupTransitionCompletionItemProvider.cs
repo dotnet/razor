@@ -81,25 +81,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Only provide IntelliSense for C# code blocks, of the form:
             // @{ }, @code{ }, @functions{ }, @if(true){ }
-            var implicitExpression = owner.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
-            if (implicitExpression == null)
-            {
-                return false;
-            }
+            var closestBlockLanguage = owner.FirstAncestorLanguageForMarkupTransition();
 
-            if (implicitExpression.FirstAncestorOrSelf<MarkupElementSyntax>() != null)
-            {
-                // Implicit expression is nested in an HTML element
-                return false;
-            }
-
-            if (implicitExpression.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>() != null)
-            {
-                // Implicit expression is nested in a TagHelper
-                return false;
-            }
-
-            return true;
+            return closestBlockLanguage is CSharpCodeBlockSyntax;
         }
     }
 }
