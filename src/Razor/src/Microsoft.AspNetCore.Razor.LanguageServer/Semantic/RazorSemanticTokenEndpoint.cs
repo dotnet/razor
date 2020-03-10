@@ -77,8 +77,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var sourceText = await document.GetTextAsync();
-
             var tokens = _semanticTokenInfoService.GetSemanticTokens(codeDocument);
 
             return tokens;

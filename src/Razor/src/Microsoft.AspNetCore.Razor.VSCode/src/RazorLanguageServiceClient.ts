@@ -39,6 +39,16 @@ export class RazorLanguageServiceClient {
         }
     }
 
+    public async getSemanticTokenLegend(): Promise<vscode.SemanticTokensLegend | undefined> {
+        await this.ensureStarted();
+
+        const response = await this.serverClient.sendRequest<vscode.SemanticTokensLegend>('razor/semanticTokensLegend', /*request param*/null);
+
+        if (response.tokenTypes && response.tokenTypes.length > 0) {
+            return response;
+        }
+    }
+
     public async mapSemanticTokens(languageKind: LanguageKind, uri: vscode.Uri): Promise<vscode.SemanticTokens | undefined> {
         await this.ensureStarted();
 

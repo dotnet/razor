@@ -70,7 +70,9 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
         const reportIssueCommand = new ReportIssueCommand(vscodeType, documentManager, logger);
         const razorFormattingFeature = new RazorFormattingFeature(languageServerClient, documentManager, logger);
 
-        const onStartRegistration = languageServerClient.onStart(() => {
+        const onStartRegistration = languageServerClient.onStart(async () => {
+            const legend = await languageServiceClient.getSemanticTokenLegend();
+
             vscodeType.commands.executeCommand<void>('omnisharp.registerLanguageMiddleware', razorLanguageMiddleware);
             const documentSynchronizer = new RazorDocumentSynchronizer(documentManager, logger);
             const provisionalCompletionOrchestrator = new ProvisionalCompletionOrchestrator(
@@ -131,14 +133,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 languageServiceClient,
                 logger);
 
-            const tokenTypes = [
-                'razorTagHelperElement',
-                'razorTagHelperAttribute',
-            ];
-            const tokenModifiersLegend: string[] = [];
-
-            const legend = new vscode.SemanticTokensLegend(tokenTypes, tokenModifiersLegend);
-
             localRegistrations.push(
                 languageConfiguration.register(),
                 provisionalCompletionOrchestrator.register(),
@@ -171,15 +165,17 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 vscodeType.languages.registerRenameProvider(
                     RazorLanguage.id,
                     renameProvider),
-                vscodeType.languages.registerDocumentSemanticTokensProvider(
-                    RazorLanguage.id,
-                    semanticTokenProvider,
-                    legend),
                 documentManager.register(),
                 csharpFeature.register(),
                 htmlFeature.register(),
                 documentSynchronizer.register(),
                 reportIssueCommand.register());
+            if (legend) {
+                localRegistrations.push(vscodeType.languages.registerDocumentSemanticTokensProvider(
+                    RazorLanguage.id,
+                    semanticTokenProvider,
+                    legend));
+            }
 
             razorFormattingFeature.register();
         });

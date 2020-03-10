@@ -6,20 +6,18 @@ using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    public class SemanticTokenLegend
+    public static class SemanticTokenLegend
     {
         public const string RazorTagHelperElement = "razorTagHelperElement";
         public const string RazorTagHelperAttribute = "razorTagHelperAttribute";
-        private static readonly string[] _tokenTypes = new string[] {
+        private static readonly IReadOnlyCollection<string> _tokenTypes = new string[] {
             RazorTagHelperElement,
             RazorTagHelperAttribute,
         };
 
-        private static readonly string[] _tokenModifiers = new string[] {
-            "static", "async"
-        };
+        private static readonly IReadOnlyCollection<string> _tokenModifiers = new string[] { };
 
-        public IDictionary<string, int> TokenTypesLegend
+        public static IReadOnlyDictionary<string, int> TokenTypesLegend
         {
             get
             {
@@ -27,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
         }
 
-        public IDictionary<string, int> TokenModifiersLegend
+        public static IReadOnlyDictionary<string, int> TokenModifiersLegend
         {
             get
             {
@@ -35,7 +33,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
         }
 
-        private static IDictionary<string, int> GetMap(IEnumerable<string> tokens)
+        public static SemanticTokenLegendResponse GetResponse()
+        {
+            return new SemanticTokenLegendResponse
+            {
+                TokenModifiers = _tokenModifiers,
+                TokenTypes = _tokenTypes
+            };
+        }
+
+        private static IReadOnlyDictionary<string, int> GetMap(IReadOnlyCollection<string> tokens)
         {
             var result = new Dictionary<string, int>();
             for (var i = 0; i < tokens.Count(); i++)
