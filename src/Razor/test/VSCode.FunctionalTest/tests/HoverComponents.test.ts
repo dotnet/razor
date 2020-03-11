@@ -12,6 +12,14 @@ import { componentRoot } from './TestUtil';
 let cshtmlDoc: vscode.TextDocument;
 let editor: vscode.TextEditor;
 
+function RangeToStr(range: vscode.Range | undefined): string {
+    if (range) {
+        return `${range.start.line}:${range.start.character} to ${range.end.line}:${range.end.character}`;
+    } else {
+        return 'undefined';
+    }
+}
+
 suite('Hover Components', () => {
     beforeEach(async () => {
         const filePath = path.join(componentRoot, 'Components', 'Shared', 'MainLayout.razor');
@@ -43,7 +51,7 @@ suite('Hover Components', () => {
         const expectedRange = new vscode.Range(
             new vscode.Position(1, 31),
             new vscode.Position(1, 58));
-        assert.deepEqual(hoverResult[0].range, expectedRange, `Directive range should be @onclick: ${expectedRange} but was ${hoverResult[0].range}`);
+        assert.deepEqual(hoverResult[0].range, expectedRange, `Directive range should be @onclick: ${RangeToStr(expectedRange)} but was ${RangeToStr(hoverResult[0].range)}`);
         const mStr = onClickResult.contents[0] as vscode.MarkdownString;
         assert.ok(mStr.value.includes('EventHandlers.**onclick**'), `**onClick** not included in '${mStr.value}'`);
     });
