@@ -16,7 +16,29 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvider
     {
         private static readonly IReadOnlyCollection<string> ElementCommitCharacters = new HashSet<string>{">"};
+
         private readonly HtmlFactsService _htmlFactsService;
+
+        private static RazorCompletionItem _markupTransitionCompletionItem;
+        public static RazorCompletionItem MarkupTransitionCompletionItem
+        {
+            get
+            {
+                if (_markupTransitionCompletionItem == null)
+                {
+                    var completionDisplayText = SyntaxConstants.TextTagName;
+                    _markupTransitionCompletionItem = new RazorCompletionItem(
+                        completionDisplayText,
+                        completionDisplayText,
+                        RazorCompletionItemKind.MarkupTransition,
+                        ElementCommitCharacters);
+                    var completionDescription = new MarkupTransitionCompletionDescription(CSharpCodeParser.AddMarkupTransitionDescriptor);
+                    _markupTransitionCompletionItem.SetMarkupTransitionCompletionDescription(completionDescription);
+                }
+
+                return _markupTransitionCompletionItem;
+            }
+        }
 
         public MarkupTransitionCompletionItemProvider(HtmlFactsService htmlFactsService)
         {
@@ -56,17 +78,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return Array.Empty<RazorCompletionItem>();
             }
 
-            var completions = new List<RazorCompletionItem>();
-            var completionDisplayText = SyntaxConstants.TextTagName;
-            var completionItem = new RazorCompletionItem(
-                completionDisplayText,
-                completionDisplayText,
-                RazorCompletionItemKind.MarkupTransition,
-                ElementCommitCharacters);
-            var completionDescription = new MarkupTransitionCompletionDescription(CSharpCodeParser.AddMarkupTransitionDescriptor);
-            completionItem.SetMarkupTransitionCompletionDescription(completionDescription);
-            completions.Add(completionItem);
-
+            var completions = new List<RazorCompletionItem>() { MarkupTransitionCompletionItem };
             return completions;
         }
 
