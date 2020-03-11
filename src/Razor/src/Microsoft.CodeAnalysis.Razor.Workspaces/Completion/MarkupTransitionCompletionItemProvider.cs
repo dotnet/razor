@@ -34,11 +34,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 throw new ArgumentNullException(nameof(syntaxTree));
             }
 
-            if (tagHelperDocumentContext is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelperDocumentContext));
-            }
-
             var change = new SourceChange(location, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);
 
@@ -61,22 +56,20 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             }
 
             var completions = new List<RazorCompletionItem>();
-            if (SyntaxConstants.TextTagName.StartsWith(containingTagNameToken.Content, StringComparison.OrdinalIgnoreCase))
-            {
-                var completionDisplayText = SyntaxConstants.TextTagName;
-                var completionItem = new RazorCompletionItem(
-                    completionDisplayText,
-                    completionDisplayText,
-                    RazorCompletionItemKind.MarkupTransition,
-                    ElementCommitCharacters);
-                var completionDescription = new MarkupTransitionCompletionDescription(CSharpCodeParser.AddMarkupTransitionDescriptor);
-                completionItem.SetMarkupTransitionCompletionDescription(completionDescription);
-                completions.Add(completionItem);
-            }
+            var completionDisplayText = SyntaxConstants.TextTagName;
+            var completionItem = new RazorCompletionItem(
+                completionDisplayText,
+                completionDisplayText,
+                RazorCompletionItemKind.MarkupTransition,
+                ElementCommitCharacters);
+            var completionDescription = new MarkupTransitionCompletionDescription(CSharpCodeParser.AddMarkupTransitionDescriptor);
+            completionItem.SetMarkupTransitionCompletionDescription(completionDescription);
+            completions.Add(completionItem);
 
             return completions;
         }
 
+        // Internal for testing
         internal static bool AtMarkupTransitionCompletionPoint(RazorSyntaxNode owner)
         {
             // Only provide IntelliSense for C# code blocks, of the form:
