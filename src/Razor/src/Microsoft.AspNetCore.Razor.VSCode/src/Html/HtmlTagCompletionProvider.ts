@@ -162,6 +162,6 @@ export class HtmlTagCompletionProvider {
     }
 
     private atMarkupTransition(documentContent: string, changeOffset: number): boolean {
-        return documentContent.substring(changeOffset - 'text'.length, changeOffset) === 'text';
+        return documentContent.substring(changeOffset - '<text'.length, changeOffset) === '<text';
     }
 }
