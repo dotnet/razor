@@ -112,8 +112,14 @@ suite('Hover 2.2', () => {
         }
 
         assert.equal(hoverResult.length, 2, 'Something else may be providing hover results');
+        const envResult = hoverResult.find((hover, index, obj) => {
+            return (hover.contents[0] as vscode.MarkdownString).value.includes('InputTagHelper');
+        });
 
-        let envResult = hoverResult[0];
+        if (!envResult) {
+            assert.fail('Should have found a TagHelper');
+        }
+
         let expectedRange = new vscode.Range(
             new vscode.Position(0, 1),
             new vscode.Position(0, 6));

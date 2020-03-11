@@ -43,7 +43,7 @@ suite('Hover Components', () => {
         const expectedRange = new vscode.Range(
             new vscode.Position(1, 31),
             new vscode.Position(1, 58));
-        assert.deepEqual(hoverResult[0].range, expectedRange, 'Directive range should be @onclick');
+        assert.deepEqual(hoverResult[0].range, expectedRange, `Directive range should be @onclick: ${expectedRange} but was ${hoverResult[0].range}`);
         const mStr = onClickResult.contents[0] as vscode.MarkdownString;
         assert.ok(mStr.value.includes('EventHandlers.**onclick**'), `**onClick** not included in '${mStr.value}'`);
     });
