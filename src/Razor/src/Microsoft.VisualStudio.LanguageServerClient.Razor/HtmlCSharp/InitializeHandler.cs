@@ -16,7 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             Capabilities = new ServerCapabilities
             {
-                // Placeholder until more capabilities are enabled
+                CompletionProvider = new CompletionOptions()
+                {
+                    AllCommitCharacters = new[] { " ", ".", ";", ">", "=" },
+                    ResolveProvider = false,
+                    TriggerCharacters = new[] { ".", "<", "@" }
+                },
             }
         };
 

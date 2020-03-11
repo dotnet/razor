@@ -5,7 +5,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorLanguageQueryResponse
+    public class RazorLanguageQueryResponse
     {
         public RazorLanguageKind Kind { get; set; }
 

@@ -23,6 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var nonRazorLSPContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType(It.IsAny<string>()) == false);
             NonRazorLSPBuffer = Mock.Of<ITextBuffer>(textBuffer => textBuffer.ContentType == nonRazorLSPContentType);
+
+            TextDocumentFactoryService = Mock.Of<ITextDocumentFactoryService>();
         }
 
         private ITextBuffer NonRazorLSPBuffer { get; }
@@ -33,13 +35,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private ITextBufferFactoryService TextBufferFactory { get; }
 
+        private ITextDocumentFactoryService TextDocumentFactoryService { get; }
+
         [Fact]
         public void TryCreateFor_NonRazorLSPBuffer_ReturnsFalse()
         {
             // Arrange
             var uri = new Uri("C:/path/to/file.razor");
             var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(It.IsAny<ITextBuffer>()) == uri);
-            var factory = new CSharpVirtualDocumentFactory(ContentTypeRegistry, TextBufferFactory, uriProvider);
+            var factory = new CSharpVirtualDocumentFactory(ContentTypeRegistry, TextBufferFactory, TextDocumentFactoryService, uriProvider);
 
             // Act
             var result = factory.TryCreateFor(NonRazorLSPBuffer, out var virtualDocument);
@@ -55,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Arrange
             var uri = new Uri("C:/path/to/file.razor");
             var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(RazorLSPBuffer) == uri);
-            var factory = new CSharpVirtualDocumentFactory(ContentTypeRegistry, TextBufferFactory, uriProvider);
+            var factory = new CSharpVirtualDocumentFactory(ContentTypeRegistry, TextBufferFactory, TextDocumentFactoryService, uriProvider);
 
             // Act
             var result = factory.TryCreateFor(RazorLSPBuffer, out var virtualDocument);

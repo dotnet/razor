@@ -17,7 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private readonly JsonRpc _jsonRpc;
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
-        private VSClientCapabilities _clientCapabilities;
 
         public RazorHtmlCSharpLanguageServer(
             Stream inputStream,
@@ -60,9 +59,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
-            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
+            var clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
             var initializeParams = input.ToObject<InitializeParams>();
-            return ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, initializeParams, _clientCapabilities, cancellationToken);
+            return ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, initializeParams, clientCapabilities, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentCompletionName)]
+        public Task<SumType<CompletionItem[], CompletionList>?> ProvideCompletionsAsync(JToken input, CancellationToken cancellationToken)
+        {
+            if (input is null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
+            var clientCapabilities = new VSClientCapabilities();
+            var completionParams = input.ToObject<CompletionParams>();
+            return ExecuteRequestAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(Methods.TextDocumentCompletionName, completionParams, clientCapabilities, cancellationToken);
         }
 
         // Internal for testing

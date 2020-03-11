@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private readonly IContentTypeRegistryService _contentTypeRegistry;
         private readonly ITextBufferFactoryService _textBufferFactory;
+        private readonly ITextDocumentFactoryService _textDocumentFactory;
         private readonly FileUriProvider _fileUriProvider;
         private IContentType _csharpLSPContentType;
 
@@ -26,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public CSharpVirtualDocumentFactory(
             IContentTypeRegistryService contentTypeRegistry,
             ITextBufferFactoryService textBufferFactory,
+            ITextDocumentFactoryService textDocumentFactory,
             FileUriProvider fileUriProvider)
         {
             if (contentTypeRegistry is null)
@@ -38,6 +41,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(textBufferFactory));
             }
 
+            if (textDocumentFactory is null)
+            {
+                throw new ArgumentNullException(nameof(textDocumentFactory));
+            }
+
             if (fileUriProvider is null)
             {
                 throw new ArgumentNullException(nameof(fileUriProvider));
@@ -45,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _contentTypeRegistry = contentTypeRegistry;
             _textBufferFactory = textBufferFactory;
+            _textDocumentFactory = textDocumentFactory;
             _fileUriProvider = fileUriProvider;
         }
 
@@ -82,6 +91,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var virtualCSharpUri = new Uri(virtualCSharpFilePath);
 
             var csharpBuffer = _textBufferFactory.CreateTextBuffer(CSharpLSPContentType);
+            csharpBuffer.Properties.AddProperty("ContainedLanguageMarker", true);
+            csharpBuffer.Properties.AddProperty(LanguageClientConstants.ClientNamePropertyKey, "RazorCSharp");
+
+            var textDocument = _textDocumentFactory.CreateTextDocument(csharpBuffer, virtualCSharpFilePath);
             virtualDocument = new CSharpVirtualDocument(virtualCSharpUri, csharpBuffer);
             return true;
         }
