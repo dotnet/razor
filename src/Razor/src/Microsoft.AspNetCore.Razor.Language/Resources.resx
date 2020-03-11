@@ -120,9 +120,6 @@
   <data name="AddTagHelperDirective_Description" xml:space="preserve">
     <value>Register Tag Helpers for use in the current document.</value>
   </data>
-  <data name="AddMarkupTransition_Description" xml:space="preserve">
-    <value>Create a inline HTML element without tags.</value>
-  </data>
   <data name="AddTagHelperDirective_StringToken_Description" xml:space="preserve">
     <value>Add tag helpers from the specified type name and assembly name. Specify '*' for the type name to include all tag helper types from the specified assembly.</value>
   </data>

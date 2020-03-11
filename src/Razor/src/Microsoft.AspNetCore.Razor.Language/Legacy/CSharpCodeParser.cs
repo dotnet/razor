@@ -37,8 +37,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                 builder.Description = Resources.RemoveTagHelperDirective_Description;
             });
 
-        internal static readonly String AddMarkupTransitionDescriptor = Resources.AddMarkupTransition_Description;
-
         internal static readonly DirectiveDescriptor TagHelperPrefixDirectiveDescriptor = DirectiveDescriptor.CreateDirective(
             SyntaxConstants.CSharp.TagHelperPrefixKeyword,
             DirectiveKind.SingleLine,

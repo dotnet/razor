@@ -5,10 +5,18 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
-    internal class DirectiveCompletionDescription : BaseCompletionDescription
+    internal class DirectiveCompletionDescription : CompletionDescription
     {
-        public DirectiveCompletionDescription(string description) : base(description)
+        public override string Description { get; }
+
+        public DirectiveCompletionDescription(string description)
         {
+            if (description == null)
+            {
+                throw new ArgumentNullException(nameof(description));
+            }
+
+            Description = description;
         }
     }
 }

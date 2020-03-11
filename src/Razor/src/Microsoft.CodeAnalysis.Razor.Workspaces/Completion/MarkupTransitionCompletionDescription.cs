@@ -5,10 +5,18 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
-    internal class MarkupTransitionCompletionDescription : BaseCompletionDescription
+    internal class MarkupTransitionCompletionDescription : CompletionDescription
     {
-        public MarkupTransitionCompletionDescription(string description) : base(description)
+        public override string Description { get; }
+
+        public MarkupTransitionCompletionDescription(string description)
         {
+            if (description == null)
+            {
+                throw new ArgumentNullException(nameof(description));
+            }
+
+            Description = description;
         }
     }
 }

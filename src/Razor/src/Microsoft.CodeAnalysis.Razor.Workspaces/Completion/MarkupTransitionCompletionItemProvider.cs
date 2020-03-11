@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                         completionDisplayText,
                         RazorCompletionItemKind.MarkupTransition,
                         ElementCommitCharacters);
-                    var completionDescription = new MarkupTransitionCompletionDescription(CSharpCodeParser.AddMarkupTransitionDescriptor);
+                    var completionDescription = new MarkupTransitionCompletionDescription(Resources.MarkupTransition_Description());
                     _markupTransitionCompletionItem.SetMarkupTransitionCompletionDescription(completionDescription);
                 }
 
@@ -89,9 +89,23 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // @{ }, @code{ }, @functions{ }, @if(true){ }
             var closestSignificantAncestor = owner.Ancestors().FirstOrDefault(node =>
             {
-                return (node is MarkupElementSyntax markupNode && markupNode.ChildNodes().Count != 1) ||
-                        node is MarkupMinimizedAttributeBlockSyntax || // Accounts for improper markup tags ex. `< te`
-                        node is CSharpCodeBlockSyntax;
+                if (node is MarkupElementSyntax markupNode && markupNode.ChildNodes().Count != 1)
+                {
+                    return true;
+                }
+
+                if (node is MarkupMinimizedAttributeBlockSyntax)
+                {
+                    // Accounts for improper markup tags ex. `< te`
+                    return true;
+                }
+
+                if (node is CSharpCodeBlockSyntax)
+                {
+                    return true;
+                }
+
+                return false;
             });
             return closestSignificantAncestor is CSharpCodeBlockSyntax;
         }
