@@ -355,28 +355,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         }
 
         /// <summary>
-        /// Determines the closest ancestor language for markup transition autocompletion.
-        /// MarkupElementSyntax with a single child is ignored as it would refer to the text
-        /// node itself.
-        /// </summary>
-        public SyntaxNode FirstAncestorLanguageForMarkupTransition()
-        {
-            for (var node = this; node != null; node = node.Parent)
-            {
-                if (node is MarkupElementSyntax markupNode && markupNode.ChildNodes().Count != 1)
-                {
-                    return markupNode;
-                }
-                else if (node is CSharpCodeBlockSyntax csharpNode)
-                {
-                    return csharpNode;
-                }
-            }
-
-            return default;
-        }
-
-        /// <summary>
         /// Gets a list of descendant nodes in prefix document order.
         /// </summary>
         /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>

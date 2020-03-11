@@ -2,8 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -74,9 +75,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             // Only provide IntelliSense for C# code blocks, of the form:
             // @{ }, @code{ }, @functions{ }, @if(true){ }
-            var closestBlockLanguage = owner.FirstAncestorLanguageForMarkupTransition();
-
-            return closestBlockLanguage is CSharpCodeBlockSyntax;
+            var closestSignificantAncestor = owner.Ancestors().FirstOrDefault(node =>
+            {
+                return (node is MarkupElementSyntax markupNode && markupNode.ChildNodes().Count != 1) ||
+                        node is MarkupMinimizedAttributeBlockSyntax || // Accounts for improper markup tags ex. `< te`
+                        node is CSharpCodeBlockSyntax;
+            });
+            return closestSignificantAncestor is CSharpCodeBlockSyntax;
         }
     }
 }
