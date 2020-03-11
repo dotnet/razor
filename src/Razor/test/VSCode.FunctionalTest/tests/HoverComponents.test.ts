@@ -6,6 +6,7 @@
 import * as assert from 'assert';
 import { beforeEach } from 'mocha';
 import * as path from 'path';
+import { error } from 'util';
 import * as vscode from 'vscode';
 import { componentRoot } from './TestUtil';
 
@@ -47,11 +48,18 @@ suite('Hover Components', () => {
 
         assert.ok(hoverResult.length > 0, 'Should have atleast one result.');
 
-        const onClickResult = hoverResult[0];
+        const onClickResult = hoverResult.find(hover => (hover.contents[0] as vscode.MarkdownString).value.includes('EventCallback'));
+        if (!onClickResult) {
+            assert.fail('No eventhandler result was found');
+            throw error();
+        }
         const expectedRange = new vscode.Range(
-            new vscode.Position(1, 31),
-            new vscode.Position(1, 58));
-        assert.deepEqual(hoverResult[0].range, expectedRange, `Directive range should be @onclick: ${RangeToStr(expectedRange)} but was ${RangeToStr(hoverResult[0].range)}`);
+            new vscode.Position(1, 32),
+            new vscode.Position(1, 40));
+        const rangeContent = counterDoc.getText(onClickResult.range);
+
+        assert.equal(rangeContent, '@onclick');
+        assert.deepEqual(onClickResult.range, expectedRange, `Directive range should be @onclick: ${RangeToStr(expectedRange)} but was ${rangeContent}: ${RangeToStr(onClickResult.range)}`);
         const mStr = onClickResult.contents[0] as vscode.MarkdownString;
         assert.ok(mStr.value.includes('EventHandlers.**onclick**'), `**onClick** not included in '${mStr.value}'`);
     });

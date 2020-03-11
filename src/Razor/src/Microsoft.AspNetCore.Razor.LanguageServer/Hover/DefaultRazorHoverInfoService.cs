@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
@@ -98,6 +97,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
                     var range = containingTagNameToken.GetRange(codeDocument.Source);
 
+                    if (containingTagNameToken.Parent.Kind == SyntaxKind.MarkupTagHelperDirectiveAttribute ||
+                       containingTagNameToken.Parent.Kind == SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute)
+                    {
+                        // Include the '@' in the range
+                        range.Start.Character -= 1;
+                    }
+
                     var result = ElementInfoToHover(binding.Descriptors, range);
                     return result;
                 }
@@ -108,7 +114,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             {
                 // Hovering over HTML attribute name
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
-
 
                 var binding = _tagHelperFactsService.GetTagHelperBinding(
                     tagHelperDocumentContext,
@@ -128,15 +133,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                     var tagHelperAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(tagHelperDocumentContext, selectedAttributeName, binding);
 
                     var attribute = attributes.Single(a => a.Span.IntersectsWith(location.AbsoluteIndex));
-                    if(attribute is MarkupTagHelperAttributeSyntax thAttributeSyntax)
+                    if (attribute is MarkupTagHelperAttributeSyntax thAttributeSyntax)
                     {
                         attribute = thAttributeSyntax.Name;
                     }
-                    else if(attribute is MarkupMinimizedTagHelperAttributeSyntax thMinimizedAttribute)
+                    else if (attribute is MarkupMinimizedTagHelperAttributeSyntax thMinimizedAttribute)
                     {
                         attribute = thMinimizedAttribute.Name;
                     }
+                    else if (attribute is MarkupTagHelperDirectiveAttributeSyntax directiveAttribute)
+                    {
+                        attribute = directiveAttribute.Name;
+                    }
+                    else if (attribute is MarkupMinimizedTagHelperDirectiveAttributeSyntax miniDirectiveAttribute)
+                    {
+                        attribute = miniDirectiveAttribute;
+                    }
+
                     var range = attribute.GetRange(codeDocument.Source);
+
+                    if (attribute.Parent.Kind == SyntaxKind.MarkupTagHelperDirectiveAttribute ||
+                       attribute.Parent.Kind == SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute)
+                    {
+                        // Include the '@' in the range
+                        range.Start.Character -= 1;
+                    }
+
                     var attributeHoverModel = AttributeInfoToHover(tagHelperAttributes, range);
 
                     return attributeHoverModel;
