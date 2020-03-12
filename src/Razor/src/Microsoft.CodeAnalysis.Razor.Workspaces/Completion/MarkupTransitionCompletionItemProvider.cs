@@ -72,6 +72,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             }
 
             var parent = owner.Parent;
+
+            // Also helps filter out edge cases like `< te` and `< te=""`
+            // (see comment in AtMarkupTransitionCompletionPoint)
             if (!_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) ||
                 !containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
             {
@@ -85,8 +88,16 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         // Internal for testing
         internal static bool AtMarkupTransitionCompletionPoint(RazorSyntaxNode owner)
         {
-            // Only provide IntelliSense for C# code blocks, of the form:
-            // @{ }, @code{ }, @functions{ }, @if(true){ }
+            /* Only provide IntelliSense for C# code blocks, of the form:
+                @{ }, @code{ }, @functions{ }, @if(true){ }
+
+               Note for the `< te` and `< te=""` cases:
+               The cases are not handled by AtMarkupTransitionCompletionPoint but
+               rather by the HtmlFactsService which purposely prohibits the completion
+               when it's unable to extract the tag contents. This ensures we aren't
+               providing incorrect completion in the above two syntactically invalid
+               scenarios.
+            */
             var closestSignificantAncestor = owner.Ancestors().FirstOrDefault(node =>
             {
                 if (node is MarkupElementSyntax markupNode && markupNode.ChildNodes().Count != 1)
