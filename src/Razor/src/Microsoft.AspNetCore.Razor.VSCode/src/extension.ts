@@ -40,7 +40,7 @@ import { TelemetryReporter } from './TelemetryReporter';
 
 // We specifically need to take a reference to a particular instance of the vscode namespace,
 // otherwise providers attempt to operate on the null extension.
-export async function activate(vscodeType: typeof vscodeapi, context: ExtensionContext, languageServerDir: string, eventStream: HostEventStream) {
+export async function activate(vscodeType: typeof vscodeapi, context: ExtensionContext, languageServerDir: string, eventStream: HostEventStream, enableProposedApis = false) {
     const telemetryReporter = new TelemetryReporter(eventStream);
     const eventEmitterFactory: IEventEmitterFactory = {
         create: <T>() => new vscode.EventEmitter<T>(),
@@ -170,7 +170,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 htmlFeature.register(),
                 documentSynchronizer.register(),
                 reportIssueCommand.register());
-            if (legend) {
+            if (legend && enableProposedApis) {
                 localRegistrations.push(vscodeType.languages.registerDocumentSemanticTokensProvider(
                     RazorLanguage.id,
                     semanticTokenProvider,

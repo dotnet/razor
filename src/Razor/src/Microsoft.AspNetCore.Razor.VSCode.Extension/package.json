@@ -61,11 +61,11 @@
             "selector": "razorTagHelperElement",
             "scope": [ "razor.taghelpers.element" ],
             "light": {
-              "foreground": "#eb9834",
+              "foreground": "#800080",
               "fontStyle": "bold"
             },
             "dark": {
-              "foreground": "#eb9834",
+              "foreground": "#009696",
               "fontStyle": "bold"
             }
           },
@@ -73,11 +73,11 @@
             "selector": "razorTagHelperAttribute",
             "scope": [ "razor.taghelpers.attribute"],
             "light": {
-              "foreground": "#eb34d9",
+              "foreground": "#800080",
               "fontStyle": "bold"
             },
             "dark": {
-              "foreground": "#eb34d9",
+              "foreground": "#009696",
               "fontStyle": "bold"
             }
           }
