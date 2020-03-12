@@ -15,6 +15,7 @@ import { reportTelemetryForDocuments } from './DocumentTelemetryListener';
 import { HostEventStream } from './HostEventStream';
 import { RazorHtmlFeature } from './Html/RazorHtmlFeature';
 import { IEventEmitterFactory } from './IEventEmitterFactory';
+import { ProposedApisFeature } from './ProposedApisFeature';
 import { ProvisionalCompletionOrchestrator } from './ProvisionalCompletionOrchestrator';
 import { RazorCodeLensProvider } from './RazorCodeLensProvider';
 import { RazorCompletionItemProvider } from './RazorCompletionItemProvider';
@@ -35,7 +36,6 @@ import { RazorLogger } from './RazorLogger';
 import { RazorReferenceProvider } from './RazorReferenceProvider';
 import { RazorRenameProvider } from './RazorRenameProvider';
 import { RazorSignatureHelpProvider } from './RazorSignatureHelpProvider';
-import { RazorDocumentSemanticTokensProvider } from './Semantic/RazorDocumentSemanticTokensProvider';
 import { TelemetryReporter } from './TelemetryReporter';
 
 // We specifically need to take a reference to a particular instance of the vscode namespace,
@@ -220,32 +220,5 @@ async function startLanguageServer(
         context.subscriptions.push(razorFileCreatedRegistration, razorFileOpenedRegistration);
     } else {
         await languageServerClient.start();
-    }
-}
-
-class ProposedApisFeature {
-    constructor(
-        private documentSynchronizer: RazorDocumentSynchronizer,
-        private documentManager: RazorDocumentManager,
-        private languageServiceClient: RazorLanguageServiceClient,
-        private logger: RazorLogger,
-    ) {
-    }
-
-    public async register(vscodeType: typeof vscodeapi, localRegistrations: vscode.Disposable[]) {
-        const legend = await this.languageServiceClient.getSemanticTokenLegend();
-        const semanticTokenProvider = new RazorDocumentSemanticTokensProvider(
-            this.documentSynchronizer,
-            this.documentManager,
-            this.languageServiceClient,
-            this.logger);
-
-        if (legend) {
-            localRegistrations.push(vscodeType.languages.registerDocumentSemanticTokensProvider(
-                RazorLanguage.id,
-                semanticTokenProvider,
-                legend));
-        }
-
     }
 }
