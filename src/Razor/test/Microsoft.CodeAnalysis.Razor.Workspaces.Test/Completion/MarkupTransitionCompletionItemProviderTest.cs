@@ -224,6 +224,34 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         }
 
         [Fact]
+        public void GetCompletionItems_ReturnsEmptyCompletionItemWithSpaceAfterStartTag()
+        {
+            // Arrange
+            var syntaxTree = CreateSyntaxTree("@{< ");
+            var location = new SourceSpan(4, 0);
+
+            // Act
+            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+
+            // Assert
+            Assert.Empty(completionItems);
+        }
+
+        [Fact]
+        public void GetCompletionItems_ReturnsEmptyCompletionItemWithSpaceAfterStartTagAndAttribute()
+        {
+            // Arrange
+            var syntaxTree = CreateSyntaxTree("@{< te=\"\"");
+            var location = new SourceSpan(6, 0);
+
+            // Act
+            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+
+            // Assert
+            Assert.Empty(completionItems);
+        }
+
+        [Fact]
         public void GetCompletionItems_ReturnsEmptyCompletionItemWhenInsideAttributeArea()
         {
             // Arrange
