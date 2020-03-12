@@ -94,12 +94,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                     return true;
                 }
 
-                if (node is MarkupMinimizedAttributeBlockSyntax)
-                {
-                    // Accounts for improper markup tags ex. `< te`
-                    return true;
-                }
-
                 if (node is CSharpCodeBlockSyntax)
                 {
                     return true;
