@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                         completionDisplayText,
                         RazorCompletionItemKind.MarkupTransition,
                         ElementCommitCharacters);
-                    var completionDescription = new MarkupTransitionCompletionDescription(Resources.MarkupTransition_Description());
+                    var completionDescription = new MarkupTransitionCompletionDescription(Resources.MarkupTransition_Description);
                     _markupTransitionCompletionItem.SetMarkupTransitionCompletionDescription(completionDescription);
                 }
 
