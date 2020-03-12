@@ -97,13 +97,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
                     var range = containingTagNameToken.GetRange(codeDocument.Source);
 
-                    if (containingTagNameToken.Parent.Kind == SyntaxKind.MarkupTagHelperDirectiveAttribute ||
-                       containingTagNameToken.Parent.Kind == SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute)
-                    {
-                        // Include the '@' in the range
-                        range.Start.Character -= 1;
-                    }
-
                     var result = ElementInfoToHover(binding.Descriptors, range);
                     return result;
                 }
@@ -152,11 +145,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
                     var range = attribute.GetRange(codeDocument.Source);
 
-                    if (attribute.Parent.Kind == SyntaxKind.MarkupTagHelperDirectiveAttribute ||
-                       attribute.Parent.Kind == SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute)
+                    // Include the @ in the range
+                    switch (attribute.Parent.Kind)
                     {
-                        // Include the '@' in the range
-                        range.Start.Character -= 1;
+                        case SyntaxKind.MarkupTagHelperDirectiveAttribute:
+                            var directiveAttribute = attribute.Parent as MarkupTagHelperDirectiveAttributeSyntax;
+                            range.Start.Character -= directiveAttribute.Transition.FullWidth;
+                            break;
+                        case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
+                            var minimizedAttribute = containingTagNameToken.Parent as MarkupMinimizedTagHelperDirectiveAttributeSyntax;
+                            range.Start.Character -= minimizedAttribute.Transition.FullWidth;
+                            break;
                     }
 
                     var attributeHoverModel = AttributeInfoToHover(tagHelperAttributes, range);
