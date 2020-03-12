@@ -71,8 +71,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
         const razorFormattingFeature = new RazorFormattingFeature(languageServerClient, documentManager, logger);
 
         const onStartRegistration = languageServerClient.onStart(async () => {
-            const legend = await languageServiceClient.getSemanticTokenLegend();
-
             vscodeType.commands.executeCommand<void>('omnisharp.registerLanguageMiddleware', razorLanguageMiddleware);
             const documentSynchronizer = new RazorDocumentSynchronizer(documentManager, logger);
             const provisionalCompletionOrchestrator = new ProvisionalCompletionOrchestrator(
@@ -127,11 +125,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 documentManager,
                 languageServiceClient,
                 logger);
-            const semanticTokenProvider = new RazorDocumentSemanticTokensProvider(
-                documentSynchronizer,
-                documentManager,
-                languageServiceClient,
-                logger);
 
             localRegistrations.push(
                 languageConfiguration.register(),
@@ -170,11 +163,14 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 htmlFeature.register(),
                 documentSynchronizer.register(),
                 reportIssueCommand.register());
-            if (legend && enableProposedApis) {
-                localRegistrations.push(vscodeType.languages.registerDocumentSemanticTokensProvider(
-                    RazorLanguage.id,
-                    semanticTokenProvider,
-                    legend));
+            if (enableProposedApis) {
+                const proposedApisFeature = new ProposedApisFeature(
+                    documentSynchronizer,
+                    documentManager,
+                    languageServiceClient,
+                    logger);
+
+                await proposedApisFeature.register(vscodeType, localRegistrations);
             }
 
             razorFormattingFeature.register();
@@ -224,5 +220,32 @@ async function startLanguageServer(
         context.subscriptions.push(razorFileCreatedRegistration, razorFileOpenedRegistration);
     } else {
         await languageServerClient.start();
+    }
+}
+
+class ProposedApisFeature {
+    constructor(
+        private documentSynchronizer: RazorDocumentSynchronizer,
+        private documentManager: RazorDocumentManager,
+        private languageServiceClient: RazorLanguageServiceClient,
+        private logger: RazorLogger,
+    ) {
+    }
+
+    public async register(vscodeType: typeof vscodeapi, localRegistrations: vscode.Disposable[]) {
+        const legend = await this.languageServiceClient.getSemanticTokenLegend();
+        const semanticTokenProvider = new RazorDocumentSemanticTokensProvider(
+            this.documentSynchronizer,
+            this.documentManager,
+            this.languageServiceClient,
+            this.logger);
+
+        if (legend) {
+            localRegistrations.push(vscodeType.languages.registerDocumentSemanticTokensProvider(
+                RazorLanguage.id,
+                semanticTokenProvider,
+                legend));
+        }
+
     }
 }
