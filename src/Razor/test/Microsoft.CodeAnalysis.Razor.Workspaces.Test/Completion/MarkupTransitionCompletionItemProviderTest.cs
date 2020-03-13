@@ -151,13 +151,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         public void GetCompletionItems_ReturnsEmptyCompletionItemInNestedCSharpBlock()
         {
             // Arrange
-            var syntaxTree = CreateSyntaxTree(@"<div>
-@if (true)
-{
-  < @* Should get text completion here *@
-}
-</div>");
-            var location = new SourceSpan(22, 0);
+            var syntaxTree = CreateSyntaxTree("<div>@if (true){< @* Should get text completion here *@}</div>");
+            var location = new SourceSpan(17, 0);
 
             // Act
             var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
