@@ -15,10 +15,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class DefaultRazorSemanticTokenInfoService : RazorSemanticTokenInfoService
     {
-        private readonly TagHelperFactsService _tagHelperFactsService;
-        public DefaultRazorSemanticTokenInfoService(TagHelperFactsService tagHelperFactsService)
+        public DefaultRazorSemanticTokenInfoService()
         {
-            _tagHelperFactsService = tagHelperFactsService;
         }
 
         public override SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, SourceLocation? location = null)
@@ -28,14 +26,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(codeDocument));
             }
 
-            var syntaxNodes = VisitAllNodes(codeDocument, _tagHelperFactsService);
+            var syntaxNodes = VisitAllNodes(codeDocument);
 
             var semanticTokens = ConvertSyntaxTokensToSemanticTokens(syntaxNodes, codeDocument);
 
             return semanticTokens;
         }
 
-        private static IEnumerable<(SyntaxNode, SyntaxKind)> VisitAllNodes(RazorCodeDocument razorCodeDocument, TagHelperFactsService tagHelperFactsService)
+        private static IEnumerable<(SyntaxNode, SyntaxKind)> VisitAllNodes(RazorCodeDocument razorCodeDocument)
         {
             var visitor = new TagHelperSpanVisitor();
             visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);

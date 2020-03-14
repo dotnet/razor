@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
         private RazorSemanticTokenInfoService GetDefaultRazorSemanticTokenInfoService()
         {
-            return new DefaultRazorSemanticTokenInfoService(TagHelperFactsService);
+            return new DefaultRazorSemanticTokenInfoService();
         }
     }
 }
