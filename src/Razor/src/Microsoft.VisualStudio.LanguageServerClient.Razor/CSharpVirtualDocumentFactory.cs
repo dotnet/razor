@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal const string CSharpLSPContentTypeName = "C#_LSP";
         internal const string VirtualCSharpFileNameSuffix = "__virtual.cs";
+        internal const string ContainedLanguageMarker = "ContainedLanguageMarker";
 
         private readonly IContentTypeRegistryService _contentTypeRegistry;
         private readonly ITextBufferFactoryService _textBufferFactory;
@@ -91,10 +92,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var virtualCSharpUri = new Uri(virtualCSharpFilePath);
 
             var csharpBuffer = _textBufferFactory.CreateTextBuffer(CSharpLSPContentType);
-            csharpBuffer.Properties.AddProperty("ContainedLanguageMarker", true);
+            csharpBuffer.Properties.AddProperty(ContainedLanguageMarker, true);
             csharpBuffer.Properties.AddProperty(LanguageClientConstants.ClientNamePropertyKey, "RazorCSharp");
 
-            var textDocument = _textDocumentFactory.CreateTextDocument(csharpBuffer, virtualCSharpFilePath);
+            // Create a text document to trigger the C# language server initialization.
+            _textDocumentFactory.CreateTextDocument(csharpBuffer, virtualCSharpFilePath);
+
             virtualDocument = new CSharpVirtualDocument(virtualCSharpUri, csharpBuffer);
             return true;
         }

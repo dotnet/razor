@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal const string HtmlLSPContentTypeName = "htmlyLSP";
         internal const string VirtualHtmlFileNameSuffix = "__virtual.html";
+        internal const string ContainedLanguageMarker = "ContainedLanguageMarker";
 
         private readonly IContentTypeRegistryService _contentTypeRegistry;
         private readonly ITextBufferFactoryService _textBufferFactory;
@@ -90,8 +91,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var virtualHtmlUri = new Uri(virtualHtmlFilePath);
 
             var htmlBuffer = _textBufferFactory.CreateTextBuffer(HtmlLSPContentType);
-            htmlBuffer.Properties.AddProperty("ContainedLanguageMarker", true);
+            htmlBuffer.Properties.AddProperty(ContainedLanguageMarker, true);
+
+            // Create a text document to trigger the Html language server initialization.
             _textDocumentFactory.CreateTextDocument(htmlBuffer, virtualHtmlFilePath);
+
             virtualDocument = new HtmlVirtualDocument(virtualHtmlUri, htmlBuffer);
             return true;
         }

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -15,12 +16,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : RazorLSPHandlerBase, IRequestHandler<CompletionParams, SumType<CompletionItem[], CompletionList>?>
     {
+        private static readonly string[] CSharpTriggerCharacters = new[] { ".", "@" };
+        private static readonly string[] HtmlTriggerCharacters = new[] { "<", "&", "\\", "/", "'", "\"", "=", ":" };
+
         [ImportingConstructor]
         public CompletionHandler(
             JoinableTaskContext joinableTaskContext,
             ILanguageClientBroker languageClientBroker,
             LSPDocumentManager documentManager,
-            LSPDocumentSynchronizer documentSynchronizer) : base(joinableTaskContext, languageClientBroker, documentManager, documentSynchronizer)
+            LSPDocumentSynchronizer documentSynchronizer,
+            RazorLogger logger) : base(joinableTaskContext, languageClientBroker, documentManager, documentSynchronizer, logger)
         {
         }
 
@@ -33,9 +38,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
+            // Switch to a background thread.
+            await TaskScheduler.Default;
+
             var projectionResult = await GetProjectionAsync(documentSnapshot, request.Position, cancellationToken);
             if (projectionResult == null)
             {
+                return null;
+            }
+
+            if (request.Context.TriggerKind == CompletionTriggerKind.TriggerCharacter &&
+                !IsApplicableTriggerCharacter(request.Context.TriggerCharacter, projectionResult.LanguageKind))
+            {
+                // We were triggered but the trigger character doesn't make sense for the current cursor position. Bail.
                 return null;
             }
 
@@ -58,6 +73,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken);
 
             return result;
+        }
+
+        private bool IsApplicableTriggerCharacter(string triggerCharacter, RazorLanguageKind languageKind)
+        {
+            if (languageKind == RazorLanguageKind.CSharp)
+            {
+                return CSharpTriggerCharacters.Contains(triggerCharacter);
+            }
+            else if (languageKind == RazorLanguageKind.Html)
+            {
+                return HtmlTriggerCharacters.Contains(triggerCharacter);
+            }
+
+            // Unknown trigger character.
+            return false;
         }
     }
 }

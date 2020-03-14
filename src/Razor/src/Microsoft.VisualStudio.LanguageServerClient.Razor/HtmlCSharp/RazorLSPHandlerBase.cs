@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -21,7 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             JoinableTaskContext joinableTaskContext,
             ILanguageClientBroker languageClientBroker,
             LSPDocumentManager documentManager,
-            LSPDocumentSynchronizer documentSynchronizer)
+            LSPDocumentSynchronizer documentSynchronizer,
+            RazorLogger logger)
         {
             if (joinableTaskContext is null)
             {
@@ -43,10 +45,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentSynchronizer));
             }
 
+            if (logger is null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             JoinableTaskFactory = joinableTaskContext.Factory;
             LanguageClientBroker = languageClientBroker;
             DocumentManager = documentManager;
             DocumentSynchronizer = documentSynchronizer;
+            Logger = logger;
         }
 
         protected JoinableTaskFactory JoinableTaskFactory { get; }
@@ -56,6 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         protected LSPDocumentManager DocumentManager { get; }
 
         protected LSPDocumentSynchronizer DocumentSynchronizer { get; }
+
+        protected RazorLogger Logger { get; }
 
         protected virtual Task<TOut> RequestServerAsync<TIn, TOut>(
             ILanguageClientBroker languageClientBroker,
@@ -126,10 +136,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (languageResponse.HostDocumentVersion == UndefinedDocumentVersion)
             {
                 // There should always be a document version attached to an open document.
-                // TODO: Log it and move on as if it was synchronized.
+                // Log it and move on as if it was synchronized.
+                Logger.LogVerbose($"Could not find a document version associated with the document '{documentSnapshot.Uri}'");
             }
             else
             {
+                Debug.Assert(languageResponse.HostDocumentVersion == documentSnapshot.Version);
+
                 var synchronized = await DocumentSynchronizer.TrySynchronizeVirtualDocumentAsync(documentSnapshot, virtualDocument, cancellationToken);
                 if (!synchronized)
                 {

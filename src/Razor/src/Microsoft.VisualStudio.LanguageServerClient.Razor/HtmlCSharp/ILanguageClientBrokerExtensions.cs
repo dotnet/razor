@@ -20,6 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             TIn parameters,
             CancellationToken cancellationToken)
         {
+            // Ideally we want to call ILanguageServiceBroker2.RequestAsync directly but it is not referenced
+            // because the LanguageClient.Implementation assembly isn't published to a public feed.
+            // So for now, we invoke it using reflection. This will go away eventually.
             var type = languageClientBroker.GetType();
             var requestAsyncMethod = type.GetMethod(
                 "RequestAsync",
@@ -39,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var (client, resultToken) = await task;
 
-            var result = resultToken.ToObject<TOut>();
+            var result = resultToken != null ? resultToken.ToObject<TOut>() : default;
             return result;
 
             bool convertedCapabilitiesFilter(JToken token)

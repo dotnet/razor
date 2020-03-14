@@ -7,7 +7,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class RazorLanguageQueryParams : IRequest<RazorLanguageQueryResponse>
+    internal class RazorLanguageQueryParams : IRequest<RazorLanguageQueryResponse>
     {
         public Uri Uri { get; set; }
 
