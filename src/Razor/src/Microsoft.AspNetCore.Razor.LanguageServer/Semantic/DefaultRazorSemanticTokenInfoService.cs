@@ -208,7 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     var directiveAttribute = new SyntaxResult(node.Name, SyntaxKind.MarkupTagHelperDirectiveAttribute, _razorCodeDocument);
                     _syntaxNodes.Add(directiveAttribute);
 
-                    if (node.Colon != null && node.ParameterName != null)
+                    if (node.Colon != null)
                     {
                         var colon = new SyntaxResult(node.Colon, SyntaxKind.Colon, _razorCodeDocument);
                         _syntaxNodes.Add(colon);
@@ -234,7 +234,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     var directiveAttribute = new SyntaxResult(node.Name, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute, _razorCodeDocument);
                     _syntaxNodes.Add(directiveAttribute);
 
-                    if (node.Colon != null && node.ParameterName != null)
+                    if (node.Colon != null)
                     {
                         var colon = new SyntaxResult(node.Colon, SyntaxKind.Colon, _razorCodeDocument);
                         _syntaxNodes.Add(colon);
