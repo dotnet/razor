@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 
@@ -14,26 +13,54 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : RazorLSPHandlerBase, IRequestHandler<CompletionParams, SumType<CompletionItem[], CompletionList>?>
+    internal class CompletionHandler : IRequestHandler<CompletionParams, SumType<CompletionItem[], CompletionList>?>
     {
         private static readonly string[] CSharpTriggerCharacters = new[] { ".", "@" };
         private static readonly string[] HtmlTriggerCharacters = new[] { "<", "&", "\\", "/", "'", "\"", "=", ":" };
 
+        private readonly JoinableTaskFactory _joinableTaskFactory;
+        private readonly LSPRequestInvoker _requestInvoker;
+        private readonly LSPDocumentManager _documentManager;
+        private readonly LSPProjectionProvider _projectionProvider;
+
         [ImportingConstructor]
         public CompletionHandler(
             JoinableTaskContext joinableTaskContext,
-            ILanguageClientBroker languageClientBroker,
+            LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
-            LSPDocumentSynchronizer documentSynchronizer,
-            RazorLogger logger) : base(joinableTaskContext, languageClientBroker, documentManager, documentSynchronizer, logger)
+            LSPProjectionProvider projectionProvider)
         {
+            if (joinableTaskContext is null)
+            {
+                throw new System.ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (requestInvoker is null)
+            {
+                throw new System.ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentManager is null)
+            {
+                throw new System.ArgumentNullException(nameof(documentManager));
+            }
+
+            if (projectionProvider is null)
+            {
+                throw new System.ArgumentNullException(nameof(projectionProvider));
+            }
+
+            _joinableTaskFactory = joinableTaskContext.Factory;
+            _requestInvoker = requestInvoker;
+            _documentManager = documentManager;
+            _projectionProvider = projectionProvider;
         }
 
         public async Task<SumType<CompletionItem[], CompletionList>?> HandleRequestAsync(CompletionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            if (!DocumentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
+            if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
                 return null;
             }
@@ -41,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Switch to a background thread.
             await TaskScheduler.Default;
 
-            var projectionResult = await GetProjectionAsync(documentSnapshot, request.Position, cancellationToken);
+            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken);
             if (projectionResult == null)
             {
                 return null;
@@ -65,8 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             var serverKind = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? LanguageServerKind.CSharp : LanguageServerKind.Html;
-            var result = await RequestServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
-                LanguageClientBroker,
+            var result = await _requestInvoker.RequestServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                 Methods.TextDocumentCompletionName,
                 serverKind,
                 completionParams,
