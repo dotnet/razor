@@ -6,6 +6,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -26,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _languageClientBroker = languageClientBroker;
         }
 
-        public override Task<TOut> RequestServerAsync<TIn, TOut>(string method, LanguageServerKind serverKind, TIn parameters, CancellationToken cancellationToken)
+        public async override Task<TOut> RequestServerAsync<TIn, TOut>(string method, LanguageServerKind serverKind, TIn parameters, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(method))
             {
@@ -43,12 +44,37 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 contentType = HtmlVirtualDocumentFactory.HtmlLSPContentTypeName;
             }
 
-            return _languageClientBroker.RequestAsync<TIn, TOut>(
-                new[] { contentType },
-                cap => true,
-                method,
-                parameters,
-                cancellationToken);
+            // Ideally we want to call ILanguageServiceBroker2.RequestAsync directly but it is not referenced
+            // because the LanguageClient.Implementation assembly isn't published to a public feed.
+            // So for now, we invoke it using reflection. This will go away eventually.
+            var type = _languageClientBroker.GetType();
+            var requestAsyncMethod = type.GetMethod(
+                "RequestAsync",
+                new[]
+                {
+                    typeof(string[]),
+                    typeof(Func<JToken, bool>),
+                    typeof(string),
+                    typeof(JToken),
+                    typeof(CancellationToken)
+                });
+
+            var serializedParams = JToken.FromObject(parameters);
+            var task = (Task<(ILanguageClient, JToken)>)requestAsyncMethod.Invoke(
+                _languageClientBroker,
+                new object[]
+                {
+                    new[] { contentType },
+                    (Func<JToken, bool>)(token => true),
+                    method,
+                    serializedParams,
+                    cancellationToken
+                });
+
+            var (_, resultToken) = await task;
+
+            var result = resultToken != null ? resultToken.ToObject<TOut>() : default;
+            return result;
         }
     }
 }

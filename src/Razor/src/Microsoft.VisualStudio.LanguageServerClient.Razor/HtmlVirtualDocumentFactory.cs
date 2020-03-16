@@ -90,11 +90,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var virtualHtmlFilePath = hostDocumentUri.GetAbsoluteOrUNCPath() + VirtualHtmlFileNameSuffix;
             var virtualHtmlUri = new Uri(virtualHtmlFilePath);
 
-            var htmlBuffer = _textBufferFactory.CreateTextBuffer(HtmlLSPContentType);
+            var htmlBuffer = _textBufferFactory.CreateTextBuffer();
             htmlBuffer.Properties.AddProperty(ContainedLanguageMarker, true);
 
             // Create a text document to trigger the Html language server initialization.
             _textDocumentFactory.CreateTextDocument(htmlBuffer, virtualHtmlFilePath);
+
+            htmlBuffer.ChangeContentType(HtmlLSPContentType, editTag: null);
 
             virtualDocument = new HtmlVirtualDocument(virtualHtmlUri, htmlBuffer);
             return true;

@@ -3,7 +3,7 @@
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public abstract class RazorLogger
+    internal abstract class RazorLogger
     {
         public abstract void LogError(string message);
 
