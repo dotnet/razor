@@ -98,7 +98,7 @@
             "dark": {
               "foreground": "#C586C0"
             }
-          }
+          },
           {
             "selector": "razorTransition",
             "scope": [ "razor.transition"],

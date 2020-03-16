@@ -4,11 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.Editor.Razor;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -33,19 +34,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticTokens;
         }
 
-        private static IEnumerable<(SyntaxNode, SyntaxKind)> VisitAllNodes(RazorCodeDocument razorCodeDocument)
+        private static IReadOnlyList<SyntaxResult> VisitAllNodes(RazorCodeDocument razorCodeDocument)
         {
-            var visitor = new TagHelperSpanVisitor();
+            var visitor = new TagHelperSpanVisitor(razorCodeDocument);
             visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 
-            return visitor.TagHelperNodes;
+            return visitor.TagHelperData;
         }
 
         private static SemanticTokens ConvertSyntaxTokensToSemanticTokens(
-            IEnumerable<(SyntaxNode, SyntaxKind)> syntaxTokens,
+            IEnumerable<SyntaxResult> syntaxTokens,
             RazorCodeDocument razorCodeDocument)
         {
-            (SyntaxNode, SyntaxKind)? previousToken = null;
+            SyntaxResult? previousToken = null;
 
             var data = new List<uint>();
             foreach (var token in syntaxTokens)
@@ -71,12 +72,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
          *  - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
         **/
         private static IEnumerable<uint> GetData(
-            (SyntaxNode, SyntaxKind) currentNode,
-            (SyntaxNode, SyntaxKind)? previousNode,
+            SyntaxResult currentNode,
+            SyntaxResult? previousNode,
             RazorCodeDocument razorCodeDocument)
         {
-            var previousRange = previousNode?.Item1.GetRange(razorCodeDocument.Source);
-            var currentRange = currentNode.Item1.GetRange(razorCodeDocument.Source);
+            var previousRange = previousNode?.Range;
+            var currentRange = currentNode.Range;
 
             // deltaLine
             var previousLineIndex = previousNode == null ? 0 : previousRange.Start.Line;
@@ -89,15 +90,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
             else
             {
-                yield return (uint)(currentRange.Start.Character);
+                yield return (uint)currentRange.Start.Character;
             }
 
             // length
-            Debug.Assert(currentNode.Item1.Span.Length > 0);
-            yield return (uint)currentNode.Item1.Span.Length;
+            var endIndex= currentNode.Range.End.GetAbsoluteIndex(razorCodeDocument.GetSourceText());
+            var startIndex = currentNode.Range.Start.GetAbsoluteIndex(razorCodeDocument.GetSourceText());
+            var length = endIndex - startIndex;
+            Debug.Assert(length > 0);
+            yield return (uint)length;
 
             // tokenType
-            yield return GetTokenTypeData(currentNode.Item2);
+            yield return GetTokenTypeData(currentNode.Kind);
 
             // tokenModifiers
             // We don't currently have any need for tokenModifiers
@@ -126,31 +130,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
         }
 
-        private class TagHelperSpanVisitor : Language.Syntax.SyntaxWalker
+        private struct SyntaxResult
         {
-            private readonly List<(SyntaxNode, SyntaxKind)> _syntaxNodes;
+            public Range Range { get; set; }
+            public SyntaxKind Kind { get; set; }
 
-            public TagHelperSpanVisitor()
+            public SyntaxResult(SyntaxNode node, SyntaxKind kind, RazorCodeDocument razorCodeDocument)
             {
-                _syntaxNodes = new List<(SyntaxNode, SyntaxKind)>();
+                var range = node.GetRange(razorCodeDocument.Source);
+                Range = range;
+                Kind = kind;
+            }
+        }
+
+        private class TagHelperSpanVisitor : SyntaxWalker
+        {
+            private readonly List<SyntaxResult> _syntaxNodes;
+            private readonly RazorCodeDocument _razorCodeDocument;
+
+            public TagHelperSpanVisitor(RazorCodeDocument razorCodeDocument)
+            {
+                _syntaxNodes = new List<SyntaxResult>();
+                _razorCodeDocument = razorCodeDocument;
             }
 
-            public IReadOnlyList<(SyntaxNode, SyntaxKind)> TagHelperNodes => _syntaxNodes;
+            public IReadOnlyList<SyntaxResult> TagHelperData => _syntaxNodes;
 
             public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
             {
-                if (IsTagHelper((MarkupTagHelperElementSyntax)node.Parent))
+                if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
                 {
-                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupTagHelperStartTag));
+                    var result = new SyntaxResult(node.Name, SyntaxKind.MarkupTagHelperStartTag, _razorCodeDocument);
+                    _syntaxNodes.Add(result);
                 }
                 base.VisitMarkupTagHelperStartTag(node);
             }
 
             public override void VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
             {
-                if (IsTagHelper((MarkupTagHelperElementSyntax)node.Parent))
+                if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
                 {
-                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupTagHelperEndTag));
+                    var result = new SyntaxResult(node.Name, SyntaxKind.MarkupTagHelperEndTag, _razorCodeDocument);
+                    _syntaxNodes.Add(result);
                 }
                 base.VisitMarkupTagHelperEndTag(node);
             }
@@ -159,7 +180,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 if (node.TagHelperAttributeInfo.Bound)
                 {
-                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupMinimizedTagHelperAttribute));
+                    var result = new SyntaxResult(node.Name, SyntaxKind.MarkupMinimizedTagHelperAttribute, _razorCodeDocument);
+                    _syntaxNodes.Add(result);
                 }
 
                 base.VisitMarkupMinimizedTagHelperAttribute(node);
@@ -169,7 +191,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 if (node.TagHelperAttributeInfo.Bound)
                 {
-                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupTagHelperAttribute));
+                    var result = new SyntaxResult(node.Name, SyntaxKind.MarkupTagHelperAttribute, _razorCodeDocument);
+                    _syntaxNodes.Add(result);
                 }
 
                 base.VisitMarkupTagHelperAttribute(node);
@@ -179,13 +202,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 if (node.TagHelperAttributeInfo.Bound)
                 {
-                    _syntaxNodes.Add((node.Transition, SyntaxKind.Transition));
-                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupTagHelperDirectiveAttribute));
+                    var transition = new SyntaxResult(node.Transition, SyntaxKind.Transition, _razorCodeDocument);
+                    _syntaxNodes.Add(transition);
+
+                    var directiveAttribute = new SyntaxResult(node.Name, SyntaxKind.MarkupTagHelperDirectiveAttribute, _razorCodeDocument);
+                    _syntaxNodes.Add(directiveAttribute);
 
                     if (node.Colon != null && node.ParameterName != null)
                     {
-                        _syntaxNodes.Add((node.Colon, SyntaxKind.Colon));
-                        _syntaxNodes.Add((node.ParameterName, SyntaxKind.MarkupTagHelperDirectiveAttribute));
+                        var colon = new SyntaxResult(node.Colon, SyntaxKind.Colon, _razorCodeDocument);
+                        _syntaxNodes.Add(colon);
+                    }
+
+                    if (node.ParameterName != null)
+                    {
+                        var parameterName = new SyntaxResult(node.ParameterName, SyntaxKind.MarkupTagHelperDirectiveAttribute, _razorCodeDocument);
+                        _syntaxNodes.Add(parameterName);
                     }
                 }
 
@@ -196,35 +228,56 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 if (node.TagHelperAttributeInfo.Bound)
                 {
-                    _syntaxNodes.Add((node.Transition, SyntaxKind.Transition));
-                    _syntaxNodes.Add((node.Name, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute));
+                    var transition = new SyntaxResult(node.Transition, SyntaxKind.Transition, _razorCodeDocument);
+                    _syntaxNodes.Add(transition);
+
+                    var directiveAttribute = new SyntaxResult(node.Name, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute, _razorCodeDocument);
+                    _syntaxNodes.Add(directiveAttribute);
 
                     if (node.Colon != null && node.ParameterName != null)
                     {
-                        _syntaxNodes.Add((node.Colon, SyntaxKind.Colon));
-                        _syntaxNodes.Add((node.ParameterName, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute));
+                        var colon = new SyntaxResult(node.Colon, SyntaxKind.Colon, _razorCodeDocument);
+                        _syntaxNodes.Add(colon);
+                    }
+
+                    if (node.ParameterName != null)
+                    {
+                        var parameterName = new SyntaxResult(node.ParameterName, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute, _razorCodeDocument);
+                        _syntaxNodes.Add(parameterName);
                     }
                 }
 
                 base.VisitMarkupMinimizedTagHelperDirectiveAttribute(node);
             }
 
-            private bool IsTagHelper(MarkupTagHelperElementSyntax node)
+            private bool ClassifyTagName(MarkupTagHelperElementSyntax node)
             {
                 var name = node.StartTag.Name.Content;
-                if (IsHtmlTagName(name))
+
+                if (!HtmlFactsService.IsHtmlTagName(name))
                 {
-                    var binding = node.TagHelperInfo.BindingResult;
-                    var isCaseSensitive = binding.Descriptors.All(thd => thd.CaseSensitive);
-                    return isCaseSensitive && name.Any(c => char.IsUpper(c));
+                    // We always classify non-HTML tag names as TagHelpers if they're within a MarkupTagHelperElementSyntax
+                    return true;
                 }
 
-                return true;
-            }
+                // This must be a well-known HTML tag name like 'input', 'br'.
 
-            private bool IsHtmlTagName(string name)
-            {
-                return HtmlFactsService.HtmlSchemaTagNames.Contains(name);
+                var binding = node.TagHelperInfo.BindingResult;
+                foreach(var descriptor in binding.Descriptors)
+                {
+                    if(!descriptor.IsComponentTagHelper())
+                    {
+                        return false;
+                    }
+                }
+
+                if (name.Length > 0 && char.IsUpper(name[0]))
+                {
+                    // pascal cased Component TagHelper tag name such as <Input>
+                    return true;
+                }
+
+                return false;
             }
         }
     }

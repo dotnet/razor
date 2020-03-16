@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     internal abstract class HtmlFactsService
     {
-        public static readonly HashSet<string> HtmlSchemaTagNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> _htmlSchemaTagNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "DOCTYPE",
             "a",
@@ -145,5 +145,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             out string selectedAttributeName,
             out TextSpan? nameLocation,
             out SyntaxList<RazorSyntaxNode> attributeNodes);
+
+        public static bool IsHtmlTagName(string name)
+        {
+            return _htmlSchemaTagNames.Contains(name);
+        }
     }
 }

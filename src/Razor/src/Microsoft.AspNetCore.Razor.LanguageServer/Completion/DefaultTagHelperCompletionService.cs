@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 attributes,
                 ancestorTagName,
                 ancestorIsTagHelper,
-                HtmlFactsService.HtmlSchemaTagNames.Contains);
+                HtmlFactsService.IsHtmlTagName);
 
             var completionItems = new List<CompletionItem>();
             var completionResult = _razorTagHelperCompletionService.GetAttributeCompletions(attributeCompletionContext);
@@ -180,7 +180,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 attributes,
                 ancestorTagName,
                 ancestorIsTagHelper,
-                HtmlFactsService.HtmlSchemaTagNames.Contains);
+                HtmlFactsService.IsHtmlTagName);
 
             var completionItems = new List<CompletionItem>();
             var completionResult = _razorTagHelperCompletionService.GetElementCompletions(elementCompletionContext);
