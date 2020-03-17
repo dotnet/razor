@@ -14,7 +14,7 @@ async function main() {
         const extensionDevelopmentPath = path.resolve(__dirname, '../../../src/Microsoft.AspNetCore.Razor.VSCode.Extension/');
         const extensionTestsPath = path.resolve(__dirname, './index.js');
         const testAppFolder = path.resolve(__dirname, '../../testapps');
-        const vscodeExecutablePath = await downloadAndUnzipVSCode('insiders');
+        const vscodeExecutablePath = await downloadAndUnzipVSCode('stable');
         const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
 
         cp.spawnSync(cliPath, ['--install-extension', 'ms-dotnettools.csharp'], {
