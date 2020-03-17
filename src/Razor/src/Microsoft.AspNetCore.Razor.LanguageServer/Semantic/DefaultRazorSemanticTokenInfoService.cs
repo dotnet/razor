@@ -27,9 +27,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(codeDocument));
             }
 
-            var syntaxNodes = VisitAllNodes(codeDocument);
+            var syntaxRanges = VisitAllNodes(codeDocument);
 
-            var semanticTokens = ConvertSyntaxTokensToSemanticTokens(syntaxNodes, codeDocument);
+            var semanticTokens = ConvertSyntaxTokensToSemanticTokens(syntaxRanges, codeDocument);
 
             return semanticTokens;
         }
@@ -43,18 +43,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         private static SemanticTokens ConvertSyntaxTokensToSemanticTokens(
-            IEnumerable<SyntaxResult> syntaxTokens,
+            IEnumerable<SyntaxResult> syntaxResults,
             RazorCodeDocument razorCodeDocument)
         {
-            SyntaxResult? previousToken = null;
+            SyntaxResult? previousResult = null;
 
             var data = new List<uint>();
-            foreach (var token in syntaxTokens)
+            foreach (var result in syntaxResults)
             {
-                var newData = GetData(token, previousToken, razorCodeDocument);
+                var newData = GetData(result, previousResult, razorCodeDocument);
                 data.AddRange(newData);
 
-                previousToken = token;
+                previousResult = result;
             }
 
             return new SemanticTokens
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             // length
-            var endIndex= currentNode.Range.End.GetAbsoluteIndex(razorCodeDocument.GetSourceText());
+            var endIndex = currentNode.Range.End.GetAbsoluteIndex(razorCodeDocument.GetSourceText());
             var startIndex = currentNode.Range.Start.GetAbsoluteIndex(razorCodeDocument.GetSourceText());
             var length = endIndex - startIndex;
             Debug.Assert(length > 0);
@@ -252,29 +252,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             private bool ClassifyTagName(MarkupTagHelperElementSyntax node)
             {
-                var name = node.StartTag.Name.Content;
-
-                if (!HtmlFactsService.IsHtmlTagName(name))
+                if (node is null)
                 {
-                    // We always classify non-HTML tag names as TagHelpers if they're within a MarkupTagHelperElementSyntax
-                    return true;
+                    throw new ArgumentNullException(nameof(node));
                 }
 
-                // This must be a well-known HTML tag name like 'input', 'br'.
-
-                var binding = node.TagHelperInfo.BindingResult;
-                foreach(var descriptor in binding.Descriptors)
+                if (node.StartTag != null && node.StartTag.Name != null)
                 {
-                    if(!descriptor.IsComponentTagHelper())
+                    var name = node.StartTag.Name.Content;
+
+                    if (!HtmlFactsService.IsHtmlTagName(name))
                     {
-                        return false;
+                        // We always classify non-HTML tag names as TagHelpers if they're within a MarkupTagHelperElementSyntax
+                        return true;
                     }
-                }
 
-                if (name.Length > 0 && char.IsUpper(name[0]))
-                {
-                    // pascal cased Component TagHelper tag name such as <Input>
-                    return true;
+                    // This must be a well-known HTML tag name like 'input', 'br'.
+
+                    var binding = node.TagHelperInfo.BindingResult;
+                    foreach (var descriptor in binding.Descriptors)
+                    {
+                        if (!descriptor.IsComponentTagHelper())
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (name.Length > 0 && char.IsUpper(name[0]))
+                    {
+                        // pascal cased Component TagHelper tag name such as <Input>
+                        return true;
+                    }
                 }
 
                 return false;
