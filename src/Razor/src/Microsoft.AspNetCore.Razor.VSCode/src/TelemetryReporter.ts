@@ -31,6 +31,10 @@ export class TelemetryReporter {
         this.reportError('VSCode.Razor.ErrorOnServerStart', error);
     }
 
+    public reportErrorOnServerStop(error: Error) {
+        this.reportError('VSCode.Razor.ErrorOnServerStop', error);
+    }
+
     public reportErrorOnActivation(error: Error) {
         this.reportError('VSCode.Razor.ErrorOnActivation', error);
     }

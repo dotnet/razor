@@ -30,7 +30,6 @@ import { RazorImplementationProvider } from './RazorImplementationProvider';
 import { RazorLanguage } from './RazorLanguage';
 import { RazorLanguageConfiguration } from './RazorLanguageConfiguration';
 import { RazorLanguageServerClient } from './RazorLanguageServerClient';
-import { resolveRazorLanguageServerOptions } from './RazorLanguageServerOptionsResolver';
 import { resolveRazorLanguageServerTrace } from './RazorLanguageServerTraceResolver';
 import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
 import { RazorLogger } from './RazorLogger';
@@ -51,8 +50,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
     const logger = new RazorLogger(vscodeType, eventEmitterFactory, languageServerTrace);
 
     try {
-        const languageServerOptions = resolveRazorLanguageServerOptions(vscodeType, languageServerDir, languageServerTrace, logger);
-        const languageServerClient = new RazorLanguageServerClient(languageServerOptions, telemetryReporter, logger);
+        const languageServerClient = new RazorLanguageServerClient(vscodeType, languageServerDir, telemetryReporter, logger);
         const languageServiceClient = new RazorLanguageServiceClient(languageServerClient);
 
         const codeActionTranslators = [

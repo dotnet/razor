@@ -24,6 +24,9 @@ function razorTraceConfigurationChangeHandler(languageServerClient: RazorLanguag
             return;
         }
 
-        await languageServerClient.stop().then(async () => languageServerClient.start());
+        await languageServerClient.stop().then(async () => {
+            languageServerClient.updateTraceLevel();
+            await languageServerClient.start();
+        });
     });
 }
