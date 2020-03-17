@@ -148,6 +148,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
+        public void GetSemanticTokens_Razor_DoNotColorNonTagHelpers()
+        {
+            var txt = $"@addTaghelper *, TestAssembly{Environment.NewLine}<p @test='Function'></p>";
+            var expectedData = new List<uint> {
+                1, 3, 1, 2, 0,
+                0, 1, 4, 4, 0
+            };
+
+            AssertSemanticTokens(txt, expectedData, isRazor: true);
+        }
+
+        [Fact]
         public void GetSemanticTokens_Razor_DoesNotApplyOnNonTagHelpers()
         {
             var txt = $"@addTagHelpers *, TestAssembly{Environment.NewLine}<p></p>";

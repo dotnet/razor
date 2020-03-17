@@ -132,15 +132,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private struct SyntaxResult
         {
-            public Range Range { get; set; }
-            public SyntaxKind Kind { get; set; }
-
             public SyntaxResult(SyntaxNode node, SyntaxKind kind, RazorCodeDocument razorCodeDocument)
             {
                 var range = node.GetRange(razorCodeDocument.Source);
                 Range = range;
                 Kind = kind;
             }
+
+            public Range Range { get; set; }
+
+            public SyntaxKind Kind { get; set; }
+
         }
 
         private class TagHelperSpanVisitor : SyntaxWalker
