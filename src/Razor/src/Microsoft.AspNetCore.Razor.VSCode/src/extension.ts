@@ -9,6 +9,7 @@ import { ExtensionContext } from 'vscode';
 import { CompositeCodeActionTranslator } from './CodeActions/CompositeRazorCodeActionTranslator';
 import { RazorCodeActionProvider } from './CodeActions/RazorCodeActionProvider';
 import { RazorFullyQualifiedCodeActionTranslator } from './CodeActions/RazorFullyQualifiedCodeActionTranslator';
+import { listenToConfigurationChanges } from './ConfigurationChangeListener';
 import { RazorCSharpFeature } from './CSharp/RazorCSharpFeature';
 import { ReportIssueCommand } from './Diagnostics/ReportIssueCommand';
 import { reportTelemetryForDocuments } from './DocumentTelemetryListener';
@@ -63,6 +64,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
 
         const documentManager = new RazorDocumentManager(languageServerClient, logger);
         reportTelemetryForDocuments(documentManager, telemetryReporter);
+        listenToConfigurationChanges(languageServerClient);
         const languageConfiguration = new RazorLanguageConfiguration();
         const csharpFeature = new RazorCSharpFeature(documentManager, eventEmitterFactory, logger);
         const htmlFeature = new RazorHtmlFeature(documentManager, languageServiceClient, eventEmitterFactory, logger);

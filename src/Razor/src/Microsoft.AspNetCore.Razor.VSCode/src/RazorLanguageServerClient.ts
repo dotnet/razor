@@ -206,4 +206,36 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         this.startHandle = undefined;
         this.eventBus.emit(events.ServerStop);
     }
+
+    public async stop() {
+        this.logger.logMessage('Actually stopping Razor Language Server.');
+
+        let resolve: () => void = Function;
+        let reject: (reason: any) => void = Function;
+        this.startHandle = new Promise<void>((resolver, rejecter) => {
+            resolve = resolver;
+            reject = rejecter;
+        });
+
+        try {
+            if (this.client) {
+                await this.client.stop();
+            }
+
+            this.isStarted = false;
+            this.startHandle = undefined;
+            this.eventBus.emit(events.ServerStop);
+
+            resolve();
+        } catch (error) {
+            vscode.window.showErrorMessage(
+                'Razor Language Server failed to stop correctly, ' +
+                'please check the \'Razor Log\' and report an issue.');
+
+            // this.telemetryReporter.reportErrorOnServerStart(error);
+            reject(error);
+        }
+
+        return this.startHandle;
+    }
 }
