@@ -3,6 +3,7 @@
 
 using System;
 using System.Composition;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -15,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     internal class DefaultLSPRequestInvoker : LSPRequestInvoker
     {
         private readonly ILanguageClientBroker _languageClientBroker;
+        private readonly MethodInfo _requestAsyncMethod;
 
         [ImportingConstructor]
         public DefaultLSPRequestInvoker(ILanguageClientBroker languageClientBroker)
@@ -25,6 +27,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             _languageClientBroker = languageClientBroker;
+
+            // Ideally we want to call ILanguageServiceBroker2.RequestAsync directly but it is not referenced
+            // because the LanguageClient.Implementation assembly isn't published to a public feed.
+            // So for now, we invoke it using reflection. This will go away eventually.
+            var type = _languageClientBroker.GetType();
+            _requestAsyncMethod = type.GetMethod(
+                "RequestAsync",
+                new[]
+                {
+                    typeof(string[]),
+                    typeof(Func<JToken, bool>),
+                    typeof(string),
+                    typeof(JToken),
+                    typeof(CancellationToken)
+                });
         }
 
         public async override Task<TOut> RequestServerAsync<TIn, TOut>(string method, LanguageServerKind serverKind, TIn parameters, CancellationToken cancellationToken)
@@ -44,23 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 contentType = HtmlVirtualDocumentFactory.HtmlLSPContentTypeName;
             }
 
-            // Ideally we want to call ILanguageServiceBroker2.RequestAsync directly but it is not referenced
-            // because the LanguageClient.Implementation assembly isn't published to a public feed.
-            // So for now, we invoke it using reflection. This will go away eventually.
-            var type = _languageClientBroker.GetType();
-            var requestAsyncMethod = type.GetMethod(
-                "RequestAsync",
-                new[]
-                {
-                    typeof(string[]),
-                    typeof(Func<JToken, bool>),
-                    typeof(string),
-                    typeof(JToken),
-                    typeof(CancellationToken)
-                });
-
             var serializedParams = JToken.FromObject(parameters);
-            var task = (Task<(ILanguageClient, JToken)>)requestAsyncMethod.Invoke(
+            var task = (Task<(ILanguageClient, JToken)>)_requestAsyncMethod.Invoke(
                 _languageClientBroker,
                 new object[]
                 {
