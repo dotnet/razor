@@ -74,7 +74,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Start listening for file changes. If a project configuration file changes in any way we'll notify listeners.
 
-            _watcher = new FileSystemWatcher(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile)
+            // If we don't trim workspaceDirectory before passing it to FileSystemWatcher then when it eventually finds
+            // the file it reports the path as something like C:\some\dir\/deeper/dir/project.razor.json, while we'll be
+            // comparing it against C:\some\dir/deeper/dir/project.razor.json, and they won't match due to the extra \.
+            _watcher = new FileSystemWatcher(workspaceDirectory.TrimEnd('/','\\'), LanguageServerConstants.ProjectConfigurationFile)
             {
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
                 IncludeSubdirectories = true,
@@ -115,14 +118,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void FileSystemWatcher_ProjectConfigurationFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
         {
+            var normalizedFilePath = _filePathNormalizer.NormalizeForRead(physicalFilePath);
             Task.Factory.StartNew(
-                () => FileSystemWatcher_ProjectConfigurationFileEvent(physicalFilePath, kind),
+                () => FileSystemWatcher_ProjectConfigurationFileEvent(normalizedFilePath, kind),
                 CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
         }
 
         private void FileSystemWatcher_ProjectConfigurationFileEvent(string physicalFilePath, RazorFileChangeKind kind)
         {
-            var args = new ProjectConfigurationFileChangeEventArgs(physicalFilePath, kind);
+            var normalizedFilePath = _filePathNormalizer.NormalizeForRead(physicalFilePath);
+            var args = new ProjectConfigurationFileChangeEventArgs(normalizedFilePath, kind);
             foreach (var listener in _listeners)
             {
                 listener.ProjectConfigurationFileChanged(args);
