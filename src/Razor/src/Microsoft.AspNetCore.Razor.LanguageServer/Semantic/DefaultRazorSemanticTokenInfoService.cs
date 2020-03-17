@@ -252,6 +252,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 base.VisitMarkupMinimizedTagHelperDirectiveAttribute(node);
             }
 
+            // We don't want to classify TagNames of well-known HTML
+            // elements as TagHelpers (even if they are). So the 'input' in`<input @onclick='...' />`
+            // needs to not be marked as a TagHelper, but `<Input @onclick='...' />` should be.
             private bool ClassifyTagName(MarkupTagHelperElementSyntax node)
             {
                 if (node is null)
