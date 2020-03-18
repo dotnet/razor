@@ -65,16 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
-        public void GetSemanticTokens_DoesNotFindCapitalizedTagHelpers()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<TestElement bool-val='true' class='display:none'></TestElement>";
-            var expectedData = new List<uint> { };
-
-            AssertSemanticTokens(txt, expectedData, isRazor: false);
-        }
-
-        [Fact]
-        public void GetSemanticTokens_CasingMattersInRazor()
+        public void GetSemanticTokens_TagHelpersNotAvailableInRazor()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true' class='display:none'></test1>";
             var expectedData = new List<uint> { };
@@ -96,7 +87,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         [Fact]
         public void GetSemanticTokens_Razor_MinimizedDirectiveAttributeParameters()
         {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<TestElement @minimized:something />";
+            // Capitalized, non-well-known-HTML elements are always marked as TagHelpers
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<NotATagHelp @minimized:something />";
             var expectedData = new List<uint> {
                 1, 1, 11, 0, 0,
                 0, 12, 1, 2, 0,
