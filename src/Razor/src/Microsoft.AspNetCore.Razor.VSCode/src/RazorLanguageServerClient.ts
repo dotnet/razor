@@ -34,6 +34,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
     private eventBus: EventEmitter;
     private isStarted: boolean;
     private startHandle: Promise<void> | undefined;
+    private stopHandle: Promise<void> | undefined;
 
     constructor(
         private readonly vscodeType: typeof vscode,
@@ -182,14 +183,18 @@ export class RazorLanguageServerClient implements vscode.Disposable {
     }
 
     public async stop() {
-        this.logger.logMessage('Stopping Razor Language Server.');
-
         let resolve: () => void = Function;
         let reject: (reason: any) => void = Function;
-        this.startHandle = new Promise<void>((resolver, rejecter) => {
+        this.stopHandle = new Promise<void>((resolver, rejecter) => {
             resolve = resolver;
             reject = rejecter;
         });
+
+        if (!this.startHandle) {
+            reject(new Error('Cannot stop Razor Language Server as it is already stopped.'));
+        }
+
+        this.logger.logMessage('Stopping Razor Language Server.');
 
         try {
             if (this.client) {
@@ -204,11 +209,10 @@ export class RazorLanguageServerClient implements vscode.Disposable {
                 'Razor Language Server failed to stop correctly, ' +
                 'please check the \'Razor Log\' and report an issue.');
 
-            this.telemetryReporter.reportErrorOnServerStop(error);
             reject(error);
         }
 
-        return this.startHandle;
+        return this.stopHandle;
     }
 
     private setupLanguageServer() {

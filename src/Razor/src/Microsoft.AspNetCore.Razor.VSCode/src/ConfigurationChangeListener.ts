@@ -7,8 +7,8 @@ import * as vscode from 'vscode';
 import { RazorLanguageServerClient } from './RazorLanguageServerClient';
 
 export function listenToConfigurationChanges(
-    languageServerClient: RazorLanguageServerClient) {
-    vscode.workspace.onDidChangeConfiguration(event => {
+    languageServerClient: RazorLanguageServerClient): vscode.Disposable {
+    return vscode.workspace.onDidChangeConfiguration(event => {
         if (event.affectsConfiguration('razor.trace')) {
             razorTraceConfigurationChangeHandler(languageServerClient);
         }
@@ -24,9 +24,8 @@ function razorTraceConfigurationChangeHandler(languageServerClient: RazorLanguag
             return;
         }
 
-        await languageServerClient.stop().then(async () => {
-            languageServerClient.updateTraceLevel();
-            await languageServerClient.start();
-        });
+        await languageServerClient.stop();
+        languageServerClient.updateTraceLevel();
+        await languageServerClient.start();
     });
 }

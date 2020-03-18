@@ -16,6 +16,7 @@ export class RazorLogger implements vscode.Disposable {
     public readonly outputChannel: vscode.OutputChannel;
 
     private readonly onLogEmitter: vscode.EventEmitter<string>;
+    private readonly onTraceLevelChangeEmitter: vscode.EventEmitter<Trace>;
 
     constructor(
         private readonly vscodeApi: vscode.api,
@@ -23,6 +24,7 @@ export class RazorLogger implements vscode.Disposable {
         public trace: Trace) {
         this.processTraceLevel();
         this.onLogEmitter = eventEmitterFactory.create<string>();
+        this.onTraceLevelChangeEmitter = eventEmitterFactory.create<Trace>();
 
         this.outputChannel = this.vscodeApi.window.createOutputChannel(RazorLogger.logName);
 
@@ -33,9 +35,12 @@ export class RazorLogger implements vscode.Disposable {
         this.trace = trace;
         this.processTraceLevel();
         this.logMessage(`Updated trace level to: ${Trace[this.trace]}`);
+        this.onTraceLevelChangeEmitter.fire(this.trace);
     }
 
     public get onLog() { return this.onLogEmitter.event; }
+
+    public get onTraceLevelChange() { return this.onTraceLevelChangeEmitter.event; }
 
     public logAlways(message: string) {
         this.logWithMarker(message);

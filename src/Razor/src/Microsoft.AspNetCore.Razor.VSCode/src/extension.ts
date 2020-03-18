@@ -62,7 +62,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
 
         const documentManager = new RazorDocumentManager(languageServerClient, logger);
         reportTelemetryForDocuments(documentManager, telemetryReporter);
-        listenToConfigurationChanges(languageServerClient);
         const languageConfiguration = new RazorLanguageConfiguration();
         const csharpFeature = new RazorCSharpFeature(documentManager, eventEmitterFactory, logger);
         const htmlFeature = new RazorHtmlFeature(documentManager, languageServiceClient, eventEmitterFactory, logger);
@@ -162,7 +161,8 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 csharpFeature.register(),
                 htmlFeature.register(),
                 documentSynchronizer.register(),
-                reportIssueCommand.register());
+                reportIssueCommand.register(),
+                listenToConfigurationChanges(languageServerClient));
             if (enableProposedApis) {
                 const proposedApisFeature = new ProposedApisFeature(
                     documentSynchronizer,
