@@ -16,7 +16,7 @@ export function listenToConfigurationChanges(
 }
 
 function razorTraceConfigurationChangeHandler(languageServerClient: RazorLanguageServerClient) {
-    const promptText = 'Would you like to restart the Razor Language Server to enable this configuration change?';
+    const promptText = 'Would you like to restart the Razor Language Server to enable the Razor trace configuration change?';
     const restartButtonText = 'Restart';
 
     vscode.window.showInformationMessage(promptText, restartButtonText).then(async result => {
