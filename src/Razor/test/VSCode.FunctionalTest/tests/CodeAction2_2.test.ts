@@ -8,7 +8,9 @@ import { before, beforeEach } from 'mocha';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
-    pollUntil,
+    DoCodeAction,
+    GetCodeActions,
+    MakeEditAndFindDiagnostic,
     simpleMvc22Root,
 } from './TestUtil';
 
@@ -31,7 +33,7 @@ suite('Code Actions 2.2', () => {
 
     test('Can provide FullQualified CodeAction 2.2 .cshtml file', async () => {
         const firstLine = new vscode.Position(0, 0);
-        await MakeEditAndFindDiagnostic('@{ var x = new HtmlString("sdf"); }\n', firstLine);
+        await MakeEditAndFindDiagnostic(editor, '@{ var x = new HtmlString("sdf"); }\n', firstLine);
 
         const position = new vscode.Position(0, 21);
         const codeActions = await GetCodeActions(cshtmlDoc.uri, new vscode.Range(position, position));
@@ -45,58 +47,4 @@ suite('Code Actions 2.2', () => {
         const editedText = reloadedDoc.getText();
         assert.ok(editedText.includes('var x = new Microsoft.AspNetCore.Html.HtmlString("sdf");'));
     });
-
-    async function MakeEditAndFindDiagnostic(editText: string, position: vscode.Position) {
-        let diagnosticsChanged = false;
-        vscode.languages.onDidChangeDiagnostics(diagnosticsChangedEvent => {
-            const diagnostics = vscode.languages.getDiagnostics(cshtmlDoc.uri);
-            if (diagnostics.length > 0) {
-                diagnosticsChanged = true;
-            }
-        });
-
-        for (let i = 0; i < 3; i++) {
-            await editor.edit(edit => edit.insert(position, editText));
-            await pollUntil(() => {
-                return diagnosticsChanged;
-            }, /* timeout */ 5000, /* pollInterval */ 1000, true /* suppress timeout */);
-            if (diagnosticsChanged) {
-                break;
-            }
-        }
-    }
-
-    async function DoCodeAction(fileUri: vscode.Uri, codeAction: vscode.Command) {
-        let diagnosticsChanged = false;
-        vscode.languages.onDidChangeDiagnostics(diagnosticsChangedEvent => {
-            const diagnostics = vscode.languages.getDiagnostics(fileUri);
-            if (diagnostics.length === 0) {
-                diagnosticsChanged = true;
-            }
-        });
-
-        if (codeAction.command && codeAction.arguments) {
-            vscode.commands.executeCommand(codeAction.command, codeAction.arguments);
-        }
-
-        await pollUntil(() => {
-            return diagnosticsChanged;
-        }, /* timeout */ 20000, /* pollInterval */ 1000, false /* suppress timeout */);
-    }
-
-    async function GetCodeActions(fileUri: vscode.Uri, position: vscode.Range): Promise<vscode.Command[]> {
-        let diagnosticsChanged = false;
-        vscode.languages.onDidChangeDiagnostics(diagnosticsChangedEvent => {
-            const diagnostics = vscode.languages.getDiagnostics(fileUri);
-            if (diagnostics.length > 0) {
-                diagnosticsChanged = true;
-            }
-        });
-
-        await pollUntil(() => {
-            return diagnosticsChanged;
-        }, /* timeout */ 20000, /* pollInterval */ 1000, false /* suppress timeout */);
-
-        return await vscode.commands.executeCommand('vscode.executeCodeActionProvider', fileUri, position) as vscode.Command[];
-    }
 });

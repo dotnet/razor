@@ -19,6 +19,60 @@ export const simpleMvc21Root = path.join(testAppsRoot, 'SimpleMvc21');
 export const simpleMvc22Root = path.join(testAppsRoot, 'SimpleMvc22');
 const projectConfigFile = 'project.razor.json';
 
+export async function MakeEditAndFindDiagnostic(editor: vscode.TextEditor, editText: string, position: vscode.Position): Promise<void> {
+    let diagnosticsChanged = false;
+    vscode.languages.onDidChangeDiagnostics(_ => {
+        const diagnostics = vscode.languages.getDiagnostics(editor.document.uri);
+        if (diagnostics.length > 0) {
+            diagnosticsChanged = true;
+        }
+    });
+
+    for (let i = 0; i < 3; i++) {
+        await editor.edit(edit => edit.insert(position, editText));
+        await pollUntil(() => {
+            return diagnosticsChanged;
+        }, /* timeout */ 20000, /* pollInterval */ 500, true /* suppress timeout */);
+        if (diagnosticsChanged) {
+            break;
+        }
+    }
+}
+
+export async function DoCodeAction(fileUri: vscode.Uri, codeAction: vscode.Command) {
+    let diagnosticsChanged = false;
+    vscode.languages.onDidChangeDiagnostics(_ => {
+        const diagnostics = vscode.languages.getDiagnostics(fileUri);
+        if (diagnostics.length === 0) {
+            diagnosticsChanged = true;
+        }
+    });
+
+    if (codeAction.command && codeAction.arguments) {
+        vscode.commands.executeCommand(codeAction.command, codeAction.arguments);
+    }
+
+    await pollUntil(() => {
+        return diagnosticsChanged;
+    }, /* timeout */ 20000, /* pollInterval */ 500, false /* suppress timeout */);
+}
+
+export async function GetCodeActions(fileUri: vscode.Uri, position: vscode.Range): Promise<vscode.Command[]> {
+    let diagnosticsChanged = false;
+    vscode.languages.onDidChangeDiagnostics(diagnosticsChangedEvent => {
+        const diagnostics = vscode.languages.getDiagnostics(fileUri);
+        if (diagnostics.length > 0) {
+            diagnosticsChanged = true;
+        }
+    });
+
+    await pollUntil(() => {
+        return diagnosticsChanged;
+    }, /* timeout */ 20000, /* pollInterval */ 500, false /* suppress timeout */);
+
+    return await vscode.commands.executeCommand('vscode.executeCodeActionProvider', fileUri, position) as vscode.Command[];
+}
+
 export async function pollUntil(fn: () => (boolean | Promise<boolean>), timeoutMs: number, pollInterval?: number, suppressError?: boolean, errorMessage?: string) {
     const resolvedPollInterval = pollInterval ? pollInterval : 50;
 
