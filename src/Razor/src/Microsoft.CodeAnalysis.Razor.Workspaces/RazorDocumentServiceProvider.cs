@@ -1,17 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    internal class RazorDocumentServiceProvider : IDocumentServiceProvider, IDocumentOperationService
+    internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRazorDocumentOperationService
     {
         private readonly DynamicDocumentContainer _documentContainer;
         private readonly object _lock;
 
-        private ISpanMappingService _spanMappingService;
-        private IDocumentExcerptService _excerptService;
+        private IRazorSpanMappingService _spanMappingService;
+        private IRazorDocumentExcerptService _excerptService;
+        private IRazorDocumentPropertiesService _documentPropertiesService;
 
         public RazorDocumentServiceProvider()
             : this(null)
@@ -29,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Host
 
         public bool SupportDiagnostics => false;
 
-        public TService GetService<TService>() where TService : class, IDocumentService
+        public TService GetService<TService>() where TService : class
         {
             if (_documentContainer == null)
             {
                 return this as TService;
             }
 
-            if (typeof(TService) == typeof(ISpanMappingService))
+            if (typeof(TService) == typeof(IRazorSpanMappingService))
             {
                 if (_spanMappingService == null)
                 {
@@ -44,16 +45,15 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         if (_spanMappingService == null)
                         {
-                            var spanMappingServiceObject = _documentContainer.GetMappingService();
-                            _spanMappingService = (ISpanMappingService)spanMappingServiceObject;
+                            _spanMappingService = _documentContainer.GetMappingService();
                         }
                     }
                 }
 
-                return (TService)(object)_spanMappingService;
+                return (TService)_spanMappingService;
             }
 
-            if (typeof(TService) == typeof(IDocumentExcerptService))
+            if (typeof(TService) == typeof(IRazorDocumentExcerptService))
             {
                 if (_excerptService == null)
                 {
@@ -61,13 +61,28 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         if (_excerptService == null)
                         {
-                            var excerptServiceObject = _documentContainer.GetExcerptService();
-                            _excerptService = (IDocumentExcerptService)excerptServiceObject;
+                            _excerptService = _documentContainer.GetExcerptService();
                         }
                     }
                 }
 
-                return (TService)(object)_excerptService;
+                return (TService)_excerptService;
+            }
+
+            if (typeof(TService) == typeof(IRazorDocumentPropertiesService))
+            {
+                if (_documentPropertiesService == null)
+                {
+                    lock (_lock)
+                    {
+                        if (_documentPropertiesService == null)
+                        {
+                            _documentPropertiesService = _documentContainer.GetDocumentPropertiesService();
+                        }
+                    }
+                }
+
+                return (TService)_documentPropertiesService;
             }
 
             return this as TService;

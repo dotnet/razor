@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -54,6 +55,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
         }
 
+        private sealed class CSharpDocumentPropertiesService : IRazorDocumentPropertiesService
+        {
+            public static readonly CSharpDocumentPropertiesService Instance = new CSharpDocumentPropertiesService();
+
+            private CSharpDocumentPropertiesService()
+            {
+            }
+
+            public bool DesignTimeOnly => false;
+
+            public string DiagnosticsLspClientName => "RazorCSharp";
+        }
+
         private class CSharpVirtualDocumentContainer : DynamicDocumentContainer
         {
             private readonly ITextSnapshot _textSnapshot;
@@ -70,14 +84,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public override string FilePath => throw new NotImplementedException();
 
-            public override object GetExcerptService()
+            public override IRazorDocumentExcerptService GetExcerptService()
             {
                 return null;
             }
 
-            public override object GetMappingService()
+            public override IRazorSpanMappingService GetMappingService()
             {
                 return null;
+            }
+
+            public override IRazorDocumentPropertiesService GetDocumentPropertiesService()
+            {
+                return CSharpDocumentPropertiesService.Instance;
             }
 
             public override TextLoader GetTextLoader(string filePath)
