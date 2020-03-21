@@ -101,6 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (result.HasValue)
             {
+                // Set some context on the CompletionItem so the CompletionResolveHandler can handle it accordingly.
                 result = SetResolveData(result.Value, serverKind);
             }
 
