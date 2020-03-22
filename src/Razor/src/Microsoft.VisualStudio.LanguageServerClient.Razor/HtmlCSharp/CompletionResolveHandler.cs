@@ -44,14 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 resolveData = ((JToken)request.Data).ToObject<CompletionResolveData>();
             }
 
+            // Set the original resolve data back so the language server deserializes it correctly.
+            request.Data = resolveData.OriginalData;
+
             if (resolveData.LanguageServerKind != LanguageServerKind.CSharp)
             {
                 // We currently only want to resolve C# completion items.
                 return request;
             }
-
-            // Set the original resolve data back so the language server deserializes it correctly.
-            request.Data = resolveData.OriginalData;
 
             var result = await _requestInvoker.RequestServerAsync<CompletionItem, CompletionItem>(
                 Methods.TextDocumentCompletionResolveName,

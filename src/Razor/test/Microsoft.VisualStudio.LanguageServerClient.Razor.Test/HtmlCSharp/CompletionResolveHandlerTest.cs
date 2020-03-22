@@ -50,5 +50,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.True(called);
             Assert.Same(expectedResponse, result);
         }
+
+        [Fact]
+        public async Task HandleRequestAsync_DoesNotInvokeHtmlLanguageServer()
+        {
+            // Arrange
+            var originalData = new object();
+            var request = new CompletionItem()
+            {
+                InsertText = "div",
+                Data = new CompletionResolveData() { LanguageServerKind = LanguageServerKind.Html, OriginalData = originalData }
+            };
+
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+
+            var handler = new CompletionResolveHandler(requestInvoker.Object);
+
+            // Act
+            var result = await handler.HandleRequestAsync(request, new ClientCapabilities(), CancellationToken.None);
+
+            // Assert (Does not throw with MockBehavior.Strict)
+            Assert.Equal("div", result.InsertText);
+            Assert.Same(originalData, result.Data);
+        }
     }
 }
