@@ -7,7 +7,6 @@ using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using Task = System.Threading.Tasks.Task;
@@ -20,13 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPDocumentManager _documentManager;
-        private readonly SVsServiceProvider _serviceProvider;
+        private readonly LSPEditorService _editorService;
 
         [ImportingConstructor]
         public DefaultRazorLanguageClientMiddleLayer(
             JoinableTaskContext joinableTaskContext,
             LSPDocumentManager documentManager,
-            SVsServiceProvider serviceProvider)
+            LSPEditorService editorService)
         {
             if (joinableTaskContext is null)
             {
@@ -38,14 +37,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(documentManager));
             }
 
-            if (serviceProvider is null)
+            if (editorService is null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(editorService));
             }
 
             _joinableTaskFactory = joinableTaskContext.Factory;
             _documentManager = documentManager;
-            _serviceProvider = serviceProvider;
+            _editorService = editorService;
         }
 
         public override bool CanHandle(string methodName)
@@ -85,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     return emptyResult;
                 }
 
-                VsUtilities.ApplyTextEdits(_serviceProvider, requestParams.TextDocument.Uri, documentSnapshot.Snapshot, edits);
+                await _editorService.ApplyTextEditsAsync(requestParams.TextDocument.Uri, documentSnapshot.Snapshot, edits).ConfigureAwait(false);
 
                 // We would have already applied the edits and moved the cursor. Return empty.
                 return emptyResult;

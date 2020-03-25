@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting)
         {
             var monitor = new Mock<IOptionsMonitor<RazorLSPOptions>>();
-            monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting));
+            monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting, true));
             return monitor.Object;
         }
 
@@ -138,6 +138,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 Called = true;
                 return Task.FromResult(Array.Empty<TextEdit>());
+            }
+
+            public override Task<TextEdit[]> FormatOnTypeAsync(Uri uri, RazorCodeDocument codeDocument, Position position, string character, FormattingOptions options)
+            {
+                throw new NotImplementedException();
             }
         }
     }

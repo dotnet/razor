@@ -22,19 +22,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPDocumentManager _documentManager;
-        private readonly SVsServiceProvider _serviceProvider;
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
+        private readonly LSPEditorService _editorService;
 
         [ImportingConstructor]
         public OnTypeFormattingHandler(
             JoinableTaskContext joinableTaskContext,
             LSPDocumentManager documentManager,
-            SVsServiceProvider serviceProvider,
             LSPRequestInvoker requestInvoker,
             LSPProjectionProvider projectionProvider,
-            LSPDocumentMappingProvider documentMappingProvider)
+            LSPDocumentMappingProvider documentMappingProvider,
+            LSPEditorService editorService)
         {
             if (joinableTaskContext is null)
             {
@@ -44,11 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (documentManager is null)
             {
                 throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
             }
 
             if (requestInvoker is null)
@@ -66,12 +61,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
+            if (editorService is null)
+            {
+                throw new ArgumentNullException(nameof(editorService));
+            }
+
             _joinableTaskFactory = joinableTaskContext.Factory;
             _documentManager = documentManager;
-            _serviceProvider = serviceProvider;
             _requestInvoker = requestInvoker;
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
+            _editorService = editorService;
         }
 
         public async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return EmptyEdits;
             }
 
-            VsUtilities.ApplyTextEdits(_serviceProvider, documentSnapshot.Uri, documentSnapshot.Snapshot, mappedEdits);
+            _editorService.ApplyTextEditsAsync(documentSnapshot.Uri, documentSnapshot.Snapshot, mappedEdits);
 
             // We would have already applied the edits and moved the cursor. Return empty.
             return EmptyEdits;

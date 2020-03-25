@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -11,27 +13,50 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    internal static class VsUtilities
+    [Shared]
+    [Export(typeof(LSPEditorService))]
+    internal class DefaultLSPEditorService : LSPEditorService
     {
-        public static void ApplyTextEdits(
-            IServiceProvider serviceProvider,
+        private readonly JoinableTaskFactory _joinableTaskFactory;
+        private readonly SVsServiceProvider _serviceProvider;
+
+        [ImportingConstructor]
+        public DefaultLSPEditorService(JoinableTaskContext joinableTaskContext, SVsServiceProvider serviceProvider)
+        {
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (serviceProvider is null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            _joinableTaskFactory = joinableTaskContext.Factory;
+            _serviceProvider = serviceProvider;
+        }
+
+        public async override Task ApplyTextEditsAsync(
             Uri uri,
             ITextSnapshot snapshot,
             IEnumerable<TextEdit> textEdits)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await _joinableTaskFactory.SwitchToMainThreadAsync();
 
             ApplyTextEdits(textEdits, snapshot, snapshot.TextBuffer);
 
-            var cursorPosition = ExtractCursorPlaceholder(snapshot.TextBuffer.CurrentSnapshot);
+            var cursorPosition = ExtractCursorPlaceholder(snapshot.TextBuffer.CurrentSnapshot, textEdits);
             if (cursorPosition != null)
             {
                 var fullPath = GetLocalFilePath(uri);
 
-                VsShellUtilities.OpenDocument(serviceProvider, fullPath, VSConstants.LOGVIEWID.TextView_guid, out _, out _, out var windowFrame);
+                VsShellUtilities.OpenDocument(_serviceProvider, fullPath, VSConstants.LOGVIEWID.TextView_guid, out _, out _, out var windowFrame);
 
                 if (windowFrame != null)
                 {
@@ -42,30 +67,52 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // Internal for testing
-        internal static Position ExtractCursorPlaceholder(ITextSnapshot snapshot)
+        internal static Position ExtractCursorPlaceholder(ITextSnapshot snapshot, IEnumerable<TextEdit> originalEdits)
         {
-            Position cursorPosition = null;
-            var text = snapshot.GetText();
-            if (text.Contains(LanguageServerConstants.CursorPlaceholderString))
+            var earliestLine = snapshot.LineCount;
+            var hasPlaceholder = false;
+            foreach (var edit in originalEdits)
             {
-                var cursorPositionIndex = text.IndexOf(LanguageServerConstants.CursorPlaceholderString, StringComparison.Ordinal);
-                var cursorPositionLine = snapshot.GetLineFromPosition(cursorPositionIndex);
-                var cursorPositionLineText = cursorPositionLine.GetText();
-                var characterPosition = cursorPositionLineText.IndexOf(LanguageServerConstants.CursorPlaceholderString, StringComparison.Ordinal);
-
-                cursorPosition = new Position(cursorPositionLine.LineNumber, characterPosition);
-
-                // Now that we have obtained the cursor position, let's nuke the placeholder.
-                var newEdit = new TextEdit();
-                newEdit.Range = new Range()
+                if (edit.NewText.Contains(LanguageServerConstants.CursorPlaceholderString))
                 {
-                    Start = cursorPosition,
-                    End = new Position(cursorPosition.Line, cursorPosition.Character + LanguageServerConstants.CursorPlaceholderString.Length)
-                };
-                newEdit.NewText = string.Empty;
+                    hasPlaceholder = true;
+                }
 
-                ApplyTextEdits(new[] { newEdit }, snapshot, snapshot.TextBuffer);
+                if (edit.Range.Start.Line < earliestLine)
+                {
+                    earliestLine = edit.Range.Start.Line;
+                }
             }
+
+            if (!hasPlaceholder)
+            {
+                return null;
+            }
+
+            Position cursorPosition = null;
+            for (var i = earliestLine; i < snapshot.LineCount; i++)
+            {
+                var lineText = snapshot.GetLineFromLineNumber(i).GetText();
+                var placeholderOffset = lineText.IndexOf(LanguageServerConstants.CursorPlaceholderString, StringComparison.Ordinal);
+                if (placeholderOffset != -1)
+                {
+                    cursorPosition = new Position(i, placeholderOffset);
+                    break;
+                }
+            }
+
+            Debug.Assert(cursorPosition != null);
+
+            // Now that we have obtained the cursor position, let's nuke the placeholder.
+            var newEdit = new TextEdit();
+            newEdit.Range = new Range()
+            {
+                Start = cursorPosition,
+                End = new Position(cursorPosition.Line, cursorPosition.Character + LanguageServerConstants.CursorPlaceholderString.Length)
+            };
+            newEdit.NewText = string.Empty;
+
+            ApplyTextEdits(new[] { newEdit }, snapshot, snapshot.TextBuffer);
 
             return cursorPosition;
         }
