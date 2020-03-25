@@ -140,9 +140,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var owner = syntaxTree.Root.LocateOwner(change);
             if (owner?.Parent != null &&
                 owner.Parent is MarkupStartTagSyntax startTag &&
-                startTag.IsMarkupTransition)
+                startTag.IsMarkupTransition &&
+                startTag.Parent is MarkupElementSyntax element &&
+                element.EndTag == null) // Make sure the end </text> tag doesn't already exist
             {
                 Debug.Assert(string.Equals(startTag.Name.Content, SyntaxConstants.TextTagName, StringComparison.Ordinal), "MarkupTransition that is not a <text> tag.");
+
                 return true;
             }
 
