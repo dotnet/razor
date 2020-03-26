@@ -114,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             else if (hostDocumentVersion == previouslyPublishedData.HostDocumentVersion)
             {
-                // Source texts match along with host documetn versions. We've already published something that looks like this. No-op.
+                // Source texts match along with host document versions. We've already published something that looks like this. No-op.
                 return;
             }
 
