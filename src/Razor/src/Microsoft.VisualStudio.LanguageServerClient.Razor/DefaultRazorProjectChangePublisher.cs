@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
@@ -33,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         };
         private readonly JoinableTaskContext _joinableTaskContext;
 
+        private ProjectSnapshotManagerBase _projectSnapshotManager;
         private LSPEditorFeatureDetector _lspEditorFeatureDetector;
 
         // Internal settable for testing
@@ -59,7 +61,58 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _lspEditorFeatureDetector = lSPEditorFeatureDetector;
         }
 
-        internal override void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
+        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+        {
+            _projectSnapshotManager = projectManager;
+            _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+        }
+
+        public override void SetPublishFilePath(string projectFilePath, string publishFilePath)
+        {
+            // Should only be called from the main thread.
+            Debug.Assert(IsOnMainThread(), "SetPublishFilePath should have been on main thread");
+            PublishFilePathMappings[projectFilePath] = publishFilePath;
+        }
+
+        public override void RemovePublishFilePath(string projectFilePath)
+        {
+            Debug.Assert(IsOnMainThread(), "RemovePublishFilePath should have been on main thread");
+            PublishFilePathMappings.TryRemove(projectFilePath, out var _);
+        }
+
+        // Virtual for testing
+        protected virtual void DeleteFile(string publishFilePath)
+        {
+            var info = new FileInfo(publishFilePath);
+            if (info.Exists)
+            {
+                try
+                {
+                    // Try catch around the delete in case it was deleted between the Exists and this delete call. This also
+                    // protects against unauthorized access issues.
+                    info.Delete();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($@"Failed to delete Razor configuration file '{publishFilePath}':
+{ex}");
+                }
+            }
+        }
+
+        protected virtual void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath)
+        {
+            var fileInfo = new FileInfo(publishFilePath);
+            using var writer = fileInfo.CreateText();
+            _serializer.Serialize(writer, projectSnapshot);
+        }
+
+        protected bool IsOnMainThread()
+        {
+            return _joinableTaskContext.IsOnMainThread;
+        }
+
+        internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
             if (!IsLSPEditorAvailable(args.ProjectFilePath))
             {
@@ -99,19 +152,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
         }
 
-        private async Task PublishAfterDelayAsync(string projectFilePath)
+        // Internal for testing
+        // This needs to be overridable because if we try to get the LSPEditorFeatureDetector service
+        // in unit tests everything will break. We can't LSPEditorFeatureDetector pass to the constructor because the objects
+        // required to construct one are not available when DefaultRazorProjectChangePublisher is constructed, but
+        // they ARE available later, when this is called.
+        internal virtual bool IsLSPEditorAvailable(string projectFilePath)
         {
-            await Task.Delay(EnqueueDelay).ConfigureAwait(false);
-
-            if (!_pendingProjectPublishes.TryGetValue(projectFilePath, out var projectSnapshot))
+            if (_lspEditorFeatureDetector is null)
             {
-                // Project was removed while waiting for the publish delay.
-                return;
+                var componentModel = (IComponentModel)Shell.Package.GetGlobalService(typeof(SComponentModel));
+                _lspEditorFeatureDetector = componentModel.GetService<LSPEditorFeatureDetector>();
             }
 
-            _pendingProjectPublishes.Remove(projectFilePath);
-
-            Publish(projectSnapshot);
+            return _lspEditorFeatureDetector.IsLSPEditorAvailable(projectFilePath, hierarchy: null);
         }
 
         // Internal for testing
@@ -164,52 +218,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
         }
 
-        // Virtual for testing
-        protected virtual void DeleteFile(string publishFilePath)
+        private async Task PublishAfterDelayAsync(string projectFilePath)
         {
-            var info = new FileInfo(publishFilePath);
-            if (info.Exists)
-            {
-                try
-                {
-                    // Try catch around the delete in case it was deleted between the Exists and this delete call. This also
-                    // protects against unauthorized access issues.
-                    info.Delete();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning($@"Failed to delete Razor configuration file '{publishFilePath}':
-{ex}");
-                }
-            }
-        }
+            await Task.Delay(EnqueueDelay).ConfigureAwait(false);
 
-        protected virtual void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath)
-        {
-            var fileInfo = new FileInfo(publishFilePath);
-            using var writer = fileInfo.CreateText();
-            _serializer.Serialize(writer, projectSnapshot);
-        }
-
-        // Internal for testing
-        // This needs to be overridable because if we try to get the LSPEditorFeatureDetector service
-        // in unit tests everything will break. We can't LSPEditorFeatureDetector pass to the constructor because the objects
-        // required to construct one are not available when DefaultRazorProjectChangePublisher is constructed, but
-        // they ARE available later, when this is called.
-        internal virtual bool IsLSPEditorAvailable(string projectFilePath)
-        {
-            if (_lspEditorFeatureDetector is null)
+            if (!_pendingProjectPublishes.TryGetValue(projectFilePath, out var projectSnapshot))
             {
-                var componentModel = (IComponentModel)Shell.Package.GetGlobalService(typeof(SComponentModel));
-                _lspEditorFeatureDetector = componentModel.GetService<LSPEditorFeatureDetector>();
+                // Project was removed while waiting for the publish delay.
+                return;
             }
 
-            return _lspEditorFeatureDetector.IsLSPEditorAvailable(projectFilePath, hierarchy: null);
-        }
+            _pendingProjectPublishes.Remove(projectFilePath);
 
-        protected override bool IsOnMainThread()
-        {
-            return _joinableTaskContext.IsOnMainThread;
+            Publish(projectSnapshot);
         }
     }
 }
