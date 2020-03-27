@@ -16,7 +16,6 @@ using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Item = System.Collections.Generic.KeyValuePair<string, System.Collections.Immutable.IImmutableDictionary<string, string>>;
 
-
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     // Somewhat similar to https://github.com/dotnet/project-system/blob/fa074d228dcff6dae9e48ce43dd4a3a5aa22e8f0/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/LanguageServices/LanguageServiceHost.cs
@@ -209,6 +208,64 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         // Internal for testing
+        internal static bool TryGetDefaultConfiguration(
+            IImmutableDictionary<string, IProjectRuleSnapshot> state,
+            out string defaultConfiguration)
+        {
+            if (!state.TryGetValue(Rules.RazorGeneral.SchemaName, out var rule))
+            {
+                defaultConfiguration = null;
+                return false;
+            }
+
+            if (!rule.Properties.TryGetValue(Rules.RazorGeneral.RazorDefaultConfigurationProperty, out defaultConfiguration))
+            {
+                defaultConfiguration = null;
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(defaultConfiguration))
+            {
+                defaultConfiguration = null;
+                return false;
+            }
+
+            return true;
+        }
+
+
+        // Internal for testing
+        internal static bool TryGetLanguageVersion(
+            IImmutableDictionary<string, IProjectRuleSnapshot> state,
+            out RazorLanguageVersion languageVersion)
+        {
+            if (!state.TryGetValue(Rules.RazorGeneral.SchemaName, out var rule))
+            {
+                languageVersion = null;
+                return false;
+            }
+
+            if (!rule.Properties.TryGetValue(Rules.RazorGeneral.RazorLangVersionProperty, out var languageVersionValue))
+            {
+                languageVersion = null;
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(languageVersionValue))
+            {
+                languageVersion = null;
+                return false;
+            }
+
+            if (!RazorLanguageVersion.TryParse(languageVersionValue, out languageVersion))
+            {
+                languageVersion = RazorLanguageVersion.Latest;
+            }
+
+            return true;
+        }
+
+        // Internal for testing
         internal static string[] GetExtensionNames(Item configurationItem)
         {
             // The list of extension names might not be present, because the configuration may not have any.
@@ -269,63 +326,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             rootNamespace = rootNamespaceValue;
-            return true;
-        }
-
-        // Internal for testing
-        internal static bool TryGetDefaultConfiguration(
-            IImmutableDictionary<string, IProjectRuleSnapshot> state,
-            out string defaultConfiguration)
-        {
-            if (!state.TryGetValue(Rules.RazorGeneral.SchemaName, out var rule))
-            {
-                defaultConfiguration = null;
-                return false;
-            }
-
-            if (!rule.Properties.TryGetValue(Rules.RazorGeneral.RazorDefaultConfigurationProperty, out defaultConfiguration))
-            {
-                defaultConfiguration = null;
-                return false;
-            }
-
-            if (string.IsNullOrEmpty(defaultConfiguration))
-            {
-                defaultConfiguration = null;
-                return false;
-            }
-
-            return true;
-        }
-
-        // Internal for testing
-        internal static bool TryGetLanguageVersion(
-            IImmutableDictionary<string, IProjectRuleSnapshot> state,
-            out RazorLanguageVersion languageVersion)
-        {
-            if (!state.TryGetValue(Rules.RazorGeneral.SchemaName, out var rule))
-            {
-                languageVersion = null;
-                return false;
-            }
-
-            if (!rule.Properties.TryGetValue(Rules.RazorGeneral.RazorLangVersionProperty, out var languageVersionValue))
-            {
-                languageVersion = null;
-                return false;
-            }
-
-            if (string.IsNullOrEmpty(languageVersionValue))
-            {
-                languageVersion = null;
-                return false;
-            }
-
-            if (!RazorLanguageVersion.TryParse(languageVersionValue, out languageVersion))
-            {
-                languageVersion = RazorLanguageVersion.Latest;
-            }
-
             return true;
         }
         #endregion Configuration Helpers
