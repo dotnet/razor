@@ -148,32 +148,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         #region Configuration Helpers
         // Internal for testing
-        internal static bool TryGetConfigurationItem(
-            string configuration,
-            IImmutableDictionary<string, IProjectRuleSnapshot> state,
-            out Item configurationItem)
-        {
-            if (!state.TryGetValue(Rules.RazorConfiguration.PrimaryDataSourceItemType, out var configurationState))
-            {
-                configurationItem = default;
-                return false;
-            }
-
-            var items = configurationState.Items;
-            foreach (var item in items)
-            {
-                if (item.Key == configuration)
-                {
-                    configurationItem = item;
-                    return true;
-                }
-            }
-
-            configurationItem = default;
-            return false;
-        }
-
-        // Internal for testing
         internal static bool TryGetConfiguration(
             IImmutableDictionary<string, IProjectRuleSnapshot> state,
             out RazorConfiguration configuration)
@@ -233,7 +207,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return true;
         }
 
-
         // Internal for testing
         internal static bool TryGetLanguageVersion(
             IImmutableDictionary<string, IProjectRuleSnapshot> state,
@@ -263,6 +236,32 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             return true;
+        }
+
+        // Internal for testing
+        internal static bool TryGetConfigurationItem(
+            string configuration,
+            IImmutableDictionary<string, IProjectRuleSnapshot> state,
+            out Item configurationItem)
+        {
+            if (!state.TryGetValue(Rules.RazorConfiguration.PrimaryDataSourceItemType, out var configurationState))
+            {
+                configurationItem = default;
+                return false;
+            }
+
+            var items = configurationState.Items;
+            foreach (var item in items)
+            {
+                if (item.Key == configuration)
+                {
+                    configurationItem = item;
+                    return true;
+                }
+            }
+
+            configurationItem = default;
+            return false;
         }
 
         // Internal for testing
