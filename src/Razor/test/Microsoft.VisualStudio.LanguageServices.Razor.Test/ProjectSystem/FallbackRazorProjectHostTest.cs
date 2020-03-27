@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private TestProjectSnapshotManager ProjectManager { get; }
 
+        private RazorProjectChangePublisher RazorProjectChangePublisher = Mock.Of<RazorProjectChangePublisher>();
 
         private ItemCollection ContentItems { get; }
 
@@ -56,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 [ItemReference.FullPathPropertyName] = "C:\\From\\About.cshtml",
             });
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
             var changes = new TestProjectChangeDescription[]
             {
                 afterChangeContentItems.ToChange(ContentItems.ToSnapshot()),
@@ -99,8 +100,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             });
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
             var changes = new TestProjectChangeDescription[]
             {
                 ContentItems.ToChange(),
@@ -143,8 +143,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             });
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
             var changes = new TestProjectChangeDescription[]
             {
                 ContentItems.ToChange(),
@@ -165,8 +164,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "Index.cshtml",
@@ -186,8 +184,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var services = new TestProjectSystemServices("C:\\Path\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.FullPathPropertyName] = "C:\\Path\\site.css",
@@ -207,8 +204,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var services = new TestProjectSystemServices("C:\\Path\\To\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "site.html",
@@ -230,8 +226,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var expectedPath = "C:\\Path\\Index.cshtml";
             var services = new TestProjectSystemServices("C:\\Path\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.FullPathPropertyName] = expectedPath,
@@ -254,8 +249,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var expectedTargetPath = "C:\\Path\\To\\Index.cshtml";
             var services = new TestProjectSystemServices("C:\\Path\\To\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "Index.cshtml",
@@ -279,8 +273,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var expectedTargetPath = "C:\\Path\\To\\Index.cshtml";
             var services = new TestProjectSystemServices("C:\\Path\\To\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
             var itemState = new Dictionary<string, string>()
             {
                 [ItemReference.LinkPropertyName] = "Index.cshtml",
@@ -303,8 +296,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
 
             // Act & Assert
             await host.LoadAsync();
@@ -319,8 +311,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var services = new TestProjectSystemServices("Test.csproj");
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
 
             // Act & Assert
             await Task.Run(async () => await host.LoadAsync());
@@ -340,8 +332,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager)
             {
                 AssemblyVersion = new Version(2, 0),
             };
@@ -377,8 +368,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var services = new TestProjectSystemServices("C:\\Path\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager)
             {
                 AssemblyVersion = new Version(2, 0), // Mock for reading the assembly's version
             };
@@ -413,8 +403,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -442,8 +431,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager);
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -482,8 +470,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var services = new TestProjectSystemServices("C:\\Path\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager)
             {
                 AssemblyVersion = new Version(2, 0),
             };
@@ -528,8 +515,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager)
             {
                 AssemblyVersion = new Version(2, 0),
             };
@@ -574,8 +560,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var services = new TestProjectSystemServices("C:\\Path\\Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager)
             {
                 AssemblyVersion = new Version(2, 0),
             };
@@ -620,8 +605,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var services = new TestProjectSystemServices("Test.csproj");
 
-            var razorProjectChangePublisher = GetRazorProjectChangePublisher();
-            var host = new TestFallbackRazorProjectHost(services, Workspace, razorProjectChangePublisher, ProjectManager)
+            var host = new TestFallbackRazorProjectHost(services, Workspace, RazorProjectChangePublisher, ProjectManager)
             {
                 AssemblyVersion = new Version(2, 0), // Mock for reading the assembly's version
             };
@@ -663,13 +647,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 return AssemblyVersion;
             }
-        }
-
-        private RazorProjectChangePublisher GetRazorProjectChangePublisher()
-        {
-            var publisher = Mock.Of<RazorProjectChangePublisher>();
-
-            return publisher;
         }
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
