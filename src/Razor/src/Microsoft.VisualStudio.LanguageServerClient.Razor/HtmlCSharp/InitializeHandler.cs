@@ -24,7 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 },
                 DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions()
                 {
-                    FirstTriggerCharacter = ">"
+                    FirstTriggerCharacter = ">",
+                    MoreTriggerCharacter = new[] { "=" }
                 },
             }
         };

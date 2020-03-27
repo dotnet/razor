@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     internal class OnTypeFormattingHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
         private static readonly TextEdit[] EmptyEdits = Array.Empty<TextEdit>();
+        private static readonly IReadOnlyList<string> AllowedTriggerCharacters = new[] { ">", "=" };
 
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPDocumentManager _documentManager;
@@ -76,9 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            if (request.Character != ">")
+            if (!AllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
             {
-                // We currently only support auto-closing tags feature.
+                // We haven't built support for this character yet.
                 return EmptyEdits;
             }
 
@@ -163,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return EmptyEdits;
             }
 
-            _editorService.ApplyTextEditsAsync(documentSnapshot.Uri, documentSnapshot.Snapshot, mappedEdits);
+            await _editorService.ApplyTextEditsAsync(documentSnapshot.Uri, documentSnapshot.Snapshot, mappedEdits).ConfigureAwait(false);
 
             // We would have already applied the edits and moved the cursor. Return empty.
             return EmptyEdits;
