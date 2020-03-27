@@ -279,7 +279,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 RazorLogger logger,
                 Action<ProjectSnapshot, string> onSerializeToFile = null,
                 Action<string> onDeleteFile = null)
-                : base(joinableTaskContext, new TestLSPEditorFeatureDetector(), logger)
+                : base(joinableTaskContext, logger)
             {
                 _onSerializeToFile = onSerializeToFile ?? ((_, __) => throw new XunitException("SerializeToFile should not have been called."));
                 _onDeleteFile = onDeleteFile ?? ((_) => throw new XunitException("DeleteFile should not have been called."));

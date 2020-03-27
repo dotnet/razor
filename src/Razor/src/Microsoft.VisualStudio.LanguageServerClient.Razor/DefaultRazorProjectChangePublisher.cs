@@ -44,7 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         [ImportingConstructor]
         public DefaultRazorProjectChangePublisher(
             JoinableTaskContext joinableTaskContext,
-            LSPEditorFeatureDetector lSPEditorFeatureDetector,
             RazorLogger logger)
         {
             _deferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
@@ -57,8 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _serializer.Converters.Add(RazorConfigurationJsonConverter.Instance);
             _serializer.Converters.Add(CodeAnalysis.Razor.Workspaces.Serialization.ProjectSnapshotJsonConverter.Instance);
             _joinableTaskContext = joinableTaskContext;
-
-            _lspEditorFeatureDetector = lSPEditorFeatureDetector;
         }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)

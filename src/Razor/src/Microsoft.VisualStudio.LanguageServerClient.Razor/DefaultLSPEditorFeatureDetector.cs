@@ -6,7 +6,6 @@ using System.Composition;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -21,24 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly ProjectHierarchyInspector _projectHierarchyInspector;
         private readonly IVsUIShellOpenDocument _vsUIShellOpenDocument;
         private readonly IVsFeatureFlags _featureFlags;
-        private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
-        public DefaultLSPEditorFeatureDetector(ProjectHierarchyInspector projectHierarchyInspector, JoinableTaskContext joinableTaskContext)
+        public DefaultLSPEditorFeatureDetector(ProjectHierarchyInspector projectHierarchyInspector)
         {
             if (projectHierarchyInspector is null)
             {
                 throw new ArgumentNullException(nameof(projectHierarchyInspector));
             }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            _joinableTaskContext = joinableTaskContext;
-
-            VerifyOnUIThread();
 
             _projectHierarchyInspector = projectHierarchyInspector;
             _featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
@@ -125,7 +114,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Private protected virtual for testing
         private protected virtual bool ProjectSupportsRazorLSPEditor(string documentMoniker, IVsHierarchy hierarchy)
         {
-            VerifyOnUIThread();
             if (hierarchy == null)
             {
                 var hr = _vsUIShellOpenDocument.IsDocumentInAProject(documentMoniker, out var uiHierarchy, out _, out _, out _);
@@ -158,7 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Private protected virtual for testing
         private protected virtual bool IsFeatureFlagEnabled()
         {
-            VerifyOnUIThread();
             if (_featureFlags.IsFeatureEnabled(RazorLSPEditorFeatureFlag, defaultValue: false))
             {
                 return true;
@@ -170,7 +157,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Private protected virtual for testing
         private protected virtual bool IsVSServer()
         {
-            VerifyOnUIThread();
             var shell = AsyncPackage.GetGlobalService(typeof(SVsShell)) as IVsShell;
             var result = shell.GetProperty((int)__VSSPROPID11.VSSPROPID_ShellMode, out var mode);
 
@@ -207,14 +193,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             var context = UIContext.FromUIContextGuid(LiveShareHostUIContextGuid);
             return context.IsActive;
-        }
-
-        private void VerifyOnUIThread()
-        {
-            if (_joinableTaskContext.IsOnMainThread)
-            {
-                throw new InvalidOperationException("This isn't the main thread.");
-            }
         }
     }
 }

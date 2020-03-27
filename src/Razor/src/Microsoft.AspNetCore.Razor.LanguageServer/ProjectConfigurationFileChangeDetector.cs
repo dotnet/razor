@@ -118,16 +118,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void FileSystemWatcher_ProjectConfigurationFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
         {
-            var normalizedFilePath = _filePathNormalizer.NormalizeForRead(physicalFilePath);
             Task.Factory.StartNew(
-                () => FileSystemWatcher_ProjectConfigurationFileEvent(normalizedFilePath, kind),
+                () => FileSystemWatcher_ProjectConfigurationFileEvent(physicalFilePath, kind),
                 CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
         }
 
         private void FileSystemWatcher_ProjectConfigurationFileEvent(string physicalFilePath, RazorFileChangeKind kind)
         {
-            var normalizedFilePath = _filePathNormalizer.NormalizeForRead(physicalFilePath);
-            var args = new ProjectConfigurationFileChangeEventArgs(normalizedFilePath, kind);
+            var args = new ProjectConfigurationFileChangeEventArgs(physicalFilePath, kind);
             foreach (var listener in _listeners)
             {
                 listener.ProjectConfigurationFileChanged(args);
