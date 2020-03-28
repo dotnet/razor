@@ -295,19 +295,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             protected override void DeleteFile(string publishFilePath) => _onDeleteFile?.Invoke(publishFilePath);
         }
 
-        private class TestLSPEditorFeatureDetector : LSPEditorFeatureDetector
-        {
-            public override bool IsLSPEditorAvailable(string documentMoniker, IVsHierarchy hierarchy)
-            {
-                return true;
-            }
-
-            public override bool IsRemoteClient()
-            {
-                return false;
-            }
-        }
-
         public void Dispose()
         {
             JoinableTaskContext.Dispose();
