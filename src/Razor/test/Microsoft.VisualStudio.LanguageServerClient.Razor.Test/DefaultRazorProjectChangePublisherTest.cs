@@ -285,6 +285,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 _onDeleteFile = onDeleteFile ?? ((_) => throw new XunitException("DeleteFile should not have been called."));
             }
 
+            internal override bool IsLSPEditorAvailable(string projectFilePath)
+            {
+                return true;
+            }
+
             protected override void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath) => _onSerializeToFile?.Invoke(projectSnapshot, publishFilePath);
 
             protected override void DeleteFile(string publishFilePath) => _onDeleteFile?.Invoke(publishFilePath);
