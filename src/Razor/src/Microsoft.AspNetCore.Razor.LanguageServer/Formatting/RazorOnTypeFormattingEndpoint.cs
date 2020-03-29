@@ -17,19 +17,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class RazorOnTypeFormattingEndpoint : IDocumentOnTypeFormatHandler
     {
-        private DocumentOnTypeFormattingCapability _capability;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorFormattingService _razorFormattingService;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
-        private readonly ILogger _logger;
+        private DocumentOnTypeFormattingCapability _capability;
 
         public RazorOnTypeFormattingEndpoint(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             RazorFormattingService razorFormattingService,
-            IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-            ILoggerFactory loggerFactory)
+            IOptionsMonitor<RazorLSPOptions> optionsMonitor)
         {
             if (foregroundDispatcher is null)
             {
@@ -51,16 +49,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(optionsMonitor));
             }
 
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
             _razorFormattingService = razorFormattingService;
             _optionsMonitor = optionsMonitor;
-            _logger = loggerFactory.CreateLogger<RazorFormattingEndpoint>();
         }
 
         public DocumentOnTypeFormattingRegistrationOptions GetRegistrationOptions()

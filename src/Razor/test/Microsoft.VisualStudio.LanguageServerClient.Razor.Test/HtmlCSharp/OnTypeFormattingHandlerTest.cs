@@ -3,14 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis.Differencing;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -236,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider
-                .Setup(d => d.RazorMapToDocumentRangeAsync(RazorLanguageKind.Html, Uri, It.IsAny<Range>(), It.IsAny<CancellationToken>()))
+                .Setup(d => d.MapToDocumentRangeAsync(RazorLanguageKind.Html, Uri, It.IsAny<Range>(), It.IsAny<CancellationToken>()))
                 .Callback(() => { mappedTextEdits = true; })
                 .Returns(Task.FromResult(new MappingResult()));
 

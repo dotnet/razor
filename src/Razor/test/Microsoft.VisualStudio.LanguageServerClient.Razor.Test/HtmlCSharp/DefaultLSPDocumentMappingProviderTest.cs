@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             // Act
-            var result = await mappingProvider.RazorMapToDocumentRangeAsync(RazorLanguageKind.CSharp, uri, projectedRange, CancellationToken.None).ConfigureAwait(false);
+            var result = await mappingProvider.MapToDocumentRangeAsync(RazorLanguageKind.CSharp, uri, projectedRange, CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);

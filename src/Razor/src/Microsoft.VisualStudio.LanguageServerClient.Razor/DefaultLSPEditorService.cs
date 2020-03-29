@@ -47,6 +47,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             ITextSnapshot snapshot,
             IEnumerable<TextEdit> textEdits)
         {
+            if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            if (snapshot is null)
+            {
+                throw new ArgumentNullException(nameof(snapshot));
+            }
+
+            if (textEdits is null)
+            {
+                throw new ArgumentNullException(nameof(textEdits));
+            }
+
             await _joinableTaskFactory.SwitchToMainThreadAsync();
 
             ApplyTextEdits(textEdits, snapshot, snapshot.TextBuffer);

@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _requestInvoker = requestInvoker;
         }
 
-        public async override Task<MappingResult> RazorMapToDocumentRangeAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, Range projectedRange, CancellationToken cancellationToken)
+        public async override Task<MappingResult> MapToDocumentRangeAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, Range projectedRange, CancellationToken cancellationToken)
         {
             if (razorDocumentUri is null)
             {
