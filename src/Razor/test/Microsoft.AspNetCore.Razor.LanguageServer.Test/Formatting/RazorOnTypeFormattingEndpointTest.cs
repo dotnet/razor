@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
             var formattingService = new TestRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(autoClosingTags: true);
-            var endpoint = new RazorOnTypeFormattingEndpoint(Dispatcher, documentResolver, formattingService, optionsMonitor, LoggerFactory);
+            var endpoint = new RazorOnTypeFormattingEndpoint(Dispatcher, documentResolver, formattingService, optionsMonitor);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var formattingService = new TestRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(autoClosingTags: true);
-            var endpoint = new RazorOnTypeFormattingEndpoint(Dispatcher, EmptyDocumentResolver, formattingService, optionsMonitor, LoggerFactory);
+            var endpoint = new RazorOnTypeFormattingEndpoint(Dispatcher, EmptyDocumentResolver, formattingService, optionsMonitor);
             var uri = new Uri("file://path/test.razor");
             var @params = new DocumentOnTypeFormattingParams()
             {
@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentResolver = CreateDocumentResolver(uri.AbsolutePath, codeDocument);
             var formattingService = new TestRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(autoClosingTags: true);
-            var endpoint = new RazorOnTypeFormattingEndpoint(Dispatcher, documentResolver, formattingService, optionsMonitor, LoggerFactory);
+            var endpoint = new RazorOnTypeFormattingEndpoint(Dispatcher, documentResolver, formattingService, optionsMonitor);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -102,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Arrange
             var formattingService = new TestRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(autoClosingTags: false);
-            var endpoint = new RazorOnTypeFormattingEndpoint(Dispatcher, EmptyDocumentResolver, formattingService, optionsMonitor, LoggerFactory);
+            var endpoint = new RazorOnTypeFormattingEndpoint(Dispatcher, EmptyDocumentResolver, formattingService, optionsMonitor);
             var @params = new DocumentOnTypeFormattingParams();
 
             // Act

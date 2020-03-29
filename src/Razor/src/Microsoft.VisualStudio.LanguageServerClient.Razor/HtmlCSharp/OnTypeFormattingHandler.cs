@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -91,8 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return EmptyEdits;
             }
 
-            // Switch to a background thread.
-            await TaskScheduler.Default;
+            await SwitchToBackgroundThread().ConfigureAwait(false);
 
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
             if (projectionResult == null || projectionResult.LanguageKind != RazorLanguageKind.Html)
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                var mappingResult = await _documentMappingProvider.RazorMapToDocumentRangeAsync(projectionResult.LanguageKind, request.TextDocument.Uri, edit.Range, cancellationToken).ConfigureAwait(false);
+                var mappingResult = await _documentMappingProvider.MapToDocumentRangeAsync(projectionResult.LanguageKind, request.TextDocument.Uri, edit.Range, cancellationToken).ConfigureAwait(false);
 
                 if (mappingResult == null || mappingResult.HostDocumentVersion != documentSnapshot.Version)
                 {
@@ -169,6 +169,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // We would have already applied the edits and moved the cursor. Return empty.
             return EmptyEdits;
+        }
+
+        protected async virtual Task SwitchToBackgroundThread()
+        {
+            await TaskScheduler.Default;
         }
     }
 }
