@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
     {
         private readonly JoinableTaskContext JoinableTaskContext = new JoinableTaskContext();
 
-        private RazorLogger RazorLogger = Mock.Of<RazorLogger>();
+        private readonly RazorLogger RazorLogger = Mock.Of<RazorLogger>();
 
         [Theory]
         [InlineData(ProjectChangeKind.DocumentAdded)]

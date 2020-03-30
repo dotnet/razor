@@ -67,13 +67,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public override void SetPublishFilePath(string projectFilePath, string publishFilePath)
         {
             // Should only be called from the main thread.
-            Debug.Assert(IsOnMainThread(), "SetPublishFilePath should have been on main thread");
+            Debug.Assert(_joinableTaskContext.IsOnMainThread, "SetPublishFilePath should have been on main thread");
             PublishFilePathMappings[projectFilePath] = publishFilePath;
         }
 
         public override void RemovePublishFilePath(string projectFilePath)
         {
-            Debug.Assert(IsOnMainThread(), "RemovePublishFilePath should have been on main thread");
+            Debug.Assert(_joinableTaskContext.IsOnMainThread, "RemovePublishFilePath should have been on main thread");
             PublishFilePathMappings.TryRemove(projectFilePath, out var _);
         }
 
@@ -102,11 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var fileInfo = new FileInfo(publishFilePath);
             using var writer = fileInfo.CreateText();
             _serializer.Serialize(writer, projectSnapshot);
-        }
-
-        protected bool IsOnMainThread()
-        {
-            return _joinableTaskContext.IsOnMainThread;
         }
 
         internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
