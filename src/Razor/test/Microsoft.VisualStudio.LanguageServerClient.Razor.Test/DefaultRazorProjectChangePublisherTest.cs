@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
@@ -270,23 +271,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
         private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher
         {
+            private static readonly Mock<LSPEditorFeatureDetector> _lspEditorFeatureDetector = new Mock<LSPEditorFeatureDetector>();
+
             private readonly Action<ProjectSnapshot, string> _onSerializeToFile;
             private readonly Action<string> _onDeleteFile;
+
+            static TestDefaultRazorProjectChangePublisher()
+            {
+                _lspEditorFeatureDetector
+                    .Setup(t => t.IsLSPEditorAvailable(It.IsAny<string>(), It.IsAny<IVsHierarchy>()))
+                    .Returns(true);
+            }
 
             public TestDefaultRazorProjectChangePublisher(
                 JoinableTaskContext joinableTaskContext,
                 RazorLogger logger,
                 Action<ProjectSnapshot, string> onSerializeToFile = null,
                 Action<string> onDeleteFile = null)
-                : base(joinableTaskContext, logger)
+                : base(joinableTaskContext, _lspEditorFeatureDetector.Object, logger)
             {
                 _onSerializeToFile = onSerializeToFile ?? ((_, __) => throw new XunitException("SerializeToFile should not have been called."));
                 _onDeleteFile = onDeleteFile ?? ((_) => throw new XunitException("DeleteFile should not have been called."));
-            }
 
-            internal override bool IsLSPEditorAvailable(string projectFilePath)
-            {
-                return true;
             }
 
             protected override void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath) => _onSerializeToFile?.Invoke(projectSnapshot, publishFilePath);
