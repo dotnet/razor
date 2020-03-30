@@ -162,22 +162,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
         }
 
-        //// Internal for testing
-        //// This needs to be overridable because if we try to get the LSPEditorFeatureDetector service
-        //// in unit tests everything will break. We can't LSPEditorFeatureDetector pass to the constructor because the objects
-        //// required to construct one are not available when DefaultRazorProjectChangePublisher is constructed, but
-        //// they ARE available later, when this is called.
-        //internal virtual bool IsLSPEditorAvailable(string projectFilePath)
-        //{
-        //    if (_lspEditorFeatureDetector is null)
-        //    {
-        //        var componentModel = (IComponentModel)Shell.Package.GetGlobalService(typeof(SComponentModel));
-        //        _lspEditorFeatureDetector = componentModel.GetService<LSPEditorFeatureDetector>();
-        //    }
-
-        //    return _lspEditorFeatureDetector.IsLSPEditorAvailable(projectFilePath, hierarchy: null);
-        //}
-
         // Internal for testing
         internal void Publish(ProjectSnapshot projectSnapshot)
         {
