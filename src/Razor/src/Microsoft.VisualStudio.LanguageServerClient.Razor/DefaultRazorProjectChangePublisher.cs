@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 
@@ -25,27 +24,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class DefaultRazorProjectChangePublisher : RazorProjectChangePublisher
     {
         internal readonly Dictionary<string, Task> _deferredPublishTasks;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly RazorLogger _logger;
+        private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
         private readonly Dictionary<string, ProjectSnapshot> _pendingProjectPublishes;
         private readonly object _publishLock;
+
         private readonly JsonSerializer _serializer = new JsonSerializer()
         {
             Formatting = Formatting.Indented
         };
-        private readonly JoinableTaskContext _joinableTaskContext;
 
         private ProjectSnapshotManagerBase _projectSnapshotManager;
-        private LSPEditorFeatureDetector _lspEditorFeatureDetector;
-
-        // Internal settable for testing
-        // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
-        internal int EnqueueDelay { get; set; } = 250;
 
         [ImportingConstructor]
         public DefaultRazorProjectChangePublisher(
-            JoinableTaskContext joinableTaskContext,
-            LSPEditorFeatureDetector lSPEditorFeatureDetector,
-            RazorLogger logger)
+                    JoinableTaskContext joinableTaskContext,
+                    LSPEditorFeatureDetector lSPEditorFeatureDetector,
+                    RazorLogger logger)
         {
             if (joinableTaskContext is null)
             {
@@ -76,10 +72,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _joinableTaskContext = joinableTaskContext;
         }
 
+        // Internal settable for testing
+        // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
+        internal int EnqueueDelay { get; set; } = 250;
+
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
             _projectSnapshotManager = projectManager;
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+        }
+
+        public override void RemovePublishFilePath(string projectFilePath)
+        {
+            Debug.Assert(_joinableTaskContext.IsOnMainThread, "RemovePublishFilePath should have been on main thread");
+            PublishFilePathMappings.TryRemove(projectFilePath, out var _);
         }
 
         public override void SetPublishFilePath(string projectFilePath, string publishFilePath)
@@ -89,37 +95,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             PublishFilePathMappings[projectFilePath] = publishFilePath;
         }
 
-        public override void RemovePublishFilePath(string projectFilePath)
+        // Internal for testing
+        internal void EnqueuePublish(ProjectSnapshot projectSnapshot)
         {
-            Debug.Assert(_joinableTaskContext.IsOnMainThread, "RemovePublishFilePath should have been on main thread");
-            PublishFilePathMappings.TryRemove(projectFilePath, out var _);
-        }
+            // A race is not possible here because we use the main thread to synchronize the updates
+            // by capturing the sync context.
+            _pendingProjectPublishes[projectSnapshot.FilePath] = projectSnapshot;
 
-        // Virtual for testing
-        protected virtual void DeleteFile(string publishFilePath)
-        {
-            var info = new FileInfo(publishFilePath);
-            if (info.Exists)
+            if (!_deferredPublishTasks.TryGetValue(projectSnapshot.FilePath, out var update) || update.IsCompleted)
             {
-                try
-                {
-                    // Try catch around the delete in case it was deleted between the Exists and this delete call. This also
-                    // protects against unauthorized access issues.
-                    info.Delete();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning($@"Failed to delete Razor configuration file '{publishFilePath}':
-{ex}");
-                }
+                _deferredPublishTasks[projectSnapshot.FilePath] = PublishAfterDelayAsync(projectSnapshot.FilePath);
             }
-        }
-
-        protected virtual void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath)
-        {
-            var fileInfo = new FileInfo(publishFilePath);
-            using var writer = fileInfo.CreateText();
-            _serializer.Serialize(writer, projectSnapshot);
         }
 
         internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
@@ -140,25 +126,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                     EnqueuePublish(args.Newer);
                     break;
+
                 case ProjectChangeKind.ProjectAdded:
                     Publish(args.Newer);
                     break;
+
                 case ProjectChangeKind.ProjectRemoved:
                     RemovePublishingData(args.Older);
                     break;
-            }
-        }
-
-        // Internal for testing
-        internal void EnqueuePublish(ProjectSnapshot projectSnapshot)
-        {
-            // A race is not possible here because we use the main thread to synchronize the updates
-            // by capturing the sync context.
-            _pendingProjectPublishes[projectSnapshot.FilePath] = projectSnapshot;
-
-            if (!_deferredPublishTasks.TryGetValue(projectSnapshot.FilePath, out var update) || update.IsCompleted)
-            {
-                _deferredPublishTasks[projectSnapshot.FilePath] = PublishAfterDelayAsync(projectSnapshot.FilePath);
             }
         }
 
@@ -210,6 +185,33 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 DeleteFile(publishFilePath);
             }
+        }
+
+        // Virtual for testing
+        protected virtual void DeleteFile(string publishFilePath)
+        {
+            var info = new FileInfo(publishFilePath);
+            if (info.Exists)
+            {
+                try
+                {
+                    // Try catch around the delete in case it was deleted between the Exists and this delete call. This also
+                    // protects against unauthorized access issues.
+                    info.Delete();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($@"Failed to delete Razor configuration file '{publishFilePath}':
+{ex}");
+                }
+            }
+        }
+
+        protected virtual void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath)
+        {
+            var fileInfo = new FileInfo(publishFilePath);
+            using var writer = fileInfo.CreateText();
+            _serializer.Serialize(writer, projectSnapshot);
         }
 
         private async Task PublishAfterDelayAsync(string projectFilePath)

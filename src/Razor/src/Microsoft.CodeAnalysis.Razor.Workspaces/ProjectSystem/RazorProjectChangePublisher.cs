@@ -7,12 +7,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal abstract class RazorProjectChangePublisher : ProjectSnapshotChangeTrigger
     {
-        protected readonly ConcurrentDictionary<string, string> PublishFilePathMappings;
-
-        public RazorProjectChangePublisher()
-        {
-            PublishFilePathMappings = new ConcurrentDictionary<string, string>(FilePathComparer.Instance);
-        }
+        protected ConcurrentDictionary<string, string> PublishFilePathMappings { get; } = new ConcurrentDictionary<string, string>(FilePathComparer.Instance);
 
         public abstract void SetPublishFilePath(string projectFilePath, string publishFilePath);
 
