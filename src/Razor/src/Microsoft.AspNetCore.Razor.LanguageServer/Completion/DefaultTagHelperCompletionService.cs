@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         private IReadOnlyList<CompletionItem> GetAttributeCompletions(
-                    SyntaxNode containingAttribute,
+            SyntaxNode containingAttribute,
             string containingTagName,
             string selectedAttributeName,
             IEnumerable<KeyValuePair<string, string>> attributes,
