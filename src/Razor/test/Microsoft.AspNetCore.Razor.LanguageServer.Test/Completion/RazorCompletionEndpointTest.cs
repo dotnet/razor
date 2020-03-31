@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
 
             // Act
-            var result = RazorCompletionEndpoint.TryConvert(completionItem, out var converted);
+            var result = RazorCompletionEndpoint.TryConvert(completionItem, snippetSupport: true, out var converted);
 
             // Assert
             Assert.True(result);
@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var description = completionItem.GetDirectiveCompletionDescription().Description;
 
             // Act
-            var result = RazorCompletionEndpoint.TryConvert(completionItem, out var converted);
+            var result = RazorCompletionEndpoint.TryConvert(completionItem, snippetSupport: true, out var converted);
 
             // Assert
             Assert.True(result);
@@ -100,7 +100,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var description = completionItem.GetMarkupTransitionCompletionDescription().Description;
 
             // Act
-            var result = RazorCompletionEndpoint.TryConvert(completionItem, out var converted);
+            var result = RazorCompletionEndpoint.TryConvert(completionItem, snippetSupport: true, out var converted);
 
             // Assert
             Assert.True(result);
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.SetAttributeCompletionDescription(new AttributeCompletionDescription(Array.Empty<CodeAnalysis.Razor.Completion.AttributeDescriptionInfo>()));
 
             // Act
-            var result = RazorCompletionEndpoint.TryConvert(completionItem, out var converted);
+            var result = RazorCompletionEndpoint.TryConvert(completionItem, snippetSupport: true, out var converted);
 
             // Assert
             Assert.True(result);
@@ -144,7 +144,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.SetAttributeCompletionDescription(new AttributeCompletionDescription(Array.Empty<CodeAnalysis.Razor.Completion.AttributeDescriptionInfo>()));
 
             // Act
-            var result = RazorCompletionEndpoint.TryConvert(completionItem, out var converted);
+            var result = RazorCompletionEndpoint.TryConvert(completionItem, snippetSupport: true, out var converted);
 
             // Assert
             Assert.True(result);

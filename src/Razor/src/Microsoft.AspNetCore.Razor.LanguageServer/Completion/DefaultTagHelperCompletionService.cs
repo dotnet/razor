@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.VisualStudio.Editor.Razor;
+using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
 
@@ -18,9 +19,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         private static readonly Container<string> AttributeCommitCharacters = new Container<string>(" ");
         private static readonly Container<string> ElementCommitCharacters = new Container<string>(" ", ">");
-        private readonly RazorTagHelperCompletionService _razorTagHelperCompletionService;
         private readonly HtmlFactsService _htmlFactsService;
+        private readonly RazorTagHelperCompletionService _razorTagHelperCompletionService;
         private readonly TagHelperFactsService _tagHelperFactsService;
+        private CompletionCapability _capability;
 
         public DefaultTagHelperCompletionService(
             RazorTagHelperCompletionService razorCompletionService,
@@ -93,8 +95,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return Array.Empty<CompletionItem>();
         }
 
+        public override void SetCapability(CompletionCapability completionCapability)
+        {
+            _capability = completionCapability;
+        }
+
         private IReadOnlyList<CompletionItem> GetAttributeCompletions(
-            SyntaxNode containingAttribute,
+                    SyntaxNode containingAttribute,
             string containingTagName,
             string selectedAttributeName,
             IEnumerable<KeyValuePair<string, string>> attributes,
@@ -133,8 +140,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     filterText = filterText.Substring(0, filterText.Length - 3);
                 }
 
-                var insertTextFormat = InsertTextFormat.Snippet;
-                if (!TryResolveAttributeInsertionSnippet(filterText, completion.Value, indexerCompletion, out var insertText))
+                string insertText;
+                InsertTextFormat insertTextFormat;
+                if (_capability.CompletionItem.SnippetSupport)
+                {
+                    insertTextFormat = InsertTextFormat.Snippet;
+                    if (!TryResolveAttributeInsertionSnippet(filterText, completion.Value, indexerCompletion, out insertText))
+                    {
+                        insertTextFormat = InsertTextFormat.PlainText;
+                        insertText = filterText;
+                    }
+                }
+                else
                 {
                     insertTextFormat = InsertTextFormat.PlainText;
                     insertText = filterText;

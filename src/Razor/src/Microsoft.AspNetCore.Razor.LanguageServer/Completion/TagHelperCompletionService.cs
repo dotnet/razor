@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
+using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
@@ -10,5 +11,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     internal abstract class TagHelperCompletionService
     {
         public abstract IReadOnlyList<CompletionItem> GetCompletionsAt(SourceSpan location, RazorCodeDocument codeDocument);
+        public abstract void SetCapability(CompletionCapability completionCapability);
     }
 }

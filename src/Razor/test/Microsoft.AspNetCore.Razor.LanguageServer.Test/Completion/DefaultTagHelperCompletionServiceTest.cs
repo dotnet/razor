@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.VisualStudio.Editor.Razor;
+using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
@@ -205,6 +206,50 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 completion =>
                 {
                     Assert.Equal("bool-val-", completion.InsertText);
+                    Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
+                });
+        }
+
+        [Fact]
+        public void GetCompletionAt_AtAttributeEdge_IndexerAttribute_WithoutSnippetSupport_ReturnsCompletionsWithoutSnippet()
+        {
+            // Arrange
+            var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+            tagHelper.TagMatchingRule(rule => rule.TagName = "test");
+            tagHelper.SetTypeName("TestTagHelper");
+            tagHelper.BindAttribute(attribute =>
+            {
+                attribute.Name = "int-val";
+                attribute.SetPropertyName("IntVal");
+                attribute.TypeName = ("System.Collections.Generic.IDictionary<System.String, System.Int32>");
+                attribute.AsDictionary("int-val-", typeof(int).FullName);
+            });
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var capability = new CompletionCapability {
+                CompletionItem = new CompletionItemCapability {
+                    SnippetSupport = true
+                }
+            };
+            capability.CompletionItem.SnippetSupport = false;
+
+            service.SetCapability(capability);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test />", tagHelper.Build());
+            var sourceSpan = new SourceSpan(35 + Environment.NewLine.Length, 0);
+
+            // Act
+            var completions = service.GetCompletionsAt(sourceSpan, codeDocument);
+
+            // Assert
+            Assert.Collection(
+                completions,
+                completion =>
+                {
+                    Assert.Equal("int-val", completion.InsertText);
+                    Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
+                },
+                completion =>
+                {
+                    Assert.Equal("int-val-", completion.InsertText);
                     Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
                 });
         }

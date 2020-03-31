@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             public override void Write(byte[] buffer, int offset, int count)
             {
                 _inner.Write(buffer, offset, count);
-                _inner.Flush();
+                _inner.FlushAsync();
             }
         }
     }
