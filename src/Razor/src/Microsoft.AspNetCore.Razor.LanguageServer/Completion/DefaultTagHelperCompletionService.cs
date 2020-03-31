@@ -142,19 +142,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                 string insertText;
                 InsertTextFormat insertTextFormat;
-                if (_capability.CompletionItem.SnippetSupport)
-                {
-                    insertTextFormat = InsertTextFormat.Snippet;
-                    if (!TryResolveAttributeInsertionSnippet(filterText, completion.Value, indexerCompletion, out insertText))
-                    {
-                        insertTextFormat = InsertTextFormat.PlainText;
-                        insertText = filterText;
-                    }
-                }
-                else
+
+                if (!TryResolveAttributeInsertionSnippet(filterText, completion.Value, indexerCompletion, _capability.CompletionItem.SnippetSupport, out var snippetText))
                 {
                     insertTextFormat = InsertTextFormat.PlainText;
                     insertText = filterText;
+                }
+                else
+                {
+                    insertTextFormat = InsertTextFormat.Snippet;
+                    insertText = snippetText;
                 }
 
                 var razorCompletionItem = new CompletionItem()
@@ -226,30 +223,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             string text,
             IEnumerable<BoundAttributeDescriptor> boundAttributes,
             bool indexerCompletion,
+            bool snippetSupport,
             out string snippetText)
         {
-            const string BoolTypeName = "System.Boolean";
-
-            // Boolean returning bound attribute, auto-complete to just the attribute name.
-            if (indexerCompletion)
+            if (snippetSupport)
             {
-                if (boundAttributes.All(boundAttribute => boundAttribute.IndexerTypeName == BoolTypeName))
+                const string BoolTypeName = "System.Boolean";
+
+                // Boolean returning bound attribute, auto-complete to just the attribute name.
+                if (indexerCompletion)
+                {
+                    if (boundAttributes.All(boundAttribute => boundAttribute.IndexerTypeName == BoolTypeName))
+                    {
+                        snippetText = null;
+                        return false;
+                    }
+
+                    snippetText = string.Concat(text, "$1=\"$2\"");
+                    return true;
+                }
+                else if (boundAttributes.All(boundAttribute => boundAttribute.TypeName == BoolTypeName))
                 {
                     snippetText = null;
                     return false;
                 }
 
-                snippetText = string.Concat(text, "$1=\"$2\"");
+                snippetText = string.Concat(text, "=\"$1\"");
                 return true;
             }
-            else if (boundAttributes.All(boundAttribute => boundAttribute.TypeName == BoolTypeName))
+            else
             {
                 snippetText = null;
                 return false;
             }
-
-            snippetText = string.Concat(text, "=\"$1\"");
-            return true;
         }
     }
 }

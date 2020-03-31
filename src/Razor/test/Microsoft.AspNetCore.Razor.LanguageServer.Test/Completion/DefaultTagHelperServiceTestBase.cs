@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Editor.Razor;
+using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using DefaultRazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.DefaultTagHelperCompletionService;
 using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
 
@@ -140,6 +141,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             return CreateCodeDocument(text, "test.cshtml", tagHelpers);
         }
+
+        protected CompletionCapability CompletionCapability { get; } = new CompletionCapability {
+            CompletionItem = new CompletionItemCapability {
+                SnippetSupport = true
+            }
+        };
 
         internal static RazorCodeDocument CreateRazorDocument(string text, params TagHelperDescriptor[] tagHelpers)
         {

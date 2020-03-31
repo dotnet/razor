@@ -153,7 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItems = new List<CompletionItem>();
             foreach (var razorCompletionItem in directiveCompletionItems)
             {
-                if (TryConvert(razorCompletionItem, _capability.CompletionItem.SnippetSupport, out var completionItem))
+                if (TryConvert(razorCompletionItem, out var completionItem))
                 {
                     completionItems.Add(completionItem);
                 }
@@ -230,7 +230,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         // Internal for testing
-        internal static bool TryConvert(RazorCompletionItem razorCompletionItem, bool snippetSupport, out CompletionItem completionItem)
+        internal bool TryConvert(RazorCompletionItem razorCompletionItem, out CompletionItem completionItem)
         {
             switch (razorCompletionItem.Kind)
             {
@@ -275,7 +275,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         };
 
                         var indexerCompletion = razorCompletionItem.DisplayText.EndsWith("...");
-                        if (snippetSupport && TryResolveDirectiveAttributeInsertionSnippet(razorCompletionItem.InsertText, indexerCompletion, descriptionInfo, out var snippetText))
+                        if (_capability?.CompletionItem?.SnippetSupport != null && _capability.CompletionItem.SnippetSupport && TryResolveDirectiveAttributeInsertionSnippet(razorCompletionItem.InsertText, indexerCompletion, descriptionInfo, out var snippetText))
                         {
                             directiveAttributeCompletionItem.InsertText = snippetText;
                             directiveAttributeCompletionItem.InsertTextFormat = InsertTextFormat.Snippet;
