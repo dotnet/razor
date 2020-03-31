@@ -141,13 +141,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
-            // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
             if (!(_documentManager is TrackingLSPDocumentManager trackingDocumentManager))
             {
                 return null;
             }
 
+            // Edit the CSharp projected document to contain a '.'. This allows C# completion to provide valid
+            // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
             var changes = new[]
             {
                 new TextChange(TextSpan.FromBounds(previousCharacterProjection.PositionIndex, previousCharacterProjection.PositionIndex), "."),
