@@ -330,7 +330,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             AttributeCompletionDescription attributeCompletionDescription,
             out string snippetText)
         {
-            if (_capability?.CompletionItem?.SnippetSupport == null || _capability.CompletionItem.SnippetSupport)
+            if (_capability?.CompletionItem?.SnippetSupport == null || !_capability.CompletionItem.SnippetSupport)
             {
                 snippetText = null;
                 return false;
