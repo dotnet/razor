@@ -22,20 +22,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     internal class RazorCompletionEndpoint : ICompletionHandler, ICompletionResolveHandler
     {
         private static readonly Container<string> DirectiveAttributeCommitCharacters = new Container<string>(" ");
-
+        private CompletionCapability _capability;
+        private readonly ILogger _logger;
+        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly DocumentResolver _documentResolver;
+        private readonly RazorCompletionFactsService _completionFactsService;
+        private readonly TagHelperCompletionService _tagHelperCompletionService;
+        private readonly TagHelperDescriptionFactory _tagHelperDescriptionFactory;
         private static readonly Command RetriggerCompletionCommand = new Command()
         {
             Name = "editor.action.triggerSuggest",
             Title = "Re-trigger completions...",
         };
-
-        private readonly RazorCompletionFactsService _completionFactsService;
-        private readonly DocumentResolver _documentResolver;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
-        private readonly ILogger _logger;
-        private readonly TagHelperCompletionService _tagHelperCompletionService;
-        private readonly TagHelperDescriptionFactory _tagHelperDescriptionFactory;
-        private CompletionCapability _capability;
 
         public RazorCompletionEndpoint(
             ForegroundDispatcher foregroundDispatcher,
@@ -83,37 +81,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
         }
 
-        public bool CanResolve(CompletionItem completionItem)
+        public void SetCapability(CompletionCapability capability)
         {
-            if (completionItem.TryGetRazorCompletionKind(out var completionItemKind))
-            {
-                switch (completionItemKind)
-                {
-                    case RazorCompletionItemKind.DirectiveAttribute:
-                    case RazorCompletionItemKind.DirectiveAttributeParameter:
-                        return true;
-                }
-
-                return false;
-            }
-
-            if (completionItem.IsTagHelperElementCompletion() ||
-                completionItem.IsTagHelperAttributeCompletion())
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        public CompletionRegistrationOptions GetRegistrationOptions()
-        {
-            return new CompletionRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector,
-                ResolveProvider = true,
-                TriggerCharacters = new Container<string>("@", "<", ":"),
-            };
+            _capability = capability;
         }
 
         public async Task<CompletionList> Handle(CompletionParams request, CancellationToken cancellationToken)
@@ -180,6 +150,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return completionList;
         }
 
+        public CompletionRegistrationOptions GetRegistrationOptions()
+        {
+            return new CompletionRegistrationOptions()
+            {
+                DocumentSelector = RazorDefaults.Selector,
+                ResolveProvider = true,
+                TriggerCharacters = new Container<string>("@", "<", ":"),
+            };
+        }
+
+        public bool CanResolve(CompletionItem completionItem)
+        {
+            if (completionItem.TryGetRazorCompletionKind(out var completionItemKind))
+            {
+                switch (completionItemKind)
+                {
+                    case RazorCompletionItemKind.DirectiveAttribute:
+                    case RazorCompletionItemKind.DirectiveAttributeParameter:
+                        return true;
+                }
+
+                return false;
+            }
+
+            if (completionItem.IsTagHelperElementCompletion() ||
+                completionItem.IsTagHelperAttributeCompletion())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public Task<CompletionItem> Handle(CompletionItem completionItem, CancellationToken cancellationToken)
         {
             string markdown = null;
@@ -223,10 +226,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return Task.FromResult(completionItem);
         }
 
-        public void SetCapability(CompletionCapability capability)
-        {
-            _capability = capability;
-        }
 
         // Internal for testing
         internal bool TryConvert(RazorCompletionItem razorCompletionItem, out CompletionItem completionItem)
