@@ -11,7 +11,6 @@ import { RazorLanguage } from './RazorLanguage';
 import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
 import { RazorLogger } from './RazorLogger';
 import { RazorDocumentSemanticTokensProvider } from './Semantic/RazorDocumentSemanticTokensProvider';
-
 export class ProposedApisFeature {
     constructor(
         private documentSynchronizer: RazorDocumentSynchronizer,
@@ -24,9 +23,8 @@ export class ProposedApisFeature {
     public async register(vscodeType: typeof vscodeapi, localRegistrations: vscode.Disposable[]) {
         if (vscodeType.env.appName.endsWith('Insiders')) {
             const legend = await this.languageServiceClient.getSemanticTokenLegend();
-
+            const semanticTokenProvider = new RazorDocumentSemanticTokensProvider(this.documentSynchronizer, this.documentManager, this.languageServiceClient, this.logger);
             if (legend) {
-                const semanticTokenProvider = new RazorDocumentSemanticTokensProvider(this.documentSynchronizer, this.documentManager, this.languageServiceClient, this.logger);
                 localRegistrations.push(vscodeType.languages.registerDocumentSemanticTokensProvider(RazorLanguage.id, semanticTokenProvider, legend));
             }
         }

@@ -226,7 +226,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return Task.FromResult(completionItem);
         }
 
-
         // Internal for testing
         internal bool TryConvert(RazorCompletionItem razorCompletionItem, out CompletionItem completionItem)
         {
@@ -267,7 +266,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         {
                             Label = razorCompletionItem.DisplayText,
                             InsertText = razorCompletionItem.InsertText,
-                            InsertTextFormat = InsertTextFormat.PlainText,
                             FilterText = razorCompletionItem.InsertText,
                             SortText = razorCompletionItem.InsertText,
                             Kind = CompletionItemKind.TypeParameter,
@@ -330,38 +328,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             string insertText,
             bool indexerCompletion,
             AttributeCompletionDescription attributeCompletionDescription,
-
             out string snippetText)
         {
-            if (_capability?.CompletionItem?.SnippetSupport != null && _capability.CompletionItem.SnippetSupport)
-            {
-                const string BoolTypeName = "System.Boolean";
-                var attributeInfos = attributeCompletionDescription.DescriptionInfos;
-
-                // Boolean returning bound attribute, auto-complete to just the attribute name.
-                if (attributeInfos.All(info => info.ReturnTypeName == BoolTypeName))
-                {
-                    snippetText = null;
-                    return false;
-                }
-
-                if (indexerCompletion)
-                {
-                    // Indexer completion
-                    snippetText = string.Concat(insertText, "$1=\"$2\"$0");
-                }
-                else
-                {
-                    snippetText = string.Concat(insertText, "=\"$1\"$0");
-                }
-
-                return true;
-            }
-            else
+            if (_capability?.CompletionItem?.SnippetSupport == null || _capability.CompletionItem.SnippetSupport)
             {
                 snippetText = null;
                 return false;
             }
+
+            const string BoolTypeName = "System.Boolean";
+            var attributeInfos = attributeCompletionDescription.DescriptionInfos;
+
+            // Boolean returning bound attribute, auto-complete to just the attribute name.
+            if (attributeInfos.All(info => info.ReturnTypeName == BoolTypeName))
+            {
+                snippetText = null;
+                return false;
+            }
+
+            if (indexerCompletion)
+            {
+                // Indexer completion
+                snippetText = string.Concat(insertText, "$1=\"$2\"$0");
+            }
+            else
+            {
+                snippetText = string.Concat(insertText, "=\"$1\"$0");
+            }
+
+            return true;
         }
     }
 }
