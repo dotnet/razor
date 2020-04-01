@@ -6,13 +6,14 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.VisualStudio.Editor.Razor;
+using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Server;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-
     public class DefaultTagHelperCompletionServiceTest : DefaultTagHelperServiceTestBase
     {
         [Fact]
@@ -57,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_AtEmptyTagName_ReturnsCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
 
@@ -75,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_OutsideOfTagName_DoesNotReturnCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<br />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(33 + Environment.NewLine.Length, 0);
 
@@ -90,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_AtHtmlElementNameEdge_ReturnsCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<br />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(32 + Environment.NewLine.Length, 0);
 
@@ -108,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_AtTagHelperElementNameEdge_ReturnsCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(35 + Environment.NewLine.Length, 0);
 
@@ -126,8 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_AtAttributeEdge_IntAttribute_ReturnsCompletionsWithSnippet()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(36 + Environment.NewLine.Length, 0);
 
@@ -153,8 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_AtAttributeEdge_BoolAttribute_ReturnsCompletionsWithoutSnippet()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(36 + Environment.NewLine.Length, 0);
 
@@ -190,8 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 attribute.TypeName = ("System.Collections.Generic.IDictionary<System.String, System.Boolean>");
                 attribute.AsDictionary("bool-val-", typeof(bool).FullName);
             });
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test />", tagHelper.Build());
             var sourceSpan = new SourceSpan(35 + Environment.NewLine.Length, 0);
 
@@ -227,15 +225,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 attribute.TypeName = ("System.Collections.Generic.IDictionary<System.String, System.Int32>");
                 attribute.AsDictionary("int-val-", typeof(int).FullName);
             });
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            var capability = new CompletionCapability {
-                CompletionItem = new CompletionItemCapability {
-                    SnippetSupport = true
-                }
-            };
-            capability.CompletionItem.SnippetSupport = false;
 
-            service.SetCapability(capability);
+            var languageServer = new Mock<ILanguageServer>();
+            languageServer.SetupGet(server => server.ClientSettings)
+                .Returns(new InitializeParams {
+                    Capabilities = new ClientCapabilities {
+                        TextDocument = new TextDocumentClientCapabilities {
+                            Completion = new CompletionCapability
+                            {
+                                CompletionItem = new CompletionItemCapability
+                                {
+                                    SnippetSupport = false
+                                }
+                            }
+                        }
+                    }
+                }).Verifiable();
+
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, languageServer.Object);
+
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test />", tagHelper.Build());
             var sourceSpan = new SourceSpan(35 + Environment.NewLine.Length, 0);
 
@@ -255,6 +263,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     Assert.Equal("int-val-", completion.InsertText);
                     Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
                 });
+
+            languageServer.Verify();
         }
 
         [Fact]
@@ -271,8 +281,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 attribute.TypeName = ("System.Collections.Generic.IDictionary<System.String, System.Int32>");
                 attribute.AsDictionary("int-val-", typeof(int).FullName);
             });
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test />", tagHelper.Build());
             var sourceSpan = new SourceSpan(35 + Environment.NewLine.Length, 0);
 
@@ -298,8 +307,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_MinimizedAttribute_ReturnsCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 unbound />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
 
@@ -317,8 +325,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_MinimizedTagHelperAttribute_ReturnsCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 bool-val />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
 
@@ -336,8 +343,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_HtmlAttribute_ReturnsCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 class='' />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
 
@@ -355,8 +361,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_TagHelperAttribute_ReturnsCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int-val='123' />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
 
@@ -374,8 +379,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionsAt_MalformedAttributeValue_ReturnsCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int-val='>";
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
@@ -394,8 +398,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionsAt_MalformedAttributeName_ReturnsCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int->", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
 
@@ -413,7 +416,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionAt_HtmlAttributeValue_DoesNotReturnCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 class='' />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(43 + Environment.NewLine.Length, 0);
 
@@ -428,8 +431,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void GetCompletionsAt_AttributePrefix_ReturnsCompletions()
         {
             // Arrange
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
-            service.SetCapability(CompletionCapability);
+            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test2        class=''>";
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);

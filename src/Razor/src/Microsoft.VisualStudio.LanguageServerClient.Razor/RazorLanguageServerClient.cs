@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public override long Position { get => _inner.Position; set => _inner.Position = value; }
 
-            public override void Flush() => _inner.Flush();
+            public override void Flush() => _inner.FlushAsync();
 
             public override int Read(byte[] buffer, int offset, int count) => _inner.Read(buffer, offset, count);
 
@@ -127,6 +127,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             public override void Write(byte[] buffer, int offset, int count)
             {
                 _inner.Write(buffer, offset, count);
+                // We intentionally call FlushAsync then don't await the task because calling Flush syncronously causes
+                // exceptions that can crash the extension.
                 _inner.FlushAsync();
             }
         }

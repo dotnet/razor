@@ -226,7 +226,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void SetCapability(CompletionCapability capability)
         {
             _capability = capability;
-            _tagHelperCompletionService.SetCapability(_capability);
         }
 
         // Internal for testing
@@ -269,13 +268,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         {
                             Label = razorCompletionItem.DisplayText,
                             InsertText = razorCompletionItem.InsertText,
+                            InsertTextFormat = InsertTextFormat.PlainText,
                             FilterText = razorCompletionItem.InsertText,
                             SortText = razorCompletionItem.InsertText,
                             Kind = CompletionItemKind.TypeParameter,
                         };
 
                         var indexerCompletion = razorCompletionItem.DisplayText.EndsWith("...");
-                        if (_capability?.CompletionItem?.SnippetSupport != null && _capability.CompletionItem.SnippetSupport && TryResolveDirectiveAttributeInsertionSnippet(razorCompletionItem.InsertText, indexerCompletion, descriptionInfo, out var snippetText))
+                        if (TryResolveDirectiveAttributeInsertionSnippet(razorCompletionItem.InsertText, indexerCompletion, descriptionInfo, out var snippetText))
                         {
                             directiveAttributeCompletionItem.InsertText = snippetText;
                             directiveAttributeCompletionItem.InsertTextFormat = InsertTextFormat.Snippet;
@@ -327,33 +327,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return false;
         }
 
-        private static bool TryResolveDirectiveAttributeInsertionSnippet(
+        private bool TryResolveDirectiveAttributeInsertionSnippet(
             string insertText,
             bool indexerCompletion,
             AttributeCompletionDescription attributeCompletionDescription,
+
             out string snippetText)
         {
-            const string BoolTypeName = "System.Boolean";
-            var attributeInfos = attributeCompletionDescription.DescriptionInfos;
+            if (_capability?.CompletionItem?.SnippetSupport != null && _capability.CompletionItem.SnippetSupport)
+            {
+                const string BoolTypeName = "System.Boolean";
+                var attributeInfos = attributeCompletionDescription.DescriptionInfos;
 
-            // Boolean returning bound attribute, auto-complete to just the attribute name.
-            if (attributeInfos.All(info => info.ReturnTypeName == BoolTypeName))
+                // Boolean returning bound attribute, auto-complete to just the attribute name.
+                if (attributeInfos.All(info => info.ReturnTypeName == BoolTypeName))
+                {
+                    snippetText = null;
+                    return false;
+                }
+
+                if (indexerCompletion)
+                {
+                    // Indexer completion
+                    snippetText = string.Concat(insertText, "$1=\"$2\"$0");
+                }
+                else
+                {
+                    snippetText = string.Concat(insertText, "=\"$1\"$0");
+                }
+
+                return true;
+            }
+            else
             {
                 snippetText = null;
                 return false;
             }
-
-            if (indexerCompletion)
-            {
-                // Indexer completion
-                snippetText = string.Concat(insertText, "$1=\"$2\"$0");
-            }
-            else
-            {
-                snippetText = string.Concat(insertText, "=\"$1\"$0");
-            }
-
-            return true;
         }
     }
 }

@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.VisualStudio.Editor.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Server;
 using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
@@ -22,12 +22,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private readonly HtmlFactsService _htmlFactsService;
         private readonly RazorTagHelperCompletionService _razorTagHelperCompletionService;
         private readonly TagHelperFactsService _tagHelperFactsService;
-        private CompletionCapability _capability;
 
         public DefaultTagHelperCompletionService(
             RazorTagHelperCompletionService razorCompletionService,
             HtmlFactsService htmlFactsService,
-            TagHelperFactsService tagHelperFactsService)
+            TagHelperFactsService tagHelperFactsService,
+            ILanguageServer languageServer)
         {
             if (razorCompletionService is null)
             {
@@ -44,10 +44,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(tagHelperFactsService));
             }
 
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
             _razorTagHelperCompletionService = razorCompletionService;
             _htmlFactsService = htmlFactsService;
             _tagHelperFactsService = tagHelperFactsService;
+            LanguageServer = languageServer;
         }
+
+        public ILanguageServer LanguageServer { get; }
 
         public override IReadOnlyList<CompletionItem> GetCompletionsAt(SourceSpan location, RazorCodeDocument codeDocument)
         {
@@ -95,11 +103,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return Array.Empty<CompletionItem>();
         }
 
-        public override void SetCapability(CompletionCapability completionCapability)
-        {
-            _capability = completionCapability;
-        }
-
         private IReadOnlyList<CompletionItem> GetAttributeCompletions(
             SyntaxNode containingAttribute,
             string containingTagName,
@@ -143,7 +146,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 string insertText;
                 InsertTextFormat insertTextFormat;
 
-                if (!TryResolveAttributeInsertionSnippet(filterText, completion.Value, indexerCompletion, _capability.CompletionItem.SnippetSupport, out var snippetText))
+                var snippetSupported = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Completion.Value?.CompletionItem?.SnippetSupport ?? false;
+                if (!TryResolveAttributeInsertionSnippet(filterText, completion.Value, indexerCompletion, snippetSupported, out var snippetText))
                 {
                     insertTextFormat = InsertTextFormat.PlainText;
                     insertText = filterText;

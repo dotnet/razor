@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private RazorCompletionFactsService CompletionFactsService { get; }
 
-        private CompletionCapability DefaultCapability = new CompletionCapability
+        private readonly CompletionCapability DefaultCapability = new CompletionCapability
         {
             CompletionItem = new CompletionItemCapability {
                 SnippetSupport = true
