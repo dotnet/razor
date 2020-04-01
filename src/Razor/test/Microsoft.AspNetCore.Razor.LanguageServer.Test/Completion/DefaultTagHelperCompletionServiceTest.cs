@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.VisualStudio.Editor.Razor;
 using Moq;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
@@ -16,6 +17,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public class DefaultTagHelperCompletionServiceTest : DefaultTagHelperServiceTestBase
     {
+        protected ILanguageServer LanguageServer
+        {
+            get
+            {
+                var initializeParams = new InitializeParams
+                {
+                    Capabilities = new ClientCapabilities
+                    {
+                        TextDocument = new TextDocumentClientCapabilities
+                        {
+                            Completion = new Supports<CompletionCapability>
+                            {
+                                Value = new CompletionCapability
+                                {
+                                    CompletionItem = new CompletionItemCapability
+                                    {
+                                        SnippetSupport = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
+                var languageServer = new Mock<ILanguageServer>();
+                languageServer.SetupGet(server => server.ClientSettings)
+                    .Returns(initializeParams);
+
+                return languageServer.Object;
+            }
+        }
+
         [Fact]
         public void GetNearestAncestorTagInfo_MarkupElement()
         {
