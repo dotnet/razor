@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         var containsKey = _configurationToProjectMap.TryGetValue(configurationFilePath, out var projectFilePath);
                         Debug.Assert(containsKey);
 
-                        _configurationToProjectMap.Remove(args.ConfigurationFilePath);
+                        _configurationToProjectMap.Remove(configurationFilePath);
 
                         ResetProject(projectFilePath);
                         break;
