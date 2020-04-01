@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var undoManager = _undoManagerProvider.GetTextBufferUndoManager(snapshot.TextBuffer);
             var undoHistory = undoManager.TextBufferUndoHistory;
-            using var transaction = undoHistory.CreateTransaction("Apply TextEdits");
+            using var transaction = undoHistory.CreateTransaction("Apply Razor LSP text edits");
 
             try
             {
