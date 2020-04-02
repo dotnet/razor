@@ -77,7 +77,7 @@ export class RazorCSharpLanguageMiddleware implements LanguageMiddleware {
                     // appropriate error reporting (if we had additional tabs, then the error squigly would appear offset).
                     //
                     // The ideal solution for this would do something like:
-                    // https://github.com/dotnet/aspnetcore-tooling/blob/master/src/Razor/src/Microsoft.AspNetCore.Razor.LanguageServer/Formatting/DefaultRazorFormattingService.cs#L264
+                    // https://github.com/dotnet/aspnetcore-tooling/blob/4c8dbd0beb073e6dcee33d96d174453bf44d938a/src/Razor/src/Microsoft.AspNetCore.Razor.LanguageServer/Formatting/DefaultRazorFormattingService.cs#L264
                     // however we're going to hold off on that for now as it isn't immediately necessary and we don't
                     // (currently) support any other kind of multi-line edits.
 
