@@ -69,10 +69,33 @@ export class RazorCSharpLanguageMiddleware implements LanguageMiddleware {
                         continue;
                     }
                 } else {
-                    this.logger.logVerbose(
-                        `Re-mapping text ${edit.newText} at ${edit.range} in ${uri.path} to ${remappedResponse.range} in ${documentUri.path}`);
+                    // Similar to above, this is kind of wrong. We're manually trimming whitespace and adjusting
+                    // for multi-line edits that're provided by O#. Right now, we do not support multi-line edits
+                    // (ex. refactoring code actions) however there are certain supported edits which O# is automatically
+                    // formatting for us (ex. FullyQualifiedNamespace) into multiple lines, when it should span a single line.
+                    // This is due to how we render our virtual cs files, with fewer levels of indentation to facilitate
+                    // appropriate error reporting (if we had additional tabs, then the error squigly would appear offset).
+                    //
+                    // The ideal solution for this would do something like:
+                    // https://github.com/dotnet/aspnetcore-tooling/blob/master/src/Razor/src/Microsoft.AspNetCore.Razor.LanguageServer/Formatting/DefaultRazorFormattingService.cs#L264
+                    // however we're going to hold off on that for now as it isn't immediately necessary and we don't
+                    // (currently) support any other kind of multi-line edits.
 
-                    const newEdit = new vscode.TextEdit(remappedResponse.range, edit.newText);
+                    const newText = edit.newText.trim();
+                    let remappedRange = remappedResponse.range;
+
+                    // The starting and ending range may be equal in the case when we have other items on the same line. Ex:
+                    // Render|Tree apple
+                    // where `|` is the cursor. We want to ensure we dont't overwrite `apple` in this case with our edit.
+                    if (newText !== edit.newText && !remappedResponse.range.start.isEqual(remappedResponse.range.end)) {
+                        const end = new vscode.Position(remappedResponse.range.start.line, remappedResponse.range.start.character + newText.length);
+                        remappedRange = new vscode.Range(remappedResponse.range.start, end);
+                    }
+
+                    this.logger.logVerbose(
+                        `Re-mapping text ${newText} at ${edit.range} in ${uri.path} to ${remappedRange} in ${documentUri.path}`);
+
+                    const newEdit = new vscode.TextEdit(remappedRange, newText);
                     this.addElementToDictionary(map, documentUri, newEdit);
                 }
             }
