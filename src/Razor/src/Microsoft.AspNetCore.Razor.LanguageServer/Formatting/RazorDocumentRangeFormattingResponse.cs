@@ -5,7 +5,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
-    internal class RazorDocumentRangeFormattingResponse
+    public class RazorDocumentRangeFormattingResponse
     {
         public TextEdit[] Edits { get; set; }
     }

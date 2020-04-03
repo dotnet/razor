@@ -5,7 +5,10 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -14,9 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [Export(typeof(RazorLSPTextDocumentCreatedListener))]
     internal class RazorLSPTextDocumentCreatedListener
     {
+        private static Guid HtmlLanguageServiceGuid = new Guid("9BBFD173-9770-47DC-B191-651B7FF493CD");
+
         private readonly TrackingLSPDocumentManager _lspDocumentManager;
         private readonly ITextDocumentFactoryService _textDocumentFactory;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
+        private readonly SVsServiceProvider _serviceProvider;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
         private readonly IContentType _razorLSPContentType;
 
         [ImportingConstructor]
@@ -24,7 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             ITextDocumentFactoryService textDocumentFactory,
             IContentTypeRegistryService contentTypeRegistry,
             LSPDocumentManager lspDocumentManager,
-            LSPEditorFeatureDetector lspEditorFeatureDetector)
+            LSPEditorFeatureDetector lspEditorFeatureDetector,
+            SVsServiceProvider serviceProvider,
+            IEditorOptionsFactoryService editorOptionsFactory)
         {
             if (textDocumentFactory is null)
             {
@@ -46,6 +55,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
             }
 
+            if (serviceProvider is null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            if (editorOptionsFactory is null)
+            {
+                throw new ArgumentNullException(nameof(editorOptionsFactory));
+            }
+
             _lspDocumentManager = lspDocumentManager as TrackingLSPDocumentManager;
 
             if (_lspDocumentManager is null)
@@ -57,6 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _textDocumentFactory = textDocumentFactory;
             _lspEditorFeatureDetector = lspEditorFeatureDetector;
+            _serviceProvider = serviceProvider;
+            _editorOptionsFactory = editorOptionsFactory;
+
             _textDocumentFactory.TextDocumentCreated += TextDocumentFactory_TextDocumentCreated;
             _textDocumentFactory.TextDocumentDisposed += TextDocumentFactory_TextDocumentDisposed;
             _razorLSPContentType = contentTypeRegistry.GetContentType(RazorLSPContentTypeDefinition.Name);
@@ -160,6 +182,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 // Must track the document after changing the content type so any LSPDocuments created understand they're being created for a Razor LSP document.
                 _lspDocumentManager.TrackDocument(textBuffer);
+            }
+
+            // Initialize the buffer with editor options.
+            InitializeOptions(textBuffer);
+        }
+
+        private void InitializeOptions(ITextBuffer textBuffer)
+        {
+            var textManager = _serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
+            Assumes.Present(textManager);
+
+            var langPrefs2 = new LANGPREFERENCES2[] { new LANGPREFERENCES2() { guidLang = HtmlLanguageServiceGuid } };
+            if (VSConstants.S_OK == textManager.GetUserPreferences2(null, null, langPrefs2, null))
+            {
+                var insertSpaces = langPrefs2[0].fInsertTabs == 0;
+                var tabSize = langPrefs2[0].uTabSize;
+
+                var razorOptions = _editorOptionsFactory.GetOptions(textBuffer);
+                razorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
+                razorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, (int)tabSize);
             }
         }
     }

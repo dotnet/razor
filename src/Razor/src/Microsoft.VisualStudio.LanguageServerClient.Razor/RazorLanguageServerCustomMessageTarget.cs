@@ -4,6 +4,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
@@ -16,5 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [JsonRpcMethod(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint)]
         public abstract Task UpdateHtmlBufferAsync(JToken token, CancellationToken cancellationToken);
+
+        [JsonRpcMethod(LanguageServerConstants.RazorRangeFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams token, CancellationToken cancellationToken);
     }
 }
