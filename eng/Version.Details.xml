@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
+    <Dependency Name="Microsoft.Extensions.Configuration" Version="5.0.0-preview.4-runtime.20201.19">
+      <Uri>https://github.com/dotnet/extensions</Uri>
+      <Sha>907b5ae697841b0308fb321315991939474f9d7e</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0-preview.4-runtime.20201.19">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>907b5ae697841b0308fb321315991939474f9d7e</Sha>
+    </Dependency>
     <Dependency Name="Microsoft.Extensions.Configuration.Json" Version="5.0.0-preview.4-runtime.20201.19">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>907b5ae697841b0308fb321315991939474f9d7e</Sha>

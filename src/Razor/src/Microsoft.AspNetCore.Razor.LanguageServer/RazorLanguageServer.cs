@@ -21,9 +21,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.JsonRpc.Serialization.Converters;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Server;
 using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
 
@@ -35,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
         }
 
-        public static Task<ILanguageServer> CreateAsync(Stream input, Stream output, Trace trace)
+        public static Task<ILanguageServer> CreateAsync(Stream input, Stream output, Trace trace, Version version = null)
         {
             Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
 
@@ -49,6 +50,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         .SetMinimumLevel(RazorLSPOptions.GetLogLevelForTrace(trace)))
                     .OnInitialized(async (s, request, response) =>
                     {
+                        bool objectSupportedVersion;
+
+                        if (Version.TryParse(request.ClientInfo?.Version, out var parsedVersion))
+                        {
+                            version = parsedVersion;
+                        }
+
+                        if (version is null)
+                        {
+                            version = new Version("1337");
+                        }
+
+                        if (version > new Version(3, 14, 0, 0))
+                        {
+                            objectSupportedVersion = true;
+                        }
+                        else
+                        {
+                            objectSupportedVersion = false;
+                        }
+
+                        if (!objectSupportedVersion)
+                        {
+                            if(s.ServerSettings.Capabilities.HoverProvider.IsValue)
+                            {
+                                s.ServerSettings.Capabilities.HoverProvider = new BooleanOr<HoverOptions>(true);
+                            }
+
+                            if(s.ServerSettings.Capabilities.DocumentRangeFormattingProvider.IsValue)
+                            {
+                                s.ServerSettings.Capabilities.DocumentRangeFormattingProvider = new BooleanOr<DocumentRangeFormattingOptions>(true);
+                            }
+                        }
+                        
                         var fileChangeDetectorManager = s.Services.GetRequiredService<RazorFileChangeDetectorManager>();
                         await fileChangeDetectorManager.InitializedAsync(s);
 

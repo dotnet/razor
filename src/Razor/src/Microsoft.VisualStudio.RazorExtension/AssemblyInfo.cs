@@ -16,7 +16,38 @@
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.Configuration.Abstractions.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.Logging.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.Logging.Abstractions.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.Primitives.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.FileSystemGlobbing.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.FileProviders.Abstractions.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Extensions.FileProviders.Physical.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Reactive.dll")]
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "MediatR",
+    PublicKeyToken = "bb9a41a5e8aaa7e2",
+    OldVersionLowerBound = "8.0.0.0",
+    OldVersionUpperBound = "8.0.1.0",
+    NewVersion = "8.0.1.0")]
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.Extensions.Configuration.Abstractions",
+    PublicKeyToken = "adb9793829ddae60",
+    OldVersionLowerBound = "0.0.0.0",
+    OldVersionUpperBound = "5.0.0.0",
+    NewVersion = "5.0.0.0")]
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.Extensions.Configuration",
+    PublicKeyToken = "adb9793829ddae60",
+    OldVersionLowerBound = "0.0.0.0",
+    OldVersionUpperBound = "5.0.0.0",
+    NewVersion = "5.0.0.0")]
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.Extensions.DependencyInjection.Abstractions",
+    PublicKeyToken = "adb9793829ddae60",
+    OldVersionLowerBound = "2.0.0.0",
+    OldVersionUpperBound = "3.1.0.0",
+    NewVersion = "3.1.0.0")]
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.Extensions.Primitives",
+    PublicKeyToken = "adb9793829ddae60",
+    OldVersionLowerBound = "0.0.0.0",
+    OldVersionUpperBound = "5.0.0.0",
+    NewVersion = "5.0.0.0")]

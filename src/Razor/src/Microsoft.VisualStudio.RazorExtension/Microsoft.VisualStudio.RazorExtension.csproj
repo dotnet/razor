@@ -97,6 +97,7 @@
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.Abstractions.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Logging.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Logging.Abstractions.dll" />
+    <VSIXSourceitem Include="$(OutputPath)Microsoft.Extensions.Primitives.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.FileSystemGlobbing.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.FileProviders.Abstractions.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.FileProviders.Physical.dll" />

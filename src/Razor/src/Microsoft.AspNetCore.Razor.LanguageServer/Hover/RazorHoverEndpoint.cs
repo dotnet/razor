@@ -57,9 +57,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             _logger = loggerFactory.CreateLogger<RazorHoverEndpoint>();
         }
 
-        public TextDocumentRegistrationOptions GetRegistrationOptions()
+        public HoverRegistrationOptions GetRegistrationOptions()
         {
-            return new TextDocumentRegistrationOptions()
+            return new HoverRegistrationOptions()
             {
                 DocumentSelector = RazorDefaults.Selector
             };
