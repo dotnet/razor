@@ -69,17 +69,16 @@ export class RazorCSharpLanguageMiddleware implements LanguageMiddleware {
                         continue;
                     }
                 } else {
-                    edit.range = remappedResponse.range;
+                    const remappedEdit = new vscode.TextEdit(remappedResponse.range, edit.newText);
+                    const [codeActionUri, codeActionEdit] = this.tryApplyingCodeActions(uri, remappedEdit);
 
-                    const [codeActionUri, codeActionEdit] = this.tryApplyingCodeActions(uri, edit);
                     if (codeActionUri && codeActionEdit) {
                         this.addElementToDictionary(map, documentUri, codeActionEdit);
-                    } else if (remappedResponse && remappedResponse.range) {
+                    } else {
                         this.logger.logVerbose(
                             `Re-mapping text ${edit.newText} at ${edit.range} in ${uri.path} to ${remappedResponse.range} in ${documentUri.path}`);
 
-                        const newEdit = new vscode.TextEdit(remappedResponse.range, edit.newText);
-                        this.addElementToDictionary(map, documentUri, newEdit);
+                        this.addElementToDictionary(map, documentUri, remappedEdit);
                     }
                 }
 
