@@ -41,9 +41,14 @@ export class RazorFullyQualifiedCodeActionTranslator implements IRazorCodeAction
     }
 
     public canHandleEdit(uri: vscode.Uri, edit: vscode.TextEdit) {
+        // CodeActions do not have a distinct identifier, so we must determine
+        // if a potential edit is a Fully Qualified Namespace edit. We do so by
+        // examining whether the new text of the edit fits one of two potential forms.
         const completeFullyQualifiedRegex = new RegExp('^(\\w+\\.)+\\w+$'); // Microsoft.AspNetCore.Mvc
         const partialFullyQualifiedRegex = new RegExp('^(\\w+\\.)+$');      // Microsoft.AspNetCore.Mvc.
+
         const newText = edit.newText.trim();
+
         return (!edit.range.isSingleLine && completeFullyQualifiedRegex.test(newText)) ||
             (edit.range.start.isEqual(edit.range.end) && partialFullyQualifiedRegex.test(newText));
     }
