@@ -3,7 +3,7 @@
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public enum RazorLanguageKind
+    internal enum RazorLanguageKind
     {
         CSharp = 1,
         Html = 2,

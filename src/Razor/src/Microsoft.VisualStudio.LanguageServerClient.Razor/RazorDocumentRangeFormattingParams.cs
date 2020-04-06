@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public class RazorDocumentRangeFormattingParams
+    internal class RazorDocumentRangeFormattingParams
     {
         public RazorLanguageKind Kind { get; set; }
 

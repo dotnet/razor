@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public class RazorDocumentRangeFormattingResponse
+    internal class RazorDocumentRangeFormattingResponse
     {
 #pragma warning disable CA1819 // Properties should not return arrays
         public TextEdit[] Edits { get; set; }

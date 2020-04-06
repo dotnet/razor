@@ -9,7 +9,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public abstract class RazorLanguageServerCustomMessageTarget
+    internal abstract class RazorLanguageServerCustomMessageTarget
     {
         // Called by the Razor Language Server to update the contents of the virtual CSharp buffer.
         [JsonRpcMethod(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint)]

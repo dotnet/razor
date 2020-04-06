@@ -178,14 +178,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 // the text buffer will be ignored by the LSP 
                 textBuffer.Properties.AddProperty(LanguageClientConstants.ClientNamePropertyKey, RazorLanguageServerClient.ClientName);
 
+                // Initialize the buffer with editor options.
+                InitializeOptions(textBuffer);
+
                 textBuffer.ChangeContentType(_razorLSPContentType, editTag: null);
 
                 // Must track the document after changing the content type so any LSPDocuments created understand they're being created for a Razor LSP document.
                 _lspDocumentManager.TrackDocument(textBuffer);
             }
-
-            // Initialize the buffer with editor options.
-            InitializeOptions(textBuffer);
         }
 
         private void InitializeOptions(ITextBuffer textBuffer)

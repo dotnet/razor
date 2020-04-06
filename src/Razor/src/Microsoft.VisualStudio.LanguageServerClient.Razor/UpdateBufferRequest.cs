@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public class UpdateBufferRequest
+    internal class UpdateBufferRequest
     {
         public long HostDocumentVersion { get; set; }
 
