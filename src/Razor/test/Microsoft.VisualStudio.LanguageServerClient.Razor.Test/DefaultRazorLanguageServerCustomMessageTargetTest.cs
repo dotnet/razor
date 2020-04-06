@@ -6,9 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Text;
@@ -17,9 +15,7 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Sdk;
-using OmniSharpFormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions;
-using OmniSharpPosition = OmniSharp.Extensions.LanguageServer.Protocol.Models.Position;
-using OmniSharpRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -102,8 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 HostDocumentFilePath = "c:/Some/path/to/file.razor",
                 Kind = RazorLanguageKind.Razor,
-                ProjectedRange = new OmniSharpRange(),
-                Options = new OmniSharpFormattingOptions()
+                ProjectedRange = new Range(),
+                Options = new FormattingOptions()
                 {
                     TabSize = 4,
                     InsertSpaces = true
@@ -130,8 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 HostDocumentFilePath = "c:/Some/path/to/file.razor",
                 Kind = RazorLanguageKind.CSharp,
-                ProjectedRange = new OmniSharpRange(),
-                Options = new OmniSharpFormattingOptions()
+                ProjectedRange = new Range(),
+                Options = new FormattingOptions()
                 {
                     TabSize = 4,
                     InsertSpaces = true
@@ -174,12 +170,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 HostDocumentFilePath = filePath,
                 Kind = RazorLanguageKind.CSharp,
-                ProjectedRange = new OmniSharpRange()
+                ProjectedRange = new Range()
                 {
-                    Start = new OmniSharpPosition(),
-                    End = new OmniSharpPosition()
+                    Start = new Position(),
+                    End = new Position()
                 },
-                Options = new OmniSharpFormattingOptions()
+                Options = new FormattingOptions()
                 {
                     TabSize = 4,
                     InsertSpaces = true

@@ -5,17 +5,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
-using OmniSharpTextEdit = OmniSharp.Extensions.LanguageServer.Protocol.Models.TextEdit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -100,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return;
             }
 
-            var hostDocumentUri = ConvertFilePathToUri(request.HostDocumentFilePath);
+            var hostDocumentUri = new Uri(request.HostDocumentFilePath);
             _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 hostDocumentUri,
                 request.Changes,
@@ -136,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return;
             }
 
-            var hostDocumentUri = ConvertFilePathToUri(request.HostDocumentFilePath);
+            var hostDocumentUri = new Uri(request.HostDocumentFilePath);
             _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
                 hostDocumentUri,
                 request.Changes,
@@ -145,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override async Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams request, CancellationToken cancellationToken)
         {
-            var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<OmniSharpTextEdit>() };
+            var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
 
             if (request.Kind == RazorLanguageKind.Razor)
             {
@@ -154,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             await _joinableTaskFactory.SwitchToMainThreadAsync();
             
-            var hostDocumentUri = ConvertFilePathToUri(request.HostDocumentFilePath);
+            var hostDocumentUri = new Uri(request.HostDocumentFilePath);
             if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
             {
                 return response;
@@ -169,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 projectedUri = csharpDocument.Uri;
             }
             else if (request.Kind == RazorLanguageKind.Html &&
-                documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var htmlDocument))
+                documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
             {
                 serverKind = LanguageServerKind.Html;
                 projectedUri = htmlDocument.Uri;
@@ -183,8 +178,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var formattingParams = new DocumentRangeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = projectedUri },
-                Range = request.ProjectedRange.ToLSPRange(),
-                Options = request.Options.ToLSPFormattingOptions()
+                Range = request.ProjectedRange,
+                Options = request.Options
             };
 
             var edits = await _requestInvoker.RequestServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
@@ -193,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
 
-            response.Edits = edits.Select(e => e.ToOmniSharpTextEdit()).ToArray();
+            response.Edits = edits;
 
             return response;
         }
@@ -202,17 +197,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             _updateCSharpSemaphoreSlim?.Dispose();
             _updateHtmlSemaphoreSlim?.Dispose();
-        }
-
-        private static Uri ConvertFilePathToUri(string filePath)
-        {
-            if (filePath.StartsWith("/", StringComparison.Ordinal) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                filePath = filePath.Substring(1);
-            }
-
-            var uri = new Uri(filePath, UriKind.Absolute);
-            return uri;
         }
 
         private class SingleThreadedFIFOSemaphoreSlim : IDisposable

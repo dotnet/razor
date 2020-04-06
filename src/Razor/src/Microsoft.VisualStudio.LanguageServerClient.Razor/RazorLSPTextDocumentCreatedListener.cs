@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [Export(typeof(RazorLSPTextDocumentCreatedListener))]
     internal class RazorLSPTextDocumentCreatedListener
     {
-        private static Guid HtmlLanguageServiceGuid = new Guid("9BBFD173-9770-47DC-B191-651B7FF493CD");
+        private static readonly Guid HtmlLanguageServiceGuid = new Guid("9BBFD173-9770-47DC-B191-651B7FF493CD");
 
         private readonly TrackingLSPDocumentManager _lspDocumentManager;
         private readonly ITextDocumentFactoryService _textDocumentFactory;
@@ -190,6 +190,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private void InitializeOptions(ITextBuffer textBuffer)
         {
+            // Ideally we would initialize options based on Razor specific options in the context menu.
+            // But since we don't have support for that yet, we will temporarily use the settings from Html.
+
             var textManager = _serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
             Assumes.Present(textManager);
 
