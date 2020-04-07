@@ -24,6 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class DefaultRazorProjectChangePublisher : RazorProjectChangePublisher
     {
         internal readonly Dictionary<string, Task> _deferredPublishTasks;
+        private const string OldFileExt = ".old";
+        private const string TempFileExt = ".temp";
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly RazorLogger _logger;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
@@ -73,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // Internal settable for testing
-        // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
-        internal int EnqueueDelay { get; set; } = 250;
+        // 3000ms between publishes to prevent bursts of changes yet still be responsive to changes.
+        internal int EnqueueDelay { get; set; } = 3000;
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
@@ -209,9 +211,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         protected virtual void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath)
         {
+            // We need to avoid having an incomplete file at any point, but our project.razor.json is large enough that it will be written
+            // as multiple operations
             var fileInfo = new FileInfo(publishFilePath);
-            using var writer = fileInfo.CreateText();
-            _serializer.Serialize(writer, projectSnapshot);
+            var tempFilePath = string.Concat(publishFilePath, TempFileExt);
+            var tempFileInfo = new FileInfo(tempFilePath);
+
+            // This needs to be in explicit brackets because the operation needs to be completed
+            // by the time we move the tempfile into its place
+            using (var writer = tempFileInfo.CreateText())
+            {
+                _serializer.Serialize(writer, projectSnapshot);
+
+                if (fileInfo.Exists)
+                {
+                    var oldFilePath = string.Concat(publishFilePath, OldFileExt);
+                    fileInfo.MoveTo(oldFilePath);
+                    fileInfo.Delete();
+                }
+            }
+
+            tempFileInfo.MoveTo(publishFilePath);
         }
 
         private async Task PublishAfterDelayAsync(string projectFilePath)

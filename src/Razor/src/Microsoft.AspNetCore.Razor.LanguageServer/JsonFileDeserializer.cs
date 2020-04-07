@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             public override TValue Deserialize<TValue>(string filePath) where TValue : class
             {
-                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 using var reader = new StreamReader(stream);
                 try
                 {
