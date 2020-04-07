@@ -72,6 +72,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorSemanticTokenLegendEndpoint>()
                     .WithServices(services =>
                     {
+                        var filePathNormalizer = new FilePathNormalizer();
+                        services.AddSingleton<FilePathNormalizer>(filePathNormalizer);
+
                         var foregroundDispatcher = new DefaultForegroundDispatcher();
                         services.AddSingleton<ForegroundDispatcher>(foregroundDispatcher);
 
@@ -79,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<ProjectSnapshotChangeTrigger>(generatedDocumentPublisher);
                         services.AddSingleton<GeneratedDocumentPublisher>(generatedDocumentPublisher);
 
-                        var documentVersionCache = new DefaultDocumentVersionCache(foregroundDispatcher);
+                        var documentVersionCache = new DefaultDocumentVersionCache(foregroundDispatcher, filePathNormalizer);
                         services.AddSingleton<DocumentVersionCache>(documentVersionCache);
                         services.AddSingleton<ProjectSnapshotChangeTrigger>(documentVersionCache);
                         var containerStore = new DefaultGeneratedDocumentContainerStore(
@@ -89,7 +92,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<GeneratedDocumentContainerStore>(containerStore);
                         services.AddSingleton<ProjectSnapshotChangeTrigger>(containerStore);
 
-                        services.AddSingleton<FilePathNormalizer>();
                         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
                         services.AddSingleton<ProjectResolver, DefaultProjectResolver>();
                         services.AddSingleton<DocumentResolver, DefaultDocumentResolver>();

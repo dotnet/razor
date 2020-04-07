@@ -16,16 +16,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal readonly Dictionary<string, List<DocumentEntry>> _documentLookup;
         private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly FilePathNormalizer _filePathNormalizer;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
-        public DefaultDocumentVersionCache(ForegroundDispatcher foregroundDispatcher)
+        public DefaultDocumentVersionCache(ForegroundDispatcher foregroundDispatcher, FilePathNormalizer filePathNormalizer)
         {
             if (foregroundDispatcher == null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
+            if (filePathNormalizer is null)
+            {
+                throw new ArgumentNullException(nameof(filePathNormalizer));
+            }
+
             _foregroundDispatcher = foregroundDispatcher;
+            _filePathNormalizer = filePathNormalizer;
             _documentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
         }
 
@@ -103,7 +110,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             _projectSnapshotManager = projectManager;
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
-
         }
 
         public override void RazorFileChanged(string filePath, RazorFileChangeKind kind)
