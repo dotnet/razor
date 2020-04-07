@@ -72,6 +72,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorSemanticTokenLegendEndpoint>()
                     .WithServices(services =>
                     {
+                        var foregroundDispatcher = new DefaultForegroundDispatcher();
+                        services.AddSingleton<ForegroundDispatcher>(foregroundDispatcher);
+
+                        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(foregroundDispatcher, new Lazy<OmniSharp.Extensions.LanguageServer.Protocol.Server.ILanguageServer>(() => server));
+                        services.AddSingleton<ProjectSnapshotChangeTrigger>(generatedDocumentPublisher);
+                        services.AddSingleton<GeneratedDocumentPublisher>(generatedDocumentPublisher);
+
+                        var documentVersionCache = new DefaultDocumentVersionCache(foregroundDispatcher);
+                        services.AddSingleton<DocumentVersionCache>(documentVersionCache);
+                        services.AddSingleton<ProjectSnapshotChangeTrigger>(documentVersionCache);
+                        var containerStore = new DefaultGeneratedDocumentContainerStore(
+                            foregroundDispatcher,
+                            documentVersionCache,
+                            generatedDocumentPublisher);
+                        services.AddSingleton<GeneratedDocumentContainerStore>(containerStore);
+                        services.AddSingleton<ProjectSnapshotChangeTrigger>(containerStore);
+
                         services.AddSingleton<FilePathNormalizer>();
                         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
                         services.AddSingleton<ProjectResolver, DefaultProjectResolver>();
@@ -90,6 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<IProjectConfigurationFileChangeListener, ProjectConfigurationStateSynchronizer>();
                         services.AddSingleton<IProjectFileChangeListener, ProjectFileSynchronizer>();
                         services.AddSingleton<IRazorFileChangeListener, RazorFileSynchronizer>();
+                        services.AddSingleton<IRazorFileChangeListener>(documentVersionCache);
 
                         // File Change detectors
                         services.AddSingleton<IFileChangeDetector, ProjectConfigurationFileChangeDetector>();
@@ -114,13 +132,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveAttributeTransitionCompletionItemProvider>();
                         services.AddSingleton<RazorCompletionItemProvider, MarkupTransitionCompletionItemProvider>();
 
-                        var foregroundDispatcher = new VSCodeForegroundDispatcher();
-                        services.AddSingleton<ForegroundDispatcher>(foregroundDispatcher);
-
-                        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(foregroundDispatcher, new Lazy<OmniSharp.Extensions.LanguageServer.Protocol.Server.ILanguageServer>(() => server));
-                        services.AddSingleton<ProjectSnapshotChangeTrigger>(generatedDocumentPublisher);
-                        services.AddSingleton<GeneratedDocumentPublisher>(generatedDocumentPublisher);
-
                         // Formatting
                         services.AddSingleton<RazorFormattingService, DefaultRazorFormattingService>();
 
@@ -128,15 +139,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorSemanticTokenInfoService, DefaultRazorSemanticTokenInfoService>();
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
-                        var documentVersionCache = new DefaultDocumentVersionCache(foregroundDispatcher);
-                        services.AddSingleton<DocumentVersionCache>(documentVersionCache);
-                        services.AddSingleton<ProjectSnapshotChangeTrigger>(documentVersionCache);
-                        var containerStore = new DefaultGeneratedDocumentContainerStore(
-                            foregroundDispatcher,
-                            documentVersionCache,
-                            generatedDocumentPublisher);
-                        services.AddSingleton<GeneratedDocumentContainerStore>(containerStore);
-                        services.AddSingleton<ProjectSnapshotChangeTrigger>(containerStore);
                     }));
 
             server.OnShutdown(() =>

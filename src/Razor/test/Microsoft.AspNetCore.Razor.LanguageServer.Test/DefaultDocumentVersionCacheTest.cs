@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Xunit;
@@ -78,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public void ProjectSnapshotManager_Changed_DocumentRemoved_EvictsDocument()
+        public void ProjectSnapshotManager_Changed_DocumentRemoved_DoesNotEvictDocument()
         {
             // Arrange
             var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
@@ -104,11 +105,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             result = documentVersionCache.TryGetDocumentVersion(document, out version);
 
             // Assert - 2
-            Assert.False(result);
+            Assert.True(result);
         }
 
         [Fact]
-        public void ProjectSnapshotManager_Changed_OpenDocumentRemoved_EvictsDocument()
+        public void ProjectSnapshotManager_Changed_OpenDocumentRemoved_DoesNotEvictDocument()
         {
             // Arrange
             var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
@@ -136,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             result = documentVersionCache.TryGetDocumentVersion(document, out version);
 
             // Assert - 2
-            Assert.False(result);
+            Assert.True(result);
         }
 
         [Fact]
@@ -256,6 +257,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Assert
             Assert.True(result);
             Assert.Equal(1337, version);
+        }
+
+        [Fact]
+        public void TryGetDocumentVersion_DeletedDocument_ReturnsFalse()
+        {
+            // Arrange
+            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+            var document = TestDocumentSnapshot.Create("C:/file.cshtml");
+            documentVersionCache.TrackDocumentVersion(document, 1337);
+            documentVersionCache.RazorFileChanged(document.FilePath, RazorFileChangeKind.Removed);
+
+            // Act
+            var result = documentVersionCache.TryGetDocumentVersion(document, out var version);
+
+            // Assert
+            Assert.False(result);
+            Assert.Equal(-1, version);
         }
     }
 }
