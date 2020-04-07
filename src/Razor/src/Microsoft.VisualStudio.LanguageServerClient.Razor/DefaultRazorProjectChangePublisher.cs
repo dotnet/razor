@@ -209,9 +209,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         protected virtual void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath)
         {
+            var stringWriter = new StringWriter();
+            _serializer.Serialize(stringWriter, projectSnapshot);
+
             var fileInfo = new FileInfo(publishFilePath);
-            using var writer = fileInfo.CreateText();
-            _serializer.Serialize(writer, projectSnapshot);
+            using var fileWriter = fileInfo.CreateText();
+            fileWriter.Write(stringWriter.ToString());
         }
 
         private async Task PublishAfterDelayAsync(string projectFilePath)
