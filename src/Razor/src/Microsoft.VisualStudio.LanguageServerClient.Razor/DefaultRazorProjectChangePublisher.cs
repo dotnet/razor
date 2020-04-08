@@ -212,16 +212,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // We need to avoid having an incomplete file at any point, but our project.razor.json is large enough that it will be written
             // as multiple operations
-            var fileInfo = new FileInfo(publishFilePath);
             var tempFilePath = string.Concat(publishFilePath, TempFileExt);
             var tempFileInfo = new FileInfo(tempFilePath);
 
+            if (tempFileInfo.Exists)
+            {
+                tempFileInfo.Delete();
+            }
+
             // This needs to be in explicit brackets because the operation needs to be completed
             // by the time we move the tempfile into its place
-            using (var writer = fileInfo.CreateText())
+            using (var writer = tempFileInfo.CreateText())
             {
                 _serializer.Serialize(writer, projectSnapshot);
 
+                var fileInfo = new FileInfo(publishFilePath);
                 if (fileInfo.Exists)
                 {
                     fileInfo.Delete();

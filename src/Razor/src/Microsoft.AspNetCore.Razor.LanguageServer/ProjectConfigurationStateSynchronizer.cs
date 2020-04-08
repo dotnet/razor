@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                             // We found the last associated project file for the configuration file. Reset the project since we can't
                             // accurately determine its configurations.
-                            ResetProject(projectFilePath);
+                            EnqueueUpdateProject(projectFilePath, snapshotHandle: null);
                             return;
                         }
 
@@ -109,16 +109,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         _configurationToProjectMap.Remove(configurationFilePath);
 
-                        ResetProject(projectFilePath);
+                        EnqueueUpdateProject(projectFilePath, snapshotHandle: null);
                         break;
                     }
             }
 
-            void UpdateProject(FullProjectSnapshotHandle handle)
+            void UpdateProject(string projectFilePath, FullProjectSnapshotHandle handle)
             {
+                if (projectFilePath is null)
+                {
+                    throw new ArgumentNullException(nameof(projectFilePath));
+                }
+
                 if (handle is null)
                 {
-                    throw new ArgumentNullException(nameof(handle));
+                    ResetProject(projectFilePath);
+                    return;
                 }
 
                 var projectWorkspaceState = handle.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
@@ -136,7 +142,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 await Task.Delay(EnqueueDelay).ConfigureAwait(true);
 
                 var delayedProjectInfo = _projectInfoMap[projectFilePath];
-                UpdateProject(delayedProjectInfo.FullProjectSnapshotHandle);
+                UpdateProject(projectFilePath, delayedProjectInfo.FullProjectSnapshotHandle);
             }
 
             void EnqueueUpdateProject(string projectFilePath, FullProjectSnapshotHandle snapshotHandle)
