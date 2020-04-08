@@ -92,23 +92,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 if (args.OldFullPath.EndsWith(LanguageServerConstants.ProjectConfigurationFile, FilePathComparison.Instance))
                 {
-                    if (args.FullPath.EndsWith(".old"))
-                    {
-                        // The file is actually getting modified, do nothing
-                        return;
-                    }
-
                     // Renaming from project.razor.json to something else. Just remove the configuration file.
                     FileSystemWatcher_ProjectConfigurationFileEvent_Background(args.OldFullPath, RazorFileChangeKind.Removed);
                 }
                 else if (args.FullPath.EndsWith(LanguageServerConstants.ProjectConfigurationFile, FilePathComparison.Instance))
                 {
-                    if (args.OldFullPath.EndsWith(".temp"))
-                    {
-                        // The file is actually getting modified, a changed event will fire to take care of it.
-                        return;
-                    }
-
                     // Renaming from a non-project.razor.json file to project.razor.json. Just add the configuration file.
                     FileSystemWatcher_ProjectConfigurationFileEvent_Background(args.FullPath, RazorFileChangeKind.Added);
                 }

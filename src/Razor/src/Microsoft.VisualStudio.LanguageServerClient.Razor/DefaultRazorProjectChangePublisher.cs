@@ -24,7 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class DefaultRazorProjectChangePublisher : RazorProjectChangePublisher
     {
         internal readonly Dictionary<string, Task> _deferredPublishTasks;
-        private const string OldFileExt = ".old";
         private const string TempFileExt = ".temp";
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly RazorLogger _logger;
@@ -219,14 +218,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             // This needs to be in explicit brackets because the operation needs to be completed
             // by the time we move the tempfile into its place
-            using (var writer = tempFileInfo.CreateText())
+            using (var writer = fileInfo.CreateText())
             {
                 _serializer.Serialize(writer, projectSnapshot);
 
                 if (fileInfo.Exists)
                 {
-                    var oldFilePath = string.Concat(publishFilePath, OldFileExt);
-                    fileInfo.MoveTo(oldFilePath);
                     fileInfo.Delete();
                 }
             }
