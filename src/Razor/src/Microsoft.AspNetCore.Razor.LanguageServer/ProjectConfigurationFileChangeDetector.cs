@@ -13,7 +13,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
     {
-        internal readonly Dictionary<string, Task> _deferredUpdateTasks;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
@@ -42,11 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _foregroundDispatcher = foregroundDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
-
-            _deferredUpdateTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
         }
-
-        internal int EnqueueDelay { get; set; } = 250;
 
         public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
         {
@@ -93,16 +88,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _watcher.Changed += (sender, args) => FileSystemWatcher_ProjectConfigurationFileEvent_Background(args.FullPath, RazorFileChangeKind.Changed);
             _watcher.Renamed += (sender, args) =>
             {
-                if (args.FullPath.EndsWith(".old"))
-                {
-                    // The file is actually getting modified, do nothing
-                    return;
-                }
-
                 // Translate file renames into remove / add
 
                 if (args.OldFullPath.EndsWith(LanguageServerConstants.ProjectConfigurationFile, FilePathComparison.Instance))
                 {
+                    if (args.FullPath.EndsWith(".old"))
+                    {
+                        // The file is actually getting modified, do nothing
+                        return;
+                    }
+
                     // Renaming from project.razor.json to something else. Just remove the configuration file.
                     FileSystemWatcher_ProjectConfigurationFileEvent_Background(args.OldFullPath, RazorFileChangeKind.Removed);
                 }
@@ -110,8 +105,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     if (args.OldFullPath.EndsWith(".temp"))
                     {
-                        // The file is actually getting modified, mark it a change
-                        FileSystemWatcher_ProjectConfigurationFileEvent_Background(args.FullPath, RazorFileChangeKind.Changed);
+                        // The file is actually getting modified, a changed event will fire to take care of it.
+                        return;
                     }
 
                     // Renaming from a non-project.razor.json file to project.razor.json. Just add the configuration file.
@@ -143,16 +138,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private void FileSystemWatcher_ProjectConfigurationFileEvent(string physicalFilePath, RazorFileChangeKind kind)
         {
             var args = new ProjectConfigurationFileChangeEventArgs(physicalFilePath, kind);
-
-            if (!_deferredUpdateTasks.TryGetValue(physicalFilePath, out var update) || update.IsCompleted)
-            {
-                _deferredUpdateTasks[physicalFilePath] = NotifyAfterDelay(args);
-            }
-        }
-
-        private async Task NotifyAfterDelay(ProjectConfigurationFileChangeEventArgs args)
-        {
-            await Task.Delay(EnqueueDelay).ConfigureAwait(true);
 
             foreach (var listener in _listeners)
             {
