@@ -210,8 +210,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         protected virtual void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath)
         {
-            // We need to avoid having an incomplete file at any point, but our project.razor.json is large enough that it will be written
-            // as multiple operations
+            // We need to avoid having an incomplete file at any point, but our
+            // project.razor.json is large enough that it will be written as multiple operations.
             var tempFilePath = string.Concat(publishFilePath, TempFileExt);
             var tempFileInfo = new FileInfo(tempFilePath);
 
