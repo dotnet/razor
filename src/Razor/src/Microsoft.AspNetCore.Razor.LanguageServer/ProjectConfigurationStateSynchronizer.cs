@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly RazorProjectService _projectService;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly Dictionary<string, string> _configurationToProjectMap;
-        private readonly Dictionary<string, DelayedProjectInfo> _projectInfoMap;
+        internal readonly Dictionary<string, DelayedProjectInfo> _projectInfoMap;
 
         public ProjectConfigurationStateSynchronizer(
             ForegroundDispatcher foregroundDispatcher,
@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private class DelayedProjectInfo
+        internal class DelayedProjectInfo
         {
             public Task ProjectUpdateTask { get; set; }
 
