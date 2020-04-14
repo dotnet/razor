@@ -582,5 +582,18 @@ expected: $@"
 ",
 character: "*");
         }
+
+        [Fact]
+        public async Task OnTypeStar_BeforeText_ClosesRazorComment()
+        {
+            await RunFormatOnTypeTestAsync(
+input: @"
+@| Hello
+",
+expected: $@"
+@* {LanguageServerConstants.CursorPlaceholderString} *@ Hello
+",
+character: "*");
+        }
     }
 }
