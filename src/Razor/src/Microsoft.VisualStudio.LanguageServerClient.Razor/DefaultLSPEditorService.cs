@@ -9,7 +9,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly SVsServiceProvider _serviceProvider;
         private readonly ITextBufferUndoManagerProvider _undoManagerProvider;
-        private readonly ICompletionBroker _completionBroker;
+        private readonly IAsyncCompletionBroker _completionBroker;
         private readonly IVsEditorAdaptersFactoryService _adaptersFactoryService;
 
         [ImportingConstructor]
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             JoinableTaskContext joinableTaskContext,
             SVsServiceProvider serviceProvider,
             ITextBufferUndoManagerProvider undoManagerProvider,
-            ICompletionBroker completionBroker,
+            IAsyncCompletionBroker completionBroker,
             IVsEditorAdaptersFactoryService adaptersFactoryService)
         {
             if (joinableTaskContext is null)
@@ -114,7 +114,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                         // Since we are moving the cursor we should dismiss any existing completion sessions as that is no longer valid.
                         var textView = _adaptersFactoryService.GetWpfTextView(vsTextView);
-                        _completionBroker.DismissAllSessions(textView);
+                        var session = _completionBroker.GetSession(textView);
+                        if (session != null && !session.IsDismissed)
+                        {
+                            session.Dismiss();
+                        }
 
                         MoveCaretToPosition(vsTextView, cursorPosition);
                     }
