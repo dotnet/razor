@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Server;
 using RazorAttributeDescriptionInfo = Microsoft.CodeAnalysis.Razor.Completion.AttributeDescriptionInfo;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
@@ -33,6 +35,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             [typeof(string).FullName] = "string",
             [typeof(decimal).FullName] = "decimal",
         };
+
+        public DefaultTagHelperDescriptionFactory(ILanguageServer languageServer)
+        {
+            if (languageServer is null)
+            {
+                throw new NotImplementedException(nameof(languageServer));
+            }
+
+            LanguageServer = languageServer;
+        }
+
+        public ILanguageServer LanguageServer { get; }
 
         public override bool TryCreateDescription(ElementDescriptionInfo elementDescriptionInfo, out string markdown)
         {
@@ -61,11 +75,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     descriptionBuilder.AppendLine("---");
                 }
 
-                descriptionBuilder.Append("**");
+                StartOrEndBold(descriptionBuilder);
                 var tagHelperType = descriptionInfo.TagHelperTypeName;
                 var reducedTypeName = ReduceTypeName(tagHelperType);
                 descriptionBuilder.Append(reducedTypeName);
-                descriptionBuilder.AppendLine("**");
+                StartOrEndBold(descriptionBuilder);
+                descriptionBuilder.AppendLine();
                 descriptionBuilder.AppendLine();
 
                 var documentation = descriptionInfo.Documentation;
@@ -109,17 +124,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     descriptionBuilder.AppendLine("---");
                 }
 
-                descriptionBuilder.Append("**");
+                StartOrEndBold(descriptionBuilder);
                 var returnTypeName = GetSimpleName(descriptionInfo.ReturnTypeName);
                 var reducedReturnTypeName = ReduceTypeName(returnTypeName);
                 descriptionBuilder.Append(reducedReturnTypeName);
-                descriptionBuilder.Append("** ");
+                StartOrEndBold(descriptionBuilder);
+                descriptionBuilder.Append(" ");
                 var tagHelperTypeName = descriptionInfo.TypeName;
                 var reducedTagHelperTypeName = ReduceTypeName(tagHelperTypeName);
                 descriptionBuilder.Append(reducedTagHelperTypeName);
-                descriptionBuilder.Append(".**");
+                descriptionBuilder.Append(".");
+                StartOrEndBold(descriptionBuilder);
                 descriptionBuilder.Append(descriptionInfo.PropertyName);
-                descriptionBuilder.AppendLine("**");
+                StartOrEndBold(descriptionBuilder);
+                descriptionBuilder.AppendLine();
                 descriptionBuilder.AppendLine();
 
                 var documentation = descriptionInfo.Documentation;
@@ -393,6 +411,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             // Could not reduce name
             return content;
+        }
+
+        private void StartOrEndBold(StringBuilder stringBuilder)
+        {
+            var completionSupportedKinds = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Completion.Value?.CompletionItem?.DocumentationFormat;
+            var hoverSupportedKinds = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Hover.Value?.ContentFormat;
+
+            // For now we're assuming that if you support Markdown for either completions or hovers you support it for both.
+            // If this assumption is ever untrue we'll have to start informing this class about if a request is for Hover or Completions.
+            var supportedKinds = completionSupportedKinds ?? hoverSupportedKinds;
+
+            if (supportedKinds != null && supportedKinds.Contains(MarkupKind.Markdown))
+            {
+                stringBuilder.Append("**");
+            }
         }
     }
 }

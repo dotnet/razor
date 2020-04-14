@@ -41,6 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             RazorCompletionFactsService completionFactsService,
             TagHelperCompletionService tagHelperCompletionService,
             TagHelperDescriptionFactory tagHelperDescriptionFactory,
+            OmniSharp.Extensions.LanguageServer.Server.ILanguageServer languageServer,
             ILoggerFactory loggerFactory)
         {
             if (foregroundDispatcher == null)
@@ -68,6 +69,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(tagHelperDescriptionFactory));
             }
 
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
@@ -78,8 +84,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _completionFactsService = completionFactsService;
             _tagHelperCompletionService = tagHelperCompletionService;
             _tagHelperDescriptionFactory = tagHelperDescriptionFactory;
+            LanguageServer = languageServer;
             _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
         }
+
+        public OmniSharp.Extensions.LanguageServer.Server.ILanguageServer LanguageServer { get; }
 
         public void SetCapability(CompletionCapability capability)
         {
@@ -186,6 +195,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public Task<CompletionItem> Handle(CompletionItem completionItem, CancellationToken cancellationToken)
         {
             string markdown = null;
+
             if (completionItem.TryGetRazorCompletionKind(out var completionItemKind))
             {
                 switch (completionItemKind)
@@ -214,10 +224,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             if (markdown != null)
             {
+                MarkupKind markupKind;
+
+                var markupDocumentationFormat = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Completion.Value?.CompletionItem?.DocumentationFormat;
+
+                if (markupDocumentationFormat != null && markupDocumentationFormat.Contains(MarkupKind.Markdown))
+                {
+                    markupKind = MarkupKind.Markdown;
+                }
+                else
+                {
+                    markupKind = MarkupKind.PlainText;
+                }
+
                 var documentation = new StringOrMarkupContent(
                     new MarkupContent()
                     {
-                        Kind = MarkupKind.Markdown,
+                        Kind = markupKind,
                         Value = markdown,
                     });
                 completionItem.Documentation = documentation;
