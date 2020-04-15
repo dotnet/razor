@@ -8,10 +8,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal abstract class TagHelperDescriptionFactory
     {
-        public abstract bool TryCreateDescription(ElementDescriptionInfo descriptionInfos, out MarkupContent markdown);
+        public abstract bool TryCreateDescription(ElementDescriptionInfo descriptionInfos, out MarkupContent markupContent);
 
-        public abstract bool TryCreateDescription(AttributeDescriptionInfo descriptionInfos, out MarkupContent markdown);
+        public abstract bool TryCreateDescription(AttributeDescriptionInfo descriptionInfos, out MarkupContent markupContent);
 
-        public abstract bool TryCreateDescription(AttributeCompletionDescription descriptionInfos, out MarkupContent markdown);
+        public abstract bool TryCreateDescription(AttributeCompletionDescription descriptionInfos, out MarkupContent markupContent);
     }
 }

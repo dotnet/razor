@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             tagHelperDescription = new MarkupContent
             {
-                Kind = SupportsMarkdown() ? MarkupKind.Markdown : MarkupKind.PlainText
+                Kind = GetMarkupKind()
             };
 
             tagHelperDescription.Value = descriptionBuilder.ToString();
@@ -157,7 +157,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             tagHelperDescription = new MarkupContent
             {
-                Kind = SupportsMarkdown() ? MarkupKind.Markdown : MarkupKind.PlainText
+                Kind = GetMarkupKind()
             };
 
             tagHelperDescription.Value = descriptionBuilder.ToString();
@@ -425,13 +425,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private void StartOrEndBold(StringBuilder stringBuilder)
         {
-            if (SupportsMarkdown())
+            if (GetMarkupKind() == MarkupKind.Markdown)
             {
                 stringBuilder.Append("**");
             }
         }
 
-        private bool SupportsMarkdown()
+        private MarkupKind GetMarkupKind()
         {
             var completionSupportedKinds = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Completion.Value?.CompletionItem?.DocumentationFormat;
             var hoverSupportedKinds = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Hover.Value?.ContentFormat;
@@ -440,7 +440,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // If this assumption is ever untrue we'll have to start informing this class about if a request is for Hover or Completions.
             var supportedKinds = completionSupportedKinds ?? hoverSupportedKinds;
 
-            return supportedKinds.Contains(MarkupKind.Markdown);
+            if (supportedKinds.Contains(MarkupKind.Markdown))
+            {
+                return MarkupKind.Markdown;
+            }
+            else
+            {
+                return MarkupKind.PlainText;
+            }
         }
     }
 }
