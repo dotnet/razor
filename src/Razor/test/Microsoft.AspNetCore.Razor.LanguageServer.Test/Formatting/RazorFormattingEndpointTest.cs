@@ -97,12 +97,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public async Task Handle_FormattingDisabled_ReturnsNull()
         {
             // Arrange
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.AbsolutePath, codeDocument);
             var formattingService = new TestRazorFormattingService();
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
-            var endpoint = new RazorFormattingEndpoint(Dispatcher, documentResolver, formattingService, optionsMonitor, LoggerFactory);
+            var endpoint = new RazorFormattingEndpoint(Dispatcher, EmptyDocumentResolver, formattingService, optionsMonitor, LoggerFactory);
             var @params = new DocumentRangeFormattingParams();
 
             // Act
