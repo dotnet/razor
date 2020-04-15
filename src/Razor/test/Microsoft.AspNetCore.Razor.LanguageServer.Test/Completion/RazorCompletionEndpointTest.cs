@@ -13,48 +13,14 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Server;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public class RazorCompletionEndpointTest : LanguageServerTestBase
     {
-        protected ILanguageServer LanguageServer
-        {
-            get
-            {
-                var initializeParams = new InitializeParams
-                {
-                    Capabilities = new ClientCapabilities
-                    {
-                        TextDocument = new TextDocumentClientCapabilities
-                        {
-                            Completion = new Supports<CompletionCapability>
-                            {
-                                Value = new CompletionCapability
-                                {
-                                    CompletionItem = new CompletionItemCapability
-                                    {
-                                        SnippetSupport = true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-
-                var languageServer = new Mock<ILanguageServer>();
-                languageServer.SetupGet(server => server.ClientSettings)
-                    .Returns(initializeParams);
-
-                return languageServer.Object;
-            }
-        }
-
         public RazorCompletionEndpointTest()
         {
             // Working around strong naming restriction.
