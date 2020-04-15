@@ -100,26 +100,23 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             */
             var encapsulatingMarkupElementNodeSeen = false;
 
-            var closestSignificantAncestor = owner.Ancestors().FirstOrDefault(node =>
-            {
-                if (node is MarkupElementSyntax markupNode)
+            foreach (var ancestor in owner.Ancestors()) {
+                if (ancestor is MarkupElementSyntax markupNode)
                 {
                     if (encapsulatingMarkupElementNodeSeen) {
-                        return true;
+                        return false;
                     }
 
                     encapsulatingMarkupElementNodeSeen = true;
                 }
 
-                if (node is CSharpCodeBlockSyntax)
+                if (ancestor is CSharpCodeBlockSyntax)
                 {
                     return true;
                 }
+            }
 
-                return false;
-            });
-
-            return closestSignificantAncestor is CSharpCodeBlockSyntax;
+            return false;
         }
     }
 }
