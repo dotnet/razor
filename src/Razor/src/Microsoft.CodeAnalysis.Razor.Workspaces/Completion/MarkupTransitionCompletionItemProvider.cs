@@ -98,11 +98,17 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                providing incorrect completion in the above two syntactically invalid
                scenarios.
             */
+            var encapsulatingMarkupElementNodeSeen = false;
+
             var closestSignificantAncestor = owner.Ancestors().FirstOrDefault(node =>
             {
-                if (node is MarkupElementSyntax markupNode && markupNode.ChildNodes().Count != 1)
+                if (node is MarkupElementSyntax markupNode)
                 {
-                    return true;
+                    if (encapsulatingMarkupElementNodeSeen) {
+                        return true;
+                    }
+
+                    encapsulatingMarkupElementNodeSeen = true;
                 }
 
                 if (node is CSharpCodeBlockSyntax)
@@ -112,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
                 return false;
             });
+
             return closestSignificantAncestor is CSharpCodeBlockSyntax;
         }
     }
