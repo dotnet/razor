@@ -48,12 +48,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public ILanguageServer LanguageServer { get; }
 
-        public override bool TryCreateDescription(ElementDescriptionInfo elementDescriptionInfo, out string markdown)
+        public override bool TryCreateDescription(ElementDescriptionInfo elementDescriptionInfo, out MarkupContent tagHelperDescription)
         {
             var associatedTagHelperInfos = elementDescriptionInfo.AssociatedTagHelperDescriptions;
             if (associatedTagHelperInfos.Count == 0)
             {
-                markdown = null;
+                tagHelperDescription = null;
                 return false;
             }
 
@@ -93,16 +93,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 descriptionBuilder.AppendLine(finalSummaryContent);
             }
 
-            markdown = descriptionBuilder.ToString();
+            tagHelperDescription = new MarkupContent
+            {
+                Kind = SupportsMarkdown() ? MarkupKind.Markdown : MarkupKind.PlainText
+            };
+
+            tagHelperDescription.Value = descriptionBuilder.ToString();
             return true;
         }
 
-        public override bool TryCreateDescription(AttributeCompletionDescription descriptionInfos, out string markdown)
+        public override bool TryCreateDescription(AttributeCompletionDescription descriptionInfos, out MarkupContent tagHelperDescription)
         {
             var associatedAttributeInfos = descriptionInfos.DescriptionInfos;
             if (associatedAttributeInfos.Count == 0)
             {
-                markdown = null;
+                tagHelperDescription = null;
                 return false;
             }
 
@@ -150,11 +155,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 descriptionBuilder.AppendLine(finalSummaryContent);
             }
 
-            markdown = descriptionBuilder.ToString();
+            tagHelperDescription = new MarkupContent
+            {
+                Kind = SupportsMarkdown() ? MarkupKind.Markdown : MarkupKind.PlainText
+            };
+
+            tagHelperDescription.Value = descriptionBuilder.ToString();
             return true;
         }
 
-        public override bool TryCreateDescription(AttributeDescriptionInfo attributeDescriptionInfo, out string markdown)
+        public override bool TryCreateDescription(AttributeDescriptionInfo attributeDescriptionInfo, out MarkupContent tagHelperDescription)
         {
             var convertedDescriptionInfos = new List<RazorAttributeDescriptionInfo>();
             foreach (var descriptionInfo in attributeDescriptionInfo.AssociatedAttributeDescriptions)
@@ -171,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             var convertedDescriptionInfo = new AttributeCompletionDescription(convertedDescriptionInfos);
 
-            return TryCreateDescription(convertedDescriptionInfo, out markdown);
+            return TryCreateDescription(convertedDescriptionInfo, out tagHelperDescription);
         }
 
         // Internal for testing
@@ -415,6 +425,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private void StartOrEndBold(StringBuilder stringBuilder)
         {
+            if (SupportsMarkdown())
+            {
+                stringBuilder.Append("**");
+            }
+        }
+
+        private bool SupportsMarkdown()
+        {
             var completionSupportedKinds = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Completion.Value?.CompletionItem?.DocumentationFormat;
             var hoverSupportedKinds = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Hover.Value?.ContentFormat;
 
@@ -422,10 +440,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // If this assumption is ever untrue we'll have to start informing this class about if a request is for Hover or Completions.
             var supportedKinds = completionSupportedKinds ?? hoverSupportedKinds;
 
-            if (supportedKinds != null && supportedKinds.Contains(MarkupKind.Markdown))
-            {
-                stringBuilder.Append("**");
-            }
+            return supportedKinds.Contains(MarkupKind.Markdown);
         }
     }
 }

@@ -447,7 +447,8 @@ World
             Assert.Equal(@"**SomeTagHelper**
 
 Uses `List<System.String>`s
-", markdown);
+", markdown.Value);
+            Assert.Equal(MarkupKind.Markdown, markdown.Kind);
         }
 
         [Fact]
@@ -471,7 +472,8 @@ Uses `List<System.String>`s
             Assert.Equal(@"SomeTagHelper
 
 Uses `List<System.String>`s
-", markdown);
+", markdown.Value);
+            Assert.Equal(MarkupKind.PlainText, markdown.Kind);
         }
 
         [Fact]
@@ -499,7 +501,8 @@ Uses `List<System.String>`s
             Assert.Equal(@"string SomeTypeName.SomeProperty
 
 Uses `List<System.String>`s
-", markdown);
+", markdown.Value);
+            Assert.Equal(MarkupKind.PlainText, markdown.Kind);
         }
         [Fact]
         public void TryCreateDescription_Element_BothPlainTextAndMarkdown_IsBold()
@@ -522,7 +525,8 @@ Uses `List<System.String>`s
             Assert.Equal(@"**SomeTagHelper**
 
 Uses `List<System.String>`s
-", markdown);
+", markdown.Value);
+            Assert.Equal(MarkupKind.Markdown, markdown.Kind);
         }
 
         [Fact]
@@ -550,7 +554,8 @@ Uses `List<System.String>`s
 **OtherTagHelper**
 
 Also uses `List<System.String>`s
-", markdown);
+", markdown.Value);
+            Assert.Equal(MarkupKind.Markdown, markdown.Kind);
         }
 
         [Fact]
@@ -576,7 +581,8 @@ Also uses `List<System.String>`s
             Assert.Equal(@"**string** SomeTypeName.**SomeProperty**
 
 Uses `List<System.String>`s
-", markdown);
+", markdown.Value);
+            Assert.Equal(MarkupKind.Markdown, markdown.Kind);
         }
 
         [Fact]
@@ -612,7 +618,8 @@ Uses `List<System.String>`s
 **Boolean?** AnotherTypeName.**AnotherProperty**
 
 Uses `List<System.String>`s
-", markdown);
+", markdown.Value);
+            Assert.Equal(MarkupKind.Markdown, markdown.Kind);
         }
     }
 }

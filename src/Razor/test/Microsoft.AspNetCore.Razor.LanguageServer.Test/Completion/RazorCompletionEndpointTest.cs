@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var description = "Something";
             completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
             completionEndpoint.SetCapability(DefaultCapability);
 
             // Act
@@ -120,7 +120,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
             var description = completionItem.GetDirectiveCompletionDescription().Description;
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
 
             // Act
             var result = completionEndpoint.TryConvert(completionItem, out var converted);
@@ -146,7 +146,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = MarkupTransitionCompletionItemProvider.MarkupTransitionCompletionItem;
             var description = completionItem.GetMarkupTransitionCompletionDescription().Description;
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
 
             // Act
             var result = completionEndpoint.TryConvert(completionItem, out var converted);
@@ -171,7 +171,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 new CodeAnalysis.Razor.Completion.AttributeDescriptionInfo("System.String", "System.String", "@testDisplay", "This is docs")
             }));
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
             var capability = new CompletionCapability
             {
                 CompletionItem = new CompletionItemCapability
@@ -206,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 new CodeAnalysis.Razor.Completion.AttributeDescriptionInfo("System.String", "System.String", "@testDisplay", "This is docs")
             }));
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
             var capability = new CompletionCapability {
                 CompletionItem = new CompletionItemCapability {
                     SnippetSupport = true
@@ -238,7 +238,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute);
             completionItem.SetAttributeCompletionDescription(new AttributeCompletionDescription(Array.Empty<CodeAnalysis.Razor.Completion.AttributeDescriptionInfo>()));
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
 
             // Act
             var result = completionEndpoint.TryConvert(completionItem, out var converted);
@@ -263,7 +263,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.DirectiveAttributeParameter);
             completionItem.SetAttributeCompletionDescription(new AttributeCompletionDescription(Array.Empty<CodeAnalysis.Razor.Completion.AttributeDescriptionInfo>()));
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
 
             // Act
             var result = completionEndpoint.TryConvert(completionItem, out var converted);
@@ -286,10 +286,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var markdown = "Some Markdown";
+            var markdown = new MarkupContent
+            {
+                Kind = MarkupKind.Markdown,
+                Value = "Some Markdown"
+            };
             descriptionFactory.Setup(factory => factory.TryCreateDescription(It.IsAny<AttributeCompletionDescription>(), out markdown))
                 .Returns(true);
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
             var completionItem = new CompletionItem();
             completionItem.SetDescriptionInfo(new AttributeCompletionDescription(Array.Empty<CodeAnalysis.Razor.Completion.AttributeDescriptionInfo>()));
             completionItem.SetRazorCompletionKind(RazorCompletionItemKind.DirectiveAttribute);
@@ -306,10 +310,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var markdown = "Some Markdown";
+            var markdown = new MarkupContent
+            {
+                Kind = MarkupKind.Markdown,
+                Value = "Some Markdown"
+            };
             descriptionFactory.Setup(factory => factory.TryCreateDescription(It.IsAny<AttributeCompletionDescription>(), out markdown))
                 .Returns(true);
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
             var completionItem = new CompletionItem();
             completionItem.SetDescriptionInfo(new AttributeCompletionDescription(Array.Empty<CodeAnalysis.Razor.Completion.AttributeDescriptionInfo>()));
             completionItem.SetRazorCompletionKind(RazorCompletionItemKind.DirectiveAttributeParameter);
@@ -326,10 +334,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var markdown = "Some Markdown";
+            var markdown = new MarkupContent
+            {
+                Kind = MarkupKind.Markdown,
+                Value = "Some Markdown"
+            };
             descriptionFactory.Setup(factory => factory.TryCreateDescription(It.IsAny<ElementDescriptionInfo>(), out markdown))
                 .Returns(true);
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
             var completionItem = new CompletionItem();
             completionItem.SetDescriptionInfo(ElementDescriptionInfo.Default);
 
@@ -345,10 +357,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var markdown = "Some Markdown";
+            var markdown = new MarkupContent{
+                Kind = MarkupKind.Markdown,
+                Value = "Some Markdown"
+            };
             descriptionFactory.Setup(factory => factory.TryCreateDescription(It.IsAny<AttributeDescriptionInfo>(), out markdown))
                 .Returns(true);
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
             var completionItem = new CompletionItem();
             completionItem.SetDescriptionInfo(AttributeDescriptionInfo.Default);
 
@@ -364,10 +379,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             // Arrange
             var descriptionFactory = new Mock<TagHelperDescriptionFactory>();
-            var markdown = "Some Markdown";
+            var markdown = new MarkupContent
+            {
+                Kind = MarkupKind.Markdown,
+                Value = "Some Markdown"
+            };
             descriptionFactory.Setup(factory => factory.TryCreateDescription(It.IsAny<ElementDescriptionInfo>(), out markdown))
                 .Returns(true);
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, descriptionFactory.Object, LoggerFactory);
             var completionItem = new CompletionItem();
 
             // Act
@@ -381,7 +400,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void CanResolve_DirectiveAttributeCompletion_ReturnsTrue()
         {
             // Arrange
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LoggerFactory);
             var completionItem = new CompletionItem();
             completionItem.SetRazorCompletionKind(RazorCompletionItemKind.DirectiveAttribute);
 
@@ -396,7 +415,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void CanResolve_DirectiveAttributeParameterCompletion_ReturnsTrue()
         {
             // Arrange
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LoggerFactory);
             var completionItem = new CompletionItem();
             completionItem.SetRazorCompletionKind(RazorCompletionItemKind.DirectiveAttributeParameter);
 
@@ -411,7 +430,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void CanResolve_TagHelperElementCompletion_ReturnsTrue()
         {
             // Arrange
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LoggerFactory);
             var completionItem = new CompletionItem();
             completionItem.SetDescriptionInfo(ElementDescriptionInfo.Default);
 
@@ -426,7 +445,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void CanResolve_TagHelperAttributeCompletion_ReturnsTrue()
         {
             // Arrange
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LoggerFactory);
             var completionItem = new CompletionItem();
             completionItem.SetDescriptionInfo(AttributeDescriptionInfo.Default);
 
@@ -441,7 +460,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public void CanResolve_NonTagHelperCompletion_ReturnsFalse()
         {
             // Arrange
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, EmptyDocumentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LoggerFactory);
             var completionItem = new CompletionItem();
 
             // Act
@@ -460,7 +479,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var codeDocument = CreateCodeDocument("@");
             codeDocument.SetUnsupported();
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, documentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, documentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LoggerFactory);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -482,7 +501,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var documentPath = "C:/path/to/document.cshtml";
             var codeDocument = CreateCodeDocument("@");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, documentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, documentResolver, CompletionFactsService, TagHelperCompletionService, TagHelperDescriptionFactory, LoggerFactory);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -514,7 +533,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 service => service.GetCompletionsAt(It.IsAny<SourceSpan>(), It.IsAny<RazorCodeDocument>()) == new[] { tagHelperCompletionItem });
             var codeDocument = CreateCodeDocument("<");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, documentResolver, CompletionFactsService, tagHelperCompletionService, TagHelperDescriptionFactory, LanguageServer, LoggerFactory);
+            var completionEndpoint = new RazorCompletionEndpoint(Dispatcher, documentResolver, CompletionFactsService, tagHelperCompletionService, TagHelperDescriptionFactory, LoggerFactory);
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
