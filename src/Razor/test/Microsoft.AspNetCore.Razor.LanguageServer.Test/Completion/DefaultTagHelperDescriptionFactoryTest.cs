@@ -446,8 +446,7 @@ World
             Assert.True(result);
             Assert.Equal(@"**SomeTagHelper**
 
-Uses `List<System.String>`s
-", markdown.Value);
+Uses `List<System.String>`s", markdown.Value);
             Assert.Equal(MarkupKind.Markdown, markdown.Kind);
         }
 
@@ -471,8 +470,7 @@ Uses `List<System.String>`s
             Assert.True(result, "TryCreateDescription should have succeeded");
             Assert.Equal(@"SomeTagHelper
 
-Uses `List<System.String>`s
-", markdown.Value);
+Uses `List<System.String>`s", markdown.Value);
             Assert.Equal(MarkupKind.PlainText, markdown.Kind);
         }
 
@@ -524,8 +522,7 @@ Uses `List<System.String>`s
             Assert.True(result);
             Assert.Equal(@"**SomeTagHelper**
 
-Uses `List<System.String>`s
-", markdown.Value);
+Uses `List<System.String>`s", markdown.Value);
             Assert.Equal(MarkupKind.Markdown, markdown.Kind);
         }
 
@@ -549,12 +546,10 @@ Uses `List<System.String>`s
             Assert.Equal(@"**SomeTagHelper**
 
 Uses `List<System.String>`s
-
 ---
 **OtherTagHelper**
 
-Also uses `List<System.String>`s
-", markdown.Value);
+Also uses `List<System.String>`s", markdown.Value);
             Assert.Equal(MarkupKind.Markdown, markdown.Kind);
         }
 
