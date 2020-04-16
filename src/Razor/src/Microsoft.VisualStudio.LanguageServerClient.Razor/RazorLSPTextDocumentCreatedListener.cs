@@ -131,6 +131,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 // If we don't know about this document we'll no-op
                 _lspDocumentManager.UntrackDocument(args.TextDocument.TextBuffer);
+
+                if (_lspEditorFeatureDetector.IsRemoteClient() &&
+                    args.TextDocument.TextBuffer.Properties.ContainsProperty(FilePathPropertyKey))
+                {
+                    // We no longer want to watch for guest buffer changes.
+                    args.TextDocument.TextBuffer.Properties.RemoveProperty(FilePathPropertyKey);
+                    args.TextDocument.TextBuffer.ChangedHighPriority -= RazorGuestBuffer_Changed;
+                }
             }
         }
 
@@ -227,17 +235,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private void RazorGuestBuffer_Changed(object sender, TextContentChangedEventArgs args)
         {
-            var replacePlaceholderChange = args.Changes.FirstOrDefault(c => c.OldText == LanguageServerConstants.CursorPlaceholderString && c.NewText == string.Empty);
-            if (replacePlaceholderChange != null)
-            {
-                if (!(sender is ITextBuffer buffer) ||
-                    !buffer.Properties.TryGetProperty<string>(FilePathPropertyKey, out var filePath))
-                {
-                    return;
-                }
+            var replacePlaceholderChange = args.Changes.FirstOrDefault(
+                c => c.OldText == LanguageServerConstants.CursorPlaceholderString && c.NewText == string.Empty);
 
-                _editorService.MoveCaretToPosition(filePath, replacePlaceholderChange.NewPosition);
+            if (replacePlaceholderChange == null)
+            {
+                return;
             }
+
+            if (!(sender is ITextBuffer buffer) ||
+                !buffer.Properties.TryGetProperty<string>(FilePathPropertyKey, out var filePath))
+            {
+                return;
+            }
+
+            _editorService.MoveCaretToPosition(filePath, replacePlaceholderChange.NewPosition);
         }
     }
 }
