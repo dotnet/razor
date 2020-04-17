@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 descriptionBuilder.AppendLine();
                 descriptionBuilder.AppendLine();
                 var finalSummaryContent = CleanSummaryContent(summaryContent);
-                descriptionBuilder.AppendLine(finalSummaryContent);
+                descriptionBuilder.Append(finalSummaryContent);
             }
 
             tagHelperDescription = new MarkupContent

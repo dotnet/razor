@@ -498,8 +498,7 @@ Uses `List<System.String>`s", markdown.Value);
             Assert.True(result);
             Assert.Equal(@"string SomeTypeName.SomeProperty
 
-Uses `List<System.String>`s
-", markdown.Value);
+Uses `List<System.String>`s", markdown.Value);
             Assert.Equal(MarkupKind.PlainText, markdown.Kind);
         }
         [Fact]
@@ -575,8 +574,7 @@ Also uses `List<System.String>`s", markdown.Value);
             Assert.True(result);
             Assert.Equal(@"**string** SomeTypeName.**SomeProperty**
 
-Uses `List<System.String>`s
-", markdown.Value);
+Uses `List<System.String>`s", markdown.Value);
             Assert.Equal(MarkupKind.Markdown, markdown.Kind);
         }
 
@@ -608,12 +606,10 @@ Uses `List<System.String>`s
             Assert.Equal(@"**string** SomeTypeName.**SomeProperty**
 
 Uses `List<System.String>`s
-
 ---
 **Boolean?** AnotherTypeName.**AnotherProperty**
 
-Uses `List<System.String>`s
-", markdown.Value);
+Uses `List<System.String>`s", markdown.Value);
             Assert.Equal(MarkupKind.Markdown, markdown.Kind);
         }
     }
