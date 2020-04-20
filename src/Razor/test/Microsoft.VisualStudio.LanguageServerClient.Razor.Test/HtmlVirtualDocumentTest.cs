@@ -107,6 +107,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var called = 0;
             textBuffer.PostChanged += (s, a) =>
             {
+                textBuffer.TryGetHostDocumentSyncVersion(out var version);
+                Assert.Equal(1, version);
+
                 called += 1;
             };
 

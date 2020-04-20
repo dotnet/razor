@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 // Even though nothing changed here, we want the synchronizer to be aware of the host document version change.
                 // So, let's make an empty edit to invoke the text buffer Changed events.
-                MakeEmptyEdit();
+                TextBuffer.MakeEmptyEdit();
 
                 _currentSnapshot = UpdateSnapshot();
                 return _currentSnapshot;
@@ -88,17 +88,5 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         private CSharpVirtualDocumentSnapshot UpdateSnapshot() => new CSharpVirtualDocumentSnapshot(Uri, TextBuffer.CurrentSnapshot, HostDocumentSyncVersion);
-
-        private void MakeEmptyEdit()
-        {
-            var bufferLength = TextBuffer.CurrentSnapshot.Length;
-            using var edit = TextBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, InviolableEditTag.Instance);
-            edit.Insert(bufferLength, " ");
-            edit.Apply();
-
-            using var revertEdit = TextBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, InviolableEditTag.Instance);
-            revertEdit.Delete(bufferLength, 1);
-            revertEdit.Apply();
-        }
     }
 }
