@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
-using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -99,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     textDocumentPositionParams,
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (RemoteMethodNotFoundException)
+            catch
             {
                 // Ensure we fail silently (Temporary till roslyn update is live)
                 return null;
