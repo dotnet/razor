@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { EventEmitter } from 'events';
 import * as vscode from 'vscode';
@@ -13,6 +13,7 @@ import {
     RequestType,
     ServerOptions,
     State,
+    Disposable,
 } from 'vscode-languageclient/lib/main';
 import { RazorLanguageServerOptions } from './RazorLanguageServerOptions';
 import { resolveRazorLanguageServerOptions } from './RazorLanguageServerOptionsResolver';
@@ -48,13 +49,13 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         this.eventBus = new EventEmitter();
     }
 
-    public updateTraceLevel() {
+    public updateTraceLevel(): void {
         const languageServerTrace = resolveRazorLanguageServerTrace(this.vscodeType);
         this.setupLanguageServer();
         this.logger.setTraceLevel(languageServerTrace);
     }
 
-    public onStarted(listener: () => Promise<any>) {
+    public onStarted(listener: () => Promise<any>): void {
         this.onStartedListeners.push(listener);
     }
 
@@ -62,7 +63,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         this.onStartListeners.push(listener);
     }
 
-    public onStop(listener: () => any) {
+    public onStop(listener: () => any): Disposable {
         this.eventBus.addListener(events.ServerStop, listener);
 
         const disposable = new vscode.Disposable(() =>
@@ -70,7 +71,8 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         return disposable;
     }
 
-    public async start() {
+    public async start(): Promise<void> {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         if (this.startHandle) {
             return this.startHandle;
         }
@@ -108,8 +110,8 @@ export class RazorLanguageServerClient implements vscode.Disposable {
             const startDisposable = this.client.start();
             this.startDisposable = vscode.Disposable.from(startDisposable, didChangeStateDisposable);
             this.logger.logMessage('Server started, waiting for client to be ready...');
-            // tslint:disable-next-line: no-floating-promises
-            this.client.onReady().then(async () => {
+
+            void this.client.onReady().then(async () => {
                 if (currentState !== State.Running) {
                     // Unexpected scenario, if we fall into this scenario the above onDidChangeState
                     // handling will kill the start promise if we reach a certain retry threshold.
@@ -134,7 +136,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
                 didChangeStateDisposable.dispose();
             });
         } catch (error) {
-            vscode.window.showErrorMessage(
+            void vscode.window.showErrorMessage(
                 'Razor Language Server failed to start unexpectedly, ' +
                 'please check the \'Razor Log\' and report an issue.');
 
@@ -145,7 +147,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         return this.startHandle;
     }
 
-    public async sendRequest<TResponseType>(method: string, param: any) {
+    public async sendRequest<TResponseType>(method: string, param: any): Promise<TResponseType> {
         if (!this.isStarted) {
             throw new Error('Tried to send requests while server is not started.');
         }
@@ -153,7 +155,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         return this.client.sendRequest<TResponseType>(method, param);
     }
 
-    public onRequest<TResponse, TError>(method: string, handler: GenericRequestHandler<TResponse, TError>) {
+    public onRequest<TResponse, TError>(method: string, handler: GenericRequestHandler<TResponse, TError>): void {
         if (!this.isStarted) {
             throw new Error('Tried to bind on request logic while server is not started.');
         }
@@ -161,7 +163,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         this.client.onRequest(method, handler);
     }
 
-    public async onRequestWithParams<P, R, E, RO>(method: RequestType<P, R, E, RO>, handler: RequestHandler<P, R, E>) {
+    public onRequestWithParams<P, R, E, RO>(method: RequestType<P, R, E, RO>, handler: RequestHandler<P, R, E>): void {
         if (!this.isStarted) {
             throw new Error('Tried to bind on request logic while server is not started.');
         }
@@ -169,7 +171,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         this.client.onRequest(method, handler);
     }
 
-    public dispose() {
+    public dispose(): void {
         this.logger.logMessage('Disposing Razor Language Server.');
 
         if (this.startDisposable) {
@@ -181,7 +183,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         this.eventBus.emit(events.ServerStop);
     }
 
-    public async stop() {
+    public async stop(): Promise<void> {
         let resolve: () => void = Function;
         let reject: (reason: any) => void = Function;
         this.stopHandle = new Promise<void>((resolver, rejecter) => {
@@ -189,6 +191,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
             reject = rejecter;
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         if (!this.startHandle) {
             reject(new Error('Cannot stop Razor Language Server as it is already stopped.'));
         }
@@ -204,7 +207,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
 
             resolve();
         } catch (error) {
-            vscode.window.showErrorMessage(
+            void vscode.window.showErrorMessage(
                 'Razor Language Server failed to stop correctly, ' +
                 'please check the \'Razor Log\' and report an issue.');
 
@@ -214,7 +217,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         return this.stopHandle;
     }
 
-    private setupLanguageServer() {
+    private setupLanguageServer(): void {
         const languageServerTrace = resolveRazorLanguageServerTrace(this.vscodeType);
         const options: RazorLanguageServerOptions = resolveRazorLanguageServerOptions(this.vscodeType, this.languageServerDir, languageServerTrace, this.logger);
 

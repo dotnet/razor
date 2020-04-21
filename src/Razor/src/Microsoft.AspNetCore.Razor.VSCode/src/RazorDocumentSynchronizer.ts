@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 
@@ -13,6 +13,7 @@ import { RazorDocumentChangeKind } from './RazorDocumentChangeKind';
 import { RazorDocumentManager } from './RazorDocumentManager';
 import { RazorLogger } from './RazorLogger';
 import { getUriPath } from './UriPaths';
+import { Disposable } from 'vscode-languageclient';
 
 export class RazorDocumentSynchronizer {
     private readonly synchronizations: { [uri: string]: SynchronizationContext[] } = {};
@@ -23,7 +24,7 @@ export class RazorDocumentSynchronizer {
         private readonly logger: RazorLogger) {
     }
 
-    public register() {
+    public register(): Disposable {
         const documentManagerRegistration = this.documentManager.onChange(
             event => this.documentChanged(event));
         const textDocumentChangeRegistration = vscode.workspace.onDidChangeTextDocument(
@@ -36,7 +37,7 @@ export class RazorDocumentSynchronizer {
         hostDocument: vscode.TextDocument,
         projectedDocument: IProjectedDocument,
         expectedHostDocumentVersion: number,
-        token: vscode.CancellationToken) {
+        token: vscode.CancellationToken): Promise<boolean> {
 
         const logId = ++this.synchronizationIdentifier;
 
@@ -121,7 +122,7 @@ export class RazorDocumentSynchronizer {
         return true;
     }
 
-    private removeSynchronization(context: SynchronizationContext) {
+    private removeSynchronization(context: SynchronizationContext): void {
         const documentKey = getUriPath(context.projectedDocument.uri);
         const synchronizations = this.synchronizations[documentKey];
         clearTimeout(context.timeoutId);
@@ -139,7 +140,7 @@ export class RazorDocumentSynchronizer {
         projectedDocument: IProjectedDocument,
         toHostDocumentVersion: number,
         hostDocument: vscode.TextDocument,
-        token: vscode.CancellationToken) {
+        token: vscode.CancellationToken): SynchronizationContext {
 
         const rejectionsForCancel: Array<(reason: string) => void> = [];
         let projectedDocumentSynchronized: () => void = Function;
@@ -187,7 +188,7 @@ export class RazorDocumentSynchronizer {
         return context;
     }
 
-    private textDocumentChanged(event: vscode.TextDocumentChangeEvent) {
+    private textDocumentChanged(event: vscode.TextDocumentChangeEvent): void {
         if (event.document.uri.scheme !== CSharpProjectedDocumentContentProvider.scheme &&
             event.document.uri.scheme !== HtmlProjectedDocumentContentProvider.scheme) {
             return;
@@ -217,7 +218,7 @@ export class RazorDocumentSynchronizer {
         }
     }
 
-    private documentChanged(event: IRazorDocumentChangeEvent) {
+    private documentChanged(event: IRazorDocumentChangeEvent): void {
         let projectedDocument: IProjectedDocument;
         if (event.kind === RazorDocumentChangeKind.csharpChanged) {
             projectedDocument = event.document.csharpDocument;
@@ -245,7 +246,7 @@ export class RazorDocumentSynchronizer {
         }
     }
 
-    private getProjectedTextDocumentVersion(textDocument: vscode.TextDocument) {
+    private getProjectedTextDocumentVersion(textDocument: vscode.TextDocument): number | null {
         // Logic defined in this method is heavily dependent on the functionality in the projected
         // document content providers to append versions to the end of text documents.
 

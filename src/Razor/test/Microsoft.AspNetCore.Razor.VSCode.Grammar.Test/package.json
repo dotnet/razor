@@ -2,23 +2,32 @@
   "name": "razor-vscode-grammar-test",
   "private": true,
   "displayName": "Razor Grammar Tests",
+  "version": "0.0.1",
   "scripts": {
     "clean": "rimraf dist",
     "build": "yarn run clean && yarn run lint && tsc -p ./",
-    "lint": "tslint --project ./",
+    "lint": "eslint --ext .ts ./tests",
     "test": "jest",
     "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand --colors"
   },
   "devDependencies": {
     "@types/jest": "^24.0.25",
     "@types/node": "9.4.7",
+    "@typescript-eslint/eslint-plugin":"2.31.0",
+    "@typescript-eslint/parser": "2.31.0",
     "jest": "^24.9.0",
     "ts-jest": "^24.0.0",
     "ts-node": "^7.0.1",
-    "tslint": "^5.11.0",
-    "typescript": "3.3.4000",
+    "eslint": "6.8.0",
+    "eslint-plugin-jsdoc": "22.1.0",
+    "eslint-plugin-header": "3.0.0",
+    "eslint-config-razor-tooling": "link:../../eslint-config-razor-tooling/",
+    "typescript": "3.8.3",
     "rimraf": "2.6.3",
     "vscode-textmate": "4.4.0",
     "oniguruma": "7.2.1"
+  },
+  "eslintConfig": {
+    "extends": "eslint-config-razor-tooling"
   }
 }

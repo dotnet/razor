@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { beforeEach } from 'mocha';
@@ -31,6 +31,10 @@ suite('CodeLens', () => {
 
         const codeLenses = await GetCodeLenses(razorDoc.uri);
 
+        if (!codeLenses) {
+            assert.fail('codeLenses was undefined');
+        }
+
         assert.equal(codeLenses.length, 1);
         assert.equal(codeLenses[0].isResolved, false);
         assert.equal(codeLenses[0].command, undefined);
@@ -49,14 +53,21 @@ suite('CodeLens', () => {
         // Second argument makes sure the CodeLens we expect is resolved.
         const codeLenses = await GetCodeLenses(razorDoc.uri, 100);
 
+        if (!codeLenses) {
+            assert.fail('codeLenses was undefined');
+        }
+
         assert.equal(codeLenses.length, 1);
         assert.equal(codeLenses[0].isResolved, true);
-        assert.notEqual(codeLenses[0].command, undefined);
-        assert.equal(codeLenses[0].command!.title, '1 reference');
+        if (!codeLenses[0].command) {
+            assert.fail('codeLenses.command was undefined')
+        }
+        assert.equal(codeLenses[0].command.title, '1 reference');
     });
 
-    async function GetCodeLenses(fileUri: vscode.Uri, resolvedItemCount?: number) {
+    async function GetCodeLenses(fileUri: vscode.Uri, resolvedItemCount?: number): Promise<vscode.CodeLens[]|undefined>  {
         await new Promise(r => setTimeout(r, 10000));
-        return await vscode.commands.executeCommand('vscode.executeCodeLensProvider', fileUri, resolvedItemCount) as vscode.CodeLens[];
+        const codeLenses = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', fileUri, resolvedItemCount);
+        return codeLenses;
     }
 });

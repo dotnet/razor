@@ -1,13 +1,13 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { assertMatchesSnapshot } from './infrastructure/TestUtilities';
 
 // See GrammarTests.test.ts for details on exporting this test suite instead of running in place.
 
-export function RunDoStatementSuite() {
+export function RunDoStatementSuite(): void {
     describe('@do { ... } while ( ... );', () => {
         it('Incomplete do statement, no body', async () => {
             await assertMatchesSnapshot('@do');
@@ -27,7 +27,7 @@ export function RunDoStatementSuite() {
 
         it('Multi line condition', async () => {
             await assertMatchesSnapshot(
-`@do
+                `@do
 {
 }
 while (
@@ -42,7 +42,7 @@ while (
 
         it('Multi line body', async () => {
             await assertMatchesSnapshot(
-`@do
+                `@do
 {
     var x = 123;
     <div>

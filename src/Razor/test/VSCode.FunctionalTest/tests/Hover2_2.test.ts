@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { beforeEach } from 'mocha';
@@ -28,8 +28,12 @@ suite('Hover 2.2', () => {
             cshtmlDoc.uri,
             new vscode.Position(0, 24));
 
+        if (!hoverResult) {
+            assert.fail('codeActions should have returned a value.');
+        }
+
         assert.ok(hoverResult, 'Should have returned a result');
-        assert.equal(hoverResult!.length, 0, 'Should only have one hover result since the markdown is presented as one.');
+        assert.equal(hoverResult.length, 0, 'Should only have one hover result since the markdown is presented as one.');
     });
 
     test('Hover over multiple attributes gives the correct one', async () => {
@@ -41,10 +45,14 @@ suite('Hover 2.2', () => {
             cshtmlDoc.uri,
             new vscode.Position(0, 16));
 
-        assert.ok(hoverResult, 'Should have returned a result');
-        assert.equal(hoverResult!.length, 1, 'Should only have one hover result');
+        if (!hoverResult) {
+            assert.fail('codeActions should have returned a value.');
+        }
 
-        let mdString = hoverResult![0].contents[0] as vscode.MarkdownString;
+        assert.ok(hoverResult, 'Should have returned a result');
+        assert.equal(hoverResult.length, 1, 'Should only have one hover result');
+
+        let mdString = hoverResult[0].contents[0] as vscode.MarkdownString;
         assert.ok(mdString.value.includes('**Exclude**'), `Expected "Exclude" in ${mdString.value}`);
         assert.ok(!mdString.value.includes('**Include**'), `Expected 'Include' not to be in ${mdString.value}`);
 
@@ -53,10 +61,14 @@ suite('Hover 2.2', () => {
             cshtmlDoc.uri,
             new vscode.Position(0, 32));
 
-        assert.ok(hoverResult, 'Should have returned a result');
-        assert.equal(hoverResult!.length, 1, 'Should only have one hover result');
+        if (!hoverResult) {
+            assert.fail('codeActions should have returned a value.');
+        }
 
-        mdString = hoverResult![0].contents[0] as vscode.MarkdownString;
+        assert.ok(hoverResult, 'Should have returned a result');
+        assert.equal(hoverResult.length, 1, 'Should only have one hover result');
+
+        mdString = hoverResult[0].contents[0] as vscode.MarkdownString;
         assert.ok(!mdString.value.includes('**Exclude**'), `Expected "Exclude" not to be in ${mdString.value}`);
         assert.ok(mdString.value.includes('**Include**'), `Expected 'Include' in ${mdString.value}`);
     });
@@ -70,9 +82,13 @@ suite('Hover 2.2', () => {
             cshtmlDoc.uri,
             new vscode.Position(1, 3));
 
+        if (!hoverResult) {
+            assert.fail('codeActions should have returned a value.');
+        }
+
         assert.ok(hoverResult, 'Should have returned a result');
-        assert.equal(hoverResult!.length, 1, 'Should only have one hover result since the markdown is presented as one.');
-        let mdString = hoverResult![0].contents[0] as vscode.MarkdownString;
+        assert.equal(hoverResult.length, 1, 'Should only have one hover result since the markdown is presented as one.');
+        let mdString = hoverResult[0].contents[0] as vscode.MarkdownString;
         assert.ok(mdString.value.includes('elements that conditionally renders'));
         assert.ok(mdString.value.includes('I made it!'));
 
@@ -81,9 +97,13 @@ suite('Hover 2.2', () => {
             cshtmlDoc.uri,
             new vscode.Position(1, 15));
 
+        if (!hoverResult) {
+            assert.fail('codeActions should have returned a value.');
+        }
+
         assert.ok(hoverResult, 'Should have returned a result');
-        assert.equal(hoverResult!.length, 1, 'Should have a hover result for both EnvironmentTagHelpers');
-        mdString = hoverResult![0].contents[0] as vscode.MarkdownString;
+        assert.equal(hoverResult.length, 1, 'Should have a hover result for both EnvironmentTagHelpers');
+        mdString = hoverResult[0].contents[0] as vscode.MarkdownString;
         assert.ok(mdString.value.includes('A comma separated list of environment names in'));
         assert.ok(mdString.value.includes('Exclude it!'));
     });
@@ -96,8 +116,12 @@ suite('Hover 2.2', () => {
             cshtmlDoc.uri,
             new vscode.Position(0, 3));
 
+        if (!hoverResult) {
+            assert.fail('codeActions should have returned a value.');
+        }
+
         assert.ok(hoverResult, 'Should have returned a result');
-        assert.equal(hoverResult!.length, 1, 'Should not have a hover result for InputTagHelper because it does not have the correct attrs yet.');
+        assert.equal(hoverResult.length, 1, 'Should not have a hover result for InputTagHelper because it does not have the correct attrs yet.');
 
         await editor.edit(edit => edit.insert(firstLine, '<input asp-for="D" class="someName" />\n'));
         hoverResult = await vscode.commands.executeCommand<vscode.Hover[]>(
@@ -112,7 +136,7 @@ suite('Hover 2.2', () => {
         }
 
         assert.equal(hoverResult.length, 2, 'Something else may be providing hover results');
-        const envResult = hoverResult.find((hover, index, obj) => {
+        const envResult = hoverResult.find((hover, _index, _obj) => {
             return (hover.contents[0] as vscode.MarkdownString).value.includes('InputTagHelper');
         });
 

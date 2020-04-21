@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { HtmlProjectedDocumentContentProvider } from 'microsoft.aspnetcore.razor.vscode/dist/Html/HtmlProjectedDocumentContentProvider';
@@ -12,8 +12,7 @@ import { TestRazorDocumentManager } from './Mocks/TestRazorDocumentManager';
 import { createTestVSCodeApi } from './Mocks/TestVSCodeApi';
 
 describe('HtmlProjectedDocumentContentProvider', () => {
-
-    it('provideTextDocumentContent returns empty string for unknown document', async () => {
+    it('provideTextDocumentContent returns empty string for unknown document', () => {
         // Arrange
         const api = createTestVSCodeApi();
         const eventEmitterFactory = new TestEventEmitterFactory();
@@ -24,7 +23,7 @@ describe('HtmlProjectedDocumentContentProvider', () => {
         const htmlDocumentUri = api.Uri.parse('C:/path/to/file.cshtml.__virtual.html');
 
         // Act
-        const result = await provider.provideTextDocumentContent(htmlDocumentUri);
+        const result = provider.provideTextDocumentContent(htmlDocumentUri);
 
         // Assert
         assert.equal(result, '');

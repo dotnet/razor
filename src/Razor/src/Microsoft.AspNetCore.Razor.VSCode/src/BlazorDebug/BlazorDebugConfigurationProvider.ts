@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 
@@ -39,7 +39,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
         return undefined;
     }
 
-    private async launchApp(folder: vscode.WorkspaceFolder | undefined, configuration: vscode.DebugConfiguration) {
+    private async launchHostedApp(folder: vscode.WorkspaceFolder | undefined, configuration: vscode.DebugConfiguration): void {
         const program = configuration.hosted ? configuration.program : 'dotnet';
         const cwd = configuration.cwd || '${workspaceFolder}';
         const args = configuration.hosted ? [] : ['run'];
@@ -108,11 +108,11 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
                 '[DEBUGGER] Error when launching browser debugger: ',
                 error,
             );
-            const message = `There was an unexpected error while launching your debugging session. Check the console for helpful logs and visit the debugging docs for more info.`;
-            this.vscodeType.window.showErrorMessage(message, `View Debug Docs`, `Ignore`).then(async result => {
+            const message = 'There was an unexpected error while launching your debugging session. Check the console for helpful logs and visit the debugging docs for more info.';
+            void this.vscodeType.window.showErrorMessage(message, 'View Debug Docs', 'Ignore').then(async result => {
                 if (result === 'View Debug Docs') {
                     const debugDocsUri = 'https://aka.ms/blazorwasmcodedebug';
-                    await this.vscodeType.commands.executeCommand(`vcode.open`, debugDocsUri);
+                    await this.vscodeType.commands.executeCommand('vcode.open', debugDocsUri);
                 }
             });
         }

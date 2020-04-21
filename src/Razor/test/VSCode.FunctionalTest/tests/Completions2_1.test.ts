@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { beforeEach } from 'mocha';
 import * as path from 'path';
@@ -42,7 +42,7 @@ suite('Completions 2.1', () => {
     test('Can complete C# code blocks', async () => {
         const lastLine = new vscode.Position(doc.lineCount - 1, 0);
         await editor.edit(edit => edit.insert(lastLine, '@{}'));
-        await waitForDocumentUpdate(doc.uri, document => document.getText().indexOf('@{}') >= 0);
+        await waitForDocumentUpdate(doc.uri, document => document.getText().includes('@{}'));
 
         const completions = await vscode.commands.executeCommand<vscode.CompletionList>(
             'vscode.executeCompletionItemProvider',

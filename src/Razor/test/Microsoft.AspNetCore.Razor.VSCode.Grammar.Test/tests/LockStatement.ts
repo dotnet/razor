@@ -1,13 +1,13 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { assertMatchesSnapshot } from './infrastructure/TestUtilities';
 
 // See GrammarTests.test.ts for details on exporting this test suite instead of running in place.
 
-export function RunLockStatementSuite() {
+export function RunLockStatementSuite(): void {
     describe('@lock ( ... ) { ... }', () => {
         it('Incomplete lock statement, no reference or body', async () => {
             await assertMatchesSnapshot('@lock');
@@ -23,7 +23,7 @@ export function RunLockStatementSuite() {
 
         it('Multi line reference', async () => {
             await assertMatchesSnapshot(
-`@lock (
+                `@lock (
     await GetSomeObjectAsync(
         () => true,
         name: "The Good Disposable",
@@ -35,7 +35,7 @@ export function RunLockStatementSuite() {
 
         it('Multi line body', async () => {
             await assertMatchesSnapshot(
-`@lock (SomeObject)
+                `@lock (SomeObject)
 {
     var x = 123;
     <div>

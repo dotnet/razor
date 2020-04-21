@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as psList from 'ps-list';
 import { DebugSession } from 'vscode';
@@ -36,7 +36,7 @@ export async function onDidTerminateDebugSession(
   event: DebugSession,
   logger: RazorLogger,
   target: string | number | undefined,
-) {
+): Promise<void> {
   if (!target) {
     return;
   }
@@ -76,7 +76,7 @@ async function terminateByProcessName(
   try {
     processes = await psList();
   } catch (error) {
-    logger.logError(`Error retrieving processes to clean-up: `, error);
+    logger.logError('Error retrieving processes to clean-up: ', error);
   }
 
   const devserver = processes.find(

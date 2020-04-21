@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as fs from 'fs';
 import * as Mocha from 'mocha';
@@ -65,31 +65,33 @@ export async function run(): Promise<void> {
                     c();
                 }
             })
-            .on('test', (test) => {
-                console.log(`👉 Test started: ${test.parent!.title} - ${test.title}`);
-            })
-            .on('pending', (test) => {
-                console.log(`⚠️ Test skipped: ${test.parent!.title} - ${test.title}`);
-            })
-            .on('pass', (test) => {
-                console.log(`✅ Test passed: ${test.parent!.title} - ${test.title} (${test.duration}ms)`);
-            })
-            .on('fail', (test, err) => {
-                console.log(`❌ Test failed: ${test.parent!.title} - ${test.title}`);
-                console.log(err);
-            });
+            /* eslint-disable @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion */
+                .on('test', (test) => {
+                    console.log(`👉 Test started: ${test.parent!.title} - ${test.title}`);
+                })
+                .on('pending', (test) => {
+                    console.log(`⚠️ Test skipped: ${test.parent!.title} - ${test.title}`);
+                })
+                .on('pass', (test) => {
+                    console.log(`✅ Test passed: ${test.parent!.title} - ${test.title} (${test.duration}ms)`);
+                })
+                .on('fail', (test, err) => {
+                    console.log(`❌ Test failed: ${test.parent!.title} - ${test.title}`);
+                    console.log(err);
+                });
+            /* eslint-enable @typescript-eslint/no-non-null-assertion */
         } catch (err) {
             e(err);
         }
     });
 
-    function ensureDirectory(directory: string) {
+    function ensureDirectory(directory: string): void {
         if (!fs.existsSync(directory)) {
             fs.mkdirSync(directory);
         }
     }
 
-    function ensureRequiredExtension() {
+    function ensureRequiredExtension(): void {
         const csharpExtension = vscode.extensions.getExtension('ms-dotnettools.csharp');
         const razorExtension = vscode.extensions.getExtension('ms-dotnettools.razor-vscode');
 

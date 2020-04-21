@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { beforeEach } from 'mocha';
@@ -12,7 +12,7 @@ import { mvcWithComponentsRoot } from './TestUtil';
 let razorPath: string;
 
 suite('Formatting', () => {
-    beforeEach(async () => {
+    beforeEach(() => {
         razorPath = path.join(mvcWithComponentsRoot, 'Views', 'Shared', 'NavMenu.razor');
     });
 
@@ -38,7 +38,11 @@ suite('Formatting', () => {
         const edits = await vscode.commands.executeCommand<vscode.TextEdit[]>(
             'vscode.executeFormatDocumentProvider',
             razorDoc.uri,
-            options) as vscode.TextEdit[];
+            options);
+
+        if (!edits){
+            assert.fail('edits was undefined');
+        }
 
         const workspaceEdit = new vscode.WorkspaceEdit();
         workspaceEdit.set(razorDoc.uri, edits);
@@ -111,7 +115,11 @@ Same goes for the one below
         const edits = await vscode.commands.executeCommand<vscode.TextEdit[]>(
             'vscode.executeFormatDocumentProvider',
             razorDoc.uri,
-            options) as vscode.TextEdit[];
+            options);
+
+        if (!edits) {
+            assert.fail('edits was undefined');
+        }
 
         const workspaceEdit = new vscode.WorkspaceEdit();
         workspaceEdit.set(razorDoc.uri, edits);
@@ -122,14 +130,14 @@ Same goes for the one below
         assert.equal(normalize(text), normalize(expected));
     });
 
-    function getFullRange(document: vscode.TextDocument) {
+    function getFullRange(document: vscode.TextDocument): vscode.Range {
         const start = new vscode.Position(0, 0);
         const lastLine = document.lineAt(document.lineCount - 1);
         const end = new vscode.Position(lastLine.lineNumber, lastLine.rangeIncludingLineBreak.end.character);
         return new vscode.Range(start, end);
     }
 
-    function normalize(text: string) {
+    function normalize(text: string): string {
         return text.split('\r\n').join('\n');
     }
 });

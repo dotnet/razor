@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'microsoft.aspnetcore.razor.vscode/dist/vscodeAdapter';
 
@@ -15,7 +15,7 @@ export class TestUri implements vscode.Uri {
         public readonly fsPath = path) {
     }
 
-    public with(change: {
+    public with(_change: {
         scheme?: string;
         authority?: string;
         path?: string;
@@ -25,7 +25,7 @@ export class TestUri implements vscode.Uri {
         throw new Error('Not Implemented.');
     }
 
-    public toString(skipEncoding?: boolean): string {
+    public toString(_skipEncoding?: boolean): string {
         throw new Error('Not Implemented.');
     }
 

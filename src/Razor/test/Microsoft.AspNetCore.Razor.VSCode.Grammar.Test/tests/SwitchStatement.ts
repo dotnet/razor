@@ -1,13 +1,13 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { assertMatchesSnapshot } from './infrastructure/TestUtilities';
 
 // See GrammarTests.test.ts for details on exporting this test suite instead of running in place.
 
-export function RunSwitchStatementSuite() {
+export function RunSwitchStatementSuite(): void {
     describe('@switch ( ... ) { ... }', () => {
         it('Incomplete switch statement, no condition or body', async () => {
             await assertMatchesSnapshot('@switch');
@@ -27,7 +27,7 @@ export function RunSwitchStatementSuite() {
 
         it('Multi line condition', async () => {
             await assertMatchesSnapshot(
-`@switch (
+                `@switch (
     await GetAValue(
         () => true,
         name: "Hello",
@@ -39,7 +39,7 @@ export function RunSwitchStatementSuite() {
 
         it('Multi line body', async () => {
             await assertMatchesSnapshot(
-`@switch (SomeProperty)
+                `@switch (SomeProperty)
 {
     case 123:
         var x = 123;

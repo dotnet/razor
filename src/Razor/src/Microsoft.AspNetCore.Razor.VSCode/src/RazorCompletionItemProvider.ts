@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { ProvisionalCompletionOrchestrator } from './ProvisionalCompletionOrchestrator';
@@ -18,7 +18,7 @@ export class RazorCompletionItemProvider
 
     public static async getCompletions(
         projectedUri: vscode.Uri, hostDocumentPosition: vscode.Position,
-        projectedPosition: vscode.Position, triggerCharacter: string | undefined) {
+        projectedPosition: vscode.Position, triggerCharacter: string | undefined): Promise<vscode.CompletionList | undefined> {
 
         if (projectedUri) {
             const completions = await vscode
@@ -118,7 +118,7 @@ export class RazorCompletionItemProvider
         }
     }
 
-    private static offsetColumn(offset: number, hostDocumentLine: number, projectedPosition: vscode.Position) {
+    private static offsetColumn(offset: number, hostDocumentLine: number, projectedPosition: vscode.Position): vscode.Position {
         const offsetPosition = new vscode.Position(
             hostDocumentLine,
             projectedPosition.character - offset);
@@ -136,7 +136,7 @@ export class RazorCompletionItemProvider
 
     public async provideCompletionItems(
         document: vscode.TextDocument, position: vscode.Position,
-        token: vscode.CancellationToken, context: vscode.CompletionContext) {
+        token: vscode.CancellationToken, context: vscode.CompletionContext): Promise<vscode.CompletionList | undefined> {
         const projection = await this.getProjection(document, position, token);
 
         if (this.logger.verboseEnabled) {

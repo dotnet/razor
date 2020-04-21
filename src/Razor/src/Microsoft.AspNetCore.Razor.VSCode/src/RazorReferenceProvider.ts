@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { getRazorDocumentUri, isRazorHtmlFile } from './RazorConventions';
@@ -16,7 +16,7 @@ export class RazorReferenceProvider
         document: vscode.TextDocument,
         position: vscode.Position,
         context: vscode.ReferenceContext,
-        token: vscode.CancellationToken) {
+        token: vscode.CancellationToken): Promise<vscode.Location[] | undefined> {
 
         const projection = await this.getProjection(document, position, token);
         if (!projection || projection.languageKind === LanguageKind.Razor) {
@@ -26,7 +26,11 @@ export class RazorReferenceProvider
         const references = await vscode.commands.executeCommand<vscode.Location[]>(
             'vscode.executeReferenceProvider',
             projection.uri,
-            projection.position) as vscode.Location[];
+            projection.position);
+
+        if (!references) {
+            return;
+        }
 
         const result = new Array<vscode.Location>();
         for (const reference of references) {

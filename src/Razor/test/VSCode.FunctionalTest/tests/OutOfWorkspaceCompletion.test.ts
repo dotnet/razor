@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as fs from 'fs';
 import { after, afterEach, before } from 'mocha';
@@ -16,11 +16,11 @@ import {
 const outsideWorkspaceFile = path.join(testAppsRoot, '..', 'OutOfWorkspaceFile.razor');
 
 suite('Out of workspace Completions', () => {
-    before(async () => {
+    before(() => {
         fs.writeFileSync(outsideWorkspaceFile, /* data */ '');
     });
 
-    after(async () => {
+    after(() => {
         fs.unlinkSync(outsideWorkspaceFile);
     });
 

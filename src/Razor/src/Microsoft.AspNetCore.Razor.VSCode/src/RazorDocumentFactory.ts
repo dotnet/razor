@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { CSharpProjectedDocument } from './CSharp/CSharpProjectedDocument';
@@ -12,7 +12,7 @@ import { IRazorDocument } from './IRazorDocument';
 import { virtualCSharpSuffix, virtualHtmlSuffix } from './RazorConventions';
 import { getUriPath } from './UriPaths';
 
-export function createDocument(uri: vscode.Uri) {
+export function createDocument(uri: vscode.Uri): IRazorDocument {
     const csharpDocument = createProjectedCSharpDocument(uri);
     const htmlDocument = createProjectedHtmlDocument(uri);
     const path = getUriPath(uri);
@@ -27,7 +27,7 @@ export function createDocument(uri: vscode.Uri) {
     return document;
 }
 
-function createProjectedHtmlDocument(hostDocumentUri: vscode.Uri) {
+function createProjectedHtmlDocument(hostDocumentUri: vscode.Uri): HtmlProjectedDocument {
     // Index.cshtml => Index.cshtml__virtual.html
     const path = getUriPath(hostDocumentUri);
     const projectedPath = `${path}${virtualHtmlSuffix}`;
@@ -38,7 +38,7 @@ function createProjectedHtmlDocument(hostDocumentUri: vscode.Uri) {
     return projectedDocument;
 }
 
-function createProjectedCSharpDocument(hostDocumentUri: vscode.Uri) {
+function createProjectedCSharpDocument(hostDocumentUri: vscode.Uri): CSharpProjectedDocument {
     // Index.cshtml => Index.cshtml__virtual.cs
     const path = getUriPath(hostDocumentUri);
     const projectedPath = `${path}${virtualCSharpSuffix}`;

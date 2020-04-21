@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { IEventEmitterFactory } from '../IEventEmitterFactory';
 import { IRazorDocumentChangeEvent } from '../IRazorDocumentChangeEvent';
@@ -10,6 +10,7 @@ import { RazorDocumentChangeKind } from '../RazorDocumentChangeKind';
 import { RazorLogger } from '../RazorLogger';
 import { getUriPath } from '../UriPaths';
 import * as vscode from '../vscodeAdapter';
+import { IRazorDocument } from '../IRazorDocument';
 
 export class HtmlProjectedDocumentContentProvider implements vscode.TextDocumentContentProvider {
     public static readonly scheme = 'razor-html';
@@ -24,9 +25,11 @@ export class HtmlProjectedDocumentContentProvider implements vscode.TextDocument
         this.onDidChangeEmitter = eventEmitterFactory.create<vscode.Uri>();
     }
 
-    public get onDidChange() { return this.onDidChangeEmitter.event; }
+    public get onDidChange(): vscode.Event<vscode.Uri> {
+        return this.onDidChangeEmitter.event;
+    }
 
-    public provideTextDocumentContent(uri: vscode.Uri) {
+    public provideTextDocumentContent(uri: vscode.Uri): string {
         const razorDocument = this.findRazorDocument(uri);
         if (!razorDocument) {
             // Document was removed from the document manager, meaning there's no more content for this
@@ -45,7 +48,7 @@ export class HtmlProjectedDocumentContentProvider implements vscode.TextDocument
         return content;
     }
 
-    private documentChanged(event: IRazorDocumentChangeEvent) {
+    private documentChanged(event: IRazorDocumentChangeEvent): void {
         if (event.kind === RazorDocumentChangeKind.htmlChanged ||
             event.kind === RazorDocumentChangeKind.opened ||
             event.kind === RazorDocumentChangeKind.removed) {
@@ -56,7 +59,7 @@ export class HtmlProjectedDocumentContentProvider implements vscode.TextDocument
         }
     }
 
-    private findRazorDocument(uri: vscode.Uri) {
+    private findRazorDocument(uri: vscode.Uri): IRazorDocument | undefined {
         const projectedPath = getUriPath(uri);
 
         return this.documentManager.documents.find(razorDocument =>

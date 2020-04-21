@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
@@ -12,7 +12,7 @@ export class RazorHoverProvider
 
     public async provideHover(
         document: vscode.TextDocument, position: vscode.Position,
-        token: vscode.CancellationToken) {
+        token: vscode.CancellationToken): Promise<vscode.Hover | undefined> {
 
         const projection = await this.getProjection(document, position, token);
         if (!projection) {
@@ -37,10 +37,15 @@ export class RazorHoverProvider
             return;
         }
 
+        if (!applicableHover.range) {
+            // The range should always be defined, this is an error
+            return;
+        }
+
         // Re-map the projected hover range to the host document range
         const remappedResponse = await this.serviceClient.mapToDocumentRanges(
             projection.languageKind,
-            [applicableHover.range!],
+            [applicableHover.range],
             document.uri);
 
         if (!remappedResponse ||

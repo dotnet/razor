@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { CSharpProjectedDocument } from './CSharp/CSharpProjectedDocument';
@@ -13,6 +13,7 @@ import { RazorLanguage } from './RazorLanguage';
 import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
 import { RazorLogger } from './RazorLogger';
 import { LanguageKind } from './RPC/LanguageKind';
+import { Disposable } from 'vscode-languageclient';
 
 export class ProvisionalCompletionOrchestrator {
     private provisionalDotsMayBeActive = false;
@@ -25,7 +26,7 @@ export class ProvisionalCompletionOrchestrator {
         private readonly logger: RazorLogger) {
     }
 
-    public register() {
+    public register(): Disposable {
         if (vscode.window.activeTextEditor) {
             this.currentActiveDocument = vscode.window.activeTextEditor.document;
         }
@@ -65,7 +66,7 @@ export class ProvisionalCompletionOrchestrator {
     public async tryGetProvisionalCompletions(
         hostDocumentUri: vscode.Uri,
         projection: ProjectionResult,
-        completionContext: vscode.CompletionContext) {
+        completionContext: vscode.CompletionContext): Promise<vscode.CompletionList | undefined | null> {
         // We expect to be called in scenarios where the user has just typed a dot after
         // some identifier.
         // Such as (cursor is pipe): "DateTime.| "
@@ -137,7 +138,7 @@ export class ProvisionalCompletionOrchestrator {
         return completionList;
     }
 
-    private async tryRemoveProvisionalDot(document: vscode.TextDocument) {
+    private async tryRemoveProvisionalDot(document: vscode.TextDocument): Promise<void> {
         if (!this.provisionalDotsMayBeActive) {
             return;
         }

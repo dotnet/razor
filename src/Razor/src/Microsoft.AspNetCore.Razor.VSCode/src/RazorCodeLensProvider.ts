@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { CancellationToken } from 'vscode-jsonrpc';
@@ -47,7 +47,7 @@ export class RazorCodeLensProvider
         });
     }
 
-    public async provideCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken) {
+    public async provideCodeLenses(document: vscode.TextDocument, _token: vscode.CancellationToken): Promise<vscode.CodeLens[] | undefined> {
         try {
             const razorDocument = await this.documentManager.getDocument(document.uri);
             if (!razorDocument) {
@@ -59,7 +59,7 @@ export class RazorCodeLensProvider
             // Get all the code lenses that applies to our projected C# document.
             const codeLenses = await vscode.commands.executeCommand<vscode.CodeLens[]>(
                 'vscode.executeCodeLensProvider',
-                csharpDocument.uri) as vscode.CodeLens[];
+                csharpDocument.uri);
             if (!codeLenses) {
                 return;
             }
@@ -87,13 +87,13 @@ export class RazorCodeLensProvider
         }
     }
 
-    public async resolveCodeLens(codeLens: vscode.CodeLens, token: vscode.CancellationToken) {
+    public async resolveCodeLens(codeLens: vscode.CodeLens, token: vscode.CancellationToken): Promise<vscode.CodeLens | undefined> {
         if (codeLens instanceof RazorCodeLens) {
             return this.resolveRazorCodeLens(codeLens, token);
         }
     }
 
-    private async resolveRazorCodeLens(codeLens: RazorCodeLens, token: CancellationToken): Promise<vscode.CodeLens> {
+    private async resolveRazorCodeLens(codeLens: RazorCodeLens, token: CancellationToken): Promise<vscode.CodeLens | undefined> {
         // Initialize with default values.
         codeLens.command = {
             title: '',
@@ -116,7 +116,11 @@ export class RazorCodeLensProvider
             const references = await vscode.commands.executeCommand<vscode.Location[]>(
                 'vscode.executeReferenceProvider',
                 projection.uri,
-                projection.position) as vscode.Location[];
+                projection.position);
+
+            if (!references) {
+                return;
+            }
 
             // We now have a list of references to show in the CodeLens.
             const count = references.length;

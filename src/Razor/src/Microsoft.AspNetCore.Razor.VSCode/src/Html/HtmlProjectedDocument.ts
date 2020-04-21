@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { IProjectedDocument } from '../IProjectedDocument';
 import { ServerTextChange } from '../RPC/ServerTextChange';
@@ -26,7 +26,7 @@ export class HtmlProjectedDocument implements IProjectedDocument {
         return this.projectedDocumentVersion;
     }
 
-    public update(edits: ServerTextChange[], hostDocumentVersion: number) {
+    public update(edits: ServerTextChange[], hostDocumentVersion: number): void {
         this.hostDocumentVersion = hostDocumentVersion;
 
         if (edits.length === 0) {
@@ -42,17 +42,17 @@ export class HtmlProjectedDocument implements IProjectedDocument {
         this.setContent(content);
     }
 
-    public getContent() {
+    public getContent(): string {
         return this.content;
     }
 
-    public reset() {
+    public reset(): void {
         this.projectedDocumentVersion++;
         this.hostDocumentVersion = null;
         this.setContent('');
     }
 
-    private getEditedContent(newText: string, start: number, end: number, content: string) {
+    private getEditedContent(newText: string, start: number, end: number, content: string): string {
         const before = content.substr(0, start);
         const after = content.substr(end);
         content = `${before}${newText}${after}`;
@@ -60,7 +60,7 @@ export class HtmlProjectedDocument implements IProjectedDocument {
         return content;
     }
 
-    private setContent(content: string) {
+    private setContent(content: string): void {
         this.projectedDocumentVersion++;
         this.content = content;
     }

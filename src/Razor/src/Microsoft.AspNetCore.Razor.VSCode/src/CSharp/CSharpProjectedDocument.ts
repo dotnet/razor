@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { IProjectedDocument } from '../IProjectedDocument';
 import { ServerTextChange } from '../RPC/ServerTextChange';
@@ -29,7 +29,7 @@ export class CSharpProjectedDocument implements IProjectedDocument {
         return this.projectedDocumentVersion;
     }
 
-    public update(edits: ServerTextChange[], hostDocumentVersion: number) {
+    public update(edits: ServerTextChange[], hostDocumentVersion: number): void {
         this.removeProvisionalDot();
 
         this.hostDocumentVersion = hostDocumentVersion;
@@ -47,21 +47,21 @@ export class CSharpProjectedDocument implements IProjectedDocument {
         this.setContent(content);
     }
 
-    public reset() {
+    public reset(): void {
         this.provisionalEditAt = undefined;
         this.preProvisionalContent = undefined;
         this.hostDocumentVersion = null;
         this.setContent('');
     }
 
-    public getContent() {
+    public getContent(): string {
         return this.content;
     }
 
     // A provisional dot represents a '.' that's inserted into the projected document but will be
     // removed prior to any edits that get applied. In Razor's case a provisional dot is used to
     // show completions after an expression for a dot that's usually interpreted as Html.
-    public addProvisionalDotAt(index: number) {
+    public addProvisionalDotAt(index: number): void {
         if (this.provisionalEditAt === index) {
             // Edits already applied.
             return;
@@ -75,7 +75,7 @@ export class CSharpProjectedDocument implements IProjectedDocument {
         this.setContent(newContent);
     }
 
-    public removeProvisionalDot() {
+    public removeProvisionalDot(): boolean {
         if (this.provisionalEditAt && this.preProvisionalContent) {
             // Undo provisional edit if one was applied.
             this.setContent(this.preProvisionalContent);
@@ -87,7 +87,7 @@ export class CSharpProjectedDocument implements IProjectedDocument {
         return false;
     }
 
-    private getEditedContent(newText: string, start: number, end: number, content: string) {
+    private getEditedContent(newText: string, start: number, end: number, content: string): string {
         const before = content.substr(0, start);
         const after = content.substr(end);
         content = `${before}${newText}${after}`;
@@ -95,7 +95,7 @@ export class CSharpProjectedDocument implements IProjectedDocument {
         return content;
     }
 
-    private setContent(content: string) {
+    private setContent(content: string): void {
         this.projectedDocumentVersion++;
         this.content = content;
     }

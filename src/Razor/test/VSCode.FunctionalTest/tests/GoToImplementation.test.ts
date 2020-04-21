@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { beforeEach } from 'mocha';
@@ -24,7 +24,7 @@ suite('Implementation', () => {
         const firstLine = new vscode.Position(0, 0);
 
         await editor.edit(edit => edit.insert(firstLine,
-`@functions{
+            `@functions{
     public abstract class Cheese {}
     public class Cheddar : Cheese {}
 }`));
@@ -34,8 +34,12 @@ suite('Implementation', () => {
             cshtmlDoc.uri,
             new vscode.Position(1, 30));
 
-        assert.equal(implementations!.length, 1, 'Should have had exactly one result');
-        const implementation = implementations![0];
+        if (!implementations) {
+            assert.fail('codeActions should have returned a value.');
+        }
+
+        assert.equal(implementations.length, 1, 'Should have had exactly one result');
+        const implementation = implementations[0];
         assert.ok(implementation.uri.path.endsWith('Index.cshtml'), `Expected to find 'Index.cshtml' but found '${implementation.uri.path}'`);
         assert.equal(implementation.range.start.line, 2);
     });
@@ -59,10 +63,14 @@ suite('Implementation', () => {
             cshtmlDoc.uri,
             position);
 
+        if (!implementations) {
+            assert.fail('codeActions should have returned a value.');
+        }
+
         await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
 
-        assert.equal(implementations!.length, 1, 'Should have had exactly one result');
-        const implementation = implementations![0];
+        assert.equal(implementations.length, 1, 'Should have had exactly one result');
+        const implementation = implementations[0];
         assert.ok(implementation.uri.path.endsWith('Program.cs'), `Expected def to point to "Program.cs", but it pointed to ${implementation.uri.path}`);
         assert.equal(implementation.range.start.line, 4);
     });

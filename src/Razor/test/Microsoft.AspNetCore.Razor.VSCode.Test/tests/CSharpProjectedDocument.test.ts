@@ -1,11 +1,11 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
-import { CSharpProjectedDocument } from 'microsoft.aspnetcore.razor.vscode/dist/CSharp/CSharpProjectedDocument';
 import { ServerTextChange } from 'microsoft.aspnetcore.razor.vscode/dist/RPC/ServerTextChange';
+import { CSharpProjectedDocument } from 'microsoft.aspnetcore.razor.vscode/dist/CSharp/CSharpProjectedDocument';
 import { createTestVSCodeApi } from './Mocks/TestVSCodeApi';
 
 describe('CSharpProjectedDocument', () => {

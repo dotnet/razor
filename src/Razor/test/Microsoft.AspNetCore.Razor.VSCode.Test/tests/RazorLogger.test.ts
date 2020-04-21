@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { RazorLogger } from 'microsoft.aspnetcore.razor.vscode/dist/RazorLogger';
@@ -10,7 +10,7 @@ import { TestEventEmitterFactory } from './Mocks/TestEventEmitterFactory';
 import { createTestVSCodeApi } from './Mocks/TestVSCodeApi';
 
 describe('RazorLogger', () => {
-    function getAndAssertLog(sink: { [logName: string]: string[] }) {
+    function getAndAssertLog(sink: { [logName: string]: string[] }): string[] {
         const log = sink[RazorLogger.logName];
         assert.ok(log);
         assert.ok(log.length > 0);

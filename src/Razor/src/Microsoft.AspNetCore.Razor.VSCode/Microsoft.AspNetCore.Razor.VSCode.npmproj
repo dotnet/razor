@@ -12,6 +12,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference
+      Include="..\..\eslint-config-razor-tooling\eslint-config-razor-tooling.npmproj"
+      ReferenceOutputAssemblies="false"
+      SkipGetTargetFrameworkProperties="true"
+      UndefineProperties="TargetFramework"
+      Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
     <BuildOutputFiles Include="dist\extension.js" />
   </ItemGroup>
 

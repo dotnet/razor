@@ -1,7 +1,7 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * -------------------------------------------------------------------------------------------- */
 
 import { RazorDocumentManager } from '../RazorDocumentManager';
 import { RazorLogger } from '../RazorLogger';
@@ -25,7 +25,7 @@ export class ReportIssueCommand {
         this.issuePanel = new ReportIssuePanel(this.dataCollectorFactory, this.issueCreator, logger);
     }
 
-    public register() {
+    public register(): vscode.Disposable {
         const registrations: vscode.Disposable[] = [];
         registrations.push(
             this.dataCollectorFactory.register(),

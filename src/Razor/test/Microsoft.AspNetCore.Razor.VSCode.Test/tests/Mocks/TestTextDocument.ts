@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { RazorLanguage } from 'microsoft.aspnetcore.razor.vscode/dist/RazorLanguage';
 import * as vscode from 'microsoft.aspnetcore.razor.vscode/dist/vscodeAdapter';
@@ -46,15 +46,15 @@ export class TestTextDocument implements vscode.TextDocument {
         return new Promise<boolean>((resolve) => resolve(true));
     }
 
-    public lineAt(line: any): vscode.TextLine {
+    public lineAt(_line: any): vscode.TextLine {
         throw new Error('Not implemented');
     }
 
-    public offsetAt(position: vscode.Position): number {
+    public offsetAt(_position: vscode.Position): number {
         throw new Error('Not implemented');
     }
 
-    public positionAt(offset: number): vscode.Position {
+    public positionAt(_offset: number): vscode.Position {
         throw new Error('Not implemented');
     }
 
@@ -66,15 +66,15 @@ export class TestTextDocument implements vscode.TextDocument {
         return this.content;
     }
 
-    public getWordRangeAtPosition(position: vscode.Position, regex?: RegExp): vscode.Range | undefined {
+    public getWordRangeAtPosition(_position: vscode.Position, _regex?: RegExp): vscode.Range | undefined {
         throw new Error('Not implemented');
     }
 
-    public validateRange(range: vscode.Range): vscode.Range {
+    public validateRange(_range: vscode.Range): vscode.Range {
         throw new Error('Not implemented');
     }
 
-    public validatePosition(position: vscode.Position): vscode.Position {
+    public validatePosition(_position: vscode.Position): vscode.Position {
         throw new Error('Not implemented');
     }
 }

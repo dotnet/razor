@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { RazorDocumentManager } from './RazorDocumentManager';
@@ -26,7 +26,7 @@ export class RazorRenameProvider
     public async prepareRename(
         document: vscode.TextDocument,
         position: vscode.Position,
-        token: vscode.CancellationToken) {
+        token: vscode.CancellationToken): Promise<vscode.Range | undefined | null> {
 
         const projection = await this.getProjection(document, position, token);
         if (!projection || projection.languageKind !== LanguageKind.CSharp) {
@@ -49,7 +49,7 @@ export class RazorRenameProvider
         document: vscode.TextDocument,
         position: vscode.Position,
         newName: string,
-        token: vscode.CancellationToken) {
+        token: vscode.CancellationToken): Promise<vscode.WorkspaceEdit | undefined> {
 
         const projection = await this.getProjection(document, position, token);
         if (!projection) {

@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { IReportIssueDataCollectionResult } from 'microsoft.aspnetcore.razor.vscode/dist/Diagnostics/IReportIssueDataCollectionResult';
@@ -16,7 +16,7 @@ import { TestTextDocument } from './Mocks/TestTextDocument';
 import { createTestVSCodeApi } from './Mocks/TestVSCodeApi';
 
 describe('ReportIssueCreator', () => {
-    function getReportIssueCreator(api: vscode.api) {
+    function getReportIssueCreator(api: vscode.api): TestReportIssueCreator {
         const documentManager = new TestRazorDocumentManager();
         const issueCreator = new TestReportIssueCreator(api, documentManager);
         return issueCreator;
@@ -192,7 +192,7 @@ describe('ReportIssueCreator', () => {
         },
     };
 
-    it('getExtensionVersion returns OmniSharp extension version', async () => {
+    it('getExtensionVersion returns OmniSharp extension version', () => {
         // Arrange
         const api = createTestVSCodeApi();
         api.setExtensions(omniSharpExtension, razorClientExtension);
@@ -205,16 +205,16 @@ describe('ReportIssueCreator', () => {
         assert.equal(extensionVersion, '1234');
     });
 
-    it('getExtensionVersion can not find extension', async () => {
+    it('getExtensionVersion can not find extension', () => {
         // Arrange
         const api = createTestVSCodeApi();
         const issueCreator = getReportIssueCreator(api);
 
         // Act & Assert
-        assert.doesNotThrow(async () => issueCreator.getExtensionVersion());
+        assert.doesNotThrow(() => issueCreator.getExtensionVersion());
     });
 
-    it('getInstalledExtensions returns non built-in extensions sorted by name', async () => {
+    it('getInstalledExtensions returns non built-in extensions sorted by name', () => {
         // Arrange
         const api = createTestVSCodeApi();
         const builtinExtension: vscode.Extension<any> = {
@@ -234,7 +234,7 @@ describe('ReportIssueCreator', () => {
         assert.deepEqual(extensions, [omniSharpExtension, razorClientExtension]);
     });
 
-    it('generateExtensionTable returns all non-builtin extensions in string format', async () => {
+    it('generateExtensionTable returns all non-builtin extensions in string format', () => {
         // Arrange
         const api = createTestVSCodeApi();
         const builtinExtension: vscode.Extension<any> = {
@@ -257,7 +257,7 @@ describe('ReportIssueCreator', () => {
         assert.ok(table.indexOf(builtinExtension.packageJSON.version) === -1);
     });
 
-    it('generateExtensionTable can operate when 0 extensions', async () => {
+    it('generateExtensionTable can operate when 0 extensions', () => {
         // Arrange
         const api = createTestVSCodeApi();
         const issueCreator = getReportIssueCreator(api);
@@ -272,31 +272,31 @@ class TestReportIssueCreator extends ReportIssueCreator {
         super(vscodeApi, documentManager);
     }
 
-    public getRazor(document: vscode.TextDocument) {
+    public getRazor(document: vscode.TextDocument): Promise<string> {
         return super.getRazor(document);
     }
 
-    public getProjectedCSharp(razorDocument: IRazorDocument) {
+    public getProjectedCSharp(razorDocument: IRazorDocument): Promise<string> {
         return super.getProjectedCSharp(razorDocument);
     }
 
-    public getProjectedHtml(razorDocument: IRazorDocument) {
+    public getProjectedHtml(razorDocument: IRazorDocument): Promise<string> {
         return super.getProjectedHtml(razorDocument);
     }
 
-    public getExtensionVersion() {
+    public getExtensionVersion(): string {
         return super.getExtensionVersion();
     }
 
-    public getInstalledExtensions() {
+    public getInstalledExtensions(): vscode.Extension<any>[] {
         return super.getInstalledExtensions();
     }
 
-    public generateExtensionTable() {
+    public generateExtensionTable(): string {
         return super.generateExtensionTable();
     }
 
-    public sanitize(content: string) {
+    public sanitize(content: string): string {
         return super.sanitize(content);
     }
 }

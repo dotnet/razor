@@ -1,7 +1,7 @@
-// /* --------------------------------------------------------------------------------------------
-//  * Copyright (c) Microsoft Corporation. All rights reserved.
-//  * Licensed under the MIT License. See License.txt in the project root for license information.
-//  * ------------------------------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * -------------------------------------------------------------------------------------------- */
 
 // This file is used at the command line to download VSCode insiders and run all of our functional tests.
 
@@ -9,7 +9,7 @@ import * as cp from 'child_process';
 import * as path from 'path';
 import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath, runTests } from 'vscode-test';
 
-async function main() {
+async function main(): Promise<void> {
     try {
         const extensionDevelopmentPath = path.resolve(__dirname, '../../../src/Microsoft.AspNetCore.Razor.VSCode.Extension/');
         const extensionTestsPath = path.resolve(__dirname, './index.js');
@@ -53,5 +53,4 @@ async function main() {
     }
 }
 
-// tslint:disable-next-line: no-floating-promises
-main();
+await main();

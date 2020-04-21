@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { CSharpProjectedDocument } from './CSharp/CSharpProjectedDocument';
@@ -16,6 +16,7 @@ import { RazorLanguageServerClient } from './RazorLanguageServerClient';
 import { RazorLogger } from './RazorLogger';
 import { UpdateBufferRequest } from './RPC/UpdateBufferRequest';
 import { getUriPath } from './UriPaths';
+import { Disposable } from 'vscode-languageclient';
 
 export class RazorDocumentManager implements IRazorDocumentManager {
     private readonly razorDocuments: { [hostDocumentPath: string]: IRazorDocument } = {};
@@ -26,13 +27,15 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         private readonly logger: RazorLogger) {
     }
 
-    public get onChange() { return this.onChangeEmitter.event; }
+    public get onChange(): vscode.Event<IRazorDocumentChangeEvent> {
+        return this.onChangeEmitter.event;
+    }
 
-    public get documents() {
+    public get documents(): IRazorDocument[] {
         return Object.values(this.razorDocuments);
     }
 
-    public async getDocument(uri: vscode.Uri) {
+    public async getDocument(uri: vscode.Uri): Promise<IRazorDocument> {
         const document = this._getDocument(uri);
 
         await this.ensureProjectedDocumentsOpen(document);
@@ -40,7 +43,7 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         return document;
     }
 
-    public async getActiveDocument() {
+    public async getActiveDocument(): Promise<IRazorDocument | null> {
         if (!vscode.window.activeTextEditor) {
             return null;
         }
@@ -53,7 +56,7 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         return activeDocument;
     }
 
-    public async initialize() {
+    public async initialize(): Promise<void> {
         // Track current documents
         const documentUris = await vscode.workspace.findFiles(RazorLanguage.globbingPattern);
 
@@ -74,13 +77,13 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         }
     }
 
-    public register() {
+    public register(): Disposable {
         // Track future documents
         const watcher = vscode.workspace.createFileSystemWatcher(RazorLanguage.globbingPattern);
         const didCreateRegistration = watcher.onDidCreate(
-            async (uri: vscode.Uri) => this.addDocument(uri));
+            (uri: vscode.Uri) => this.addDocument(uri));
         const didDeleteRegistration = watcher.onDidDelete(
-            async (uri: vscode.Uri) => this.removeDocument(uri));
+            (uri: vscode.Uri) => this.removeDocument(uri));
         const didOpenRegistration = vscode.workspace.onDidOpenTextDocument(document => {
             if (document.languageId !== RazorLanguage.id) {
                 return;
@@ -97,11 +100,11 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         });
         this.serverClient.onRequest(
             'razor/updateCSharpBuffer',
-            async updateBufferRequest => this.updateCSharpBuffer(updateBufferRequest));
+            updateBufferRequest => this.updateCSharpBuffer(updateBufferRequest));
 
         this.serverClient.onRequest(
             'razor/updateHtmlBuffer',
-            async updateBufferRequest => this.updateHtmlBuffer(updateBufferRequest));
+            updateBufferRequest => this.updateHtmlBuffer(updateBufferRequest));
 
         return vscode.Disposable.from(
             watcher,
@@ -111,7 +114,7 @@ export class RazorDocumentManager implements IRazorDocumentManager {
             didCloseRegistration);
     }
 
-    private _getDocument(uri: vscode.Uri) {
+    private _getDocument(uri: vscode.Uri): IRazorDocument {
         const path = getUriPath(uri);
         let document = this.razorDocuments[path];
 
@@ -124,13 +127,13 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         return document;
     }
 
-    private openDocument(uri: vscode.Uri) {
+    private openDocument(uri: vscode.Uri): void {
         const document = this._getDocument(uri);
 
         this.notifyDocumentChange(document, RazorDocumentChangeKind.opened);
     }
 
-    private closeDocument(uri: vscode.Uri) {
+    private closeDocument(uri: vscode.Uri): void {
         const document = this._getDocument(uri);
 
         const csharpDocument = document.csharpDocument;
@@ -152,7 +155,7 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         this.notifyDocumentChange(document, RazorDocumentChangeKind.closed);
     }
 
-    private addDocument(uri: vscode.Uri) {
+    private addDocument(uri: vscode.Uri): IRazorDocument {
         const path = getUriPath(uri);
         let document = this.razorDocuments[path];
         if (document) {
@@ -168,14 +171,14 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         return document;
     }
 
-    private removeDocument(uri: vscode.Uri) {
+    private removeDocument(uri: vscode.Uri): void {
         const document = this._getDocument(uri);
         delete this.razorDocuments[document.path];
 
         this.notifyDocumentChange(document, RazorDocumentChangeKind.removed);
     }
 
-    private async updateCSharpBuffer(updateBufferRequest: UpdateBufferRequest) {
+    private updateCSharpBuffer(updateBufferRequest: UpdateBufferRequest): void {
         if (this.logger.verboseEnabled) {
             this.logger.logVerbose(
                 `Updating the C# document for Razor file '${updateBufferRequest.hostDocumentFilePath}' ` +
@@ -199,7 +202,7 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         }
     }
 
-    private async updateHtmlBuffer(updateBufferRequest: UpdateBufferRequest) {
+    private updateHtmlBuffer(updateBufferRequest: UpdateBufferRequest): void {
         if (this.logger.verboseEnabled) {
             this.logger.logVerbose(
                 `Updating the HTML document for Razor file '${updateBufferRequest.hostDocumentFilePath}' ` +
@@ -223,7 +226,7 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         }
     }
 
-    private notifyDocumentChange(document: IRazorDocument, kind: RazorDocumentChangeKind) {
+    private notifyDocumentChange(document: IRazorDocument, kind: RazorDocumentChangeKind): void {
         if (this.logger.verboseEnabled) {
             this.logger.logVerbose(
                 `Notifying document '${getUriPath(document.uri)}' changed '${RazorDocumentChangeKind[kind]}'`);
@@ -237,7 +240,7 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         this.onChangeEmitter.fire(args);
     }
 
-    private async ensureProjectedDocumentsOpen(document: IRazorDocument) {
+    private async ensureProjectedDocumentsOpen(document: IRazorDocument): Promise<void> {
         await vscode.workspace.openTextDocument(document.csharpDocument.uri);
         await vscode.workspace.openTextDocument(document.htmlDocument.uri);
     }

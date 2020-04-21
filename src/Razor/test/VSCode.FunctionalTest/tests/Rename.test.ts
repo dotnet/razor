@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { beforeEach } from 'mocha';
@@ -42,7 +42,11 @@ suite('Rename', () => {
             new vscode.Position(1, 2),
             expectedNewText);
 
-        const entries = renames!.entries();
+        if (!renames) {
+            assert.fail('renames shouldnt have been undefined');
+        }
+
+        const entries = renames.entries();
         assert.equal(entries.length, 1, `Should only rename within the document. Expected: 1 Actual: ${entries.length}`);
         const uri = entries[0][0];
         assert.equal(uri.path, razorDoc.uri.path);
@@ -66,7 +70,11 @@ suite('Rename', () => {
             new vscode.Position(1, 2),
             expectedNewText);
 
-        const entries = renames!.entries();
+        if (!renames) {
+            assert.fail('renames shouldnt have been undefined');
+        }
+
+        const entries = renames.entries();
         assert.equal(entries.length, 1, 'Should only rename within the document.');
         const uri = entries[0][0];
         assert.equal(uri.path, cshtmlDoc.uri.path);
@@ -88,7 +96,11 @@ suite('Rename', () => {
             new vscode.Position(0, 7),
             expectedNewText);
 
-        const entries = renames!.entries();
+        if (!renames) {
+            assert.fail('renames shouldnt have been undefined');
+        }
+
+        const entries = renames.entries();
         assert.equal(entries.length, 2, 'Should have renames in two documents.');
 
         // Razor file
@@ -115,7 +127,11 @@ suite('Rename', () => {
             new vscode.Position(4, 30), // Position `public static string F|oo { get; set; }`
             expectedNewText);
 
-        const entries = renames!.entries();
+        if (!renames) {
+            assert.fail('renames shouldnt have been undefined');
+        }
+
+        const entries = renames.entries();
         assert.equal(entries.length, 2, 'Should have renames in two documents.');
 
         // Razor file

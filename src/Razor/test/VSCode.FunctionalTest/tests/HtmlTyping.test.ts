@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { beforeEach } from 'mocha';
@@ -29,7 +29,7 @@ suite('Html Typing', () => {
         const lastLineEnd = new vscode.Position(doc.lineCount - 1, 7);
         await editor.edit(edit => edit.insert(lastLineEnd, '>'));
 
-        doc = await waitForDocumentUpdate(doc.uri, document => document.getText().indexOf('</strong>') >= 0);
+        doc = await waitForDocumentUpdate(doc.uri, document => document.getText().includes('</strong>'));
 
         const docLine = doc.lineAt(doc.lineCount - 1);
         assert.deepEqual(docLine.text, '<strong></strong>');
@@ -41,7 +41,7 @@ suite('Html Typing', () => {
         const lastLineEnd = new vscode.Position(doc.lineCount - 1, 8);
         await editor.edit(edit => edit.insert(lastLineEnd, '>'));
 
-        doc = await waitForDocumentUpdate(doc.uri, document => document.getText().indexOf('<input />') >= 0);
+        doc = await waitForDocumentUpdate(doc.uri, document => document.getText().includes('<input />'));
 
         await ensureNoChangesFor(doc.uri, 300);
 
@@ -55,7 +55,7 @@ suite('Html Typing', () => {
         const lastLineEnd = new vscode.Position(doc.lineCount - 1, 17);
         await editor.edit(edit => edit.insert(lastLineEnd, '>'));
 
-        doc = await waitForDocumentUpdate(doc.uri, document => document.getText().indexOf('<string>') >= 0);
+        doc = await waitForDocumentUpdate(doc.uri, document => document.getText().includes('<string>'));
 
         await ensureNoChangesFor(doc.uri, 300);
 

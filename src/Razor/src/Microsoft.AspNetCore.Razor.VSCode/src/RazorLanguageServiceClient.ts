@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { RazorLanguageServerClient } from './RazorLanguageServerClient';
@@ -19,7 +19,7 @@ export class RazorLanguageServiceClient {
     constructor(private readonly serverClient: RazorLanguageServerClient) {
     }
 
-    public async languageQuery(position: vscode.Position, uri: vscode.Uri) {
+    public async languageQuery(position: vscode.Position, uri: vscode.Uri): Promise<LanguageQueryResponse> {
         await this.ensureStarted();
 
         const request = new LanguageQueryRequest(position, uri);
@@ -28,7 +28,7 @@ export class RazorLanguageServiceClient {
         return response;
     }
 
-    public async mapToDocumentRanges(languageKind: LanguageKind, ranges: vscode.Range[], uri: vscode.Uri) {
+    public async mapToDocumentRanges(languageKind: LanguageKind, ranges: vscode.Range[], uri: vscode.Uri): Promise<RazorMapToDocumentRangesResponse | undefined> {
         await this.ensureStarted();
 
         const serializableRanges = [];
@@ -54,7 +54,7 @@ export class RazorLanguageServiceClient {
     public async getSemanticTokenLegend(): Promise<vscode.SemanticTokensLegend | undefined> {
         await this.ensureStarted();
 
-        const response = await this.serverClient.sendRequest<vscode.SemanticTokensLegend>('_ms_/textDocument/semanticTokensLegend', /*request param*/null);
+        const response = await this.serverClient.sendRequest<vscode.SemanticTokensLegend>('_ms_/textDocument/semanticTokensLegend', /* request param*/null);
 
         if (response.tokenTypes && response.tokenTypes.length > 0) {
             return response;
@@ -104,7 +104,7 @@ export class RazorLanguageServiceClient {
         return (object as vscode.SemanticTokensEdits).edits !== undefined;
     }
 
-    private async ensureStarted() {
+    private async ensureStarted(): Promise<void> {
         // If the server is already started this will instantly return.
         await this.serverClient.start();
     }

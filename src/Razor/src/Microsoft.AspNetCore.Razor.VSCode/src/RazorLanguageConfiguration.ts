@@ -1,10 +1,11 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { RazorLanguage } from './RazorLanguage';
+import { Disposable } from 'vscode-languageclient';
 
 const VOID_ELEMENTS: string[] = [
     'area',
@@ -26,7 +27,7 @@ const VOID_ELEMENTS: string[] = [
 ];
 
 export class RazorLanguageConfiguration {
-    public register() {
+    public register(): Disposable {
         const configurationRegistration = vscode.languages.setLanguageConfiguration(RazorLanguage.id, {
             wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
             onEnterRules: [

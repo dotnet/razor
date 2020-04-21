@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { RazorLanguageFeatureBase } from '../RazorLanguageFeatureBase';
@@ -12,7 +12,7 @@ export class RazorDocumentSemanticTokensProvider
     public async provideDocumentSemanticTokensEdits(
         document: vscode.TextDocument,
         previousResultId: string,
-        token: vscode.CancellationToken,
+        _token: vscode.CancellationToken,
     ): Promise<vscode.SemanticTokens | vscode.SemanticTokensEdits | undefined> {
         let semanticTokenResponse = await this.serviceClient.semanticTokensEdit(document.uri, previousResultId);
 
@@ -29,7 +29,7 @@ export class RazorDocumentSemanticTokensProvider
     public async provideDocumentRangeSemanticTokens(
         document: vscode.TextDocument,
         range: vscode.Range,
-        token: vscode.CancellationToken,
+        _token: vscode.CancellationToken,
     ): Promise<vscode.SemanticTokens | undefined> {
         let semanticRangeResponse = await this.serviceClient.semanticTokensRange(document.uri, range);
 
@@ -43,7 +43,7 @@ export class RazorDocumentSemanticTokensProvider
         return semanticRangeResponse;
     }
 
-    public async provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SemanticTokens | undefined> {
+    public async provideDocumentSemanticTokens(document: vscode.TextDocument, _token: vscode.CancellationToken): Promise<vscode.SemanticTokens | undefined> {
         let semanticTokenResponse = await this.serviceClient.semanticTokens(document.uri);
 
         if (semanticTokenResponse) {

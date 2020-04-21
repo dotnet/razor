@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { RazorLanguage } from '../RazorLanguage';
@@ -15,7 +15,7 @@ export class ReportIssueDataCollectorFactory {
         this.onRazorDocumentFocusedEmitter = new vscode.EventEmitter<vscode.TextDocument>();
     }
 
-    public register() {
+    public register(): vscode.Disposable {
         return vscode.window.onDidChangeActiveTextEditor((newEditor) => {
             if (newEditor && RazorLanguage.fileExtensions.some(ext => newEditor.document.fileName.endsWith(ext))) {
                 this.onRazorDocumentFocusedEmitter.fire(newEditor.document);
@@ -23,7 +23,7 @@ export class ReportIssueDataCollectorFactory {
         });
     }
 
-    public create() {
+    public create(): ReportIssueDataCollector {
         const collector = new ReportIssueDataCollector(this.onRazorDocumentFocusedEmitter.event, this.logger);
         return collector;
     }

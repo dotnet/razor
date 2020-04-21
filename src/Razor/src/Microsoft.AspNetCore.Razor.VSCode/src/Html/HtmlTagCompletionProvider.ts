@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import {
@@ -23,7 +23,7 @@ export class HtmlTagCompletionProvider {
                 private readonly serviceClient: RazorLanguageServiceClient) {
     }
 
-    public register() {
+    public register(): vscode.Disposable {
         this.htmlLanguageService = getHtmlLanguageService();
 
         const onChangeRegistration = vscode.workspace.onDidChangeTextDocument(
@@ -36,7 +36,7 @@ export class HtmlTagCompletionProvider {
         return vscode.Disposable.from(onChangeRegistration, onActiveTextEditorChange);
     }
 
-    private checkIfEnabled() {
+    private checkIfEnabled(): undefined {
         this.enabled = false;
 
         const editor = vscode.window.activeTextEditor;
@@ -58,7 +58,7 @@ export class HtmlTagCompletionProvider {
 
     private async onDidChangeTextDocument(
         document: vscode.TextDocument,
-        changes: ReadonlyArray<vscode.TextDocumentContentChangeEvent>) {
+        changes: ReadonlyArray<vscode.TextDocumentContentChangeEvent>): Promise<void> {
         if (!this.enabled) {
             return;
         }
@@ -118,11 +118,17 @@ export class HtmlTagCompletionProvider {
 
         const version = document.version;
 
+        const razorDoc = await this.documentManager.getActiveDocument();
+        if (razorDoc) {
+            // The document is guaranteed to be a Razor document
+            documentContent = razorDoc.htmlDocument.getContent();
+        }
+
         // We set a timeout to allow for multi-changes or quick document switches (opening a document then
         // instantly swapping to another) to flow through the system. Basically, if content that would trigger
         // an auto-close occurs we allow a small amount of time for other edits to invalidate the current
         // auto-close task.
-        this.timeout = setTimeout(async () => {
+        this.timeout = setTimeout(() => {
             if (!this.enabled) {
                 return;
             }
@@ -142,12 +148,6 @@ export class HtmlTagCompletionProvider {
                 return;
             }
 
-            const razorDoc = await this.documentManager.getActiveDocument();
-            if (razorDoc) {
-                // The document is guaranteed to be a Razor document
-                documentContent = razorDoc.htmlDocument.getContent();
-            }
-
             const serviceTextDocument = ServiceTextDocument.create(
                 document.uri.fsPath,
                 document.languageId,
@@ -162,9 +162,9 @@ export class HtmlTagCompletionProvider {
 
             const selections = activeEditor.selections;
             if (selections.length && selections.some(s => s.active.isEqual(position))) {
-                activeEditor.insertSnippet(new vscode.SnippetString(tagCompletion), selections.map(s => s.active));
+                void activeEditor.insertSnippet(new vscode.SnippetString(tagCompletion), selections.map(s => s.active));
             } else {
-                activeEditor.insertSnippet(new vscode.SnippetString(tagCompletion), position);
+                void activeEditor.insertSnippet(new vscode.SnippetString(tagCompletion), position);
             }
         }, 75);
     }

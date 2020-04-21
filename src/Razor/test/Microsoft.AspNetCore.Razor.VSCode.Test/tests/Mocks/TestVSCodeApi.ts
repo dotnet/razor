@@ -1,15 +1,17 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { RazorLogger } from 'microsoft.aspnetcore.razor.vscode/dist/RazorLogger';
 import * as vscode from 'microsoft.aspnetcore.razor.vscode/dist/vscodeAdapter';
 import * as os from 'os';
 import { TestUri } from './TestUri';
 
+type Log = { [logIdentifier: string]: string[] }
+
 export interface TestVSCodeApi extends vscode.api {
-    getOutputChannelSink(): { [logIdentifier: string]: string[] };
+    getOutputChannelSink(): Log;
     getRazorOutputChannel(): string[];
     setWorkspaceDocuments(...workspaceDocuments: vscode.TextDocument[]): void;
     setExtensions(...extensions: Array<vscode.Extension<any>>): void;
@@ -22,8 +24,8 @@ export function createTestVSCodeApi(): TestVSCodeApi {
     return {
         // Non-VSCode APIs, for tests only
 
-        getOutputChannelSink: () => outputChannelSink,
-        getRazorOutputChannel: () => {
+        getOutputChannelSink: (): Log => outputChannelSink,
+        getRazorOutputChannel: (): string[] => {
             let razorOutputChannel = outputChannelSink[RazorLogger.logName];
             if (!razorOutputChannel) {
                 razorOutputChannel = [];
@@ -32,11 +34,11 @@ export function createTestVSCodeApi(): TestVSCodeApi {
 
             return razorOutputChannel;
         },
-        setWorkspaceDocuments: (...documents) => {
+        setWorkspaceDocuments: (...documents): void => {
             workspaceDocuments.length = 0;
             workspaceDocuments.push(...documents);
         },
-        setExtensions: (...exts: Array<vscode.Extension<any>>) => {
+        setExtensions: (...exts: Array<vscode.Extension<any>>): void => {
             extensions.length = 0;
             extensions.push(...exts);
         },
@@ -44,36 +46,42 @@ export function createTestVSCodeApi(): TestVSCodeApi {
         // VSCode APIs
 
         commands: {
-            executeCommand: <T>(command: string, ...rest: any[]) => {
+            executeCommand: <T>(_command: string, ..._rest: any[]): Promise<T | undefined> => {
                 throw new Error('Not Implemented');
             },
-            registerCommand: (command: string, callback: (...args: any[]) => any, thisArg?: any) => {
+            registerCommand: (_command: string, _callback: (...args: any[]) => any, _thisArg?: any): vscode.Disposable => {
                 throw new Error('Not Implemented');
             },
         },
         languages: {
-            match: (selector: vscode.DocumentSelector, document: vscode.TextDocument) => {
+            match: (_selector: vscode.DocumentSelector, _document: vscode.TextDocument): number => {
                 throw new Error('Not Implemented');
             },
-            registerDocumentSemanticTokensProvider: (selector: vscode.DocumentSelector, provider: vscode.DocumentSemanticTokensProvider, legend: vscode.SemanticTokensLegend) => {
+            registerDocumentSemanticTokensProvider: (
+                _selector: vscode.DocumentSelector,
+                _provider: vscode.DocumentSemanticTokensProvider,
+                _legend: vscode.SemanticTokensLegend): vscode.Disposable => {
                 throw new Error('Not Implemented');
             },
-            registerDocumentRangeSemanticTokensProvider: (selector: vscode.DocumentSelector, provider: vscode.DocumentRangeSemanticTokensProvider, legend: vscode.SemanticTokensLegend) => {
+            registerDocumentRangeSemanticTokensProvider: (
+                _selector: vscode.DocumentSelector,
+                _provider: vscode.DocumentRangeSemanticTokensProvider,
+                _legend: vscode.SemanticTokensLegend): vscode.Disposable => {
                 throw new Error('Not Implemented');
             },
         },
         window: {
             activeTextEditor: undefined,
-            showInformationMessage: <T extends vscode.MessageItem>(message: string, ...items: T[]) => {
+            showInformationMessage: <T extends vscode.MessageItem>(_message: string, ..._items: T[]): Thenable<T|undefined> => {
                 throw new Error('Not Implemented');
             },
-            showWarningMessage: <T extends vscode.MessageItem>(message: string, ...items: T[]) => {
+            showWarningMessage: <T extends vscode.MessageItem>(_message: string, ..._items: T[]): Thenable<T|undefined> => {
                 throw new Error('Not Implemented');
             },
-            showErrorMessage: (message: string, ...items: string[]) => {
+            showErrorMessage: (_message: string, ..._items: string[]): Thenable<undefined> => {
                 throw new Error('Not Implemented');
             },
-            createOutputChannel: (name: string) => {
+            createOutputChannel: (name: string): vscode.OutputChannel => {
                 if (!outputChannelSink[name]) {
                     outputChannelSink[name] = [];
                 }
@@ -84,19 +92,17 @@ export function createTestVSCodeApi(): TestVSCodeApi {
                     clear: () => outputChannelSink[name].length = 0,
                     dispose: Function,
                     hide: Function,
-                    show: () => {
-                        // @ts-ignore
-                    },
+                    show: () => {},
                 };
 
                 return outputChannel;
             },
-            registerWebviewPanelSerializer: (viewType: string, serializer: vscode.WebviewPanelSerializer) => {
+            registerWebviewPanelSerializer: (_viewType: string, _serializer: vscode.WebviewPanelSerializer): vscode.Disposable => {
                 throw new Error('Not implemented');
             },
         },
         workspace: {
-            openTextDocument: (uri: vscode.Uri) => {
+            openTextDocument: (uri: vscode.Uri): Thenable<vscode.TextDocument> => {
                 return new Promise((resolve) => {
                     for (const document of workspaceDocuments) {
                         if (document.uri === uri) {
@@ -106,21 +112,21 @@ export function createTestVSCodeApi(): TestVSCodeApi {
                     resolve(undefined);
                 });
             },
-            getConfiguration: (section?: string, resource?: vscode.Uri) => {
+            getConfiguration: (_section?: string, _resource?: vscode.Uri): vscode.WorkspaceConfiguration => {
                 throw new Error('Not Implemented');
             },
-            asRelativePath: (pathOrUri: string | vscode.Uri, includeWorkspaceFolder?: boolean) => {
+            asRelativePath: (_pathOrUri: string | vscode.Uri, _includeWorkspaceFolder?: boolean): string => {
                 throw new Error('Not Implemented');
             },
-            createFileSystemWatcher: (globPattern: vscode.GlobPattern, ignoreCreateEvents?: boolean, ignoreChangeEvents?: boolean, ignoreDeleteEvents?: boolean) => {
+            createFileSystemWatcher: (_globPattern: vscode.GlobPattern, _ignoreCreateEvents?: boolean, _ignoreChangeEvents?: boolean, _ignoreDeleteEvents?: boolean): vscode.FileSystemWatcher => {
                 throw new Error('Not Implemented');
             },
-            onDidChangeConfiguration: (listener: (e: vscode.ConfigurationChangeEvent) => any, thisArgs?: any, disposables?: vscode.Disposable[]): vscode.Disposable => {
+            onDidChangeConfiguration: (_listener: (e: vscode.ConfigurationChangeEvent) => any, _thisArgs?: any, _disposables?: vscode.Disposable[]): vscode.Disposable => {
                 throw new Error('Not Implemented');
             },
         },
         extensions: {
-            getExtension: (id) => {
+            getExtension: (id): vscode.Extension<any> | any => {
                 for (const extension of extensions) {
                     if (extension.id === id) {
                         return extension;
@@ -130,10 +136,10 @@ export function createTestVSCodeApi(): TestVSCodeApi {
             all: extensions,
         },
         Uri: {
-            parse: (path) => new TestUri(path),
+            parse: (path): vscode.Uri => new TestUri(path),
         },
         Disposable: {
-            from: (...disposableLikes: Array<{ dispose: () => any }>) => {
+            from: (..._disposableLikes: Array<{ dispose: () => any }>): any => {
                 throw new Error('Not Implemented');
             },
         },

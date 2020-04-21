@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import * as cp from 'child_process';
@@ -19,7 +19,13 @@ export const simpleMvc21Root = path.join(testAppsRoot, 'SimpleMvc21');
 export const simpleMvc22Root = path.join(testAppsRoot, 'SimpleMvc22');
 const projectConfigFile = 'project.razor.json';
 
-export async function pollUntil(fn: () => (boolean | Promise<boolean>), timeoutMs: number, pollInterval?: number, suppressError?: boolean, errorMessage?: string) {
+export async function pollUntil(
+    fn: () => (boolean | Promise<boolean>),
+    timeoutMs: number,
+    pollInterval?: number,
+    suppressError?: boolean,
+    errorMessage?: string
+): Promise<void> {
     const resolvedPollInterval = pollInterval ? pollInterval : 50;
 
     let timeWaited = 0;
@@ -36,7 +42,7 @@ export async function pollUntil(fn: () => (boolean | Promise<boolean>), timeoutM
             } else {
                 let message = `Timed out after ${timeoutMs}ms.`;
                 if (errorMessage) {
-                    message += `\n{errorMessage}`;
+                    message += '\n{errorMessage}';
                 }
                 throw new Error(message);
             }
@@ -48,17 +54,23 @@ export async function pollUntil(fn: () => (boolean | Promise<boolean>), timeoutM
     while (!fnEval);
 }
 
-export function assertHasNoCompletion(completions: vscode.CompletionList | undefined, name: string) {
-    const ok = completions!.items.some(item => item.label === name);
+export function assertHasNoCompletion(completions: vscode.CompletionList | undefined, name: string): void {
+    if (!completions) {
+        return;
+    }
+    const ok = completions.items.some(item => item.label === name);
     assert.ok(!ok, `Should not have had completion "${name}"`);
 }
 
-export function assertHasCompletion(completions: vscode.CompletionList | undefined, name: string) {
-    const ok = completions!.items.some(item => item.label === name);
+export function assertHasCompletion(completions: vscode.CompletionList | undefined, name: string): void {
+    if (!completions) {
+        assert.fail('Completions undefined');
+    }
+    const ok = completions.items.some(item => item.label === name);
     assert.ok(ok, `Should have had completion "${name}"`);
 }
 
-export async function ensureNoChangesFor(documentUri: vscode.Uri, durationMs: number) {
+export async function ensureNoChangesFor(documentUri: vscode.Uri, durationMs: number): Promise<void> {
     let changeOccurred = false;
     const registration = vscode.workspace.onDidChangeTextDocument(args => {
         if (documentUri === args.document.uri) {
@@ -80,11 +92,12 @@ export async function ensureNoChangesFor(documentUri: vscode.Uri, durationMs: nu
 // the edits remain in a cached version of the document resulting in our calls to `getText` failing.
 export async function waitForDocumentUpdate(
     documentUri: vscode.Uri,
-    isUpdated: (document: vscode.TextDocument) => boolean) {
+    isUpdated: (document: vscode.TextDocument) => boolean
+): Promise<vscode.TextDocument> {
     const updatedDocument = await vscode.workspace.openTextDocument(documentUri);
     let updateError: any;
     let documentUpdated = false;
-    const checkUpdated = (document: vscode.TextDocument) => {
+    const checkUpdated = (document: vscode.TextDocument): void => {
         try {
             documentUpdated = isUpdated(document);
         } catch (error) {
@@ -161,9 +174,9 @@ export async function dotnetRestore(directories: string[]): Promise<void> {
     await Promise.race([restoresPromise, timeoutPromise]);
 }
 
-export async function waitForProjectsReady(...directories: string[]) {
+export async function waitForProjectsReady(...directories: string[]): Promise<void> {
     console.log('Getting test projects ready');
-    await removeOldProjectRazorJsons();
+    removeOldProjectRazorJsons();
 
     if (process.env.norestore !== 'true') {
         console.log('Cleaning Bin and Obj');
@@ -193,7 +206,7 @@ export async function waitForProjectsReady(...directories: string[]) {
     console.log('Test projects ready');
 }
 
-export async function waitForObjDirectories(directories: string[]) {
+export async function waitForObjDirectories(directories: string[]): Promise<void> {
     for (const directory of directories) {
         if (!fs.existsSync(directory)) {
             throw new Error(`Project does not exist: ${directory}`);
@@ -210,18 +223,23 @@ export async function waitForObjDirectories(directories: string[]) {
     }
 }
 
-async function removeOldProjectRazorJsons() {
+function removeOldProjectRazorJsons(): void {
     const folders = fs.readdirSync(testAppsRoot);
     for (const folder of folders) {
         const objDir = path.join(testAppsRoot, folder, 'obj');
         if (findInDir(objDir, projectConfigFile)) {
-            const projFile = findInDir(objDir, projectConfigFile) as string;
+            const projFile = findInDir(objDir, projectConfigFile);
+
+            if (!projFile) {
+                assert.fail(`No projFile exists in ${objDir}`);
+            }
+
             fs.unlinkSync(projFile);
         }
     }
 }
 
-export async function restartOmniSharp() {
+export async function restartOmniSharp(): Promise<void> {
     try {
         await vscode.commands.executeCommand('o.restart');
         console.log('OmniSharp restarted successfully.');
@@ -278,7 +296,7 @@ export async function cleanBinAndObj(directories: string[]): Promise<void> {
     }
 }
 
-export async function extensionActivated<T>(identifier: string) {
+export async function extensionActivated<T>(identifier: string): Promise<vscode.Extension<T>> {
     const extension = vscode.extensions.getExtension<T>(identifier);
 
     if (!extension) {
@@ -292,7 +310,7 @@ export async function extensionActivated<T>(identifier: string) {
     return extension;
 }
 
-export async function csharpExtensionReady() {
+export async function csharpExtensionReady(): Promise<void> {
     const csharpExtension = await extensionActivated<CSharpExtensionExports>('ms-dotnettools.csharp');
     try {
         await csharpExtension.exports.initializationFinished();
@@ -302,11 +320,11 @@ export async function csharpExtensionReady() {
     }
 }
 
-export async function htmlLanguageFeaturesExtensionReady() {
+export async function htmlLanguageFeaturesExtensionReady(): Promise<void> {
     await extensionActivated<any>('vscode.html-language-features');
 }
 
-async function razorExtensionReady() {
+async function razorExtensionReady(): Promise<void> {
     try {
         await vscode.commands.executeCommand('extension.razorActivated');
         console.log('Razor activated successfully.');
@@ -329,7 +347,7 @@ function findInDir(directoryPath: string, fileQuery: string): string | undefined
             if (result) {
                 return result;
             }
-        } else if (fullPath.indexOf(fileQuery) >= 0) {
+        } else if (fullPath.includes(fileQuery)) {
             return fullPath;
         }
     }

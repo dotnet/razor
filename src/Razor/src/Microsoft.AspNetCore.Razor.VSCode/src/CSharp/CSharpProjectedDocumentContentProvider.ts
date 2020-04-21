@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { IEventEmitterFactory } from '../IEventEmitterFactory';
 import { IRazorDocumentChangeEvent } from '../IRazorDocumentChangeEvent';
@@ -10,6 +10,8 @@ import { RazorDocumentChangeKind } from '../RazorDocumentChangeKind';
 import { RazorLogger } from '../RazorLogger';
 import { getUriPath } from '../UriPaths';
 import * as vscode from '../vscodeAdapter';
+import { ProviderResult } from 'vscode';
+import { IRazorDocument } from '../IRazorDocument';
 
 export class CSharpProjectedDocumentContentProvider implements vscode.TextDocumentContentProvider {
     public static readonly scheme = 'virtualCSharp-razor';
@@ -24,9 +26,11 @@ export class CSharpProjectedDocumentContentProvider implements vscode.TextDocume
         this.onDidChangeEmitter = eventEmitterFactory.create<vscode.Uri>();
     }
 
-    public get onDidChange() { return this.onDidChangeEmitter.event; }
+    public get onDidChange(): vscode.Event<vscode.Uri> {
+        return this.onDidChangeEmitter.event;
+    }
 
-    public async provideTextDocumentContent(uri: vscode.Uri) {
+    public provideTextDocumentContent(uri: vscode.Uri): ProviderResult<string> {
         const razorDocument = this.findRazorDocument(uri);
         if (!razorDocument) {
             // Document was removed from the document manager, meaning there's no more content for this
@@ -45,11 +49,11 @@ export class CSharpProjectedDocumentContentProvider implements vscode.TextDocume
         return content;
     }
 
-    public ensureDocumentContent(uri: vscode.Uri) {
+    public ensureDocumentContent(uri: vscode.Uri): void {
         this.onDidChangeEmitter.fire(uri);
     }
 
-    private documentChanged(event: IRazorDocumentChangeEvent) {
+    private documentChanged(event: IRazorDocumentChangeEvent): void {
         if (event.kind === RazorDocumentChangeKind.csharpChanged ||
             event.kind === RazorDocumentChangeKind.opened ||
             event.kind === RazorDocumentChangeKind.removed) {
@@ -60,7 +64,7 @@ export class CSharpProjectedDocumentContentProvider implements vscode.TextDocume
         }
     }
 
-    private findRazorDocument(uri: vscode.Uri) {
+    private findRazorDocument(uri: vscode.Uri): IRazorDocument | undefined {
         const projectedPath = getUriPath(uri);
 
         return this.documentManager.documents.find(razorDocument =>

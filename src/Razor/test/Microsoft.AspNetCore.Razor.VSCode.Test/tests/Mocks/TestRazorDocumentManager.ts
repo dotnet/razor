@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
-* Copyright (c) Microsoft Corporation. All rights reserved.
-* Licensed under the MIT License. See License.txt in the project root for license information.
-* ------------------------------------------------------------------------------------------ */
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * -------------------------------------------------------------------------------------------- */
 
 import { IRazorDocument } from 'microsoft.aspnetcore.razor.vscode/dist/IRazorDocument';
 import { IRazorDocumentChangeEvent } from 'microsoft.aspnetcore.razor.vscode/dist/IRazorDocumentChangeEvent';
@@ -10,7 +10,6 @@ import * as vscode from 'microsoft.aspnetcore.razor.vscode/dist/vscodeAdapter';
 import { TestEventEmitter } from './TestEventEmitter';
 
 export class TestRazorDocumentManager implements IRazorDocumentManager {
-    // tslint:disable-next-line:variable-name
     private readonly _onChange = new TestEventEmitter<IRazorDocumentChangeEvent>();
 
     public get onChange(): vscode.Event<IRazorDocumentChangeEvent> {
@@ -21,7 +20,7 @@ export class TestRazorDocumentManager implements IRazorDocumentManager {
         return [];
     }
 
-    public getDocument(uri: vscode.Uri): Promise<IRazorDocument> {
+    public getDocument(_uri: vscode.Uri): Promise<IRazorDocument> {
         throw new Error('Not implemented');
     }
 

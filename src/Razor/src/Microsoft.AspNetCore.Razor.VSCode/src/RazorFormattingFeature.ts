@@ -1,7 +1,7 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { CancellationToken, RequestType } from 'vscode-languageclient';
@@ -25,14 +25,13 @@ export class RazorFormattingFeature {
         private readonly logger: RazorLogger) {
     }
 
-    public register() {
-        // tslint:disable-next-line: no-floating-promises
+    public register(): void {
         this.serverClient.onRequestWithParams<RazorDocumentRangeFormattingRequest, RazorDocumentRangeFormattingResponse, any, any>(
             this.rangeFormattingRequestType,
             async (request, token) => this.handleRangeFormatting(request, token));
     }
 
-    private async handleRangeFormatting(request: RazorDocumentRangeFormattingRequest, token: CancellationToken) {
+    private async handleRangeFormatting(request: RazorDocumentRangeFormattingRequest, _token: CancellationToken): Promise<RazorDocumentRangeFormattingResponse> {
         if (request.kind === LanguageKind.Razor) {
             // We shouldn't attempt to format the actual Razor document here.
             // Doing so could potentially lead to an infinite loop.

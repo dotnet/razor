@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { IRazorDocumentChangeEvent } from '../IRazorDocumentChangeEvent';
@@ -20,7 +20,7 @@ export class CSharpPreviewPanel {
         documentManager.onChange((event) => this.documentChanged(event));
     }
 
-    public async show() {
+    public async show(): Promise<void> {
         if (this.panel) {
             this.panel.reveal(vscode.ViewColumn.Two);
         } else {
@@ -28,23 +28,23 @@ export class CSharpPreviewPanel {
                 CSharpPreviewPanel.viewType,
                 'Razor C# Preview',
                 vscode.ViewColumn.Two, {
-                enableScripts: true,
-                // Disallow any remote sources
-                localResourceRoots: [],
-            });
+                    enableScripts: true,
+                    // Disallow any remote sources
+                    localResourceRoots: [],
+                });
             this.attachToCurrentPanel();
         }
 
         await this.update();
     }
 
-    public async revive(panel: vscode.WebviewPanel) {
+    public async revive(panel: vscode.WebviewPanel): Promise<void> {
         this.panel = panel;
         this.attachToCurrentPanel();
         await this.update();
     }
 
-    private async documentChanged(event: IRazorDocumentChangeEvent) {
+    private async documentChanged(event: IRazorDocumentChangeEvent): Promise<void> {
         if (!this.panel) {
             return;
         }
@@ -56,9 +56,9 @@ export class CSharpPreviewPanel {
         }
     }
 
-    private attachToCurrentPanel() {
+    private attachToCurrentPanel(): void {
         if (!this.panel) {
-            vscode.window.showErrorMessage('Unexpected error when attaching to C# preview window.');
+            void vscode.window.showErrorMessage('Unexpected error when attaching to C# preview window.');
             return;
         }
 
@@ -70,14 +70,14 @@ export class CSharpPreviewPanel {
                     }
 
                     await vscode.env.clipboard.writeText(this.csharpContent);
-                    vscode.window.showInformationMessage('Razor C# copied to clipboard');
+                    void vscode.window.showInformationMessage('Razor C# copied to clipboard');
                     return;
             }
         });
         this.panel.onDidDispose(() => this.panel = undefined);
     }
 
-    private async update() {
+    private async update(): Promise<void> {
         if (!this.panel) {
             return;
         }

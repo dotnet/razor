@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { beforeEach } from 'mocha';
@@ -27,7 +27,11 @@ suite('Completions 1.0', () => {
             doc.uri,
             new vscode.Position(0, 1));
 
-        const hasCompletion = (text: string) => completions!.items.some(item => item.insertText === text);
+        if (!completions) {
+            assert.fail('completions was undefined');
+        }
+
+        const hasCompletion = (text: string): boolean => completions.items.some(item => item.insertText === text);
 
         assert.ok(!hasCompletion('page'), 'Should not have completion for "page"');
         assert.ok(hasCompletion('inject'), 'Should have completion for "inject"');

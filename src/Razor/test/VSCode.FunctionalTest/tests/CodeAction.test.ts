@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { before, beforeEach } from 'mocha';
@@ -37,6 +37,10 @@ suite('Code Actions', () => {
         const position = new vscode.Position(0, 21);
         const codeActions = await GetCodeActions(razorDoc.uri, new vscode.Range(position, position));
 
+        if (!codeActions) {
+            assert.fail('codeActions should have returned a value.');
+        }
+
         assert.equal(codeActions.length, 1);
         const codeAction = codeActions[0];
         assert.equal(codeAction.title, 'Microsoft.AspNetCore.Html.HtmlString');
@@ -47,9 +51,9 @@ suite('Code Actions', () => {
         assert.ok(editedText.includes('var x = new Microsoft.AspNetCore.Html.HtmlString("sdf");'));
     });
 
-    async function DoCodeAction(fileUri: vscode.Uri, codeAction: vscode.Command) {
+    async function DoCodeAction(fileUri: vscode.Uri, codeAction: vscode.Command): Promise<void> {
         let diagnosticsChanged = false;
-        vscode.languages.onDidChangeDiagnostics(diagnosticsChangedEvent => {
+        vscode.languages.onDidChangeDiagnostics(_diagnosticsChangedEvent => {
             const diagnostics = vscode.languages.getDiagnostics(fileUri);
             if (diagnostics.length === 0) {
                 diagnosticsChanged = true;
@@ -66,9 +70,9 @@ suite('Code Actions', () => {
         }, /* timeout */ 20000, /* pollInterval */ 1000, false /* suppress timeout */);
     }
 
-    async function MakeEditAndFindDiagnostic(editText: string, position: vscode.Position) {
+    async function MakeEditAndFindDiagnostic(editText: string, position: vscode.Position): Promise<void> {
         let diagnosticsChanged = false;
-        vscode.languages.onDidChangeDiagnostics(diagnosticsChangedEvent => {
+        vscode.languages.onDidChangeDiagnostics(_diagnosticsChangedEvent => {
             const diagnostics = vscode.languages.getDiagnostics(razorDoc.uri);
             if (diagnostics.length > 0) {
                 diagnosticsChanged = true;
@@ -86,7 +90,13 @@ suite('Code Actions', () => {
         }
     }
 
-    async function GetCodeActions(fileUri: vscode.Uri, position: vscode.Range): Promise<vscode.Command[]> {
-        return await vscode.commands.executeCommand('vscode.executeCodeActionProvider', fileUri, position) as vscode.Command[];
+    async function GetCodeActions(fileUri: vscode.Uri, position: vscode.Range): Promise<vscode.Command[] | undefined> {
+        const command = await vscode.commands.executeCommand<vscode.Command[]>('vscode.executeCodeActionProvider', fileUri, position);
+
+        if (!command) {
+            return;
+        }
+
+        return command;
     }
 });

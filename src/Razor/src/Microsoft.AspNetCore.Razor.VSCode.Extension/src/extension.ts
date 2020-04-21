@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as fs from 'fs';
 import * as razorExtensionPackage from 'microsoft.aspnetcore.razor.vscode';
@@ -14,7 +14,7 @@ export const extensionActivated = new Promise(resolve => {
     activationResolver = resolve;
 });
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
     // Because this extension is only used for local development and tests in CI,
     // we know the Razor Language Server is at a specific path within this repo
     const config = process.env.config ? process.env.config : 'Debug';
@@ -23,12 +23,12 @@ export async function activate(context: vscode.ExtensionContext) {
         __dirname, '..', '..', '..', '..', '..', 'artifacts', 'bin', 'rzls', config, 'net5.0');
 
     if (!fs.existsSync(languageServerDir)) {
-        vscode.window.showErrorMessage(`The Razor Language Server project has not yet been built - could not find ${languageServerDir}`);
+        void vscode.window.showErrorMessage(`The Razor Language Server project has not yet been built - could not find ${languageServerDir}`);
         return;
     }
 
     const hostEventStream = {
-        post: (event: any) => {
+        post: (event: any): void => {
             // 1 corresponds to the telemetry event type from OmniSharp
             if (event.type === 1) {
                 console.log(`Telemetry Event: ${event.eventName}.`);

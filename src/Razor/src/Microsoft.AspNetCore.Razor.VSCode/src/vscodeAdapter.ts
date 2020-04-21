@@ -1,9 +1,9 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-/* tslint:disable */
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * -------------------------------------------------------------------------------------------- */
 
+/* eslint-disable */
 export type ProviderResult<T> = T | undefined | null | Thenable<T | undefined | null>;
 
 /**
@@ -250,7 +250,7 @@ export interface WorkspaceConfiguration {
 export enum ConfigurationTarget {
     /**
      * Global configuration
-    */
+     */
     Global = 1,
 
     /**
@@ -412,9 +412,9 @@ export interface TextEditor {
 }
 
 /**
-	 * A universal resource identifier representing either a file on disk
-	 * or another resource, like untitled resources.
-	 */
+ * A universal resource identifier representing either a file on disk
+ * or another resource, like untitled resources.
+ */
 export interface Uri {
 
     /**

@@ -9,6 +9,12 @@
 
   <ItemGroup>
     <ProjectReference
+      Include="..\..\eslint-config-razor-tooling\eslint-config-razor-tooling.npmproj"
+      ReferenceOutputAssemblies="false"
+      SkipGetTargetFrameworkProperties="true"
+      UndefineProperties="TargetFramework"
+      Private="false" />
+    <ProjectReference
       Include="..\Microsoft.AspNetCore.Razor.VSCode\Microsoft.AspNetCore.Razor.VSCode.npmproj"
       ReferenceOutputAssemblies="false"
       SkipGetTargetFrameworkProperties="true"

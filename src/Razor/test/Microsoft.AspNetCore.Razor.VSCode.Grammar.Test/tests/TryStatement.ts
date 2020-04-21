@@ -1,13 +1,13 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { assertMatchesSnapshot } from './infrastructure/TestUtilities';
 
 // See GrammarTests.test.ts for details on exporting this test suite instead of running in place.
 
-export function RunTryStatementSuite() {
+export function RunTryStatementSuite(): void {
     describe('@try { ... } catch/finally { ... }', () => {
         it('Incomplete try statement, no body', async () => {
             await assertMatchesSnapshot('@try');
@@ -23,7 +23,7 @@ export function RunTryStatementSuite() {
 
         it('Multi line catch', async () => {
             await assertMatchesSnapshot(
-`@try
+                `@try
 {
 }
 catch (
@@ -33,7 +33,7 @@ catch (
 
         it('Multi line complex', async () => {
             await assertMatchesSnapshot(
-`@try
+                `@try
 {
     Console.WriteLine("Invoking!");
     <div>Invoked: @SomeMethod()</div>

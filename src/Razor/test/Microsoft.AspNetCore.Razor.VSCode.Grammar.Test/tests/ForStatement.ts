@@ -1,13 +1,13 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { assertMatchesSnapshot } from './infrastructure/TestUtilities';
 
 // See GrammarTests.test.ts for details on exporting this test suite instead of running in place.
 
-export function RunForStatementSuite() {
+export function RunForStatementSuite(): void {
     describe('@for ( ... ) { ... }', () => {
         it('Incomplete for statement, no condition or body', async () => {
             await assertMatchesSnapshot('@for');
@@ -23,7 +23,7 @@ export function RunForStatementSuite() {
 
         it('Multi line condition', async () => {
             await assertMatchesSnapshot(
-`@for (
+                `@for (
     var j = GetInitialValue(name: true);
     j <= await GetMaxIncrementCount(
         () => true,
@@ -37,7 +37,7 @@ export function RunForStatementSuite() {
 
         it('Multi line body', async () => {
             await assertMatchesSnapshot(
-`@for (var i = 0; i < 10; i++)
+                `@for (var i = 0; i < 10; i++)
 {
     var x = 123;
     <div>

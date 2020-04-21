@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
-* Copyright (c) Microsoft Corporation. All rights reserved.
-* Licensed under the MIT License. See License.txt in the project root for license information.
-* ------------------------------------------------------------------------------------------ */
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'microsoft.aspnetcore.razor.vscode/dist/vscodeAdapter';
 
@@ -15,7 +15,8 @@ export class TestEventEmitter<T> implements vscode.EventEmitter<T> {
     private readonly listeners: Array<(e: T) => any> = [];
 
     constructor() {
-        this.event = (listener: (e: T) => any, thisArgs?: any, disposables?: vscode.Disposable[]) => {
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        this.event = (listener: (e: T) => any, _thisArgs?: any, _disposables?: vscode.Disposable[]) => {
             this.listeners.push(listener);
             return {
                 dispose: Function,
@@ -29,7 +30,7 @@ export class TestEventEmitter<T> implements vscode.EventEmitter<T> {
      *
      * @param data The event object.
      */
-    public fire(data?: T) {
+    public fire(data?: T): void {
         for (const listener of this.listeners) {
             if (data) {
                 listener(data);
@@ -42,7 +43,6 @@ export class TestEventEmitter<T> implements vscode.EventEmitter<T> {
     /**
      * Dispose this object and free resources.
      */
-    public dispose() {
-        // @ts-ignore
+    public dispose(): void {
     }
 }

@@ -1,13 +1,12 @@
-
 /* --------------------------------------------------------------------------------------------
-* Copyright (c) Microsoft Corporation. All rights reserved.
-* Licensed under the MIT License. See License.txt in the project root for license information.
-* ------------------------------------------------------------------------------------------ */
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * -------------------------------------------------------------------------------------------- */
 
 import { createSnapshot } from './SnapshotFactory';
 import { tokenize } from './TokenizedContentProvider';
 
-export async function assertMatchesSnapshot(content: string) {
+export async function assertMatchesSnapshot(content: string): Promise<void> {
     const tokenizedContent = await tokenize(content);
     const currentSnapshot = createSnapshot(tokenizedContent);
     expect(currentSnapshot).toMatchSnapshot();

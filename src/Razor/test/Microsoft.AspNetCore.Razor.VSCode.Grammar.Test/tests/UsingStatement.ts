@@ -1,13 +1,13 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import { assertMatchesSnapshot } from './infrastructure/TestUtilities';
 
 // See GrammarTests.test.ts for details on exporting this test suite instead of running in place.
 
-export function RunUsingStatementSuite() {
+export function RunUsingStatementSuite(): void {
     describe('@using ( ... ) { ... }', () => {
         it('Incomplete using statement, no condition or body', async () => {
             await assertMatchesSnapshot('@using');
@@ -23,7 +23,7 @@ export function RunUsingStatementSuite() {
 
         it('Multi line condition', async () => {
             await assertMatchesSnapshot(
-`@using (
+                `@using (
     await GetSomeDisposableAsync(
         () => true,
         name: "The Good Disposable",
@@ -35,7 +35,7 @@ export function RunUsingStatementSuite() {
 
         it('Multi line body', async () => {
             await assertMatchesSnapshot(
-`@using (SomeDisposable)
+                `@using (SomeDisposable)
 {
     var x = 123;
     <div>

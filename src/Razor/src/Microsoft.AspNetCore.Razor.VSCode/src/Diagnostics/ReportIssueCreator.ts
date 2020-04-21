@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as cp from 'child_process';
 import * as os from 'os';
@@ -17,7 +17,7 @@ export class ReportIssueCreator {
         private readonly documentManager: IRazorDocumentManager) {
     }
 
-    public async create(collectionResult: IReportIssueDataCollectionResult) {
+    public async create(collectionResult: IReportIssueDataCollectionResult): Promise<string> {
         let razorContent: string;
         let csharpContent: string;
         let htmlContent: string;
@@ -141,7 +141,7 @@ ${extensionTable}
     }
 
     // Protected for testing
-    protected sanitize(content: string) {
+    protected sanitize(content: string): string {
         const user = process.env.USERNAME === undefined ? process.env.USER : process.env.USERNAME;
 
         if (user === undefined) {
@@ -155,14 +155,14 @@ ${extensionTable}
     }
 
     // Protected for testing
-    protected async getRazor(document: vscode.TextDocument) {
+    protected getRazor(document: vscode.TextDocument): Promise<string> {
         const content = document.getText();
 
-        return content;
+        return Promise.resolve(content);
     }
 
     // Protected for testing
-    protected async getProjectedCSharp(razorDocument: IRazorDocument) {
+    protected async getProjectedCSharp(razorDocument: IRazorDocument): Promise<string> {
         let csharpContent = `////////////////////// Projected CSharp as seen by extension ///////////////////////
 ${razorDocument.csharpDocument.getContent()}
 
@@ -182,7 +182,7 @@ Unable to resolve VSCode's version of CSharp`;
     }
 
     // Protected for testing
-    protected async getProjectedHtml(razorDocument: IRazorDocument) {
+    protected async getProjectedHtml(razorDocument: IRazorDocument): Promise<string> {
         let htmlContent = `////////////////////// Projected Html as seen by extension ///////////////////////
 ${razorDocument.htmlDocument.getContent()}
 
@@ -211,7 +211,7 @@ Unable to resolve VSCode's version of Html`;
     }
 
     // Protected for testing
-    protected getInstalledExtensions() {
+    protected getInstalledExtensions(): vscode.Extension<any>[] {
         const extensions: Array<vscode.Extension<any>> = this.vscodeApi.extensions.all
             .filter(extension => extension.packageJSON.isBuiltin === false);
 
@@ -220,7 +220,7 @@ Unable to resolve VSCode's version of Html`;
     }
 
     // Protected for testing
-    protected generateExtensionTable() {
+    protected generateExtensionTable(): string {
         const extensions = this.getInstalledExtensions();
         if (extensions.length <= 0) {
             return 'none';

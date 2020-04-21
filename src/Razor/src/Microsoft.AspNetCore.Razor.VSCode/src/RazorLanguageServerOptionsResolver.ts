@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as fs from 'fs';
 import * as os from 'os';
@@ -15,7 +15,7 @@ export function resolveRazorLanguageServerOptions(
     vscodeApi: vscode.api,
     languageServerDir: string,
     trace: Trace,
-    logger: RazorLogger) {
+    logger: RazorLogger): RazorLanguageServerOptions {
     const languageServerExecutablePath = findLanguageServerExecutable(languageServerDir);
     const serverConfig = vscodeApi.workspace.getConfiguration('razor.languageServer');
     const debugLanguageServer = serverConfig.get<boolean>('debug');
@@ -28,7 +28,7 @@ export function resolveRazorLanguageServerOptions(
     } as RazorLanguageServerOptions;
 }
 
-function findLanguageServerExecutable(withinDir: string) {
+function findLanguageServerExecutable(withinDir: string): string {
     const extension = isWindows() ? '.exe' : '';
     const executablePath = path.join(
         withinDir,
@@ -53,6 +53,7 @@ function findLanguageServerExecutable(withinDir: string) {
     return fullPath;
 }
 
-function isWindows() {
-    return !!os.platform().match(/^win/);
+function isWindows(): boolean {
+    const platform = os.platform();
+    return !!/^win/.exec(platform);
 }

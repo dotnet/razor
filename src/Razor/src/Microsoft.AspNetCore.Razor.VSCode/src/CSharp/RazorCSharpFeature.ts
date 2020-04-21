@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { IEventEmitterFactory } from '../IEventEmitterFactory';
@@ -22,7 +22,7 @@ export class RazorCSharpFeature {
         this.csharpPreviewPanel = new CSharpPreviewPanel(documentManager);
     }
 
-    public register() {
+    public register(): vscode.Disposable {
         const registrations = [
             vscode.workspace.registerTextDocumentContentProvider(
                 CSharpProjectedDocumentContentProvider.scheme, this.projectionProvider),

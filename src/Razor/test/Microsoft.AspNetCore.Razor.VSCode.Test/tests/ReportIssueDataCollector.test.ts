@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as assert from 'assert';
 import { ReportIssueDataCollector } from 'microsoft.aspnetcore.razor.vscode/dist/Diagnostics/ReportIssueDataCollector';
@@ -14,7 +14,7 @@ import { createTestVSCodeApi } from './Mocks/TestVSCodeApi';
 
 describe('ReportIssueDataCollector', () => {
 
-    it('construction always logs the starting of data collection', async () => {
+    it('construction always logs the starting of data collection', () => {
         // Arrange
         const api = createTestVSCodeApi();
         const razorOutputChannel = api.getRazorOutputChannel();
@@ -31,7 +31,7 @@ describe('ReportIssueDataCollector', () => {
         dataCollector.stop();
     });
 
-    it('stop always logs the stopping of data collection', async () => {
+    it('stop always logs the stopping of data collection', () => {
         // Arrange
         const api = createTestVSCodeApi();
         const razorOutputChannel = api.getRazorOutputChannel();
@@ -48,7 +48,7 @@ describe('ReportIssueDataCollector', () => {
         assert.ok(lastLog.indexOf('Stopping') > 0);
     });
 
-    it('construction->stop->collect captures the last focused Razor document', async () => {
+    it('construction->stop->collect captures the last focused Razor document', () => {
         // Arrange
         const api = createTestVSCodeApi();
         const eventEmitterFactory = new TestEventEmitterFactory();
@@ -68,7 +68,7 @@ describe('ReportIssueDataCollector', () => {
         assert.equal(collectionResult.document, expectedTextDocument);
     });
 
-    it('construction->stop->collect captures logs between construction and stop', async () => {
+    it('construction->stop->collect captures logs between construction and stop', () => {
         // Arrange
         const api = createTestVSCodeApi();
         const eventEmitterFactory = new TestEventEmitterFactory();

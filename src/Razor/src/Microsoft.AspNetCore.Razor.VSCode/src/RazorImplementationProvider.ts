@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { RazorLanguageFeatureBase } from './RazorLanguageFeatureBase';
@@ -14,7 +14,7 @@ export class RazorImplementationProvider
     public async provideImplementation(
         document: vscode.TextDocument,
         position: vscode.Position,
-        token: vscode.CancellationToken) {
+        token: vscode.CancellationToken): Promise<vscode.Location[] | undefined> {
 
         const projection = await this.getProjection(document, position, token);
         if (!projection ||
