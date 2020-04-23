@@ -97,7 +97,7 @@ export class HtmlTagCompletionProvider {
         }
 
         const changeOffset = document.offsetAt(lastChange.range.start);
-        var documentContent = document.getText();
+        let documentContent = document.getText();
         const potentialSelfClosingCharacter = documentContent.charAt(changeOffset - 1);
         if (potentialSelfClosingCharacter === '/' || potentialSelfClosingCharacter === '>') {
             // Tag was already closed or is incomplete no need to auto-complete.
