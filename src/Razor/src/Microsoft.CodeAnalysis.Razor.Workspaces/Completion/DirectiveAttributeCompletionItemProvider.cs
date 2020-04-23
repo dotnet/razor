@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     [Export(typeof(RazorCompletionItemProvider))]
     internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
     {
+        private static readonly IReadOnlyCollection<string> ElementCommitCharacters = new HashSet<string> { ":" };
+
         private readonly TagHelperFactsService _tagHelperFactsService;
 
         [ImportingConstructor]
@@ -153,7 +155,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 var razorCompletionItem = new RazorCompletionItem(
                     completion.Key,
                     insertText,
-                    RazorCompletionItemKind.DirectiveAttribute);
+                    RazorCompletionItemKind.DirectiveAttribute,
+                    ElementCommitCharacters);
                 var completionDescription = new AttributeCompletionDescription(completion.Value.ToArray());
                 razorCompletionItem.SetAttributeCompletionDescription(completionDescription);
 

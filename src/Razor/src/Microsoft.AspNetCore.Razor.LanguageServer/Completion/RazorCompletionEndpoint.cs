@@ -264,6 +264,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             FilterText = razorCompletionItem.InsertText,
                             SortText = razorCompletionItem.InsertText,
                             Kind = CompletionItemKind.TypeParameter,
+                            CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters),
                         };
 
                         var indexerCompletion = razorCompletionItem.DisplayText.EndsWith("...");
