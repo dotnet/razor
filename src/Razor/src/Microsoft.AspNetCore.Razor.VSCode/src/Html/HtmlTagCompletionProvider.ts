@@ -145,7 +145,7 @@ export class HtmlTagCompletionProvider {
 
             const razorDoc = await this.documentManager.getActiveDocument();
             if (razorDoc) {
-                // The document is guarunteed to be a Razor document
+                // The document is guaranteed to be a Razor document
                 documentContent = razorDoc.htmlDocument.getContent();
             }
 
