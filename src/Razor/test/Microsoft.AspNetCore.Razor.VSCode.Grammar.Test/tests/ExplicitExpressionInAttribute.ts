@@ -9,27 +9,27 @@ import { assertMatchesSnapshot } from './infrastructure/TestUtilities';
 
 export function RunExplicitExpressionInAttributeSuite() {
     describe('Explicit Expressions In Attributes', () => {
-        it('Class explicit expression', async () => {
+        it('Double Quotes Class explicit expression', async () => {
             await assertMatchesSnapshot('<div class="@(NavMenuCssClass)"></div>');
         });
 
-        it('Onclick explicit expression', async () => {
+        it('Double Quotes Onclick explicit expression', async () => {
             await assertMatchesSnapshot('<button @onclick="@(ToggleNavMenu())"></button>');
         });
 
-        it('Empty', async () => {
+        it('Double Quotes Empty', async () => {
             await assertMatchesSnapshot('<button @onclick="@()"></button>');
         });
 
-        it('Single line simple', async () => {
+        it('Double Quotes Single line simple', async () => {
             await assertMatchesSnapshot('<button @onclick="@(DateTime.Now)"></button>');
         });
 
-        it('Single line complex', async () => {
+        it('Double Quotes Single line complex', async () => {
             await assertMatchesSnapshot('<button @onclick="@(456 + new Array<int>(){1,2,3}[0] + await GetValueAsync<string>() ?? someArray[await DoMoreAsync(() => {})])"></button>');
         });
 
-        it('Multi line', async () => {
+        it('Double Quotes Multi line', async () => {
             await assertMatchesSnapshot(
                 `<button @onclick="@(
     Html.BeginForm(
@@ -45,6 +45,44 @@ export function RunExplicitExpressionInAttributeSuite() {
                 new { })
         })
 )"></button>`);
+        });
+
+        it('Single Quotes Class explicit expression', async () => {
+            await assertMatchesSnapshot('<div class=\'@(NavMenuCssClass)\'></div>');
+        });
+
+        it('Single Quotes Onclick explicit expression', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@(ToggleNavMenu())\'></button>');
+        });
+
+        it('Single Quotes Empty', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@()\'></button>');
+        });
+
+        it('Single Quotes Single line simple', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@(DateTime.Now)\'></button>');
+        });
+
+        it('Single Quotes Single line complex', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@(456 + new Array<int>(){1,2,3}[0] + await GetValueAsync<string>() ?? someArray[await DoMoreAsync(() => {})])\'></button>');
+        });
+
+        it('Single Quotes Multi line', async () => {
+            await assertMatchesSnapshot(
+                `<button @onclick=\'@(
+    Html.BeginForm(
+        "Login",
+        "Home",
+        new
+        {
+            @class = "someClass",
+            notValid = Html.DisplayFor<object>(
+                (_) => Model,
+                "name",
+                "someName",
+                new { })
+        })
+)\'></button>`);
         });
     });
 }

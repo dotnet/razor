@@ -9,75 +9,75 @@ import { assertMatchesSnapshot } from './infrastructure/TestUtilities';
 
 export function RunImplicitExpressionInAttributeSuite() {
     describe('Implicit Expressions In Attributes', () => {
-        it('Class implicit expression', async () => {
+        it('Double Quotes Class implicit expression', async () => {
             await assertMatchesSnapshot('<div class="@NavMenuCssClass"></div>');
         });
 
-        it('Onclick implicit expression', async () => {
+        it('Double Quotes Onclick implicit expression', async () => {
             await assertMatchesSnapshot('<button @onclick="@ToggleNavMenu()"></button>');
         });
 
-        it('Onclick function name', async () => {
+        it('Double Quotes Onclick function name', async () => {
             await assertMatchesSnapshot('<button @onclick="ToggleNavMenu"></button>');
         });
 
-        it('Email address, not implicit expression', async () => {
+        it('Double Quotes Email address, not implicit expression', async () => {
             await assertMatchesSnapshot('<button @onclick="abc@DateTime.Now"></button>');
         });
 
-        it('Parenthesis prefix', async () => {
+        it('Double Quotes Parenthesis prefix', async () => {
             await assertMatchesSnapshot('<button @onclick=")@DateTime.Now"></button>');
         });
 
-        it('Punctuation prefix', async () => {
+        it('Double Quotes Punctuation prefix', async () => {
             await assertMatchesSnapshot('<button @onclick=".@DateTime.Now"></button>');
         });
 
-        it('Close curly prefix', async () => {
+        it('Double Quotes Close curly prefix', async () => {
             await assertMatchesSnapshot('<button @onclick="}@DateTime.Now"></button>');
         });
 
-        it('Empty', async () => {
+        it('Double Quotes Empty', async () => {
             await assertMatchesSnapshot('<button @onclick="@"></button>');
         });
 
-        it('Open curly suffix', async () => {
+        it('Double Quotes Open curly suffix', async () => {
             await assertMatchesSnapshot('<button @onclick="@DateTime.Now{"></button>');
         });
 
-        it('Close curly suffix', async () => {
+        it('Double Quotes Close curly suffix', async () => {
             await assertMatchesSnapshot('<button @onclick="@DateTime.Now}"></button>');
         });
 
-        it('Close parenthesis suffix', async () => {
+        it('Double Quotes Close parenthesis suffix', async () => {
             await assertMatchesSnapshot('<button @onclick="@DateTime.Now)"></button>');
         });
 
-        it('Close parenthesis suffix', async () => {
+        it('Double Quotes Close parenthesis suffix', async () => {
             await assertMatchesSnapshot('<button @onclick="@DateTime.Now]"></button>');
         });
 
-        it('Single line simple', async () => {
+        it('Double Quotes Single line simple', async () => {
             await assertMatchesSnapshot('<button @onclick="@DateTime.Now"></button>');
         });
 
-        it('Awaited property', async () => {
+        it('Double Quotes Awaited property', async () => {
             await assertMatchesSnapshot('<button @onclick="@await AsyncProperty"></button>');
         });
 
-        it('Awaited method invocation', async () => {
+        it('Double Quotes Awaited method invocation', async () => {
             await assertMatchesSnapshot('<button @onclick="@await AsyncMethod()"></button>');
         });
 
-        it('Single line complex', async () => {
+        it('Double Quotes Single line complex', async () => {
             await assertMatchesSnapshot('<button @onclick="@DateTime!.Now()[1234 + 5678](abc()!.Current, 1 + 2 + getValue())?.ToString[123](() => 456)"></button>');
         });
 
-        it('Combined with HTML', async () => {
+        it('Double Quotes Combined with HTML', async () => {
             await assertMatchesSnapshot('<button @onclick="<p>@DateTime.Now</p>"></button>');
         });
 
-        it('Multi line', async () => {
+        it('Double Quotes Multi line', async () => {
             await assertMatchesSnapshot(
                 `<button @onclick="@DateTime!.Now()[1234 +
 5678](
@@ -90,6 +90,89 @@ abc()!.Current,
 
     return y ? x : 457;
 })"></button>`);
+        });
+
+        it('Single Quotes Class implicit expression', async () => {
+            await assertMatchesSnapshot('<div class=\'@NavMenuCssClass\'></div>');
+        });
+
+        it('Single Quotes Onclick implicit expression', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@ToggleNavMenu()\'></button>');
+        });
+
+        it('Single Quotes Onclick function name', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'ToggleNavMenu\'></button>');
+        });
+
+        it('Single Quotes Email address, not implicit expression', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'abc@DateTime.Now\'></button>');
+        });
+
+        it('Single Quotes Parenthesis prefix', async () => {
+            await assertMatchesSnapshot('<button @onclick=\')@DateTime.Now\'></button>');
+        });
+
+        it('Single Quotes Punctuation prefix', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'.@DateTime.Now\'></button>');
+        });
+
+        it('Single Quotes Close curly prefix', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'}@DateTime.Now\'></button>');
+        });
+
+        it('Single Quotes Empty', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@\'></button>');
+        });
+
+        it('Single Quotes Open curly suffix', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@DateTime.Now{\'></button>');
+        });
+
+        it('Single Quotes Close curly suffix', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@DateTime.Now}\'></button>');
+        });
+
+        it('Single Quotes Close parenthesis suffix', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@DateTime.Now)\'></button>');
+        });
+
+        it('Single Quotes Close parenthesis suffix', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@DateTime.Now]\'></button>');
+        });
+
+        it('Single Quotes Single line simple', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@DateTime.Now\'></button>');
+        });
+
+        it('Single Quotes Awaited property', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@await AsyncProperty\'></button>');
+        });
+
+        it('Single Quotes Awaited method invocation', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@await AsyncMethod()\'></button>');
+        });
+
+        it('Single Quotes Single line complex', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'@DateTime!.Now()[1234 + 5678](abc()!.Current, 1 + 2 + getValue())?.ToString[123](() => 456)\'></button>');
+        });
+
+        it('Single Quotes Combined with HTML', async () => {
+            await assertMatchesSnapshot('<button @onclick=\'<p>@DateTime.Now</p>\'></button>');
+        });
+
+        it('Single Quotes Multi line', async () => {
+            await assertMatchesSnapshot(
+                `<button @onclick=\'@DateTime!.Now()[1234 +
+5678](
+abc()!.Current,
+1 + 2 + getValue())?.ToString[123](
+() =>
+{
+    var x = 123;
+    var y = true;
+
+    return y ? x : 457;
+})\'></button>`);
         });
     });
 }
