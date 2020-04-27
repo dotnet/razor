@@ -103,11 +103,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     }
                 };
 
-                result = await _requestInvoker.RequestServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
+                // We want to deserialize to VSCompletionItem type to make sure we don't lose extra information like icons.
+                var response = await _requestInvoker.RequestServerAsync<CompletionParams, SumType<VSCompletionItem[], CompletionList>?>(
                     Methods.TextDocumentCompletionName,
                     serverKind,
                     completionParams,
                     cancellationToken).ConfigureAwait(false);
+
+                if (response.HasValue)
+                {
+                    // Cast VSCompletionItem back to CompletionItem
+                    result = response.Value.Match<SumType<CompletionItem[], CompletionList>?>(items => items, list => list, () => null);
+                }
             }
 
             if (result.HasValue)
