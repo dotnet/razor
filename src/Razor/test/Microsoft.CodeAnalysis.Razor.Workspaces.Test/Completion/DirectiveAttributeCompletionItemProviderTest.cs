@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         }
 
         [Fact]
-        public void GetCompletionItems_OnDirectiveAttributeName_ReturnsCompletions()
+        public void GetCompletionItems_OnDirectiveAttributeName_bind_ReturnsCompletions()
         {
             // Arrange
             var codeDocument = GetCodeDocument("<input @  />");
@@ -103,7 +103,23 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
 
             // Assert
-            AssertContains(completions, "bind", "@bind");
+            AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
+        }
+
+        [Fact]
+        public void GetCompletionItems_OnDirectiveAttributeName_attributes_ReturnsCompletions()
+        {
+            // Arrange
+            var codeDocument = GetCodeDocument("<input @  />");
+            var syntaxTree = codeDocument.GetSyntaxTree();
+            var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
+            var span = new SourceSpan(8, 0);
+
+            // Act
+            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+
+            // Assert
+            AssertContains(completions, "attributes", "@attributes", new[] { "=" });
         }
 
         [Fact]
@@ -145,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var completions = Provider.GetAttributeCompletions("@bind", "input", attributeNames, DefaultTagHelperDocumentContext);
 
             // Assert
-            AssertContains(completions, "bind", "@bind");
+            AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
         }
 
         [Fact]
@@ -157,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var completions = Provider.GetAttributeCompletions("@", "input", EmptyAttributes, DefaultTagHelperDocumentContext);
 
             // Assert
-            AssertContains(completions, "bind", "@bind");
+            AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
         }
 
         [Fact]
@@ -170,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var completions = Provider.GetAttributeCompletions("@", "input", EmptyAttributes, DefaultTagHelperDocumentContext);
 
             // Assert
-            AssertContains(completions, "bind-", "@bind-...");
+            AssertContains(completions, "bind-", "@bind-...", new[] { "=" });
         }
 
         [Fact]
@@ -183,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var completions = Provider.GetAttributeCompletions("@", "input", attributeNames, DefaultTagHelperDocumentContext);
 
             // Assert
-            AssertContains(completions, "bind", "@bind");
+            AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
         }
 
         [Fact]
@@ -207,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             AssertDoesNotContain(completions, "bind", "@bind");
         }
 
-        private static void AssertContains(IReadOnlyList<RazorCompletionItem> completions, string insertText, string displayText)
+        private static void AssertContains(IReadOnlyList<RazorCompletionItem> completions, string insertText, string displayText, IReadOnlyCollection<string> commitCharacters)
         {
             displayText = displayText ?? insertText;
 
@@ -215,6 +231,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             {
                 return insertText == completion.InsertText &&
                     displayText == completion.DisplayText &&
+                    commitCharacters.SequenceEqual(completion.CommitCharacters) &&
                     RazorCompletionItemKind.DirectiveAttribute == completion.Kind;
             });
         }
