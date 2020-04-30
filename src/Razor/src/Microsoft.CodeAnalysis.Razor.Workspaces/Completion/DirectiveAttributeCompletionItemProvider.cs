@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             {
                 if (!attributeCompletions.TryGetValue(attributeName, out var attributeDetails))
                 {
-                    attributeDetails = (new HashSet<AttributeDescriptionInfo>(), new HashSet<string>() { "=" });
+                    attributeDetails = (new HashSet<AttributeDescriptionInfo>(), new HashSet<string>());
                     attributeCompletions[attributeName] = attributeDetails;
                 }
 
@@ -196,6 +196,17 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                     boundAttributeDescriptor.Documentation);
                 attributeDescriptionInfos.Add(descriptionInfo);
 
+                if (attributeName.EndsWith("..."))
+                {
+                    // Indexer attribute, we don't want to commit with standard chars
+                    return;
+                }
+
+                if (!commitCharacters.Contains("="))
+                {
+                    commitCharacters.Add("=");
+                }
+
                 if (!commitCharacters.Contains(" ") &&
                     tagHelperDescriptor.BoundAttributes.Any(b => b.IsBooleanProperty))
                 {
@@ -203,7 +214,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 }
 
                 if (!commitCharacters.Contains(":") &&
-                    !attributeName.EndsWith("...") && // Indexer attribute, we don't want to commit with :
                     tagHelperDescriptor.BoundAttributes.Any(b => b.BoundAttributeParameters.Count > 0))
                 {
                     commitCharacters.Add(":");

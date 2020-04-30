@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var completions = Provider.GetAttributeCompletions("@", "input", EmptyAttributes, DefaultTagHelperDocumentContext);
 
             // Assert
-            AssertContains(completions, "bind-", "@bind-...", new[] { "=" });
+            AssertContains(completions, "bind-", "@bind-...", Array.Empty<string>());
         }
 
         [Fact]
