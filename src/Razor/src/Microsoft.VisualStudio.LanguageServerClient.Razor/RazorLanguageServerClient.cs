@@ -128,18 +128,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public override async Task FlushAsync(CancellationToken cancellationToken)
             {
-                await _inner.FlushAsync(cancellationToken);
+                await _inner.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
             public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                return await _inner.ReadAsync(buffer, offset, count);
+                return await _inner.ReadAsync(buffer, offset, count).ConfigureAwait(false);
             }
 
             public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                await _inner.WriteAsync(buffer, offset, count);
-                await FlushAsync();
+                await _inner.WriteAsync(buffer, offset, count).ConfigureAwait(false);
+                await FlushAsync().ConfigureAwait(false);
             }
         }
     }
