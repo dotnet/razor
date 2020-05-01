@@ -202,19 +202,14 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                     return;
                 }
 
-                if (!commitCharacters.Contains("="))
-                {
-                    commitCharacters.Add("=");
-                }
+                commitCharacters.Add("=");
 
-                if (!commitCharacters.Contains(" ") &&
-                    tagHelperDescriptor.BoundAttributes.Any(b => b.IsBooleanProperty))
+                if (tagHelperDescriptor.BoundAttributes.Any(b => b.IsBooleanProperty))
                 {
                     commitCharacters.Add(" ");
                 }
 
-                if (!commitCharacters.Contains(":") &&
-                    tagHelperDescriptor.BoundAttributes.Any(b => b.BoundAttributeParameters.Count > 0))
+                if (tagHelperDescriptor.BoundAttributes.Any(b => b.BoundAttributeParameters.Count > 0))
                 {
                     commitCharacters.Add(":");
                 }
