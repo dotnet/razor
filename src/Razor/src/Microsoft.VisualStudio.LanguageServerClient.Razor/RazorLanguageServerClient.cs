@@ -116,22 +116,30 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public override long Position { get => _inner.Position; set => _inner.Position = value; }
 
-            // We intentionally call FlushAsync then don't await the task because calling Flush syncronously causes
-            // exceptions that can crash the extension.
-            public override void Flush() => _inner.FlushAsync();
-
-            public override int Read(byte[] buffer, int offset, int count) => _inner.Read(buffer, offset, count);
-
             public override long Seek(long offset, SeekOrigin origin) => _inner.Seek(offset, origin);
 
             public override void SetLength(long value) => _inner.SetLength(value);
 
-            public override void Write(byte[] buffer, int offset, int count)
+            public override void Flush() => FlushAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+            public override int Read(byte[] buffer, int offset, int count) => ReadAsync(buffer, offset, count, CancellationToken.None).GetAwaiter().GetResult();
+
+            public override void Write(byte[] buffer, int offset, int count) => WriteAsync(buffer, offset, count, CancellationToken.None).GetAwaiter().GetResult();
+
+            public override async Task FlushAsync(CancellationToken cancellationToken)
             {
-                _inner.Write(buffer, offset, count);
-                // We intentionally call FlushAsync then don't await the task because calling Flush syncronously causes
-                // exceptions that can crash the extension.
-                _inner.FlushAsync();
+                await _inner.FlushAsync(cancellationToken);
+            }
+
+            public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                return await _inner.ReadAsync(buffer, offset, count);
+            }
+
+            public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                await _inner.WriteAsync(buffer, offset, count);
+                await FlushAsync();
             }
         }
     }
