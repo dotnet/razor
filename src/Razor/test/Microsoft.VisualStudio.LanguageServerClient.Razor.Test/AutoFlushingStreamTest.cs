@@ -10,11 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     public class AutoFlushingStreamTest
     {
-        public AutoFlushingStreamTest()
-        {
-        }
-
-
         [Fact]
         public async void ParallelReadWrite_ClientServer()
         {
@@ -44,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     catch (Exception e)
                     {
                         Assert.True(false);
+                        break;
                     }
                 }
             });
@@ -60,120 +56,38 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     catch (Exception e)
                     {
                         Assert.True(false);
+                        break;
                     }
                 }
             });
 
-            var clientReads = Task.Factory.StartNew(async () =>
+            var clientReads = Task.Run(async () =>
             {
                 for (var i = 0; i < 100000; i++)
                 {
-                    try
-                    {
-                        var tmpBuffer = new byte[10];
-                        var result = await clientStream.ReadAsync(tmpBuffer, 0, 10);
-                        Assert.Equal(10, result);
-                    }
-                    catch (Exception e)
-                    {
-                        Assert.True(false);
-                    }
+                    var tmpBuffer = new byte[10];
+                    var result = await clientStream.ReadAsync(tmpBuffer, 0, 10);
+                    Assert.Equal(10, result);
                 }
             });
-            var clientWrites = Task.Factory.StartNew(async () =>
+            var clientWrites = Task.Run(async () =>
             {
                 for (var i = 0; i < 100000; i++)
                 {
-                    try
-                    {
-                        var tmpBuffer = new byte[10];
-                        randomGenerator.NextBytes(tmpBuffer);
-                        await clientStream.WriteAsync(tmpBuffer, 0, 10);
-                        await clientStream.FlushAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        Assert.True(false);
-                    }
+                    var tmpBuffer = new byte[10];
+                    randomGenerator.NextBytes(tmpBuffer);
+                    await clientStream.WriteAsync(tmpBuffer, 0, 10);
+                    await clientStream.FlushAsync();
                 }
             });
+
+            var clientReadsException = await Record.ExceptionAsync(async () => await clientReads);
+            var clientWritesException = await Record.ExceptionAsync(async () => await clientWrites);
 
             // Assert
-            Task.WaitAll(new[] { serverReads, serverWrites, clientReads, clientWrites });
-        }
-
-        [Fact]
-        public async void ParallelReadWrite_ClientServer_Record()
-        {
-            // Arrange
-            var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            var autoFlushingStream = new AutoFlushingStream(serverStream);
-            const int INIT_BYTES = 10000;
-            var fileContents = new byte[INIT_BYTES];
-            var randomGenerator = new Random();
-            randomGenerator.NextBytes(fileContents);
-            await clientStream.WriteAsync(fileContents, 0, INIT_BYTES);
-            await clientStream.FlushAsync();
-            await serverStream.WriteAsync(fileContents, 0, INIT_BYTES);
-            await serverStream.FlushAsync();
-
-            // Act
-            var serverReads = Task.Factory.StartNew(() =>
-            {
-                var exception = Record.Exception(() =>
-                {
-                    for (var i = 0; i < 100000; i++)
-                    {
-                        var tmpBuffer = new byte[10];
-                        var result = autoFlushingStream.Read(tmpBuffer, 0, 10);
-                        Assert.Equal(10, result);
-                    }
-                });
-                Assert.Null(exception);
-            });
-            var serverWrites = Task.Factory.StartNew(() =>
-            {
-                var exception = Record.Exception(() =>
-                {
-                    for (var i = 0; i < 100000; i++)
-                    {
-                        var tmpBuffer = new byte[10];
-                        randomGenerator.NextBytes(tmpBuffer);
-                        autoFlushingStream.Write(tmpBuffer, 0, 10);
-                    }
-                });
-                Assert.Null(exception);
-            });
-
-            var clientReads = Task.Factory.StartNew(async () =>
-            {
-                var exception = await Record.ExceptionAsync(async () =>
-                {
-                    for (var i = 0; i < 100000; i++)
-                    {
-                        var tmpBuffer = new byte[10];
-                        var result = await clientStream.ReadAsync(tmpBuffer, 0, 10);
-                        Assert.Equal(10, result);
-                    }
-                });
-                Assert.Null(exception);
-            });
-            var clientWrites = Task.Factory.StartNew(async () =>
-            {
-                var exception = await Record.ExceptionAsync(async () =>
-                {
-                    for (var i = 0; i < 100000; i++)
-                    {
-                        var tmpBuffer = new byte[10];
-                        randomGenerator.NextBytes(tmpBuffer);
-                        await clientStream.WriteAsync(tmpBuffer, 0, 10);
-                        await clientStream.FlushAsync();
-                    }
-                });
-                Assert.Null(exception);
-            });
-
-            Task.WaitAll(new[] { serverReads, serverWrites, clientReads, clientWrites });
+            Assert.Null(clientReadsException);
+            Assert.Null(clientWritesException);
+            Task.WaitAll(new[] { serverReads, serverWrites });
         }
     }
 }
