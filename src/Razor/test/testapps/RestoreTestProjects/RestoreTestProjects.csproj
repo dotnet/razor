@@ -22,8 +22,6 @@
     <ProjectReference Include="..\SimpleMvcFSharp\SimpleMvcFSharp.fsproj" />
     <ProjectReference Include="..\SimpleMvc\SimpleMvc.csproj" />
     <ProjectReference Include="..\SimplePages\SimplePages.csproj" />
-    <ProjectReference Include="..\PackageLibraryDirectDependency\PackageLibraryDirectDependency.csproj" />
-    <ProjectReference Include="..\PackageLibraryTransitiveDependency\PackageLibraryTransitiveDependency.csproj" />
     <ProjectReference Include="..\AppWithPackageAndP2PReference\AppWithPackageAndP2PReference.csproj" />
 
     <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib\Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib.csproj"/>

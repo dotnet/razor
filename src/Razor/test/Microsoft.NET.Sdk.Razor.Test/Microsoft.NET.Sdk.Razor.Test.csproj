@@ -116,6 +116,9 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
   <Target Name="RestoreTestProjects" BeforeTargets="Restore;Build" Condition="'$(DotNetBuildFromSource)' != 'true'">
     <MSBuild Projects="..\testapps\RestoreTestProjects\RestoreTestProjects.csproj" Targets="Restore" Properties="MicrosoftNetCompilersToolsetPackageVersion=$(MicrosoftNetCompilersToolsetPackageVersion)" />
 
+    <MSBuild Projects="..\testapps\PackageLibraryDirectDependency\PackageLibraryDirectDependency.csproj" Targets="Restore" Properties="MicrosoftNetCompilersToolsetPackageVersion=$(MicrosoftNetCompilersToolsetPackageVersion)" />
+    <MSBuild Projects="..\testapps\PackageLibraryTransitiveDependency\PackageLibraryTransitiveDependency.csproj" Targets="Restore" Properties="MicrosoftNetCompilersToolsetPackageVersion=$(MicrosoftNetCompilersToolsetPackageVersion)" />
+
     <!-- This target restores SimpleMvc11 and SimpleMvc11NetFx separately because otherwise the TFMs in SimpleMvc11.csproj and SimpleMvc11NetFx.csproj are not respected. -->
     <PropertyGroup>
       <TargetFramework11>netcoreapp1.1</TargetFramework11>
