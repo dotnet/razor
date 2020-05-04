@@ -36,8 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                         var result = autoFlushingStream.Read(tmpBuffer, 0, 10);
                         Assert.Equal(10, result);
                     }
-                    catch (Exception e)
+                    catch
                     {
+                        // Force throw assertion failure when exception is raised
+                        // Test should fail on exception, however this doesn't actually
+                        // happen here. Likely due to running on a seperate thread.
                         Assert.True(false);
                         break;
                     }
@@ -54,8 +57,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                         randomGenerator.NextBytes(tmpBuffer);
                         autoFlushingStream.Write(tmpBuffer, 0, 10);
                     }
-                    catch (Exception e)
+                    catch
                     {
+                        // Force throw assertion failure when exception is raised
+                        // Test should fail on exception, however this doesn't actually
+                        // happen here. Likely due to running on a seperate thread.
                         Assert.True(false);
                         break;
                     }
