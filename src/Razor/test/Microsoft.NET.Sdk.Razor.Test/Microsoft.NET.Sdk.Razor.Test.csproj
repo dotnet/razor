@@ -29,18 +29,8 @@
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>Testing.ProjectToPack</_Parameter1>
-      <_Parameter2>$(MSBuildThisFileDirectory)..\testapps\PackageLibraryDirectDependency</_Parameter2>
-    </AssemblyAttribute>
-
-    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-      <_Parameter1>Testing.ProjectToPack</_Parameter1>
-      <_Parameter2>$(MSBuildThisFileDirectory)..\testapps\PackageLibraryTransitiveDependency</_Parameter2>
-    </AssemblyAttribute>
-
-    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Testing.AdditionalRestoreSources</_Parameter1>
-      <_Parameter2>$(MSBuildThisFileDirectory)..\testapps\TestPackageRestoreSource</_Parameter2>
+      <_Parameter2>$(MSBuildThisFileDirectory)..\testapps\PregeneratedPackages</_Parameter2>
     </AssemblyAttribute>
 
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
