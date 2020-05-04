@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             // Need an auto-flushing stream for the server because O# doesn't currently flush after writing responses. Without this
             // performing the Initialize handshake with the LanguageServer hangs.
-            var autoFlushingStream = new AutoFlushingStream(serverStream);
+            var autoFlushingStream = new AutoFlushingNerdbankStream(serverStream);
             var server = await RazorLanguageServer.CreateAsync(autoFlushingStream, autoFlushingStream, Trace.Verbose).ConfigureAwait(false);
 
             // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.

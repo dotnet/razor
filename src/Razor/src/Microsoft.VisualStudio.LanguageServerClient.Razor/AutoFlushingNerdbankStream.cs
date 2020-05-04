@@ -1,20 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    internal class AutoFlushingStream : Stream
+    // Intended for use with a party from a Nerdbank FullDuplexStream:
+    // https://github.com/AArnott/Nerdbank.Streams/blob/master/doc/FullDuplexStream.md
+    internal class AutoFlushingNerdbankStream : Stream
     {
         private readonly Stream _inner;
 
-        private Dictionary<(string, int), int> prevThreads = new Dictionary<(string, int), int>();
-
-        public AutoFlushingStream(Stream inner)
+        public AutoFlushingNerdbankStream(Stream inner)
         {
             _inner = inner;
         }
@@ -33,51 +32,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override void SetLength(long value) => _inner.SetLength(value);
 
-        public override void Flush()
-        {
-            FlushAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
+        // We ensure the Read/Write/Flush calls happen in a synchronous manner to avoid
+        // concurrent read/write exceptions resulting in crashes of the language server.
+        public override void Flush() => FlushAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return ReadAsync(buffer, offset, count, CancellationToken.None).GetAwaiter().GetResult();
-        }
+        public override int Read(byte[] buffer, int offset, int count) => ReadAsync(buffer, offset, count, CancellationToken.None).GetAwaiter().GetResult();
 
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            WriteAsync(buffer, offset, count, CancellationToken.None).GetAwaiter().GetResult();
-        }
+        public override void Write(byte[] buffer, int offset, int count) => WriteAsync(buffer, offset, count, CancellationToken.None).GetAwaiter().GetResult();
 
         public override async Task FlushAsync(CancellationToken cancellationToken)
         {
-            CheckThreads("flush");
-
             await _inner.FlushAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        private void CheckThreads(string operation)
-        {
-            if (prevThreads.TryGetValue((operation, Thread.CurrentThread.ManagedThreadId), out _))
-            {
-                prevThreads[(operation, Thread.CurrentThread.ManagedThreadId)] += 1;
-            }
-            else
-            {
-                prevThreads[(operation, Thread.CurrentThread.ManagedThreadId)] = 1;
-            }
         }
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            CheckThreads("read");
-
             return await _inner.ReadAsync(buffer, offset, count).ConfigureAwait(false);
         }
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            CheckThreads("write");
-
             await _inner.WriteAsync(buffer, offset, count).ConfigureAwait(false);
             await FlushAsync().ConfigureAwait(false);
         }

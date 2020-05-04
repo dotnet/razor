@@ -8,14 +8,14 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public class AutoFlushingStreamTest
+    public class AutoFlushingNerdbankStreamTest
     {
         [Fact]
         public async void Simultaneous_ReadWrite_ClientServer_SingleThreads()
         {
             // Arrange
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            var autoFlushingStream = new AutoFlushingStream(serverStream);
+            var autoFlushingStream = new AutoFlushingNerdbankStream(serverStream);
             const int INIT_BYTES = 10000;
             var fileContents = new byte[INIT_BYTES];
             var randomGenerator = new Random();
@@ -90,51 +90,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.Null(clientReadsException);
             Assert.Null(clientWritesException);
             Task.WaitAll(new[] { serverReads, serverWrites });
-        }
-
-        [Fact]
-        public async void Simultaneous_ReadWrite_ClientServer_MultipleThreads()
-        {
-            // Arrange
-            var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            var autoFlushingStream = new AutoFlushingStream(serverStream);
-            const int INIT_BYTES = 10000;
-            var fileContents = new byte[INIT_BYTES];
-            var randomGenerator = new Random();
-            randomGenerator.NextBytes(fileContents);
-            await clientStream.WriteAsync(fileContents, 0, INIT_BYTES);
-            await clientStream.FlushAsync();
-            await serverStream.WriteAsync(fileContents, 0, INIT_BYTES);
-            await serverStream.FlushAsync();
-
-            var serverReads = Parallel.For(0, 100000, (i) =>
-            {
-                var tmpBuffer = new byte[10];
-                var result = autoFlushingStream.Read(tmpBuffer, 0, 10);
-                Assert.Equal(10, result);
-            });
-
-            var serverWrites = Parallel.For(0, 100000, (i) =>
-            {
-                var tmpBuffer = new byte[10];
-                randomGenerator.NextBytes(tmpBuffer);
-                autoFlushingStream.Write(tmpBuffer, 0, 10);
-            });
-
-            var clientReads = Parallel.For(0, 100000, async (i) =>
-            {
-                var tmpBuffer = new byte[10];
-                var result = await clientStream.ReadAsync(tmpBuffer, 0, 10);
-                Assert.Equal(10, result);
-            });
-
-            var clientWrites = Parallel.For(0, 100000, async (i) =>
-            {
-                var tmpBuffer = new byte[10];
-                randomGenerator.NextBytes(tmpBuffer);
-                await clientStream.WriteAsync(tmpBuffer, 0, 10);
-                await clientStream.FlushAsync();
-            });
         }
     }
 }
