@@ -276,10 +276,13 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
             // validate the behavior at runtime.
             var source = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"/private{Project.SolutionPath}" : Project.SolutionPath;
 
-            var restorePath = Path.Combine(
-                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Environment.GetEnvironmentVariable("USERPROFILE") : Environment.GetEnvironmentVariable("HOME"),
-                ".nuget",
-                "packages");
+            var nugetPackages = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+            var restorePath = !string.IsNullOrEmpty(nugetPackages) ?
+                nugetPackages :
+                Path.Combine(
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Environment.GetEnvironmentVariable("USERPROFILE") : Environment.GetEnvironmentVariable("HOME"),
+                    ".nuget",
+                    "packages");
 
             var projects = new[]
             {
