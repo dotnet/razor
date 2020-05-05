@@ -301,7 +301,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 {
                     Assert.Equal("int-val-", completion.InsertText);
                     Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
-                    Assert.Equal(new[] { "=" }, completion.CommitCharacters);
+                    Assert.Equal(Array.Empty<String>(), completion.CommitCharacters);
                 });
 
             languageServer.Verify();
@@ -341,7 +341,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 {
                     Assert.Equal("int-val-$1=\"$2\"", completion.InsertText);
                     Assert.Equal(InsertTextFormat.Snippet, completion.InsertTextFormat);
-                    Assert.Equal(new[] { "=" }, completion.CommitCharacters);
+                    Assert.Equal(Array.Empty<string>(), completion.CommitCharacters);
                 });
         }
 

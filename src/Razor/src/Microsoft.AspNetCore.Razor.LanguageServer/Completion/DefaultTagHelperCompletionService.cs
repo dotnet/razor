@@ -17,11 +17,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal class DefaultTagHelperCompletionService : TagHelperCompletionService
     {
-<<<<<<< HEAD
+        private static readonly Container<string> NoCommitCharacters = new Container<string>();
         private static readonly Container<string> AttributeCommitCharacters = new Container<string>("=", " ");
         private static readonly Container<string> MinimizedAttributeCommitCharacters = new Container<string>("=");
-=======
->>>>>>> a52fff862... Commit support for taghelper attributes
         private static readonly Container<string> ElementCommitCharacters = new Container<string>(" ", ">");
         private readonly HtmlFactsService _htmlFactsService;
         private readonly RazorTagHelperCompletionService _razorTagHelperCompletionService;
@@ -264,7 +262,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             if (indexerCompletion)
             {
-                return null;
+                return NoCommitCharacters;
             }
             else if (boundAttributes.Any(b => b.TypeName.StartsWith("System.Boolean")))
             {
