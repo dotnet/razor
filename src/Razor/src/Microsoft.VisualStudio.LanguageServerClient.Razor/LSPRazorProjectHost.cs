@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var applicableClients = new List<Lazy<ILanguageClient, ILanguageClientMetadata>>();
             foreach (var client in languageClients)
             {
-                if (!client.Metadata.TryGetValue(nameof(ILanguageClientMetadata.ContentTypes), out object contentTypeValue) ||
+                if (!client.Metadata.TryGetValue(nameof(ILanguageClientMetadata.ContentTypes), out var contentTypeValue) ||
                     !(contentTypeValue is IEnumerable<string> contentTypes) ||
                     !contentTypes.Intersect(applicableContentTypes).Any())
                 {
@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 }
 
                 string clientName = null;
-                if (client.Metadata.TryGetValue(nameof(ILanguageClientMetadata.ClientName), out object clientNameValue))
+                if (client.Metadata.TryGetValue(nameof(ILanguageClientMetadata.ClientName), out var clientNameValue))
                 {
                     clientName = clientNameValue.ToString();
                 }
