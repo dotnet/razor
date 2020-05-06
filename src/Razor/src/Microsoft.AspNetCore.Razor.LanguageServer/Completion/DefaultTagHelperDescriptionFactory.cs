@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -225,16 +226,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return false;
             }
 
-            var summaryTagStart = documentation.IndexOf(summaryStartTag, StringComparison.OrdinalIgnoreCase);
-            if (summaryTagStart == -1)
-            {
-                summary = null;
-                return false;
-            }
+            documentation = documentation.Trim(new char[] { '\n', '\r' });
 
+            var summaryTagStart = documentation.IndexOf(summaryStartTag, StringComparison.OrdinalIgnoreCase);
             var summaryTagEndStart = documentation.IndexOf(summaryEndTag, StringComparison.OrdinalIgnoreCase);
-            if (summaryTagEndStart == -1)
+            if (summaryTagStart == -1 || summaryTagEndStart == -1)
             {
+                // A really stupid but cheap way to check if this is XML
+                if ((!documentation.StartsWith("<") && !documentation.EndsWith(">")) && (summaryTagStart == -1 && summaryTagEndStart == -1))
+                {
+                    // This doesn't look like a doc comment, we'll return it as-is.
+                    summary = documentation;
+                    return true;
+                }
+
                 summary = null;
                 return false;
             }
