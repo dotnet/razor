@@ -47,9 +47,15 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             var attribute = attributeLeafOwner.Parent;
 
+            // The null check on the `NamePrefix` field is required for cases like:
+            // `<svg xml:base=""x| ></svg>` where there's no `NamePrefix` available.
             switch (attribute)
             {
                 case MarkupMinimizedAttributeBlockSyntax minimizedMarkupAttribute:
+                    if (minimizedMarkupAttribute.NamePrefix == null)
+                    {
+                        break;
+                    }
                     prefixLocation = minimizedMarkupAttribute.NamePrefix.Span;
                     TryExtractIncompleteDirectiveAttribute(
                         minimizedMarkupAttribute.Name.GetContent(),
@@ -61,6 +67,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
                     return true;
                 case MarkupAttributeBlockSyntax markupAttribute:
+                    if (markupAttribute.NamePrefix == null)
+                    {
+                        break;
+                    }
                     prefixLocation = markupAttribute.NamePrefix.Span;
                     TryExtractIncompleteDirectiveAttribute(
                         markupAttribute.Name.GetContent(),
@@ -71,6 +81,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                         out parameterLocation);
                     return true;
                 case MarkupMinimizedTagHelperAttributeSyntax minimizedTagHelperAttribute:
+                    if (minimizedTagHelperAttribute.NamePrefix == null)
+                    {
+                        break;
+                    }
                     prefixLocation = minimizedTagHelperAttribute.NamePrefix.Span;
                     TryExtractIncompleteDirectiveAttribute(
                         minimizedTagHelperAttribute.Name.GetContent(),
@@ -81,6 +95,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                         out parameterLocation);
                     return true;
                 case MarkupTagHelperAttributeSyntax tagHelperAttribute:
+                    if (tagHelperAttribute.NamePrefix == null)
+                    {
+                        break;
+                    }
                     prefixLocation = tagHelperAttribute.NamePrefix.Span;
                     TryExtractIncompleteDirectiveAttribute(
                         tagHelperAttribute.Name.GetContent(),
@@ -92,6 +110,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                     return true;
                 case MarkupTagHelperDirectiveAttributeSyntax directiveAttribute:
                     {
+                        if (directiveAttribute.NamePrefix == null)
+                        {
+                            break;
+                        }
                         var attributeName = directiveAttribute.Name;
                         var directiveAttributeTransition = directiveAttribute.Transition;
                         var nameStart = directiveAttributeTransition?.SpanStart ?? attributeName.SpanStart;
@@ -105,6 +127,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                     }
                 case MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedDirectiveAttribute:
                     {
+                        if (minimizedDirectiveAttribute.NamePrefix == null)
+                        {
+                            break;
+                        }
                         var attributeName = minimizedDirectiveAttribute.Name;
                         var directiveAttributeTransition = minimizedDirectiveAttribute.Transition;
                         var nameStart = directiveAttributeTransition?.SpanStart ?? attributeName.SpanStart;
