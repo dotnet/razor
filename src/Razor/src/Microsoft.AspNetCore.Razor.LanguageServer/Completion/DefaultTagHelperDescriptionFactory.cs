@@ -214,6 +214,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return finalSummaryContent;
         }
 
+        private static readonly char[] NewLineChars = new char[]{'\n', '\r'};
+
         // Internal for testing
         internal static bool TryExtractSummary(string documentation, out string summary)
         {
@@ -226,13 +228,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return false;
             }
 
-            documentation = documentation.Trim(new char[] { '\n', '\r' });
+            documentation = documentation.Trim(NewLineChars);
 
             var summaryTagStart = documentation.IndexOf(summaryStartTag, StringComparison.OrdinalIgnoreCase);
             var summaryTagEndStart = documentation.IndexOf(summaryEndTag, StringComparison.OrdinalIgnoreCase);
             if (summaryTagStart == -1 || summaryTagEndStart == -1)
             {
-                // A really stupid but cheap way to check if this is XML
+                // A really wrong but cheap way to check if this is XML
                 if ((!documentation.StartsWith("<") && !documentation.EndsWith(">")) && (summaryTagStart == -1 && summaryTagEndStart == -1))
                 {
                     // This doesn't look like a doc comment, we'll return it as-is.
