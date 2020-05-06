@@ -46,53 +46,31 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            // The null check on the `NamePrefix` field is required for cases like:
-            // `<svg xml:base=""x| ></svg>` where there's no `NamePrefix` available.
             switch (attribute)
             {
                 case MarkupMinimizedAttributeBlockSyntax minimizedAttributeBlock:
-                    if (minimizedAttributeBlock.NamePrefix == null)
-                    {
-                        break;
-                    }
-                    prefixLocation = minimizedAttributeBlock.NamePrefix.Span;
+                    prefixLocation = minimizedAttributeBlock.NamePrefix?.Span;
                     selectedAttributeName = minimizedAttributeBlock.Name.GetContent();
                     selectedAttributeNameLocation = minimizedAttributeBlock.Name.Span;
                     return true;
                 case MarkupAttributeBlockSyntax attributeBlock:
-                    if (attributeBlock.NamePrefix == null)
-                    {
-                        break;
-                    }
-                    prefixLocation = attributeBlock.NamePrefix.Span;
+                    prefixLocation = attributeBlock.NamePrefix?.Span;
                     selectedAttributeName = attributeBlock.Name.GetContent();
                     selectedAttributeNameLocation = attributeBlock.Name.Span;
                     return true;
                 case MarkupTagHelperAttributeSyntax tagHelperAttribute:
-                    if (tagHelperAttribute.NamePrefix == null)
-                    {
-                        break;
-                    }
-                    prefixLocation = tagHelperAttribute.NamePrefix.Span;
+                    prefixLocation = tagHelperAttribute.NamePrefix?.Span;
                     selectedAttributeName = tagHelperAttribute.Name.GetContent();
                     selectedAttributeNameLocation = tagHelperAttribute.Name.Span;
                     return true;
                 case MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute:
-                    if (minimizedAttribute.NamePrefix == null)
-                    {
-                        break;
-                    }
-                    prefixLocation = minimizedAttribute.NamePrefix.Span;
+                    prefixLocation = minimizedAttribute.NamePrefix?.Span;
                     selectedAttributeName = minimizedAttribute.Name.GetContent();
                     selectedAttributeNameLocation = minimizedAttribute.Name.Span;
                     return true;
                 case MarkupTagHelperDirectiveAttributeSyntax tagHelperDirectiveAttribute:
                     {
-                        if (tagHelperDirectiveAttribute.NamePrefix == null)
-                        {
-                            break;
-                        }
-                        prefixLocation = tagHelperDirectiveAttribute.NamePrefix.Span;
+                        prefixLocation = tagHelperDirectiveAttribute.NamePrefix?.Span;
                         selectedAttributeName = tagHelperDirectiveAttribute.FullName;
                         var fullNameSpan = TextSpan.FromBounds(tagHelperDirectiveAttribute.Transition.Span.Start, tagHelperDirectiveAttribute.Name.Span.End);
                         selectedAttributeNameLocation = fullNameSpan;
@@ -100,17 +78,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     }
                 case MarkupMinimizedTagHelperDirectiveAttributeSyntax minimizedTagHelperDirectiveAttribute:
                     {
-                        if (minimizedTagHelperDirectiveAttribute.NamePrefix == null)
-                        {
-                            break;
-                        }
-                        prefixLocation = minimizedTagHelperDirectiveAttribute.NamePrefix.Span;
+                        prefixLocation = minimizedTagHelperDirectiveAttribute.NamePrefix?.Span;
                         selectedAttributeName = minimizedTagHelperDirectiveAttribute.FullName;
                         var fullNameSpan = TextSpan.FromBounds(minimizedTagHelperDirectiveAttribute.Transition.Span.Start, minimizedTagHelperDirectiveAttribute.Name.Span.End);
                         selectedAttributeNameLocation = fullNameSpan;
                         return true;
                     }
-                case MarkupMiscAttributeContentSyntax markupMiscAttributeContent:
+                case MarkupMiscAttributeContentSyntax _:
                     prefixLocation = null;
                     selectedAttributeName = null;
                     selectedAttributeNameLocation = null;
