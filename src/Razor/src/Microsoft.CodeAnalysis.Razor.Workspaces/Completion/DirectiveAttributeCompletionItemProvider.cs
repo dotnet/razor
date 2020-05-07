@@ -77,7 +77,15 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
             var completionItems = GetAttributeCompletions(attributeName, containingTagName, attributes, tagHelperDocumentContext);
 
-            return completionItems;
+            if (string.IsNullOrWhiteSpace(attributeName))
+            {
+                return completionItems;
+            }
+
+            // We filter out the completions offered to match the partially completed attribute in context.
+            // Ie. don't offer completions part way through an existing unrelated attribute.
+            // <svg xml:| ></svg> (attributeName = "xml:") should not get any directive attribute completions.
+            return completionItems.Where(c => c.DisplayText.StartsWith(attributeName)).ToList();
         }
 
         // Internal for testing
