@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
@@ -235,7 +233,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             if (summaryTagStart == -1 || summaryTagEndStart == -1)
             {
                 // A really wrong but cheap way to check if this is XML
-                if ((!documentation.StartsWith("<") && !documentation.EndsWith(">")) && (summaryTagStart == -1 && summaryTagEndStart == -1))
+                if (!documentation.StartsWith("<") && !documentation.EndsWith(">"))
                 {
                     // This doesn't look like a doc comment, we'll return it as-is.
                     summary = documentation;

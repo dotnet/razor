@@ -354,12 +354,17 @@ Suffixed invalid content";
             var result = DefaultTagHelperDescriptionFactory.TryExtractSummary(documentation, out var summary);
 
             // Assert
-            Assert.False(result);
-            Assert.Null(summary);
+            Assert.True(result);
+            Assert.Equal(@"Prefixed invalid content
+
+
+</summary>
+
+Suffixed invalid content", summary);
         }
 
         [Fact]
-        public void TryExtractSummary_NoEndSummary_ReturnsFalse()
+        public void TryExtractSummary_NoEndSummary_ReturnsTrue()
         {
             // Arrange
             var documentation = @"
@@ -374,8 +379,13 @@ Suffixed invalid content";
             var result = DefaultTagHelperDescriptionFactory.TryExtractSummary(documentation, out var summary);
 
             // Assert
-            Assert.False(result);
-            Assert.Null(summary);
+            Assert.True(result);
+            Assert.Equal(@"Prefixed invalid content
+
+
+<summary>
+
+Suffixed invalid content", summary);
         }
 
         [Fact]
