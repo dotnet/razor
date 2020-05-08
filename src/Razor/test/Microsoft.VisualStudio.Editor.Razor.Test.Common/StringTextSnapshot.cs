@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.Text
                 {
                     _content = _content.Substring(0, _content.Length - 2);
                 }
-                else if(_content.Length > 0 && ParserHelpers.NewLineCharacters.Contains(_content[_content.Length - 1]))
+                else if(_content.Length > 0 && ParserHelpers.IsNewLine(_content[_content.Length - 1]))
                 {
                     _content = _content.Substring(0, _content.Length - 1);
                 }

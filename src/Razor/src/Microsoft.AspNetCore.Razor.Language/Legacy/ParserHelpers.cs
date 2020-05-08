@@ -19,7 +19,20 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             '\u2029' // Paragraph separator
         };
 
-        public static bool IsNewLine(char value) => Array.IndexOf<char>(NewLineCharacters, value) != -1;
+        public static bool IsNewLine(char value)
+        {
+            switch(value)
+            {
+                case '\r': // Carriage return
+                case '\n': // Linefeed
+                case '\u0085': // Next Line
+                case '\u2028': // Line separator
+                case '\u2029': // Paragraph separator
+                    return true;
+            }
+
+            return false;
+        }
 
         public static bool IsNewLine(string value)
         {
