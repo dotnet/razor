@@ -36,7 +36,14 @@ namespace Microsoft.VisualStudio.Text
                 if (delimiterIndex == -1)
                 {
                     delimiterLength = 1;
-                    delimiterIndex = Content.IndexOfAny(ParserHelpers.NewLineCharacters, start);
+                    for(int i = 0; i < Content.Length; i++)
+                    {
+                        if (ParserHelpers.IsNewLine(content[i]))
+                        {
+                            delimiterIndex = i;
+                            break;
+                        }
+                    }
                 }
 
                 var nextLineStartIndex = delimiterIndex != -1 ? delimiterIndex + delimiterLength : Content.Length;
