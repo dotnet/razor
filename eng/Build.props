@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\src\Razor\Razor.sln" />
+    <ProjectToBuild Include="$(MSBuildThisFileDirectory)..\src\Razor\Razor.sln" />
 
     <NodeJsProjects Include="$(RepoRoot)src\Razor\src\**\*.npmproj" RestoreInParallel="false"/>
     <NodeJsProjects Include="$(RepoRoot)src\Razor\test\**\*.npmproj" RestoreInParallel="false" />
