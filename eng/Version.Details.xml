@@ -17,6 +17,10 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>e18250bd8f23f85f670599177118d6b957f9a3dd</Sha>
     </Dependency>
+    <Dependency Name="System.Resource.Extensions" Version="5.0.0-preview.5.20259.5">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>e18250bd8f23f85f670599177118d6b957f9a3dd</Sha>
+    </Dependency>
     <Dependency Name="System.Text.Encodings.Web" Version="5.0.0-preview.5.20259.5">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>e18250bd8f23f85f670599177118d6b957f9a3dd</Sha>
