@@ -62,7 +62,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             { SyntaxKind.Transition, "@" },
         };
 
-        private static Dictionary<CSharpKeyword, string> _keywordNames = new Dictionary<CSharpKeyword, string>()
+        // Allows performance optimization of GetKeyword such that it need not do Enum.ToString
+        private static IReadOnlyDictionary<CSharpKeyword, string> _keywordNames = new Dictionary<CSharpKeyword, string>()
         {
             { CSharpKeyword.Await, "await" },
             { CSharpKeyword.Abstract, "abstract" },
