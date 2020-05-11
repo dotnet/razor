@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
@@ -151,9 +152,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         protected CSharpLanguageCharacteristics()
         {
 #if DEBUG
-            for (int i = (int) CSharpKeyword.Await; i <= (int) CSharpKeyword.When; i++)
+            var values = Enum.GetValues(typeof(CSharpKeyword));
+
+            Debug.Assert(values.Length == _keywordNames.Count, "_keywordNames and CSharpKeyword are out of sync");
+            for (int i = 0; i < values.Length; i++)
             {
-                var keyword = (CSharpKeyword) i;
+                var keyword = (CSharpKeyword) values.GetValue(i);
 
                 var expectedValue = keyword.ToString().ToLowerInvariant();
                 var actualValue = _keywordNames[keyword];
