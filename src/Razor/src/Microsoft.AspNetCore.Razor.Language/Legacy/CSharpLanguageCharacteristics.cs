@@ -155,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             var values = Enum.GetValues(typeof(CSharpKeyword));
 
             Debug.Assert(values.Length == _keywordNames.Count, "_keywordNames and CSharpKeyword are out of sync");
-            for (int i = 0; i < values.Length; i++)
+            for (var i = 0; i < values.Length; i++)
             {
                 var keyword = (CSharpKeyword) values.GetValue(i);
 
