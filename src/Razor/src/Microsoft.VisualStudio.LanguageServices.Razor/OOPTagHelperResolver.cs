@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             // This will change in the future to an easier to consume API but for VS RTM this is what we have.
             try
             {
-                var remoteClient = await RazorRemoteHostClient.CreateAsync(workspaceProject.Solution.Workspace, CancellationToken.None);
+                var remoteClient = await RazorRemoteHostClient.CreateAsync(_workspace, CancellationToken.None);
 
                 var args = new object[]
                 {
@@ -118,6 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                     args,
                     CancellationToken.None).ConfigureAwait(false);
 
+                // This is an Optional, not a Nullable, so when there's no Value it will return default(T) instead of throwing.
                 return resolutionResult.Value;
             }
             catch (Exception ex)
