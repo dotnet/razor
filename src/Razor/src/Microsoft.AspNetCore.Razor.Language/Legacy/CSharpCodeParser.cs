@@ -2623,22 +2623,22 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         }
 
         // Following four high traffic methods cached as using method groups would cause allocation on every invocation.
-        protected static Func<SyntaxToken, bool> IsSpacingToken = (token) =>
+        protected static readonly Func<SyntaxToken, bool> IsSpacingToken = (token) =>
         {
             return token.Kind == SyntaxKind.Whitespace;
         };
 
-        protected static Func<SyntaxToken, bool> IsSpacingTokenIncludingNewLines = (token) =>
+        protected static readonly Func<SyntaxToken, bool> IsSpacingTokenIncludingNewLines = (token) =>
         {
             return IsSpacingToken(token) || token.Kind == SyntaxKind.NewLine;
         };
 
-        protected static Func<SyntaxToken, bool> IsSpacingTokenIncludingComments = (token) =>
+        protected static readonly Func<SyntaxToken, bool> IsSpacingTokenIncludingComments = (token) =>
         {
             return IsSpacingToken(token) || token.Kind == SyntaxKind.CSharpComment;
         };
 
-        protected static Func<SyntaxToken, bool> IsSpacingTokenIncludingNewLinesAndComments = (token) =>
+        protected static readonly Func<SyntaxToken, bool> IsSpacingTokenIncludingNewLinesAndComments = (token) =>
         {
             return IsSpacingTokenIncludingNewLines(token) || token.Kind == SyntaxKind.CSharpComment;
         };
