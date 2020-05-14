@@ -302,10 +302,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var innerCodeBlockRange = innerCodeBlockNode.GetRange(source);
 
                 // Compute the range inside the code block that overlaps with the provided input range.
-                var cSharprangeToFormat = innerCodeBlockRange.Overlap(context.Range);
-                if (cSharprangeToFormat != null)
+                var csharprangeToFormat = innerCodeBlockRange.Overlap(context.Range);
+                if (csharprangeToFormat != null)
                 {
-                    var codeEdits = await _csharpFormatter.FormatAsync(context.CodeDocument, cSharprangeToFormat, context.Uri, context.Options);
+                    var codeEdits = await _csharpFormatter.FormatAsync(context.CodeDocument, csharprangeToFormat, context.Uri, context.Options);
                     changedText = ApplyCSharpEdits(context, innerCodeBlockRange, codeEdits, minCSharpIndentLevel: 2);
                 }
 
