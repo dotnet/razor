@@ -133,22 +133,22 @@
     <Runtime_MicrosoftCodeAnalysisCommonPackageVersion>3.4.0</Runtime_MicrosoftCodeAnalysisCommonPackageVersion>
     <Runtime_MicrosoftCodeAnalysisCSharpPackageVersion>3.4.0</Runtime_MicrosoftCodeAnalysisCSharpPackageVersion>
     <StreamJsonRpcPackageVersion>2.3.103</StreamJsonRpcPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
     <Tooling_MicrosoftVisualStudioTelemetryPackageVersion>16.0.4-master</Tooling_MicrosoftVisualStudioTelemetryPackageVersion>
     <Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.0.0</Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisCommonPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisCommonPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisCSharpPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisCSharpPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisFeaturesPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisFeaturesPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisRemoteRazorServiceHubPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisRemoteRazorServiceHubPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
-    <Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion>
-    <Tooling_MicrosoftVisualStudioLanguageServicesRazorRemoteClientPackageVersion>3.7.0-2.20264.2</Tooling_MicrosoftVisualStudioLanguageServicesRazorRemoteClientPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisCommonPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisCommonPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisCSharpPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisCSharpPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisFeaturesPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisFeaturesPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisRemoteRazorServiceHubPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisRemoteRazorServiceHubPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
+    <Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion>
+    <Tooling_MicrosoftVisualStudioLanguageServicesRazorRemoteClientPackageVersion>3.7.0-2.20257.6</Tooling_MicrosoftVisualStudioLanguageServicesRazorRemoteClientPackageVersion>
     <XunitAnalyzersPackageVersion>0.10.0</XunitAnalyzersPackageVersion>
     <XunitVersion>2.4.1</XunitVersion>
   </PropertyGroup>
