@@ -109,7 +109,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
             request: configuration.request,
             port: configuration.request === 'attach' ? configuration.port : undefined,
             timeout: configuration.timeout || 30000,
-            url: configuration.url || 'https://localhost:5001',
+            url: configuration.request === 'launch' ? (configuration.url || 'https://localhost:5001') : undefined,
             webRoot: configuration.webRoot || '${workspaceFolder}',
             inspectUri: '{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}',
             trace: configuration.trace || false,
