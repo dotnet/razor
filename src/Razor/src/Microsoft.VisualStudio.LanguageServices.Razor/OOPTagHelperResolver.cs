@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
                 var args = new object[]
                 {
-                    Serialize(projectSnapshot),
+                    JObject.FromObject(projectSnapshot, _serializer),
                     factory == null ? null : factory.GetType().AssemblyQualifiedName,
                 };
 
@@ -149,11 +149,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         protected virtual Task<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(Project project, ProjectSnapshot projectSnapshot)
         {
             return _defaultResolver.GetTagHelpersAsync(project, projectSnapshot);
-        }
-
-        private static JObject Serialize(ProjectSnapshot snapshot)
-        {
-            return JObject.FromObject(snapshot, _serializer);
         }
     }
 }
