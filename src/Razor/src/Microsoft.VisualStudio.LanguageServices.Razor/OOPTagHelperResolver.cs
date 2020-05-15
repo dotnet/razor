@@ -15,10 +15,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     internal class OOPTagHelperResolver : TagHelperResolver
     {
+        private static readonly JsonSerializer _serializer;
+
         private readonly DefaultTagHelperResolver _defaultResolver;
         private readonly ProjectSnapshotProjectEngineFactory _factory;
         private readonly ErrorReporter _errorReporter;
         private readonly Workspace _workspace;
+
+        static OOPTagHelperResolver()
+        {
+            _serializer = new JsonSerializer();
+            _serializer.Converters.RegisterRazorConverters();
+        }
 
         public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace)
         {
@@ -112,14 +120,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                     factory == null ? null : factory.GetType().AssemblyQualifiedName,
                 };
 
-                var resolutionResult = await remoteClient.TryRunRemoteAsync<TagHelperResolutionResult>(
+                var resolutionJObject = await remoteClient.TryRunRemoteAsync<JObject>(
                     "GetTagHelpersAsync",
                     workspaceProject.Solution,
                     args,
                     CancellationToken.None).ConfigureAwait(false);
 
-                // This is an Optional, not a Nullable, so when there's no Value it will return default(T) instead of throwing.
-                return resolutionResult.Value;
+                if (!resolutionJObject.HasValue)
+                {
+                    return null;
+                }
+
+                var resolutionResult = resolutionJObject.Value.ToObject<TagHelperResolutionResult>(_serializer);
+
+                return resolutionResult;
             }
             catch (Exception ex)
             {
@@ -139,10 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         private static JObject Serialize(ProjectSnapshot snapshot)
         {
-            var serializer = new JsonSerializer();
-            serializer.Converters.RegisterRazorConverters();
-
-            return JObject.FromObject(snapshot, serializer);
+            return JObject.FromObject(snapshot, _serializer);
         }
     }
 }
