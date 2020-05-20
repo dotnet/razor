@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         /// Exports the Razor LSP content type
         /// </summary>
         [Export]
-        [Name(RazorLSPConventions.RazorLSPContentTypeName)]
+        [Name(RazorLSPConstants.RazorLSPContentTypeName)]
         [BaseDefinition(CodeRemoteContentDefinition.CodeRemoteContentTypeName)]
         public ContentTypeDefinition RazorLSPContentType { get; set; }
 

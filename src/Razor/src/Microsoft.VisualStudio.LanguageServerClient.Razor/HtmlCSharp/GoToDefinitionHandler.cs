@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentDefinitionName)]
-    internal class DefinitionHandler : IRequestHandler<TextDocumentPositionParams, Location[]>
+    internal class GoToDefinitionHandler : IRequestHandler<TextDocumentPositionParams, Location[]>
     {
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPRequestInvoker _requestInvoker;
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
 
         [ImportingConstructor]
-        public DefinitionHandler(
+        public GoToDefinitionHandler(
             JoinableTaskContext joinableTaskContext,
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
@@ -63,12 +63,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public async Task<Location[]> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (clientCapabilities is null)
+            {
+                throw new ArgumentNullException(nameof(clientCapabilities));
+            }
+
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
                 return null;
             }
+
+            // Switch to a background thread.
+            await TaskScheduler.Default;
 
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
             if (projectionResult == null || projectionResult.LanguageKind != RazorLanguageKind.CSharp)

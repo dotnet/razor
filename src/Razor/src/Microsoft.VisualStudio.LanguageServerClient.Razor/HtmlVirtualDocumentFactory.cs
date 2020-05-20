@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 if (_htmlLSPContentType == null)
                 {
-                    _htmlLSPContentType = _contentTypeRegistry.GetContentType(RazorLSPConventions.HtmlLSPContentTypeName);
+                    _htmlLSPContentType = _contentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPContentTypeName);
                 }
 
                 return _htmlLSPContentType;
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(hostDocumentBuffer));
             }
 
-            if (!hostDocumentBuffer.ContentType.IsOfType(RazorLSPConventions.RazorLSPContentTypeName))
+            if (!hostDocumentBuffer.ContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName))
             {
                 // Another content type we don't care about.
                 virtualDocument = null;
@@ -82,12 +82,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var hostDocumentUri = _fileUriProvider.GetOrCreate(hostDocumentBuffer);
 
             // Index.cshtml => Index.cshtml__virtual.html
-            var virtualHtmlFilePath = hostDocumentUri.GetAbsoluteOrUNCPath() + RazorLSPConventions.VirtualHtmlFileNameSuffix;
+            var virtualHtmlFilePath = hostDocumentUri.GetAbsoluteOrUNCPath() + RazorLSPConstants.VirtualHtmlFileNameSuffix;
             var virtualHtmlUri = new Uri(virtualHtmlFilePath);
 
             var htmlBuffer = _textBufferFactory.CreateTextBuffer();
             _fileUriProvider.AddOrUpdate(htmlBuffer, virtualHtmlUri);
-            htmlBuffer.Properties.AddProperty(RazorLSPConventions.ContainedLanguageMarker, true);
+            htmlBuffer.Properties.AddProperty(RazorLSPConstants.ContainedLanguageMarker, true);
 
             // Create a text document to trigger the Html language server initialization.
             _textDocumentFactory.CreateTextDocument(htmlBuffer, virtualHtmlFilePath);

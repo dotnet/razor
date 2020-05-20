@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 if (_csharpLSPContentType == null)
                 {
-                    var registeredContentType = _contentTypeRegistry.GetContentType(RazorLSPConventions.CSharpLSPContentTypeName);
+                    var registeredContentType = _contentTypeRegistry.GetContentType(RazorLSPConstants.CSharpLSPContentTypeName);
                     _csharpLSPContentType = new RemoteContentDefinitionType(registeredContentType);
                 }
 
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(hostDocumentBuffer));
             }
 
-            if (!hostDocumentBuffer.ContentType.IsOfType(RazorLSPConventions.RazorLSPContentTypeName))
+            if (!hostDocumentBuffer.ContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName))
             {
                 // Another content type we don't care about.
                 virtualDocument = null;
@@ -86,12 +86,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var hostDocumentUri = _fileUriProvider.GetOrCreate(hostDocumentBuffer);
 
             // Index.cshtml => Index.cshtml__virtual.cs
-            var virtualCSharpFilePath = hostDocumentUri.GetAbsoluteOrUNCPath() + RazorLSPConventions.VirtualCSharpFileNameSuffix;
+            var virtualCSharpFilePath = hostDocumentUri.GetAbsoluteOrUNCPath() + RazorLSPConstants.VirtualCSharpFileNameSuffix;
             var virtualCSharpUri = new Uri(virtualCSharpFilePath);
 
             var csharpBuffer = _textBufferFactory.CreateTextBuffer();
             _fileUriProvider.AddOrUpdate(csharpBuffer, virtualCSharpUri);
-            csharpBuffer.Properties.AddProperty(RazorLSPConventions.ContainedLanguageMarker, true);
+            csharpBuffer.Properties.AddProperty(RazorLSPConstants.ContainedLanguageMarker, true);
             csharpBuffer.Properties.AddProperty(LanguageClientConstants.ClientNamePropertyKey, "RazorCSharp");
 
             // Create a text document to trigger the C# language server initialization.

@@ -8,22 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     internal static class RazorLSPConventions
     {
-        public const string RazorLSPContentTypeName = "RazorLSP";
-
-        public const string CSHTMLFileExtension = ".cshtml";
-
-        public const string RazorFileExtension = ".razor";
-
-        public const string ContainedLanguageMarker = "ContainedLanguageMarker";
-
-        public const string CSharpLSPContentTypeName = "C#_LSP";
-
-        public const string HtmlLSPContentTypeName = "htmlyLSP";
-
-        public const string VirtualCSharpFileNameSuffix = ".g.cs";
-
-        public const string VirtualHtmlFileNameSuffix = "__virtual.html";
-
         public static bool IsRazorCSharpFile(Uri uri)
         {
             if (uri is null)
@@ -31,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            return uri.GetAbsoluteOrUNCPath()?.EndsWith(VirtualCSharpFileNameSuffix) ?? false;
+            return uri.GetAbsoluteOrUNCPath()?.EndsWith(RazorLSPConstants.VirtualCSharpFileNameSuffix) ?? false;
         }
 
         public static bool IsRazorHtmlFile(Uri uri)
@@ -41,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            return uri.GetAbsoluteOrUNCPath()?.EndsWith(VirtualHtmlFileNameSuffix) ?? false;
+            return uri.GetAbsoluteOrUNCPath()?.EndsWith(RazorLSPConstants.VirtualHtmlFileNameSuffix) ?? false;
         }
 
         public static Uri GetRazorDocumentUri(Uri virtualDocumentUri)
@@ -52,8 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             var path = virtualDocumentUri.GetAbsoluteOrUNCPath();
-            path = path.Replace(VirtualCSharpFileNameSuffix, string.Empty);
-            path = path.Replace(VirtualHtmlFileNameSuffix, string.Empty);
+            path = path.Replace(RazorLSPConstants.VirtualCSharpFileNameSuffix, string.Empty);
+            path = path.Replace(RazorLSPConstants.VirtualHtmlFileNameSuffix, string.Empty);
 
             var uri = new Uri(path, UriKind.Absolute);
             return uri;
