@@ -154,6 +154,61 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
+        public async Task HandleRequestAsync_CSharpProjection_RemapsExternalRazorFiles()
+        {
+            // Arrange
+            var called = false;
+            var externalUri = new Uri("C:/path/to/someotherfile.razor");
+            var expectedLocation = GetLocation(5, 5, 5, 5, externalUri);
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
+            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>());
+
+            var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
+            var csharpLocation = GetLocation(100, 100, 100, 100, virtualCSharpUri);
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+            requestInvoker
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, LanguageServerKind, TextDocumentPositionParams, CancellationToken>((method, serverKind, definitionParams, ct) =>
+                {
+                    Assert.Equal(Methods.TextDocumentDefinitionName, method);
+                    Assert.Equal(LanguageServerKind.CSharp, serverKind);
+                    called = true;
+                })
+                .Returns(Task.FromResult(new[] { csharpLocation }));
+
+            var projectionResult = new ProjectionResult()
+            {
+                LanguageKind = RazorLanguageKind.CSharp,
+            };
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
+            projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
+
+            var remappingResult = new RazorMapToDocumentRangeResponse()
+            {
+                Range = expectedLocation.Range
+            };
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
+            documentMappingProvider.Setup(d => d.MapToDocumentRangeAsync(RazorLanguageKind.CSharp, externalUri, csharpLocation.Range, It.IsAny<CancellationToken>())).
+                Returns(Task.FromResult(remappingResult));
+
+            var definitionHandler = new DefinitionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
+            var definitionRequest = new TextDocumentPositionParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                Position = new Position(10, 5)
+            };
+
+            // Act
+            var result = await definitionHandler.HandleRequestAsync(definitionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.True(called);
+            var actualLocation = Assert.Single(result);
+            Assert.Equal(expectedLocation, actualLocation);
+        }
+
+        [Fact]
         public async Task HandleRequestAsync_CSharpProjection_DoesNotRemapNonRazorFiles()
         {
             // Arrange

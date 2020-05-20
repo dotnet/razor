@@ -108,9 +108,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
+                var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(location.Uri);
                 var mappingResult = await _documentMappingProvider.MapToDocumentRangeAsync(
                     projectionResult.LanguageKind,
-                    request.TextDocument.Uri,
+                    razorDocumentUri,
                     location.Range,
                     cancellationToken).ConfigureAwait(false);
 
@@ -122,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 
                 var remappedLocation = new Location()
                 {
-                    Uri = request.TextDocument.Uri,
+                    Uri = razorDocumentUri,
                     Range = mappingResult.Range
                 };
 

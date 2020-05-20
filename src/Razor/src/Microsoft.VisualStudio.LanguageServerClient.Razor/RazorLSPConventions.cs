@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            return uri.AbsolutePath?.EndsWith(VirtualCSharpFileNameSuffix) ?? false;
+            return uri.GetAbsoluteOrUNCPath()?.EndsWith(VirtualCSharpFileNameSuffix) ?? false;
         }
 
         public static bool IsRazorHtmlFile(Uri uri)
@@ -40,7 +41,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            return uri.AbsolutePath?.EndsWith(VirtualHtmlFileNameSuffix) ?? false;
+            return uri.GetAbsoluteOrUNCPath()?.EndsWith(VirtualHtmlFileNameSuffix) ?? false;
+        }
+
+        public static Uri GetRazorDocumentUri(Uri virtualDocumentUri)
+        {
+            if (virtualDocumentUri is null)
+            {
+                throw new ArgumentNullException(nameof(virtualDocumentUri));
+            }
+
+            var path = virtualDocumentUri.GetAbsoluteOrUNCPath();
+            path = path.Replace(VirtualCSharpFileNameSuffix, string.Empty);
+            path = path.Replace(VirtualHtmlFileNameSuffix, string.Empty);
+
+            var uri = new Uri(path, UriKind.Absolute);
+            return uri;
         }
     }
 }
