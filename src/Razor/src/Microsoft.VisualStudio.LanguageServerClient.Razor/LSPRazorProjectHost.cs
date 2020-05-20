@@ -78,9 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             var applicableContentTypes = new[]
             {
-                RazorLSPContentTypeDefinition.Name,
-                CSharpVirtualDocumentFactory.CSharpLSPContentTypeName,
-                HtmlVirtualDocumentFactory.HtmlLSPContentTypeName,
+                RazorLSPConventions.RazorLSPContentTypeName,
+                RazorLSPConventions.CSharpLSPContentTypeName,
+                RazorLSPConventions.HtmlLSPContentTypeName,
             };
 
             var applicableClients = new List<Lazy<ILanguageClient, ILanguageClientMetadata>>();
