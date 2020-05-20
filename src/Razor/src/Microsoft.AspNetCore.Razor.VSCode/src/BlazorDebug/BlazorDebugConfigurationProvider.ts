@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 
 import { RazorLogger } from '../RazorLogger';
+import { HOSTED_APP_NAME, JS_DEBUG_NAME } from './Constants';
 import { onDidTerminateDebugSession } from './TerminateDebugHandler';
 
 export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
@@ -26,7 +27,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
             }
 
             const app = {
-                name: '.NET Core Launch (Blazor Hosted)',
+                name: HOSTED_APP_NAME,
                 type: 'coreclr',
                 request: 'launch',
                 preLaunchTask: 'build',
@@ -38,18 +39,17 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
                 },
             };
 
-            if (process.platform !== 'win32') {
-                this.vscodeType.debug.startDebugging(folder, app).then((appStartFulfilled: boolean) => {
-                    this.logger.logVerbose('[DEBUGGER] Launching hosted Blazor WebAssembly app...');
+            this.vscodeType.debug.startDebugging(folder, app).then((appStartFulfilled: boolean) => {
+                this.logger.logVerbose('[DEBUGGER] Launching hosted Blazor WebAssembly app...');
+                if (process.platform !== 'win32') {
                     const terminate = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
                         await onDidTerminateDebugSession(event, this.logger, /*targetPid*/undefined, /*hosted*/app.program);
                         terminate.dispose();
                     });
-                }, (error: Error) => {
-                    this.logger.logError('[DEBUGGER] Error when launching application: ', error);
-                });
-            }
-
+                }
+            }, (error: Error) => {
+                this.logger.logError('[DEBUGGER] Error when launching application: ', error);
+            });
         } else {
             const shellPath = process.platform === 'win32' ? 'cmd.exe' : 'dotnet';
             const shellArgs = process.platform === 'win32' ? ['/c', 'chcp 65001 >NUL & dotnet run'] : ['run'];
@@ -77,7 +77,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
         }
 
         const browser = {
-            name: '.NET Core Debug Blazor Web Assembly in Browser',
+            name: JS_DEBUG_NAME,
             type: configuration.browser === 'edge' ? 'pwa-msedge' : 'pwa-chrome',
             request: 'launch',
             timeout: configuration.timeout || 30000,

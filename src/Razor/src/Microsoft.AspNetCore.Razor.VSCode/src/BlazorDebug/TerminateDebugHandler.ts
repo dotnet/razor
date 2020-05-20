@@ -8,6 +8,8 @@ import { DebugSession } from 'vscode';
 
 import { RazorLogger } from '../RazorLogger';
 
+import { HOSTED_APP_NAME, JS_DEBUG_NAME } from './Constants';
+
 export async function onDidTerminateDebugSession(
   event: DebugSession,
   logger: RazorLogger,
@@ -15,8 +17,8 @@ export async function onDidTerminateDebugSession(
   targetProcess: string | boolean = false,
 ) {
   // Ignore debug sessions that are not applicable to us
-  const VALID_EVENT_TYPES = ['pwa-chrome', 'pwa-msedge', 'coreclr'];
-  if (!VALID_EVENT_TYPES.includes(event.type)) {
+  const VALID_EVENT_NAMES = [HOSTED_APP_NAME, JS_DEBUG_NAME];
+  if (!VALID_EVENT_NAMES.includes(event.name)) {
     return;
   }
 
