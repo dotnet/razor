@@ -3,11 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -16,37 +20,103 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class DefaultRazorSemanticTokenInfoService : RazorSemanticTokenInfoService
     {
+        // This cache is not created for performance, but rather to restrict memory growth.
+        // We need to keep track of the last couple of requests for use in previousResultId, but if we let the grow unbounded it could quickly allocate a lot of memory.
+        // Solution: an in-memory cache
+        private class SemanticTokenCache
+        {
+            // Only the most recent couple of entries should be relevent, so lets limit the size
+            private readonly MemoryCache _cache = new MemoryCache(Options.Create(new MemoryCacheOptions() { SizeLimit = 50 }));
+            private static readonly MemoryCacheEntryOptions _entryOptions = new MemoryCacheEntryOptions { Size = 1 };
+
+            public IReadOnlyList<uint> GetResults(string resultId)
+            {
+                if (string.IsNullOrEmpty(resultId))
+                {
+                    return null;
+                }
+
+                var result = _cache.Get<IReadOnlyList<uint>>(resultId);
+
+                return result;
+            }
+
+            public void SetResults(string resultId, IReadOnlyList<uint> syntaxResults)
+            {
+                _cache.Set(resultId, syntaxResults, _entryOptions);
+            }
+        }
+
+        private static SemanticTokenCache _semanticTokenCache = new SemanticTokenCache();
+
         public DefaultRazorSemanticTokenInfoService()
         {
         }
 
-        public override SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, SourceLocation? location = null)
+        public override SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, Range range = null)
         {
             if (codeDocument is null)
             {
                 throw new ArgumentNullException(nameof(codeDocument));
             }
 
-            var syntaxRanges = VisitAllNodes(codeDocument);
+            var syntaxRanges = VisitAllNodes(codeDocument, range);
 
             var semanticTokens = ConvertSyntaxTokensToSemanticTokens(syntaxRanges, codeDocument);
 
             return semanticTokens;
         }
 
-        private static IReadOnlyList<SyntaxResult> VisitAllNodes(RazorCodeDocument razorCodeDocument)
+        public override SemanticTokensOrSemanticTokensEdits GetSemanticTokenEdits(RazorCodeDocument codeDocument, string previousResultId)
         {
-            var visitor = new TagHelperSpanVisitor(razorCodeDocument);
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
+            if (string.IsNullOrEmpty(previousResultId))
+            {
+                throw new ArgumentException(nameof(previousResultId));
+            }
+
+            var syntaxRanges = VisitAllNodes(codeDocument);
+            var previousResults = _semanticTokenCache.GetResults(previousResultId);
+
+            var semanticEdits = ConvertSyntaxTokensToSemanticEdits(syntaxRanges, previousResults, codeDocument);
+
+            return semanticEdits;
+        }
+
+        private static IReadOnlyList<SyntaxResult> FilterReturns(IReadOnlyList<SyntaxResult> previousResults, IReadOnlyList<SyntaxResult> currentResults)
+        {
+            if (previousResults is null)
+            {
+                return currentResults;
+            }
+
+            var difference = currentResults.Except(previousResults).ToList();
+
+            return difference;
+        }
+
+        private static IReadOnlyList<SyntaxResult> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range range = null)
+        {
+            var visitor = new TagHelperSpanVisitor(razorCodeDocument, range);
             visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 
             return visitor.TagHelperData;
         }
 
         private static SemanticTokens ConvertSyntaxTokensToSemanticTokens(
-            IEnumerable<SyntaxResult> syntaxResults,
+            IReadOnlyList<SyntaxResult> syntaxResults,
             RazorCodeDocument razorCodeDocument)
         {
-            SyntaxResult? previousResult = null;
+            if (syntaxResults is null)
+            {
+                return null;
+            }
+
+            SyntaxResult previousResult = null;
 
             var data = new List<uint>();
             foreach (var result in syntaxResults)
@@ -57,9 +127,103 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 previousResult = result;
             }
 
-            return new SemanticTokens
+            var resultId = Guid.NewGuid();
+
+            var tokensResult = new SemanticTokens
             {
-                Data = data
+                Data = data.ToArray(),
+                ResultId = resultId.ToString()
+            };
+
+            _semanticTokenCache.SetResults(resultId.ToString(), data);
+
+            return tokensResult;
+        }
+
+        private static SemanticTokensOrSemanticTokensEdits ConvertSyntaxTokensToSemanticEdits(
+            IReadOnlyList<SyntaxResult> syntaxResults,
+            IReadOnlyList<uint> previousResults,
+            RazorCodeDocument codeDocument)
+        {
+            var newTokens = ConvertSyntaxTokensToSemanticTokens(syntaxResults, codeDocument);
+            var oldData = previousResults;
+
+            if (oldData is null || oldData.Count == 0)
+            {
+                return newTokens;
+            }
+
+            // The below algorithm was taken from OmniSharp/csharp-language-server-protocol at
+            // https://github.com/OmniSharp/csharp-language-server-protocol/blob/bdec4c73240be52fbb25a81f6ad7d409f77b5215/src/Protocol/Document/Proposals/SemanticTokensDocument.cs#L156
+
+            var prevData = oldData;
+            var prevDataLength = oldData.Count;
+            var dataLength = newTokens.Data.Length;
+            var startIndex = 0;
+            while (startIndex < dataLength && startIndex < prevDataLength && prevData[startIndex] ==
+                newTokens.Data[startIndex])
+            {
+                startIndex++;
+            }
+
+            if (startIndex < dataLength && startIndex < prevDataLength)
+            {
+                // Find end index
+                var endIndex = 0;
+                while (endIndex < dataLength && endIndex < prevDataLength &&
+                       prevData[prevDataLength - 1 - endIndex] == newTokens.Data[dataLength - 1 - endIndex])
+                {
+                    endIndex++;
+                }
+
+                var newData = ImmutableArray.Create(newTokens.Data, startIndex, dataLength - endIndex - startIndex);
+                var result = new SemanticTokensEdits
+                {
+                    ResultId = newTokens.ResultId,
+                    Edits = new[] {
+                        new SemanticTokensEdit {
+                            Start = startIndex,
+                            DeleteCount = prevDataLength - endIndex - startIndex,
+                            Data = newData
+                        }
+                    }
+                };
+                return result;
+            }
+
+            if (startIndex < dataLength)
+            {
+                return new SemanticTokensEdits
+                {
+                    ResultId = newTokens.ResultId,
+                    Edits = new[] {
+                        new SemanticTokensEdit {
+                            Start = startIndex,
+                            DeleteCount = 0,
+                            Data = ImmutableArray.Create(newTokens.Data, startIndex, newTokens.Data.Length - startIndex)
+                        }
+                    }
+                };
+            }
+
+            if (startIndex < prevDataLength)
+            {
+                return new SemanticTokensEdits
+                {
+                    ResultId = newTokens.ResultId,
+                    Edits = new[] {
+                        new SemanticTokensEdit {
+                            Start = startIndex,
+                            DeleteCount = prevDataLength - startIndex
+                        }
+                    }
+                };
+            }
+
+            return new SemanticTokensEdits
+            {
+                ResultId = newTokens.ResultId,
+                Edits = Array.Empty<SemanticTokensEdit>()
             };
         }
 
@@ -73,7 +237,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         **/
         private static IEnumerable<uint> GetData(
             SyntaxResult currentNode,
-            SyntaxResult? previousNode,
+            SyntaxResult previousNode,
             RazorCodeDocument razorCodeDocument)
         {
             var previousRange = previousNode?.Range;
@@ -94,9 +258,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             // length
-            var endIndex = currentNode.Range.End.GetAbsoluteIndex(razorCodeDocument.GetSourceText());
-            var startIndex = currentNode.Range.Start.GetAbsoluteIndex(razorCodeDocument.GetSourceText());
-            var length = endIndex - startIndex;
+            var textSpan = currentNode.Range.AsTextSpan(razorCodeDocument.GetSourceText());
+            var length = textSpan.Length;
             Debug.Assert(length > 0);
             yield return (uint)length;
 
@@ -130,7 +293,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
         }
 
-        private struct SyntaxResult
+        private class SyntaxResult
         {
             public SyntaxResult(SyntaxNode node, SyntaxKind kind, RazorCodeDocument razorCodeDocument)
             {
@@ -143,27 +306,47 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             public SyntaxKind Kind { get; set; }
 
+            public bool Transmited { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as SyntaxResult;
+
+                var result = other.Kind == Kind && other.Range.Equals(Range);
+                return result;
+            }
+
+            public override int GetHashCode()
+            {
+                var hashCode = 352033288;
+                hashCode = hashCode * -1521134295 + Range.GetHashCode();
+                hashCode = hashCode * -1521134295 + Kind.GetHashCode();
+
+                return hashCode;
+            }
         }
 
         private class TagHelperSpanVisitor : SyntaxWalker
         {
             private readonly List<SyntaxResult> _syntaxNodes;
             private readonly RazorCodeDocument _razorCodeDocument;
+            private readonly Range _range;
 
-            public TagHelperSpanVisitor(RazorCodeDocument razorCodeDocument)
+            public TagHelperSpanVisitor(RazorCodeDocument razorCodeDocument, Range range)
             {
                 _syntaxNodes = new List<SyntaxResult>();
                 _razorCodeDocument = razorCodeDocument;
+                _range = range;
             }
 
-            public IReadOnlyList<SyntaxResult> TagHelperData => _syntaxNodes;
+            public IReadOnlyList<SyntaxResult> TagHelperData => _syntaxNodes.Where(n => n.Transmited).ToList();
 
             public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
             {
                 if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
                 {
                     var result = new SyntaxResult(node.Name, SyntaxKind.MarkupTagHelperStartTag, _razorCodeDocument);
-                    _syntaxNodes.Add(result);
+                    AddNodes(result);
                 }
                 base.VisitMarkupTagHelperStartTag(node);
             }
@@ -173,7 +356,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
                 {
                     var result = new SyntaxResult(node.Name, SyntaxKind.MarkupTagHelperEndTag, _razorCodeDocument);
-                    _syntaxNodes.Add(result);
+                    AddNodes(result);
                 }
                 base.VisitMarkupTagHelperEndTag(node);
             }
@@ -183,7 +366,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 if (node.TagHelperAttributeInfo.Bound)
                 {
                     var result = new SyntaxResult(node.Name, SyntaxKind.MarkupMinimizedTagHelperAttribute, _razorCodeDocument);
-                    _syntaxNodes.Add(result);
+                    AddNodes(result);
                 }
 
                 base.VisitMarkupMinimizedTagHelperAttribute(node);
@@ -194,7 +377,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 if (node.TagHelperAttributeInfo.Bound)
                 {
                     var result = new SyntaxResult(node.Name, SyntaxKind.MarkupTagHelperAttribute, _razorCodeDocument);
-                    _syntaxNodes.Add(result);
+                    AddNodes(result);
                 }
 
                 base.VisitMarkupTagHelperAttribute(node);
@@ -205,21 +388,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 if (node.TagHelperAttributeInfo.Bound)
                 {
                     var transition = new SyntaxResult(node.Transition, SyntaxKind.Transition, _razorCodeDocument);
-                    _syntaxNodes.Add(transition);
+                    AddNodes(transition);
 
                     var directiveAttribute = new SyntaxResult(node.Name, SyntaxKind.MarkupTagHelperDirectiveAttribute, _razorCodeDocument);
-                    _syntaxNodes.Add(directiveAttribute);
+                    AddNodes(directiveAttribute);
 
                     if (node.Colon != null)
                     {
                         var colon = new SyntaxResult(node.Colon, SyntaxKind.Colon, _razorCodeDocument);
-                        _syntaxNodes.Add(colon);
+                        AddNodes(colon);
                     }
 
                     if (node.ParameterName != null)
                     {
                         var parameterName = new SyntaxResult(node.ParameterName, SyntaxKind.MarkupTagHelperDirectiveAttribute, _razorCodeDocument);
-                        _syntaxNodes.Add(parameterName);
+                        AddNodes(parameterName);
                     }
                 }
 
@@ -228,28 +411,44 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             public override void VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
             {
+
                 if (node.TagHelperAttributeInfo.Bound)
                 {
                     var transition = new SyntaxResult(node.Transition, SyntaxKind.Transition, _razorCodeDocument);
-                    _syntaxNodes.Add(transition);
+                    AddNodes(transition);
 
                     var directiveAttribute = new SyntaxResult(node.Name, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute, _razorCodeDocument);
-                    _syntaxNodes.Add(directiveAttribute);
+                    AddNodes(directiveAttribute);
 
                     if (node.Colon != null)
                     {
                         var colon = new SyntaxResult(node.Colon, SyntaxKind.Colon, _razorCodeDocument);
-                        _syntaxNodes.Add(colon);
+                        AddNodes(colon);
                     }
 
                     if (node.ParameterName != null)
                     {
                         var parameterName = new SyntaxResult(node.ParameterName, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute, _razorCodeDocument);
-                        _syntaxNodes.Add(parameterName);
+
+                        AddNodes(parameterName);
                     }
                 }
 
                 base.VisitMarkupMinimizedTagHelperDirectiveAttribute(node);
+            }
+
+            private void AddNodes(SyntaxResult syntaxResult)
+            {
+                if (_range is null || syntaxResult.Range.OverlapsWith(_range))
+                {
+                    syntaxResult.Transmited = true;
+                }
+                else
+                {
+                    syntaxResult.Transmited = false;
+                }
+
+                _syntaxNodes.Add(syntaxResult);
             }
 
             // We don't want to classify TagNames of well-known HTML

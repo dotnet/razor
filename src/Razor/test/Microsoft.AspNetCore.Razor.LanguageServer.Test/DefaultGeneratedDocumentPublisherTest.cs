@@ -337,6 +337,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public ILanguageServerWorkspace Workspace => throw new NotImplementedException();
 
+            public ProgressManager ProgressManager => throw new NotImplementedException();
+
             public IDisposable AddHandler(string method, IJsonRpcHandler handler) => throw new NotImplementedException();
 
             public IDisposable AddHandler(string method, Func<IServiceProvider, IJsonRpcHandler> handlerFunc) => throw new NotImplementedException();

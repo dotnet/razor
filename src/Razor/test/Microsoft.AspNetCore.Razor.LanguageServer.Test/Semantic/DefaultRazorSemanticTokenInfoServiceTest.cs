@@ -4,9 +4,12 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
+using LSPRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 {
@@ -22,7 +25,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 8, 5, 0, 0
             };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: false);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: false);
         }
 
         [Fact]
@@ -35,7 +39,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 18, 5, 0, 0
             };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: false);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: false);
         }
 
         [Fact]
@@ -48,7 +53,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 11, 5, 0, 0
             };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: false);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: false);
         }
 
         [Fact]
@@ -61,7 +67,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 39, 5, 0, 0
             };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: false);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: false);
         }
 
         [Fact]
@@ -70,7 +77,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true' class='display:none'></test1>";
             var expectedData = new List<uint> { };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: true);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: true);
         }
 
         [Fact]
@@ -79,7 +87,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p bool-val='true'></p>";
             var expectedData = new List<uint> { };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: false);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: false);
         }
         #endregion TagHelpers
 
@@ -97,7 +106,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 1, 9, 4, 0
             };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: true);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: true);
         }
 
         [Fact]
@@ -113,7 +123,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 23, 5, 0, 0
             };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: true);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: true);
         }
 
         [Fact]
@@ -122,7 +133,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true'></test1>";
             var expectedData = new List<uint> { };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: true);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: true);
         }
 
         [Fact]
@@ -136,7 +148,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 18, 5, 0, 0
             };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: true);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: true);
         }
 
         [Fact]
@@ -148,7 +161,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 1, 4, 4, 0
             };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: true);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: true);
         }
 
         [Fact]
@@ -157,14 +171,172 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var txt = $"@addTagHelpers *, TestAssembly{Environment.NewLine}<p></p>";
             var expectedData = new List<uint> { };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: true);
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, isRazor: true);
+        }
+
+        [Fact]
+        public void GetSemanticTokens_Razor_InRange()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+            var expectedData = new List<uint> {
+                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
+            };
+
+            var startIndex = txt.IndexOf("test1");
+            var endIndex = startIndex + 5;
+
+            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+
+            codeDocument.GetSourceText().GetLineAndOffset(startIndex, out var startLine, out var startChar);
+            codeDocument.GetSourceText().GetLineAndOffset(endIndex, out var endLine, out var endChar);
+
+            var startPosition = new Position(startLine, startChar);
+            var endPosition = new Position(endLine, endChar);
+            var location = new LSPRange(startPosition, endPosition);
+
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            AssertSemanticTokens(txt, expectedData, service, location: location, isRazor: false);
         }
         #endregion DirectiveAttributes
 
-        private void AssertSemanticTokens(string txt, IEnumerable<uint> expectedData, bool isRazor)
+        [Fact]
+        public void GetSemanticTokens_Razor_NoDifferenceAsync()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+            var expectedData = new List<uint> {
+                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
+                0, 8, 5, 0, 0
+            };
+
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            var previousResultId = AssertSemanticTokens(txt, expectedData, service, isRazor: false);
+
+            var newResultId = AssertSemanticTokenEdits(txt, new SemanticTokensEdits { Edits = new List<SemanticTokensEdit>() }, service, isRazor: false, previousResultId: previousResultId);
+            Assert.NotEqual(previousResultId, newResultId);
+        }
+
+        [Fact]
+        public void GetSemanticTokens_Razor_RemoveTokens()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1><test1></test1><test1></test1>";
+            var expectedData = new List<uint> {
+                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
+                0, 8, 5, 0, 0,
+                0, 7, 5, 0, 0,
+                0, 8, 5, 0, 0,
+                0, 7, 5, 0, 0,
+                0, 8, 5, 0, 0
+            };
+
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            var previousResultId = AssertSemanticTokens(txt, expectedData, service, isRazor: false);
+
+            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+            var newResultId = AssertSemanticTokenEdits(newTxt, new SemanticTokensEdits { Edits = new List<SemanticTokensEdit>(){
+                new SemanticTokensEdit
+                {
+                    Data = null,
+                    DeleteCount = 20,
+                    Start = 10
+                }
+            }}, service, isRazor: false, previousResultId: previousResultId);
+            Assert.NotEqual(previousResultId, newResultId);
+        }
+
+        [Fact]
+        public void GetSemanticTokens_Razor_OnlyDifferences_AppendAsync()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+            var expectedData = new List<uint> {
+                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
+                0, 8, 5, 0, 0
+            };
+
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            var previousResultId = AssertSemanticTokens(txt, expectedData, service, isRazor: false);
+
+            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true'></test1>";
+            var newExpectedData = new SemanticTokensEdits {
+                Edits = new SemanticTokensEdit[] {
+                    new SemanticTokensEdit
+                    {
+                        Start = 6,
+                        Data = new List<uint>{ 6 , 8, 1, 0, 0, 18},
+                        DeleteCount = 1,
+                    }
+                }
+            };
+            var newResultId = AssertSemanticTokenEdits(newTxt, newExpectedData, service, isRazor: false, previousResultId: previousResultId);
+            Assert.NotEqual(previousResultId, newResultId);
+        }
+
+        [Fact]
+        public void GetSemanticTokens_Razor_OnlyDifferences_InternalAsync()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+            var expectedData = new List<uint> {
+                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
+                0, 8, 5, 0, 0
+            };
+
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            var previousResultId = AssertSemanticTokens(txt, expectedData, service, isRazor: false);
+
+            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1><test1></test1>";
+            var newExpectedData = new SemanticTokensEdits
+            {
+                Edits = new List<SemanticTokensEdit> {
+                    new SemanticTokensEdit
+                    {
+                        Start = 10,
+                        Data = new uint[]{
+                            0, 7, 5, 0, 0,
+                            0, 8, 5, 0, 0,
+                        },
+                        DeleteCount = 0,
+                    }
+                }
+            };
+            var newResultId = AssertSemanticTokenEdits(newTxt, newExpectedData, service, isRazor: false, previousResultId: previousResultId);
+            Assert.NotEqual(previousResultId, newResultId);
+        }
+
+        [Fact]
+        public void GetSemanticTokens_Razor_OnlyDifferences_NewLinesAsync()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+            var expectedData = new List<uint> {
+                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
+                0, 8, 5, 0, 0
+            };
+
+            var service = GetDefaultRazorSemanticTokenInfoService();
+            var previousResultId = AssertSemanticTokens(txt, expectedData, service, isRazor: false);
+
+            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>{Environment.NewLine}" +
+                $"<test1></test1>";
+            var newExpectedData = new SemanticTokensEdits
+            {
+                Edits = new List<SemanticTokensEdit> {
+                    new SemanticTokensEdit
+                    {
+                        Start = 10,
+                        Data = new uint[]{
+                            1, 1, 5, 0, 0,
+                            0, 8, 5, 0, 0,
+                        },
+                        DeleteCount = 0,
+                    }
+                }
+            };
+            var newResultId = AssertSemanticTokenEdits(newTxt, newExpectedData, service, isRazor: false, previousResultId: previousResultId);
+            Assert.NotEqual(previousResultId, newResultId);
+        }
+
+        private string AssertSemanticTokens(string txt, IEnumerable<uint> expectedData, RazorSemanticTokenInfoService service, bool isRazor, LSPRange location = null)
         {
             // Arrange
-            var service = GetDefaultRazorSemanticTokenInfoService();
             RazorCodeDocument codeDocument;
             if (isRazor)
             {
@@ -174,13 +346,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             {
                 codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             }
-            var location = new SourceLocation(txt.IndexOf("test1"), -1, -1);
 
             // Act
             var tokens = service.GetSemanticTokens(codeDocument, location);
 
             // Assert
             Assert.Equal(expectedData, tokens.Data);
+
+            return tokens.ResultId;
+        }
+
+        private string AssertSemanticTokenEdits(string txt, SemanticTokensEdits expectedEdits, RazorSemanticTokenInfoService service, bool isRazor, string previousResultId)
+        {
+            // Arrange
+            RazorCodeDocument codeDocument;
+            if (isRazor)
+            {
+                codeDocument = CreateRazorDocument(txt, DefaultTagHelpers);
+            }
+            else
+            {
+                codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            }
+
+            // Act
+            var edits = service.GetSemanticTokenEdits(codeDocument, previousResultId);
+
+            // Assert
+            for(var i = 0; i < expectedEdits.Edits.Count; i++)
+            {
+                Assert.Equal(expectedEdits.Edits[i], edits.SemanticTokensEdits.Edits[i]);
+            }
+
+            return edits.SemanticTokensEdits.ResultId;
         }
 
         private RazorSemanticTokenInfoService GetDefaultRazorSemanticTokenInfoService()

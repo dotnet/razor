@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
@@ -57,14 +58,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             _logger = loggerFactory.CreateLogger<RazorHoverEndpoint>();
         }
 
-        public TextDocumentRegistrationOptions GetRegistrationOptions()
-        {
-            return new TextDocumentRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector
-            };
-        }
-
         public async Task<HoverModel> Handle(HoverParams request, CancellationToken cancellationToken)
         {
             if (request is null)
@@ -105,6 +98,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         public void SetCapability(HoverCapability capability)
         {
             _capability = capability;
+        }
+
+        HoverRegistrationOptions IRegistration<HoverRegistrationOptions>.GetRegistrationOptions()
+        {
+            return new HoverRegistrationOptions
+            {
+                DocumentSelector = RazorDefaults.Selector
+            };
         }
     }
 }
