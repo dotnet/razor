@@ -106,10 +106,9 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
         const browser = {
             name: JS_DEBUG_NAME,
             type: configuration.browser === 'edge' ? 'pwa-msedge' : 'pwa-chrome',
-            request: configuration.request,
-            port: configuration.request === 'attach' ? configuration.port : undefined,
+            request: 'launch',
             timeout: configuration.timeout || 30000,
-            url: configuration.request === 'launch' ? (configuration.url || 'https://localhost:5001') : undefined,
+            url: configuration.url || 'https://localhost:5001',
             webRoot: configuration.webRoot || '${workspaceFolder}',
             inspectUri: '{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}',
             trace: configuration.trace || false,
