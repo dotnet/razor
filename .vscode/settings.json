@@ -1,4 +1,5 @@
 {
+  "razor.disabled": true,
   "files.trimTrailingWhitespace": true,
   "files.associations": {
     "*.*proj": "xml",

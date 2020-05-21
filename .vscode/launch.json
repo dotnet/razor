@@ -24,7 +24,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "${workspaceFolder}/src/Razor/test/testapps/",
+        "C:\\Users\\t-nokim-admin\\source\\repos\\Learning\\Learning",
         "--extensionDevelopmentPath=${workspaceFolder}/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.Extension",
         "--enable-proposed-api razor-vscode",
         "--enable-proposed-api ms-dotnettools.csharp"

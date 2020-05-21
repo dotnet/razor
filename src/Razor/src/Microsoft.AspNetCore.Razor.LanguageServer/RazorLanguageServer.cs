@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -70,6 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorOnTypeFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokenEndpoint>()
                     .WithHandler<RazorSemanticTokenLegendEndpoint>()
+                    .WithHandler<RazorRefactoringEndpoint>()
                     .WithServices(services =>
                     {
                         var filePathNormalizer = new FilePathNormalizer();
@@ -142,6 +144,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorSemanticTokenInfoService, DefaultRazorSemanticTokenInfoService>();
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
+
+                        // Refactoring
+                        services.AddSingleton<RazorSyntaxService, DefaultRazorSyntaxService>();
                     }));
 
             server.OnShutdown(() =>
