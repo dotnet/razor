@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
 
         public ITestOutputHelper Output { get; private set; }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/22049")]
         [InitializeTestProject("AppWithPackageAndP2PReference", language: "C#", additionalProjects: new[] { "ClassLibrary", "ClassLibrary2" })]
         public async Task Build_GeneratesStaticWebAssetsManifest_Success_CreatesManifest()
         {
