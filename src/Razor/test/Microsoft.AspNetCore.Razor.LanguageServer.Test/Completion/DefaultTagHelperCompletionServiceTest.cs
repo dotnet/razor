@@ -158,7 +158,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
-        public void GetCompletionAt_AtAttributeEdge_IntAttribute_ReturnsCompletionsWithSnippet()
+        public void GetCompletionAt_AtAttributeEdge_IntAttribute_ReturnsCompletionsWithoutSnippet()
         {
             // Arrange
             var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, LanguageServer);
@@ -179,8 +179,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 },
                 completion =>
                 {
-                    Assert.Equal("int-val=\"$1\"", completion.InsertText);
-                    Assert.Equal(InsertTextFormat.Snippet, completion.InsertTextFormat);
+                    Assert.Equal("int-val", completion.InsertText);
+                    Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
                     Assert.Equal(new[] { "=" }, completion.CommitCharacters);
                 });
         }
@@ -207,8 +207,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 },
                 completion =>
                 {
-                    Assert.Equal("int-val=\"$1\"", completion.InsertText);
-                    Assert.Equal(InsertTextFormat.Snippet, completion.InsertTextFormat);
+                    Assert.Equal("int-val", completion.InsertText);
+                    Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
                     Assert.Equal(new[] { "=" }, completion.CommitCharacters);
                 });
         }
@@ -239,8 +239,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 completions,
                 completion =>
                 {
-                    Assert.Equal("bool-val=\"$1\"", completion.InsertText);
-                    Assert.Equal(InsertTextFormat.Snippet, completion.InsertTextFormat);
+                    Assert.Equal("bool-val", completion.InsertText);
+                    Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
                 },
                 completion =>
                 {
@@ -250,65 +250,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
-        public void GetCompletionAt_AtAttributeEdge_IndexerAttribute_WithoutSnippetSupport_ReturnsCompletionsWithoutSnippet()
-        {
-            // Arrange
-            var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
-            tagHelper.TagMatchingRule(rule => rule.TagName = "test");
-            tagHelper.SetTypeName("TestTagHelper");
-            tagHelper.BindAttribute(attribute =>
-            {
-                attribute.Name = "int-val";
-                attribute.SetPropertyName("IntVal");
-                attribute.TypeName = ("System.Collections.Generic.IDictionary<System.String, System.Int32>");
-                attribute.AsDictionary("int-val-", typeof(int).FullName);
-            });
-
-            var languageServer = new Mock<ILanguageServer>();
-            languageServer.SetupGet(server => server.ClientSettings)
-                .Returns(new InitializeParams {
-                    Capabilities = new ClientCapabilities {
-                        TextDocument = new TextDocumentClientCapabilities {
-                            Completion = new CompletionCapability
-                            {
-                                CompletionItem = new CompletionItemCapability
-                                {
-                                    SnippetSupport = false
-                                }
-                            }
-                        }
-                    }
-                }).Verifiable();
-
-            var service = new DefaultTagHelperCompletionService(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, languageServer.Object);
-
-            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test />", tagHelper.Build());
-            var sourceSpan = new SourceSpan(35 + Environment.NewLine.Length, 0);
-
-            // Act
-            var completions = service.GetCompletionsAt(sourceSpan, codeDocument);
-
-            // Assert
-            Assert.Collection(
-                completions,
-                completion =>
-                {
-                    Assert.Equal("int-val", completion.InsertText);
-                    Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
-                    Assert.Equal(new[] { "=" }, completion.CommitCharacters);
-                },
-                completion =>
-                {
-                    Assert.Equal("int-val-", completion.InsertText);
-                    Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
-                    Assert.Equal(Array.Empty<String>(), completion.CommitCharacters);
-                });
-
-            languageServer.Verify();
-        }
-
-        [Fact]
-        public void GetCompletionAt_AtAttributeEdge_IndexerAttribute_ReturnsCompletionsWithSnippet()
+        public void GetCompletionAt_AtAttributeEdge_IndexerAttribute_ReturnsCompletionsWithoutSnippet()
         {
             // Arrange
             var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
@@ -333,14 +275,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 completions,
                 completion =>
                 {
-                    Assert.Equal("int-val=\"$1\"", completion.InsertText);
-                    Assert.Equal(InsertTextFormat.Snippet, completion.InsertTextFormat);
+                    Assert.Equal("int-val", completion.InsertText);
+                    Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
                     Assert.Equal(new[] { "=" }, completion.CommitCharacters);
                 },
                 completion =>
                 {
-                    Assert.Equal("int-val-$1=\"$2\"", completion.InsertText);
-                    Assert.Equal(InsertTextFormat.Snippet, completion.InsertTextFormat);
+                    Assert.Equal("int-val-", completion.InsertText);
+                    Assert.Equal(InsertTextFormat.PlainText, completion.InsertTextFormat);
                     Assert.Equal(Array.Empty<string>(), completion.CommitCharacters);
                 });
         }

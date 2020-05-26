@@ -145,20 +145,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     filterText = filterText.Substring(0, filterText.Length - 3);
                 }
 
-                var insertTextFormat = InsertTextFormat.Snippet;
-                if (!TryResolveAttributeInsertionSnippet(filterText, completion.Value, indexerCompletion, out var insertText))
-                {
-                    insertTextFormat = InsertTextFormat.PlainText;
-                    insertText = filterText;
-                }
-
                 var attributeCommitCharacters = ResolveAttributeCommitCharacters(completion.Value, indexerCompletion);
 
                 var razorCompletionItem = new CompletionItem()
                 {
                     Label = completion.Key,
-                    InsertText = insertText,
-                    InsertTextFormat = insertTextFormat,
+                    InsertText = filterText,
+                    InsertTextFormat = InsertTextFormat.PlainText,
                     FilterText = filterText,
                     SortText = filterText,
                     Kind = CompletionItemKind.TypeParameter,
@@ -221,50 +214,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return completionItems;
         }
 
-        private bool TryResolveAttributeInsertionSnippet(
-            string text,
-            IEnumerable<BoundAttributeDescriptor> boundAttributes,
-            bool indexerCompletion,
-            out string snippetText)
-        {
-            var snippetSupported = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Completion.Value?.CompletionItem?.SnippetSupport ?? false;
-            if (!snippetSupported)
-            {
-                snippetText = null;
-                return false;
-            }
-
-            const string BoolTypeName = "System.Boolean";
-
-            // Boolean returning bound attribute, auto-complete to just the attribute name.
-            if (indexerCompletion)
-            {
-                if (boundAttributes.All(boundAttribute => boundAttribute.IndexerTypeName == BoolTypeName))
-                {
-                    snippetText = null;
-                    return false;
-                }
-
-                snippetText = string.Concat(text, "$1=\"$2\"");
-                return true;
-            }
-            else if (boundAttributes.All(boundAttribute => boundAttribute.TypeName == BoolTypeName))
-            {
-                snippetText = null;
-                return false;
-            }
-
-            snippetText = string.Concat(text, "=\"$1\"");
-            return true;
-        }
-
         private Container<string> ResolveAttributeCommitCharacters(IEnumerable<BoundAttributeDescriptor> boundAttributes, bool indexerCompletion)
         {
             if (indexerCompletion)
             {
                 return NoCommitCharacters;
             }
-            else if (boundAttributes.Any(b => b.TypeName.StartsWith("System.Boolean")))
+            else if (boundAttributes.Any(b => b.TypeName == "System.Boolean"))
             {
                 // Have to use string type because IsBooleanProperty isn't set
                 return AttributeCommitCharacters;
