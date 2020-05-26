@@ -28,8 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public DefaultTagHelperCompletionService(
             RazorTagHelperCompletionService razorCompletionService,
             HtmlFactsService htmlFactsService,
-            TagHelperFactsService tagHelperFactsService,
-            ILanguageServer languageServer)
+            TagHelperFactsService tagHelperFactsService)
         {
             if (razorCompletionService is null)
             {
@@ -46,18 +45,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(tagHelperFactsService));
             }
 
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
             _razorTagHelperCompletionService = razorCompletionService;
             _htmlFactsService = htmlFactsService;
             _tagHelperFactsService = tagHelperFactsService;
-            LanguageServer = languageServer;
         }
-
-        public ILanguageServer LanguageServer { get; }
 
         public override IReadOnlyList<CompletionItem> GetCompletionsAt(SourceSpan location, RazorCodeDocument codeDocument)
         {
@@ -67,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             var syntaxTree = codeDocument.GetSyntaxTree();
-            var change = new SourceChange(location, "");
+            var change = new SourceChange(location, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
