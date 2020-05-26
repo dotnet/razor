@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _textDocumentFactory.TextDocumentCreated += TextDocumentFactory_TextDocumentCreated;
             _textDocumentFactory.TextDocumentDisposed += TextDocumentFactory_TextDocumentDisposed;
-            _razorLSPContentType = contentTypeRegistry.GetContentType(RazorLSPContentTypeDefinition.Name);
+            _razorLSPContentType = contentTypeRegistry.GetContentType(RazorLSPConstants.RazorLSPContentTypeName);
         }
 
         // Internal for testing
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             var textBuffer = args.TextDocument.TextBuffer;
-            if (!textBuffer.ContentType.IsOfType(RazorLSPContentTypeDefinition.Name))
+            if (!textBuffer.ContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName))
             {
                 // This Razor text buffer has yet to be initialized.
 
@@ -172,8 +172,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return false;
             }
 
-            if (!filePath.EndsWith(RazorLSPContentTypeDefinition.CSHTMLFileExtension, FilePathComparison.Instance) &&
-                !filePath.EndsWith(RazorLSPContentTypeDefinition.RazorFileExtension, FilePathComparison.Instance))
+            if (!filePath.EndsWith(RazorLSPConstants.CSHTMLFileExtension, FilePathComparison.Instance) &&
+                !filePath.EndsWith(RazorLSPConstants.RazorFileExtension, FilePathComparison.Instance))
             {
                 // Not a Razor file
                 return false;
@@ -191,6 +191,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 // We still change the content type for remote scenarios in order to enable our TextMate grammar to light up the Razor editor properly.
                 textBuffer.ChangeContentType(_razorLSPContentType, editTag: null);
+
+                // Initialize the buffer with editor options.
+                // Temporary: Ideally in remote scenarios, we should be using host's settings.
+                // But we need this until that support is built.
+                InitializeOptions(textBuffer);
 
                 // Temporary: The guest needs to react to the host manually applying edits and moving the cursor.
                 // This can be removed once the client starts supporting snippets.

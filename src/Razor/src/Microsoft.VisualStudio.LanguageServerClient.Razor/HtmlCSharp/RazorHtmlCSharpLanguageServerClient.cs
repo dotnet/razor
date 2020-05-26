@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [ClientName(ClientName)]
     [Export(typeof(ILanguageClient))]
-    [ContentType(RazorLSPContentTypeDefinition.Name)]
+    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class RazorHtmlCSharpLanguageServerClient : ILanguageClient, IDisposable
     {
         // ClientName enables us to turn on-off the ILanguageClient functionality for specific TextBuffers of content type RazorLSPContentTypeDefinition.Name.
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // ILanguageClient infrastructure on the guest to ensure that two language servers don't provide results.
         public const string ClientName = "RazorLSPClientName";
         private readonly IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
-        private RazorHtmlCSharpLanguageServer _langaugeServer;
+        private RazorHtmlCSharpLanguageServer _languageServer;
 
         [ImportingConstructor]
         public RazorHtmlCSharpLanguageServerClient([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _langaugeServer = new RazorHtmlCSharpLanguageServer(serverStream, serverStream, _requestHandlers);
+            _languageServer = new RazorHtmlCSharpLanguageServer(serverStream, serverStream, _requestHandlers);
 
             var connection = new Connection(clientStream, clientStream);
             return Task.FromResult(connection);
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public void Dispose()
         {
-            _langaugeServer?.Dispose();
+            _languageServer?.Dispose();
         }
     }
 }

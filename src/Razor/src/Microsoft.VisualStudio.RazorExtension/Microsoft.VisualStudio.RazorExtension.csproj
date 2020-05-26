@@ -21,6 +21,8 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <IsPackable>false</IsPackable>
+
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
 
   <!-- Include Razor SDK design time assets in the VSIX -->
@@ -60,6 +62,10 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Microsoft.VisualStudio.RazorExtension.Custom.pkgdef">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Microsoft.VisualStudio.RazorExtension.clientenabledpkg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -155,6 +161,7 @@
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150PackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Resources.Extensions" Version="$(SystemResourcesExtensionsPackageVersion)" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -171,6 +178,16 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <IncludeInVSIX>true</IncludeInVSIX>
         <VSIXSubPath>Grammars\</VSIXSubPath>
+      </Content>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_IncludeRazorLanguageConfiguration" DependsOnTargets="PrepareForBuild" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Content Include="..\Microsoft.AspNetCore.Razor.VSCode.Extension\language-configuration.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <IncludeInVSIX>true</IncludeInVSIX>
+        <VSIXSubPath>\</VSIXSubPath>
       </Content>
     </ItemGroup>
   </Target>

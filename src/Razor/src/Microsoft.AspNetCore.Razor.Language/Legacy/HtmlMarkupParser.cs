@@ -1085,9 +1085,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             }
         }
 
-        private bool TryParseAttributeName(out IEnumerable<SyntaxToken> nameTokens)
+        private bool TryParseAttributeName(out IReadOnlyList<SyntaxToken> nameTokens)
         {
-            nameTokens = Enumerable.Empty<SyntaxToken>();
+            nameTokens = Array.Empty<SyntaxToken>();
             //
             // We are currently here <input |name="..." />
             // If we encounter a transition (@) here, it can be parsed as CSharp or Markup depending on the feature flag.
@@ -1718,12 +1718,33 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             return false;
         }
 
+        private IReadOnlyList<SyntaxToken> FastReadWhitespaceAndNewLines()
+        {
+            if (EnsureCurrent() && (CurrentToken.Kind == SyntaxKind.Whitespace || CurrentToken.Kind == SyntaxKind.NewLine))
+            {
+                var whitespaceTokens = new List<SyntaxToken>();
+
+                whitespaceTokens.Add(CurrentToken);
+                NextToken();
+
+                while (EnsureCurrent() && (CurrentToken.Kind == SyntaxKind.Whitespace || CurrentToken.Kind == SyntaxKind.NewLine))
+                {
+                    whitespaceTokens.Add(CurrentToken);
+                    NextToken();
+                }
+
+                return whitespaceTokens;
+            }
+
+            return Array.Empty<SyntaxToken>();
+        }
+
         private ParserState GetParserState(ParseMode mode)
         {
-            var whitespace = ReadWhile(IsSpacingToken(includeNewLines: true));
+            var whitespace = FastReadWhitespaceAndNewLines();
             try
             {
-                if (!whitespace.Any() && EndOfFile)
+                if (whitespace.Count == 0 && EndOfFile)
                 {
                     return ParserState.EOF;
                 }
@@ -1742,7 +1763,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     // Let the transition parser handle the preceding whitespace.
                     return ParserState.CodeTransition;
                 }
-                else if (whitespace.Any())
+                else if (whitespace.Count > 0)
                 {
                     // This whitespace isn't sensitive to what comes after it.
                     return ParserState.Misc;
@@ -1792,7 +1813,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             }
             finally
             {
-                if (whitespace.Any())
+                if (whitespace.Count > 0)
                 {
                     PutCurrentBack();
                     PutBack(whitespace);

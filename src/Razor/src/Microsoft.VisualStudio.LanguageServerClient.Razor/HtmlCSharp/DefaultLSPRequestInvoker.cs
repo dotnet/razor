@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     internal class DefaultLSPRequestInvoker : LSPRequestInvoker
     {
         private readonly ILanguageClientBroker _languageClientBroker;
+        private readonly MethodInfo _synchronizedRequestAsyncMethod;
         private readonly MethodInfo _requestAsyncMethod;
         private readonly JsonSerializer _serializer;
 
@@ -45,6 +46,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     typeof(JToken),
                     typeof(CancellationToken)
                 });
+            _synchronizedRequestAsyncMethod = type.GetMethod(
+                "SynchronizedRequestAsync",
+                new[]
+                {
+                    typeof(string[]),
+                    typeof(Func<JToken, bool>),
+                    typeof(string),
+                    typeof(JToken),
+                    typeof(CancellationToken)
+                });
 
             // We need these converters so we don't lose information as part of the deserialization.
             _serializer = new JsonSerializer();
@@ -57,25 +68,40 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _serializer.Converters.Add(new VSExtensionConverter<CompletionList, VSCompletionList>());
         }
 
-        public async override Task<TOut> RequestServerAsync<TIn, TOut>(string method, LanguageServerKind serverKind, TIn parameters, CancellationToken cancellationToken)
+        public override Task<TOut> CustomRequestServerAsync<TIn, TOut>(string method, LanguageServerKind serverKind, TIn parameters, CancellationToken cancellationToken)
         {
+            return RequestServerCoreAsync<TIn, TOut>(_requestAsyncMethod, method, serverKind, parameters, cancellationToken);
+        }
+
+        public override Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(string method, LanguageServerKind serverKind, TIn parameters, CancellationToken cancellationToken)
+        {
+            return RequestServerCoreAsync<TIn, TOut>(_synchronizedRequestAsyncMethod, method, serverKind, parameters, cancellationToken);
+        }
+
+        private async Task<TOut> RequestServerCoreAsync<TIn, TOut>(MethodInfo lspPlatformMethod, string method, LanguageServerKind serverKind, TIn parameters, CancellationToken cancellationToken)
+        {
+            if (lspPlatformMethod is null)
+            {
+                throw new ArgumentNullException(nameof(lspPlatformMethod));
+            }
+
             if (string.IsNullOrEmpty(method))
             {
                 throw new ArgumentException("message", nameof(method));
             }
 
-            var contentType = RazorLSPContentTypeDefinition.Name;
+            var contentType = RazorLSPConstants.RazorLSPContentTypeName;
             if (serverKind == LanguageServerKind.CSharp)
             {
-                contentType = CSharpVirtualDocumentFactory.CSharpLSPContentTypeName;
+                contentType = RazorLSPConstants.CSharpLSPContentTypeName;
             }
             else if (serverKind == LanguageServerKind.Html)
             {
-                contentType = HtmlVirtualDocumentFactory.HtmlLSPContentTypeName;
+                contentType = RazorLSPConstants.HtmlLSPContentTypeName;
             }
 
             var serializedParams = JToken.FromObject(parameters);
-            var task = (Task<(ILanguageClient, JToken)>)_requestAsyncMethod.Invoke(
+            var task = (Task<(ILanguageClient, JToken)>)lspPlatformMethod.Invoke(
                 _languageClientBroker,
                 new object[]
                 {

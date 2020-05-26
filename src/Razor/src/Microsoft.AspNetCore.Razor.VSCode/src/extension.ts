@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import * as vscodeapi from 'vscode';
 import { ExtensionContext } from 'vscode';
+import { BlazorDebugConfigurationProvider } from './BlazorDebug/BlazorDebugConfigurationProvider';
 import { CompositeCodeActionTranslator } from './CodeActions/CompositeRazorCodeActionTranslator';
 import { RazorCodeActionProvider } from './CodeActions/RazorCodeActionProvider';
 import { RazorFullyQualifiedCodeActionTranslator } from './CodeActions/RazorFullyQualifiedCodeActionTranslator';
@@ -36,6 +37,7 @@ import { RazorLogger } from './RazorLogger';
 import { RazorReferenceProvider } from './RazorReferenceProvider';
 import { RazorRenameProvider } from './RazorRenameProvider';
 import { RazorSignatureHelpProvider } from './RazorSignatureHelpProvider';
+import { RazorDocumentSemanticTokensProvider } from './Semantic/RazorDocumentSemanticTokensProvider';
 import { TelemetryReporter } from './TelemetryReporter';
 
 // We specifically need to take a reference to a particular instance of the vscode namespace,
@@ -124,6 +126,15 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 documentManager,
                 languageServiceClient,
                 logger);
+            const legend = await languageServiceClient.getSemanticTokenLegend();
+            const semanticTokenProvider = new RazorDocumentSemanticTokensProvider(
+              documentSynchronizer,
+              documentManager,
+              languageServiceClient,
+              logger);
+            if (legend) {
+                localRegistrations.push(vscodeType.languages.registerDocumentSemanticTokensProvider(RazorLanguage.id, semanticTokenProvider, legend));
+            }
 
             localRegistrations.push(
                 languageConfiguration.register(),
@@ -165,11 +176,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 listenToConfigurationChanges(languageServerClient));
 
             if (enableProposedApis) {
-                const proposedApisFeature = new ProposedApisFeature(
-                    documentSynchronizer,
-                    documentManager,
-                    languageServiceClient,
-                    logger);
+                const proposedApisFeature = new ProposedApisFeature();
 
                 await proposedApisFeature.register(vscodeType, localRegistrations);
             }
@@ -181,6 +188,9 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
             localRegistrations.forEach(r => r.dispose());
             localRegistrations.length = 0;
         });
+
+        const provider = new BlazorDebugConfigurationProvider(logger, vscodeType);
+        context.subscriptions.push(vscodeType.debug.registerDebugConfigurationProvider('blazorwasm', provider));
 
         languageServerClient.onStarted(async () => {
             await documentManager.initialize();

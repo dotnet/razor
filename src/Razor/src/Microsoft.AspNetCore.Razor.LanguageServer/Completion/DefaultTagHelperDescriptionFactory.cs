@@ -191,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // have additional doc comment types in the summary but none that require cleaning. For instance
             // if there's a <para> in the summary element when it's shown in the completion description window
             // it'll be serialized as html (wont show).
-
+            summaryContent = summaryContent.Trim();
             var crefMatches = ExtractCrefRegex.Value.Matches(summaryContent);
             var summaryBuilder = new StringBuilder(summaryContent);
 
@@ -212,6 +212,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return finalSummaryContent;
         }
 
+        private static readonly char[] NewLineChars = new char[]{'\n', '\r'};
+
         // Internal for testing
         internal static bool TryExtractSummary(string documentation, out string summary)
         {
@@ -224,16 +226,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return false;
             }
 
-            var summaryTagStart = documentation.IndexOf(summaryStartTag, StringComparison.OrdinalIgnoreCase);
-            if (summaryTagStart == -1)
-            {
-                summary = null;
-                return false;
-            }
+            documentation = documentation.Trim(NewLineChars);
 
+            var summaryTagStart = documentation.IndexOf(summaryStartTag, StringComparison.OrdinalIgnoreCase);
             var summaryTagEndStart = documentation.IndexOf(summaryEndTag, StringComparison.OrdinalIgnoreCase);
-            if (summaryTagEndStart == -1)
+            if (summaryTagStart == -1 || summaryTagEndStart == -1)
             {
+                // A really wrong but cheap way to check if this is XML
+                if (!documentation.StartsWith("<") && !documentation.EndsWith(">"))
+                {
+                    // This doesn't look like a doc comment, we'll return it as-is.
+                    summary = documentation;
+                    return true;
+                }
+
                 summary = null;
                 return false;
             }

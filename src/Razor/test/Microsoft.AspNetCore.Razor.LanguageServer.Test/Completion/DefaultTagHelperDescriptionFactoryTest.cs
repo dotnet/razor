@@ -307,6 +307,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
+        public void TryExtractSummary_Null_ReturnsFalse()
+        {
+            // Arrange & Act
+            var result = DefaultTagHelperDescriptionFactory.TryExtractSummary(documentation: null, out var summary);
+
+            // Assert
+            Assert.False(result);
+            Assert.Null(summary);
+        }
+
+        [Fact]
         public void TryExtractSummary_ExtractsSummary_ReturnsTrue()
         {
             // Arrange
@@ -343,12 +354,17 @@ Suffixed invalid content";
             var result = DefaultTagHelperDescriptionFactory.TryExtractSummary(documentation, out var summary);
 
             // Assert
-            Assert.False(result);
-            Assert.Null(summary);
+            Assert.True(result);
+            Assert.Equal(@"Prefixed invalid content
+
+
+</summary>
+
+Suffixed invalid content", summary);
         }
 
         [Fact]
-        public void TryExtractSummary_NoEndSummary_ReturnsFalse()
+        public void TryExtractSummary_NoEndSummary_ReturnsTrue()
         {
             // Arrange
             var documentation = @"
@@ -363,8 +379,46 @@ Suffixed invalid content";
             var result = DefaultTagHelperDescriptionFactory.TryExtractSummary(documentation, out var summary);
 
             // Assert
+            Assert.True(result);
+            Assert.Equal(@"Prefixed invalid content
+
+
+<summary>
+
+Suffixed invalid content", summary);
+        }
+
+        [Fact]
+        public void TryExtractSummary_XMLButNoSummary_ReturnsFalse()
+        {
+            // Arrange
+            var documentation = @"
+<param type=""stuff"">param1</param>
+<return>Result</return>
+";
+
+            // Act
+            var result = DefaultTagHelperDescriptionFactory.TryExtractSummary(documentation, out var summary);
+
+            // Assert
             Assert.False(result);
             Assert.Null(summary);
+        }
+
+        [Fact]
+        public void TryExtractSummary_NoXml_ReturnsTrue()
+        {
+            // Arrange
+            var documentation = @"
+There is no xml, but I got you this < and the >.
+";
+
+            // Act
+            var result = DefaultTagHelperDescriptionFactory.TryExtractSummary(documentation, out var summary);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal("There is no xml, but I got you this < and the >.", summary);
         }
 
         [Fact]
@@ -401,17 +455,16 @@ Suffixed invalid content";
             Hello
 
     World
+
 ";
 
             // Act
             var cleanedSummary = DefaultTagHelperDescriptionFactory.CleanSummaryContent(summary);
 
             // Assert
-            Assert.Equal(@"
-Hello
+            Assert.Equal(@"Hello
 
-World
-", cleanedSummary);
+World", cleanedSummary);
         }
 
         [Fact]
@@ -532,8 +585,8 @@ Uses `List<System.String>`s", markdown.Value);
             var descriptionFactory = new DefaultTagHelperDescriptionFactory(LanguageServer);
             var associatedTagHelperInfos = new[]
             {
-                new TagHelperDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
-                new TagHelperDescriptionInfo("Microsoft.AspNetCore.OtherTagHelper", "<summary>Also uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
+                new TagHelperDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
+                new TagHelperDescriptionInfo("Microsoft.AspNetCore.OtherTagHelper", "<summary>\nAlso uses <see cref=\"T:System.Collections.List{System.String}\" />s\n\r\n\r\r</summary>"),
             };
             var elementDescription = new ElementDescriptionInfo(associatedTagHelperInfos);
 
@@ -594,7 +647,7 @@ Uses `List<System.String>`s", markdown.Value);
                     displayName: "System.Boolean? Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName.AnotherProperty",
                     propertyName: "AnotherProperty",
                     returnTypeName: "System.Boolean?",
-                    documentation: "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
+                    documentation: "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
             };
             var attributeDescription = new AttributeDescriptionInfo(associatedAttributeDescriptions);
 
