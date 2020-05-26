@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
             else
             {
-                throw new InvalidOperationException($"Couldn't remove {uri.AbsolutePath}. This should never ever happen.");
+                Debug.Fail($"Couldn't remove {uri.AbsolutePath}. This should never ever happen.");
             }
         }
 
