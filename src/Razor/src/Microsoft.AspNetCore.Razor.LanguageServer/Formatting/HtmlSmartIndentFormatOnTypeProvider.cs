@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (!context.Options.TryGetValue(LanguageServerConstants.ExpectsCursorPlaceholderKey, out var value) && value.IsBool)
+            if (!context.Options.TryGetValue(LanguageServerConstants.ExpectsCursorPlaceholderKey, out var value) || !value.IsBool || !value.Bool)
             {
                 // Temporary:
                 // no-op if cursor placeholder isn't supported. This means the request isn't coming from VS.
