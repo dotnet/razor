@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Razor
             _tagHelperResolver = _projectManager.Workspace.Services.GetRequiredService<TagHelperResolver>();
         }
 
-        public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot)
+        public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationTokenSource cts = default)
         {
             if (projectSnapshot == null)
             {
@@ -82,7 +82,11 @@ namespace Microsoft.CodeAnalysis.Razor
                 updateItem?.Cts.Dispose();
             }
 
-            var cts = new CancellationTokenSource();
+            if (cts is null)
+            {
+                cts = new CancellationTokenSource();
+            }
+
             var updateTask = Task.Factory.StartNew(
                 () => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, cts.Token),
                 cts.Token,
@@ -209,30 +213,6 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 NotifyBackgroundWorkCompleted.Set();
             }
-        }
-
-        // Internal for testing
-        internal class UpdateItem
-        {
-            public UpdateItem(Task task, CancellationTokenSource cts)
-            {
-                if (task == null)
-                {
-                    throw new ArgumentNullException(nameof(task));
-                }
-
-                if (cts == null)
-                {
-                    throw new ArgumentNullException(nameof(cts));
-                }
-
-                Task = task;
-                Cts = cts;
-            }
-
-            public Task Task { get; }
-
-            public CancellationTokenSource Cts { get; }
         }
     }
 }

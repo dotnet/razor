@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // are being initialized.
         //
         // Internal for testing
-        internal Dictionary<ProjectId, Task> _deferredUpdates;
+        internal Dictionary<ProjectId, UpdateItem> _deferredUpdates;
 
         [ImportingConstructor]
         public WorkspaceProjectStateChangeDetector(ProjectWorkspaceStateGenerator workspaceStateGenerator)
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _projectManager.Changed += ProjectManager_Changed;
             _projectManager.Workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
 
-            _deferredUpdates = new Dictionary<ProjectId, Task>();
+            _deferredUpdates = new Dictionary<ProjectId, UpdateItem>();
 
             // This will usually no-op, in the case that another project snapshot change trigger immediately adds projects we want to be able to handle those projects
             InitializeSolution(_projectManager.Workspace.CurrentSolution);
@@ -248,15 +249,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // A race is not possible here because we use the main thread to synchronize the updates
             // by capturing the sync context.
-            if (!_deferredUpdates.TryGetValue(projectId, out var update) || update.IsCompleted)
+            if (_deferredUpdates.TryGetValue(projectId, out var deferredUpdate) && !deferredUpdate.Task.IsCompleted && !deferredUpdate.Task.IsCanceled)
             {
-                _deferredUpdates[projectId] = UpdateAfterDelay(projectId);
+                deferredUpdate.Cts.Cancel();
             }
+
+            var cts = new CancellationTokenSource();
+            _deferredUpdates[projectId] = new UpdateItem(UpdateAfterDelay(projectId, cts), cts);
         }
 
-        private async Task UpdateAfterDelay(ProjectId projectId)
+        private async Task UpdateAfterDelay(ProjectId projectId, CancellationTokenSource cts)
         {
-            await Task.Delay(EnqueueDelay);
+            await Task.Delay(EnqueueDelay, cts.Token);
 
             OnStartingDelayedUpdate();
 
@@ -264,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var workspaceProject = solution.GetProject(projectId);
             if (workspaceProject != null && TryGetProjectSnapshot(workspaceProject.FilePath, out var projectSnapshot))
             {
-                _workspaceStateGenerator.Update(workspaceProject, projectSnapshot);
+                _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, cts);
             }
         }
 
