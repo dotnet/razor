@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Razor
             _tagHelperResolver = _projectManager.Workspace.Services.GetRequiredService<TagHelperResolver>();
         }
 
-        public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationTokenSource cts = default)
+        public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
         {
             if (projectSnapshot == null)
             {
@@ -82,18 +82,14 @@ namespace Microsoft.CodeAnalysis.Razor
                 updateItem?.Cts.Dispose();
             }
 
-            if (cts is null)
-            {
-                cts = new CancellationTokenSource();
-            }
-
+            var lcts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var updateTask = Task.Factory.StartNew(
-                () => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, cts.Token),
-                cts.Token,
+                () => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, lcts.Token),
+                lcts.Token,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.BackgroundScheduler).Unwrap();
             updateTask.ConfigureAwait(false);
-            updateItem = new UpdateItem(updateTask, cts);
+            updateItem = new UpdateItem(updateTask, lcts);
             _updates[projectSnapshot.FilePath] = updateItem;
         }
 
@@ -213,6 +209,30 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 NotifyBackgroundWorkCompleted.Set();
             }
+        }
+
+        // Internal for testing
+        internal class UpdateItem
+        {
+            public UpdateItem(Task task, CancellationTokenSource cts)
+            {
+                if (task == null)
+                {
+                    throw new ArgumentNullException(nameof(task));
+                }
+
+                if (cts == null)
+                {
+                    throw new ArgumentNullException(nameof(cts));
+                }
+
+                Task = task;
+                Cts = cts;
+            }
+
+            public Task Task { get; }
+
+            public CancellationTokenSource Cts { get; }
         }
     }
 }

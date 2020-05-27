@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                         if (TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
                         {
-                            _workspaceStateGenerator.Update(project, projectSnapshot);
+                            _workspaceStateGenerator.Update(project, projectSnapshot, CancellationToken.None);
                         }
                         break;
                     }
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                         if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
                         {
-                            _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot);
+                            _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot, CancellationToken.None);
                         }
 
                         break;
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                             if (TryGetProjectSnapshot(p?.FilePath, out var projectSnapshot))
                             {
-                                _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot);
+                                _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot, CancellationToken.None);
                             }
                         }
                     }
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
                 {
-                    _workspaceStateGenerator.Update(project, projectSnapshot);
+                    _workspaceStateGenerator.Update(project, projectSnapshot, CancellationToken.None);
                 }
             }
         }
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                 if (associatedWorkspaceProject != null)
                 {
-                    _workspaceStateGenerator.Update(associatedWorkspaceProject, args.Newer);
+                    _workspaceStateGenerator.Update(associatedWorkspaceProject, args.Newer, CancellationToken.None);
                 }
             }
         }
@@ -255,12 +255,21 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             var cts = new CancellationTokenSource();
-            _deferredUpdates[projectId] = new UpdateItem(UpdateAfterDelay(projectId, cts), cts);
+            var updateTask = UpdateAfterDelay(projectId, cts);
+            _deferredUpdates[projectId] = new UpdateItem(updateTask, cts);
         }
 
         private async Task UpdateAfterDelay(ProjectId projectId, CancellationTokenSource cts)
         {
-            await Task.Delay(EnqueueDelay, cts.Token);
+            try
+            {
+                await Task.Delay(EnqueueDelay, cts.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                // Task cancelled, don't queue additional work.
+                return;
+            }
 
             OnStartingDelayedUpdate();
 
@@ -268,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var workspaceProject = solution.GetProject(projectId);
             if (workspaceProject != null && TryGetProjectSnapshot(workspaceProject.FilePath, out var projectSnapshot))
             {
-                _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, cts);
+                _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, cts.Token);
             }
         }
 
@@ -282,6 +291,30 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             projectSnapshot = _projectManager.GetLoadedProject(projectFilePath);
             return projectSnapshot != null;
+        }
+
+        // Internal for testing
+        internal class UpdateItem
+        {
+            public UpdateItem(Task task, CancellationTokenSource cts)
+            {
+                if (task == null)
+                {
+                    throw new ArgumentNullException(nameof(task));
+                }
+
+                if (cts == null)
+                {
+                    throw new ArgumentNullException(nameof(cts));
+                }
+
+                Task = task;
+                Cts = cts;
+            }
+
+            public Task Task { get; }
+
+            public CancellationTokenSource Cts { get; }
         }
     }
 }

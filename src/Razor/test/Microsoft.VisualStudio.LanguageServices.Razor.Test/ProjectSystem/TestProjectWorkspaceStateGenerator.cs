@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Test
         {
         }
 
-        public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationTokenSource cts)
+        public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
         {
             var update = (workspaceProject, projectSnapshot);
             _updates.Add(update);

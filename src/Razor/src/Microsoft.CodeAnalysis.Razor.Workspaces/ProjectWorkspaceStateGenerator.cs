@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal abstract class ProjectWorkspaceStateGenerator : ProjectSnapshotChangeTrigger
     {
-        public abstract void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationTokenSource cts = default);
+        public abstract void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken);
     }
 }
