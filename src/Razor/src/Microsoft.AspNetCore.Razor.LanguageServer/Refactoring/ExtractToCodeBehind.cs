@@ -29,19 +29,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var directiveBody = context.Document.GetSourceText().GetSubTextString(cSharpCodeBlockNode.Span.AsCodeAnalysisTextSpan());
-            var directiveBodyNodeLocation = directiveNode.GetSourceLocation(context.Document.Source);
+            var directiveContents = context.Document.GetSourceText().GetSubTextString(cSharpCodeBlockNode.Span.AsCodeAnalysisTextSpan());
 
-            var changes = new Dictionary<Uri, IEnumerable<TextEdit>>();
-            var end = context.Document.Source.Lines.GetLocation(directiveNode.Span.End + 1);
-            changes[context.Request.TextDocument.Uri] = new[]
+            var changes = new Dictionary<Uri, IEnumerable<TextEdit>>
             {
-                new TextEdit()
+                [context.Request.TextDocument.Uri] = new[]
                 {
-                    NewText = "",
-                    Range = new Range(
-                        new Position(directiveBodyNodeLocation.LineIndex, directiveBodyNodeLocation.CharacterIndex),
-                        new Position(end.LineIndex, end.CharacterIndex))
+                    new TextEdit()
+                    {
+                        NewText = "",
+                        Range = directiveNode.AsRange(context.Document)
+                    }
                 }
             };
 
