@@ -1,28 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
-    class RazorSyntaxExtensions
+    static class RazorSyntaxExtensions
     {
-
-        private static readonly SyntaxKind[] RelevantSpanKinds = new SyntaxKind[]
+        /// <summary>
+        /// Search for the deepest descendent whose span contains the location and satisfying the filter, if provided.
+        /// Will null if such a node is not found.
+        /// </summary>
+        /// <param name="codeDocument">This code document.</param>
+        /// <param name="location">The location to search for.</param>
+        /// <param name="filter">SyntaxNode constraint.</param>
+        /// <returns>A node at the given location or null.</returns>
+        public static SyntaxNode GetNodeAtLocation(this RazorCodeDocument codeDocument, SourceLocation location, Func<SyntaxNode, bool> filter = null)
         {
-            SyntaxKind.RazorMetaCode,
-            SyntaxKind.CSharpTransition,
-            SyntaxKind.MarkupTransition,
-            SyntaxKind.CSharpStatementLiteral,
-            SyntaxKind.CSharpExpressionLiteral,
-            SyntaxKind.CSharpEphemeralTextLiteral,
-            SyntaxKind.MarkupTextLiteral,
-            SyntaxKind.MarkupEphemeralTextLiteral,
-            SyntaxKind.UnclassifiedTextLiteral,
-        };
+            return GetNodeAtLocation(codeDocument.GetSyntaxTree().Root, location, filter);
+        }
 
-        public static SyntaxNode GetNodeFromLocation(SyntaxNode node, SourceLocation location)
+        private static SyntaxNode GetNodeAtLocation(SyntaxNode node, SourceLocation location, Func<SyntaxNode, bool> filter = null)
         {
             if (node == null)
             {
@@ -30,53 +28,47 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             // Shortcircuit if we're out of the possible bounds
-            if (location.AbsoluteIndex < node.Position || node.EndPosition < location.AbsoluteIndex)
+            if (location.AbsoluteIndex < node.Position || node.EndPosition <= location.AbsoluteIndex)
             {
-                
                 return null;
             }
 
-            if (RelevantSpanKinds.Contains(node.Kind))
+            foreach (var child in GetChildNodes(node))
             {
-                if (node.Position <= location.AbsoluteIndex && location.AbsoluteIndex < node.EndPosition)
+                var descendant = GetNodeAtLocation(child, location, filter);
+                if (descendant != null)
                 {
-                    return node;
+                    return descendant;
                 }
             }
 
-            IReadOnlyList<SyntaxNode> children;
+            if (filter is null || filter(node))
+            {
+                return node;
+            }
+
+            return null;
+        }
+
+        public static IReadOnlyList<SyntaxNode> GetChildNodes(SyntaxNode node)
+        {
             if (node is MarkupStartTagSyntax startTag)
             {
-                children = startTag.Children;
+                return startTag.Children;
             }
             else if (node is MarkupEndTagSyntax endTag)
             {
-                children = endTag.Children;
+                return endTag.Children;
             }
             else if (node is MarkupTagHelperStartTagSyntax startTagHelper)
             {
-                children = startTagHelper.Children;
+                return startTagHelper.Children;
             }
             else if (node is MarkupTagHelperEndTagSyntax endTagHelper)
             {
-                children = endTagHelper.Children;
+                return endTagHelper.Children;
             }
-            else
-            {
-                children = node.ChildNodes();
-            }
-
-            for (int i = 0; i < children.Count; i++)
-            {
-                var child = children[i];
-                node = GetNodeFromLocation(child, location);
-                if (node != null)
-                {
-                    break;
-                }
-            }
-
-            return node;
+            return node.ChildNodes();
         }
     }
 }

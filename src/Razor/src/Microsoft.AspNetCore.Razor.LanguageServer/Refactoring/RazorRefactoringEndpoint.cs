@@ -23,13 +23,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private readonly ILogger _logger;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
-        private readonly RazorSyntaxService _syntaxService;
         private RenameCapability _renameCapability;
 
         public RazorRefactoringEndpoint(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
-            RazorSyntaxService syntaxService,
             ILoggerFactory loggerFactory)
         {
             if (foregroundDispatcher == null)
@@ -47,14 +45,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            if (syntaxService == null)
-            {
-                throw new ArgumentNullException(nameof(syntaxService));
-            }
-
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
-            _syntaxService = syntaxService;
             _logger = loggerFactory.CreateLogger<RazorRefactoringEndpoint>();
             _logger.LogDebug("Instantiated RazorRefactoringEndpoint");
         }
@@ -79,7 +71,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var document = await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
@@ -98,10 +89,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character);
-            var node = _syntaxService.GetNode(codeDocument, location);
-
-            _logger.LogDebug($"Refactoring: {node}");
-
+        
             return null;
         }
 

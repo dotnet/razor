@@ -1,6 +1,6 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.JsonRpc.Client;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
@@ -22,13 +21,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private readonly ILogger _logger;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
-        private readonly RazorSyntaxService _syntaxService;
         private CodeActionCapability _capability;
+
+        private static IRazorRefactoringCodeActionProvider[] _providers = {
+            new ExtractToCodeBehindCodeActionProvider(),
+        };
 
         public RazorRefactoringCodeActionEndpoint(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
-            RazorSyntaxService syntaxService,
             ILoggerFactory loggerFactory)
         {
             if (foregroundDispatcher is null)
@@ -46,14 +47,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            if (syntaxService is null)
-            {
-                throw new ArgumentNullException(nameof(syntaxService));
-            }
-
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
-            _syntaxService = syntaxService;
             _logger = loggerFactory.CreateLogger<RazorRefactoringEndpoint>();
             _logger.LogDebug("Instantiated RazorRefactoringEndpoint");
         }
@@ -76,7 +71,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var document = await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
@@ -95,57 +89,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var linePosition = new LinePosition((int)request.Range.Start.Line, (int)request.Range.Start.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, (int)request.Range.Start.Line, (int)request.Range.Start.Character);
-            var node = _syntaxService.GetNode(codeDocument, location);
 
-            if (node.Kind == SyntaxKind.RazorMetaCode)
+            var context = new RefactoringContext(request, codeDocument, location);
+            var tasks = new List<Task<CommandOrCodeActionContainer>>();
+
+            foreach (var provider in _providers)
             {
-                return HandleExtractMetaCode(request, codeDocument, node);
+                tasks.Add(provider.Provide(context, cancellationToken));
             }
 
-            return null;
-        }
-
-        private CommandOrCodeActionContainer HandleExtractMetaCode(CodeActionParams request, RazorCodeDocument codeDocument, SyntaxNode node)
-        {
-            if (node.Parent.Kind != SyntaxKind.RazorDirectiveBody)
+            var results = await Task.WhenAll(tasks);
+            var container = new List<CommandOrCodeAction>();
+            foreach (var result in results)
             {
-                return null;
-            }
-
-            var directiveBodyNode = (RazorDirectiveBodySyntax)node.Parent;
-
-            // Not sure why this needs to occur twice, it's just how the syntax tree is built
-            var cSharpCodeBlockNode = GetChildCSharpCodeBlock(GetChildCSharpCodeBlock(directiveBodyNode));
-
-            if (cSharpCodeBlockNode is null)
-            {
-                _logger.LogError($"Could not find expected code block!");
-                return null;
-            }
-
-            var directiveBody = codeDocument.GetSourceText().GetSubTextString(new CodeAnalysis.Text.TextSpan(
-                cSharpCodeBlockNode.Span.Start,
-                cSharpCodeBlockNode.Span.Length));
-            var directiveBodyNodeLocation = node.GetSourceLocation(codeDocument.Source);
-
-            var changes = new Dictionary<Uri, IEnumerable<TextEdit>>();
-            changes[request.TextDocument.Uri] = new[]
-            {
-                new TextEdit()
+                if (result != null)
                 {
-                    NewText = "",
-                    Range = new Range()
+                    foreach (var commandOrCodeAction in result)
+                    {
+                        container.Add(commandOrCodeAction);
+                    }
                 }
-            };
+            }
 
-            return new CommandOrCodeActionContainer(new CodeAction()
-            {
-                Title = "Extract code block into backing document",
-                Edit = new WorkspaceEdit()
-                {
-                    Changes = changes,
-                }
-            });
+            return container;
         }
 
         private CSharpCodeBlockSyntax GetChildCSharpCodeBlock(SyntaxNode node)
