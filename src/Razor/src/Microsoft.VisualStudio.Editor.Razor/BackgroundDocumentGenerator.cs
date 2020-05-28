@@ -173,7 +173,6 @@ namespace Microsoft.CodeAnalysis.Razor
                 if (_projectManager.IsDocumentOpen(document.FilePath))
                 {
                     _infoProvider.SuppressDocument(project.FilePath, document.FilePath);
-                    return;
                 }
 
                 // We only want to store the last 'seen' version of any given document. That way when we pick one to process
