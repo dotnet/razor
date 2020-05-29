@@ -170,9 +170,10 @@ namespace Microsoft.CodeAnalysis.Razor
 
             lock (_work)
             {
-                if (_projectManager.IsDocumentOpen(document.FilePath))
+                if (_projectManager.IsDocumentOpen(document.FilePath) && _infoProvider.SupportsSupression)
                 {
                     _infoProvider.SuppressDocument(project.FilePath, document.FilePath);
+                    return;
                 }
 
                 // We only want to store the last 'seen' version of any given document. That way when we pick one to process

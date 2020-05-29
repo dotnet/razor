@@ -7,6 +7,8 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal abstract class RazorDynamicFileInfoProvider
     {
+        public bool SupportsSupression { get; protected set; } = true;
+
         public abstract void UpdateLSPFileInfo(Uri documentUri, DynamicDocumentContainer documentContainer);
 
         public abstract void UpdateFileInfo(string projectFilePath, DynamicDocumentContainer documentContainer);
