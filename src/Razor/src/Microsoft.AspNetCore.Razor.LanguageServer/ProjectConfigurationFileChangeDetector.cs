@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return;
             }
 
-            _watcher = new DefaultFileSystemWatcher(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile)
+            _watcher = new RazorFileSystemWatcher(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile)
             {
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
                 IncludeSubdirectories = true,

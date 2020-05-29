@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class DefaultFileSystemWatcher : FileSystemWatcher
+    internal class RazorFileSystemWatcher : FileSystemWatcher
     {
         // Without trimming trailing `/`, `\\` from the workspace directory, the FileSystemWatcher
         // returns with paths of the form   "workspaceDirectory/\\Pages\\Counter.razor"
@@ -14,12 +14,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         //                                  "workspaceDirectory/Pages/Counter.razor"
         // https://github.com/dotnet/aspnetcore-tooling/blob/488cf6e/src/Razor/src/Microsoft.AspNetCore.Razor.LanguageServer/ProjectSystem/DefaultRazorProjectService.cs#L328
         // Consequently, files are being discarded into the MISC project and subsequently re-generated
-        public DefaultFileSystemWatcher(string path)
+        public RazorFileSystemWatcher(string path)
             : base(path.TrimEnd('/','\\'))
         {
         }
 
-        public DefaultFileSystemWatcher(string path, string filter)
+        public RazorFileSystemWatcher(string path, string filter)
             : base(path.TrimEnd('/','\\'), filter)
         {
         }
