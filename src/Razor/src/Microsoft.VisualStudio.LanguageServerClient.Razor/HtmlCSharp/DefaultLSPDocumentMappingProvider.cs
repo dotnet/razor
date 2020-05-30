@@ -102,23 +102,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             foreach (var entry in documentEdits)
             {
                 var uri = entry.TextDocument.Uri;
-                var edits = entry.Edits;
                 if (!CanRemap(uri))
                 {
                     // This location doesn't point to a background razor file. No need to remap.
-                    remappedDocumentEdits.Add(new TextDocumentEdit()
-                    {
-                        TextDocument = new VersionedTextDocumentIdentifier()
-                        {
-                            Uri = uri,
-                            Version = entry.TextDocument.Version
-                        },
-                        Edits = edits
-                    });
+                    remappedDocumentEdits.Add(entry);
 
                     continue;
                 }
 
+                var edits = entry.Edits;
                 var (documentSnapshot, remappedEdits) = await RemapTextEditsAsync(uri, edits, cancellationToken).ConfigureAwait(false);
                 if (documentSnapshot == null)
                 {
@@ -162,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                remappedChanges[documentSnapshot.Uri.GetAbsoluteOrUNCPath()] = remappedEdits;
+                remappedChanges[documentSnapshot.Uri.AbsoluteUri] = remappedEdits;
             }
 
             return remappedChanges;

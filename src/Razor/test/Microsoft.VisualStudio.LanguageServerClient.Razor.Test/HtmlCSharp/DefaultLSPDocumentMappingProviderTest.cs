@@ -96,9 +96,120 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Equal(expectedRange, actualEdit.Range);
         }
 
+        [Fact]
+        public async Task RemapWorkspaceEditAsync_DocumentChangesNull_RemapsEditsAsExpected()
+        {
+            // Arrange
+            var expectedRange = new TestRange(1, 1, 1, 5);
+            var expectedVersion = 1;
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(RazorFile, Mock.Of<LSPDocumentSnapshot>(d => d.Version == expectedVersion && d.Uri == RazorFile));
+
+            var requestInvoker = GetRequestInvoker(new[]
+            {
+                ((RazorLanguageKind.CSharp, RazorFile, new TestRange(10, 10, 10, 15)), (expectedRange, expectedVersion))
+            });
+            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, documentManager);
+
+            var workspaceEdit = new TestWorkspaceEdit(versionedEdits: false);
+            workspaceEdit.AddEdits(RazorVirtualCSharpFile, 10, new TestTextEdit("newText", new TestRange(10, 10, 10, 15)));
+
+            // Act
+            var result = await mappingProvider.RemapWorkspaceEditAsync(workspaceEdit, CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.Null(result.DocumentChanges);
+            var change = Assert.Single(result.Changes);
+            Assert.Equal(RazorFile.AbsoluteUri, change.Key);
+
+            var actualEdit = Assert.Single(change.Value);
+            Assert.Equal("newText", actualEdit.NewText);
+            Assert.Equal(expectedRange, actualEdit.Range);
+        }
+
+        [Fact]
+        public async Task RemapWorkspaceEditAsync_DoesNotRemapsNonRazorFiles()
+        {
+            // Arrange
+            var expectedRange = new TestRange(10, 10, 10, 15);
+            var expectedVersion = 10;
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(CSharpFile, Mock.Of<LSPDocumentSnapshot>());
+
+            var requestInvoker = GetRequestInvoker(mappingPairs: null); // will throw if RequestInvoker is called.
+            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, documentManager);
+
+            var workspaceEdit = new TestWorkspaceEdit(versionedEdits: true);
+            workspaceEdit.AddEdits(CSharpFile, expectedVersion, new TestTextEdit("newText", expectedRange));
+
+            // Act
+            var result = await mappingProvider.RemapWorkspaceEditAsync(workspaceEdit, CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            var documentEdit = Assert.Single(result.DocumentChanges);
+            Assert.Equal(CSharpFile, documentEdit.TextDocument.Uri);
+            Assert.Equal(expectedVersion, documentEdit.TextDocument.Version);
+
+            var actualEdit = Assert.Single(documentEdit.Edits);
+            Assert.Equal("newText", actualEdit.NewText);
+            Assert.Equal(expectedRange, actualEdit.Range);
+        }
+
+        [Fact]
+        public async Task RemapWorkspaceEditAsync_RemapsMultipleRazorFiles()
+        {
+            // Arrange
+            var expectedRange1 = new TestRange(1, 1, 1, 5);
+            var expectedRange2 = new TestRange(5, 5, 5, 10);
+            var expectedVersion1 = 1;
+            var expectedVersion2 = 5;
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(RazorFile, Mock.Of<LSPDocumentSnapshot>(d => d.Version == expectedVersion1 && d.Uri == RazorFile));
+            documentManager.AddDocument(AnotherRazorFile, Mock.Of<LSPDocumentSnapshot>(d => d.Version == expectedVersion2 && d.Uri == AnotherRazorFile));
+
+            var requestInvoker = GetRequestInvoker(new[]
+            {
+                ((RazorLanguageKind.CSharp, RazorFile, new TestRange(10, 10, 10, 15)), (expectedRange1, expectedVersion1)),
+                ((RazorLanguageKind.CSharp, AnotherRazorFile, new TestRange(20, 20, 20, 25)), (expectedRange2, expectedVersion2))
+            });
+            var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker, documentManager);
+
+            var workspaceEdit = new TestWorkspaceEdit(versionedEdits: true);
+            workspaceEdit.AddEdits(RazorVirtualCSharpFile, 10, new TestTextEdit("newText", new TestRange(10, 10, 10, 15)));
+            workspaceEdit.AddEdits(AnotherRazorVirtualCSharpFile, 20, new TestTextEdit("newText", new TestRange(20, 20, 20, 25)));
+
+            // Act
+            var result = await mappingProvider.RemapWorkspaceEditAsync(workspaceEdit, CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.Collection(result.DocumentChanges,
+                d =>
+                {
+                    Assert.Equal(RazorFile, d.TextDocument.Uri);
+                    Assert.Equal(expectedVersion1, d.TextDocument.Version);
+
+                    var actualEdit = Assert.Single(d.Edits);
+                    Assert.Equal("newText", actualEdit.NewText);
+                    Assert.Equal(expectedRange1, actualEdit.Range);
+                },
+                d =>
+                {
+                    Assert.Equal(AnotherRazorFile, d.TextDocument.Uri);
+                    Assert.Equal(expectedVersion2, d.TextDocument.Version);
+
+                    var actualEdit = Assert.Single(d.Edits);
+                    Assert.Equal("newText", actualEdit.NewText);
+                    Assert.Equal(expectedRange2, actualEdit.Range);
+                });
+        }
+
         private LSPRequestInvoker GetRequestInvoker(((RazorLanguageKind, Uri, TestRange), (TestRange, int))[] mappingPairs)
         {
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+            if (mappingPairs == null)
+            {
+                return requestInvoker.Object;
+            }
 
             // mappingPairs will contain the request/response pair for each of MapToDocumentRange LSP request we want to mock.
             foreach (var ((kind, uri, projectedRange), (mappedRange, version)) in mappingPairs)
@@ -137,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             public void AddEdits(Uri uri, int version, params TextEdit[] edits)
             {
-                Changes[uri.GetAbsoluteOrUNCPath()] = edits;
+                Changes[uri.AbsoluteUri] = edits;
 
                 DocumentChanges = DocumentChanges?.Append(new TextDocumentEdit()
                 {
