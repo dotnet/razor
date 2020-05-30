@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             lock (_work)
             {
-                if (_projectManager.IsDocumentOpen(document.FilePath) && _infoProvider.SupportsSupression)
+                if (_projectManager.IsDocumentOpen(document.FilePath))
                 {
                     _infoProvider.SuppressDocument(project.FilePath, document.FilePath);
                     return;

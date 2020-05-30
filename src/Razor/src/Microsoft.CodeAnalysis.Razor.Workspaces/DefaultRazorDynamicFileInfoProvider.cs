@@ -23,9 +23,10 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private readonly ConcurrentDictionary<Key, Entry> _entries;
         private readonly Func<Key, Entry> _createEmptyEntry;
         private readonly RazorDocumentServiceProviderFactory _factory;
+        private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
 
         [ImportingConstructor]
-        public DefaultRazorDynamicFileInfoProvider(RazorDocumentServiceProviderFactory factory)
+        public DefaultRazorDynamicFileInfoProvider(RazorDocumentServiceProviderFactory factory, LSPEditorFeatureDetector lspEditorFeatureDetector)
         {
             if (factory is null)
             {
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
 
             _factory = factory;
+            _lspEditorFeatureDetector = lspEditorFeatureDetector;
             _entries = new ConcurrentDictionary<Key, Entry>();
             _createEmptyEntry = (key) => new Entry(CreateEmptyInfo(key));
         }
@@ -51,9 +53,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             {
                 throw new ArgumentNullException(nameof(documentContainer));
             }
-
-            // We've identified the LSP editor is enabled, we can disable subsequent suppressions
-            SupportsSupression = false;
 
             var filePath = documentUri.GetAbsoluteOrUNCPath().Replace('/', '\\');
             KeyValuePair<Key, Entry>? associatedKvp = null;
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            if (!SupportsSupression)
+            if (_lspEditorFeatureDetector.IsLSPEditorFeatureEnabled())
             {
                 return;
             }
