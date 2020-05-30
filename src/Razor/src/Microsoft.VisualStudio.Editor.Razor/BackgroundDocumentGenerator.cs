@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly RazorDynamicFileInfoProvider _infoProvider;
         private readonly DocumentDivergenceChecker _documentDivergenceChecker;
+        private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
 
@@ -32,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Razor
         public BackgroundDocumentGenerator(
             ForegroundDispatcher foregroundDispatcher,
             RazorDynamicFileInfoProvider infoProvider,
-            DocumentDivergenceChecker documentDivergenceChecker)
+            DocumentDivergenceChecker documentDivergenceChecker,
+            LSPEditorFeatureDetector lspEditorFeatureDetector)
         {
             if (foregroundDispatcher == null)
             {
@@ -49,9 +51,15 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(documentDivergenceChecker));
             }
 
+            if (lspEditorFeatureDetector is null)
+            {
+                throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
+            }
+
             _foregroundDispatcher = foregroundDispatcher;
             _infoProvider = infoProvider;
             _documentDivergenceChecker = documentDivergenceChecker;
+            _lspEditorFeatureDetector = lspEditorFeatureDetector;
             _work = new Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>();
         }
 
@@ -154,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Razor
             _infoProvider.UpdateFileInfo(project.FilePath, container);
         }
 
-        public void Enqueue(ProjectSnapshot project, DocumentSnapshot document)
+        public void Enqueue(ProjectSnapshot project, DocumentSnapshot document, bool forceInitialDocumentGeneration = false)
         {
             if (project == null)
             {
@@ -170,7 +178,8 @@ namespace Microsoft.CodeAnalysis.Razor
 
             lock (_work)
             {
-                if (_projectManager.IsDocumentOpen(document.FilePath))
+                if (_projectManager.IsDocumentOpen(document.FilePath)
+                        && (!forceInitialDocumentGeneration || !_lspEditorFeatureDetector.IsLSPEditorFeatureEnabled()))
                 {
                     _infoProvider.SuppressDocument(project.FilePath, document.FilePath);
                     return;
@@ -313,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Razor
                         var project = e.Newer;
                         var document = project.GetDocument(e.DocumentFilePath);
 
-                        Enqueue(project, document);
+                        Enqueue(project, document, forceInitialDocumentGeneration: true);
                         foreach (var relatedDocument in project.GetRelatedDocuments(document))
                         {
                             Enqueue(project, relatedDocument);
