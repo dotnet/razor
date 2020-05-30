@@ -147,9 +147,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
-                var loader = textLoader == null ? DocumentState.EmptyLoader : (async () =>
+                var loader = textLoader == null ? DocumentState.EmptyLoader : (Func<Task<TextAndVersion>>)(() =>
                 {
-                    return await textLoader.LoadTextAndVersionAsync(Workspace, default, default);
+                    return textLoader.LoadTextAndVersionAsync(Workspace, null, CancellationToken.None);
                 });
                 var state = entry.State.WithAddedHostDocument(document, loader);
 
