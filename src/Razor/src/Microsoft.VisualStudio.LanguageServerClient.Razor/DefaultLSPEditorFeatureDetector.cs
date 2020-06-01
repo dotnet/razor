@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return false;
             }
 
-            var ivsHierarchy = ((hierarchy != null) && (hierarchy is IVsHierarchy)) ? (hierarchy as IVsHierarchy) : null;
+            var ivsHierarchy = hierarchy as IVsHierarchy;
 
             if (!IsLSPEditorFeatureEnabled())
             {
