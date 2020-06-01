@@ -30,9 +30,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             HostProject2 = new HostProject(TestProjectData.AnotherProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.AnotherProject.RootNamespace);
 
             var razorDocumentServiceProviderFactory = new DefaultRazorDocumentServiceProviderFactory();
-            LSPEnabledEditorFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorFeatureEnabled() == true);
-            LSPDisabledEditorFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorFeatureEnabled() == false);
-            DynamicFileInfoProvider = new DefaultRazorDynamicFileInfoProvider(razorDocumentServiceProviderFactory, LSPEnabledEditorFeatureDetector);
+            var testLSPEnabledEditorFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorFeatureEnabled() == true);
+            DynamicFileInfoProvider = new DefaultRazorDynamicFileInfoProvider(razorDocumentServiceProviderFactory, testLSPEnabledEditorFeatureDetector);
             DivergenceChecker = Mock.Of<DocumentDivergenceChecker>(checker => checker.PossibleDivergence(It.IsAny<DocumentSnapshot>(), It.IsAny<DocumentSnapshot>()) == true);
         }
 
@@ -45,9 +44,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private HostProject HostProject2 { get; }
 
         private DefaultRazorDynamicFileInfoProvider DynamicFileInfoProvider { get; }
-
-        private LSPEditorFeatureDetector LSPEnabledEditorFeatureDetector { get; }
-        private LSPEditorFeatureDetector LSPDisabledEditorFeatureDetector { get; }
 
         protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
         {
@@ -68,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var project = projectManager.GetLoadedProject(HostProject1.FilePath);
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker, LSPEnabledEditorFeatureDetector)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
@@ -99,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var project = projectManager.GetLoadedProject(HostProject1.FilePath);
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker, LSPEnabledEditorFeatureDetector)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
@@ -128,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var project = projectManager.GetLoadedProject(HostProject1.FilePath);
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker, LSPEnabledEditorFeatureDetector)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -167,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var project = projectManager.GetLoadedProject(HostProject1.FilePath);
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker, LSPEnabledEditorFeatureDetector)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -237,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 projectManager.DocumentAdded(HostProject1, documents[i], null);
             }
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker, LSPEnabledEditorFeatureDetector)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -293,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             projectManager.DocumentAdded(HostProject1, TestProjectData.SomeProjectComponentFile1, null);
             projectManager.DocumentAdded(HostProject1, TestProjectData.SomeProjectImportFile, null);
 
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker, LSPEnabledEditorFeatureDetector)
+            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -332,91 +328,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             Assert.False(queue.HasPendingNotifications, "Queue should have processed all notifications");
             Assert.False(queue.IsScheduledOrRunning, "Queue should not have restarted");
-        }
-
-        [ForegroundFact]
-        public async Task DocumentAdded_LSPEnabled_DocumentGenerated()
-        {
-            // Arrange
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace)
-            {
-                AllowNotifyListeners = true,
-            };
-            projectManager.ProjectAdded(HostProject1);
-
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker, LSPEnabledEditorFeatureDetector)
-            {
-                Delay = TimeSpan.FromMilliseconds(1),
-                BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
-                NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false),
-                NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false),
-                BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false),
-                NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
-            };
-
-            queue.Initialize(projectManager);
-
-            // Act & Assert
-            projectManager.MarkDocumentAsOpen(TestProjectData.SomeProjectComponentFile1.FilePath);
-            projectManager.DocumentAdded(HostProject1, TestProjectData.SomeProjectComponentFile1, null);
-
-            Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
-            Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
-
-            var kvp = Assert.Single(queue._work);
-            var expectedKey = new DocumentKey(HostProject1.FilePath, TestProjectData.SomeProjectComponentFile1.FilePath);
-            Assert.Equal(expectedKey, kvp.Key);
-
-            // Allow the background work to start.
-            queue.BlockBackgroundWorkStart.Set();
-
-            await Task.Run(() => queue.NotifyBackgroundWorkStarting.Wait(TimeSpan.FromSeconds(1)));
-
-            Assert.True(queue.IsScheduledOrRunning, "Worker should be processing now");
-
-            await Task.Run(() => queue.NotifyBackgroundCapturedWorkload.Wait(TimeSpan.FromSeconds(1)));
-            Assert.False(queue.HasPendingNotifications, "Worker should have taken all notifications");
-
-            // Allow work to complete
-            queue.BlockBackgroundWorkCompleting.Set();
-
-            await Task.Run(() => queue.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
-
-            Assert.False(queue.HasPendingNotifications, "Queue should have processed all notifications");
-            Assert.False(queue.IsScheduledOrRunning, "Queue should not have restarted");
-        }
-
-        [ForegroundFact]
-        public void DocumentAdded_LSPDisabled_DocumentNotGenerated()
-        {
-            // Arrange
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace)
-            {
-                AllowNotifyListeners = true,
-            };
-            projectManager.ProjectAdded(HostProject1);
-
-            var queue = new BackgroundDocumentGenerator(Dispatcher, DynamicFileInfoProvider, DivergenceChecker, LSPDisabledEditorFeatureDetector)
-            {
-                Delay = TimeSpan.FromMilliseconds(1),
-                BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
-                NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false),
-                NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false),
-                BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false),
-                NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false),
-            };
-
-            queue.Initialize(projectManager);
-
-            // Act & Assert
-            projectManager.MarkDocumentAsOpen(TestProjectData.SomeProjectComponentFile1.FilePath);
-            projectManager.DocumentAdded(HostProject1, TestProjectData.SomeProjectComponentFile1, null);
-
-            Assert.False(queue.IsScheduledOrRunning, "Queue should not be scheduled during Enqueue");
-            Assert.False(queue.HasPendingNotifications, "Queue should not have a notification created during Enqueue");
-
-            // Ensure no work items created
-            Assert.Empty(queue._work);
         }
     }
 }
