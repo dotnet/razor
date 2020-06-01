@@ -75,6 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var serverKind = LanguageServerKind.CSharp;
             var referenceParams = new ReferenceParams()
             {
@@ -92,6 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 serverKind,
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (result == null || result.Length == 0)
             {
@@ -123,6 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
 
                 referenceItem.Location.Uri = razorDocumentUri;
+                referenceItem.DisplayPath = razorDocumentUri.AbsolutePath;
                 referenceItem.Location.Range = mappingResult.Range;
 
                 remappedLocations.Add(referenceItem);
