@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(factory));
             }
 
+            if (lspEditorFeatureDetector is null)
+            {
+                throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
+            }
+
             _factory = factory;
             _lspEditorFeatureDetector = lspEditorFeatureDetector;
             _entries = new ConcurrentDictionary<Key, Entry>();
