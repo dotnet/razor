@@ -10,6 +10,17 @@ import { RazorLogger } from '../RazorLogger';
 
 import { HOSTED_APP_NAME, JS_DEBUG_NAME } from './Constants';
 
+function processExists(pid: number): boolean {
+  try {
+    // Executing a kill with a '0' signal will not terminate
+    // the process but check if it exists
+    process.kill(pid, 0);
+  } catch (error) {
+    return false;
+  }
+  return true;
+}
+
 export async function onDidTerminateDebugSession(
   event: DebugSession,
   logger: RazorLogger,
@@ -51,11 +62,15 @@ export async function onDidTerminateDebugSession(
   logger.logVerbose(`[DEBUGGER] Terminating debugging session with PID ${targetPid}...`);
 
   try {
-    process.kill(targetPid);
+    if (processExists(targetPid)) {
+      process.kill(targetPid);
+    }
     processes.map((proc) => {
       if (proc.ppid === targetPid) {
         logger.logVerbose(`[DEBUGGER] Terminating child process with PID ${proc.pid}...`);
-        process.kill(proc.pid);
+        if (processExists(proc.pid)) {
+          process.kill(proc.pid);
+        }
       }
     });
     logger.logVerbose(`[DEBUGGER] Debug process clean-up of PID ${targetPid} complete.`);

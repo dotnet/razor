@@ -189,7 +189,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
             localRegistrations.length = 0;
         });
 
-        const provider = new BlazorDebugConfigurationProvider(logger, vscodeType);
+        const provider = new BlazorDebugConfigurationProvider(logger, vscodeType, telemetryReporter);
         context.subscriptions.push(vscodeType.debug.registerDebugConfigurationProvider('blazorwasm', provider));
 
         languageServerClient.onStarted(async () => {

@@ -6,14 +6,16 @@
 import * as vscode from 'vscode';
 
 import { RazorLogger } from '../RazorLogger';
+import { TelemetryReporter } from '../TelemetryReporter';
 import { HOSTED_APP_NAME, JS_DEBUG_NAME } from './Constants';
 import { onDidTerminateDebugSession } from './TerminateDebugHandler';
 
 export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
-    constructor(private readonly logger: RazorLogger, private readonly vscodeType: typeof vscode) { }
+    constructor(private readonly logger: RazorLogger, private readonly vscodeType: typeof vscode, private readonly telemetryReporter: TelemetryReporter) { }
 
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, configuration: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration | undefined> {
+        this.telemetryReporter.reportBlazorWasmDebugStarted();
         /**
          * The Blazor WebAssembly app should only be launched if the
          * launch configuration is a launch request. Attach requests will
