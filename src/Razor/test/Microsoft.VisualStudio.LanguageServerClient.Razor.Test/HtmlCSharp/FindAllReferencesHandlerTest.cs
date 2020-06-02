@@ -129,7 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var remappingResult1 = new RazorMapToDocumentRangeResponse()
             {
-
                 Range = expectedLocation1.Location.Range
             };
             var remappingResult2 = new RazorMapToDocumentRangeResponse()
@@ -161,7 +160,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_CSharpProjection_RemapsExternalRazorFiles()
         {
             // Arrange
-            var called = false;
             var externalUri = new Uri("C:/path/to/someotherfile.razor");
             var expectedLocation = GetReferenceItem(5, 5, 5, 5, externalUri);
             var documentManager = new TestDocumentManager();
@@ -170,16 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
             var csharpLocation = GetReferenceItem(100, 100, 100, 100, virtualCSharpUri);
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<ReferenceParams, VSReferenceItem[]>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<ReferenceParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, LanguageServerKind, ReferenceParams, CancellationToken>((method, serverKind, definitionParams, ct) =>
-                {
-                    Assert.Equal(Methods.TextDocumentReferencesName, method);
-                    Assert.Equal(LanguageServerKind.CSharp, serverKind);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new[] { csharpLocation }));
+            var requestInvoker = MockLSPRequestInvoker(csharpLocation);
 
             var projectionResult = new ProjectionResult()
             {
@@ -196,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentMappingProvider.Setup(d => d.MapToDocumentRangeAsync(RazorLanguageKind.CSharp, externalUri, csharpLocation.Location.Range, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(remappingResult));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object);
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -207,7 +196,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await referencesHandler.HandleRequestAsync(referenceRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
             var actualLocation = Assert.Single(result);
             AssertVSReferenceItem(expectedLocation, actualLocation);
         }
@@ -216,22 +204,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_CSharpProjection_DoesNotRemapNonRazorFiles()
         {
             // Arrange
-            var called = false;
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
 
             var externalCSharpUri = new Uri("C:/path/to/someotherfile.cs");
             var externalCsharpLocation = GetReferenceItem(100, 100, 100, 100, externalCSharpUri);
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<ReferenceParams, VSReferenceItem[]>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<ReferenceParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, LanguageServerKind, ReferenceParams, CancellationToken>((method, serverKind, definitionParams, ct) =>
-                {
-                    Assert.Equal(Methods.TextDocumentReferencesName, method);
-                    Assert.Equal(LanguageServerKind.CSharp, serverKind);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new[] { externalCsharpLocation }));
+            var requestInvoker = MockLSPRequestInvoker(externalCsharpLocation);
 
             var projectionResult = new ProjectionResult()
             {
@@ -242,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object);
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -253,7 +231,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await referencesHandler.HandleRequestAsync(referenceRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
             var actualLocation = Assert.Single(result);
             AssertVSReferenceItem(externalCsharpLocation, actualLocation);
         }
@@ -262,23 +239,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_VersionMismatch_DiscardsLocation()
         {
             // Arrange
-            var called = false;
             var expectedLocation = GetReferenceItem(5, 5, 5, 5, Uri);
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 123));
 
             var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
             var csharpLocation = GetReferenceItem(100, 100, 100, 100, virtualCSharpUri);
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<ReferenceParams, VSReferenceItem[]>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<ReferenceParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, LanguageServerKind, ReferenceParams, CancellationToken>((method, serverKind, definitionParams, ct) =>
-                {
-                    Assert.Equal(Methods.TextDocumentReferencesName, method);
-                    Assert.Equal(LanguageServerKind.CSharp, serverKind);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new[] { csharpLocation }));
+            var requestInvoker = MockLSPRequestInvoker(csharpLocation);
 
             var projectionResult = new ProjectionResult()
             {
@@ -296,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentMappingProvider.Setup(d => d.MapToDocumentRangeAsync(RazorLanguageKind.CSharp, Uri, csharpLocation.Location.Range, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(remappingResult));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object);
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -307,7 +274,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await referencesHandler.HandleRequestAsync(referenceRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
             Assert.Empty(result);
         }
 
@@ -315,22 +281,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_RemapFailure_DiscardsLocation()
         {
             // Arrange
-            var called = false;
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
 
             var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
             var csharpLocation = GetReferenceItem(100, 100, 100, 100, virtualCSharpUri);
-            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<ReferenceParams, VSReferenceItem[]>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<ReferenceParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, LanguageServerKind, ReferenceParams, CancellationToken>((method, serverKind, definitionParams, ct) =>
-                {
-                    Assert.Equal(Methods.TextDocumentReferencesName, method);
-                    Assert.Equal(LanguageServerKind.CSharp, serverKind);
-                    called = true;
-                })
-                .Returns(Task.FromResult(new[] { csharpLocation }));
+            var requestInvoker = MockLSPRequestInvoker(csharpLocation);
 
             var projectionResult = new ProjectionResult()
             {
@@ -343,7 +299,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentMappingProvider.Setup(d => d.MapToDocumentRangeAsync(RazorLanguageKind.CSharp, Uri, csharpLocation.Location.Range, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult<RazorMapToDocumentRangeResponse>(null));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object);
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -354,7 +310,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await referencesHandler.HandleRequestAsync(referenceRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
             Assert.Empty(result);
         }
 
@@ -364,13 +319,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Equal(expected.DisplayPath, actual.DisplayPath);
         }
 
-        private VSReferenceItem GetReferenceItem(int startLine,
-                                                    int startCharacter,
-                                                    int endLine,
-                                                    int endCharacter,
-                                                    Uri uri,
-                                                    string documentName = "document",
-                                                    string projectName = "project")
+        private static LSPRequestInvoker MockLSPRequestInvoker(VSReferenceItem csharpLocation)
+        {
+            return Mock.Of<LSPRequestInvoker>(i =>
+                i.ReinvokeRequestOnServerAsync<ReferenceParams, VSReferenceItem[]>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<ReferenceParams>(), It.IsAny<CancellationToken>()) == Task.FromResult(new[] { csharpLocation }));
+        }
+
+        private VSReferenceItem GetReferenceItem(
+            int startLine,
+            int startCharacter,
+            int endLine,
+            int endCharacter,
+            Uri uri,
+            string documentName = "document",
+            string projectName = "project")
         {
             return new VSReferenceItem()
             {
