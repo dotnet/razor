@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { HostEventStream, TelemetryEvent } from './HostEventStream';
+import { HostEventStream, TelemetryEvent, TelemetryErrorEvent } from './HostEventStream';
 import { Trace } from './Trace';
 
 export class TelemetryReporter {
@@ -49,11 +49,13 @@ export class TelemetryReporter {
     }
 
     private reportError(eventName: string, error: Error) {
-        const errorOnActivationEvent = new TelemetryEvent(
+        const errorOnActivationEvent = new TelemetryErrorEvent(
             eventName,
             {
                 error: JSON.stringify(error),
-            });
+            },
+            /*measures*/ undefined,
+            /*errorProps*/['error']);
 
         this.eventStream.post(errorOnActivationEvent);
     }

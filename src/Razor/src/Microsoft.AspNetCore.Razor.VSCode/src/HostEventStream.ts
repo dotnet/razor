@@ -19,6 +19,16 @@ export class TelemetryEvent implements BaseEvent {
     }
 }
 
+export class TelemetryErrorEvent implements BaseEvent {
+    type = EventType.TelemetryErrorEvent;
+    constructor(
+        public eventName: string,
+        public properties?: { [key: string]: string },
+        public measures?: { [key: string]: number },
+        public errorProps?: string[]) {
+    }
+}
+
 interface BaseEvent {
     type: any;
 }
@@ -26,4 +36,5 @@ interface BaseEvent {
 // This is a sub-copied portion of OmniSharp's EventType class.
 enum EventType {
     TelemetryEvent = 1,
+    TelemetryErrorEvent = 78
 }
