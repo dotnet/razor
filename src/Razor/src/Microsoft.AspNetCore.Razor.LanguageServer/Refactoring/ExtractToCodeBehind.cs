@@ -135,18 +135,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 }
             };
 
-            var documentChanges = new Container<WorkspaceEditDocumentChange>(new[]
-            {
-                new WorkspaceEditDocumentChange(new CreateFile() {
-                    Uri = new Uri(filePath).ToString(),
-                })
-            }); ;
-
             return new RazorCodeActionComputationResponse()
             {
                 Edit = new WorkspaceEdit() {
                     Changes = changes,
-                    DocumentChanges = documentChanges,
                 }
             };
         }

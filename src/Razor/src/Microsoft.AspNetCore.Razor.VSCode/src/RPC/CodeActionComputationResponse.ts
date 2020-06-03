@@ -42,14 +42,14 @@ export interface OmniSharpDeleteDocument {
     options: {
         recursive: boolean;
         ignoreIfNotExists: boolean;
-    }
+    };
 }
 
 export type OmniSharpDocumentChange = OmniSharpCreateDocument | OmniSharpRenameDocument | OmniSharpDeleteDocument;
 
 export interface OmniSharpWorkspaceEdit {
-    changes: Map<string, OmniSharpTextEdit>;
-    documentChanges: Array<OmniSharpDocumentChange>;
+    changes?: {[key: string]: Array<OmniSharpTextEdit>};
+    documentChanges?: Array<OmniSharpDocumentChange>;
 }
 
 export interface CodeActionComputationResponse {
