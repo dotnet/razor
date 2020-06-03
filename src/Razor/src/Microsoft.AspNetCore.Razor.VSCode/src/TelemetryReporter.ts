@@ -3,13 +3,13 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { HostEventStream, TelemetryEvent, TelemetryErrorEvent } from './HostEventStream';
+import { createTelemetryErrorEvent, createTelemetryEvent, HostEventStream } from './HostEventStream';
 import { Trace } from './Trace';
 
 export class TelemetryReporter {
-    private readonly razorExtensionActivated = new TelemetryEvent('VSCode.Razor.RazorExtensionActivated');
-    private readonly debugLanguageServerEvent = new TelemetryEvent('VSCode.Razor.DebugLanguageServer');
-    private readonly workspaceContainsRazorEvent = new TelemetryEvent('VSCode.Razor.WorkspaceContainsRazor');
+    private readonly razorExtensionActivated = createTelemetryEvent('VSCode.Razor.RazorExtensionActivated');
+    private readonly debugLanguageServerEvent = createTelemetryEvent('VSCode.Razor.DebugLanguageServer');
+    private readonly workspaceContainsRazorEvent = createTelemetryEvent('VSCode.Razor.WorkspaceContainsRazor');
     private reportedWorkspaceContainsRazor = false;
 
     constructor(
@@ -19,7 +19,7 @@ export class TelemetryReporter {
     }
 
     public reportTraceLevel(trace: Trace) {
-        const traceLevelEvent = new TelemetryEvent(
+        const traceLevelEvent = createTelemetryEvent(
             'VSCode.Razor.TraceLevel',
             {
                 trace: Trace[trace],
@@ -49,7 +49,7 @@ export class TelemetryReporter {
     }
 
     private reportError(eventName: string, error: Error) {
-        const errorOnActivationEvent = new TelemetryErrorEvent(
+        const errorOnActivationEvent = createTelemetryErrorEvent(
             eventName,
             {
                 error: JSON.stringify(error),
