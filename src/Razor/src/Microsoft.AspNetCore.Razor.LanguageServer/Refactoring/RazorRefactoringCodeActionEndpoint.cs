@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -92,10 +90,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             var context = new RefactoringContext(request, codeDocument, location);
             var tasks = new List<Task<CommandOrCodeActionContainer>>();
-
+                
             foreach (var provider in _providers)
             {
-                tasks.Add(provider.Provide(context, cancellationToken));
+                var result = provider.Provide(context, cancellationToken);
+                tasks.Add(result);
             }
 
             var results = await Task.WhenAll(tasks);
@@ -112,23 +111,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             return container;
-        }
-
-        private CSharpCodeBlockSyntax GetChildCSharpCodeBlock(SyntaxNode node)
-        {
-            if (node is null)
-            {
-                return null;
-            }
-
-            foreach (var childNode in node.ChildNodes())
-            {
-                if (childNode.Kind == SyntaxKind.CSharpCodeBlock)
-                {
-                    return (CSharpCodeBlockSyntax)childNode;
-                }
-            }
-            return null;
         }
 
         public void SetCapability(CodeActionCapability capability)
