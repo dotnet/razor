@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -13,6 +14,12 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
+    public class VSInitializeResult
+    {
+        [DataMember(Name = "capabilities")]
+        public VSServerCapabilities Capabilities { get; set; }
+    }
+
     internal class RazorHtmlCSharpLanguageServer : IDisposable
     {
         private readonly JsonRpc _jsonRpc;
@@ -50,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
+        public async Task<VSInitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
         {
             if (input is null)
             {
@@ -61,8 +68,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
             _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
+            //var serverCapabilities = input["capabilities"].ToObject<VSServerCapabilities>();
             var initializeParams = input.ToObject<InitializeParams>();
-            return ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, initializeParams, _clientCapabilities, cancellationToken);
+
+            var result = await ExecuteRequestAsync<InitializeParams, VSInitializeResult>(Methods.InitializeName, initializeParams, _clientCapabilities, cancellationToken);
+
+            return result;
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
@@ -79,6 +90,31 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Dispose();
 
             return Task.CompletedTask;
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentDidOpenName, UseSingleObjectParameterDeserialization = true)]
+        public void OnTextDocumentOpened(DidOpenTextDocumentParams didOpenParams)
+        {
+            return;
+        }
+
+        /// <summary>
+        /// Sent by Visual Studio to alert server that a file was closed.
+        /// </summary>
+        /// <param name="didCloseParams"></param>
+        [JsonRpcMethod(Methods.TextDocumentDidCloseName, UseSingleObjectParameterDeserialization = true)]
+        public void OnTextDocumentDidClose(DidCloseTextDocumentParams didCloseParams)
+        {
+            return;
+        }
+
+        /// <summary>
+        /// Sent by server to synchronize text changes between the client and server.
+        /// </summary>
+        [JsonRpcMethod(Methods.TextDocumentDidChangeName, UseSingleObjectParameterDeserialization = true)]
+        public void OnTextDocumentChanged(DidChangeTextDocumentParams didChangeParams)
+        {
+            return;
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization =  true)]
@@ -189,6 +225,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentImplementationName, positionParams, _clientCapabilities, cancellationToken);
+        }
+
+        [JsonRpcMethod("textDocument/semanticTokens", UseSingleObjectParameterDeserialization = true)]
+        public Task<SemanticTokens> SemanticTokensAsync(SemanticTokensParams semanticParams, CancellationToken cancellationToken)
+        {
+            if (semanticParams is null)
+            {
+                throw new ArgumentNullException(nameof(semanticParams));
+            }
+
+            return ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>("textDocument/semanticTokens", semanticParams, _clientCapabilities, cancellationToken);
         }
 
         // Internal for testing

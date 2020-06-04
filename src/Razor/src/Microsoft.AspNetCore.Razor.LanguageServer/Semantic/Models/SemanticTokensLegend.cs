@@ -9,11 +9,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
     internal class SemanticTokensLegend
     {
-        public const string RazorTagHelperElement = "razorTagHelperElement";
-        public const string RazorTagHelperAttribute = "razorTagHelperAttribute";
-        public const string RazorTransition = "razorTransition";
-        public const string RazorDirectiveAttribute = "razorDirectiveAttribute";
-        public const string RazorDirectiveColon = "razorDirectiveColon";
+        public const string RazorTagHelperElement = "class";
+        public const string RazorTagHelperAttribute = "class";
+        public const string RazorTransition = "keyword";
+        public const string RazorDirectiveAttribute = "keyword";
+        public const string RazorDirectiveColon = "keyword";
 
         private static readonly IReadOnlyCollection<string> _tokenTypes = new string[] {
             RazorTagHelperElement,
@@ -23,7 +23,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             RazorDirectiveAttribute,
         };
 
-        private static readonly IReadOnlyCollection<string> _tokenModifiers = new string[] { };
+        private static readonly IReadOnlyCollection<string> _tokenModifiers = new string[] {
+            "None"
+        };
 
         public static readonly IReadOnlyDictionary<string, uint> TokenTypesLegend = GetMap(_tokenTypes);
 
@@ -46,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             var result = new Dictionary<string, uint>();
             for (var i = 0; i < tokens.Count(); i++)
             {
-                result.Add(tokens.ElementAt(i), (uint)i);
+                result[tokens.ElementAt(i)] = (uint)i;
             }
 
             return result;

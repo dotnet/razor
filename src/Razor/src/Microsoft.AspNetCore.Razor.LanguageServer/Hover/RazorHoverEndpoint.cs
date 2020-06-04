@@ -102,9 +102,47 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return hoverItem;
         }
 
-        public void SetCapability(HoverCapability capability)
+        public RegistrationExtensionResult GetRegistration()
         {
-            _capability = capability;
+            const string SemanticCapability = "semanticTokensProvider";
+            var legend = SemanticTokenLegend.GetResponse();
+
+            var semanticTokensOptions = new SemanticTokensOptions
+            {
+                DocumentProvider = new SemanticTokensDocumentProviderOptions
+                {
+                    Edits = false,
+                },
+                Legend = new SemanticTokensLegend
+                {
+                    TokenModifiers = new Container<string>(legend.TokenModifiers),
+                    TokenTypes = new Container<string>(legend.TokenTypes),
+                },
+                RangeProvider = false,
+            };
+
+            return new RegistrationExtensionResult(SemanticCapability, semanticTokensOptions);
+        }
+
+        private class SemanticTokensOptions
+        {
+            public SemanticTokensLegend Legend { get; set; }
+
+            public bool RangeProvider { get; set; }
+
+            public SemanticTokensDocumentProviderOptions DocumentProvider { get; set; }
+        }
+
+        private class SemanticTokensLegend
+        {
+            public Container<string> TokenTypes { get; set; }
+
+            public Container<string> TokenModifiers { get; set; }
+        }
+
+        private class SemanticTokensDocumentProviderOptions
+        {
+            public bool? Edits { get; set; }
         }
     }
 }
