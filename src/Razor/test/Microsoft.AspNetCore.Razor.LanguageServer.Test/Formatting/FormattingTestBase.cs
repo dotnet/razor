@@ -114,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var client = new FormattingLanguageServerClient();
             client.AddCodeDocument(codeDocument);
-            var languageServer = Mock.Of<ILanguageServer>(ls => ls.Client == client);
+            var languageServer = Mock.Of<IClientLanguageServer>(ls => ls == client);
             var passes = new List<IFormattingPass>()
             {
                 new CodeBlockDirectiveFormattingPass(mappingService, FilePathNormalizer, languageServer, LoggerFactory),

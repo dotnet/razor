@@ -38,6 +38,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private HostProject HostProject2 { get; }
 
         [Fact]
+        public void TryParse()
+        {
+            if (Version.TryParse("0.18.0.0", out var result))
+            {
+                Assert.NotEqual(result.Major, -1);
+
+            }
+        }
+
+        [Fact]
         public void Queue_ProcessesNotifications_AndGoesBackToSleep()
         {
             // Arrange

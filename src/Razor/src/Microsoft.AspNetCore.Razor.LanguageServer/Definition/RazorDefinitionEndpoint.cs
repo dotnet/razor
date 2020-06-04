@@ -1,9 +1,11 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
@@ -22,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         private readonly DocumentResolver _documentResolver;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
 
-        public DefinitionCapability _capability { get; private set; }
+        private DefinitionCapability _capability { get; set; }
 
         public RazorDefinitionEndpoint(
             ForegroundDispatcher foregroundDispatcher,
@@ -34,11 +37,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
         }
 
-        public TextDocumentRegistrationOptions GetRegistrationOptions()
+        public DefinitionRegistrationOptions GetRegistrationOptions()
         {
-            return new TextDocumentRegistrationOptions
+            return new DefinitionRegistrationOptions
             {
-                DocumentSelector = RazorDefaults.Selector
+                DocumentSelector = RazorDefaults.Selector,
             };
         }
 
@@ -51,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
             var documentSnapshot = await Task.Factory.StartNew(() =>
             {
-                var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
+                var path = request.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath();
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
@@ -137,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             {
                 return null;
             }
-            
+
             if (!tagHelperStartTag.Name.Span.Contains(location.AbsoluteIndex))
             {
                 return null;
@@ -150,5 +153,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
             return tagHelperElement.TagHelperInfo.BindingResult;
         }
+
     }
 }

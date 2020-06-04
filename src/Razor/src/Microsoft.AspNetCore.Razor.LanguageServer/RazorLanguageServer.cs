@@ -26,7 +26,6 @@ using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
-using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
@@ -61,30 +60,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, Action<RazorLanguageServerBuilder> configure = null)
         {
-            Serializer.Instance.Settings.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
+            // Serializer.Instance.Settings.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
             Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
 
             // Custom ClientCapabilities deserializer to extract experimental capabilities
             Serializer.Instance.JsonSerializer.Converters.Add(ExtendableClientCapabilitiesJsonConverter.Instance);
 
             ILanguageServer server = null;
+            var logLevel = trace switch
+            {
+                Trace.Messages => LogLevel.Information,
+                Trace.Off => LogLevel.None,
+                Trace.Verbose => LogLevel.Trace,
+                _ => default,
+            };
+
             server = OmniSharp.Extensions.LanguageServer.Server.LanguageServer.PreInit(options =>
                 options
                     .WithInput(input)
                     .WithOutput(output)
+                    .WithContentModifiedSupport(false)
+                    .WithSerializer(Serializer.Instance)
                     .ConfigureLogging(builder => builder
-                        .AddLanguageServer(RazorLSPOptions.GetLogLevelForTrace(trace))
-                        .SetMinimumLevel(LogLevel.Trace)) // We set the minimum level here to "Trace" to ensure that other providers still get the opportunity to act on logs if they prefer.
-                    .OnInitialized(async (s, request, response) =>
+                        .SetMinimumLevel(RazorLSPOptions.GetLogLevelForTrace(trace))
+                        .AddLanguageProtocolLogging(logLevel))
+                    .OnInitialized(async (s, request, response, cancellationToken) =>
                     {
-                        var jsonRpcHandlers = s.Services.GetServices<IJsonRpcHandler>();
-                        var registrationExtensions = jsonRpcHandlers.OfType<IRegistrationExtension>();
+                        var handlersManager = s.GetRequiredService<IHandlersManager>();
+                        var jsonRpcHandlers = handlersManager.Descriptors.Select(d => d.Handler);
+                        var registrationExtensions = jsonRpcHandlers.OfType<IRegistrationExtension>().Distinct();
                         if (registrationExtensions.Any())
                         {
                             var capabilities = new ExtendableServerCapabilities(response.Capabilities, registrationExtensions);
                             response.Capabilities = capabilities;
                         }
-
                         var fileChangeDetectorManager = s.Services.GetRequiredService<RazorFileChangeDetectorManager>();
                         await fileChangeDetectorManager.InitializedAsync();
 
@@ -104,6 +113,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorConfigurationEndpoint>()
                     .WithHandler<RazorFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokensEndpoint>()
+                    .AddHandlerLink("textDocument/semanticTokens/full/delta", LanguageServerConstants.LegacyRazorSemanticTokensEditEndpoint)
+                    .AddHandlerLink("textDocument/semanticTokens/full", LanguageServerConstants.LegacyRazorSemanticTokensEndpoint)
                     .WithHandler<RazorSemanticTokensLegendEndpoint>()
                     .WithHandler<OnAutoInsertEndpoint>()
                     .WithHandler<CodeActionEndpoint>()
@@ -111,6 +122,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<MonitorProjectConfigurationFilePathEndpoint>()
                     .WithHandler<RazorComponentRenameEndpoint>()
                     .WithHandler<RazorDefinitionEndpoint>()
+                    //.AddHandlerLink("textDocument/semanticTokens/full", "textDocument/semanticTokens")
+                    //.AddHandlerLink("textDocument/semanticTokens/full/delta", "textDocument/semanticTokens/edits")
+                    //.AddHandlerLink("textDocument/semanticTokens", "textDocument/semanticTokens/full")
+                    //.AddHandlerLink("textDocument/semanticTokens/edits", "textDocument/semanticTokens/full/delta")
                     .WithServices(services =>
                     {
                         if (configure != null)

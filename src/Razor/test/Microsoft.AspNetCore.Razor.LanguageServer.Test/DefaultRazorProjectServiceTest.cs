@@ -669,7 +669,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DocumentSnapshot documentSnapshot = TestDocumentSnapshot.Create(documentFilePath);
             var documentResolver = Mock.Of<DocumentResolver>(resolver => resolver.TryResolveDocument(It.IsAny<string>(), out documentSnapshot) == true);
             var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
-            documentVersionCache.Setup(cache => cache.TrackDocumentVersion(documentSnapshot, It.IsAny<long>()))
+            documentVersionCache.Setup(cache => cache.TrackDocumentVersion(documentSnapshot, It.IsAny<int?>()))
                 .Callback<DocumentSnapshot, long>((snapshot, version) =>
                 {
                     Assert.Same(documentSnapshot, snapshot);
@@ -702,7 +702,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 },
                 TestProjectSnapshot.Create("C:/__MISC_PROJECT__"));
             var documentVersionCache = new Mock<DocumentVersionCache>();
-            documentVersionCache.Setup(cache => cache.TrackDocumentVersion(It.IsAny<DocumentSnapshot>(), It.IsAny<long>()))
+            documentVersionCache.Setup(cache => cache.TrackDocumentVersion(It.IsAny<DocumentSnapshot>(), It.IsAny<int?>()))
                 .Throws<XunitException>();
             var newText = SourceText.From("Something New");
             var projectService = CreateProjectService(

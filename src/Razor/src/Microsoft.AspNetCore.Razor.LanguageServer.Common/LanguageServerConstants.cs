@@ -7,11 +7,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
     {
         public const string ProjectConfigurationFile = "project.razor.json";
 
-        public const string RazorSemanticTokensEndpoint = "textDocument/semanticTokens";
+        public const string LegacyRazorSemanticTokensEndpoint = "textDocument/semanticTokens";
 
-        public const string RazorSemanticTokensEditEndpoint = "textDocument/semanticTokens/edits";
+        public const string LegacyRazorSemanticTokensEditEndpoint = "textDocument/semanticTokens/edits";
 
-        public const string RazorSemanticTokensRangeEndpoint = "textDocument/semanticTokens/range";
+        public const string LegacyRazorSemanticTokensRangeEndpoint = "textDocument/semanticTokens/range";
 
         public const string RazorSemanticTokensLegendEndpoint = "_ms_/textDocument/semanticTokensLegend";
 

@@ -16,8 +16,8 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             var requestDocumentSnapshot = await Task.Factory.StartNew(() =>
             {
-                var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
+                var path = request.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath();
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             var documentChanges = new List<WorkspaceEditDocumentChange>();
             AddFileRenameForComponent(documentChanges, originComponentDocumentSnapshot, newPath);
-            AddEditsForCodeDocument(documentChanges, originTagHelperBinding, request.NewName, request.TextDocument.Uri, codeDocument);
+            AddEditsForCodeDocument(documentChanges, originTagHelperBinding, request.NewName, request.TextDocument.Uri.ToUri(), codeDocument);
 
             var documentSnapshots = await GetAllDocumentSnapshots(requestDocumentSnapshot, cancellationToken).ConfigureAwait(false);
             foreach (var documentSnapshot in documentSnapshots)

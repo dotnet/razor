@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using RazorAttributeDescriptionInfo = Microsoft.CodeAnalysis.Razor.Completion.AttributeDescriptionInfo;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
@@ -36,17 +36,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             [typeof(decimal).FullName] = "decimal",
         };
 
-        public DefaultTagHelperDescriptionFactory(ILanguageServer languageServer)
+        private readonly Lazy<ILanguageServer> _server;
+
+        public DefaultTagHelperDescriptionFactory(Lazy<ILanguageServer> languageServer)
         {
             if (languageServer is null)
             {
                 throw new NotImplementedException(nameof(languageServer));
             }
 
-            LanguageServer = languageServer;
+            _server = languageServer;
         }
 
-        public ILanguageServer LanguageServer { get; }
+        public ILanguageServer LanguageServer { get { return _server.Value; } }
 
         public override bool TryCreateDescription(ElementDescriptionInfo elementDescriptionInfo, out MarkupContent tagHelperDescription)
         {

@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public CodeBlockDirectiveFormattingPass(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            ILanguageServer server,
+            IClientLanguageServer server,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server)
         {

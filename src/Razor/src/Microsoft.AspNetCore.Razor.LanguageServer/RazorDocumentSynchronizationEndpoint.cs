@@ -12,8 +12,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var document = await Task.Factory.StartNew(() =>
             {
-                _documentResolver.TryResolveDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                _documentResolver.TryResolveDocument(notification.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
             }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = SourceText.From(notification.TextDocument.Text);
 
             await Task.Factory.StartNew(
-                () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version),
+                () => _projectService.OpenDocument(notification.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.ForegroundScheduler);
@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _foregroundDispatcher.AssertBackgroundThread();
 
             await Task.Factory.StartNew(
-                () => _projectService.CloseDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath()),
+                () => _projectService.CloseDocument(notification.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath()),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.ForegroundScheduler);
@@ -118,14 +118,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public Task<Unit> Handle(DidSaveTextDocumentParams notification, CancellationToken token)
         {
-            _logger.LogInformation($"Saved Document {notification.TextDocument.Uri.GetAbsoluteOrUNCPath()}");
+            _logger.LogInformation($"Saved Document {notification.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath()}");
 
             return Unit.Task;
-        }
-
-        public TextDocumentAttributes GetTextDocumentAttributes(Uri uri)
-        {
-            return new TextDocumentAttributes(uri, "razor");
         }
 
         TextDocumentChangeRegistrationOptions IRegistration<TextDocumentChangeRegistrationOptions>.GetRegistrationOptions()
@@ -173,6 +168,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             return sourceText;
+        }
+
+        public TextDocumentAttributes GetTextDocumentAttributes(DocumentUri uri)
+        {
+            return new TextDocumentAttributes(uri, "razor");
         }
     }
 }

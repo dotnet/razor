@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -13,6 +13,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public abstract SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, Range range);
 
-        public abstract SemanticTokensOrSemanticTokensEdits GetSemanticTokensEdits(RazorCodeDocument codeDocument, string previousId);
+        public abstract SemanticTokensFullOrDelta GetSemanticTokensEdits(RazorCodeDocument codeDocument, string previousId);
     }
 }

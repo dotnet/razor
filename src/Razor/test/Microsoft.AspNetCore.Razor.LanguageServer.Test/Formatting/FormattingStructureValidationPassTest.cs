@@ -240,7 +240,7 @@ if (true) { }
 
             var client = new FormattingLanguageServerClient();
             client.AddCodeDocument(codeDocument);
-            var languageServer = Mock.Of<ILanguageServer>(ls => ls.Client == client);
+            var languageServer = Mock.Of<IClientLanguageServer>(ls => ls == client);
             var pass = new FormattingStructureValidationPass(mappingService, FilePathNormalizer, languageServer, LoggerFactory);
 
             return pass;

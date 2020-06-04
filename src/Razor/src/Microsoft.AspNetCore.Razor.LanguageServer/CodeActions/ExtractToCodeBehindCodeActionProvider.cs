@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var actionParams = new ExtractToCodeBehindCodeActionParams()
             {
-                Uri = context.Request.TextDocument.Uri,
+                Uri = context.Request.TextDocument.Uri.ToUri(),
                 ExtractStart = csharpCodeBlockNode.Span.Start,
                 ExtractEnd = csharpCodeBlockNode.Span.End,
                 RemoveStart = directiveNode.Span.Start,

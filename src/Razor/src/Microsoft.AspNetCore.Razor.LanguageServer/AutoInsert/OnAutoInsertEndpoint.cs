@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             var document = await Task.Factory.StartNew(() =>
             {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                _documentResolver.TryResolveDocument(request.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             var uri = request.TextDocument.Uri;
             var position = request.Position;
 
-            var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, new Range(position, position));
+            var formattingContext = FormattingContext.Create(uri.ToUri(), document, codeDocument, request.Options, new Range(position, position));
             for (var i = 0; i < applicableProviders.Count; i++)
             {
                 if (applicableProviders[i].TryResolveInsertion(position, formattingContext, out var textEdit, out var format))
