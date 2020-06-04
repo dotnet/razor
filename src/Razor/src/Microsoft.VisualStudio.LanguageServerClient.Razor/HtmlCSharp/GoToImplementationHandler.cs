@@ -97,6 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return result;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(result, cancellationToken).ConfigureAwait(false);
             return remappedLocations;
         }
