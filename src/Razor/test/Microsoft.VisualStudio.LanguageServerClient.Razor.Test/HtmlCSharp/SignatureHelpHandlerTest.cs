@@ -16,57 +16,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public SignatureHelpHandlerTest()
         {
             Uri = new Uri("C:/path/to/file.razor");
-
-            SignatureHelp = new SignatureHelp()
-            {
-                ActiveSignature = 0,
-                ActiveParameter = 1,
-                Signatures = new[]
-                {
-                    new SignatureInformation()
-                    {
-                        Documentation = "This does something",
-                        Label = "Let's do something",
-                        Parameters = new[]
-                        {
-                            new ParameterInformation()
-                            {
-                                Documentation = "First param part one",
-                                Label = "First param label"
-                            },
-                            new ParameterInformation()
-                            {
-                                Documentation = "Second param part two",
-                                Label = "Second param label"
-                            }
-                        }
-                    },
-
-                    new SignatureInformation()
-                    {
-                        Documentation = "This does something else",
-                        Label = "Let's do something else",
-                        Parameters = new[]
-                        {
-                            new ParameterInformation()
-                            {
-                                Documentation = "First param part one",
-                                Label = "First param label"
-                            },
-                            new ParameterInformation()
-                            {
-                                Documentation = "Second param part two",
-                                Label = "Second param label"
-                            }
-                        }
-                    }
-                }
-            };
         }
 
         private Uri Uri { get; }
-
-        private SignatureHelp SignatureHelp { get; }
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -145,6 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var called = false;
+            var expectedResult = new SignatureHelp();
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
 
@@ -158,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(LanguageServerKind.CSharp, serverKind);
                     called = true;
                 })
-                .Returns(Task.FromResult(SignatureHelp));
+                .Returns(Task.FromResult(expectedResult));
 
             var projectionResult = new ProjectionResult()
             {
@@ -179,11 +132,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.True(called);
-            Assert.Equal(SignatureHelp, result);
+            Assert.Equal(expectedResult, result);
         }
 
         [Fact]
-        public async Task HandleRequestAsync_CSharpProjection_InvokesCSharpLanguageServer_ReturnsNull()
+        public async Task HandleRequestAsync_ReturnNullIfCSharpLanguageServerReturnsNull()
         {
             // Arrange
             var documentManager = new TestDocumentManager();
