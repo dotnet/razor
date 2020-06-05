@@ -108,6 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var textBuffer = new Mock<ITextBuffer>();
             textBuffer.Setup(buffer => buffer.ContentType)
                 .Returns(Mock.Of<IContentType>());
+            textBuffer.Setup(buffer => buffer.ChangeContentType(RazorContentType, null))
+                .Verifiable();
             var textBufferProperties = new PropertyCollection();
             textBuffer.Setup(buffer => buffer.Properties)
                 .Returns(textBufferProperties);
@@ -149,6 +151,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var textBuffer = new Mock<ITextBuffer>();
             textBuffer.Setup(buffer => buffer.ContentType)
                 .Returns(Mock.Of<IContentType>());
+            textBuffer.Setup(buffer => buffer.ChangeContentType(RazorContentType, null))
+                .Verifiable();
             var textBufferProperties = new PropertyCollection();
             textBuffer.Setup(buffer => buffer.Properties)
                 .Returns(textBufferProperties);
@@ -227,11 +231,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPEditorFeatureDetector lspEditorFeatureDetector = null)
         {
             var textDocumentFactory = Mock.Of<ITextDocumentFactoryService>();
+            var contentTypeRegistry = Mock.Of<IContentTypeRegistryService>(registry => registry.GetContentType(RazorLSPConstants.RazorLSPContentTypeName) == RazorContentType);
 
             lspDocumentManager ??= Mock.Of<TrackingLSPDocumentManager>();
             lspEditorFeatureDetector ??= Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorAvailable(It.IsAny<string>(), null) == true);
             var listener = new RazorLSPTextDocumentCreatedListener(
                 textDocumentFactory,
+                contentTypeRegistry,
                 lspDocumentManager,
                 lspEditorFeatureDetector,
                 Mock.Of<LSPEditorService>(),
