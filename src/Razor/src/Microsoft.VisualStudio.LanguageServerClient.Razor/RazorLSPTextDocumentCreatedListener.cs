@@ -2,24 +2,26 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    [Name(nameof(RazorContentTypeChangeListener))]
-    [Export(typeof(ITextBufferContentTypeListener))]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
-    internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
+    [Shared]
+    [Export(typeof(RazorLSPTextDocumentCreatedListener))]
+    internal class RazorLSPTextDocumentCreatedListener
     {
         private static readonly Guid HtmlLanguageServiceGuid = new Guid("9BBFD173-9770-47DC-B191-651B7FF493CD");
+
+        private const string FilePathPropertyKey = "RazorTextBufferFilePath";
+        private const string RazorLSPBufferInitializedMarker = "RazorLSPBufferInitialized";
 
         private readonly TrackingLSPDocumentManager _lspDocumentManager;
         private readonly ITextDocumentFactoryService _textDocumentFactory;
@@ -29,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
 
         [ImportingConstructor]
-        public RazorContentTypeChangeListener(
+        public RazorLSPTextDocumentCreatedListener(
             ITextDocumentFactoryService textDocumentFactory,
             LSPDocumentManager lspDocumentManager,
             LSPEditorFeatureDetector lspEditorFeatureDetector,
@@ -81,29 +83,107 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _editorService = editorService;
             _serviceProvider = serviceProvider;
             _editorOptionsFactory = editorOptionsFactory;
+
+            _textDocumentFactory.TextDocumentCreated += TextDocumentFactory_TextDocumentCreated;
+            _textDocumentFactory.TextDocumentDisposed += TextDocumentFactory_TextDocumentDisposed;
         }
 
-        public void ContentTypeChanged(ITextBuffer textBuffer, IContentType oldContentType, IContentType newContentType)
+        // Internal for testing
+        internal void TextDocumentFactory_TextDocumentCreated(object sender, TextDocumentEventArgs args)
         {
-            if (newContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName))
+            if (args is null)
             {
-                // Supported after
-                RazorBufferCreated(textBuffer);
+                throw new ArgumentNullException(nameof(args));
             }
-            else if (oldContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName))
+
+            if (!IsRazorLSPTextDocument(args.TextDocument))
             {
-                // Supported before
-                RazorBufferDisposed(textBuffer);
+                return;
+            }
+
+            var textBuffer = args.TextDocument.TextBuffer;
+            if (!textBuffer.IsRazorLSPBuffer())
+            {
+                return;
+            }
+
+            // This Razor text buffer has yet to be initialized.
+            TryInitializeRazorLSPTextBuffer(args.TextDocument.FilePath, textBuffer);
+        }
+
+        // Internal for testing
+        internal void TextDocumentFactory_TextDocumentDisposed(object sender, TextDocumentEventArgs args)
+        {
+            if (args is null)
+            {
+                throw new ArgumentNullException(nameof(args));
+            }
+
+            // Do a lighter check to see if we care about this document.
+            if (IsRazorFilePath(args.TextDocument.FilePath))
+            {
+                // If we don't know about this document we'll no-op
+                _lspDocumentManager.UntrackDocument(args.TextDocument.TextBuffer);
+
+                if (_lspEditorFeatureDetector.IsRemoteClient() &&
+                    args.TextDocument.TextBuffer.Properties.ContainsProperty(FilePathPropertyKey))
+                {
+                    // We no longer want to watch for guest buffer changes.
+                    args.TextDocument.TextBuffer.Properties.RemoveProperty(FilePathPropertyKey);
+                    args.TextDocument.TextBuffer.ChangedHighPriority -= RazorGuestBuffer_Changed;
+                }
             }
         }
 
         // Internal for testing
-        internal void RazorBufferCreated(ITextBuffer textBuffer)
+        internal bool IsRazorLSPTextDocument(ITextDocument textDocument)
         {
-            if (textBuffer is null)
+            var filePath = textDocument.FilePath;
+            if (filePath == null)
             {
-                throw new ArgumentNullException(nameof(textBuffer));
+                return false;
             }
+
+            if (!IsRazorFilePath(filePath))
+            {
+                return false;
+            }
+
+            // We pass a `null` hierarchy so we don't eagerly lookup hierarchy information before it's needed.
+            if (!_lspEditorFeatureDetector.IsLSPEditorAvailable(textDocument.FilePath, hierarchy: null))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsRazorFilePath(string filePath)
+        {
+            if (filePath == null)
+            {
+                return false;
+            }
+
+            if (!filePath.EndsWith(RazorLSPConstants.CSHTMLFileExtension, FilePathComparison.Instance) &&
+                !filePath.EndsWith(RazorLSPConstants.RazorFileExtension, FilePathComparison.Instance))
+            {
+                // Not a Razor file
+                return false;
+            }
+
+            return true;
+        }
+
+        private void TryInitializeRazorLSPTextBuffer(string filePath, ITextBuffer textBuffer)
+        {
+            if (textBuffer.Properties.ContainsProperty(RazorLSPBufferInitializedMarker))
+            {
+                // Already initialized
+                return;
+            }
+
+            textBuffer.Properties.AddProperty(RazorLSPBufferInitializedMarker, true);
 
             // Initialize the buffer with editor options.
             // Temporary: Ideally in remote scenarios, we should be using host's settings.
@@ -114,31 +194,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 // Temporary: The guest needs to react to the host manually applying edits and moving the cursor.
                 // This can be removed once the client starts supporting snippets.
-
+                textBuffer.Properties.AddProperty(FilePathPropertyKey, filePath);
                 textBuffer.ChangedHighPriority += RazorGuestBuffer_Changed;
             }
             else
             {
                 // Only need to track documents on a host because we don't do any extra work on remote clients.
                 _lspDocumentManager.TrackDocument(textBuffer);
-            }
-        }
-
-        // Internal for testing
-        internal void RazorBufferDisposed(ITextBuffer textBuffer)
-        {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
-            // If we don't know about this document we'll no-op
-            _lspDocumentManager.UntrackDocument(textBuffer);
-
-            if (_lspEditorFeatureDetector.IsRemoteClient())
-            {
-                // We no longer want to watch for guest buffer changes.
-                textBuffer.ChangedHighPriority -= RazorGuestBuffer_Changed;
             }
         }
 
@@ -173,12 +235,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             if (!(sender is ITextBuffer buffer) ||
-                !_textDocumentFactory.TryGetTextDocument(buffer, out var textDocument))
+                !buffer.Properties.TryGetProperty<string>(FilePathPropertyKey, out var filePath))
             {
                 return;
             }
 
-            _editorService.MoveCaretToPosition(textDocument.FilePath, replacePlaceholderChange.NewPosition);
+            _editorService.MoveCaretToPosition(filePath, replacePlaceholderChange.NewPosition);
         }
     }
 }
