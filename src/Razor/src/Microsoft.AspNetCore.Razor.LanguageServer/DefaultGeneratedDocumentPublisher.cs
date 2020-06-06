@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             IReadOnlyList<TextChange> textChanges = Array.Empty<TextChange>();
             if (!sourceText.ContentEquals(previouslyPublishedData.SourceText))
             {
-                textChanges = sourceText.GetTextChanges(previouslyPublishedData.SourceText);
+                textChanges = SourceTextDiffer.GetMinimalTextChanges(previouslyPublishedData.SourceText, sourceText);
             }
             else if (hostDocumentVersion == previouslyPublishedData.HostDocumentVersion)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             IReadOnlyList<TextChange> textChanges = Array.Empty<TextChange>();
             if (!sourceText.ContentEquals(previouslyPublishedData.SourceText))
             {
-                textChanges = sourceText.GetTextChanges(previouslyPublishedData.SourceText);
+                textChanges = SourceTextDiffer.GetMinimalTextChanges(previouslyPublishedData.SourceText, sourceText);
             }
             else if (hostDocumentVersion == previouslyPublishedData.HostDocumentVersion)
             {
