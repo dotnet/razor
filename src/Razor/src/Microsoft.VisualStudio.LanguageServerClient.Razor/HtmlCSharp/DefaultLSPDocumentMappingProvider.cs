@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,16 +20,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private static readonly TextEdit[] EmptyEdits = Array.Empty<TextEdit>();
 
         private readonly LSPRequestInvoker _requestInvoker;
+        private readonly LSPDocumentManager _documentManager;
 
         [ImportingConstructor]
-        public DefaultLSPDocumentMappingProvider(LSPRequestInvoker requestInvoker)
+        public DefaultLSPDocumentMappingProvider(LSPRequestInvoker requestInvoker, LSPDocumentManager documentManager)
         {
             if (requestInvoker is null)
             {
                 throw new ArgumentNullException(nameof(requestInvoker));
             }
 
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
             _requestInvoker = requestInvoker;
+            _documentManager = documentManager;
         }
 
         public async override Task<RazorMapToDocumentRangesResponse> MapToDocumentRangesAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, Range[] projectedRanges, CancellationToken cancellationToken)
@@ -87,6 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
 
                 var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(uri);
+                if (!_documentManager.TryGetDocument(razorDocumentUri, out var documentSnapshot))
+                {
+                    continue;
+                }
 
                 var mappingResult = await MapToDocumentRangesAsync(
                     languageKind,
@@ -94,13 +106,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     new[] { location.Range },
                     cancellationToken).ConfigureAwait(false);
 
-                if (mappingResult == null)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (mappingResult == null || mappingResult.HostDocumentVersion != documentSnapshot.Version)
                 {
-                    // Couldn't remap the location. Discard.
+                    // Couldn't remap the location or the document changed in the meantime. Discard these ranges.
                     continue;
                 }
-
-                cancellationToken.ThrowIfCancellationRequested();
 
                 var remappedRange = mappingResult.Ranges[0];
                 if (remappedRange.IsUndefined())
@@ -133,57 +145,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(edits));
             }
 
-            var languageKind = RazorLanguageKind.Razor;
-            if (RazorLSPConventions.IsRazorCSharpFile(uri))
-            {
-                languageKind = RazorLanguageKind.CSharp;
-            }
-            else if (RazorLSPConventions.IsRazorHtmlFile(uri))
-            {
-                languageKind = RazorLanguageKind.Html;
-            }
-            else
+            if (!RazorLSPConventions.IsRazorCSharpFile(uri) && !RazorLSPConventions.IsRazorHtmlFile(uri))
             {
                 // This is not a virtual razor file. No need to remap.
                 return edits;
             }
 
-            var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(uri);
-
-            var rangesToMap = edits.Select(e => e.Range).ToArray();
-            var mappingResult = await MapToDocumentRangesAsync(
-                languageKind,
-                razorDocumentUri,
-                rangesToMap,
-                cancellationToken).ConfigureAwait(false);
-
-            if (mappingResult == null)
-            {
-                // Couldn't remap the location or the document changed in the meantime. Discard these ranges.
-                return EmptyEdits;
-            }
-
-            var remappedEdits = new List<TextEdit>();
-            for (var i = 0; i < edits.Length; i++)
-            {
-                var edit = edits[i];
-                var range = mappingResult.Ranges[i];
-                if (range.IsUndefined())
-                {
-                    // Couldn't remap the range correctly. Discard this range.
-                    continue;
-                }
-
-                var remappedEdit = new TextEdit()
-                {
-                    Range = range,
-                    NewText = edit.NewText
-                };
-
-                remappedEdits.Add(remappedEdit);
-            }
-
-            return remappedEdits.ToArray();
+            var (_, remappedEdits) = await RemapTextEditsCoreAsync(uri, edits, cancellationToken).ConfigureAwait(false);
+            return remappedEdits;
         }
 
         public async override Task<WorkspaceEdit> RemapWorkspaceEditAsync(WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
@@ -224,19 +193,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
 
                 var edits = entry.Edits;
-                var remappedEdits = await RemapTextEditsAsync(uri, edits, cancellationToken).ConfigureAwait(false);
-                if (remappedEdits == null || remappedEdits.Length == 0)
+                var (documentSnapshot, remappedEdits) = await RemapTextEditsCoreAsync(uri, edits, cancellationToken).ConfigureAwait(false);
+                if (documentSnapshot == null)
                 {
-                    // Nothing to do.
+                    // Couldn't find the document. Ignore this edit.
                     continue;
                 }
 
-                var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(uri);
                 remappedDocumentEdits.Add(new TextDocumentEdit()
                 {
                     TextDocument = new VersionedTextDocumentIdentifier()
                     {
-                        Uri = razorDocumentUri,
+                        Uri = documentSnapshot.Uri,
+                        Version = documentSnapshot.Version
                     },
                     Edits = remappedEdits
                 });
@@ -260,18 +229,75 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                var remappedEdits = await RemapTextEditsAsync(uri, edits, cancellationToken).ConfigureAwait(false);
-                if (remappedEdits == null || remappedEdits.Length == 0)
+                var (documentSnapshot, remappedEdits) = await RemapTextEditsCoreAsync(uri, edits, cancellationToken).ConfigureAwait(false);
+                if (documentSnapshot == null)
                 {
-                    // Nothing to do.
+                    // Couldn't find the document. Ignore this edit.
                     continue;
                 }
 
-                var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(uri);
-                remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
+                remappedChanges[documentSnapshot.Uri.AbsoluteUri] = remappedEdits;
             }
 
             return remappedChanges;
+        }
+
+        private async Task<(LSPDocumentSnapshot, TextEdit[])> RemapTextEditsCoreAsync(Uri uri, TextEdit[] edits, CancellationToken cancellationToken)
+        {
+            var languageKind = RazorLanguageKind.Razor;
+            if (RazorLSPConventions.IsRazorCSharpFile(uri))
+            {
+                languageKind = RazorLanguageKind.CSharp;
+            }
+            else if (RazorLSPConventions.IsRazorHtmlFile(uri))
+            {
+                languageKind = RazorLanguageKind.Html;
+            }
+            else
+            {
+                Debug.Fail("This method should only be called for Razor background files.");
+            }
+
+            var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(uri);
+            if (!_documentManager.TryGetDocument(razorDocumentUri, out var documentSnapshot))
+            {
+                return (null, EmptyEdits);
+            }
+
+            var rangesToMap = edits.Select(e => e.Range).ToArray();
+            var mappingResult = await MapToDocumentRangesAsync(
+                languageKind,
+                razorDocumentUri,
+                rangesToMap,
+                cancellationToken).ConfigureAwait(false);
+
+            if (mappingResult == null || mappingResult.HostDocumentVersion != documentSnapshot.Version)
+            {
+                // Couldn't remap the location or the document changed in the meantime. Discard these ranges.
+                return (null, EmptyEdits);
+            }
+
+            var remappedEdits = new List<TextEdit>();
+            for (var i = 0; i < edits.Length; i++)
+            {
+                var edit = edits[i];
+                var range = mappingResult.Ranges[i];
+                if (range.IsUndefined())
+                {
+                    // Couldn't remap the range correctly. Discard this range.
+                    continue;
+                }
+
+                var remappedEdit = new TextEdit()
+                {
+                    Range = range,
+                    NewText = edit.NewText
+                };
+
+                remappedEdits.Add(remappedEdit);
+            }
+
+            return (documentSnapshot, remappedEdits.ToArray());
         }
 
         private static bool CanRemap(Uri uri)
