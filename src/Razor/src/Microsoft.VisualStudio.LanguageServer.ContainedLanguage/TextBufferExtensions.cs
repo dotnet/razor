@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.VisualStudio.LanguageServerClient.Razor;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
 namespace Microsoft.VisualStudio.Text
 {
@@ -30,17 +30,6 @@ namespace Microsoft.VisualStudio.Text
             var result = textBuffer.Properties.TryGetProperty(HostDocumentVersionMarked, out hostDocumentVersion);
 
             return result;
-        }
-
-        public static bool IsRazorLSPBuffer(this ITextBuffer textBuffer)
-        {
-            if (textBuffer == null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
-
-            var matchesContentType = textBuffer.ContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName);
-            return matchesContentType;
         }
 
         public static void MakeEmptyEdit(this ITextBuffer textBuffer)

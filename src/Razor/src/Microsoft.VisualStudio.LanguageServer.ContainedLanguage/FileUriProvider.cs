@@ -4,7 +4,7 @@
 using System;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     /// <summary>
     /// The purpose of the <see cref="FileUriProvider"/> is to take something that's not always addressable (an <see cref="ITextBuffer"/>) and make it addressable.

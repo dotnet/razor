@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     public sealed class LSPDocumentChangeEventArgs : EventArgs
     {

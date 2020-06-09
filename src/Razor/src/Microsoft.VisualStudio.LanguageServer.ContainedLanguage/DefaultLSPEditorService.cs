@@ -7,7 +7,6 @@ using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,7 +18,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     [Shared]
     [Export(typeof(LSPEditorService))]
@@ -139,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var hasPlaceholder = false;
             foreach (var edit in originalEdits)
             {
-                if (edit.NewText.Contains(LanguageServerConstants.CursorPlaceholderString))
+                if (edit.NewText.Contains(CommonLanguageServerConstants.CursorPlaceholderString))
                 {
                     hasPlaceholder = true;
                 }
@@ -159,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             for (var i = earliestLine; i < snapshot.LineCount; i++)
             {
                 var lineText = snapshot.GetLineFromLineNumber(i).GetText();
-                var placeholderOffset = lineText.IndexOf(LanguageServerConstants.CursorPlaceholderString, StringComparison.Ordinal);
+                var placeholderOffset = lineText.IndexOf(CommonLanguageServerConstants.CursorPlaceholderString, StringComparison.Ordinal);
                 if (placeholderOffset != -1)
                 {
                     cursorPosition = new Position(i, placeholderOffset);
@@ -174,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             newEdit.Range = new Range()
             {
                 Start = cursorPosition,
-                End = new Position(cursorPosition.Line, cursorPosition.Character + LanguageServerConstants.CursorPlaceholderString.Length)
+                End = new Position(cursorPosition.Line, cursorPosition.Character + CommonLanguageServerConstants.CursorPlaceholderString.Length)
             };
             newEdit.NewText = string.Empty;
 

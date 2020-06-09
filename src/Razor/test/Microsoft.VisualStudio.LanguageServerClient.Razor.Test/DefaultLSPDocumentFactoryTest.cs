@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;

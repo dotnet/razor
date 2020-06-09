@@ -5,7 +5,7 @@ using System;
 using System.Composition;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     [Shared]
     [Export(typeof(FileUriProvider))]

@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -83,6 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _editorOptionsFactory = editorOptionsFactory;
         }
 
+        public TrackingLSPDocumentManager LspDocumentManager => _lspDocumentManager;
+
         public void ContentTypeChanged(ITextBuffer textBuffer, IContentType oldContentType, IContentType newContentType)
         {
             var supportedBefore = oldContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName);
@@ -127,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             else
             {
                 // Only need to track documents on a host because we don't do any extra work on remote clients.
-                _lspDocumentManager.TrackDocument(textBuffer);
+                LspDocumentManager.TrackDocument(textBuffer);
             }
         }
 
@@ -140,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             // If we don't know about this document we'll no-op
-            _lspDocumentManager.UntrackDocument(textBuffer);
+            LspDocumentManager.UntrackDocument(textBuffer);
 
             if (_lspEditorFeatureDetector.IsRemoteClient())
             {

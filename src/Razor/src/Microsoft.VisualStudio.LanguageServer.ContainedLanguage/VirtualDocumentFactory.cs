@@ -3,7 +3,7 @@
 
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     /// <summary>
     /// The <see cref="VirtualDocumentFactory"/>'s purpose is to create a <see cref="VirtualDocument"/> for a given <see cref="ITextBuffer"/>.
