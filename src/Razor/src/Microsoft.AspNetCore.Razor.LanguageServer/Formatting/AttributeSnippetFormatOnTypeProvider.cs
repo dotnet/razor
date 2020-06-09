@@ -46,11 +46,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return false;
             }
 
-            // We've just typed a Razor comment start.
             var cursorPlaceholder = addCursorPlaceholder ? LanguageServerConstants.CursorPlaceholderString : string.Empty;
             var edit = new TextEdit()
             {
-                NewText = $"=\"{cursorPlaceholder}\"",
+                NewText = $"\"{cursorPlaceholder}\"",
                 Range = new Range(position, position)
             };
 
@@ -67,12 +66,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var owner = syntaxTree.Root.LocateOwner(change);
 
             return owner != null &&
-                owner.Kind == SyntaxKind.MarkupTagHelperAttribute &&
+                owner.Kind == SyntaxKind.CSharpExpressionLiteral &&
                 owner.Parent is MarkupTagHelperAttributeValueSyntax attributeValue &&
                 attributeValue.Span.IsEmpty &&
                 owner.Parent.Parent is MarkupTagHelperAttributeSyntax attribute &&
-                !attribute.Span.IsEmpty &&
-                context.SourceText[absoluteIndex - 1] == '=';
+                !attribute.Span.IsEmpty;
         }
     }
 }
