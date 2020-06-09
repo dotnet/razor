@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     internal class DefaultFileUriProvider : FileUriProvider
     {
         private readonly ITextDocumentFactoryService _textDocumentFactory;
-        private readonly string TextBufferUri = "__RazorTextBufferUri";
+        private readonly string TextBufferUri = "__MsLspTextBufferUri";
 
         [ImportingConstructor]
         public DefaultFileUriProvider(ITextDocumentFactoryService textDocumentFactory)
