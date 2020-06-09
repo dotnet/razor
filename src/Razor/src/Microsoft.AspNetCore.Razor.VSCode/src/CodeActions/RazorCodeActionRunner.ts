@@ -16,17 +16,19 @@ export class RazorCodeActionRunner {
     ) {}
 
     public register() {
-        vscode.commands.registerCommand('razor/runCodeAction', (action: string, ...args: any[]) => {
+        vscode.commands.registerCommand('razor/runCodeAction', (request: object) => {
             this
-                .runCodeAction(action, args)
+                .runCodeAction(request)
                 .then()
-                .catch(() => this.logger.logAlways('caught exception running code action'));
+                .catch((e) => this.logger.logAlways(`caught exception running code action: ${e}`));
         }, this);
         this.logger.logAlways('registered code action runner');
     }
 
-    private async runCodeAction(action: string, args: string[]): Promise<boolean | string | {}> {
-        const response: CodeActionComputationResponse = await this.serverClient.sendRequest('razor/codeActionComputation', {Action: action, Arguments: args});
+    private async runCodeAction(request: any): Promise<boolean | string | {}> {
+        this.logger.logMessage('Invoking razor/resolveCodeAction');
+        this.logger.logMessage(JSON.stringify(request));
+        const response: CodeActionComputationResponse = await this.serverClient.sendRequest('razor/resolveCodeAction', {Action: request.Action, Data: request.Data});
         this.logger.logMessage(`Received computed workspace edit ${JSON.stringify(response)}`);
 
         const workspaceEdit = new vscode.WorkspaceEdit();

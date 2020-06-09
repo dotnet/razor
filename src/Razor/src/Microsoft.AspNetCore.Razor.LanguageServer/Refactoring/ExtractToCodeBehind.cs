@@ -3,20 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
@@ -36,25 +31,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var container = new List<CommandOrCodeAction>();
-            container.Add(new Command() {
-                Title = "Extract code block into backing document",
-                Name = "razor/runCodeAction",
-                Arguments = new JArray(
-                    "ExtractToCodeBehind",
-                    context.Document.Source.FilePath,
-                    cSharpCodeBlockNode.Span.Start,
-                    cSharpCodeBlockNode.Span.End,
-                    directiveNode.Span.Start,
-                    directiveNode.Span.End
-                ),
-            });
+            var extractToCodeBehindParams = new RazorCodeActionResolutionParams()
+            {
+                Action = "ExtractToCodeBehind",
+                Data = new Dictionary<string, object>()
+                {
+                    { "uri", context.Document.Source.FilePath },
+                    { "extractStart", cSharpCodeBlockNode.Span.Start },
+                    { "extractEnd", cSharpCodeBlockNode.Span.End },
+                    { "removeStart", directiveNode.Span.Start },
+                    { "removeEnd", directiveNode.Span.End }
+                },
+            };
+
+            var container = new List<CommandOrCodeAction>
+            {
+                new Command()
+                {
+                    Title = "Extract code block into backing document",
+                    Name = "razor/runCodeAction",
+                    Arguments = new JArray(JToken.FromObject(extractToCodeBehindParams))
+                }
+            };
 
             return Task.FromResult((CommandOrCodeActionContainer)container);
         }
     }
 
-    class ExtractToCodeBehindEndpoint : IRazorCodeActionComputationHandler
+    class ExtractToCodeBehindEndpoint : IRazorCodeActionResolutionHandler
     {
         private readonly ILogger _logger;
         private readonly ForegroundDispatcher _foregroundDispatcher;
@@ -86,10 +90,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             _logger = loggerFactory.CreateLogger<ExtractToCodeBehindEndpoint>();
         }
 
-        public async Task<RazorCodeActionComputationResponse> Handle(RazorCodeActionComputationParams request, CancellationToken cancellationToken)
+        public async Task<RazorCodeActionResolutionResponse> Handle(RazorCodeActionResolutionParams request, CancellationToken cancellationToken)
         {
-            _logger.LogDebug(request.ToString());
-            _logger.LogDebug("action: " + request.Action);
+            _logger.LogInformation("Handle code action resolution response!");
+            _logger.LogInformation(request.Action, request.Data);
             if (!string.Equals(request.Action, "ExtractToCodeBehind", StringComparison.Ordinal))
             {
                 return null;
@@ -100,15 +104,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var filePath = (string)request.Arguments[0];
-            var cutStart = Convert.ToInt32(request.Arguments[1]);
-            var cutEnd = Convert.ToInt32(request.Arguments[2]);
-            var removeStart = Convert.ToInt32(request.Arguments[3]);
-            var removeEnd = Convert.ToInt32(request.Arguments[4]);
+            var filePath = (string)request.Data["uri"];
+            var cutStart = Convert.ToInt32(request.Data["extractStart"]);
+            var cutEnd = Convert.ToInt32(request.Data["extractEnd"]);
+            var removeStart = Convert.ToInt32(request.Data["removeStart"]);
+            var removeEnd = Convert.ToInt32(request.Data["removeEnd"]);
 
             var document = await Task.Factory.StartNew(() =>
             {
-                _documentResolver.TryResolveDocument((string)request.Arguments[0], out var documentSnapshot);
+                _documentResolver.TryResolveDocument(filePath, out var documentSnapshot);
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
@@ -123,6 +127,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
+            _logger.LogInformation("Finishing resolve!");
+
             var changes = new Dictionary<Uri, IEnumerable<TextEdit>>
             {
                 [new Uri(filePath)] = new[]
@@ -135,7 +141,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 }
             };
 
-            return new RazorCodeActionComputationResponse()
+            return new RazorCodeActionResolutionResponse()
             {
                 Edit = new WorkspaceEdit() {
                     Changes = changes,

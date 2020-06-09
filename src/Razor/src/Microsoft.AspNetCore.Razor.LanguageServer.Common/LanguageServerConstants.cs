@@ -25,6 +25,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorMapToDocumentRangeEndpoint = "razor/mapToDocumentRange";
 
-        public const string RazorCodeActionComputationEndpoint = "razor/codeActionComputation";
+        public const string RazorCodeActionResolutionEndpoint = "razor/resolveCodeAction";
     }
 }

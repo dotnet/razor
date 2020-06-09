@@ -94,7 +94,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             foreach (var provider in _providers)
             {
                 var result = provider.Provide(context, cancellationToken);
-                tasks.Add(result);
+                if (result != null)
+                {
+                    tasks.Add(result);
+                }
             }
 
             var results = await Task.WhenAll(tasks);

@@ -6,8 +6,8 @@ using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    [Serial, Method(LanguageServerConstants.RazorCodeActionComputationEndpoint)]
-    internal interface IRazorCodeActionComputationHandler : IJsonRpcRequestHandler<RazorCodeActionComputationParams, RazorCodeActionComputationResponse>
+    [Serial, Method(LanguageServerConstants.RazorCodeActionResolutionEndpoint)]
+    internal interface IRazorCodeActionResolutionHandler : IJsonRpcRequestHandler<RazorCodeActionResolutionParams, RazorCodeActionResolutionResponse>
     {
     }
 }

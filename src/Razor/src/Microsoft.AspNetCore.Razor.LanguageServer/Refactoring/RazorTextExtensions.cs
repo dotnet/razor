@@ -1,14 +1,13 @@
 ﻿using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
     static class RazorTextExtensions
     {
-        public static CodeAnalysis.Text.TextSpan AsCodeAnalysisTextSpan(this Language.Syntax.TextSpan textSpan)
+        public static CodeAnalysis.Text.TextSpan AsCodeAnalysisTextSpan(this TextSpan textSpan)
         {
             return new CodeAnalysis.Text.TextSpan(textSpan.Start, textSpan.Length);
         }
