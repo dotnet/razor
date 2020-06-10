@@ -130,6 +130,7 @@ tagHelpers: GetTagHelpers(typeof(int).FullName));
             var provider = new AttributeSnippetFormatOnTypeProvider();
             return provider;
         }
+
         internal IReadOnlyList<TagHelperDescriptor> GetTagHelpers(string attributeType)
         {
             var descriptor = TagHelperDescriptorBuilder.Create("SpanTagHelper", "TestAssembly");
