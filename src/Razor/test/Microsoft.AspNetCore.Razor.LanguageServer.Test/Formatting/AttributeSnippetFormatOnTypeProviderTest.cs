@@ -141,10 +141,11 @@ tagHelpers: GetTagHelpers(typeof(int).FullName));
                     .Name("test")
                     .PropertyName("test")
                     .TypeName(attributeType));
+
             return new[]
             {
                     descriptor.Build()
-                };
+            };
         }
     }
 }
