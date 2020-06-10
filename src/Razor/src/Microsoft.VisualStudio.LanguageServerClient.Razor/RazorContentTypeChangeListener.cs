@@ -84,8 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _editorOptionsFactory = editorOptionsFactory;
         }
 
-        public TrackingLSPDocumentManager LspDocumentManager => _lspDocumentManager;
-
         public void ContentTypeChanged(ITextBuffer textBuffer, IContentType oldContentType, IContentType newContentType)
         {
             var supportedBefore = oldContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName);
