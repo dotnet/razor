@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -18,19 +18,19 @@ input: @"
 @addTagHelper *, TestAssembly
 
 <section>
-    <span test|></span>
+    <span intAttribute|></span>
 </section>
 ",
 expected: $@"
 @addTagHelper *, TestAssembly
 
 <section>
-    <span test=""{ LanguageServerConstants.CursorPlaceholderString}""></span>
+    <span intAttribute=""{ LanguageServerConstants.CursorPlaceholderString}""></span>
 </section>
 ",
 character: "=",
 fileKind: FileKinds.Legacy,
-tagHelpers: GetTagHelpers(typeof(int).FullName));
+tagHelpers: TagHelpers);
         }
 
         [Fact]
@@ -53,7 +53,7 @@ expected: $@"
 ",
 character: "=",
 fileKind: FileKinds.Legacy,
-tagHelpers: GetTagHelpers(typeof(int).FullName));
+tagHelpers: TagHelpers);
         }
 
         [Fact]
@@ -64,19 +64,19 @@ input: @"
 @addTagHelper *, TestAssembly
 
 <section>
-    <span test|></span>
+    <span stringAttribute|></span>
 </section>
 ",
 expected: $@"
 @addTagHelper *, TestAssembly
 
 <section>
-    <span test=></span>
+    <span stringAttribute=></span>
 </section>
 ",
 character: "=",
 fileKind: FileKinds.Legacy,
-tagHelpers: GetTagHelpers(typeof(string).FullName));
+tagHelpers: TagHelpers);
         }
 
         [Fact]
@@ -99,7 +99,7 @@ expected: $@"
 ",
 character: "=",
 fileKind: FileKinds.Legacy,
-tagHelpers: GetTagHelpers(typeof(int).FullName));
+tagHelpers: TagHelpers);
         }
 
         [Fact]
@@ -110,42 +110,51 @@ input: @"
 @addTagHelper *, TestAssembly
 
 <section>
-    <span test=|></span>
+    <span intAttribute=|></span>
 </section>
 ",
 expected: $@"
 @addTagHelper *, TestAssembly
 
 <section>
-    <span test==></span>
+    <span intAttribute==></span>
 </section>
 ",
 character: "=",
 fileKind: FileKinds.Legacy,
-tagHelpers: GetTagHelpers(typeof(int).FullName));
+tagHelpers: TagHelpers);
         }
 
         internal override RazorFormatOnTypeProvider CreateProvider()
         {
-            var provider = new AttributeSnippetFormatOnTypeProvider();
+            var provider = new AttributeSnippetFormatOnTypeProvider(new DefaultTagHelperFactsService());
             return provider;
         }
 
-        internal IReadOnlyList<TagHelperDescriptor> GetTagHelpers(string attributeType)
+        TagHelperDescriptor[] TagHelpers
         {
-            var descriptor = TagHelperDescriptorBuilder.Create("SpanTagHelper", "TestAssembly");
-            descriptor.SetTypeName("TestNamespace.SpanTagHelper");
-            descriptor.TagMatchingRule(builder => builder.RequireTagName("span"));
-            descriptor.BindAttribute(builder =>
-                builder
-                    .Name("test")
-                    .PropertyName("test")
-                    .TypeName(attributeType));
-
-            return new[]
+            get
             {
+
+                var descriptor = TagHelperDescriptorBuilder.Create("SpanTagHelper", "TestAssembly");
+                descriptor.SetTypeName("TestNamespace.SpanTagHelper");
+                descriptor.TagMatchingRule(builder => builder.RequireTagName("span"));
+                descriptor.BindAttribute(builder =>
+                    builder
+                        .Name("intAttribute")
+                        .PropertyName("intAttribute")
+                        .TypeName(typeof(int).FullName));
+                descriptor.BindAttribute(builder =>
+                    builder
+                        .Name("stringAttribute")
+                        .PropertyName("stringAttribute")
+                        .TypeName(typeof(string).FullName));
+
+                return new[]
+                {
                     descriptor.Build()
-            };
+                };
+            }
         }
     }
 }
