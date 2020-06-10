@@ -4,13 +4,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     public class DefaultLSPDocumentSynchronizerTest
     {

@@ -5,13 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     public class DefaultLSPDocumentManagerTest
     {

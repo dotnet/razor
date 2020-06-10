@@ -2,14 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     public class DefaultLSPEditorServiceTest
     {

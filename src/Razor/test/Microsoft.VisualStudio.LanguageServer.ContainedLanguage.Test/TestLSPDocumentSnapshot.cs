@@ -3,10 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     public class TestLSPDocumentSnapshot : LSPDocumentSnapshot
     {

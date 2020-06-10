@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             else
             {
                 // Only need to track documents on a host because we don't do any extra work on remote clients.
-                LspDocumentManager.TrackDocument(textBuffer);
+                _lspDocumentManager.TrackDocument(textBuffer);
             }
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             // If we don't know about this document we'll no-op
-            LspDocumentManager.UntrackDocument(textBuffer);
+            _lspDocumentManager.UntrackDocument(textBuffer);
 
             if (_lspEditorFeatureDetector.IsRemoteClient())
             {

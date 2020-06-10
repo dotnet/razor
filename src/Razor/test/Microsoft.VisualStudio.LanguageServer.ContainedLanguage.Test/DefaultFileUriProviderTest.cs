@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     public class DefaultFileUriProviderTest
     {
