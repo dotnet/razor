@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var owner = syntaxTree.Root.LocateOwner(change);
 
             return owner != null &&
-                owner.Kind == SyntaxKind.CSharpExpressionLiteral &&
+                owner.Kind != SyntaxKind.MarkupTextLiteral &&
                 owner.Parent is MarkupTagHelperAttributeValueSyntax attributeValue &&
                 attributeValue.Span.IsEmpty &&
                 owner.Parent.Parent is MarkupTagHelperAttributeSyntax attribute &&
