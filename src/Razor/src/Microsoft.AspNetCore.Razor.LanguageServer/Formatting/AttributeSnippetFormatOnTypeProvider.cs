@@ -89,9 +89,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             if (owner is null ||
-                !(owner.Parent is MarkupTagHelperAttributeValueSyntax attributeValue) ||
-                !(owner.Parent.Parent is MarkupTagHelperAttributeSyntax attribute) ||
-                !(owner.Parent.Parent.Parent is MarkupTagHelperStartTagSyntax startTag))
+                !((owner.Parent is MarkupTagHelperAttributeValueSyntax attributeValue) &&
+                (owner.Parent.Parent is MarkupTagHelperAttributeSyntax attribute) &&
+                (owner.Parent.Parent.Parent is MarkupTagHelperStartTagSyntax startTag) &&
+                (owner.Parent.Parent.Parent.Parent is MarkupTagHelperElementSyntax tagHelperElement)))
             {
                 // Incorrect taghelper tree structure
                 return false;
@@ -103,23 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return false;
             }
 
-            var ancestors = owner.Ancestors();
-            var (parentTag, parentIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
-            var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(startTag.Attributes);
-            var binding = _tagHelperFactsService.GetTagHelperBinding(
-                context.CodeDocument.GetTagHelperContext(),
-                startTag.Name.Content,
-                stringifiedAttributes,
-                parentTag: parentTag,
-                parentIsTagHelper: parentIsTagHelper);
-
-            if (binding is null)
-            {
-                // No matching tagHelpers, it's just HTML
-                return false;
-            }
-
-            var boundAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(context.CodeDocument.GetTagHelperContext(), attribute.Name.GetContent(), binding);
+            var boundAttributes = _tagHelperFactsService.GetBoundTagHelperAttributes(context.CodeDocument.GetTagHelperContext(), attribute.Name.GetContent(), tagHelperElement.TagHelperInfo.BindingResult);
             var isStringProperty = boundAttributes.FirstOrDefault(a => a.Name == attribute.Name.GetContent())?.IsStringProperty ?? true;
 
             return !isStringProperty;
