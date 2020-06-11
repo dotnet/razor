@@ -15,16 +15,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
-    class ExtractToCodeBehindCodeActionProvider : IRazorRefactoringCodeActionProvider
+    class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
     {
-        public Task<CommandOrCodeActionContainer> Provide(RefactoringContext context, CancellationToken cancellationToken)
+        override public Task<CommandOrCodeActionContainer> Provide(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             var directiveNode = (RazorDirectiveSyntax)context.Document.GetNodeAtLocation(context.Location, n => n.Kind == Language.SyntaxKind.RazorDirective);
             if (directiveNode is null)
@@ -65,57 +64,45 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         }
     }
 
-    class ExtractToCodeBehindEndpoint : IRazorCodeActionResolutionHandler
-    {
+    class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver {
         private readonly ILogger _logger;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
-        private ExecuteCommandCapability _capability;
 
-        public ExtractToCodeBehindEndpoint(
+        public override string Action => "ExtractToCodeBehind";
+
+        public ExtractToCodeBehindCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (documentResolver == null)
+            if (documentResolver is null)
             {
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
-            _logger = loggerFactory.CreateLogger<ExtractToCodeBehindEndpoint>();
+            _logger = loggerFactory.CreateLogger<ExtractToCodeBehindCodeActionProvider>();
         }
 
-        public async Task<RazorCodeActionResolutionResponse> Handle(RazorCodeActionResolutionParams request, CancellationToken cancellationToken)
+        override public async Task<WorkspaceEdit> Resolve(Dictionary<string, object> data, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Handle code action resolution response!");
-            _logger.LogInformation(request.Action, request.Data);
-            if (!string.Equals(request.Action, "ExtractToCodeBehind", StringComparison.Ordinal))
-            {
-                return null;
-            }
-
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var uri = new Uri((string)request.Data["Uri"]);
-            var cutStart = Convert.ToInt32(request.Data["ExtractStart"]);
-            var cutEnd = Convert.ToInt32(request.Data["ExtractEnd"]);
-            var removeStart = Convert.ToInt32(request.Data["RemoveStart"]);
-            var removeEnd = Convert.ToInt32(request.Data["RemoveEnd"]);
+            var uri = new Uri((string)data["Uri"]);
+            var cutStart = Convert.ToInt32(data["ExtractStart"]);
+            var cutEnd = Convert.ToInt32(data["ExtractEnd"]);
+            var removeStart = Convert.ToInt32(data["RemoveStart"]);
+            var removeEnd = Convert.ToInt32(data["RemoveEnd"]);
 
             var path = uri.LocalPath;
 
@@ -178,12 +165,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 };
             }
 
-            return new RazorCodeActionResolutionResponse()
+            return new WorkspaceEdit()
             {
-                Edit = new WorkspaceEdit() {
-                    Changes = changes,
-                    DocumentChanges = documentChanges,
-                }
+                Changes = changes,
+                DocumentChanges = documentChanges,
             };
         }
 
@@ -220,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 {
                     break;
                 }
-                
+
                 offset = declaration.FullSpan.End + 1;
                 @class = @class.AddMembers(declaration);
             }

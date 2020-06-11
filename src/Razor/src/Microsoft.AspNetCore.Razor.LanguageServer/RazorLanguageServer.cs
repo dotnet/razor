@@ -70,9 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorOnTypeFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokenEndpoint>()
                     .WithHandler<RazorSemanticTokenLegendEndpoint>()
-                    .WithHandler<RazorRefactoringEndpoint>()
                     .WithHandler<RazorRefactoringCodeActionEndpoint>()
-                    .WithHandler<ExtractToCodeBehindEndpoint>()
                     .WithServices(services =>
                     {
                         var filePathNormalizer = new FilePathNormalizer();
@@ -145,6 +143,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorSemanticTokenInfoService, DefaultRazorSemanticTokenInfoService>();
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
+
+                        // Refactoring
+                        services.AddSingleton<RazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
+                        services.AddSingleton<RazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
                     }));
 
             server.OnShutdown(() =>

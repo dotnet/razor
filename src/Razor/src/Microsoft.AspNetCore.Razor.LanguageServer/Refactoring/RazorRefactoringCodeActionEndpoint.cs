@@ -14,22 +14,33 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
-    class RazorRefactoringCodeActionEndpoint : ICodeActionHandler
+    class RazorRefactoringCodeActionEndpoint : ICodeActionHandler, IRazorCodeActionResolutionHandler
     {
-        private readonly ILogger _logger;
+        private readonly IEnumerable<RazorCodeActionProvider> _providers;
+        private readonly Dictionary<string, RazorCodeActionResolver> _resolvers;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
+        private readonly ILogger _logger;
+
         private CodeActionCapability _capability;
 
-        private static IRazorRefactoringCodeActionProvider[] _providers = {
-            new ExtractToCodeBehindCodeActionProvider(),
-        };
-
         public RazorRefactoringCodeActionEndpoint(
+            IEnumerable<RazorCodeActionProvider> providers,
+            IEnumerable<RazorCodeActionResolver> resolvers,
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             ILoggerFactory loggerFactory)
         {
+            if (providers is null)
+            {
+                throw new ArgumentNullException(nameof(foregroundDispatcher));
+            }
+
+            if (resolvers is null)
+            {
+                throw new ArgumentNullException(nameof(foregroundDispatcher));
+            }
+
             if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
@@ -45,9 +56,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
+            _providers = providers;
+            _resolvers = new Dictionary<string, RazorCodeActionResolver>();
+            foreach (var resolver in resolvers)
+            {
+                if (_resolvers.ContainsKey(resolver.Action))
+                {
+                    _logger.LogError($"duplicate resolver action for {resolver.Action}");
+                }
+                _resolvers[resolver.Action] = resolver;
+            }
+
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
-            _logger = loggerFactory.CreateLogger<RazorRefactoringEndpoint>();
+            _logger = loggerFactory.CreateLogger<RazorRefactoringCodeActionEndpoint>();
             _logger.LogDebug("Instantiated RazorRefactoringEndpoint");
         }
 
@@ -88,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, (int)request.Range.Start.Line, (int)request.Range.Start.Character);
 
-            var context = new RefactoringContext(request, codeDocument, location);
+            var context = new RazorCodeActionContext(request, codeDocument, location);
             var tasks = new List<Task<CommandOrCodeActionContainer>>();
                 
             foreach (var provider in _providers)
@@ -114,6 +136,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             return container;
+        }
+
+        public async Task<RazorCodeActionResolutionResponse> Handle(RazorCodeActionResolutionParams request, CancellationToken cancellationToken)
+        {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            _logger.LogDebug($"Resolving action {request.Action} with data {request.Data}");
+            if (!_resolvers.ContainsKey(request.Action))
+            {
+                _logger.LogError($"No resolver registered for {request.Action}");
+                return new RazorCodeActionResolutionResponse() { Edit = null };
+            }
+
+            var edit = await _resolvers[request.Action].Resolve(request.Data, cancellationToken);
+            return new RazorCodeActionResolutionResponse() { Edit = edit };
         }
 
         public void SetCapability(CodeActionCapability capability)

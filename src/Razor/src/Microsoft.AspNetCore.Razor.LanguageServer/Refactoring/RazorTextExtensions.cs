@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.AspNetCore.Razor.Language;
+﻿using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
