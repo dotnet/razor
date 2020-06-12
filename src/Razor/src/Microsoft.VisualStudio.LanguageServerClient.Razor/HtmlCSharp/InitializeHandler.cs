@@ -4,7 +4,6 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
@@ -13,8 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.InitializeName)]
     internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeResult>
     {
-        private static readonly SemanticTokenLegendResponse _legend = SemanticTokenLegend.GetResponse();
-
         private static readonly InitializeResult InitializeResult = new InitializeResult
         {
             Capabilities = new ServerCapabilities

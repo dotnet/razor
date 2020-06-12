@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -124,25 +125,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return new RegistrationExtensionResult(SemanticCapability, semanticTokensOptions);
         }
 
-        private class SemanticTokensOptions
-        {
-            public SemanticTokensLegend Legend { get; set; }
-
-            public bool RangeProvider { get; set; }
-
-            public SemanticTokensDocumentProviderOptions DocumentProvider { get; set; }
-        }
-
-        private class SemanticTokensLegend
-        {
-            public Container<string> TokenTypes { get; set; }
-
-            public Container<string> TokenModifiers { get; set; }
-        }
-
-        private class SemanticTokensDocumentProviderOptions
-        {
-            public bool? Edits { get; set; }
-        }
     }
 }
