@@ -64,7 +64,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         }
     }
 
-    class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver {
+    class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
+    {
         private readonly ILogger _logger;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -111,7 +112,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
-
             if (document is null)
             {
                 return null;
@@ -131,45 +131,56 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            _logger.LogInformation("Finishing resolve!");
+            var codeBehindPath = "";
+            var n = 0;
+            do
+            {
+                codeBehindPath = Path.Combine(
+                    Path.GetDirectoryName(path),
+                    $"{Path.GetFileNameWithoutExtension(path)}{AsDuplicateIdentifier(n)}.razor.cs");
+                n++;
+            } while (File.Exists(codeBehindPath));
+
+            var codeBehindUri = new Uri(codeBehindPath);
+            var className = Path.GetFileNameWithoutExtension(path);
+            var result = GenerateCodeBehindClass(className, contents, codeDocument);
+            var compilationUnit = result.Item1;
 
             var changes = new Dictionary<Uri, IEnumerable<TextEdit>>
             {
                 [uri] = new[]
-                {
+    {
                     new TextEdit()
                     {
                         NewText = "",
                         Range = codeDocument.RangeFromIndices(removeStart, removeEnd)
                     }
-                }
-            };
-
-            var documentChanges = new List<WorkspaceEditDocumentChange>();
-
-            var codeBehindPath = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path) + ".razor.cs");
-            var codeBehindUri = new Uri(codeBehindPath);
-            if (!File.Exists(codeBehindPath))
-            {
-                _logger.LogDebug(codeBehindPath);
-                var result = GenerateCodeBehindClass(Path.GetFileNameWithoutExtension(path), contents, codeDocument);
-                var unit = result.Item1;
-                documentChanges.Add(new WorkspaceEditDocumentChange(new CreateFile() { Uri = codeBehindUri.ToString() }));
-                changes[codeBehindUri] = new[]
+                },
+                [codeBehindUri] = new[]
                 {
                     new TextEdit()
                     {
-                        NewText = unit.NormalizeWhitespace().ToFullString(),
+                        NewText = compilationUnit.NormalizeWhitespace().ToFullString(),
                         Range = new Range(new Position(0, 0), new Position(0, 0))
                     }
-                };
-            }
+                }
+            };
 
+            var documentChanges = new List<WorkspaceEditDocumentChange>
+            {
+                new WorkspaceEditDocumentChange(new CreateFile() { Uri = codeBehindUri.ToString() })
+            };
+            
             return new WorkspaceEdit()
             {
                 Changes = changes,
                 DocumentChanges = documentChanges,
             };
+        }
+
+        private static string AsDuplicateIdentifier(int n)
+        {
+            return n > 0 ? n.ToString() : "";
         }
 
         private IEnumerable<string> FindUsings(RazorCodeDocument razorCodeDocument)
@@ -181,34 +192,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 .Select(n => ((UsingDirectiveIntermediateNode)n).Content);
         }
 
-        private Tuple<CompilationUnitSyntax, ClassDeclarationSyntax> GenerateCodeBehindClass(string name, string contents, RazorCodeDocument razorCodeDocument)
+        private Tuple<CompilationUnitSyntax, ClassDeclarationSyntax> GenerateCodeBehindClass(string className, string contents, RazorCodeDocument razorCodeDocument)
         {
             var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument.GetDocumentIntermediateNode()
                 .FindDescendantNodes<IntermediateNode>()
                 .FirstOrDefault(n => n is NamespaceDeclarationIntermediateNode);
 
-            if (namespaceNode == null)
-            {
-                _logger.LogError("Cannot find namespace node!");
-            }
-
             var @class = CSharpSyntaxFactory
-                .ClassDeclaration(name)
+                .ClassDeclaration(className)
                 .AddModifiers(CSharpSyntaxFactory.ParseToken("public"), CSharpSyntaxFactory.ParseToken("partial"));
 
-            var offset = contents.IndexOf("{") + 1;
-
-            while (true)
-            {
-                var declaration = CSharpSyntaxFactory.ParseMemberDeclaration(contents, offset, consumeFullText: false);
-                if (declaration is null)
-                {
-                    break;
-                }
-
-                offset = declaration.FullSpan.End + 1;
-                @class = @class.AddMembers(declaration);
-            }
+            var mock = (ClassDeclarationSyntax)CSharpSyntaxFactory.ParseMemberDeclaration($"class Class {contents}");
+            @class = @class.AddMembers(mock.Members.ToArray());
 
             var @namespace = CSharpSyntaxFactory
                 .NamespaceDeclaration(CSharpSyntaxFactory.ParseName(namespaceNode.Content))
