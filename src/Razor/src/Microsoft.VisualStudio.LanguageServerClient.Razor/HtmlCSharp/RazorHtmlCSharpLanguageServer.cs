@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -14,12 +13,6 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class VSInitializeResult
-    {
-        [DataMember(Name = "capabilities")]
-        public VSServerCapabilities Capabilities { get; set; }
-    }
-
     internal class RazorHtmlCSharpLanguageServer : IDisposable
     {
         private readonly JsonRpc _jsonRpc;
@@ -57,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public async Task<VSInitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
         {
             if (input is null)
             {
@@ -68,12 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
             _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
-            //var serverCapabilities = input["capabilities"].ToObject<VSServerCapabilities>();
             var initializeParams = input.ToObject<InitializeParams>();
-
-            var result = await ExecuteRequestAsync<InitializeParams, VSInitializeResult>(Methods.InitializeName, initializeParams, _clientCapabilities, cancellationToken);
-
-            return result;
+            return ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, initializeParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]

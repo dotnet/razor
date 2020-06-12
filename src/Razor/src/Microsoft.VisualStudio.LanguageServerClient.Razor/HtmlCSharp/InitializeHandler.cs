@@ -11,13 +11,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.InitializeName)]
-    internal class InitializeHandler : IRequestHandler<InitializeParams, VSInitializeResult>
+    internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeResult>
     {
         private static readonly SemanticTokenLegendResponse _legend = SemanticTokenLegend.GetResponse();
 
-        private static readonly VSInitializeResult InitializeResult = new VSInitializeResult
+        private static readonly InitializeResult InitializeResult = new InitializeResult
         {
-            Capabilities = new VSServerCapabilities
+            Capabilities = new ServerCapabilities
             {
                 CompletionProvider = new CompletionOptions()
                 {
@@ -39,23 +39,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     TriggerCharacters = new[] { "(", "," }
                 },
                 ImplementationProvider = true,
-                SemanticTokensOptions = new SemanticTokensOptions
-                {
-                    DocumentProvider = new SemanticTokensDocumentProviderOptions
-                    {
-                        Edits = false,
-                    },
-                    Legend = new SemanticTokensLegend
-                    {
-                        TokenModifiers = (string[])_legend.TokenModifiers,
-                        TokenTypes = (string[])_legend.TokenTypes,
-                    },
-                    RangeProvider = false,
-                },
             }
         };
 
-        public Task<VSInitializeResult> HandleRequestAsync(InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public Task<InitializeResult> HandleRequestAsync(InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => Task.FromResult(InitializeResult);
     }
 }
