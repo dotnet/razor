@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
     }
 
-    [Method(LanguageServerConstants.RazorSemanticTokensEditEndpoint)]
+    [Serial, Method(LanguageServerConstants.RazorSemanticTokensEditEndpoint)]
     internal interface ISemanticTokenEditHandler :
         IJsonRpcRequestHandler<SemanticTokensEditParams, SemanticTokensOrSemanticTokensEdits?>,
         IRequestHandler<SemanticTokensEditParams, SemanticTokensOrSemanticTokensEdits?>,

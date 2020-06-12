@@ -8,7 +8,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    [Method(LanguageServerConstants.RazorSemanticTokensRangeEndpoint)]
+    [Serial, Method(LanguageServerConstants.RazorSemanticTokensRangeEndpoint)]
     internal interface ISemanticTokenRangeHandler :
         IJsonRpcRequestHandler<SemanticTokensRangeParams, SemanticTokens>,
         IRequestHandler<SemanticTokensRangeParams, SemanticTokens>,
