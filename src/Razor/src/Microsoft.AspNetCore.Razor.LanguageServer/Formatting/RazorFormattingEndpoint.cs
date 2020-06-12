@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
@@ -140,17 +139,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _rangeFormattingCapability = capability;
         }
 
-        DocumentFormattingRegistrationOptions IRegistration<DocumentFormattingRegistrationOptions>.GetRegistrationOptions()
+        public TextDocumentRegistrationOptions GetRegistrationOptions()
         {
-            return new DocumentFormattingRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector,
-            };
-        }
-
-        DocumentRangeFormattingRegistrationOptions IRegistration<DocumentRangeFormattingRegistrationOptions>.GetRegistrationOptions()
-        {
-            return new DocumentRangeFormattingRegistrationOptions
+            return new TextDocumentRegistrationOptions
             {
                 DocumentSelector = RazorDefaults.Selector,
             };
