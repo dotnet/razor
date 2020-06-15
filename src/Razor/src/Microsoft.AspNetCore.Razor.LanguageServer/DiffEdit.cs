@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal struct DiffEdit
+    internal readonly struct DiffEdit
     {
         public DiffEdit(Type operation, int pos, int? newTextPosition)
         {

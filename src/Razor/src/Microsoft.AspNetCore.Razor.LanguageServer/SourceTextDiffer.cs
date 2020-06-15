@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class SourceTextDiffer : TextDiffer
     {
-        private bool _lineDiffOnly;
+        private readonly bool _lineDiffOnly;
 
         private SourceTextDiffer(SourceText oldText, SourceText newText, bool lineDiffOnly)
         {
