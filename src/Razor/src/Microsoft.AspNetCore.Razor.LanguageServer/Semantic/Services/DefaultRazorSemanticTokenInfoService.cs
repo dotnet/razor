@@ -10,8 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -23,35 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         // This cache is not created for performance, but rather to restrict memory growth.
         // We need to keep track of the last couple of requests for use in previousResultId, but if we let the grow unbounded it could quickly allocate a lot of memory.
         // Solution: an in-memory cache
-        private class SemanticTokenCache
-        {
-            // Only the most recent couple of entries should be relevent, so lets limit the size
-            private readonly MemoryCache _cache = new MemoryCache(Options.Create(new MemoryCacheOptions() { SizeLimit = 50 }));
-            private static readonly MemoryCacheEntryOptions _entryOptions = new MemoryCacheEntryOptions { Size = 1 };
-
-            public IReadOnlyList<uint> GetResults(string resultId)
-            {
-                if (string.IsNullOrEmpty(resultId))
-                {
-                    return null;
-                }
-
-                var result = _cache.Get<IReadOnlyList<uint>>(resultId);
-
-                return result;
-            }
-
-            public void SetResults(string resultId, IReadOnlyList<uint> syntaxResults)
-            {
-                _cache.Set(resultId, syntaxResults, _entryOptions);
-            }
-        }
-
-        private static SemanticTokenCache _semanticTokenCache = new SemanticTokenCache();
-
-        public DefaultRazorSemanticTokenInfoService()
-        {
-        }
+        private static readonly MemoryCache<IReadOnlyList<uint>> _semanticTokenCache = new MemoryCache<IReadOnlyList<uint>>();
 
         public override SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, Range range = null)
         {
@@ -80,23 +51,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var syntaxRanges = VisitAllNodes(codeDocument);
-            var previousResults = _semanticTokenCache.GetResults(previousResultId);
+            var previousResults = _semanticTokenCache.Get(previousResultId);
 
             var semanticEdits = ConvertSyntaxTokensToSemanticEdits(syntaxRanges, previousResults, codeDocument);
 
             return semanticEdits;
-        }
-
-        private static IReadOnlyList<SyntaxResult> FilterReturns(IReadOnlyList<SyntaxResult> previousResults, IReadOnlyList<SyntaxResult> currentResults)
-        {
-            if (previousResults is null)
-            {
-                return currentResults;
-            }
-
-            var difference = currentResults.Except(previousResults).ToList();
-
-            return difference;
         }
 
         private static IReadOnlyList<SyntaxResult> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range range = null)
@@ -135,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 ResultId = resultId.ToString()
             };
 
-            _semanticTokenCache.SetResults(resultId.ToString(), data);
+            _semanticTokenCache.Set(resultId.ToString(), data);
 
             return tokensResult;
         }
