@@ -5,12 +5,13 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
-    [ExportLspMethod("textDocument/semanticTokens")]
+    [ExportLspMethod(LanguageServerConstants.RazorSemanticTokensEndpoint)]
     internal class SemanticTokenHandler : IRequestHandler<SemanticTokensParams, SemanticTokens>
     {
         private readonly LSPRequestInvoker _requestInvoker;
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
-                "textDocument/semanticTokens",
+                LanguageServerConstants.RazorSemanticTokensEndpoint,
                 LanguageServerKind.Razor,
                 request,
                 cancellationToken).ConfigureAwait(false);

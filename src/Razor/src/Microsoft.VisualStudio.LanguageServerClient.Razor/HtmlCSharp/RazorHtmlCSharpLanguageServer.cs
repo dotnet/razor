@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
@@ -79,31 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Dispose();
 
             return Task.CompletedTask;
-        }
-
-        [JsonRpcMethod(Methods.TextDocumentDidOpenName, UseSingleObjectParameterDeserialization = true)]
-        public void OnTextDocumentOpened(DidOpenTextDocumentParams didOpenParams)
-        {
-            return;
-        }
-
-        /// <summary>
-        /// Sent by Visual Studio to alert server that a file was closed.
-        /// </summary>
-        /// <param name="didCloseParams"></param>
-        [JsonRpcMethod(Methods.TextDocumentDidCloseName, UseSingleObjectParameterDeserialization = true)]
-        public void OnTextDocumentDidClose(DidCloseTextDocumentParams didCloseParams)
-        {
-            return;
-        }
-
-        /// <summary>
-        /// Sent by server to synchronize text changes between the client and server.
-        /// </summary>
-        [JsonRpcMethod(Methods.TextDocumentDidChangeName, UseSingleObjectParameterDeserialization = true)]
-        public void OnTextDocumentChanged(DidChangeTextDocumentParams didChangeParams)
-        {
-            return;
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization =  true)]
@@ -216,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentImplementationName, positionParams, _clientCapabilities, cancellationToken);
         }
 
-        [JsonRpcMethod("textDocument/semanticTokens", UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(LanguageServerConstants.RazorSemanticTokensEndpoint, UseSingleObjectParameterDeserialization = true)]
         public Task<SemanticTokens> SemanticTokensAsync(SemanticTokensParams semanticParams, CancellationToken cancellationToken)
         {
             if (semanticParams is null)
@@ -224,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(semanticParams));
             }
 
-            return ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>("textDocument/semanticTokens", semanticParams, _clientCapabilities, cancellationToken);
+            return ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(LanguageServerConstants.RazorSemanticTokensEndpoint, semanticParams, _clientCapabilities, cancellationToken);
         }
 
         // Internal for testing

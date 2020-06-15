@@ -105,7 +105,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
         public RegistrationExtensionResult GetRegistration()
         {
-            const string SemanticCapability = "semanticTokensProvider";
             var legend = SemanticTokenLegend.GetResponse();
 
             var semanticTokensOptions = new SemanticTokensOptions
@@ -122,8 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 RangeProvider = false,
             };
 
-            return new RegistrationExtensionResult(SemanticCapability, semanticTokensOptions);
+            return new RegistrationExtensionResult(LanguageServerConstants.SemanticTokensProviderName, semanticTokensOptions);
         }
-
     }
 }

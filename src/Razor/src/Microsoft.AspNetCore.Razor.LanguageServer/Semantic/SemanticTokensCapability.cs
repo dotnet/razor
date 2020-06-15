@@ -8,20 +8,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     public class SemanticTokensCapability : DynamicCapability
     {
-        public IReadOnlyDictionary<string, uint> TokenTypes
-        {
-            get
-            {
-                return SemanticTokenLegend.TokenTypesLegend;
-            }
-        }
+        public IReadOnlyDictionary<string, uint> TokenTypes => SemanticTokenLegend.TokenTypesLegend;
 
-        public IReadOnlyDictionary<string, uint> TokenModifiers
-        {
-            get
-            {
-                return SemanticTokenLegend.TokenModifiersLegend;
-            }
-        }
+        public IReadOnlyDictionary<string, uint> TokenModifiers => SemanticTokenLegend.TokenModifiersLegend;
     }
 }
