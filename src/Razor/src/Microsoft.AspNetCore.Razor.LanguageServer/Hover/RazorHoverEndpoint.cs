@@ -57,6 +57,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             _logger = loggerFactory.CreateLogger<RazorHoverEndpoint>();
         }
 
+        public TextDocumentRegistrationOptions GetRegistrationOptions()
+        {
+            return new TextDocumentRegistrationOptions
+            {
+                DocumentSelector = RazorDefaults.Selector
+            };
+        }
+
         public async Task<HoverModel> Handle(HoverParams request, CancellationToken cancellationToken)
         {
             if (request is null)
@@ -97,14 +105,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
         public void SetCapability(HoverCapability capability)
         {
             _capability = capability;
-        }
-
-        public TextDocumentRegistrationOptions GetRegistrationOptions()
-        {
-            return new TextDocumentRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector
-            };
         }
     }
 }

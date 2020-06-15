@@ -65,6 +65,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _logger = loggerFactory.CreateLogger<RazorFormattingEndpoint>();
         }
 
+        public TextDocumentRegistrationOptions GetRegistrationOptions()
+        {
+            return new TextDocumentRegistrationOptions
+            {
+                DocumentSelector = RazorDefaults.Selector,
+            };
+        }
+
         public async Task<TextEditContainer> Handle(DocumentFormattingParams request, CancellationToken cancellationToken)
         {
             if (!_optionsMonitor.CurrentValue.EnableFormatting)
@@ -137,14 +145,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public void SetCapability(DocumentRangeFormattingCapability capability)
         {
             _rangeFormattingCapability = capability;
-        }
-
-        public TextDocumentRegistrationOptions GetRegistrationOptions()
-        {
-            return new TextDocumentRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector,
-            };
         }
     }
 }
