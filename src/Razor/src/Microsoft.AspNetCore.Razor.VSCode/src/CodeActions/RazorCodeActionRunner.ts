@@ -16,12 +16,7 @@ export class RazorCodeActionRunner {
     ) {}
 
     public register() {
-        vscode.commands.registerCommand('razor/runCodeAction', (request: object) => {
-            this
-                .runCodeAction(request)
-                .then()
-                .catch((e) => this.logger.logAlways(`caught exception running code action: ${e}`));
-        }, this);
+        vscode.commands.registerCommand('razor/runCodeAction', (request: object) => this.runCodeAction(request), this);
     }
 
     private async runCodeAction(request: any): Promise<boolean | string | {}> {

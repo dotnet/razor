@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
     abstract class RazorCodeActionResolver
     {
-        abstract public string Action { get; }
+        public abstract string Action { get; }
 
-        abstract public Task<WorkspaceEdit> Resolve(Dictionary<string, object> data, CancellationToken cancellationToken);
+        public abstract Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken);
     }
 }

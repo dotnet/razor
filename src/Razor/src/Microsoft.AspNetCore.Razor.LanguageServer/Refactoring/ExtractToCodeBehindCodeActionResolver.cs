@@ -6,14 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -21,57 +19,8 @@ using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
-    class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
-    {
-        override public Task<CommandOrCodeActionContainer> Provide(RazorCodeActionContext context, CancellationToken cancellationToken)
-        {
-            var directiveNode = (RazorDirectiveSyntax)context.Document.GetNodeAtLocation(context.Location, n => n.Kind == Language.SyntaxKind.RazorDirective);
-            if (directiveNode is null)
-            {
-                return null;
-            }
-
-            var cSharpCodeBlockNode = directiveNode.Body.DescendantNodes().FirstOrDefault(n => n is CSharpCodeBlockSyntax);
-            if (cSharpCodeBlockNode is null)
-            {
-                return null;
-            }
-
-            if (context.Location.AbsoluteIndex > cSharpCodeBlockNode.SpanStart)
-            {
-                return null;
-            }
-
-            var extractToCodeBehindParams = new RazorCodeActionResolutionParams()
-            {
-                Action = "ExtractToCodeBehind",
-                Data = new Dictionary<string, object>()
-                {
-                    { "Uri", new Uri(context.Document.Source.FilePath).ToString() },
-                    { "ExtractStart", cSharpCodeBlockNode.Span.Start },
-                    { "ExtractEnd", cSharpCodeBlockNode.Span.End },
-                    { "RemoveStart", directiveNode.Span.Start },
-                    { "RemoveEnd", directiveNode.Span.End }
-                },
-            };
-
-            var container = new List<CommandOrCodeAction>
-            {
-                new Command()
-                {
-                    Title = "Extract code block into backing document",
-                    Name = "razor/runCodeAction",
-                    Arguments = new JArray(JToken.FromObject(extractToCodeBehindParams))
-                }
-            };
-
-            return Task.FromResult((CommandOrCodeActionContainer)container);
-        }
-    }
-
     class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
     {
-        private readonly ILogger _logger;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
 
@@ -79,8 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
         public ExtractToCodeBehindCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
-            DocumentResolver documentResolver,
-            ILoggerFactory loggerFactory)
+            DocumentResolver documentResolver)
         {
             if (foregroundDispatcher is null)
             {
@@ -92,25 +40,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
-            _logger = loggerFactory.CreateLogger<ExtractToCodeBehindCodeActionProvider>();
         }
 
-        override public async Task<WorkspaceEdit> Resolve(Dictionary<string, object> data, CancellationToken cancellationToken)
+        override public async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
-            var uri = new Uri((string)data["Uri"]);
-            var cutStart = Convert.ToInt32(data["ExtractStart"]);
-            var cutEnd = Convert.ToInt32(data["ExtractEnd"]);
-            var removeStart = Convert.ToInt32(data["RemoveStart"]);
-            var removeEnd = Convert.ToInt32(data["RemoveEnd"]);
-
-            var path = uri.LocalPath;
+            var actionParams = data.ToObject<ExtractToCodeBehindParams>();
+            var path = actionParams.Uri.LocalPath;
 
             var document = await Task.Factory.StartNew(() =>
             {
@@ -128,8 +65,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var contents = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(cutStart, cutEnd - cutStart));
-
             var codeDocument = await document.GetGeneratedOutputAsync();
             if (codeDocument.IsUnsupported())
             {
@@ -140,24 +75,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var n = 0;
             do
             {
+                var identifier = n > 0 ? n.ToString() : "";  // Make it look nice
                 codeBehindPath = Path.Combine(
                     Path.GetDirectoryName(path),
-                    $"{Path.GetFileNameWithoutExtension(path)}{AsDuplicateIdentifier(n)}.razor.cs");
+                    $"{Path.GetFileNameWithoutExtension(path)}{identifier}{Path.GetExtension(path)}.cs");
                 n++;
             } while (File.Exists(codeBehindPath));
 
             var codeBehindUri = new Uri(codeBehindPath);
             var className = Path.GetFileNameWithoutExtension(path);
+            var contents = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd- actionParams.ExtractStart));
             var compilationUnit = GenerateCodeBehindClass(className, contents, codeDocument);
 
             var changes = new Dictionary<Uri, IEnumerable<TextEdit>>
             {
-                [uri] = new[]
+                [actionParams.Uri] = new[]
                 {
                     new TextEdit()
                     {
                         NewText = "",
-                        Range = codeDocument.RangeFromIndices(removeStart, removeEnd)
+                        Range = codeDocument.RangeFromIndices(actionParams.RemoveStart, actionParams.RemoveEnd)
                     }
                 },
                 [codeBehindUri] = new[]
@@ -180,11 +117,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 Changes = changes,
                 DocumentChanges = documentChanges,
             };
-        }
-
-        private static string AsDuplicateIdentifier(int n)
-        {
-            return n > 0 ? n.ToString() : "";
         }
 
         private IEnumerable<string> FindUsings(RazorCodeDocument razorCodeDocument)
