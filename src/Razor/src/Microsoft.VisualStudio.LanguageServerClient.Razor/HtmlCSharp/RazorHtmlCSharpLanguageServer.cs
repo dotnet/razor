@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
@@ -190,17 +189,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentImplementationName, positionParams, _clientCapabilities, cancellationToken);
-        }
-
-        [JsonRpcMethod(LanguageServerConstants.RazorSemanticTokensEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokens> SemanticTokensAsync(SemanticTokensParams semanticParams, CancellationToken cancellationToken)
-        {
-            if (semanticParams is null)
-            {
-                throw new ArgumentNullException(nameof(semanticParams));
-            }
-
-            return ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(LanguageServerConstants.RazorSemanticTokensEndpoint, semanticParams, _clientCapabilities, cancellationToken);
         }
 
         // Internal for testing
