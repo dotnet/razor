@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
         public TextDocumentRegistrationOptions GetRegistrationOptions()
         {
-            return new TextDocumentRegistrationOptions
+            return new TextDocumentRegistrationOptions()
             {
                 DocumentSelector = RazorDefaults.Selector
             };

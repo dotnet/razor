@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public TextDocumentRegistrationOptions GetRegistrationOptions()
         {
-            return new TextDocumentRegistrationOptions
+            return new TextDocumentRegistrationOptions()
             {
                 DocumentSelector = RazorDefaults.Selector,
             };
