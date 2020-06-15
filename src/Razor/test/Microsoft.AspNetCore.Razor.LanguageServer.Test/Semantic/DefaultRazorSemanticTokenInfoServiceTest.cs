@@ -321,7 +321,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             // Arrange
             if (service is null)
             {
-                service = GetService();
+                service = GetDefaultRazorSemanticTokenInfoService();
             }
             outService = service;
 
@@ -349,7 +349,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             // Arrange
             if (service is null)
             {
-                service = GetService();
+                service = GetDefaultRazorSemanticTokenInfoService();
             }
             outService = service;
 
@@ -375,7 +375,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             return edits.SemanticTokensEdits.ResultId;
         }
 
-        private RazorSemanticTokenInfoService GetService()
+        private RazorSemanticTokenInfoService GetDefaultRazorSemanticTokenInfoService()
         {
             return new DefaultRazorSemanticTokenInfoService();
         }
