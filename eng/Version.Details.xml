@@ -69,10 +69,6 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>38192e3cbd5610c9fa3d814506424ad93dfa19b2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Caching.Memory" Version="5.0.0-preview.6.20278.9">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>567a7a2bb62e180ddb224ba820297e48b1879df1</Sha>
-    </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
     <!-- Listed as a dependency to workaround https://github.com/dotnet/cli/issues/10528 -->
