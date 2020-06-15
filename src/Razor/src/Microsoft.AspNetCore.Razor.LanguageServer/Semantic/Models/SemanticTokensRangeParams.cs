@@ -3,12 +3,14 @@
 
 using System;
 using MediatR;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    public class SemanticTokenParams : IRequest<SemanticTokens>
+    public class SemanticTokensRangeParams : IRequest<SemanticTokens>
     {
         public RazorLanguageKind Kind { get; set; }
         public Uri RazorDocumentUri { get; set; }
+        public Range Range { get; set; }
     }
 }

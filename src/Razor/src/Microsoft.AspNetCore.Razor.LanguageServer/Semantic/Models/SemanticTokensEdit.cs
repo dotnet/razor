@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
     public class SemanticTokensEdit
     {
@@ -15,8 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override bool Equals(object obj)
         {
-            var other = obj as SemanticTokensEdit;
-            if (other is null)
+            if (!(obj is SemanticTokensEdit other))
             {
                 return false;
             }

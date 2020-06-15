@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using LSPRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
