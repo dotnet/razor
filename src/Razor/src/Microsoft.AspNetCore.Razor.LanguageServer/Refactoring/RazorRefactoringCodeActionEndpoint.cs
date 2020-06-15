@@ -70,7 +70,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
             _logger = loggerFactory.CreateLogger<RazorRefactoringCodeActionEndpoint>();
-            _logger.LogDebug("Instantiated RazorRefactoringEndpoint");
         }
 
         public CodeActionRegistrationOptions GetRegistrationOptions()
@@ -145,10 +144,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 throw new ArgumentNullException(nameof(request));
             }
 
-            _logger.LogDebug($"Resolving action {request.Action} with data {request.Data}");
+            _logger.LogDebug($"resolving action {request.Action} with data {request.Data}");
             if (!_resolvers.ContainsKey(request.Action))
             {
-                _logger.LogError($"No resolver registered for {request.Action}");
+                _logger.LogError($"no resolver registered for {request.Action}");
                 return new RazorCodeActionResolutionResponse() { Edit = null };
             }
 

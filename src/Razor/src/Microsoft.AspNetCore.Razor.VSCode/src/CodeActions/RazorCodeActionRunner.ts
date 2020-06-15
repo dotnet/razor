@@ -22,15 +22,10 @@ export class RazorCodeActionRunner {
                 .then()
                 .catch((e) => this.logger.logAlways(`caught exception running code action: ${e}`));
         }, this);
-        this.logger.logAlways('registered code action runner');
     }
 
     private async runCodeAction(request: any): Promise<boolean | string | {}> {
-        this.logger.logMessage('Invoking razor/resolveCodeAction');
-        this.logger.logMessage(JSON.stringify(request));
         const response: CodeActionComputationResponse = await this.serverClient.sendRequest('razor/resolveCodeAction', {Action: request.Action, Data: request.Data});
-        this.logger.logMessage(`Received computed workspace edit ${JSON.stringify(response)}`);
-
         const workspaceEdit = new vscode.WorkspaceEdit();
         try {
             if (Array.isArray(response.edit.documentChanges)) {
@@ -62,35 +57,10 @@ export class RazorCodeActionRunner {
                 }
             }
         } catch (e) {
-            this.logger.logAlways(`caught in run code action: ${e}`);
+            this.logger.logAlways(`caught error running code action: ${e}`);
             return Promise.resolve(false);
         }
 
-        const result = await vscode.workspace.applyEdit(workspaceEdit);
-        this.logger.logAlways(` status ${result}`);
-
-        return true;
-
-        //     // Unfortunately, the textEditor.Close() API has been deprecated
-        //     // and replaced with a command that can only close the active editor.
-        //     // If files were renamed that weren't the active editor, their tabs will
-        //     // be left open and marked as "deleted" by VS Code
-        //     let next = applyEditPromise;
-        //     if (renamedFiles.some(r => r.fsPath == vscode.window.activeTextEditor.document.uri.fsPath))
-        //     {
-        //         next = applyEditPromise.then(_ =>
-        //             {
-        //                 return vscode.commands.executeCommand("workbench.action.closeActiveEditor");
-        //             });
-        //     }
-
-        //     return fileToOpen != null
-        //         ? next.then(_ =>
-        //             {
-        //                 return vscode.commands.executeCommand("vscode.open", fileToOpen);
-        //             })
-        //         : next;
-        //     }
-        // }
+        return vscode.workspace.applyEdit(workspaceEdit);
     }
 }

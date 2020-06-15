@@ -37,6 +37,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
+            if (context.Location.AbsoluteIndex > cSharpCodeBlockNode.SpanStart)
+            {
+                return null;
+            }
+
             var extractToCodeBehindParams = new RazorCodeActionResolutionParams()
             {
                 Action = "ExtractToCodeBehind",
@@ -143,13 +148,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             var codeBehindUri = new Uri(codeBehindPath);
             var className = Path.GetFileNameWithoutExtension(path);
-            var result = GenerateCodeBehindClass(className, contents, codeDocument);
-            var compilationUnit = result.Item1;
+            var compilationUnit = GenerateCodeBehindClass(className, contents, codeDocument);
 
             var changes = new Dictionary<Uri, IEnumerable<TextEdit>>
             {
                 [uri] = new[]
-    {
+                {
                     new TextEdit()
                     {
                         NewText = "",
@@ -192,7 +196,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 .Select(n => ((UsingDirectiveIntermediateNode)n).Content);
         }
 
-        private Tuple<CompilationUnitSyntax, ClassDeclarationSyntax> GenerateCodeBehindClass(string className, string contents, RazorCodeDocument razorCodeDocument)
+        private CompilationUnitSyntax GenerateCodeBehindClass(string className, string contents, RazorCodeDocument razorCodeDocument)
         {
             var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument.GetDocumentIntermediateNode()
                 .FindDescendantNodes<IntermediateNode>()
@@ -209,12 +213,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 .NamespaceDeclaration(CSharpSyntaxFactory.ParseName(namespaceNode.Content))
                 .AddMembers(@class);
 
-            var unit = CSharpSyntaxFactory
+            var compilationUnit = CSharpSyntaxFactory
                 .CompilationUnit()
                 .AddUsings(FindUsings(razorCodeDocument).Select(u => CSharpSyntaxFactory.UsingDirective(CSharpSyntaxFactory.ParseName(u))).ToArray())
                 .AddMembers(@namespace);
 
-            return Tuple.Create(unit, @class);
+            return compilationUnit;
         }
     }
 }
