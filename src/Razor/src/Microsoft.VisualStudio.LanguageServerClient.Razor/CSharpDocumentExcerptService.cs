@@ -55,11 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             ExcerptModeInternal mode,
             CancellationToken cancellationToken)
         {
-            if (_textSnapshot == null)
-            {
-                return null;
-            }
-
             var mapped = await _mappingService.MapSpansAsync(document, new[] { span }, cancellationToken).ConfigureAwait(false);
             if (mapped.Length == 0 || mapped[0].Equals(default(RazorMappedSpanResult)))
             {

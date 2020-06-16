@@ -11,16 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using System.Collections.Immutable;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using System.Linq;
-using Microsoft.AspNetCore.Razor.LanguageServer;
-using System.Diagnostics;
-using System.IO;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -29,11 +20,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class CSharpVirtualDocumentPublisher : LSPDocumentManagerChangeTrigger
     {
         private readonly RazorDynamicFileInfoProvider _dynamicFileInfoProvider;
-        Lazy<LSPDocumentMappingProvider> _lazyLspDocumentMappingProvider;
+        LSPDocumentMappingProvider _lspDocumentMappingProvider;
 
         [ImportingConstructor]
-        public CSharpVirtualDocumentPublisher(RazorDynamicFileInfoProvider dynamicFileInfoProvider,
-            Lazy<LSPDocumentMappingProvider> lazyLspDocumentMappingProvider)
+        public CSharpVirtualDocumentPublisher(RazorDynamicFileInfoProvider dynamicFileInfoProvider, LSPDocumentMappingProvider lspDocumentMappingProvider)
         {
             if (dynamicFileInfoProvider is null)
             {
@@ -41,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             _dynamicFileInfoProvider = dynamicFileInfoProvider;
-            _lazyLspDocumentMappingProvider = lazyLspDocumentMappingProvider;
+            _lspDocumentMappingProvider = lspDocumentMappingProvider;
         }
 
         public override void Initialize(LSPDocumentManager documentManager)
@@ -64,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (args.VirtualNew is CSharpVirtualDocumentSnapshot)
             {
-                var csharpContainer = new CSharpVirtualDocumentContainer(_lazyLspDocumentMappingProvider.Value, args.New, args.VirtualNew.Snapshot);
+                var csharpContainer = new CSharpVirtualDocumentContainer(_lspDocumentMappingProvider, args.New, args.VirtualNew.Snapshot);
                 _dynamicFileInfoProvider.UpdateLSPFileInfo(args.New.Uri, csharpContainer);
             }
         }
@@ -77,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             private IRazorSpanMappingService _mappingService;
             private IRazorDocumentExcerptService _excerptService;
 
-            public override string FilePath => throw new NotImplementedException();
+            public override string FilePath => _documentSnapshot.Uri.LocalPath;
 
             public CSharpVirtualDocumentContainer(LSPDocumentMappingProvider lspDocumentMappingProvider, LSPDocumentSnapshot documentSnapshot, ITextSnapshot textSnapshot)
             {

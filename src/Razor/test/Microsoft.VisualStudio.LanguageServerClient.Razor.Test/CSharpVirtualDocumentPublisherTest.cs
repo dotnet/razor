@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public void DocumentManager_Changed_Added_Noops()
         {
             // Arrange
-            var lspDocumentMappingProvider = new Mock<Lazy<LSPDocumentMappingProvider>>();
+            var lspDocumentMappingProvider = new Mock<LSPDocumentMappingProvider>();
             var fileInfoProvider = new Mock<RazorDynamicFileInfoProvider>(MockBehavior.Strict);
             var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, lspDocumentMappingProvider.Object);
             var args = new LSPDocumentChangeEventArgs(old: null, @new: Mock.Of<LSPDocumentSnapshot>(), LSPDocumentChangeKind.Added);
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public void DocumentManager_Changed_Removed_Noops()
         {
             // Arrange
-            var lspDocumentMappingProvider = new Mock<Lazy<LSPDocumentMappingProvider>>();
+            var lspDocumentMappingProvider = new Mock<LSPDocumentMappingProvider>();
             var fileInfoProvider = new Mock<RazorDynamicFileInfoProvider>(MockBehavior.Strict);
             var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, lspDocumentMappingProvider.Object);
             var args = new LSPDocumentChangeEventArgs(old: Mock.Of<LSPDocumentSnapshot>(), @new: null, LSPDocumentChangeKind.Removed);
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public void DocumentManager_Changed_VirtualDocumentChanged_NonCSharp_Noops()
         {
             // Arrange
-            var lspDocumentMappingProvider = new Mock<Lazy<LSPDocumentMappingProvider>>();
+            var lspDocumentMappingProvider = new Mock<LSPDocumentMappingProvider>();
             var fileInfoProvider = new Mock<RazorDynamicFileInfoProvider>(MockBehavior.Strict);
             var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, lspDocumentMappingProvider.Object);
             var args = new LSPDocumentChangeEventArgs(
@@ -63,10 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var lspDocument = new TestLSPDocumentSnapshot(new Uri("C:/path/to/something.razor"), 1337, csharpSnapshot);
             var fileInfoProvider = new Mock<RazorDynamicFileInfoProvider>(MockBehavior.Strict);
             var lspDocumentMappingProvider = new Mock<LSPDocumentMappingProvider>();
-            var lazyLSPDocumentMappingProvider = new Lazy<LSPDocumentMappingProvider>(() => lspDocumentMappingProvider.Object);
             fileInfoProvider.Setup(provider => provider.UpdateLSPFileInfo(lspDocument.Uri, It.IsAny<DynamicDocumentContainer>()))
                 .Verifiable();
-            var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, lazyLSPDocumentMappingProvider);
+            var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, lspDocumentMappingProvider.Object);
             var args = new LSPDocumentChangeEventArgs(
                 old: Mock.Of<LSPDocumentSnapshot>(), @new: lspDocument,
                 virtualOld: Mock.Of<VirtualDocumentSnapshot>(), virtualNew: csharpSnapshot,

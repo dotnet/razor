@@ -67,12 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(spans));
             }
 
-            // Called on an uninitialized snapshot.
-            if (_textSnapshot == null || _documentSnapshot == null)
-            {
-                return ImmutableArray.Create<RazorMappedSpanResult>();
-            }
-
             var sourceText = _textSnapshot.AsText();
             var projectedRanges = spans.Select(span => {
                 var range = span.AsRange(sourceText);
