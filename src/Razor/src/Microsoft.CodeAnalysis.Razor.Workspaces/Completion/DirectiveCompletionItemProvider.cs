@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 var completionItem = new RazorCompletionItem(
                     completionDisplayText,
                     directive.Directive,
-                    RazorCompletionItemKind.Directive);
+                    RazorCompletionItemKind.Directive,
+                    new string[] { " " });
                 var completionDescription = new DirectiveCompletionDescription(directive.Description);
                 completionItem.SetDirectiveCompletionDescription(completionDescription);
                 completionItems.Add(completionItem);
