@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    public class SemanticTokensEdits
+    internal class SemanticTokensEdits
     {
         public string ResultId { get; set; }
         public IReadOnlyList<SemanticTokensEdit> Edits { get; set; }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    public struct SemanticTokenLegendResponse
+    internal struct SemanticTokenLegendResponse
     {
         public IReadOnlyCollection<string> TokenTypes;
         public IReadOnlyCollection<string> TokenModifiers;

@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    public class SemanticTokenLegendParams : IRequest<SemanticTokenLegendResponse>, IBaseRequest
+    internal class SemanticTokenLegendParams : IRequest<SemanticTokenLegendResponse>, IBaseRequest
     {
     }
 }

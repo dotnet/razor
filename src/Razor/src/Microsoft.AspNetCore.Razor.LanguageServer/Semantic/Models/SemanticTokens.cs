@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    public class SemanticTokens
+    internal class SemanticTokens
     {
         public string ResultId { get; set; }
         public uint[] Data { get; set; }

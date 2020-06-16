@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    public class SemanticTokensDocumentProviderOptions
+    internal class SemanticTokensDocumentProviderOptions
     {
         public bool? Edits { get; set; }
     }

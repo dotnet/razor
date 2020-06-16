@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    public class RazorSemanticTokenLegendEndpoint : ISemanticTokenLegendHandler
+    internal class RazorSemanticTokenLegendEndpoint : ISemanticTokenLegendHandler
     {
         private SemanticTokenLegendCapability _capability;
 

@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    public struct SemanticTokensOrSemanticTokensEdits
+    internal struct SemanticTokensOrSemanticTokensEdits
     {
         public SemanticTokensOrSemanticTokensEdits(SemanticTokensEdits semanticTokensEdits)
         {

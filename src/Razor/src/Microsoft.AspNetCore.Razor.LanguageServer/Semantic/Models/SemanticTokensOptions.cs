@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    public class SemanticTokensOptions
+    internal class SemanticTokensOptions
     {
         public SemanticTokensLegend Legend { get; set; }
 

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
@@ -30,6 +29,15 @@ using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServ
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
+    public static class SerializerExtensions
+    {
+        public static void RegisterConverter(this Serializer serializer, Newtonsoft.Json.JsonConverter converter)
+        {
+            serializer.JsonSerializer.Converters.Add(converter);
+            serializer.Settings.Converters.Add(converter);
+        }
+    }
+
     public sealed class RazorLanguageServer
     {
         private RazorLanguageServer()
@@ -38,9 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public static Task<ILanguageServer> CreateAsync(Stream input, Stream output, Trace trace)
         {
-            Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
-            Serializer.Instance.JsonSerializer.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
-            Serializer.Instance.Settings.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
+            Serializer.Instance.RegisterConverter(SemanticTokensOrSemanticTokensEditsConverter.Instance);
 
             ILanguageServer server = null;
             server = OmniSharp.Extensions.LanguageServer.Server.LanguageServer.PreInit(options =>
@@ -159,8 +165,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
                     });
-                //options.Serializer.Settings.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
-                //options.Serializer.JsonSerializer.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
             });
 
             try

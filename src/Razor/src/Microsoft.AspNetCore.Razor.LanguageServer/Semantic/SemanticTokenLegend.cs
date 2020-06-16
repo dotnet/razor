@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    public static class SemanticTokenLegend
+    internal static class SemanticTokenLegend
     {
         public const string RazorTagHelperElement = "razorTagHelperElement";
         public const string RazorTagHelperAttribute = "razorTagHelperAttribute";
@@ -40,14 +40,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
         }
 
-        public static SemanticTokenLegendResponse GetResponse()
+        public static SemanticTokenLegendResponse Instance = new SemanticTokenLegendResponse
         {
-            return new SemanticTokenLegendResponse
-            {
-                TokenModifiers = _tokenModifiers,
-                TokenTypes = _tokenTypes
-            };
-        }
+            TokenModifiers = _tokenModifiers,
+            TokenTypes = _tokenTypes
+        };
 
         private static IReadOnlyDictionary<string, uint> GetMap(IReadOnlyCollection<string> tokens)
         {

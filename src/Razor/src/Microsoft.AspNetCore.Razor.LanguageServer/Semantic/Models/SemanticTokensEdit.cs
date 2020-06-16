@@ -7,7 +7,7 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    public class SemanticTokensEdit
+    internal class SemanticTokensEdit
     {
         public int Start { get; set; }
         public int DeleteCount { get; set; }

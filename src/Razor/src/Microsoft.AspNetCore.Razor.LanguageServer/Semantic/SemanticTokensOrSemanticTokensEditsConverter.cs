@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    public class SemanticTokensOrSemanticTokensEditsConverter : JsonConverter<SemanticTokensOrSemanticTokensEdits>
+    internal class SemanticTokensOrSemanticTokensEditsConverter : JsonConverter<SemanticTokensOrSemanticTokensEdits>
     {
         public static readonly SemanticTokensOrSemanticTokensEditsConverter Instance = new SemanticTokensOrSemanticTokensEditsConverter();
 

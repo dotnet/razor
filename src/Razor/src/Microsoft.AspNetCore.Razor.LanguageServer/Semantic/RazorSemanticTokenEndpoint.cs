@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return await Handle(request.RazorDocumentUri.AbsolutePath, cancellationToken, range: null);
+            return await Handle(request.TextDocument.Uri.AbsolutePath, cancellationToken, range: null);
         }
 
         public async Task<SemanticTokens> Handle(SemanticTokensRangeParams request, CancellationToken cancellationToken)
@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return await Handle(request.RazorDocumentUri.AbsolutePath, cancellationToken, request.Range);
+            return await Handle(request.TextDocument.Uri.AbsolutePath, cancellationToken, request.Range);
         }
 
         public async Task<SemanticTokensOrSemanticTokensEdits?> Handle(SemanticTokensEditParams request, CancellationToken cancellationToken)
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return await Handle(request.RazorDocumentUri.AbsolutePath, request.PreviousResultId, cancellationToken);
+            return await Handle(request.TextDocument.Uri.AbsolutePath, request.PreviousResultId, cancellationToken);
         }
 
         public void SetCapability(SemanticTokensCapability capability)
@@ -108,8 +108,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public RegistrationExtensionResult GetRegistration()
         {
-            var legend = SemanticTokenLegend.GetResponse();
-
             var semanticTokensOptions = new SemanticTokensOptions
             {
                 DocumentProvider = new SemanticTokensDocumentProviderOptions
@@ -118,8 +116,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 },
                 Legend = new SemanticTokensLegend
                 {
-                    TokenModifiers = new Container<string>(legend.TokenModifiers),
-                    TokenTypes = new Container<string>(legend.TokenTypes),
+                    TokenModifiers = new Container<string>(SemanticTokenLegend.Instance.TokenModifiers),
+                    TokenTypes = new Container<string>(SemanticTokenLegend.Instance.TokenTypes),
                 },
                 RangeProvider = true,
             };
