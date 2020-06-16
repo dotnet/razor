@@ -70,7 +70,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorOnTypeFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokenEndpoint>()
                     .WithHandler<RazorSemanticTokenLegendEndpoint>()
-                    .WithHandler<RazorRefactoringCodeActionEndpoint>()
+                    .WithHandler<CodeActionEndpoint>()
+                    .WithHandler<CodeActionResolutionEndpoint>()
                     .WithServices(services =>
                     {
                         var filePathNormalizer = new FilePathNormalizer();

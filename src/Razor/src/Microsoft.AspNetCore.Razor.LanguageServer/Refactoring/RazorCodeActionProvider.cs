@@ -6,6 +6,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
     abstract class RazorCodeActionProvider
     {
-        abstract public Task<CommandOrCodeActionContainer> Provide(RazorCodeActionContext context, CancellationToken cancellationToken);
+        public abstract Task<CommandOrCodeActionContainer> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken);
     }
 }
