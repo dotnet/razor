@@ -147,6 +147,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Refactoring
                         services.AddSingleton<RazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
+                        services.AddSingleton<RazorCodeActionProvider, CreateComponentFromTagCodeActionProvider>();
                         services.AddSingleton<RazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
                     }));
 
