@@ -115,7 +115,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // OK this span intersects with the excerpt span, so we will process it. Let's compute
             // the secondary span that matches the intersection.
             var secondarySpan = new TextSpan(primarySpan.Start + intersection.Value.Start - primarySpan.Start, intersection.Value.Length);
-            //primarySpan = intersection.Value; // CHECK: should have already been equal
 
             if (remainingSpan.Start < primarySpan.Start)
             {
@@ -133,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 suffix = new ClassifiedSpan(ClassificationTypeNames.Text, new TextSpan(primarySpan.End, remainingSpan.End - primarySpan.End));
 
                 // We've taken out the prefix and suffix from the excerpt span
-                remainingSpan = primarySpan; // new TextSpan(primarySpan.Start, remainingSpan.Length - (primarySpan.Start - remainingSpan.Start));
+                remainingSpan = primarySpan;
             }
 
             // We should be able to process this whole span as C#, so classify it.
