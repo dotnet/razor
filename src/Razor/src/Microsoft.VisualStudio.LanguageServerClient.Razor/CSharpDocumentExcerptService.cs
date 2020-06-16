@@ -82,20 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 generatedDocument,
                 cancellationToken).ConfigureAwait(false);
 
-            // Now translate everything to be relative to the excerpt
-            var offset = 0 - excerptSpan.Start;
-            var excerptText = razorDocumentText.GetSubText(excerptSpan);
-            excerptSpan = new TextSpan(0, excerptSpan.Length);
-            razorDocumentSpan = new TextSpan(razorDocumentSpan.Start + offset, razorDocumentSpan.Length);
-
-            for (var i = 0; i < classifiedSpans.Count; i++)
-            {
-                var classifiedSpan = classifiedSpans[i];
-                var updated = new TextSpan(classifiedSpan.TextSpan.Start + offset, classifiedSpan.TextSpan.Length);
-                Debug.Assert(excerptSpan.Contains(updated));
-
-                classifiedSpans[i] = new ClassifiedSpan(classifiedSpan.ClassificationType, updated);
-            }
+            var excerptText = GetTranslatedExcerptText(razorDocumentText, ref razorDocumentSpan, ref excerptSpan, classifiedSpans);
 
             return new ExcerptResultInternal(excerptText, razorDocumentSpan, classifiedSpans.ToImmutable(), document, span);
         }

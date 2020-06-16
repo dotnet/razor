@@ -51,6 +51,30 @@ namespace Microsoft.CodeAnalysis.Razor
             return new TextSpan(startLine.Start, endLine.End - startLine.Start);
         }
 
+        protected SourceText GetTranslatedExcerptText(
+            SourceText razorDocumentText,
+            ref TextSpan razorDocumentSpan,
+            ref TextSpan excerptSpan,
+            ImmutableArray<ClassifiedSpan>.Builder classifiedSpans)
+        {
+            // Now translate everything to be relative to the excerpt
+            var offset = 0 - excerptSpan.Start;
+            var excerptText = razorDocumentText.GetSubText(excerptSpan);
+            excerptSpan = new TextSpan(0, excerptSpan.Length);
+            razorDocumentSpan = new TextSpan(razorDocumentSpan.Start + offset, razorDocumentSpan.Length);
+
+            for (var i = 0; i < classifiedSpans.Count; i++)
+            {
+                var classifiedSpan = classifiedSpans[i];
+                var updated = new TextSpan(classifiedSpan.TextSpan.Start + offset, classifiedSpan.TextSpan.Length);
+                Debug.Assert(excerptSpan.Contains(updated));
+
+                classifiedSpans[i] = new ClassifiedSpan(classifiedSpan.ClassificationType, updated);
+            }
+
+            return excerptText;
+        }
+
         // We have IVT access to the Roslyn APIs for product code, but not for testing.
         public enum ExcerptModeInternal
         {
