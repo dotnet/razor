@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public Task<SemanticTokenLegendResponse> Handle(SemanticTokenLegendParams request, CancellationToken cancellationToken)
         {
-            return Task.FromResult(SemanticTokenLegend.GetResponse());
+            return Task.FromResult(SemanticTokenLegend.Instance);
         }
 
         public void SetCapability(SemanticTokenLegendCapability capability)

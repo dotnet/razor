@@ -4,19 +4,20 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
+import { TextDocumentIdentifier } from 'vscode-languageclient';
 import { LanguageKind } from '../RPC/LanguageKind';
 import { convertRangeToSerializable, SerializableRange } from '../RPC/SerializableRange';
 
 export class SemanticTokensRangeRequest {
-    public readonly razorDocumentUri: string;
     public readonly range: SerializableRange;
+    public readonly textDocument: TextDocumentIdentifier;
 
     constructor(
         public readonly kind: LanguageKind,
         razorDocumentUri: vscode.Uri,
         range: vscode.Range,
     ) {
-        this.razorDocumentUri = razorDocumentUri.toString();
+        this.textDocument = TextDocumentIdentifier.create(razorDocumentUri.toString());
         this.range = convertRangeToSerializable(range);
     }
 }
