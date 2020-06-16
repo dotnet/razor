@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +36,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            // Only if hovering over @code
             if (context.Location.AbsoluteIndex > cSharpCodeBlockNode.SpanStart)
             {
                 return null;
@@ -45,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             var actionParams = new ExtractToCodeBehindParams()
             {
-                Uri = new Uri(context.Document.Source.FilePath),
+                Uri = context.Uri,
                 ExtractStart = cSharpCodeBlockNode.Span.Start,
                 ExtractEnd = cSharpCodeBlockNode.Span.End,
                 RemoveStart = directiveNode.Span.Start,

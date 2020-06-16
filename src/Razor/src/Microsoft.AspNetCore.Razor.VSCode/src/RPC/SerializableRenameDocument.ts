@@ -3,7 +3,12 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-export interface CodeActionComputationRequest {
-    Action: string;
-    Arguments: Array<string>;
+ export interface SerializableRenameDocument {
+    kind: 'rename';
+    oldUri: string;
+    newUri: string;
+    options: {
+        overwrite: boolean;
+        ignoreIfExists: boolean;
+    };
 }
