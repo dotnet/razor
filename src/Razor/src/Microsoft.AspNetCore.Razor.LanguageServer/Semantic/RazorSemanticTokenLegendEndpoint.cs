@@ -3,6 +3,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Capabilities;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Interfaces;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {

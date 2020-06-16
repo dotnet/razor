@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Capabilities;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Interfaces;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Razor;
@@ -17,6 +18,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class RazorSemanticTokenEndpoint : ISemanticTokenHandler, ISemanticTokenRangeHandler, ISemanticTokenEditHandler, IRegistrationExtension
     {
+        private const string SemanticCapability = "semanticTokensProvider";
+
         private SemanticTokensCapability _tokenCapability;
         private SemanticTokensRangeCapability _tokenRangeCapability;
         private SemanticTokensEditCapability _tokenEditCapability;
@@ -85,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return await Handle(request.RazorDocumentUri.AbsolutePath, cancellationToken, previousId: request.PreviousResultId);
+            return await Handle(request.RazorDocumentUri.AbsolutePath, request.PreviousResultId, cancellationToken);
         }
 
         public void SetCapability(SemanticTokensCapability capability)
@@ -105,7 +108,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public RegistrationExtensionResult GetRegistration()
         {
-            const string SemanticCapability = "semanticTokensProvider";
             var legend = SemanticTokenLegend.GetResponse();
 
             var semanticTokensOptions = new SemanticTokensOptions
@@ -158,7 +160,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return tokens;
         }
 
-        private async Task<SemanticTokensOrSemanticTokensEdits?> Handle(string absolutePath, CancellationToken cancellationToken, string previousId)
+        private async Task<SemanticTokensOrSemanticTokensEdits?> Handle(string absolutePath, string previousId, CancellationToken cancellationToken)
         {
             var codeDocument = await GetCodeDocument(absolutePath, cancellationToken);
 

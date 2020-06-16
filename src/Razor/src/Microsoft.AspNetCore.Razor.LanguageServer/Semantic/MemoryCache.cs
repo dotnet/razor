@@ -64,5 +64,4 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
             public DateTime LastAccess { get; set; }
         }
     }
-
 }

@@ -39,6 +39,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public static Task<ILanguageServer> CreateAsync(Stream input, Stream output, Trace trace)
         {
             Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
+            Serializer.Instance.JsonSerializer.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
+            Serializer.Instance.Settings.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
 
             ILanguageServer server = null;
             server = OmniSharp.Extensions.LanguageServer.Server.LanguageServer.PreInit(options =>
@@ -157,8 +159,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
                     });
-                options.Serializer.Settings.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
-                options.Serializer.JsonSerializer.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
+                //options.Serializer.Settings.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
+                //options.Serializer.JsonSerializer.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
             });
 
             try

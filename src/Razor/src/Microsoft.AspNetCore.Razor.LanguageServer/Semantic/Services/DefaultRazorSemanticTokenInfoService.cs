@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
+using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -278,11 +279,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             public override int GetHashCode()
             {
-                var hashCode = 352033288;
-                hashCode = hashCode * -1521134295 + Range.GetHashCode();
-                hashCode = hashCode * -1521134295 + Kind.GetHashCode();
+                var hash = HashCodeCombiner.Start();
+                hash.Add(Range);
+                hash.Add(Kind);
 
-                return hashCode;
+                return hash.CombinedHash;
             }
         }
 

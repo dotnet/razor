@@ -3,9 +3,9 @@
 
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Capabilities
 {
-    public class SemanticTokenLegendCapability : DynamicCapability
+    public class SemanticTokensRangeCapability : DynamicCapability
     {
     }
 }
