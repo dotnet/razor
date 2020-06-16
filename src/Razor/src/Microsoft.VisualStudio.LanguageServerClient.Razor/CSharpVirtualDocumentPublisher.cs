@@ -102,11 +102,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 _documentSnapshot = documentSnapshot;
             }
 
-            public override string FilePath => throw new NotImplementedException();
-
             public override IRazorDocumentExcerptService GetExcerptService()
             {
-                return null;
+                if (_excerptService == null)
+                {
+                    var mappingService = GetMappingService();
+                    _excerptService = new CSharpDocumentExcerptService(mappingService, _documentSnapshot, _textSnapshot);
+                }
+
+                return _excerptService;
             }
 
             public override IRazorSpanMappingService GetMappingService()
