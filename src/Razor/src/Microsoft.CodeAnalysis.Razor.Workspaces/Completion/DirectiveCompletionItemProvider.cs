@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     [Export(typeof(RazorCompletionItemProvider))]
     internal class DirectiveCompletionItemProvider : RazorCompletionItemProvider
     {
+        private static readonly IReadOnlyCollection<string> DirectiveCommitCharacters = new string[] { " " };
+
         private static readonly IEnumerable<DirectiveDescriptor> DefaultDirectives = new[]
         {
             CSharpCodeParser.AddTagHelperDirectiveDescriptor,
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                     completionDisplayText,
                     directive.Directive,
                     RazorCompletionItemKind.Directive,
-                    new string[] { " " });
+                    DirectiveCommitCharacters);
                 var completionDescription = new DirectiveCompletionDescription(directive.Description);
                 completionItem.SetDirectiveCompletionDescription(completionDescription);
                 completionItems.Add(completionItem);
