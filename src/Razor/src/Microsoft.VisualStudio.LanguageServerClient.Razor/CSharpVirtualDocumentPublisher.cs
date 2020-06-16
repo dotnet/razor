@@ -18,7 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [Export(typeof(LSPDocumentManagerChangeTrigger))]
     internal class CSharpVirtualDocumentPublisher : LSPDocumentManagerChangeTrigger
     {
-        private const string RoslynRazorLanguageServerClientName = "RazorCSharp";
         private readonly RazorDynamicFileInfoProvider _dynamicFileInfoProvider;
 
         [ImportingConstructor]
@@ -55,21 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 var csharpContainer = new CSharpVirtualDocumentContainer(args.VirtualNew.Snapshot);
                 _dynamicFileInfoProvider.UpdateLSPFileInfo(args.New.Uri, csharpContainer);
             }
-        }
-
-        // Our IRazorDocumentPropertiesService services as our way to tell Roslyn to show C# diagnostics for files that are associated with the `DiagnosticsLspClientName`.
-        // Otherwise Roslyn would treat these documents as closed and would not provide any of their diagnostics.
-        private sealed class CSharpDocumentPropertiesService : IRazorDocumentPropertiesService
-        {
-            public static readonly CSharpDocumentPropertiesService Instance = new CSharpDocumentPropertiesService();
-
-            private CSharpDocumentPropertiesService()
-            {
-            }
-
-            public bool DesignTimeOnly => false;
-
-            public string DiagnosticsLspClientName => RoslynRazorLanguageServerClientName;
         }
 
         private class CSharpVirtualDocumentContainer : DynamicDocumentContainer
