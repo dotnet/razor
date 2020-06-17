@@ -9,7 +9,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal abstract class RazorSemanticTokenInfoService
     {
-        public abstract SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, Range range = null);
+        public abstract SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument);
+
+        public abstract SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, Range range);
 
         public abstract SemanticTokensOrSemanticTokensEdits GetSemanticTokenEdits(RazorCodeDocument codeDocument, string previousId);
     }

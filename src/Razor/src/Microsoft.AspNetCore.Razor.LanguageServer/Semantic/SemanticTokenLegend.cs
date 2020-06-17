@@ -3,6 +3,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -40,10 +42,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
         }
 
-        public static SemanticTokenLegendResponse Instance = new SemanticTokenLegendResponse
+        public static SemanticTokensLegend Instance = new SemanticTokensLegend
         {
-            TokenModifiers = _tokenModifiers,
-            TokenTypes = _tokenTypes
+            TokenModifiers = new Container<string>(_tokenModifiers),
+            TokenTypes = new Container<string>(_tokenTypes),
         };
 
         private static IReadOnlyDictionary<string, uint> GetMap(IReadOnlyCollection<string> tokens)

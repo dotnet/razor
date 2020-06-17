@@ -61,7 +61,7 @@ export class RazorLanguageServiceClient {
         }
     }
 
-    public async mapSemanticTokens(languageKind: LanguageKind, uri: vscode.Uri): Promise<vscode.SemanticTokens | undefined> {
+    public async semanticTokens(languageKind: LanguageKind, uri: vscode.Uri): Promise<vscode.SemanticTokens | undefined> {
         await this.ensureStarted();
 
         const request = new SemanticTokensRequest(languageKind, uri);
@@ -72,7 +72,7 @@ export class RazorLanguageServiceClient {
         }
     }
 
-    public async mapSemanticTokensRange(languageKind: LanguageKind, uri: vscode.Uri, range: vscode.Range): Promise<vscode.SemanticTokens | undefined> {
+    public async semanticTokensRange(languageKind: LanguageKind, uri: vscode.Uri, range: vscode.Range): Promise<vscode.SemanticTokens | undefined> {
         await this.ensureStarted();
 
         const request = new SemanticTokensRangeRequest(languageKind, uri, range);
@@ -83,7 +83,7 @@ export class RazorLanguageServiceClient {
         }
     }
 
-    public async mapSemanticTokensEdit(languageKind: LanguageKind, uri: vscode.Uri, previousResultId: string): Promise<vscode.SemanticTokens | vscode.SemanticTokensEdits | undefined> {
+    public async semanticTokensEdit(languageKind: LanguageKind, uri: vscode.Uri, previousResultId: string): Promise<vscode.SemanticTokens | vscode.SemanticTokensEdits | undefined> {
         await this.ensureStarted();
 
         const request = new SemanticTokensEditRequest(languageKind, uri, previousResultId);

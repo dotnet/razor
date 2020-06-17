@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Capabilities;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Interfaces;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Razor;
@@ -20,9 +19,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private const string SemanticCapability = "semanticTokensProvider";
 
-        private SemanticTokensCapability _tokenCapability;
-        private SemanticTokensRangeCapability _tokenRangeCapability;
-        private SemanticTokensEditCapability _tokenEditCapability;
         private readonly ILogger _logger;
 
         private readonly ForegroundDispatcher _foregroundDispatcher;
@@ -88,22 +84,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return await Handle(request.TextDocument.Uri.AbsolutePath, request.PreviousResultId, cancellationToken);
-        }
+            var codeDocument = await TryGetCodeDocumentAsync(request.TextDocument.Uri.AbsolutePath, cancellationToken);
+            if (codeDocument is null)
+            {
+                return null;
+            }
 
-        public void SetCapability(SemanticTokensCapability capability)
-        {
-            _tokenCapability = capability;
-        }
+            var edits = _semanticTokenInfoService.GetSemanticTokenEdits(codeDocument, request.PreviousResultId);
 
-        public void SetCapability(SemanticTokensEditCapability capability)
-        {
-            _tokenEditCapability = capability;
-        }
-
-        public void SetCapability(SemanticTokensRangeCapability capability)
-        {
-            _tokenRangeCapability = capability;
+            return edits;
         }
 
         public RegistrationExtensionResult GetRegistration()
@@ -114,18 +103,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 {
                     Edits = true,
                 },
-                Legend = new SemanticTokensLegend
-                {
-                    TokenModifiers = new Container<string>(SemanticTokenLegend.Instance.TokenModifiers),
-                    TokenTypes = new Container<string>(SemanticTokenLegend.Instance.TokenTypes),
-                },
+                Legend = SemanticTokenLegend.Instance,
                 RangeProvider = true,
             };
 
             return new RegistrationExtensionResult(SemanticCapability, semanticTokensOptions);
         }
 
-        private async Task<RazorCodeDocument> GetCodeDocument(string absolutePath, CancellationToken cancellationToken)
+        private async Task<SemanticTokens> Handle(string absolutePath, CancellationToken cancellationToken, Range range = null)
+        {
+            var codeDocument = await TryGetCodeDocumentAsync(absolutePath, cancellationToken);
+            if (codeDocument is null)
+            {
+                return null;
+            }
+
+            var tokens = _semanticTokenInfoService.GetSemanticTokens(codeDocument, range);
+
+            return tokens;
+        }
+
+        private async Task<RazorCodeDocument> TryGetCodeDocumentAsync(string absolutePath, CancellationToken cancellationToken)
         {
             var document = await Task.Factory.StartNew(() =>
             {
@@ -140,36 +138,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var codeDocument = await document.GetGeneratedOutputAsync();
+            if (codeDocument.IsUnsupported())
+            {
+                return null;
+            }
 
             return codeDocument;
-        }
-
-        private async Task<SemanticTokens> Handle(string absolutePath, CancellationToken cancellationToken, Range range = null)
-        {
-            var codeDocument = await GetCodeDocument(absolutePath, cancellationToken);
-
-            if (codeDocument.IsUnsupported())
-            {
-                return null;
-            }
-
-            var tokens = _semanticTokenInfoService.GetSemanticTokens(codeDocument, range);
-
-            return tokens;
-        }
-
-        private async Task<SemanticTokensOrSemanticTokensEdits?> Handle(string absolutePath, string previousId, CancellationToken cancellationToken)
-        {
-            var codeDocument = await GetCodeDocument(absolutePath, cancellationToken);
-
-            if (codeDocument.IsUnsupported())
-            {
-                return null;
-            }
-
-            var edits = _semanticTokenInfoService.GetSemanticTokenEdits(codeDocument, previousId);
-
-            return edits;
         }
     }
 }

@@ -189,7 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         #endregion DirectiveAttributes
 
         [Fact]
-        public void GetSemanticTokens_Razor_NoDifferenceAsync()
+        public void GetSemanticTokens_Razor_NoDifference()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var expectedData = new List<uint> {
@@ -231,7 +231,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
-        public void GetSemanticTokens_Razor_OnlyDifferences_AppendAsync()
+        public void GetSemanticTokens_Razor_OnlyDifferences_Append()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var expectedData = new List<uint> {
@@ -257,7 +257,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
-        public void GetSemanticTokens_Razor_OnlyDifferences_InternalAsync()
+        public void GetSemanticTokens_Razor_OnlyDifferences_Internal()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var expectedData = new List<uint> {
@@ -287,7 +287,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
-        public void GetSemanticTokens_Razor_OnlyDifferences_NewLinesAsync()
+        public void GetSemanticTokens_Razor_OnlyDifferences_NewLines()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var expectedData = new List<uint> {
