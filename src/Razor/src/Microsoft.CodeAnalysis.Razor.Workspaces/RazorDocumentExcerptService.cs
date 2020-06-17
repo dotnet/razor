@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public RazorDocumentExcerptService(DocumentSnapshot document, IRazorSpanMappingService mappingService)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
-            if (mappingService == null)
+            if (mappingService is null)
             {
                 throw new ArgumentNullException(nameof(mappingService));
             }
@@ -42,26 +42,26 @@ namespace Microsoft.CodeAnalysis.Razor
             ExcerptModeInternal mode,
             CancellationToken cancellationToken)
         { 
-            if (_document == null)
+            if (_document is null)
             {
                 return null;
             }
 
-            var mapped = await _mappingService.MapSpansAsync(document, new[] { span }, cancellationToken).ConfigureAwait(false);
-            if (mapped.Length == 0 || mapped[0].Equals(default(RazorMappedSpanResult)))
+            var mappedSpans = await _mappingService.MapSpansAsync(document, new[] { span }, cancellationToken).ConfigureAwait(false);
+            if (mappedSpans.Length == 0 || mappedSpans[0].Equals(default(RazorMappedSpanResult)))
             {
                 return null;
             }
 
             var project = _document.Project;
-            var razorDocument = project.GetDocument(mapped[0].FilePath);
-            if (razorDocument == null)
+            var razorDocument = project.GetDocument(mappedSpans[0].FilePath);
+            if (razorDocument is null)
             {
                 return null;
             }
 
             var razorDocumentText = await razorDocument.GetTextAsync().ConfigureAwait(false);
-            var razorDocumentSpan = razorDocumentText.Lines.GetTextSpan(mapped[0].LinePositionSpan);
+            var razorDocumentSpan = razorDocumentText.Lines.GetTextSpan(mappedSpans[0].LinePositionSpan);
 
             var generatedDocument = document;
 

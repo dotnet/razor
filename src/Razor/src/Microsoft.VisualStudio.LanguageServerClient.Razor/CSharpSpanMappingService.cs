@@ -109,17 +109,4 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return result.Select(mappedResult => (mappedResult.FilePath, mappedResult.LinePositionSpan, mappedResult.Span));
         }
     }
-
-    internal static class TextSpanExtensions
-    {
-        public static Range AsLSPRange(this TextSpan span, SourceText sourceText)
-        {
-            var range = span.AsRange(sourceText);
-            return new Range()
-            {
-                Start = new Position((int)range.Start.Line, (int)range.Start.Character),
-                End = new Position((int)range.End.Line, (int)range.End.Character)
-            };
-        }
-    }
 }

@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class CSharpVirtualDocumentPublisher : LSPDocumentManagerChangeTrigger
     {
         private readonly RazorDynamicFileInfoProvider _dynamicFileInfoProvider;
-        LSPDocumentMappingProvider _lspDocumentMappingProvider;
+        private readonly LSPDocumentMappingProvider _lspDocumentMappingProvider;
 
         [ImportingConstructor]
         public CSharpVirtualDocumentPublisher(RazorDynamicFileInfoProvider dynamicFileInfoProvider, LSPDocumentMappingProvider lspDocumentMappingProvider)

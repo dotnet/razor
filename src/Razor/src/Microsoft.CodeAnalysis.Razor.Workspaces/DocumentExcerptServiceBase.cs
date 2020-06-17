@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.Razor
         }
 
         // We have IVT access to the Roslyn APIs for product code, but not for testing.
-        public enum ExcerptModeInternal
+        internal enum ExcerptModeInternal
         {
             SingleLine = RazorExcerptMode.SingleLine,
             Tooltip = RazorExcerptMode.Tooltip,
         }
 
         // We have IVT access to the Roslyn APIs for product code, but not for testing.
-        public readonly struct ExcerptResultInternal
+        internal readonly struct ExcerptResultInternal
         {
             public readonly SourceText Content;
 

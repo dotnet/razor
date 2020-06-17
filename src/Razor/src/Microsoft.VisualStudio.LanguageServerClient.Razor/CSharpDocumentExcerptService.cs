@@ -37,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             _mappingService = mappingService;
-
             _documentSnapshot = documentSnapshot;
         }
 
@@ -111,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 var updated = new TextSpan(classifiedSecondarySpan.TextSpan.Start + offsetGeneratedToRazor, classifiedSecondarySpan.TextSpan.Length);
 
-                // NOTE: The Classifier will only returns spans for things that it understands. That means
+                // NOTE: The Classifier will only return spans for things that it understands. That means
                 // that whitespace is not classified. The preview expects us to provide contiguous spans, 
                 // so we are going to have to fill in the gaps.
                 if (remainingSpan.Start < updated.Start)

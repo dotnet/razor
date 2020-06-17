@@ -21,6 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private static readonly TextEdit[] EmptyEdits = Array.Empty<TextEdit>();
 
         private readonly LSPRequestInvoker _requestInvoker;
+
+        // Lazy loading the document manager to get around circular dependencies
+        // The Document Manager is a more "Core Service" it depends on the ChangeTriggers which require the LSPDocumentMappingProvider
+        // LSPDocumentManager => LSPDocumentMappingProvider => LSPDocumentManagerChangeTrigger => LSPDocumentManager
         private readonly Lazy<LSPDocumentManager> _lazyDocumentManager;
 
         [ImportingConstructor]
