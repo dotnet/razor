@@ -105,19 +105,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
         public RegistrationExtensionResult GetRegistration()
         {
-            var legend = SemanticTokenLegend.GetResponse();
-
             var semanticTokensOptions = new SemanticTokensOptions
             {
                 DocumentProvider = new SemanticTokensDocumentProviderOptions
                 {
                     Edits = false,
                 },
-                Legend = new SemanticTokensLegend
-                {
-                    TokenModifiers = new Container<string>(legend.TokenModifiers),
-                    TokenTypes = new Container<string>(legend.TokenTypes),
-                },
+                Legend = SemanticTokenLegend.Instance,
                 RangeProvider = false,
             };
 

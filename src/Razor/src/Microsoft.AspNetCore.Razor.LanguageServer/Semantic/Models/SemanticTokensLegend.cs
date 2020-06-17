@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
@@ -23,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             RazorDirectiveAttribute,
         };
 
-        private static readonly IReadOnlyCollection<string> _tokenModifiers = new string[] {
+        private static readonly string[] _tokenModifiers = new string[] {
             "None"
         };
 
