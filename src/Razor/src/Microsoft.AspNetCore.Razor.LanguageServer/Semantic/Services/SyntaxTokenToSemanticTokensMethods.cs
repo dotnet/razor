@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
@@ -15,8 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
         // https://github.com/OmniSharp/csharp-language-server-protocol/blob/bdec4c73240be52fbb25a81f6ad7d409f77b5215/src/Protocol/Document/Proposals/SemanticTokensDocument.cs#L156
         public static SemanticTokensOrSemanticTokensEdits ConvertSyntaxTokensToSemanticEdits(
             SemanticTokens newTokens,
-            IReadOnlyList<uint> previousResults,
-            RazorCodeDocument codeDocument)
+            IReadOnlyList<uint> previousResults)
         {
             var oldData = previousResults;
 
