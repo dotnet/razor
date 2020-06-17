@@ -57,13 +57,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             IEnumerable<TextSpan> spans,
             CancellationToken cancellationToken)
         {
-            return await MapSpansAsync(document, spans, _textSnapshot.AsText(), cancellationToken).ConfigureAwait(false);
+            return await MapSpansAsync(document, spans, _textSnapshot.AsText(), _documentSnapshot.Snapshot.AsText(), cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
             Document document,
             IEnumerable<TextSpan> spans,
-            SourceText sourceText,
+            SourceText sourceTextGenerated,
+            SourceText sourceTextRazor,
             CancellationToken cancellationToken)
         {
             if (spans == null)
@@ -71,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(spans));
             }
 
-            var projectedRanges = spans.Select(span => span.AsLSPRange(sourceText)).ToArray();
+            var projectedRanges = spans.Select(span => span.AsLSPRange(sourceTextGenerated)).ToArray();
 
             var mappedResult = await _lspDocumentMappingProvider.MapToDocumentRangesAsync(
                 RazorLanguageKind.CSharp,
@@ -90,10 +91,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             foreach (var mappedRange in mappedResult.Ranges)
             {
-                var mappedSpan = mappedRange.AsTextSpan(sourceText);
-                var linePositionSpan = sourceText.Lines.GetLinePositionSpan(mappedSpan);
-                var fileName = Path.GetFileName(_documentSnapshot.Uri.LocalPath);
-                results.Add(new RazorMappedSpanResult(fileName, linePositionSpan, mappedSpan));
+                var mappedSpan = mappedRange.AsTextSpan(sourceTextRazor);
+                var linePositionSpan = sourceTextRazor.Lines.GetLinePositionSpan(mappedSpan);
+                var filePath = _documentSnapshot.Uri.LocalPath;
+                results.Add(new RazorMappedSpanResult(filePath, linePositionSpan, mappedSpan));
             }
 
             return results.ToImmutable();
@@ -104,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             IEnumerable<TextSpan> spans,
             SourceText sourceText)
         {
-            var result = await MapSpansAsync(document: null, spans, sourceText, cancellationToken: default).ConfigureAwait(false);
+            var result = await MapSpansAsync(document: null, spans, sourceText, sourceText, cancellationToken: default).ConfigureAwait(false);
             return result.Select(mappedResult => (mappedResult.FilePath, mappedResult.LinePositionSpan, mappedResult.Span));
         }
     }

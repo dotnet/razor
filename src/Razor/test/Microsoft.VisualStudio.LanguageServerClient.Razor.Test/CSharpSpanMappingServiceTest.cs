@@ -62,7 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var expectedSpan = mappedRange.AsTextSpan(sourceText);
             var expectedLinePosition = sourceText.Lines.GetLinePositionSpan(expectedSpan);
-            var expectedResult = ("document.razor", expectedLinePosition, expectedSpan);
+            var expectedFilePath = MockDocumentUri.LocalPath;
+            var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
 
             // Act
             var result = await service.MapSpansAsyncTest(spans, sourceText).ConfigureAwait(false);
