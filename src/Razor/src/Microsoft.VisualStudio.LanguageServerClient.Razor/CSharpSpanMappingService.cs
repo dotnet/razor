@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using System.Collections.Immutable;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
-using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;

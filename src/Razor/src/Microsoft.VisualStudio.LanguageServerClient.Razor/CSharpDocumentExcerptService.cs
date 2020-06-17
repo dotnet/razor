@@ -74,6 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var classifiedSpans = await ClassifyPreviewAsync(
                 razorDocumentSpan,
                 excerptSpan,
+                span,
                 generatedDocument,
                 cancellationToken).ConfigureAwait(false);
 
@@ -85,18 +86,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private async Task<ImmutableArray<ClassifiedSpan>.Builder> ClassifyPreviewAsync(
             TextSpan primarySpan,
             TextSpan excerptSpan,
+            TextSpan sourceSpan,
             Document generatedDocument,
             CancellationToken cancellationToken)
         {
             var builder = ImmutableArray.CreateBuilder<ClassifiedSpan>();
 
             var remainingSpan = excerptSpan;
-            var intersection = primarySpan.Intersection(remainingSpan);
-            Debug.Assert(intersection != null);
-
-            // OK this span intersects with the excerpt span, so we will process it. Let's compute
-            // the secondary span that matches the intersection.
-            var secondarySpan = new TextSpan(primarySpan.Start + intersection.Value.Start - primarySpan.Start, intersection.Value.Length);
 
             if (remainingSpan.Start < primarySpan.Start)
             {
@@ -117,12 +113,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 remainingSpan = primarySpan;
             }
 
+            Debug.Assert(remainingSpan.Length == sourceSpan.Length);
+
             // We should be able to process this whole span as C#, so classify it.
             //
             // However, we'll have to translate it to the the generated document's coordinates to do that.
             var classifiedSecondarySpans = await Classifier.GetClassifiedSpansAsync(
                 generatedDocument,
-                remainingSpan,
+                sourceSpan,
                 cancellationToken);
 
             // NOTE: The Classifier will only returns spans for things that it understands. That means
@@ -130,12 +128,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // so we are going to have to fill in the gaps.
 
             // Now we have to translate back to the primary document's coordinates.
-            var offset = primarySpan.Start - secondarySpan.Start;
+            var offset = primarySpan.Start - sourceSpan.Start;
             foreach (var classifiedSecondarySpan in classifiedSecondarySpans)
             {
-                var updated = classifiedSecondarySpan.TextSpan.Contains(secondarySpan) ?
-                    new TextSpan(secondarySpan.Start + offset, secondarySpan.Length) :
-                    new TextSpan(classifiedSecondarySpan.TextSpan.Start + offset, classifiedSecondarySpan.TextSpan.Length);
+                var updated = new TextSpan(classifiedSecondarySpan.TextSpan.Start + offset, classifiedSecondarySpan.TextSpan.Length);
 
                 // Make sure that we're not introducing a gap. Remember, we need to fill in the whitespace.
                 if (remainingSpan.Start < updated.Start)
@@ -147,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 }
 
                 builder.Add(new ClassifiedSpan(classifiedSecondarySpan.ClassificationType, updated));
-                remainingSpan = new TextSpan(updated.End, remainingSpan.Length - (updated.End - remainingSpan.Start));
+                remainingSpan = new TextSpan(updated.End, Math.Max(0, remainingSpan.Length - (updated.End - remainingSpan.Start)));
             }
 
             // Make sure that we're not introducing a gap. Remember, we need to fill in the whitespace.
