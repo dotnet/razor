@@ -20,22 +20,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private readonly IRazorSpanMappingService _mappingService;
 
-        private readonly ITextSnapshot _textSnapshot;
         private readonly LSPDocumentSnapshot _documentSnapshot;
 
         public CSharpDocumentExcerptService(
             IRazorSpanMappingService mappingService,
-            LSPDocumentSnapshot documentSnapshot,
-            ITextSnapshot textSnapshot)
+            LSPDocumentSnapshot documentSnapshot)
         {
             if (mappingService is null)
             {
                 throw new ArgumentNullException(nameof(mappingService));
-            }
-
-            if (textSnapshot == null)
-            {
-                throw new ArgumentNullException(nameof(textSnapshot));
             }
 
             if (documentSnapshot is null)
@@ -45,7 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _mappingService = mappingService;
 
-            _textSnapshot = textSnapshot;
             _documentSnapshot = documentSnapshot;
         }
 
@@ -66,10 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var generatedDocument = document;
 
-            // First compute the range of text we want to we to display relative to the primary document.
+            // First compute the range of text we want to we to display relative to the razor document.
             var excerptSpan = ChooseExcerptSpan(razorDocumentText, razorDocumentSpan, mode);
 
-            // Then we'll classify the spans based on the primary document, since that's the coordinate
+            // Then we'll classify the spans based on the razor document, since that's the coordinate
             // space that our output mappings use.
             var classifiedSpans = await ClassifyPreviewAsync(
                 razorDocumentSpan,
@@ -84,9 +76,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         private async Task<ImmutableArray<ClassifiedSpan>.Builder> ClassifyPreviewAsync(
-            TextSpan primarySpan,
+            TextSpan razorSpan,
             TextSpan excerptSpan,
-            TextSpan sourceSpan,
+            TextSpan generatedSpan,
             Document generatedDocument,
             CancellationToken cancellationToken)
         {
@@ -94,46 +86,34 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var remainingSpan = excerptSpan;
 
-            if (remainingSpan.Start < primarySpan.Start)
-            {
-                // The position is before the next C# span. Classify everything up to the C# start
-                // as text.
-                builder.Add(new ClassifiedSpan(ClassificationTypeNames.Text, new TextSpan(remainingSpan.Start, primarySpan.Start - remainingSpan.Start)));
-
-                // Advance to the start of the C# span.
-                remainingSpan = new TextSpan(primarySpan.Start, remainingSpan.Length - (primarySpan.Start - remainingSpan.Start));
-            }
-
-            var suffix = new ClassifiedSpan();
-            if (remainingSpan.End > primarySpan.End)
-            {
-                suffix = new ClassifiedSpan(ClassificationTypeNames.Text, new TextSpan(primarySpan.End, remainingSpan.End - primarySpan.End));
-
-                // We've taken out the prefix and suffix from the excerpt span
-                remainingSpan = primarySpan;
-            }
-
-            Debug.Assert(remainingSpan.Length == sourceSpan.Length);
-
             // We should be able to process this whole span as C#, so classify it.
             //
             // However, we'll have to translate it to the the generated document's coordinates to do that.
+            var offsetRazorToGenerated = generatedSpan.Start - razorSpan.Start;
+            var offsetExcerpt = new TextSpan(excerptSpan.Start + offsetRazorToGenerated, excerptSpan.Length);
+
             var classifiedSecondarySpans = await Classifier.GetClassifiedSpansAsync(
                 generatedDocument,
-                sourceSpan,
+                offsetExcerpt,
                 cancellationToken);
 
-            // NOTE: The Classifier will only returns spans for things that it understands. That means
-            // that whitespace is not classified. The preview expects us to provide contiguous spans, 
-            // so we are going to have to fill in the gaps.
-
-            // Now we have to translate back to the primary document's coordinates.
-            var offset = primarySpan.Start - sourceSpan.Start;
+            // Now we have to translate back to the razor document's coordinates.
+            var offsetGeneratedToRazor = razorSpan.Start - generatedSpan.Start;
             foreach (var classifiedSecondarySpan in classifiedSecondarySpans)
             {
-                var updated = new TextSpan(classifiedSecondarySpan.TextSpan.Start + offset, classifiedSecondarySpan.TextSpan.Length);
+                // Ensure classified span is contained within our excerpt
+                // Possible for FirstSpan.start & LastSpan.end to be out of range of the excerpt, but still intersecting
+                if (classifiedSecondarySpan.TextSpan.Start + offsetGeneratedToRazor < excerptSpan.Start ||
+                    classifiedSecondarySpan.TextSpan.End + offsetGeneratedToRazor > excerptSpan.End)
+                {
+                    continue;
+                }
 
-                // Make sure that we're not introducing a gap. Remember, we need to fill in the whitespace.
+                var updated = new TextSpan(classifiedSecondarySpan.TextSpan.Start + offsetGeneratedToRazor, classifiedSecondarySpan.TextSpan.Length);
+
+                // NOTE: The Classifier will only returns spans for things that it understands. That means
+                // that whitespace is not classified. The preview expects us to provide contiguous spans, 
+                // so we are going to have to fill in the gaps.
                 if (remainingSpan.Start < updated.Start)
                 {
                     builder.Add(new ClassifiedSpan(
@@ -147,12 +127,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             // Make sure that we're not introducing a gap. Remember, we need to fill in the whitespace.
-            if (remainingSpan.Start < primarySpan.End)
+            if (remainingSpan.Start < razorSpan.End)
             {
                 builder.Add(new ClassifiedSpan(
                     ClassificationTypeNames.Text,
-                    new TextSpan(remainingSpan.Start, primarySpan.End - remainingSpan.Start)));
-                remainingSpan = new TextSpan(primarySpan.End, remainingSpan.Length - (primarySpan.End - remainingSpan.Start));
+                    new TextSpan(remainingSpan.Start, razorSpan.End - remainingSpan.Start)));
+                remainingSpan = new TextSpan(razorSpan.End, remainingSpan.Length - (razorSpan.End - remainingSpan.Start));
             }
 
             // Deal with residue
@@ -161,8 +141,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 // Trailing Razor/markup text.
                 builder.Add(new ClassifiedSpan(ClassificationTypeNames.Text, remainingSpan));
             }
-
-            builder.Add(suffix);
 
             return builder;
         }

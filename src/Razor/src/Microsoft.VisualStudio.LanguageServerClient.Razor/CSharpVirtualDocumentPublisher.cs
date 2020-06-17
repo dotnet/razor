@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 if (_excerptService == null)
                 {
                     var mappingService = GetMappingService();
-                    _excerptService = new CSharpDocumentExcerptService(mappingService, _documentSnapshot, _textSnapshot);
+                    _excerptService = new CSharpDocumentExcerptService(mappingService, _documentSnapshot);
                 }
 
                 return _excerptService;
