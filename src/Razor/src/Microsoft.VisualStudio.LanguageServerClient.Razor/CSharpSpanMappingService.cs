@@ -57,25 +57,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             IEnumerable<TextSpan> spans,
             CancellationToken cancellationToken)
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
+            return await MapSpansAsync(document, spans, _textSnapshot.AsText(), cancellationToken).ConfigureAwait(false);
+        }
 
+        private async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
+            Document document,
+            IEnumerable<TextSpan> spans,
+            SourceText sourceText,
+            CancellationToken cancellationToken)
+        {
             if (spans == null)
             {
                 throw new ArgumentNullException(nameof(spans));
             }
 
-            var sourceText = _textSnapshot.AsText();
-            var projectedRanges = spans.Select(span => {
-                var range = span.AsRange(sourceText);
-                return new Range()
-                {
-                    Start = new Position((int)range.Start.Line, (int)range.Start.Character),
-                    End = new Position((int)range.End.Line, (int)range.End.Character)
-                };
-            }).ToArray();
+            var projectedRanges = spans.Select(span => span.AsLSPRange(sourceText)).ToArray();
 
             var mappedResult = await _lspDocumentMappingProvider.MapToDocumentRangesAsync(
                 RazorLanguageKind.CSharp,
@@ -83,7 +79,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 projectedRanges,
                 cancellationToken).ConfigureAwait(false);
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var results = ImmutableArray.CreateBuilder<RazorMappedSpanResult>();
+
+            if (mappedResult is null)
+            {
+                return results.ToImmutable();
+            }
+
             foreach (var mappedRange in mappedResult.Ranges)
             {
                 var mappedSpan = mappedRange.AsTextSpan(sourceText);
@@ -93,6 +97,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             return results.ToImmutable();
+        }
+
+        // Internal for testing use only
+        internal async Task<IEnumerable<(string filePath, LinePositionSpan linePositionSpan, TextSpan span)>> MapSpansAsyncTest(
+            IEnumerable<TextSpan> spans,
+            SourceText sourceText)
+        {
+            var result = await MapSpansAsync(document: null, spans, sourceText, cancellationToken: default).ConfigureAwait(false);
+            return result.Select(mappedResult => (mappedResult.FilePath, mappedResult.LinePositionSpan, mappedResult.Span));
+        }
+    }
+
+    internal static class TextSpanExtensions
+    {
+        public static Range AsLSPRange(this TextSpan span, SourceText sourceText)
+        {
+            var range = span.AsRange(sourceText);
+            return new Range()
+            {
+                Start = new Position((int)range.Start.Line, (int)range.Start.Character),
+                End = new Position((int)range.End.Line, (int)range.End.Character)
+            };
         }
     }
 }
