@@ -103,9 +103,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing use only
         internal async Task<IEnumerable<(string filePath, LinePositionSpan linePositionSpan, TextSpan span)>> MapSpansAsyncTest(
             IEnumerable<TextSpan> spans,
-            SourceText sourceText)
+            SourceText sourceTextGenerated,
+            SourceText sourceTextRazor)
         {
-            var result = await MapSpansAsync(document: null, spans, sourceText, sourceText, cancellationToken: default).ConfigureAwait(false);
+            var result = await MapSpansAsync(document: null, spans, sourceTextGenerated, sourceTextRazor, cancellationToken: default).ConfigureAwait(false);
             return result.Select(mappedResult => (mappedResult.FilePath, mappedResult.LinePositionSpan, mappedResult.Span));
         }
     }

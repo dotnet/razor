@@ -19,7 +19,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     public class CSharpSpanMappingServiceTest
     {
         private readonly Uri MockDocumentUri = new Uri("C://project/path/document.razor");
-        private readonly string MockContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
+
+        private static string MockGeneratedContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
+        private static string MockRazorContent = $"Hello {Environment.NewLine} This is the {Environment.NewLine} source text {Environment.NewLine} in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
+
+        private SourceText SourceTextGenerated = SourceText.From(MockGeneratedContent);
+        private SourceText SourceTextRazor = SourceText.From(MockRazorContent);
 
         [Fact]
         public async Task MapSpans_WithinRange_ReturnsMapping()
@@ -33,10 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentSnapshot = new Mock<LSPDocumentSnapshot>();
             documentSnapshot.SetupGet(doc => doc.Uri).Returns(MockDocumentUri);
 
-            var sourceText = SourceText.From(MockContent);
-            var textSnapshot = new StringTextSnapshot(MockContent, 1);
+            var textSnapshot = new StringTextSnapshot(MockGeneratedContent, 1);
 
-            var textSpanAsRange = textSpan.AsLSPRange(sourceText);
+            var textSpanAsRange = textSpan.AsLSPRange(SourceTextGenerated);
             var mappedRange = new Range()
             {
                 Start = new Position(2, 1),
@@ -60,13 +64,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var service = new CSharpSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
-            var expectedSpan = mappedRange.AsTextSpan(sourceText);
-            var expectedLinePosition = sourceText.Lines.GetLinePositionSpan(expectedSpan);
+            var expectedSpan = mappedRange.AsTextSpan(SourceTextRazor);
+            var expectedLinePosition = SourceTextRazor.Lines.GetLinePositionSpan(expectedSpan);
             var expectedFilePath = MockDocumentUri.LocalPath;
             var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
 
             // Act
-            var result = await service.MapSpansAsyncTest(spans, sourceText).ConfigureAwait(false);
+            var result = await service.MapSpansAsyncTest(spans, SourceTextGenerated, SourceTextRazor).ConfigureAwait(false);
 
             // Assert
             Assert.True(called);
@@ -85,10 +89,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentSnapshot = new Mock<LSPDocumentSnapshot>();
             documentSnapshot.SetupGet(doc => doc.Uri).Returns(MockDocumentUri);
 
-            var sourceText = SourceText.From(MockContent);
-            var textSnapshot = new StringTextSnapshot(MockContent, 1);
+            var textSnapshot = new StringTextSnapshot(MockGeneratedContent, 1);
 
-            var textSpanAsRange = textSpan.AsLSPRange(sourceText);
+            var textSpanAsRange = textSpan.AsLSPRange(SourceTextGenerated);
 
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
             documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
@@ -104,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var service = new CSharpSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
             // Act
-            var result = await service.MapSpansAsyncTest(spans, sourceText).ConfigureAwait(false);
+            var result = await service.MapSpansAsyncTest(spans, SourceTextGenerated, SourceTextRazor).ConfigureAwait(false);
 
             // Assert
             Assert.True(called);
