@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         private static SemanticTokens ConvertSyntaxTokensToSemanticTokens(
-            IReadOnlyList<SyntaxResult> syntaxResults,
+            IReadOnlyList<SemanticRange> syntaxResults,
             RazorCodeDocument razorCodeDocument)
         {
             if (syntaxResults is null)
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            SyntaxResult previousResult = null;
+            SemanticRange previousResult = null;
 
             var data = new List<uint>();
             foreach (var result in syntaxResults)
@@ -103,8 +103,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
          *  - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
         **/
         private static IEnumerable<uint> GetData(
-            SyntaxResult currentNode,
-            SyntaxResult previousNode,
+            SemanticRange currentNode,
+            SemanticRange previousNode,
             RazorCodeDocument razorCodeDocument)
         {
             var previousRange = previousNode?.Range;
@@ -131,33 +131,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             yield return (uint)length;
 
             // tokenType
-            yield return GetTokenTypeData(currentNode.Kind);
+            yield return currentNode.Kind;
 
             // tokenModifiers
             // We don't currently have any need for tokenModifiers
             yield return 0;
-        }
-
-        private static uint GetTokenTypeData(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.MarkupTagHelperDirectiveAttribute:
-                case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                    return SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorDirectiveAttribute];
-                case SyntaxKind.MarkupTagHelperStartTag:
-                case SyntaxKind.MarkupTagHelperEndTag:
-                    return SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTagHelperElement];
-                case SyntaxKind.MarkupTagHelperAttribute:
-                case SyntaxKind.MarkupMinimizedTagHelperAttribute:
-                    return SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTagHelperAttribute];
-                case SyntaxKind.Transition:
-                    return SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTransition];
-                case SyntaxKind.Colon:
-                    return SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorDirectiveColon];
-                default:
-                    throw new NotImplementedException();
-            }
         }
     }
 }
