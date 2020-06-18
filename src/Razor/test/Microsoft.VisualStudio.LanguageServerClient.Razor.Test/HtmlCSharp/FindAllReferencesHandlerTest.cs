@@ -164,8 +164,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var externalUri = new Uri("C:/path/to/someotherfile.razor");
             var expectedLocation = GetReferenceItem(5, 5, 5, 5, externalUri);
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
-            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>());
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2));
+            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5));
 
             var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
             var csharpLocation = GetReferenceItem(100, 100, 100, 100, virtualCSharpUri);
@@ -180,7 +180,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var remappingResult = new RazorMapToDocumentRangesResponse()
             {
-                Ranges = new[] { expectedLocation.Location.Range }
+                Ranges = new[] { expectedLocation.Location.Range },
+                HostDocumentVersion = 5
             };
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, externalUri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
