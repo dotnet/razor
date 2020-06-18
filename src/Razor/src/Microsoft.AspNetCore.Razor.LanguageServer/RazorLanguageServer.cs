@@ -43,7 +43,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             ILanguageServer server = null;
             server = OmniSharp.Extensions.LanguageServer.Server.LanguageServer.PreInit(options =>
-            {
                 options
                     .WithInput(input)
                     .WithOutput(output)
@@ -157,8 +156,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorSemanticTokenInfoService, DefaultRazorSemanticTokenInfoService>();
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
-                    });
-            });
+                    }));
 
             try
             {

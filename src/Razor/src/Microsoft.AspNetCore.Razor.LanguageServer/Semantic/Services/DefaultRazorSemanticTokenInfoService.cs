@@ -13,7 +13,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal partial class DefaultRazorSemanticTokenInfoService : RazorSemanticTokenInfoService
+    internal class DefaultRazorSemanticTokenInfoService : RazorSemanticTokenInfoService
     {
         // This cache is not created for performance, but rather to restrict memory growth.
         // We need to keep track of the last couple of requests for use in previousResultId, but if we let the grow unbounded it could quickly allocate a lot of memory.
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var syntaxNodes = TagHelperSpanVisitor.VisitAllNodes(codeDocument);
-            
+
             var previousResults = _semanticTokenCache.Get(previousResultId);
             var newTokens = ConvertSyntaxTokensToSemanticTokens(syntaxNodes, codeDocument);
 
