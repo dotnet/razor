@@ -61,10 +61,10 @@ export class RazorLanguageServiceClient {
         }
     }
 
-    public async semanticTokens(languageKind: LanguageKind, uri: vscode.Uri): Promise<vscode.SemanticTokens | undefined> {
+    public async semanticTokens(uri: vscode.Uri): Promise<vscode.SemanticTokens | undefined> {
         await this.ensureStarted();
 
-        const request = new SemanticTokensRequest(languageKind, uri);
+        const request = new SemanticTokensRequest(uri);
         const response = await this.serverClient.sendRequest<vscode.SemanticTokens>('_ms_/textDocument/semanticTokens', request);
 
         if (response.data && response.data.length > 0) {
@@ -72,10 +72,10 @@ export class RazorLanguageServiceClient {
         }
     }
 
-    public async semanticTokensRange(languageKind: LanguageKind, uri: vscode.Uri, range: vscode.Range): Promise<vscode.SemanticTokens | undefined> {
+    public async semanticTokensRange(uri: vscode.Uri, range: vscode.Range): Promise<vscode.SemanticTokens | undefined> {
         await this.ensureStarted();
 
-        const request = new SemanticTokensRangeRequest(languageKind, uri, range);
+        const request = new SemanticTokensRangeRequest(uri, range);
         const response = await this.serverClient.sendRequest<vscode.SemanticTokens>('_ms_/textDocument/semanticTokens/range', request);
 
         if (response.data && response.data.length > 0) {
@@ -83,10 +83,10 @@ export class RazorLanguageServiceClient {
         }
     }
 
-    public async semanticTokensEdit(languageKind: LanguageKind, uri: vscode.Uri, previousResultId: string): Promise<vscode.SemanticTokens | vscode.SemanticTokensEdits | undefined> {
+    public async semanticTokensEdit(uri: vscode.Uri, previousResultId: string): Promise<vscode.SemanticTokens | vscode.SemanticTokensEdits | undefined> {
         await this.ensureStarted();
 
-        const request = new SemanticTokensEditRequest(languageKind, uri, previousResultId);
+        const request = new SemanticTokensEditRequest(uri, previousResultId);
         const response = await this.serverClient.sendRequest<vscode.SemanticTokens | vscode.SemanticTokensEdits>('_ms_/textDocument/semanticTokens/edit', request);
 
         if (this.isSemanticTokens(response)) {

@@ -5,7 +5,6 @@
 
 import * as vscode from 'vscode';
 import { RazorLanguageFeatureBase } from '../RazorLanguageFeatureBase';
-import { LanguageKind } from '../RPC/LanguageKind';
 
 export class RazorDocumentSemanticTokensProvider
     extends RazorLanguageFeatureBase
@@ -15,7 +14,7 @@ export class RazorDocumentSemanticTokensProvider
         previousResultId: string,
         token: vscode.CancellationToken,
     ): Promise<vscode.SemanticTokens | vscode.SemanticTokensEdits | undefined> {
-        let semanticTokenResponse = await this.serviceClient.semanticTokensEdit(LanguageKind.Razor, document.uri, previousResultId);
+        let semanticTokenResponse = await this.serviceClient.semanticTokensEdit(document.uri, previousResultId);
 
         if (semanticTokenResponse instanceof vscode.SemanticTokens) {
             // However we're serializing into Uint32Array doesn't set byteLength, which is checked by some stuff under the covers.
@@ -32,7 +31,7 @@ export class RazorDocumentSemanticTokensProvider
         range: vscode.Range,
         token: vscode.CancellationToken,
     ): Promise<vscode.SemanticTokens | undefined> {
-        let semanticRangeResponse = await this.serviceClient.semanticTokensRange(LanguageKind.Razor, document.uri, range);
+        let semanticRangeResponse = await this.serviceClient.semanticTokensRange(document.uri, range);
 
         if (semanticRangeResponse) {
             // However we're serializing into Uint32Array doesn't set byteLength, which is checked by some stuff under the covers.
@@ -45,7 +44,7 @@ export class RazorDocumentSemanticTokensProvider
     }
 
     public async provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SemanticTokens | undefined> {
-        let semanticTokenResponse = await this.serviceClient.semanticTokens(LanguageKind.Razor, document.uri);
+        let semanticTokenResponse = await this.serviceClient.semanticTokens(document.uri);
 
         if (semanticTokenResponse) {
             // However we're serializing into Uint32Array doesn't set byteLength, which is checked by some stuff under the covers.

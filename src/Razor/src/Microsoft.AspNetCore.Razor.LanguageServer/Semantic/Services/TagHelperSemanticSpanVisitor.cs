@@ -11,13 +11,13 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal class TagHelperSpanVisitor : SyntaxWalker
+    internal class TagHelperSemanticSpanVisitor : SyntaxWalker
     {
         private readonly List<SyntaxResult> _syntaxNodes;
         private readonly RazorCodeDocument _razorCodeDocument;
         private readonly Range _range;
 
-        public TagHelperSpanVisitor(RazorCodeDocument razorCodeDocument, Range range)
+        public TagHelperSemanticSpanVisitor(RazorCodeDocument razorCodeDocument, Range range)
         {
             _syntaxNodes = new List<SyntaxResult>();
             _razorCodeDocument = razorCodeDocument;
@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public static IReadOnlyList<SyntaxResult> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range range = null)
         {
-            var visitor = new TagHelperSpanVisitor(razorCodeDocument, range);
+            var visitor = new TagHelperSemanticSpanVisitor(razorCodeDocument, range);
 
             visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 

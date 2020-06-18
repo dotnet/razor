@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(codeDocument));
             }
 
-            var syntaxNodes = TagHelperSpanVisitor.VisitAllNodes(codeDocument, range);
+            var syntaxNodes = TagHelperSemanticSpanVisitor.VisitAllNodes(codeDocument, range);
 
             var semanticTokens = ConvertSyntaxTokensToSemanticTokens(syntaxNodes, codeDocument);
 
@@ -51,12 +51,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentException(nameof(previousResultId));
             }
 
-            var syntaxNodes = TagHelperSpanVisitor.VisitAllNodes(codeDocument);
+            var syntaxNodes = TagHelperSemanticSpanVisitor.VisitAllNodes(codeDocument);
 
             var previousResults = _semanticTokenCache.Get(previousResultId);
             var newTokens = ConvertSyntaxTokensToSemanticTokens(syntaxNodes, codeDocument);
 
-            var semanticEdits = SyntaxTokenToSemanticTokensMethods.ConvertSyntaxTokensToSemanticEdits(newTokens, previousResults);
+            var semanticEdits = SyntaxTokenToSemanticEditTokensMethods.ConvertSyntaxTokensToSemanticEdits(newTokens, previousResults);
 
             return semanticEdits;
         }
@@ -144,17 +144,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 case SyntaxKind.MarkupTagHelperDirectiveAttribute:
                 case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                    return SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorDirectiveAttribute];
+                    return SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorDirectiveAttribute];
                 case SyntaxKind.MarkupTagHelperStartTag:
                 case SyntaxKind.MarkupTagHelperEndTag:
-                    return SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorTagHelperElement];
+                    return SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTagHelperElement];
                 case SyntaxKind.MarkupTagHelperAttribute:
                 case SyntaxKind.MarkupMinimizedTagHelperAttribute:
-                    return SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorTagHelperAttribute];
+                    return SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTagHelperAttribute];
                 case SyntaxKind.Transition:
-                    return SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorTransition];
+                    return SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTransition];
                 case SyntaxKind.Colon:
-                    return SemanticTokenLegend.TokenTypesLegend[SemanticTokenLegend.RazorDirectiveColon];
+                    return SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorDirectiveColon];
                 default:
                     throw new NotImplementedException();
             }

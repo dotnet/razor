@@ -20,7 +20,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private const string SemanticCapability = "semanticTokensProvider";
 
         private readonly ILogger _logger;
-
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorSemanticTokenInfoService _semanticTokenInfoService;
@@ -103,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 {
                     Edits = true,
                 },
-                Legend = SemanticTokenLegend.Instance,
+                Legend = SemanticTokensLegend.Instance,
                 RangeProvider = true,
             };
 

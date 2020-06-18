@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 {
-    internal static class SyntaxTokenToSemanticTokensMethods
+    internal static class SyntaxTokenToSemanticEditTokensMethods
     {
         // The below algorithm was taken from OmniSharp/csharp-language-server-protocol at
         // https://github.com/OmniSharp/csharp-language-server-protocol/blob/bdec4c73240be52fbb25a81f6ad7d409f77b5215/src/Protocol/Document/Proposals/SemanticTokensDocument.cs#L156

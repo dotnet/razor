@@ -5,13 +5,11 @@
 
 import * as vscode from 'vscode';
 import { TextDocumentIdentifier } from 'vscode-languageclient';
-import { LanguageKind } from '../RPC/LanguageKind';
 
 export class SemanticTokensEditRequest {
     public readonly textDocument: TextDocumentIdentifier;
 
     constructor(
-        public readonly kind: LanguageKind,
         razorDocumentUri: vscode.Uri,
         public readonly previousResultId: string,
     ) {

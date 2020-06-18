@@ -5,7 +5,6 @@
 
 import * as vscode from 'vscode';
 import { TextDocumentIdentifier } from 'vscode-languageclient';
-import { LanguageKind } from '../RPC/LanguageKind';
 import { convertRangeToSerializable, SerializableRange } from '../RPC/SerializableRange';
 
 export class SemanticTokensRangeRequest {
@@ -13,7 +12,6 @@ export class SemanticTokensRangeRequest {
     public readonly textDocument: TextDocumentIdentifier;
 
     constructor(
-        public readonly kind: LanguageKind,
         razorDocumentUri: vscode.Uri,
         range: vscode.Range,
     ) {

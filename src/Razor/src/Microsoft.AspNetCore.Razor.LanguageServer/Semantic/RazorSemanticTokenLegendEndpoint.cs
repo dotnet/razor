@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         public Task<SemanticTokensLegend> Handle(SemanticTokenLegendParams request, CancellationToken cancellationToken)
         {
-            return Task.FromResult(SemanticTokenLegend.Instance);
+            return Task.FromResult(SemanticTokensLegend.Instance);
         }
     }
 }

@@ -21,19 +21,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Serialization
             ProjectSnapshotJsonConverter.Instance,
         };
 
-        public static void RegisterRazorConverters(this JsonConverterCollection collection, IEnumerable<JsonConverter> converters = null)
+        public static void RegisterRazorConverters(this JsonConverterCollection collection)
         {
             if (collection is null)
             {
                 throw new ArgumentNullException(nameof(collection));
             }
 
-            if (converters is null)
-            {
-                converters = RazorConverters;
-            }
-
-            for (var i = 0; i < converters.Count(); i++)
+            for (var i = 0; i < RazorConverters.Count(); i++)
             {
                 collection.Add(RazorConverters[i]);
             }
