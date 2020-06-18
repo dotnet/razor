@@ -123,12 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 if (mappingResult == null ||
                     mappingResult.Ranges[0].IsUndefined() ||
-
-                    // Only verify HostDocumentVersion when the FAR request was initiated from the same
-                    // document as the reference item. This assumes that background document changed while this
-                    // request was performed. We could fetch other razor docs with the DocumentManager however
-                    // that may incur a performance/accuracy penalty with limited benefit. 
-                    (documentSnapshot.Uri == razorDocumentUri && mappingResult.HostDocumentVersion != documentSnapshot.Version))
+                    (_documentManager.TryGetDocument(razorDocumentUri, out var mappedDocumentSnapshot) &&
+                    mappingResult.HostDocumentVersion != mappedDocumentSnapshot.Version))
                 {
                     // Couldn't remap the location or the document changed in the meantime. Discard this location.
                     continue;
