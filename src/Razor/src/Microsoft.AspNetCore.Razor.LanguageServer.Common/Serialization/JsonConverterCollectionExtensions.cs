@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
 using Newtonsoft.Json;
 
@@ -23,12 +22,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Serialization
 
         public static void RegisterRazorConverters(this JsonConverterCollection collection)
         {
-            if (collection is null)
+            if (collection == null)
             {
                 throw new ArgumentNullException(nameof(collection));
             }
 
-            for (var i = 0; i < RazorConverters.Count(); i++)
+            for (var i = 0; i < RazorConverters.Count; i++)
             {
                 collection.Add(RazorConverters[i]);
             }
