@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public static Task<ILanguageServer> CreateAsync(Stream input, Stream output, Trace trace)
         {
-            Serializer.Instance.RegisterConverter(SemanticTokensOrSemanticTokensEditsConverter.Instance);
+            Serializer.Instance.Settings.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
             Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
 
             ILanguageServer server = null;
