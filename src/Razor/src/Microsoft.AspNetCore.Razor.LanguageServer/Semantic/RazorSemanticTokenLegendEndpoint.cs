@@ -9,16 +9,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class RazorSemanticTokenLegendEndpoint : ISemanticTokenLegendHandler
     {
-        private SemanticTokenLegendCapability _capability;
-
         public Task<SemanticTokensLegend> Handle(SemanticTokenLegendParams request, CancellationToken cancellationToken)
         {
             return Task.FromResult(SemanticTokenLegend.Instance);
-        }
-
-        public void SetCapability(SemanticTokenLegendCapability capability)
-        {
-            _capability = capability;
         }
     }
 }

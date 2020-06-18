@@ -4,14 +4,12 @@
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     [Method(LanguageServerConstants.RazorSemanticTokenLegendEndpoint)]
     internal interface ISemanticTokenLegendHandler :
-        IJsonRpcRequestHandler<SemanticTokenLegendParams, SemanticTokensLegend>,
-        ICapability<SemanticTokenLegendCapability>
+        IJsonRpcRequestHandler<SemanticTokenLegendParams, SemanticTokensLegend>
     {
     }
 }
