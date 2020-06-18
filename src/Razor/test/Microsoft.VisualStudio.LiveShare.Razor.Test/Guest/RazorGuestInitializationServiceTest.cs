@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             session.VerifyAll();
         }
 
-        [Fact]
+        [Fact (Skip = "https://github.com/dotnet/aspnetcore/issues/23118")]
         public async Task CreateServiceAsync_SessionDispose_CancelsListRootsToken()
         {
             // Arrange
