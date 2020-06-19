@@ -14,13 +14,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class TagHelperSemanticRangeVisitor : SyntaxWalker
     {
-        private readonly List<SemanticRange> _syntaxRanges;
+        private readonly List<SemanticRange> _semanticRanges;
         private readonly RazorCodeDocument _razorCodeDocument;
         private readonly Range _range;
 
         private TagHelperSemanticRangeVisitor(RazorCodeDocument razorCodeDocument, Range range)
         {
-            _syntaxRanges = new List<SemanticRange>();
+            _semanticRanges = new List<SemanticRange>();
             _razorCodeDocument = razorCodeDocument;
             _range = range;
         }
@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 
-            return visitor._syntaxRanges;
+            return visitor._semanticRanges;
         }
 
         public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
@@ -129,11 +129,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             base.VisitMarkupMinimizedTagHelperDirectiveAttribute(node);
         }
 
-        private void AddNode(SemanticRange syntaxResult)
+        private void AddNode(SemanticRange semanticRange)
         {
-            if (_range is null || syntaxResult.Range.OverlapsWith(_range))
+            if (_range is null || semanticRange.Range.OverlapsWith(_range))
             {
-                _syntaxRanges.Add(syntaxResult);
+                _semanticRanges.Add(semanticRange);
             }
         }
 
