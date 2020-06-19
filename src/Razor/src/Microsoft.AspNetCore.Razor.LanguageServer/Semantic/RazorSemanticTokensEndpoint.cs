@@ -15,19 +15,19 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal class RazorSemanticTokenEndpoint : ISemanticTokenHandler, ISemanticTokenRangeHandler, ISemanticTokenEditHandler, IRegistrationExtension
+    internal class RazorSemanticTokensEndpoint : ISemanticTokensHandler, ISemanticTokensRangeHandler, ISemanticTokensEditHandler, IRegistrationExtension
     {
         private const string SemanticCapability = "semanticTokensProvider";
 
         private readonly ILogger _logger;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
-        private readonly RazorSemanticTokenInfoService _semanticTokenInfoService;
+        private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
 
-        public RazorSemanticTokenEndpoint(
+        public RazorSemanticTokensEndpoint(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
-            RazorSemanticTokenInfoService semanticTokenInfoService,
+            RazorSemanticTokensInfoService semanticTokensInfoService,
             ILoggerFactory loggerFactory)
         {
             if (foregroundDispatcher is null)
@@ -40,9 +40,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (semanticTokenInfoService is null)
+            if (semanticTokensInfoService is null)
             {
-                throw new ArgumentNullException(nameof(semanticTokenInfoService));
+                throw new ArgumentNullException(nameof(semanticTokensInfoService));
             }
 
             if (loggerFactory is null)
@@ -52,11 +52,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
-            _semanticTokenInfoService = semanticTokenInfoService;
-            _logger = loggerFactory.CreateLogger<RazorSemanticTokenEndpoint>();
+            _semanticTokensInfoService = semanticTokensInfoService;
+            _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
         }
 
-        public async Task<SemanticTokens> Handle(SemanticTokenParams request, CancellationToken cancellationToken)
+        public async Task<SemanticTokens> Handle(SemanticTokensParams request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var edits = _semanticTokenInfoService.GetSemanticTokenEdits(codeDocument, request.PreviousResultId);
+            var edits = _semanticTokensInfoService.GetSemanticTokensEdits(codeDocument, request.PreviousResultId);
 
             return edits;
         }
@@ -117,7 +117,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var tokens = _semanticTokenInfoService.GetSemanticTokens(codeDocument, range);
+            var tokens = _semanticTokensInfoService.GetSemanticTokens(codeDocument, range);
 
             return tokens;
         }

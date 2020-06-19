@@ -5,7 +5,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
     internal struct SemanticTokensOrSemanticTokensEdits
     {
-        public SemanticTokensOrSemanticTokensEdits(SemanticTokensEdits semanticTokensEdits)
+        public SemanticTokensOrSemanticTokensEdits(SemanticTokensEditCollection semanticTokensEdits)
         {
             SemanticTokensEdits = semanticTokensEdits;
             SemanticTokens = null;
@@ -21,9 +21,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         public SemanticTokens SemanticTokens { get; }
 
         public bool IsSemanticTokensEdits => SemanticTokensEdits != null;
-        public SemanticTokensEdits SemanticTokensEdits { get; }
+        public SemanticTokensEditCollection SemanticTokensEdits { get; }
 
-        public static implicit operator SemanticTokensOrSemanticTokensEdits(SemanticTokensEdits semanticTokensEdits)
+        public static implicit operator SemanticTokensOrSemanticTokensEdits(SemanticTokensEditCollection semanticTokensEdits)
         {
             return new SemanticTokensOrSemanticTokensEdits(semanticTokensEdits);
         }

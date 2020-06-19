@@ -12,26 +12,26 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal class TagHelperSemanticSpanVisitor : SyntaxWalker
+    internal class TagHelperSemanticRangeVisitor : SyntaxWalker
     {
-        private readonly List<SemanticRange> _syntaxNodes;
+        private readonly List<SemanticRange> _syntaxRanges;
         private readonly RazorCodeDocument _razorCodeDocument;
         private readonly Range _range;
 
-        private TagHelperSemanticSpanVisitor(RazorCodeDocument razorCodeDocument, Range range)
+        private TagHelperSemanticRangeVisitor(RazorCodeDocument razorCodeDocument, Range range)
         {
-            _syntaxNodes = new List<SemanticRange>();
+            _syntaxRanges = new List<SemanticRange>();
             _razorCodeDocument = razorCodeDocument;
             _range = range;
         }
 
         public static IReadOnlyList<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range range = null)
         {
-            var visitor = new TagHelperSemanticSpanVisitor(razorCodeDocument, range);
+            var visitor = new TagHelperSemanticRangeVisitor(razorCodeDocument, range);
 
             visitor.Visit(razorCodeDocument.GetSyntaxTree().Root);
 
-            return visitor._syntaxNodes;
+            return visitor._syntaxRanges;
         }
 
         public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
@@ -104,7 +104,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
         {
-
             if (node.TagHelperAttributeInfo.Bound)
             {
                 var transition = CreateSemanticRange(node.Transition, SyntaxKind.Transition);
@@ -134,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (_range is null || syntaxResult.Range.OverlapsWith(_range))
             {
-                _syntaxNodes.Add(syntaxResult);
+                _syntaxRanges.Add(syntaxResult);
             }
         }
 

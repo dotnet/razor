@@ -77,9 +77,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorLanguageEndpoint>()
                     .WithHandler<RazorConfigurationEndpoint>()
                     .WithHandler<RazorFormattingEndpoint>()
-                    .WithHandler<RazorSemanticTokenEndpoint>()
-                    .WithHandler<RazorSemanticTokenLegendEndpoint>()
                     .WithHandler<OnAutoInsertEndpoint>()
+                    .WithHandler<RazorOnTypeFormattingEndpoint>()
+                    .WithHandler<RazorSemanticTokensEndpoint>()
+                    .WithHandler<RazorSemanticTokensLegendEndpoint>()
                     .WithServices(services =>
                     {
                         var filePathNormalizer = new FilePathNormalizer();
@@ -153,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorFormattingService, DefaultRazorFormattingService>();
 
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
-                        services.AddSingleton<RazorSemanticTokenInfoService, DefaultRazorSemanticTokenInfoService>();
+                        services.AddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
                     }));

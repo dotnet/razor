@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var obj = JObject.Load(reader);
             if (obj["data"] is null)
             {
-                return new SemanticTokensOrSemanticTokensEdits(obj.ToObject<SemanticTokensEdits>());
+                return new SemanticTokensOrSemanticTokensEdits(obj.ToObject<SemanticTokensEditCollection>());
             }
             else
             {

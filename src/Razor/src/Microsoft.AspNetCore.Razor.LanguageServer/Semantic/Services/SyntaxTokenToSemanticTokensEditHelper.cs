@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 {
-    internal static class SyntaxTokenToSemanticEditTokensMethods
+    internal static class SyntaxTokenToSemanticTokensEditHelper
     {
         // The below algorithm was taken from OmniSharp/csharp-language-server-protocol at
         // https://github.com/OmniSharp/csharp-language-server-protocol/blob/bdec4c73240be52fbb25a81f6ad7d409f77b5215/src/Protocol/Document/Proposals/SemanticTokensDocument.cs#L156
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                 }
 
                 var newData = ImmutableArray.Create(newTokens.Data, startIndex, dataLength - endIndex - startIndex);
-                var result = new SemanticTokensEdits
+                var result = new SemanticTokensEditCollection
                 {
                     ResultId = newTokens.ResultId,
                     Edits = new[] {
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 
             if (startIndex < dataLength)
             {
-                return new SemanticTokensEdits
+                return new SemanticTokensEditCollection
                 {
                     ResultId = newTokens.ResultId,
                     Edits = new[] {
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 
             if (startIndex < prevDataLength)
             {
-                return new SemanticTokensEdits
+                return new SemanticTokensEditCollection
                 {
                     ResultId = newTokens.ResultId,
                     Edits = new[] {
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                 };
             }
 
-            return new SemanticTokensEdits
+            return new SemanticTokensEditCollection
             {
                 ResultId = newTokens.ResultId,
                 Edits = Array.Empty<SemanticTokensEdit>()

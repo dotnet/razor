@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using LSPRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using OmniSharpRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 {
@@ -182,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             var startPosition = new Position(startLine, startChar);
             var endPosition = new Position(endLine, endChar);
-            var location = new LSPRange(startPosition, endPosition);
+            var location = new OmniSharpRange(startPosition, endPosition);
 
             AssertSemanticTokens(txt, expectedData, isRazor: false, out var _, location: location);
         }
@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
 
-            var newResultId = AssertSemanticTokenEdits(txt, new SemanticTokensEdits { Edits = new List<SemanticTokensEdit>() }, isRazor: false, previousResultId: previousResultId, out var _, service: service);
+            var newResultId = AssertSemanticTokenEdits(txt, new SemanticTokensEditCollection { Edits = new List<SemanticTokensEdit>() }, isRazor: false, previousResultId: previousResultId, out var _, service: service);
             Assert.NotEqual(previousResultId, newResultId);
         }
 
@@ -219,7 +219,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
 
             var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var newResultId = AssertSemanticTokenEdits(newTxt, new SemanticTokensEdits { Edits = new List<SemanticTokensEdit>(){
+            var newResultId = AssertSemanticTokenEdits(newTxt, new SemanticTokensEditCollection { Edits = new List<SemanticTokensEdit>(){
                 new SemanticTokensEdit
                 {
                     Data = null,
@@ -242,7 +242,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
 
             var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 bool-val='true'></test1>";
-            var newExpectedData = new SemanticTokensEdits {
+            var newExpectedData = new SemanticTokensEditCollection {
                 Edits = new SemanticTokensEdit[] {
                     new SemanticTokensEdit
                     {
@@ -268,7 +268,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
 
             var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1><test1></test1>";
-            var newExpectedData = new SemanticTokensEdits
+            var newExpectedData = new SemanticTokensEditCollection
             {
                 Edits = new List<SemanticTokensEdit> {
                     new SemanticTokensEdit
@@ -299,7 +299,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>{Environment.NewLine}" +
                 $"<test1></test1>";
-            var newExpectedData = new SemanticTokensEdits
+            var newExpectedData = new SemanticTokensEditCollection
             {
                 Edits = new List<SemanticTokensEdit> {
                     new SemanticTokensEdit
@@ -317,7 +317,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             Assert.NotEqual(previousResultId, newResultId);
         }
 
-        private string AssertSemanticTokens(string txt, IEnumerable<uint> expectedData, bool isRazor, out RazorSemanticTokenInfoService outService, RazorSemanticTokenInfoService service = null, LSPRange location = null)
+        private string AssertSemanticTokens(string txt, IEnumerable<uint> expectedData, bool isRazor, out RazorSemanticTokensInfoService outService, RazorSemanticTokensInfoService service = null, OmniSharpRange location = null)
         {
             // Arrange
             if (service is null)
@@ -345,7 +345,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             return tokens.ResultId;
         }
 
-        private string AssertSemanticTokenEdits(string txt, SemanticTokensEdits expectedEdits, bool isRazor, string previousResultId, out RazorSemanticTokenInfoService outService, RazorSemanticTokenInfoService service = null)
+        private string AssertSemanticTokenEdits(string txt, SemanticTokensEditCollection expectedEdits, bool isRazor, string previousResultId, out RazorSemanticTokensInfoService outService, RazorSemanticTokensInfoService service = null)
         {
             // Arrange
             if (service is null)
@@ -365,7 +365,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             }
 
             // Act
-            var edits = service.GetSemanticTokenEdits(codeDocument, previousResultId);
+            var edits = service.GetSemanticTokensEdits(codeDocument, previousResultId);
 
             // Assert
             for(var i = 0; i < expectedEdits.Edits.Count; i++)
@@ -376,9 +376,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             return edits.SemanticTokensEdits.ResultId;
         }
 
-        private RazorSemanticTokenInfoService GetDefaultRazorSemanticTokenInfoService()
+        private RazorSemanticTokensInfoService GetDefaultRazorSemanticTokenInfoService()
         {
-            return new DefaultRazorSemanticTokenInfoService();
+            return new DefaultRazorSemanticTokensInfoService();
         }
     }
 }

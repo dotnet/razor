@@ -10,7 +10,7 @@
         }
       },
       "license": "MIT",
-      "description": "The algorithm in 'SyntaxTokenToSemanticTokensMethods.cs' is taken mostly directly from the C# implemenation of the Language Server Protocol hosted by OmniSharp",
+      "description": "The algorithm in 'SyntaxTokenToSemanticTokensMethods.cs' is taken directly from the C# implementation of the Language Server Protocol hosted by OmniSharp",
       "version": "https://github.com/OmniSharp/csharp-language-server-protocol/tree/bdec4c73240be52fbb25a81f6ad7d409f77b5215"
     }
   ],

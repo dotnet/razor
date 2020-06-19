@@ -6,7 +6,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    internal class SemanticTokenParams : ITextDocumentIdentifierParams, IRequest<SemanticTokens>
+    internal class SemanticTokensParams : ITextDocumentIdentifierParams, IRequest<SemanticTokens>
     {
         public TextDocumentIdentifier TextDocument { get; set; }
     }

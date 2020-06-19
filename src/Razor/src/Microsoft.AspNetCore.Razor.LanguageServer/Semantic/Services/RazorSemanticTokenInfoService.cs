@@ -7,12 +7,12 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal abstract class RazorSemanticTokenInfoService
+    internal abstract class RazorSemanticTokensInfoService
     {
         public abstract SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument);
 
         public abstract SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, Range range);
 
-        public abstract SemanticTokensOrSemanticTokensEdits GetSemanticTokenEdits(RazorCodeDocument codeDocument, string previousId);
+        public abstract SemanticTokensOrSemanticTokensEdits GetSemanticTokensEdits(RazorCodeDocument codeDocument, string previousId);
     }
 }

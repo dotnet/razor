@@ -7,9 +7,9 @@ using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Interfaces
 {
-    [Serial, Method(LanguageServerConstants.RazorSemanticTokensEditEndpoint)]
-    internal interface ISemanticTokenEditHandler :
-        IJsonRpcRequestHandler<SemanticTokensEditParams, SemanticTokensOrSemanticTokensEdits?>
+    [Serial, Method(LanguageServerConstants.RazorSemanticTokensEndpoint)]
+    internal interface ISemanticTokensHandler :
+        IJsonRpcRequestHandler<SemanticTokensParams, SemanticTokens>
     {
     }
 }
