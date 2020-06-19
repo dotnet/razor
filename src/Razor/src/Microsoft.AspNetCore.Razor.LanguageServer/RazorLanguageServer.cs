@@ -77,10 +77,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorLanguageEndpoint>()
                     .WithHandler<RazorConfigurationEndpoint>()
                     .WithHandler<RazorFormattingEndpoint>()
-                    .WithHandler<OnAutoInsertEndpoint>()
-                    .WithHandler<RazorOnTypeFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokensEndpoint>()
                     .WithHandler<RazorSemanticTokensLegendEndpoint>()
+                    .WithHandler<OnAutoInsertEndpoint>()
                     .WithServices(services =>
                     {
                         var filePathNormalizer = new FilePathNormalizer();
