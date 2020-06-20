@@ -2,7 +2,7 @@
   <!-- Opt-in arcade features -->
   <PropertyGroup>
     <UsingToolVSSDK>true</UsingToolVSSDK>
-    <MicrosoftVSSDKBuildToolsVersion>15.9.3032</MicrosoftVSSDKBuildToolsVersion>
+    <MicrosoftVSSDKBuildToolsVersion>16.6.2051</MicrosoftVSSDKBuildToolsVersion>
     <!-- Use .NET Framework reference assemblies from a nuget package so machine-global targeting packs do not need to be installed. -->
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
@@ -99,10 +99,11 @@
     <MicrosoftVisualStudioCoreUtilityPackageVersion>16.6.249</MicrosoftVisualStudioCoreUtilityPackageVersion>
     <MicrosoftVisualStudioComponentModelHostPackageVersion>16.0.467</MicrosoftVisualStudioComponentModelHostPackageVersion>
     <MicrosoftVisualStudioImageCatalogPackageVersion>16.6.30107.105</MicrosoftVisualStudioImageCatalogPackageVersion>
-    <MicrosoftVisualStudioEditorPackageVersion>16.0.467</MicrosoftVisualStudioEditorPackageVersion>
+    <MicrosoftVisualStudioEditorPackageVersion>16.4.280</MicrosoftVisualStudioEditorPackageVersion>
     <MicrosoftVisualStudioLanguagePackageVersion>16.0.467</MicrosoftVisualStudioLanguagePackageVersion>
     <MicrosoftVisualStudioLanguageIntellisensePackageVersion>16.0.467</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
     <MicrosoftVisualStudioLanguageServerClientPackageVersion>16.7.65</MicrosoftVisualStudioLanguageServerClientPackageVersion>
+      <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>16.7.33</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackageVersion>$(MicrosoftVisualStudioLanguageServerClientPackageVersion)</MicrosoftVisualStudioLanguageServerProtocolPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsPackageVersion>$(MicrosoftVisualStudioLanguageServerClientPackageVersion)</MicrosoftVisualStudioLanguageServerProtocolExtensionsPackageVersion>
     <MicrosoftVisualStudioPackageLanguageService150PackageVersion>16.6.30107.105</MicrosoftVisualStudioPackageLanguageService150PackageVersion>
