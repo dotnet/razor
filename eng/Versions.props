@@ -100,8 +100,8 @@
     <MicrosoftVisualStudioComponentModelHostPackageVersion>16.0.467</MicrosoftVisualStudioComponentModelHostPackageVersion>
     <MicrosoftVisualStudioImageCatalogPackageVersion>16.7.30203.189-pre</MicrosoftVisualStudioImageCatalogPackageVersion>
     <MicrosoftVisualStudioEditorPackageVersion>16.4.269</MicrosoftVisualStudioEditorPackageVersion>
-    <MicrosoftVisualStudioLanguagePackageVersion>16.6.138</MicrosoftVisualStudioLanguagePackageVersion>
-    <MicrosoftVisualStudioLanguageIntellisensePackageVersion>16.6.138</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
+    <MicrosoftVisualStudioLanguagePackageVersion>16.6.249</MicrosoftVisualStudioLanguagePackageVersion>
+    <MicrosoftVisualStudioLanguageIntellisensePackageVersion>16.6.249</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
     <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>16.7.33</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
     <MicrosoftVisualStudioLanguageServerClientPackageVersion>16.7.65</MicrosoftVisualStudioLanguageServerClientPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackageVersion>$(MicrosoftVisualStudioLanguageServerClientPackageVersion)</MicrosoftVisualStudioLanguageServerProtocolPackageVersion>
