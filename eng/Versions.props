@@ -2,7 +2,7 @@
   <!-- Opt-in arcade features -->
   <PropertyGroup>
     <UsingToolVSSDK>true</UsingToolVSSDK>
-    <MicrosoftVSSDKBuildToolsVersion>16.6.2042</MicrosoftVSSDKBuildToolsVersion>
+    <MicrosoftVSSDKBuildToolsVersion>16.6.2057</MicrosoftVSSDKBuildToolsVersion>
     <!-- Use .NET Framework reference assemblies from a nuget package so machine-global targeting packs do not need to be installed. -->
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
@@ -90,15 +90,15 @@
     <MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>5.0.0-preview.2.20121.3</MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>
     <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>5.0.0-preview.2.20121.3</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
     <BenchmarkDotNetPackageVersion>0.10.13</BenchmarkDotNetPackageVersion>
-    <MicrosoftBuildFrameworkPackageVersion>15.8.166</MicrosoftBuildFrameworkPackageVersion>
+    <MicrosoftBuildFrameworkPackageVersion>16.6.0</MicrosoftBuildFrameworkPackageVersion>
     <MicrosoftBuildLocatorPackageVersion>1.2.6</MicrosoftBuildLocatorPackageVersion>
-    <MicrosoftBuildPackageVersion>15.8.166</MicrosoftBuildPackageVersion>
+    <MicrosoftBuildPackageVersion>16.6.0</MicrosoftBuildPackageVersion>
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftNETCoreApp50PackageVersion>$(MicrosoftNETCoreAppRuntimewinx64PackageVersion)</MicrosoftNETCoreApp50PackageVersion>
     <MicrosoftNetRoslynDiagnosticsPackageVersion>2.6.3</MicrosoftNetRoslynDiagnosticsPackageVersion>
     <MicrosoftVisualStudioCoreUtilityPackageVersion>16.6.255</MicrosoftVisualStudioCoreUtilityPackageVersion>
     <MicrosoftVisualStudioComponentModelHostPackageVersion>16.0.467</MicrosoftVisualStudioComponentModelHostPackageVersion>
-    <MicrosoftVisualStudioImageCatalogPackageVersion>16.7.30203.189-pre</MicrosoftVisualStudioImageCatalogPackageVersion>
+    <MicrosoftVisualStudioImageCatalogPackageVersion>16.6.30107.105</MicrosoftVisualStudioImageCatalogPackageVersion>
     <MicrosoftVisualStudioEditorPackageVersion>16.4.269</MicrosoftVisualStudioEditorPackageVersion>
     <MicrosoftVisualStudioLanguagePackageVersion>16.6.255</MicrosoftVisualStudioLanguagePackageVersion>
     <MicrosoftVisualStudioLanguageIntellisensePackageVersion>16.6.255</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
