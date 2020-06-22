@@ -111,11 +111,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 {
                     Edits = false,
                 },
-                Legend = SemanticTokenLegend.Instance,
+                Legend = SemanticTokensLegend.Instance,
                 RangeProvider = false,
             };
 
             return new RegistrationExtensionResult(LanguageServerConstants.SemanticTokensProviderName, semanticTokensOptions);
+        }
+
+        public void SetCapability(HoverCapability capability)
+        {
+            _capability = capability;
         }
     }
 }
