@@ -1,18 +1,22 @@
-﻿
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     class RefactorComponentCreateCodeActionResolver : RazorCodeActionResolver
     {
@@ -39,6 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             _documentResolver = documentResolver;
         }
 
+        public override string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
 
         public override async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
@@ -49,19 +54,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             {
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
             if (document is null)
             {
                 return null;
             }
 
-            var text = await document.GetTextAsync();
+            var text = await document.GetTextAsync().ConfigureAwait(false);
             if (text is null)
             {
                 return null;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync();
+            var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 return null;
@@ -79,29 +84,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 Host = string.Empty,
             }.Uri;
 
-            var namespaceNode = (NamespaceDeclarationIntermediateNode)codeDocument
-               .GetDocumentIntermediateNode()
-               .FindDescendantNodes<IntermediateNode>()
-               .FirstOrDefault(n => n is NamespaceDeclarationIntermediateNode);
-
-            var changes = new Dictionary<Uri, IEnumerable<TextEdit>>
-            {
-                [newComponentUri] = new[]
-                {
-                    new TextEdit()
-                    {
-                        NewText = $"@namespace {namespaceNode.Content}",
-                        Range = new Range(new Position(0, 0), new Position(0, 0)),
-                    }
-                }
-            };
             var documentChanges = new List<WorkspaceEditDocumentChange>
             {
                 new WorkspaceEditDocumentChange(new CreateFile() { Uri = newComponentUri.ToString() })
             };
+
+            var syntaxTree = codeDocument.GetSyntaxTree();
+            if (syntaxTree?.Root != null)
+            {
+                var namespaceDirective = syntaxTree.Root.DescendantNodes()
+                    .Where(n => n.Kind == SyntaxKind.RazorDirective)
+                    .Cast<RazorDirectiveSyntax>()
+                    .Where(n => n.DirectiveDescriptor == NamespaceDirective.Directive)
+                    .FirstOrDefault();
+                if (namespaceDirective != null)
+                {
+                    var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newComponentUri };
+                    documentChanges.Add(new WorkspaceEditDocumentChange(new TextDocumentEdit
+                    {
+                        TextDocument = documentIdentifier,
+                        Edits = new[]
+                        {
+                            new TextEdit()
+                            {
+                                NewText = namespaceDirective.GetContent(),
+                                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                            }
+                        }
+                    }));
+                }
+            }
+
             return new WorkspaceEdit()
             {
-                Changes = changes,
                 DocumentChanges = documentChanges
             };
         }

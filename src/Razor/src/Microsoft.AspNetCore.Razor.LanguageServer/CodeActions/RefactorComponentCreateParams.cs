@@ -5,12 +5,10 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal sealed class ExtractToCodeBehindParams
+    internal sealed class RefactorComponentCreateParams
     {
         public Uri Uri { get; set; }
-        public int ExtractStart { get; set; }
-        public int ExtractEnd { get; set; }
-        public int RemoveStart { get; set; }
-        public int RemoveEnd { get; set; }
+        public string Name { get; set; }
+        public string Where { get; set;  }
     }
 }

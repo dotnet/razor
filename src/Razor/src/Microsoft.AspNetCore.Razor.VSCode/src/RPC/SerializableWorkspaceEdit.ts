@@ -19,6 +19,7 @@ export interface SerializableWorkspaceEdit {
 
 export function convertWorkspaceEditFromSerializable(data: SerializableWorkspaceEdit): vscode.WorkspaceEdit {
     const workspaceEdit = new vscode.WorkspaceEdit();
+
     if (Array.isArray(data.documentChanges)) {
         for (const documentChange of data.documentChanges) {
             if (documentChange.kind === 'create') {
