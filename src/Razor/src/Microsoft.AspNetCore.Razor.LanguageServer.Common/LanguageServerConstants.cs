@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorSemanticTokensEndpoint = "textDocument/semanticTokens";
 
-        public const string RazorSemanticTokensEditEndpoint = "textDocument/semanticTokens/edit";
+        public const string RazorSemanticTokensEditEndpoint = "textDocument/semanticTokens/edits";
 
         public const string RazorSemanticTokensRangeEndpoint = "textDocument/semanticTokens/range";
 

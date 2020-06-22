@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
@@ -169,7 +170,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var expectedData = new List<uint> {
-                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
+                1, 1, 5, 1, 0, //line, character pos, length, tokenType, modifier
             };
 
             var startIndex = txt.IndexOf("test1");
@@ -193,8 +194,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var expectedData = new List<uint> {
-                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
-                0, 8, 5, 0, 0
+                1, 1, 5, 1, 0, //line, character pos, length, tokenType, modifier
+                0, 8, 5, 1, 0
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -208,12 +209,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1><test1></test1><test1></test1>";
             var expectedData = new List<uint> {
-                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
-                0, 8, 5, 0, 0,
-                0, 7, 5, 0, 0,
-                0, 8, 5, 0, 0,
-                0, 7, 5, 0, 0,
-                0, 8, 5, 0, 0
+                1, 1, 5, 1, 0, //line, character pos, length, tokenType, modifier
+                0, 8, 5, 1, 0,
+                0, 7, 5, 1, 0,
+                0, 8, 5, 1, 0,
+                0, 7, 5, 1, 0,
+                0, 8, 5, 1, 0
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -235,8 +236,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var expectedData = new List<uint> {
-                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
-                0, 8, 5, 0, 0
+                1, 1, 5, 1, 0, //line, character pos, length, tokenType, modifier
+                0, 8, 5, 1, 0
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -261,8 +262,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var expectedData = new List<uint> {
-                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
-                0, 8, 5, 0, 0
+                1, 1, 5, 1, 0, //line, character pos, length, tokenType, modifier
+                0, 8, 5, 1, 0
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -275,8 +276,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     {
                         Start = 10,
                         Data = new uint[]{
-                            0, 7, 5, 0, 0,
-                            0, 8, 5, 0, 0,
+                            0, 7, 5, 1, 0,
+                            0, 8, 5, 1, 0,
                         },
                         DeleteCount = 0,
                     }
@@ -291,8 +292,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var expectedData = new List<uint> {
-                1, 1, 5, 0, 0, //line, character pos, length, tokenType, modifier
-                0, 8, 5, 0, 0
+                1, 1, 5, 1, 0, //line, character pos, length, tokenType, modifier
+                0, 8, 5, 1, 0
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -306,8 +307,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     {
                         Start = 10,
                         Data = new uint[]{
-                            1, 1, 5, 0, 0,
-                            0, 8, 5, 0, 0,
+                            1, 1, 5, 1, 0,
+                            0, 8, 5, 1, 0,
                         },
                         DeleteCount = 0,
                     }
@@ -340,6 +341,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var tokens = service.GetSemanticTokens(codeDocument, location);
 
             // Assert
+
             Assert.Equal(expectedData, tokens.Data);
 
             return tokens.ResultId;
