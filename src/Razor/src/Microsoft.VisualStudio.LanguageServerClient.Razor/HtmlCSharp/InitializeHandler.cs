@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private static readonly InitializeResult InitializeResult = new InitializeResult
         {
-            Capabilities = new ServerCapabilities
+            Capabilities = new VSServerCapabilities
             {
                 CompletionProvider = new CompletionOptions()
                 {
