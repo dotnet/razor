@@ -3,5 +3,6 @@
     class Constants
     {
         public const string ExtractToCodeBehindAction = "ExtractToCodeBehind";
+        public const string RefactorComponentCreate = "RefactorComponentCreate";
     }
 }

@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         public override async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
             var actionParams = data.ToObject<ExtractToCodeBehindParams>();
-            var path = Path.GetFullPath(actionParams.Uri.LocalPath);
+            var path = actionParams.Uri.GetAbsoluteOrUNCPath();
 
             var document = await Task.Factory.StartNew(() =>
             {
@@ -81,9 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             do
             {
                 var identifier = n > 0 ? n.ToString() : "";  // Make it look nice
-                codeBehindPath = Path.Combine(
-                    Path.GetDirectoryName(path),
-                    $"{Path.GetFileNameWithoutExtension(path)}{identifier}{Path.GetExtension(path)}.cs");
+                codeBehindPath = Path.Combine(Path.GetDirectoryName(path), $"{Path.GetFileNameWithoutExtension(path)}{identifier}{Path.GetExtension(path)}.cs");
                 n++;
             } while (File.Exists(codeBehindPath));
 
@@ -104,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 {
                     new TextEdit()
                     {
-                        NewText = "",
+                        NewText = string.Empty,
                         Range = codeDocument.RangeFromIndices(actionParams.RemoveStart, actionParams.RemoveEnd)
                     }
                 },
