@@ -44,13 +44,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var startTagNode = (MarkupStartTagSyntax)context.Document.GetNodeAtLocation(context.Location, n => n.Kind == SyntaxKind.MarkupStartTag);
             if (startTagNode != null)
             {
+                var tagName = startTagNode.Name.Content;
                 foreach (var diagnostic in context.Document.GetCSharpDocument().Diagnostics)
                 {
                     if (diagnostic.Span.AbsoluteIndex <= context.Location.AbsoluteIndex && context.Location.AbsoluteIndex <= diagnostic.Span.AbsoluteIndex + diagnostic.Span.Length)
                     {
                         if (diagnostic.Id == "RZ10012")
                         {
-                            container.Add(CreateComponentFromTag(context, startTagNode.Name.Content));
+                            var path = context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath();
+                            var newComponentPath = Path.Combine(Path.GetDirectoryName(path), $"{tagName}.razor");
+                            if (!File.Exists(newComponentPath))
+                            {
+                                container.Add(CreateComponentFromTag(context, newComponentPath, tagName));
+                            }
                         }
                     }
                 }
@@ -59,12 +65,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             return Task.FromResult(new CommandOrCodeActionContainer(container));
         }
 
-        private CommandOrCodeAction CreateComponentFromTag(RazorCodeActionContext context, string tagName)
+        private CommandOrCodeAction CreateComponentFromTag(RazorCodeActionContext context, string newComponentPath, string tagName)
         {
-            var path = context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath();
-            var newComponentPath = Path.Combine(Path.GetDirectoryName(path), $"{tagName}.razor");
-
-
             var actionParams = new RefactorComponentCreateParams()
             {
                 Uri = context.Request.TextDocument.Uri,
