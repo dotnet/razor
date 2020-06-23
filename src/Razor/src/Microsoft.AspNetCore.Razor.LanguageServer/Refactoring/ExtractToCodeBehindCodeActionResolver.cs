@@ -19,7 +19,7 @@ using CSharpSyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
-    class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
+    internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             _documentResolver = documentResolver;
         }
 
-        override public async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
+        public override async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
             var actionParams = data.ToObject<ExtractToCodeBehindParams>();
             var path = Path.GetFullPath(actionParams.Uri.LocalPath);

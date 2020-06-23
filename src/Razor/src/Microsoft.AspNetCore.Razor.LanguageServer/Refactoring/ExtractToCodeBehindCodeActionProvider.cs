@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
-    class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
+    internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
     {
         override public Task<CommandOrCodeActionContainer> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return Task.FromResult<CommandOrCodeActionContainer>(null);
             }
 
-            var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: "");
+            var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
             var node = context.Document.GetSyntaxTree().Root.LocateOwner(change);
             if (node is null)
             {
