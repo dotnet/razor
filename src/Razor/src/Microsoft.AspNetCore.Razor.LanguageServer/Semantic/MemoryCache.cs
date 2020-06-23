@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                 value.LastAccess = DateTime.UtcNow;
             }
 
-            return value.Result;
+            return value?.Result;
         }
 
         public void Set(string key, TResult value)
