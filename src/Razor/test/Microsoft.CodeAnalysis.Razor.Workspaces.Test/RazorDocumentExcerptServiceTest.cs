@@ -391,9 +391,9 @@ namespace Microsoft.CodeAnalysis.Razor
             Assert.Same(secondary, result.Value.Document);
 
             Assert.Equal(
-                            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
-                            result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
-                            ignoreLineEndingDifferences: true);
+                (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+                result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
+                ignoreLineEndingDifferences: true);
 
             Assert.Equal(
 @"@{ var foo = ""Hello, World!""; }",
