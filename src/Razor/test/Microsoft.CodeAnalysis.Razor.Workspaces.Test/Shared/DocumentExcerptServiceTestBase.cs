@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.Razor
             return (generatedDocument, razorSourceText, primarySpan, generatedSpan);
         }
 
-        internal async Task<(DocumentSnapshot primary, Document generatedDocument, SourceText razorSourceText, TextSpan primarySpan, TextSpan generatedSpan)> InitializeWithSnapshotAsync(string razorSource)
+        internal async Task<(DocumentSnapshot primary, Document generatedDocument, TextSpan generatedSpan)> InitializeWithSnapshotAsync(string razorSource)
         {
             var (razorSourceText, primarySpan) = CreateText(razorSource);
             var (primary, generatedDocument) = InitializeDocument(razorSourceText);
             var generatedSpan = await GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
-            return (primary, generatedDocument, razorSourceText, primarySpan, generatedSpan);
+            return (primary, generatedDocument, generatedSpan);
         }
     }
 }

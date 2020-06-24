@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Razor
 </html>
 ";
 
-            var (primary, secondary, _, _, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+            var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
             var service = CreateExcerptService(primary);
 
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Razor
 </html>
 ";
 
-            var (primary, secondary, _, _, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+            var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
             var service = CreateExcerptService(primary);
 
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Razor
 </html>
 ";
 
-            var (primary, secondary, _, _, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+            var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
             var service = CreateExcerptService(primary);
 
@@ -269,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Razor
 </html>
 ";
 
-            var (primary, secondary, _, _, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+            var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
             var service = CreateExcerptService(primary);
 
@@ -377,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Razor
             // Arrange
             var razorSource = @"@{ var |foo| = ""Hello, World!""; }";
 
-            var (primary, secondary, _, _, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+            var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
             var service = CreateExcerptService(primary);
 
