@@ -180,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Razor
             Assert.Same(secondary, result.Value.Document);
 
             Assert.Equal(
-                        (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
-                        result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
-                        ignoreLineEndingDifferences: true);
+                (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+                result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
+                ignoreLineEndingDifferences: true);
 
             // Verifies that the right part of the primary document will be highlighted.
             Assert.Equal(@"  <div>@(3 + 4)</div><div>@(foo + foo)</div>", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
