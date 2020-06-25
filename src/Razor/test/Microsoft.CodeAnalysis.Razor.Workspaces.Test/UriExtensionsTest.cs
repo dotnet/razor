@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     public class UriExtensionsTest
     {
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/23336")]
         [OSSkipCondition(OperatingSystems.MacOSX | OperatingSystems.Linux, SkipReason = "Test only valid on Windows boxes")]
         public void GetAbsoluteOrUNCPath_ReturnsAbsolutePath()
         {
