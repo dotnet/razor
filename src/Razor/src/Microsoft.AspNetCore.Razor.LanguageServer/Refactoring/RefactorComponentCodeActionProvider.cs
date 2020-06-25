@@ -41,11 +41,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         override public Task<CommandOrCodeActionContainer> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             var container = new List<CommandOrCodeAction>();
-            var startTagNode = (MarkupStartTagSyntax)context.Document.GetNodeAtLocation(context.Location, n => n.Kind == SyntaxKind.MarkupStartTag);
+            var startTagNode = (MarkupStartTagSyntax)context.CodeDocument.GetNodeAtLocation(context.Location, n => n.Kind == SyntaxKind.MarkupStartTag);
             if (startTagNode != null)
             {
                 var tagName = startTagNode.Name.Content;
-                foreach (var diagnostic in context.Document.GetCSharpDocument().Diagnostics)
+                foreach (var diagnostic in context.CodeDocument.GetCSharpDocument().Diagnostics)
                 {
                     if (diagnostic.Span.AbsoluteIndex <= context.Location.AbsoluteIndex && context.Location.AbsoluteIndex <= diagnostic.Span.AbsoluteIndex + diagnostic.Span.Length)
                     {
@@ -57,12 +57,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                             {
                                 container.Add(CreateComponentFromTag(context, newComponentPath, tagName));
                             }
+                            foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
+                            {
+                                if (tagHelper.TagMatchingRules.All(rule => TagHelperMatchingConventions.SatisfiesTagName(tagName, rule)))
+                                {
+                                    //container.Add(AddUsingFromTag(context, tagHelper, tagName));
+                                    //container.Add(UsingQualifiedNameFromTag(context, tagHelper, tagName));
+                                }
+                            }
                         }
                     }
                 }
             }
 
             return Task.FromResult(new CommandOrCodeActionContainer(container));
+        }
+
+        private CommandOrCodeAction AddUsingFromTag(RazorCodeActionContext context, TagHelperDescriptor tagHelper, string tagName)
+        {
+            
         }
 
         private CommandOrCodeAction CreateComponentFromTag(RazorCodeActionContext context, string newComponentPath, string tagName)

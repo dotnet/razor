@@ -19,18 +19,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
     {
         override public Task<CommandOrCodeActionContainer> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
-            if (context.Document.IsUnsupported())
+            if (context.CodeDocument.IsUnsupported())
             {
                 return Task.FromResult<CommandOrCodeActionContainer>(null);
             }
 
-            if (!FileKinds.IsComponent(context.Document.GetFileKind()))
+            if (!FileKinds.IsComponent(context.CodeDocument.GetFileKind()))
             {
                 return Task.FromResult<CommandOrCodeActionContainer>(null);
             }
 
             var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
-            var node = context.Document.GetSyntaxTree().Root.LocateOwner(change);
+            var node = context.CodeDocument.GetSyntaxTree().Root.LocateOwner(change);
             if (node is null)
             {
                 return Task.FromResult<CommandOrCodeActionContainer>(null);

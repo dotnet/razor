@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, (int)request.Range.Start.Line, (int)request.Range.Start.Character);
 
-            var context = new RazorCodeActionContext(request, codeDocument, location);
+            var context = new RazorCodeActionContext(request, document, codeDocument, location);
             var tasks = new List<Task<CommandOrCodeActionContainer>>();
             
             foreach (var provider in _providers)
