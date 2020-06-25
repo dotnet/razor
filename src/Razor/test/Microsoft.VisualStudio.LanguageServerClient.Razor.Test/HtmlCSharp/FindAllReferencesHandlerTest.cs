@@ -563,9 +563,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var documentManager = new TestDocumentManager();
-
             var requestInvoker = new TestLSPRequestInvokerImplementation();
-
             var projectionProvider = new Mock<LSPProjectionProvider>();
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
 
@@ -583,6 +581,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 // Assert
                 Assert.Empty(result);
                 Assert.True(requestInvoker.clientNotifyAdded);
+                Assert.False(requestInvoker.clientNotifyRemoved);
             }
 
             Assert.True(requestInvoker.clientNotifyRemoved);
