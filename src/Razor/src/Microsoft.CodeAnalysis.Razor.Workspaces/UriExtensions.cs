@@ -14,7 +14,13 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            return uri.LocalPath;
+            if (uri.IsUnc)
+            {
+                // For UNC paths, AbsolutePath doesn't include the host name `//COMPUTERNAME/` part. So we need to use LocalPath instead.
+                return uri.LocalPath;
+            }
+
+            return uri.AbsolutePath;
         }
     }
 }
