@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -17,25 +19,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [Export(typeof(LSPRequestInvoker))]
     internal class DefaultLSPRequestInvoker : LSPRequestInvoker
     {
-        private readonly ILanguageClientBroker _languageClientBroker;
+        private readonly ILanguageServiceBroker2 _languageServiceBroker;
         private readonly MethodInfo _synchronizedRequestAsyncMethod;
         private readonly MethodInfo _requestAsyncMethod;
         private readonly JsonSerializer _serializer;
 
         [ImportingConstructor]
-        public DefaultLSPRequestInvoker(ILanguageClientBroker languageClientBroker)
+        public DefaultLSPRequestInvoker(ILanguageServiceBroker2 languageServiceBroker)
         {
-            if (languageClientBroker is null)
+            if (languageServiceBroker is null)
             {
-                throw new ArgumentNullException(nameof(languageClientBroker));
+                throw new ArgumentNullException(nameof(languageServiceBroker));
             }
 
-            _languageClientBroker = languageClientBroker;
+            _languageServiceBroker = languageServiceBroker;
 
-            // Ideally we want to call ILanguageServiceBroker2.RequestAsync directly but it is not referenced
-            // because the LanguageClient.Implementation assembly isn't published to a public feed.
+            // Ideally we want to call ILanguageServiceBroker2.RequestAsync & SynchronizedRequestAsync directly
+            // but only RequestAsync is referenced in the LanguageClient.Implementation assembly.
             // So for now, we invoke it using reflection. This will go away eventually.
-            var type = _languageClientBroker.GetType();
+            // https://github.com/dotnet/aspnetcore/issues/23191
+            var type = _languageServiceBroker.GetType();
             _requestAsyncMethod = type.GetMethod(
                 "RequestAsync",
                 new[]
@@ -102,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var serializedParams = JToken.FromObject(parameters);
             var task = (Task<(ILanguageClient, JToken)>)lspPlatformMethod.Invoke(
-                _languageClientBroker,
+                _languageServiceBroker,
                 new object[]
                 {
                     new[] { contentType },
@@ -116,6 +119,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var result = resultToken != null ? resultToken.ToObject<TOut>(_serializer) : default;
             return result;
+        }
+
+        internal override void AddClientNotifyAsyncHandler(AsyncEventHandler<LanguageClientNotifyEventArgs> clientNotifyAsyncHandler)
+        {
+            _languageServiceBroker.ClientNotifyAsync += clientNotifyAsyncHandler;
+        }
+
+        internal override void RemoveClientNotifyAsyncHandler(AsyncEventHandler<LanguageClientNotifyEventArgs> clientNotifyAsyncHandler)
+        {
+            _languageServiceBroker.ClientNotifyAsync -= clientNotifyAsyncHandler;
         }
     }
 }

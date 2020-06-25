@@ -3,6 +3,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -19,5 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LanguageServerKind serverKind,
             TIn parameters,
             CancellationToken cancellationToken);
+
+        internal abstract void AddClientNotifyAsyncHandler(AsyncEventHandler<LanguageClientNotifyEventArgs> clientNotifyAsyncHandler);
+
+        internal abstract void RemoveClientNotifyAsyncHandler(AsyncEventHandler<LanguageClientNotifyEventArgs> clientNotifyAsyncHandler);
     }
 }
