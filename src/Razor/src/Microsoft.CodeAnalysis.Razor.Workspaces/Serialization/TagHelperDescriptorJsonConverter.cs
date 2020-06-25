@@ -783,10 +783,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         }
                         break;
                     case nameof(RazorDiagnostic.Severity):
-                        if (reader.Read())
-                        {
-                            severity = (int)reader.Value;
-                        }
+                        severity = reader.ReadAsInt32().Value;
                         break;
                     case "Message":
                         if (reader.Read())
@@ -835,28 +832,16 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         }
                         break;
                     case nameof(SourceSpan.AbsoluteIndex):
-                        if (reader.Read())
-                        {
-                            absoluteIndex = (int)reader.Value;
-                        }
+                        absoluteIndex = reader.ReadAsInt32().Value;
                         break;
                     case nameof(SourceSpan.LineIndex):
-                        if (reader.Read())
-                        {
-                            lineIndex = (int)reader.Value;
-                        }
+                        lineIndex = reader.ReadAsInt32().Value;
                         break;
                     case nameof(SourceSpan.CharacterIndex):
-                        if (reader.Read())
-                        {
-                            characterIndex = (int)reader.Value;
-                        }
+                        characterIndex = reader.ReadAsInt32().Value;
                         break;
                     case nameof(SourceSpan.Length):
-                        if (reader.Read())
-                        {
-                            length = (int)reader.Value;
-                        }
+                        length = reader.ReadAsInt32().Value;
                         break;
                 }
             });
