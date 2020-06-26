@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedPublishFilePath = "/path/to/obj/bin/Debug/project.razor.json";
 
             var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            var snapshotManager = CreateProjectSnapshotManager(hostProject.FilePath, allowNotifyListeners: true);
+            var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
 
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 JoinableTaskContext,
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         {
             // Arrange
             var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            var snapshotManager = CreateProjectSnapshotManager(hostProject.FilePath, allowNotifyListeners: true);
+            var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
             var publisher = new TestDefaultRazorProjectChangePublisher(JoinableTaskContext, RazorLogger);
             publisher.Initialize(snapshotManager);
             await RunOnForegroundAsync(() => snapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
@@ -207,12 +207,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             return testProjectSnapshot;
         }
 
-        internal ProjectSnapshotManagerBase CreateProjectSnapshotManager(string projectFilePath, bool allowNotifyListeners = false)
+        internal ProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
         {
             var snapshotManager = TestProjectSnapshotManager.Create(Dispatcher);
             snapshotManager.AllowNotifyListeners = allowNotifyListeners;
-            var projectWorkspaceState = new ProjectWorkspaceState(new TagHelperDescriptor[] { }, CodeAnalysis.CSharp.LanguageVersion.Default);
-            snapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
 
             return snapshotManager;
         }
