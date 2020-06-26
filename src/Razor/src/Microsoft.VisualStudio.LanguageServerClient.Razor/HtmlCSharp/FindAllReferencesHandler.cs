@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -15,17 +17,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.TextDocumentReferencesName)]
     internal class FindAllReferencesHandler : IRequestHandler<ReferenceParams, VSReferenceItem[]>
     {
+        // Roslyn sends Progress Notifications every 0.5s *only* if results have been found.
+        // Consequently, at ~ time > 0.5s ~ after the last notification, we don't know whether Roslyn is
+        // done searching for results, or just hasn't found any additional results yet.
+        // To work around this, we wait for up to 3s since the last notification before timing out.
+        private static readonly TimeSpan WaitForProgressNotificationTimeout = TimeSpan.FromSeconds(3);
+        private static readonly TimeSpan WaitForProgressCompletionTimeout = TimeSpan.FromSeconds(15);
+
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
+        private readonly LSPProgressListener _lspProgressListener;
 
         [ImportingConstructor]
         public FindAllReferencesHandler(
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
-            LSPDocumentMappingProvider documentMappingProvider)
+            LSPDocumentMappingProvider documentMappingProvider,
+            LSPProgressListener lspProgressListener)
         {
             if (requestInvoker is null)
             {
@@ -47,10 +58,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
+            if (lspProgressListener is null)
+            {
+                throw new ArgumentNullException(nameof(lspProgressListener));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
+            _lspProgressListener = lspProgressListener;
         }
 
         public async Task<VSReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
@@ -78,8 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var serverKind = LanguageServerKind.CSharp;
-            var referenceParams = new ReferenceParams()
+            // Temporary till IProgress serialization is fixed
+            var requestId = Guid.NewGuid().ToString(); // request.PartialResultToken.Id
+
+            var referenceParams = new CustomReferenceParams()
             {
                 Position = projectionResult.Position,
                 TextDocument = new TextDocumentIdentifier()
@@ -87,26 +106,74 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Uri = projectionResult.Uri
                 },
                 Context = request.Context,
-                PartialResultToken = request.PartialResultToken
+                PartialResultToken = requestId // request.PartialResultToken
             };
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<ReferenceParams, VSReferenceItem[]>(
-                Methods.TextDocumentReferencesName,
-                serverKind,
-                referenceParams,
-                cancellationToken).ConfigureAwait(false);
+            var waitForProgressCompletion = new ManualResetEvent(false);
 
+            Task callback(JToken value)
+            {
+                return ProcessReferenceItemsAsync(value, request.PartialResultToken, cancellationToken);
+            }
+
+            var callbackRequest = new CallbackRequest(
+                callback,
+                WaitForProgressNotificationTimeout,
+                waitForProgressCompletion);
+
+            try
+            {
+                var isSubscribed = _lspProgressListener.Subscribe(callbackRequest, requestId /* IProgress<T> */);
+                if (!isSubscribed)
+                {
+                    return null;
+                }
+
+                _ = await _requestInvoker.ReinvokeRequestOnServerAsync<CustomReferenceParams, VSReferenceItem[]>(
+                    Methods.TextDocumentReferencesName,
+                    LanguageServerKind.CSharp,
+                    referenceParams,
+                    cancellationToken).ConfigureAwait(false);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // We must not return till we have received the progress notifications
+                // and reported the results via the PartialResultToken
+                waitForProgressCompletion.WaitOne(WaitForProgressCompletionTimeout);
+            }
+            finally
+            {
+                _ = _lspProgressListener.Unsubscribe(requestId);
+            }
+
+            // Results returned through Progress notification
+            return Array.Empty<VSReferenceItem>();
+        }
+
+        private async Task ProcessReferenceItemsAsync(
+            JToken value,
+            IProgress<object> progress,
+            CancellationToken cancellationToken)
+        {
+            var result = value.ToObject<VSReferenceItem[]>();
+
+            // Checks if the initial Handle request has been cancelled
             cancellationToken.ThrowIfCancellationRequested();
 
             if (result == null || result.Length == 0)
             {
-                return result;
+                return;
             }
 
             var remappedLocations = new List<VSReferenceItem>();
 
             foreach (var referenceItem in result)
             {
+                if (referenceItem?.Location is null || referenceItem.Text is null)
+                {
+                    continue;
+                }
+
                 if (!RazorLSPConventions.IsRazorCSharpFile(referenceItem.Location.Uri))
                 {
                     // This location doesn't point to a virtual cs file. No need to remap.
@@ -116,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(referenceItem.Location.Uri);
                 var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
-                    projectionResult.LanguageKind,
+                    RazorLanguageKind.CSharp,
                     razorDocumentUri,
                     new[] { referenceItem.Location.Range },
                     cancellationToken).ConfigureAwait(false);
@@ -137,7 +204,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 remappedLocations.Add(referenceItem);
             }
 
-            return remappedLocations.ToArray();
+            progress.Report(remappedLocations.ToArray());
         }
+    }
+
+    // Temporary while the PartialResultToken serialization fix is in
+    [DataContract]
+    public class CustomReferenceParams : TextDocumentPositionParams
+    {
+        [DataMember(Name = "context")]
+        public ReferenceContext Context { get; set; }
+
+        [DataMember(Name = "partialResultToken")]
+        public string PartialResultToken { get; set; }
     }
 }
