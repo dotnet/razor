@@ -18,6 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
 
+        private ConcurrentDictionary<string, ProgressRequest> _activeRequests
+            = new ConcurrentDictionary<string, ProgressRequest>();
+
         [ImportingConstructor]
         public DefaultLSPProgressListener(ILanguageServiceBroker2 languageServiceBroker)
         {
@@ -31,12 +34,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _languageServiceBroker.ClientNotifyAsync += ClientNotifyAsyncListenerAsync;
         }
 
-        private ConcurrentDictionary<string, CallbackRequest> ActiveRequests { get; }
-            = new ConcurrentDictionary<string, CallbackRequest>();
-
-        public override async Task ClientNotifyAsyncListenerAsync(object sender, LanguageClientNotifyEventArgs args)
+        private Task ClientNotifyAsyncListenerAsync(object sender, LanguageClientNotifyEventArgs args)
         {
-            await ProcessProgressNotificationAsync(args.MethodName, args.ParameterToken).ConfigureAwait(false);
+            return ProcessProgressNotificationAsync(args.MethodName, args.ParameterToken);
         }
 
         private async Task ProcessProgressNotificationAsync(string methodName, JToken parameterToken)
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var token = parameterToken["token"].ToObject<string>(); // IProgress<object>>();
 
-            if (string.IsNullOrEmpty(token) || !ActiveRequests.TryGetValue(token, out var callbackRequest))
+            if (string.IsNullOrEmpty(token) || !_activeRequests.TryGetValue(token, out var request))
             {
                 return;
             }
@@ -60,30 +60,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             try
             {
-                await callbackRequest.Callback(value).ConfigureAwait(false);
+                await request.OnProgressResult(value).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {
-                // Initial textDocument/references handle request
-                // has been cancelled
-                //
-                // Release the handler if it's still waiting
-                callbackRequest.WaitForEventCompletion?.Set();
-                return;
-            }
-
-            // Checks if the callback request supports blocking
-            // till progress notification completion
-            if (callbackRequest.WaitForEventCompletion is null)
-            {
+                // Initial handle request has been cancelled
+                // We can deem this ProgressRequest complete
+                ProgressCompleted(token);
                 return;
             }
 
             var cts = new CancellationTokenSource();
 
-            lock (callbackRequest.RequestLock)
+            lock (request.RequestLock)
             {
-                var existingCTS = callbackRequest.CancellationTokenSource;
+                var existingCTS = request.CancellationTokenSource;
                 if (existingCTS != null &&
                     existingCTS.Token.CanBeCanceled &&
                     !existingCTS.Token.IsCancellationRequested)
@@ -91,13 +82,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     existingCTS.Cancel();
                 }
 
-                callbackRequest.CancellationTokenSource = cts;
+                request.CancellationTokenSource = cts;
             }
 
-            _ = CompleteAfterDelayAsync(callbackRequest); // Fire and forget
+            _ = CompleteAfterDelayAsync(token, request); // Fire and forget
         }
 
-        private async Task CompleteAfterDelayAsync(CallbackRequest request)
+        private async Task CompleteAfterDelayAsync(string token, ProgressRequest request)
         {
             if (request.CancellationTokenSource.IsCancellationRequested)
             {
@@ -115,22 +106,66 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return;
             }
 
-            request.WaitForEventCompletion.Set();
+            ProgressCompleted(token);
         }
 
-        internal override bool Subscribe(CallbackRequest callbackRequest, string requestId)
+        internal override bool TryListenForProgress(
+            string requestId,
+            Func<JToken, Task> onProgressResult,
+            TimeSpan timeoutAfterLastNotify,
+            out Task onCompleted)
         {
-            return ActiveRequests.TryAdd(requestId, callbackRequest);
+            var onCompletedSource = new TaskCompletionSource<bool>();
+            var progressRequest = new ProgressRequest(onProgressResult, timeoutAfterLastNotify, onCompletedSource);
+            onCompleted = onCompletedSource.Task;
+
+            return _activeRequests.TryAdd(requestId, progressRequest);
         }
 
-        internal override bool Unsubscribe(string requestId)
+        private void ProgressCompleted(string requestId)
         {
-            return ActiveRequests.TryRemove(requestId, out _);
+            if (_activeRequests.TryRemove(requestId, out var request))
+            {
+                // We're setting the result of a Task<bool>
+                // however we only return a Task to the
+                // handler/subscriber, so the bool is ignored
+                request.OnCompleted.SetResult(false);
+            }
         }
 
         public void Dispose()
         {
             _languageServiceBroker.ClientNotifyAsync -= ClientNotifyAsyncListenerAsync;
+        }
+
+        internal class ProgressRequest
+        {
+            internal ProgressRequest(
+                Func<JToken, Task> onProgressResult,
+                TimeSpan timeoutAfterLastNotify,
+                TaskCompletionSource<bool> onCompleted)
+            {
+                if (onProgressResult is null)
+                {
+                    throw new ArgumentNullException(nameof(onProgressResult));
+                }
+
+                if (onCompleted is null)
+                {
+                    throw new ArgumentNullException(nameof(onCompleted));
+                }
+
+                OnProgressResult = onProgressResult;
+                TimeoutAfterLastNotify = timeoutAfterLastNotify;
+                OnCompleted = onCompleted;
+            }
+
+            internal Func<JToken, Task> OnProgressResult { get; }
+            internal TaskCompletionSource<bool> OnCompleted { get; }
+
+            internal TimeSpan TimeoutAfterLastNotify { get; }
+            internal object RequestLock { get; } = new object();
+            internal CancellationTokenSource CancellationTokenSource { get; set; }
         }
     }
 }

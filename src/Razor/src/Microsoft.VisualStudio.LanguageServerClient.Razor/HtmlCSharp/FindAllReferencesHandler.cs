@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Temporary till IProgress serialization is fixed
             var requestId = Guid.NewGuid().ToString(); // request.PartialResultToken.Id
 
-            var referenceParams = new CustomReferenceParams()
+            var referenceParams = new SerializableReferenceParams()
             {
                 Position = projectionResult.Position,
                 TextDocument = new TextDocumentIdentifier()
@@ -109,42 +109,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 PartialResultToken = requestId // request.PartialResultToken
             };
 
-            var waitForProgressCompletion = new ManualResetEvent(false);
-
-            Task callback(JToken value)
-            {
-                return ProcessReferenceItemsAsync(value, request.PartialResultToken, cancellationToken);
-            }
-
-            var callbackRequest = new CallbackRequest(
-                callback,
+            if (!_lspProgressListener.TryListenForProgress(
+                requestId,
+                onProgressResult: (value) => ProcessReferenceItemsAsync(value, request.PartialResultToken, cancellationToken),
                 WaitForProgressNotificationTimeout,
-                waitForProgressCompletion);
-
-            try
+                out var onCompleted))
             {
-                var isSubscribed = _lspProgressListener.Subscribe(callbackRequest, requestId /* IProgress<T> */);
-                if (!isSubscribed)
-                {
-                    return null;
-                }
-
-                _ = await _requestInvoker.ReinvokeRequestOnServerAsync<CustomReferenceParams, VSReferenceItem[]>(
-                    Methods.TextDocumentReferencesName,
-                    LanguageServerKind.CSharp,
-                    referenceParams,
-                    cancellationToken).ConfigureAwait(false);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // We must not return till we have received the progress notifications
-                // and reported the results via the PartialResultToken
-                waitForProgressCompletion.WaitOne(WaitForProgressCompletionTimeout);
+                return null;
             }
-            finally
-            {
-                _ = _lspProgressListener.Unsubscribe(requestId);
-            }
+
+            _ = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
+                Methods.TextDocumentReferencesName,
+                LanguageServerKind.CSharp,
+                referenceParams,
+                cancellationToken).ConfigureAwait(false);
+
+            // We must not return till we have received the progress notifications
+            // and reported the results via the PartialResultToken
+            await onCompleted.ConfigureAwait(false);
 
             // Results returned through Progress notification
             return Array.Empty<VSReferenceItem>();
@@ -206,16 +188,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             progress.Report(remappedLocations.ToArray());
         }
-    }
 
-    // Temporary while the PartialResultToken serialization fix is in
-    [DataContract]
-    public class CustomReferenceParams : TextDocumentPositionParams
-    {
-        [DataMember(Name = "context")]
-        public ReferenceContext Context { get; set; }
+        // Temporary while the PartialResultToken serialization fix is in
+        [DataContract]
+        private class SerializableReferenceParams : TextDocumentPositionParams
+        {
+            [DataMember(Name = "context")]
+            public ReferenceContext Context { get; set; }
 
-        [DataMember(Name = "partialResultToken")]
-        public string PartialResultToken { get; set; }
+            [DataMember(Name = "partialResultToken")]
+            public string PartialResultToken { get; set; }
+        }
     }
 }
