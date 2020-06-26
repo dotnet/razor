@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
-using DiffMatchPatch;
 using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
@@ -17,8 +16,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
             SemanticTokens newTokens,
             IReadOnlyList<uint> previousResults)
         {
-            var edits = IntArrayDiffer.GetMinimalEdits(previousResults.ToArray(), newTokens.Data);
-
+            var diffs = UIntArrayDiffer.GetEdits(previousResults.ToArray(), newTokens.Data);
+            var edits = ComputeSemanticTokenEdits(diffs, newTokens.Data);
             var result = new SemanticTokensEditCollection
             {
                 ResultId = newTokens.ResultId,
@@ -27,11 +26,59 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 
             return result;
         }
+
+        private static IReadOnlyList<SemanticTokensEdit> ComputeSemanticTokenEdits(IReadOnlyList<DiffEdit> diffs, uint[] newArray)
+        {
+            var results = new List<SemanticTokensEdit>();
+            foreach (var diff in diffs)
+            {
+                var current = results.Any() ? results.Last() : null;
+                switch (diff.Operation)
+                {
+                    case DiffEdit.Type.Delete:
+                        //if (current != null
+                        //    && current.DeleteCount > 0
+                        //    && current.Start + current.DeleteCount == diff.Position)
+                        //{
+                        //    current.DeleteCount += 1;
+                        //}
+                        //else
+                        //{
+                            results.Add(new SemanticTokensEdit
+                            {
+                                Start = diff.Position,
+                                Data = new uint[] { },
+                                DeleteCount = 1,
+                            });
+                        // }
+                        break;
+                    case DiffEdit.Type.Insert:
+                        //if (current != null
+                        //    && current.Data.Count() > 0
+                        //    && current.Start + current.Data.Count() == diff.Position)
+                        //{
+                        //    current.Data = current.Data.Append(newArray[diff.NewTextPosition.Value] );
+                        //}
+                        //else
+                        //{
+                            results.Add(new SemanticTokensEdit
+                            {
+                                Start = diff.Position,
+                                Data = new uint[] { newArray[diff.NewTextPosition.Value] },
+                                DeleteCount = 0,
+                            });
+                        //}
+                        break;
+                }
+            }
+
+            return results;
+        }
     }
 
-    internal class IntArrayDiffer : TextDiffer
+    internal class UIntArrayDiffer : TextDiffer
     {
-        private IntArrayDiffer(uint[] oldArray, uint[] newArray)
+        private UIntArrayDiffer(uint[] oldArray, uint[] newArray)
         {
             OldArray = oldArray;
             NewArray = newArray;
@@ -48,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
             return OldArray[oldTextIndex] == NewArray[newTextIndex];
         }
 
-        public static IReadOnlyList<SemanticTokensEdit> GetMinimalEdits(uint[] oldArray, uint[] newArray)
+        public static IReadOnlyList<DiffEdit> GetEdits(uint[] oldArray, uint[] newArray)
         {
             if (oldArray is null)
             {
@@ -61,48 +108,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 
             if (oldArray.SequenceEqual(newArray))
             {
-                return Array.Empty<SemanticTokensEdit>();
+                return Array.Empty<DiffEdit>();
             }
             else if (oldArray.Length == 0 || newArray.Length == 0)
             {
                 throw new NotImplementedException();
             }
 
-            var differ = new IntArrayDiffer(oldArray, newArray);
+            var differ = new UIntArrayDiffer(oldArray, newArray);
             var diffs = differ.ComputeDiff();
 
-            var semanticTokenEdits = differ.ComputeSemanticTokenEdits(diffs);
-
-            return semanticTokenEdits;
-        }
-
-        private IReadOnlyList<SemanticTokensEdit> ComputeSemanticTokenEdits(IReadOnlyList<DiffEdit> diffs)
-        {
-            var results = new List<SemanticTokensEdit>();
-            foreach(var diff in diffs)
-            {
-                switch(diff.Operation)
-                {
-                    case DiffEdit.Type.Delete:
-                        results.Add(new SemanticTokensEdit
-                        {
-                            Start = diff.Position,
-                            Data = new uint[] {  },
-                            DeleteCount = 1,
-                        });
-                        break;
-                    case DiffEdit.Type.Insert:
-                        results.Add(new SemanticTokensEdit
-                        {
-                            Start = diff.Position,
-                            Data = new uint[] { NewArray[diff.NewTextPosition.Value] },
-                            DeleteCount= 0,
-                        });
-                        break;
-                }
-            }
-
-            return results;
+            return diffs;
         }
     }
 }

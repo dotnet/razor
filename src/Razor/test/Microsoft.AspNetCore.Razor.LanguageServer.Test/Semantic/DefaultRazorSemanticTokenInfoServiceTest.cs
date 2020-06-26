@@ -318,31 +318,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                         Start = 5,
                         Data = new uint[]{
                         },
-                        DeleteCount = 1,
-                    },
-                    new SemanticTokensEdit
-                    {
-                        Start = 6,
-                        Data = new uint[]{ },
-                        DeleteCount = 1,
-                    },
-                    new SemanticTokensEdit
-                    {
-                        Start = 7,
-                        Data = new uint[]{ },
-                        DeleteCount = 1,
-                    },
-                    new SemanticTokensEdit
-                    {
-                        Start = 8,
-                        Data = new uint[]{ },
-                        DeleteCount = 1,
-                    },
-                    new SemanticTokensEdit
-                    {
-                        Start = 9,
-                        Data = new uint[]{ },
-                        DeleteCount = 1,
+                        DeleteCount = 5,
                     },
                 }
             };
