@@ -16,9 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [Export(typeof(LSPProgressListener))]
     internal class DefaultLSPProgressListener : LSPProgressListener, IDisposable
     {
+        private const string ProgressNotificationValueName = "value";
+
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
 
-        private ConcurrentDictionary<string, ProgressRequest> _activeRequests
+        private readonly ConcurrentDictionary<string, ProgressRequest> _activeRequests
             = new ConcurrentDictionary<string, ProgressRequest>();
 
         [ImportingConstructor]
@@ -43,24 +45,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             if (methodName != Methods.ProgressNotificationName ||
                !parameterToken.HasValues ||
-               parameterToken["value"] is null ||
-               parameterToken["token"] is null)
+               parameterToken[ProgressNotificationValueName] is null ||
+               parameterToken[Methods.ProgressNotificationTokenName] is null)
             {
                 return;
             }
 
-            var token = parameterToken["token"].ToObject<string>(); // IProgress<object>>();
+            var token = parameterToken[Methods.ProgressNotificationTokenName].ToObject<string>(); // IProgress<object>>();
 
             if (string.IsNullOrEmpty(token) || !_activeRequests.TryGetValue(token, out var request))
             {
                 return;
             }
 
-            var value = parameterToken["value"];
+            var value = parameterToken[ProgressNotificationValueName];
 
             try
             {
-                await request.OnProgressResult(value).ConfigureAwait(false);
+                request.HandlerCancellationToken.ThrowIfCancellationRequested();
+                await request.OnProgressNotifyAsync(value).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {
@@ -70,34 +73,37 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return;
             }
 
-            var cts = new CancellationTokenSource();
+            CompleteAfterDelay(token, request);
+        }
+
+        private void CompleteAfterDelay(string token, ProgressRequest request)
+        {
+            CancellationTokenSource linkedCTS;
 
             lock (request.RequestLock)
             {
-                var existingCTS = request.CancellationTokenSource;
-                if (existingCTS != null &&
-                    existingCTS.Token.CanBeCanceled &&
-                    !existingCTS.Token.IsCancellationRequested)
+                var existingTimeoutCTS = request.TimeoutCancellationTokenSource;
+                if (existingTimeoutCTS != null &&
+                    existingTimeoutCTS.Token.CanBeCanceled &&
+                    !existingTimeoutCTS.Token.IsCancellationRequested)
                 {
-                    existingCTS.Cancel();
+                    existingTimeoutCTS.Cancel();
                 }
 
-                request.CancellationTokenSource = cts;
+                request.TimeoutCancellationTokenSource = new CancellationTokenSource();
+                linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(
+                    request.TimeoutCancellationTokenSource.Token,
+                    request.HandlerCancellationToken);
             }
 
-            _ = CompleteAfterDelayAsync(token, request); // Fire and forget
+            _ = CompleteAfterDelayAsync(token, request.TimeoutAfterLastNotify, linkedCTS.Token); // Fire and forget
         }
 
-        private async Task CompleteAfterDelayAsync(string token, ProgressRequest request)
+        private async Task CompleteAfterDelayAsync(string token, TimeSpan delay, CancellationToken cancellationToken)
         {
-            if (request.CancellationTokenSource.IsCancellationRequested)
-            {
-                return;
-            }
-
             try
             {
-                await Task.Delay(request.TimeoutAfterLastNotify, request.CancellationTokenSource.Token).ConfigureAwait(false);
+                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {
@@ -109,22 +115,34 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             ProgressCompleted(token);
         }
 
-        internal override bool TryListenForProgress(
-            string requestId,
-            Func<JToken, Task> onProgressResult,
+        public override bool TryListenForProgress(
+            string token,
+            Func<JToken, Task> onProgressNotifyAsync,
             TimeSpan timeoutAfterLastNotify,
+            CancellationToken handlerCancellationToken,
             out Task onCompleted)
         {
             var onCompletedSource = new TaskCompletionSource<bool>();
-            var progressRequest = new ProgressRequest(onProgressResult, timeoutAfterLastNotify, onCompletedSource);
-            onCompleted = onCompletedSource.Task;
+            var request = new ProgressRequest(
+                onProgressNotifyAsync,
+                timeoutAfterLastNotify,
+                handlerCancellationToken,
+                onCompletedSource);
 
-            return _activeRequests.TryAdd(requestId, progressRequest);
+            if (!_activeRequests.TryAdd(token, request))
+            {
+                onCompleted = null;
+                return false;
+            }
+
+            CompleteAfterDelay(token, request);
+            onCompleted = onCompletedSource.Task;
+            return true;
         }
 
-        private void ProgressCompleted(string requestId)
+        private void ProgressCompleted(string token)
         {
-            if (_activeRequests.TryRemove(requestId, out var request))
+            if (_activeRequests.TryRemove(token, out var request))
             {
                 // We're setting the result of a Task<bool>
                 // however we only return a Task to the
@@ -138,16 +156,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _languageServiceBroker.ClientNotifyAsync -= ClientNotifyAsyncListenerAsync;
         }
 
-        internal class ProgressRequest
+        private class ProgressRequest
         {
-            internal ProgressRequest(
-                Func<JToken, Task> onProgressResult,
+            public ProgressRequest(
+                Func<JToken, Task> onProgressNotifyAsync,
                 TimeSpan timeoutAfterLastNotify,
+                CancellationToken handlerCancellationToken,
                 TaskCompletionSource<bool> onCompleted)
             {
-                if (onProgressResult is null)
+                if (onProgressNotifyAsync is null)
                 {
-                    throw new ArgumentNullException(nameof(onProgressResult));
+                    throw new ArgumentNullException(nameof(onProgressNotifyAsync));
                 }
 
                 if (onCompleted is null)
@@ -155,17 +174,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     throw new ArgumentNullException(nameof(onCompleted));
                 }
 
-                OnProgressResult = onProgressResult;
+                OnProgressNotifyAsync = onProgressNotifyAsync;
                 TimeoutAfterLastNotify = timeoutAfterLastNotify;
+                HandlerCancellationToken = handlerCancellationToken;
                 OnCompleted = onCompleted;
             }
 
-            internal Func<JToken, Task> OnProgressResult { get; }
+            internal Func<JToken, Task> OnProgressNotifyAsync { get; }
             internal TaskCompletionSource<bool> OnCompleted { get; }
+            internal CancellationToken HandlerCancellationToken { get; }
 
             internal TimeSpan TimeoutAfterLastNotify { get; }
+            internal CancellationTokenSource TimeoutCancellationTokenSource { get; set; }
             internal object RequestLock { get; } = new object();
-            internal CancellationTokenSource CancellationTokenSource { get; set; }
         }
     }
 }

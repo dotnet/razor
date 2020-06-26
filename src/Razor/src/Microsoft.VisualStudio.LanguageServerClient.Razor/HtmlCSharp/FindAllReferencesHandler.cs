@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // done searching for results, or just hasn't found any additional results yet.
         // To work around this, we wait for up to 3s since the last notification before timing out.
         private static readonly TimeSpan WaitForProgressNotificationTimeout = TimeSpan.FromSeconds(3);
-        private static readonly TimeSpan WaitForProgressCompletionTimeout = TimeSpan.FromSeconds(15);
 
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -96,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             cancellationToken.ThrowIfCancellationRequested();
 
             // Temporary till IProgress serialization is fixed
-            var requestId = Guid.NewGuid().ToString(); // request.PartialResultToken.Id
+            var token = Guid.NewGuid().ToString(); // request.PartialResultToken.Id
 
             var referenceParams = new SerializableReferenceParams()
             {
@@ -106,13 +105,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Uri = projectionResult.Uri
                 },
                 Context = request.Context,
-                PartialResultToken = requestId // request.PartialResultToken
+                PartialResultToken = token // request.PartialResultToken
             };
 
             if (!_lspProgressListener.TryListenForProgress(
-                requestId,
-                onProgressResult: (value) => ProcessReferenceItemsAsync(value, request.PartialResultToken, cancellationToken),
+                token,
+                onProgressNotifyAsync: (value) => ProcessReferenceItemsAsync(value, request.PartialResultToken, cancellationToken),
                 WaitForProgressNotificationTimeout,
+                cancellationToken,
                 out var onCompleted))
             {
                 return null;
@@ -138,9 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             CancellationToken cancellationToken)
         {
             var result = value.ToObject<VSReferenceItem[]>();
-
-            // Checks if the initial Handle request has been cancelled
-            cancellationToken.ThrowIfCancellationRequested();
 
             if (result == null || result.Length == 0)
             {
