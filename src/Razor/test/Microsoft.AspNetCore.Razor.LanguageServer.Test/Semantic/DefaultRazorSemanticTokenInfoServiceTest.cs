@@ -288,6 +288,69 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
+        public void GetSemanticTokens_Razor_Modify()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}" +
+                $"<test1 bool-val=\"true\" />{Environment.NewLine}" +
+                $"<test1 bool-val=\"true\" />{Environment.NewLine}" +
+                $"<test1 bool-val=\"true\" />{Environment.NewLine}";
+            var expectedData = new List<uint> {
+                1, 1, 5, 1, 0, //line, character pos, length, tokenType, modifier
+                0, 6, 8, 1, 0,
+                1, 1, 5, 1, 0,
+                0, 6, 8, 1, 0,
+                1, 1, 5, 1, 0,
+                0, 6, 8, 1, 0,
+            };
+
+            var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
+
+            var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}" +
+                $"<test1 bool-va=\"true\" />{Environment.NewLine}" +
+                $"<test1 bool-val=\"true\" />{Environment.NewLine}" +
+                $"<test1 bool-val=\"true\" />{Environment.NewLine}";
+            var newExpectedData = new SemanticTokensEditCollection
+            {
+                Edits = new List<SemanticTokensEdit>
+                {
+                    new SemanticTokensEdit
+                    {
+                        Start = 5,
+                        Data = new uint[]{
+                        },
+                        DeleteCount = 1,
+                    },
+                    new SemanticTokensEdit
+                    {
+                        Start = 6,
+                        Data = new uint[]{ },
+                        DeleteCount = 1,
+                    },
+                    new SemanticTokensEdit
+                    {
+                        Start = 7,
+                        Data = new uint[]{ },
+                        DeleteCount = 1,
+                    },
+                    new SemanticTokensEdit
+                    {
+                        Start = 8,
+                        Data = new uint[]{ },
+                        DeleteCount = 1,
+                    },
+                    new SemanticTokensEdit
+                    {
+                        Start = 9,
+                        Data = new uint[]{ },
+                        DeleteCount = 1,
+                    },
+                }
+            };
+            var newResultId = AssertSemanticTokenEdits(newTxt, newExpectedData, isRazor: false, previousResultId: previousResultId, out _, service);
+            Assert.NotEqual(previousResultId, newResultId);
+        }
+
+        [Fact]
         public void GetSemanticTokens_Razor_OnlyDifferences_NewLines()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";

@@ -3,8 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using DiffMatchPatch;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 {
@@ -16,84 +17,92 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
             SemanticTokens newTokens,
             IReadOnlyList<uint> previousResults)
         {
-            var oldData = previousResults;
+            var edits = IntArrayDiffer.GetMinimalEdits(previousResults.ToArray(), newTokens.Data);
 
-            if (oldData is null || oldData.Count == 0)
-            {
-                return newTokens;
-            }
-
-            var prevData = oldData;
-            var prevDataLength = oldData.Count;
-            var dataLength = newTokens.Data.Length;
-            var startIndex = 0;
-            while (startIndex < dataLength
-                && startIndex < prevDataLength
-                && prevData[startIndex] == newTokens.Data[startIndex])
-            {
-                startIndex++;
-            }
-
-            if (startIndex < dataLength && startIndex < prevDataLength)
-            {
-                // Find end index
-                var endIndex = 0;
-                while (endIndex < dataLength
-                    && endIndex < prevDataLength
-                    && prevData[prevDataLength - 1 - endIndex] == newTokens.Data[dataLength - 1 - endIndex])
-                {
-                    endIndex++;
-                }
-
-                var newData = ImmutableArray.Create(newTokens.Data, startIndex, dataLength - endIndex - startIndex);
-                var result = new SemanticTokensEditCollection
-                {
-                    ResultId = newTokens.ResultId,
-                    Edits = new[] {
-                        new SemanticTokensEdit {
-                            Start = startIndex,
-                            DeleteCount = prevDataLength - endIndex - startIndex,
-                            Data = newData
-                        }
-                    }
-                };
-                return result;
-            }
-
-            if (startIndex < dataLength)
-            {
-                return new SemanticTokensEditCollection
-                {
-                    ResultId = newTokens.ResultId,
-                    Edits = new[] {
-                        new SemanticTokensEdit {
-                            Start = startIndex,
-                            DeleteCount = 0,
-                            Data = ImmutableArray.Create(newTokens.Data, startIndex, newTokens.Data.Length - startIndex)
-                        }
-                    }
-                };
-            }
-
-            if (startIndex < prevDataLength)
-            {
-                return new SemanticTokensEditCollection
-                {
-                    ResultId = newTokens.ResultId,
-                    Edits = new[] {
-                        new SemanticTokensEdit {
-                            Start = startIndex,
-                            DeleteCount = prevDataLength - startIndex
-                        }
-                    }
-                };
-            }
-
-            return new SemanticTokensEditCollection
+            var result = new SemanticTokensEditCollection
             {
                 ResultId = newTokens.ResultId,
-                Edits = Array.Empty<SemanticTokensEdit>()
+                Edits = edits,
             };
+
+            return result;
+        }
+    }
+
+    internal class IntArrayDiffer : TextDiffer
+    {
+        private IntArrayDiffer(uint[] oldArray, uint[] newArray)
+        {
+            OldArray = oldArray;
+            NewArray = newArray;
+        }
+
+        private uint[] OldArray { get; }
+        private uint[] NewArray { get; }
+
+        protected override int OldTextLength => OldArray.Count();
+        protected override int NewTextLength => NewArray.Count();
+
+        protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
+        {
+            return OldArray[oldTextIndex] == NewArray[newTextIndex];
+        }
+
+        public static IReadOnlyList<SemanticTokensEdit> GetMinimalEdits(uint[] oldArray, uint[] newArray)
+        {
+            if (oldArray is null)
+            {
+                throw new ArgumentNullException();
+            }
+            if (newArray is null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if (oldArray.SequenceEqual(newArray))
+            {
+                return Array.Empty<SemanticTokensEdit>();
+            }
+            else if (oldArray.Length == 0 || newArray.Length == 0)
+            {
+                throw new NotImplementedException();
+            }
+
+            var differ = new IntArrayDiffer(oldArray, newArray);
+            var diffs = differ.ComputeDiff();
+
+            var semanticTokenEdits = differ.ComputeSemanticTokenEdits(diffs);
+
+            return semanticTokenEdits;
+        }
+
+        private IReadOnlyList<SemanticTokensEdit> ComputeSemanticTokenEdits(IReadOnlyList<DiffEdit> diffs)
+        {
+            var results = new List<SemanticTokensEdit>();
+            foreach(var diff in diffs)
+            {
+                switch(diff.Operation)
+                {
+                    case DiffEdit.Type.Delete:
+                        results.Add(new SemanticTokensEdit
+                        {
+                            Start = diff.Position,
+                            Data = new uint[] {  },
+                            DeleteCount = 1,
+                        });
+                        break;
+                    case DiffEdit.Type.Insert:
+                        results.Add(new SemanticTokensEdit
+                        {
+                            Start = diff.Position,
+                            Data = new uint[] { NewArray[diff.NewTextPosition.Value] },
+                            DeleteCount= 0,
+                        });
+                        break;
+                }
+            }
+
+            return results;
         }
     }
 }
