@@ -66,8 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 JoinableTaskContext,
                 RazorLogger,
-                onSerializeToFile: (snapshot, publishFilePath) => attemptedToSerialize = true,
-                onDeleteFile: (path) => { })
+                onSerializeToFile: (snapshot, publishFilePath) => attemptedToSerialize = true)
             {
                 EnqueueDelay = 10
             };
@@ -153,12 +152,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         }
 
         [ForegroundFact]
-        public async Task ProjectAdded_PublishesToCorrectFilePathAsync()
+        public async Task ProjectAdded_DoesNotPublishWithoutProjectWorkspaceStateAsync()
         {
             // Arrange
-            var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
             var serializationSuccessful = false;
             var expectedPublishFilePath = "/path/to/obj/bin/Debug/project.razor.json";
+
+            var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
+            var snapshotManager = CreateProjectSnapshotManager(hostProject.FilePath, allowNotifyListeners: true);
+
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 JoinableTaskContext,
                 RazorLogger,
@@ -168,57 +170,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                     serializationSuccessful = true;
                 });
             publisher.Initialize(snapshotManager);
-            var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
             publisher.SetPublishFilePath(hostProject.FilePath, expectedPublishFilePath);
 
             // Act
             await RunOnForegroundAsync(() => snapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
             // Assert
-            Assert.True(serializationSuccessful);
+            Assert.False(serializationSuccessful);
         }
 
         [ForegroundFact]
         public async Task ProjectRemoved_UnSetPublishFilePath_NoopsAsync()
         {
             // Arrange
-            var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
+            var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
+            var snapshotManager = CreateProjectSnapshotManager(hostProject.FilePath, allowNotifyListeners: true);
             var publisher = new TestDefaultRazorProjectChangePublisher(JoinableTaskContext, RazorLogger);
             publisher.Initialize(snapshotManager);
-            var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
             await RunOnForegroundAsync(() => snapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
             // Act & Assert
             await RunOnForegroundAsync(() => snapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
-        }
-
-        [ForegroundFact]
-        public async Task ProjectRemoved_DeletesPublishFileAsync()
-        {
-            // Arrange
-            var attemptedToDelete = false;
-            var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
-            var expectedPublishFilePath = "/path/to/obj/bin/Debug/project.razor.json";
-            var publisher = new TestDefaultRazorProjectChangePublisher(
-                JoinableTaskContext,
-                RazorLogger,
-                onSerializeToFile: (_, __) => { },
-                onDeleteFile: (publishFilePath) =>
-                {
-                    attemptedToDelete = true;
-                    Assert.Equal(expectedPublishFilePath, publishFilePath);
-                });
-            publisher.Initialize(snapshotManager);
-
-            var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            publisher.SetPublishFilePath(hostProject.FilePath, expectedPublishFilePath);
-            await RunOnForegroundAsync(() => snapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
-
-            // Act
-            await RunOnForegroundAsync(() => snapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
-
-            // Assert
-            Assert.True(attemptedToDelete);
         }
 
         internal ProjectSnapshot CreateProjectSnapshot(string projectFilePath)
@@ -235,10 +207,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             return testProjectSnapshot;
         }
 
-        internal ProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
+        internal ProjectSnapshotManagerBase CreateProjectSnapshotManager(string projectFilePath, bool allowNotifyListeners = false)
         {
             var snapshotManager = TestProjectSnapshotManager.Create(Dispatcher);
             snapshotManager.AllowNotifyListeners = allowNotifyListeners;
+            var projectWorkspaceState = new ProjectWorkspaceState(new TagHelperDescriptor[] { }, CodeAnalysis.CSharp.LanguageVersion.Default);
+            snapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
 
             return snapshotManager;
         }
@@ -275,7 +249,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             private static readonly Mock<LSPEditorFeatureDetector> _lspEditorFeatureDetector = new Mock<LSPEditorFeatureDetector>();
 
             private readonly Action<ProjectSnapshot, string> _onSerializeToFile;
-            private readonly Action<string> _onDeleteFile;
 
             static TestDefaultRazorProjectChangePublisher()
             {
@@ -287,18 +260,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             public TestDefaultRazorProjectChangePublisher(
                 JoinableTaskContext joinableTaskContext,
                 RazorLogger logger,
-                Action<ProjectSnapshot, string> onSerializeToFile = null,
-                Action<string> onDeleteFile = null)
+                Action<ProjectSnapshot, string> onSerializeToFile = null)
                 : base(joinableTaskContext, _lspEditorFeatureDetector.Object, logger)
             {
                 _onSerializeToFile = onSerializeToFile ?? ((_, __) => throw new XunitException("SerializeToFile should not have been called."));
-                _onDeleteFile = onDeleteFile ?? ((_) => throw new XunitException("DeleteFile should not have been called."));
-
             }
 
             protected override void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath) => _onSerializeToFile?.Invoke(projectSnapshot, publishFilePath);
-
-            protected override void DeleteFile(string publishFilePath) => _onDeleteFile?.Invoke(publishFilePath);
         }
 
         public void Dispose()

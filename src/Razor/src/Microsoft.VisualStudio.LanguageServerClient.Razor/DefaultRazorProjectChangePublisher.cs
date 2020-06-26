@@ -129,7 +129,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     break;
 
                 case ProjectChangeKind.ProjectAdded:
-                    Publish(args.Newer);
+                    if (args.Newer.ProjectWorkspaceState != null)
+                    {
+                        Publish(args.Newer);
+                    }
                     break;
 
                 case ProjectChangeKind.ProjectRemoved:
@@ -182,28 +185,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 {
                     // Project was removed while a delayed publish was in flight. Clear the in-flight publish so it noops.
                     _pendingProjectPublishes.Remove(oldProjectFilePath);
-                }
-
-                DeleteFile(publishFilePath);
-            }
-        }
-
-        // Virtual for testing
-        protected virtual void DeleteFile(string publishFilePath)
-        {
-            var info = new FileInfo(publishFilePath);
-            if (info.Exists)
-            {
-                try
-                {
-                    // Try catch around the delete in case it was deleted between the Exists and this delete call. This also
-                    // protects against unauthorized access issues.
-                    info.Delete();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning($@"Failed to delete Razor configuration file '{publishFilePath}':
-{ex}");
                 }
             }
         }
