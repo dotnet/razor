@@ -155,11 +155,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         public async Task ProjectAdded_DoesNotPublishWithoutProjectWorkspaceStateAsync()
         {
             // Arrange
+            var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
             var serializationSuccessful = false;
             var expectedPublishFilePath = "/path/to/obj/bin/Debug/project.razor.json";
-
-            var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
 
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 JoinableTaskContext,
@@ -170,6 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                     serializationSuccessful = true;
                 });
             publisher.Initialize(snapshotManager);
+            var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
             publisher.SetPublishFilePath(hostProject.FilePath, expectedPublishFilePath);
 
             // Act
@@ -183,10 +182,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         public async Task ProjectRemoved_UnSetPublishFilePath_NoopsAsync()
         {
             // Arrange
-            var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
             var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
             var publisher = new TestDefaultRazorProjectChangePublisher(JoinableTaskContext, RazorLogger);
             publisher.Initialize(snapshotManager);
+            var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
             await RunOnForegroundAsync(() => snapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
             // Act & Assert
