@@ -19,34 +19,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.TextDocumentReferencesName)]
     internal class FindAllReferencesHandler : IRequestHandler<ReferenceParams, VSReferenceItem[]>, IDisposable
     {
+        // Roslyn sends Progress Notifications every 0.5s *only* if results have been found.
+        // Consequently, at ~ time > 0.5s ~ after the last notification, we don't know whether Roslyn is
+        // done searching for results, or just hasn't found any additional results yet.
+        // To work around this, we wait for up to 3s since the last notification before timing out.
+        private static readonly TimeSpan WaitForProgressNotificationTimeout = TimeSpan.FromSeconds(3);
+        private static readonly TimeSpan WaitForProgressCompletionTimeout = TimeSpan.FromSeconds(15);
+
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
-
-        private readonly TimeSpan WaitForProgressCompletionTimeout = new TimeSpan(0, 0, 15);
-
-        // Roslyn sends Progress Notifications every 0.5s *only* if results have been found.
-        // Consequently, at ~ time > 0.5s ~ after the last notification, we don't know whether Roslyn is
-        // done searching for results, or just hasn't found any additional results yet.
-        // 
-        // https://github.com/dotnet/roslyn/blob/1462b1e9c78a7efe338a6859ee5f88fa07d4adc8/src/Features/LanguageServer/Protocol/CustomProtocol/FindUsagesLSPContext.cs#L52-L55
-        // 
-        // To work around this, we wait for up to 3s since the last notification before timing out.
-        // 
-        private readonly TimeSpan WaitForProgressNotificationTimeout = new TimeSpan(0, 0, 0, 3);
-
-        private IProgress<object> ActiveRequest { get; set; }
-        private ManualResetEvent WaitForProgressResults { get; set; }
-        private CancellationTokenSource QueuedHandlerUnblock { get; set; }
-        private readonly object _queuedHandlerUnblockLock = new object();
+        private readonly ILanguageServiceBroker2 _languageServiceBroker;
 
         [ImportingConstructor]
         public FindAllReferencesHandler(
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
-            LSPDocumentMappingProvider documentMappingProvider)
+            LSPDocumentMappingProvider documentMappingProvider,
+            ILanguageServiceBroker2 languageServiceBroker)
         {
             if (requestInvoker is null)
             {
@@ -68,28 +60,39 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
+            if (languageServiceBroker is null)
+            {
+                throw new ArgumentNullException(nameof(languageServiceBroker));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
+            _languageServiceBroker = languageServiceBroker;
 
-            _requestInvoker.AddClientNotifyAsyncHandler(ClientNotifyAsyncHandler);
+            _languageServiceBroker.ClientNotifyAsync += ClientNotifyAsyncListener;
 
             WaitForProgressResults = new ManualResetEvent(false);
         }
 
-        public async Task ClientNotifyAsyncHandler(object sender, LanguageClientNotifyEventArgs args)
+        private IProgress<object> ActiveRequest { get; set; }
+        private ManualResetEvent WaitForProgressResults { get; }
+        private CancellationTokenSource QueuedHandlerUnblock { get; set; }
+        private readonly object _queuedHandlerUnblockLock = new object();
+
+        public async Task ClientNotifyAsyncListener(object sender, LanguageClientNotifyEventArgs args)
         {
-            await ProcessProgressNotification(args.MethodName, args.ParameterToken).ConfigureAwait(false);
+            await ProcessProgressNotificationAsync(args.MethodName, args.ParameterToken).ConfigureAwait(false);
         }
 
         // For internal testing only to get around LanguageClientNotifyEventArgs accessibility/permissions issues
-        internal async Task ClientNotifyAsyncHandlerTest(object sender, (string MethodName, JToken ParameterToken) args)
+        internal async Task ClientNotifyAsyncListenerTest(object sender, (string MethodName, JToken ParameterToken) args)
         {
-            await ProcessProgressNotification(args.MethodName, args.ParameterToken).ConfigureAwait(false);
+            await ProcessProgressNotificationAsync(args.MethodName, args.ParameterToken).ConfigureAwait(false);
         }
 
-        private async Task ProcessProgressNotification(string methodName, JToken parameterToken)
+        private async Task ProcessProgressNotificationAsync(string methodName, JToken parameterToken)
         {
             // Token support not yet available from VS LSP
             //var token = args.ParameterToken["token"].ToObject<IProgress<object>>();
@@ -256,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public void Dispose()
         {
-            _requestInvoker.RemoveClientNotifyAsyncHandler(ClientNotifyAsyncHandler);
+            _languageServiceBroker.ClientNotifyAsync += ClientNotifyAsyncListener;
         }
     }
 }

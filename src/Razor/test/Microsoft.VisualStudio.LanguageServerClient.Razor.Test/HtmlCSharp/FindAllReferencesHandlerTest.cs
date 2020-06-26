@@ -32,7 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = Mock.Of<LSPRequestInvoker>();
             var projectionProvider = Mock.Of<LSPProjectionProvider>();
             var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider);
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, languageServiceBroker);
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -55,7 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = Mock.Of<LSPRequestInvoker>();
             var projectionProvider = Mock.Of<LSPProjectionProvider>();
             var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider);
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, languageServiceBroker);
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -75,7 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
+
             var requestInvoker = Mock.Of<LSPRequestInvoker>();
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
 
             var projectionResult = new ProjectionResult()
             {
@@ -85,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
             var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider, languageServiceBroker);
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -131,6 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(LanguageServerKind.CSharp, serverKind);
                     lspFarEndpointCalled = true;
 
+
                     requestInvoker.Object.RaiseNotification((Methods.ProgressNotificationName, parameterToken));
                 })
                 .Returns(Task.FromResult(Array.Empty<VSReferenceItem>()));
@@ -155,8 +160,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
                 .Returns<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) => Task.FromResult(uri.LocalPath.Contains("file1") ? remappingResult1 : remappingResult2));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
-            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncHandlerTest);
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, languageServiceBroker);
+            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncListenerTest);
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
@@ -212,8 +218,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, externalUri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(remappingResult));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
-            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncHandlerTest);
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, languageServiceBroker);
+            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncListenerTest);
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
@@ -255,10 +263,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var projectionProvider = new Mock<LSPProjectionProvider>();
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
+            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
-            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncHandlerTest);
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider, languageServiceBroker);
+            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncListenerTest);
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
@@ -310,8 +319,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, Uri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(remappingResult));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
-            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncHandlerTest);
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, languageServiceBroker);
+            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncListenerTest);
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
@@ -365,8 +376,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, externalUri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(remappingResult));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
-            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncHandlerTest);
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, languageServiceBroker);
+            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncListenerTest);
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
@@ -412,8 +425,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, Uri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult<RazorMapToDocumentRangesResponse>(null));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
-            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncHandlerTest);
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, languageServiceBroker);
+            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncListenerTest);
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
@@ -528,8 +543,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     return Task.FromResult(response);
                 });
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object);
-            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncHandlerTest);
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, languageServiceBroker);
+            requestInvoker.Object.AddClientNotifyAsyncHandler(referencesHandler.ClientNotifyAsyncListenerTest);
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
@@ -558,34 +575,35 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Equal(NUM_BATCHES, progressBatchesReported);
         }
 
-        [Fact]
-        public async Task HandleRequestAsync_EnsureClientNotifyAsyncLifecycle()
-        {
-            // Arrange
-            var documentManager = new TestDocumentManager();
-            var requestInvoker = new TestLSPRequestInvokerImplementation();
-            var projectionProvider = new Mock<LSPProjectionProvider>();
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
+        //[Fact]
+        //public async Task HandleRequestAsync_EnsureClientNotifyAsyncLifecycle()
+        //{
+        //    // Arrange
+        //    var documentManager = new TestDocumentManager();
+        //    var requestInvoker = new TestLSPRequestInvokerImplementation();
+        //    var projectionProvider = Mock.Of<LSPProjectionProvider>();
+        //    var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
+        //    var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
 
-            var referenceRequest = new ReferenceParams()
-            {
-                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Position = new Position(10, 5)
-            };
+        //    var referenceRequest = new ReferenceParams()
+        //    {
+        //        TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+        //        Position = new Position(10, 5)
+        //    };
 
-            // Act
-            using (var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object))
-            {
-                var result = await referencesHandler.HandleRequestAsync(referenceRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+        //    // Act
+        //    using (var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, languageServiceBroker))
+        //    {
+        //        var result = await referencesHandler.HandleRequestAsync(referenceRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
-                // Assert
-                Assert.Empty(result);
-                Assert.True(requestInvoker.clientNotifyAdded);
-                Assert.False(requestInvoker.clientNotifyRemoved);
-            }
+        //        // Assert
+        //        Assert.Empty(result);
+        //        Assert.True(requestInvoker.clientNotifyAdded);
+        //        Assert.False(requestInvoker.clientNotifyRemoved);
+        //    }
 
-            Assert.True(requestInvoker.clientNotifyRemoved);
-        }
+        //    Assert.True(requestInvoker.clientNotifyRemoved);
+        //}
 
         private bool AssertVSReferenceItem(VSReferenceItem expected, VSReferenceItem actual)
         {
@@ -668,32 +686,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public void RaiseNotification((string MethodName, JToken ParameterToken) args)
         {
             ClientNotifyAsync(sender: null, args);
-        }
-    }
-
-    internal class TestLSPRequestInvokerImplementation : TestLSPRequestInvoker
-    {
-        public bool clientNotifyAdded = false;
-        public bool clientNotifyRemoved = false;
-
-        public override Task<TOut> CustomRequestServerAsync<TIn, TOut>(string method, LanguageServerKind serverKind, TIn parameters, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(string method, LanguageServerKind serverKind, TIn parameters, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal override void AddClientNotifyAsyncHandler(AsyncEventHandler<LanguageClientNotifyEventArgs> clientNotifyAsyncHandler)
-        {
-            clientNotifyAdded = true;
-        }
-
-        internal override void RemoveClientNotifyAsyncHandler(AsyncEventHandler<LanguageClientNotifyEventArgs> clientNotifyAsyncHandler)
-        {
-            clientNotifyRemoved = true;
         }
     }
 }

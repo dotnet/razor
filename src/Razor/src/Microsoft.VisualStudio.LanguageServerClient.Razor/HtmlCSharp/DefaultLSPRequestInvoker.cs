@@ -8,8 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -119,16 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var result = resultToken != null ? resultToken.ToObject<TOut>(_serializer) : default;
             return result;
-        }
-
-        internal override void AddClientNotifyAsyncHandler(AsyncEventHandler<LanguageClientNotifyEventArgs> clientNotifyAsyncHandler)
-        {
-            _languageServiceBroker.ClientNotifyAsync += clientNotifyAsyncHandler;
-        }
-
-        internal override void RemoveClientNotifyAsyncHandler(AsyncEventHandler<LanguageClientNotifyEventArgs> clientNotifyAsyncHandler)
-        {
-            _languageServiceBroker.ClientNotifyAsync -= clientNotifyAsyncHandler;
         }
     }
 }
