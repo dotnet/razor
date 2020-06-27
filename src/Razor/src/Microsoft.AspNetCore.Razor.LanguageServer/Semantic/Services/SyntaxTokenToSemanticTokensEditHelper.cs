@@ -36,38 +36,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                 switch (diff.Operation)
                 {
                     case DiffEdit.Type.Delete:
-                        //if (current != null
-                        //    && current.DeleteCount > 0
-                        //    && current.Start + current.DeleteCount == diff.Position)
-                        //{
-                        //    current.DeleteCount += 1;
-                        //}
-                        //else
-                        //{
+                        if (current != null
+                            && current.DeleteCount > 0
+                            && current.Start + current.DeleteCount == diff.Position)
+                        {
+                            current.DeleteCount += 1;
+                        }
+                        else
+                        {
                             results.Add(new SemanticTokensEdit
                             {
                                 Start = diff.Position,
                                 Data = new uint[] { },
                                 DeleteCount = 1,
                             });
-                        // }
+                        }
                         break;
                     case DiffEdit.Type.Insert:
-                        //if (current != null
-                        //    && current.Data.Count() > 0
-                        //    && current.Start + current.Data.Count() == diff.Position)
-                        //{
-                        //    current.Data = current.Data.Append(newArray[diff.NewTextPosition.Value] );
-                        //}
-                        //else
-                        //{
+                        if (current != null
+                            && current.Data.Count() > 0
+                            && current.Start == diff.Position)
+                        {
+                            current.Data = current.Data.Append(newArray[diff.NewTextPosition.Value]);
+                        }
+                        else
+                        {
                             results.Add(new SemanticTokensEdit
                             {
                                 Start = diff.Position,
                                 Data = new uint[] { newArray[diff.NewTextPosition.Value] },
                                 DeleteCount = 0,
                             });
-                        //}
+                        }
                         break;
                 }
             }
