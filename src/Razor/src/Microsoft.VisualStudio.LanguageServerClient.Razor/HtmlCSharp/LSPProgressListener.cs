@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         public abstract bool TryListenForProgress(
             string token,
-            Func<JToken, Task> onProgressNotifyAsync,
+            Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
             TimeSpan timeoutAfterLastNotify,
             CancellationToken handlerCancellationToken,
             out Task onCompleted);

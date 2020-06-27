@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (!_lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: (value) => ProcessReferenceItemsAsync(value, request.PartialResultToken, cancellationToken),
+                onProgressNotifyAsync: (value, ct) => ProcessReferenceItemsAsync(value, request.PartialResultToken, ct),
                 WaitForProgressNotificationTimeout,
                 cancellationToken,
                 out var onCompleted))
