@@ -117,20 +117,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return;
             }
 
+            // All the below Publish's (except ProjectRemoved) wait until our project has been initialized (ProjectWorkspaceState != null)
+            // so that we don't publish half-finished projects, which can cause things like Semantic coloring to "flash"
+            // when they update repeatedly as they load.
             switch (args.Kind)
             {
                 case ProjectChangeKind.DocumentRemoved:
                 case ProjectChangeKind.DocumentAdded:
                 case ProjectChangeKind.ProjectChanged:
-                    // These changes can come in bursts so we don't want to overload the publishing system. Therefore,
-                    // we enqueue publishes and then publish the latest project after a delay.
 
-                    EnqueuePublish(args.Newer);
+                    if (args.Newer.ProjectWorkspaceState != null)
+                    {
+                        // These changes can come in bursts so we don't want to overload the publishing system. Therefore,
+                        // we enqueue publishes and then publish the latest project after a delay.
+                        EnqueuePublish(args.Newer);
+                    }
                     break;
 
                 case ProjectChangeKind.ProjectAdded:
-                    // This causes us to  wait until our project has been initialized
-                    // so that we don't publish half-finished projects, which can cause things like Semantic coloring to "flash".
+
                     if (args.Newer.ProjectWorkspaceState != null)
                     {
                         Publish(args.Newer);

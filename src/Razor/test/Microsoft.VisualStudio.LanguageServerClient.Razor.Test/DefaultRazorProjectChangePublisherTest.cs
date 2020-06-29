@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         {
             // Arrange
             var serializationSuccessful = false;
-            var projectSnapshot = CreateProjectSnapshot("/path/to/project.csproj");
+            var projectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default));
             var expectedPublishFilePath = "/path/to/obj/bin/Debug/project.razor.json";
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 JoinableTaskContext,
@@ -152,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         }
 
         [ForegroundFact]
-        public async Task ProjectAdded_DoesNotPublishWithoutProjectWorkspaceStateAsync()
+        public async Task ProjectAdded_PublishesToCorrectFilePathAsync()
         {
             // Arrange
             var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
@@ -165,6 +166,41 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 onSerializeToFile: (snapshot, publishFilePath) =>
                 {
                     Assert.Equal(expectedPublishFilePath, publishFilePath);
+                    serializationSuccessful = true;
+                });
+            publisher.Initialize(snapshotManager);
+            var projectFilePath = "/path/to/project.csproj";
+            var hostProject = new HostProject(projectFilePath, RazorConfiguration.Default, "TestRootNamespace");
+            publisher.SetPublishFilePath(hostProject.FilePath, expectedPublishFilePath);
+            var projectWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), CodeAnalysis.CSharp.LanguageVersion.Default);
+
+            // Act
+            await RunOnForegroundAsync(() =>
+            {
+                snapshotManager.ProjectAdded(hostProject);
+                snapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
+            }).ConfigureAwait(false);
+
+            // Assert
+            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            await kvp.Value.ConfigureAwait(false);
+            Assert.True(serializationSuccessful);
+        }
+
+        [ForegroundFact]
+        public async Task ProjectAdded_DoesNotPublishWithoutProjectWorkspaceStateAsync()
+        {
+            // Arrange
+            var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
+            var serializationSuccessful = false;
+            var expectedPublishFilePath = "/path/to/obj/bin/Debug/project.razor.json";
+
+            var publisher = new TestDefaultRazorProjectChangePublisher(
+                JoinableTaskContext,
+                RazorLogger,
+                onSerializeToFile: (snapshot, publishFilePath) =>
+                {
+                    Assert.True(false, "Serialization should not have been atempted because there is no ProjectWorkspaceState.");
                     serializationSuccessful = true;
                 });
             publisher.Initialize(snapshotManager);
@@ -192,9 +228,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             await RunOnForegroundAsync(() => snapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
         }
 
-        internal ProjectSnapshot CreateProjectSnapshot(string projectFilePath)
+        internal ProjectSnapshot CreateProjectSnapshot(string projectFilePath, ProjectWorkspaceState projectWorkspaceState = null)
         {
-            var testProjectSnapshot = TestProjectSnapshot.Create(projectFilePath);
+            var testProjectSnapshot = TestProjectSnapshot.Create(projectFilePath, projectWorkspaceState);
 
             return testProjectSnapshot;
         }
