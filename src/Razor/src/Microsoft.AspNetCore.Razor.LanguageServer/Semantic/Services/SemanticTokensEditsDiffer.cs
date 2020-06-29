@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                             results.Add(new SemanticTokensEdit
                             {
                                 Start = diff.Position,
-                                Data = new uint[] { },
+                                Data = Array.Empty<uint>(),
                                 DeleteCount = 1,
                             });
                         }

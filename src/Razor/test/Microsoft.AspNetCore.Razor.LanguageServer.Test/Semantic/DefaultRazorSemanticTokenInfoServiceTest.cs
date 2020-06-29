@@ -222,7 +222,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var newResultId = AssertSemanticTokenEdits(newTxt, new SemanticTokensEditCollection { Edits = new List<SemanticTokensEdit>(){
                 new SemanticTokensEdit
                 {
-                    Data = new uint[]{ },
+                    Data = Array.Empty<uint>(),
                     DeleteCount = 20,
                     Start = 10
                 }
@@ -371,7 +371,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     new SemanticTokensEdit
                     {
                         Start = 0,
-                        Data = new uint[] {},
+                        Data = Array.Empty<uint>(),
                         DeleteCount = 10,
                     }
                 }
@@ -440,8 +440,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     new SemanticTokensEdit
                     {
                         Start = 5,
-                        Data = new uint[]{
-                        },
+                        Data = Array.Empty<uint>(),
                         DeleteCount = 5,
                     },
                 }
