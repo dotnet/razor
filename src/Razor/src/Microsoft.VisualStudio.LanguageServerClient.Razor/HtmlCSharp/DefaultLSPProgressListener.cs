@@ -149,8 +149,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 !cts.Token.IsCancellationRequested)
             {
                 cts.Cancel();
-                cts.Dispose();
             }
+
+            cts.Dispose();
         }
 
         private void ProgressCompleted(string token)
