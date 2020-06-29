@@ -312,7 +312,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         public void GetSemanticTokens_Razor_OriginallyNone_ThenSome()
         {
             var expectedData = new List<uint> {};
-            var txt = $"addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p></p>";
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
 
@@ -334,6 +334,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             var newResultId = AssertSemanticTokenEdits(newTxt, newExpectedData, isRazor: false, previousResultId: previousResultId, out var _, service);
             Assert.NotEqual(previousResultId, newResultId);
+        }
+
+        [Fact]
+        public void GetSemanticTokens_Razor_GetEditsWithNoPrevious()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+            var expectedEdits = new SemanticTokens
+            {
+                Data = new uint[] {
+                    1, 1, 5, 1, 0,
+                    0, 8, 5, 1, 0,
+                },
+            };
+
+            var previousResultId = AssertSemanticTokenEdits(txt, expectedEdits, isRazor: false, previousResultId: null, out var service);
+            Assert.NotNull(previousResultId);
         }
 
         [Fact]
@@ -494,7 +510,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             return tokens.ResultId;
         }
 
-        private string AssertSemanticTokenEdits(string txt, SemanticTokensEditCollection expectedEdits, bool isRazor, string previousResultId, out RazorSemanticTokensInfoService outService, RazorSemanticTokensInfoService service = null)
+        private string AssertSemanticTokenEdits(string txt, SemanticTokensOrSemanticTokensEdits expectedEdits, bool isRazor, string previousResultId, out RazorSemanticTokensInfoService outService, RazorSemanticTokensInfoService service = null)
         {
             // Arrange
             if (service is null)
@@ -517,12 +533,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var edits = service.GetSemanticTokensEdits(codeDocument, previousResultId);
 
             // Assert
-            for(var i = 0; i < expectedEdits.Edits.Count; i++)
+            if (expectedEdits.IsSemanticTokensEdits)
             {
-                Assert.Equal(expectedEdits.Edits[i], edits.SemanticTokensEdits.Edits[i]);
-            }
+                for (var i = 0; i < expectedEdits.SemanticTokensEdits.Edits.Count; i++)
+                {
+                    Assert.Equal(expectedEdits.SemanticTokensEdits.Edits[i], edits.SemanticTokensEdits.Edits[i]);
+                }
 
-            return edits.SemanticTokensEdits.ResultId;
+                return edits.SemanticTokensEdits.ResultId;
+            }
+            else
+            {
+                Assert.Equal(expectedEdits.SemanticTokens.Data, edits.SemanticTokens.Data);
+
+                return edits.SemanticTokens.ResultId;
+            }
         }
 
         private RazorSemanticTokensInfoService GetDefaultRazorSemanticTokenInfoService()

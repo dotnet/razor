@@ -58,6 +58,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
             var newTokens = ConvertSemanticRangesToSemanticTokens(semanticRanges, codeDocument);
 
+            if (previousResults is null)
+            {
+                return newTokens;
+            }
+
             var semanticEdits = SemanticTokensEditsDiffer.ComputSemanticTokensEdits(newTokens, previousResults);
 
             return semanticEdits;
