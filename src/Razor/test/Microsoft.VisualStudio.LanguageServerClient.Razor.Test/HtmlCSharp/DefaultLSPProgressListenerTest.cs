@@ -15,6 +15,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     public class DefaultLSPProgressListenerTest
     {
+        // Long timeout after last notification to avoid triggering even in slow CI environments
+        private static readonly TimeSpan NotificationTimeout = TimeSpan.FromSeconds(20);
+
         [Fact]
         public void TryListenForProgress_ReturnsTrue()
         {
@@ -22,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
 
             var token = Guid.NewGuid().ToString();
-            var notificationTimeout = TimeSpan.FromSeconds(2);
             var cts = new CancellationTokenSource();
 
             var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
@@ -30,8 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Act
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: async (value, ct) => { await Task.Delay(5); },
-                notificationTimeout,
+                onProgressNotifyAsync: async (value, ct) => { await Task.Delay(1); },
+                NotificationTimeout,
                 cts.Token,
                 out var onCompleted);
 
@@ -48,7 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
 
             var token = Guid.NewGuid().ToString();
-            var notificationTimeout = TimeSpan.FromSeconds(2);
             var cts = new CancellationTokenSource();
 
             var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
@@ -56,14 +57,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Act
             _ = lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: async (value, ct) => { await Task.Delay(5); },
-                notificationTimeout,
+                onProgressNotifyAsync: async (value, ct) => { await Task.Delay(1); },
+                NotificationTimeout,
                 cts.Token,
                 out _);
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: async (value, ct) => { await Task.Delay(5); },
-                notificationTimeout,
+                onProgressNotifyAsync: async (value, ct) => { await Task.Delay(1); },
+                NotificationTimeout,
                 cts.Token,
                 out var onCompleted);
 
@@ -79,15 +80,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
 
             var token = Guid.NewGuid().ToString();
-            var notificationTimeout = TimeSpan.FromSeconds(2);
+            var notificationTimeout = TimeSpan.FromSeconds(15);
             var cts = new CancellationTokenSource();
+            var onProgressNotifyAsyncCalled = false;
 
             var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
 
             // Act 1
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: async (value, ct) => { await Task.Delay(5); },
+                onProgressNotifyAsync: async (value, ct) => {
+                    await Task.Delay(1);
+                    onProgressNotifyAsyncCalled = true;
+                },
                 notificationTimeout,
                 cts.Token,
                 out var onCompleted);
@@ -95,13 +100,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Assert 1
             Assert.True(listenerAdded);
             Assert.NotNull(onCompleted);
-            Assert.False(onCompleted.IsCompleted);
+            Assert.False(onCompleted.IsCompleted, "Task completed immediately, should wait for timeout");
 
             // Act 2
-            await Task.Delay(TimeSpan.FromSeconds(3));
+            await onCompleted;
 
             // Assert 2
             Assert.True(onCompleted.IsCompleted);
+            Assert.False(onProgressNotifyAsyncCalled);
         }
 
         [Fact]
@@ -111,27 +117,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
 
             var token = Guid.NewGuid().ToString();
-            var notificationTimeout = TimeSpan.FromSeconds(2);
             var cts = new CancellationTokenSource();
+            var onProgressNotifyAsyncCalled = false;
 
             var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
 
             // Act
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: async (value, ct) => { await Task.Delay(5); },
-                notificationTimeout,
+                onProgressNotifyAsync: async (value, ct) => {
+                    await Task.Delay(1);
+                    onProgressNotifyAsyncCalled = true;
+                },
+                NotificationTimeout,
                 cts.Token,
                 out var onCompleted);
 
-            await Task.Delay(500);
-
+            // Note `Methods.ClientRegisterCapabilityName` is the wrong method, instead of `Methods.ProgressNotificationName`
             await lspProgressListener.ProcessProgressNotificationAsync(Methods.ClientRegisterCapabilityName, new JObject());
-
-            await Task.Delay(1600); // Note 500 + 1600 = 2100ms > 2000ms notification timeout
+            await onCompleted;
 
             // Assert
-            Assert.True(onCompleted.IsCompleted);
+            Assert.False(onProgressNotifyAsyncCalled);
         }
 
         [Fact]
@@ -141,7 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
 
             var token = Guid.NewGuid().ToString();
-            var notificationTimeout = TimeSpan.FromSeconds(2);
             var cts = new CancellationTokenSource();
 
             var expectedValue = "abcxyz";
@@ -162,27 +168,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
 
-            // Act 1
+            // Act
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
                 onProgressNotifyAsync: onProgressNotifyAsync,
-                notificationTimeout,
+                NotificationTimeout,
                 cts.Token,
                 out var onCompleted);
 
-            await Task.Delay(500);
-
             await lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
-
-            await Task.Delay(1500);
-
-            // Assert 1
-            Assert.False(onCompleted.IsCompleted, "Task shouldn't complete for 2s after last notification");
-
-            // Act 2
             await onCompleted;
 
-            // Assert 2
+            // Assert
             Assert.True(onProgressNotifyAsyncCalled);
         }
 
@@ -194,7 +191,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
 
             var token = Guid.NewGuid().ToString();
-            var notificationTimeout = TimeSpan.FromSeconds(2);
             var cts = new CancellationTokenSource();
 
             var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
@@ -215,30 +211,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return Task.CompletedTask;
             };
 
-            // Act 1
+            // Act
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
                 onProgressNotifyAsync: onProgressNotifyAsync,
-                notificationTimeout,
+                NotificationTimeout,
                 cts.Token,
                 out var onCompleted);
-
-            await Task.Delay(500);
 
             Parallel.ForEach(parameterTokens, parameterToken =>
             {
                 _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
             });
-
-            await Task.Delay(1500);
-
-            // Assert 1
-            Assert.False(onCompleted.IsCompleted, "Task shouldn't complete for 2s after last notification");
-
-            // Act 2
             await onCompleted;
 
-            // Assert 2
+            // Assert
+            Assert.True(listenerAdded);
             receivedResults.Sort();
             for (var i = 0; i < NUM_NOTIFICATIONS; ++i)
             {
