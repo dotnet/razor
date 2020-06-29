@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public void Update_Insert()
         {
             // Arrange
-            var insert = new SimpleTextChange(0, 0, "inserted text");
+            var insert = new VisualStudioTextChange(0, 0, "inserted text");
             var textBuffer = new TestTextBuffer(StringTextSnapshot.Empty);
             var document = new CSharpVirtualDocument(Uri, textBuffer);
 
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var textBuffer = new TestTextBuffer(new StringTextSnapshot("original"));
-            var replace = new SimpleTextChange(0, textBuffer.CurrentSnapshot.Length, "replaced text");
+            var replace = new VisualStudioTextChange(0, textBuffer.CurrentSnapshot.Length, "replaced text");
             var document = new CSharpVirtualDocument(Uri, textBuffer);
 
             // Act
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var textBuffer = new TestTextBuffer(new StringTextSnapshot("Hello World"));
-            var delete = new SimpleTextChange(6, 5, string.Empty);
+            var delete = new VisualStudioTextChange(6, 5, string.Empty);
             var document = new CSharpVirtualDocument(Uri, textBuffer);
 
             // Act
@@ -87,8 +87,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var textBuffer = new TestTextBuffer(new StringTextSnapshot("Hello World"));
-            var replace = new SimpleTextChange(6, 5, "Replaced");
-            var delete = new SimpleTextChange(0, 6, string.Empty);
+            var replace = new VisualStudioTextChange(6, 5, "Replaced");
+            var delete = new VisualStudioTextChange(0, 6, string.Empty);
             var document = new CSharpVirtualDocument(Uri, textBuffer);
 
             // Act

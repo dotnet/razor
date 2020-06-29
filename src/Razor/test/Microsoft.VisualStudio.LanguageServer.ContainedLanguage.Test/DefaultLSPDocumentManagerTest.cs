@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             {
                 changedCalled = true;
             };
-            var changes = new[] { new SimpleTextChange(1, 1, string.Empty) };
+            var changes = new[] { new VisualStudioTextChange(1, 1, string.Empty) };
 
             // Act
             manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123);
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 Assert.NotSame(LSPDocumentSnapshot, args.New);
                 Assert.Equal(LSPDocumentChangeKind.VirtualDocumentChanged, args.Kind);
             };
-            var changes = new[] { new SimpleTextChange(1, 1, string.Empty) };
+            var changes = new[] { new VisualStudioTextChange(1, 1, string.Empty) };
 
             // Act
             manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123);

@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             for (var i = 0; i < roslynTextChanges.Count; i++)
             {
                 var roslynTextChange = roslynTextChanges[i];
-                textChanges.Add(new SimpleTextChange(roslynTextChange.Span.Start, roslynTextChange.Span.Length, roslynTextChange.NewText));
+                textChanges.Add(new VisualStudioTextChange(roslynTextChange.Span.Start, roslynTextChange.Span.Length, roslynTextChange.NewText));
             }
 
             return textChanges;

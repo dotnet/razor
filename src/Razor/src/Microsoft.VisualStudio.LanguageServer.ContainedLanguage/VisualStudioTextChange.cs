@@ -6,9 +6,9 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    internal class SimpleTextChange : ITextChange
+    internal class VisualStudioTextChange : ITextChange
     {
-        public SimpleTextChange(int oldStart, int oldLength, string newText)
+        public VisualStudioTextChange(int oldStart, int oldLength, string newText)
         {
             OldSpan = new Span(oldStart, oldLength);
             NewText = newText;
