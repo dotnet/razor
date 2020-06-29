@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
@@ -161,7 +162,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             await _joinableTaskFactory.SwitchToMainThreadAsync();
 
-            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(documentSnapshot.Uri, new[] { addProvisionalDot }, previousCharacterProjection.HostDocumentVersion);
+            var textChanges = (new[] { addProvisionalDot }).ToVisualStudioTextChangeList();
+            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(documentSnapshot.Uri, textChanges, previousCharacterProjection.HostDocumentVersion);
 
             var provisionalCompletionParams = new CompletionParams()
             {
@@ -181,7 +183,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 TextSpan.FromBounds(previousCharacterProjection.PositionIndex, previousCharacterProjection.PositionIndex + 1),
                 string.Empty);
 
-            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(documentSnapshot.Uri, new[] { removeProvisionalDot }, previousCharacterProjection.HostDocumentVersion);
+            textChanges = (new[] { removeProvisionalDot }).ToVisualStudioTextChangeList();
+            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(documentSnapshot.Uri, textChanges, previousCharacterProjection.HostDocumentVersion);
 
             return (true, result);
         }

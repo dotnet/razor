@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var hostDocumentUri = new Uri(request.HostDocumentFilePath);
             _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 hostDocumentUri,
-                request.Changes,
+                request.Changes.ToVisualStudioTextChangeList(),
                 request.HostDocumentVersion);
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var hostDocumentUri = new Uri(request.HostDocumentFilePath);
             _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
                 hostDocumentUri,
-                request.Changes,
+                request.Changes.ToVisualStudioTextChangeList(),
                 request.HostDocumentVersion);
         }
 
