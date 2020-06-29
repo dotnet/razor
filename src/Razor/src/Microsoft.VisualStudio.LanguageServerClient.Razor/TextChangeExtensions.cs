@@ -26,26 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return textChange.OldSpan.Length > 0 && textChange.NewText.Length > 0;
         }
 
-        public static IReadOnlyList<ITextChange> ToVisualStudioTextChangeList(this IReadOnlyList<RoslynTextChange> roslynTextChanges)
-        {
-            if (roslynTextChanges == null)
-            {
-                return null;
-            }
-
-            if (roslynTextChanges.Count == 0)
-            {
-                return Array.Empty<ITextChange>();
-            }
-
-            var textChanges = new List<ITextChange>(roslynTextChanges.Count);
-            for (var i = 0; i < roslynTextChanges.Count; i++)
-            {
-                var roslynTextChange = roslynTextChanges[i];
-                textChanges.Add(new VisualStudioTextChange(roslynTextChange.Span.Start, roslynTextChange.Span.Length, roslynTextChange.NewText));
-            }
-
-            return textChanges;
-        }
+        public static ITextChange ToVisualStudioTextChange(this RoslynTextChange roslynTextChange) =>
+            new VisualStudioTextChange(roslynTextChange.Span.Start, roslynTextChange.Span.Length, roslynTextChange.NewText);
     }
 }
