@@ -20,8 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // Roslyn sends Progress Notifications every 0.5s *only* if results have been found.
         // Consequently, at ~ time > 0.5s ~ after the last notification, we don't know whether Roslyn is
         // done searching for results, or just hasn't found any additional results yet.
-        // To work around this, we wait for up to 3s since the last notification before timing out.
-        private static readonly TimeSpan WaitForProgressNotificationTimeout = TimeSpan.FromSeconds(3);
+        // To work around this, we wait for up to 3.5s since the last notification before timing out.
+        private static readonly TimeSpan WaitForProgressNotificationTimeout = TimeSpan.FromSeconds(3.5);
 
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -71,6 +71,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public async Task<VSReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
+            // Temporary till IProgress serialization is fixed
+            var token = Guid.NewGuid().ToString(); // request.PartialResultToken.Id
+            return await HandleRequestAsync(request, clientCapabilities, token, cancellationToken).ConfigureAwait(false);
+        }
+
+        // Internal for testing
+        internal async Task<VSReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
+        {
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
@@ -93,9 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-
-            // Temporary till IProgress serialization is fixed
-            var token = Guid.NewGuid().ToString(); // request.PartialResultToken.Id
 
             var referenceParams = new SerializableReferenceParams()
             {
