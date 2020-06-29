@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            _ = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
                 LanguageServerKind.CSharp,
                 referenceParams,
@@ -134,7 +134,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             await onCompleted.ConfigureAwait(false);
 
             // Results returned through Progress notification
-            return Array.Empty<VSReferenceItem>();
+            var remappedResults = await RemapReferenceItemsAsync(result, cancellationToken).ConfigureAwait(false);
+            return remappedResults;
         }
 
         private async Task ProcessReferenceItemsAsync(
@@ -149,6 +150,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return;
             }
 
+            var remappedResults = await RemapReferenceItemsAsync(result, cancellationToken).ConfigureAwait(false);
+
+            progress.Report(remappedResults);
+        }
+
+        private async Task<VSReferenceItem[]> RemapReferenceItemsAsync(VSReferenceItem[] result, CancellationToken cancellationToken)
+        {
             var remappedLocations = new List<VSReferenceItem>();
 
             foreach (var referenceItem in result)
@@ -188,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 remappedLocations.Add(referenceItem);
             }
 
-            progress.Report(remappedLocations.ToArray());
+            return remappedLocations.ToArray();
         }
 
         // Temporary while the PartialResultToken serialization fix is in
