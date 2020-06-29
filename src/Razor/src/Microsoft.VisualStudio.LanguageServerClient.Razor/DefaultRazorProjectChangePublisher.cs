@@ -129,6 +129,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     break;
 
                 case ProjectChangeKind.ProjectAdded:
+                    // This causes us to  wait until our project has been initialized
+                    // so that we don't publish half-finished projects, which can cause things like Semantic coloring to "flash".
                     if (args.Newer.ProjectWorkspaceState != null)
                     {
                         Publish(args.Newer);
