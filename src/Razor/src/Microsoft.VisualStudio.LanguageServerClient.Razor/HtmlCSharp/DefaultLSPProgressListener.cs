@@ -64,7 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private Task ClientNotifyAsyncListenerAsync(object sender, LanguageClientNotifyEventArgs args)
             => ProcessProgressNotificationAsync(args.MethodName, args.ParameterToken);
 
-        private async Task ProcessProgressNotificationAsync(string methodName, JToken parameterToken)
+        // Internal for testing
+        internal async Task ProcessProgressNotificationAsync(string methodName, JToken parameterToken)
         {
             if (methodName != Methods.ProgressNotificationName ||
                !parameterToken.HasValues ||
