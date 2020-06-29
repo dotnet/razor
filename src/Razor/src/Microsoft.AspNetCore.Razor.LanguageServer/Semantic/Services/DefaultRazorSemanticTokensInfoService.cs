@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return newTokens;
             }
 
-            var semanticEdits = SemanticTokensEditsDiffer.ComputSemanticTokensEdits(newTokens, previousResults);
+            var semanticEdits = SemanticTokensEditsDiffer.ComputeSemanticTokensEdits(newTokens, previousResults);
 
             return semanticEdits;
         }

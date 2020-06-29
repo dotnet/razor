@@ -12,38 +12,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
     {
         private SemanticTokensEditsDiffer(uint[] oldArray, uint[] newArray)
         {
-            OldArray = oldArray;
-            NewArray = newArray;
-        }
-
-        private uint[] OldArray { get; }
-        private uint[] NewArray { get; }
-
-        protected override int OldTextLength => OldArray.Count();
-        protected override int NewTextLength => NewArray.Count();
-
-        protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
-        {
-            return OldArray[oldTextIndex] == NewArray[newTextIndex];
-        }
-
-        public static SemanticTokensOrSemanticTokensEdits ComputSemanticTokensEdits(
-            SemanticTokens newTokens,
-            IReadOnlyList<uint> previousResults)
-        {
-            var diffs = GetEdits(previousResults.ToArray(), newTokens.Data);
-            var edits = ProcessEdits(diffs, newTokens.Data);
-            var result = new SemanticTokensEditCollection
-            {
-                ResultId = newTokens.ResultId,
-                Edits = edits,
-            };
-
-            return result;
-        }
-
-        private static IReadOnlyList<DiffEdit> GetEdits(uint[] oldArray, uint[] newArray)
-        {
             if (oldArray is null)
             {
                 throw new ArgumentNullException();
@@ -53,18 +21,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                 throw new ArgumentNullException();
             }
 
-            if (oldArray.SequenceEqual(newArray))
-            {
-                return Array.Empty<DiffEdit>();
-            }
-
-            var differ = new SemanticTokensEditsDiffer(oldArray, newArray);
-            var diffs = differ.ComputeDiff();
-
-            return diffs;
+            OldArray = oldArray;
+            NewArray = newArray;
         }
 
-        private static IReadOnlyList<SemanticTokensEdit> ProcessEdits(IReadOnlyList<DiffEdit> diffs, uint[] newArray)
+        private uint[] OldArray { get; }
+        private uint[] NewArray { get; }
+
+        protected override int OldTextLength => OldArray.Length;
+        protected override int NewTextLength => NewArray.Length;
+
+        protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
+        {
+            return OldArray[oldTextIndex] == NewArray[newTextIndex];
+        }
+
+        public static SemanticTokensOrSemanticTokensEdits ComputeSemanticTokensEdits(
+            SemanticTokens newTokens,
+            IReadOnlyList<uint> previousResults)
+        {
+            var differ = new SemanticTokensEditsDiffer(previousResults.ToArray(), newTokens.Data);
+            var diffs = differ.ComputeDiff();
+            var edits = differ.ProcessEdits(diffs);
+            var result = new SemanticTokensEditCollection
+            {
+                ResultId = newTokens.ResultId,
+                Edits = edits,
+            };
+
+            return result;
+        }
+
+        private IReadOnlyList<SemanticTokensEdit> ProcessEdits(IReadOnlyList<DiffEdit> diffs)
         {
             var results = new List<SemanticTokensEdit>();
             foreach (var diff in diffs)
@@ -93,14 +81,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                             current.Data.Count() > 0 &&
                             current.Start == diff.Position)
                         {
-                            current.Data = current.Data.Append(newArray[diff.NewTextPosition.Value]);
+                            current.Data = current.Data.Append(NewArray[diff.NewTextPosition.Value]);
                         }
                         else
                         {
                             results.Add(new SemanticTokensEdit
                             {
                                 Start = diff.Position,
-                                Data = new uint[] { newArray[diff.NewTextPosition.Value] },
+                                Data = new uint[] { NewArray[diff.NewTextPosition.Value] },
                                 DeleteCount = 0,
                             });
                         }
