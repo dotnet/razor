@@ -554,7 +554,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new Mock<LSPRequestInvoker>();
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSReferenceItem[]>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, LanguageServerKind, TextDocumentPositionParams, CancellationToken>(async (method, serverKind, definitionParams, ct) =>
+                .Callback<string, LanguageServerKind, TextDocumentPositionParams, CancellationToken>((method, serverKind, definitionParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentReferencesName, method);
                     Assert.Equal(LanguageServerKind.CSharp, serverKind);
