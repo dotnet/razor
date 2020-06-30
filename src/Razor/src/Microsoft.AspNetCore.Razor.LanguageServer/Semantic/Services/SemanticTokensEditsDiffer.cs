@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 {
@@ -14,11 +14,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
         {
             if (oldArray is null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(oldArray));
             }
+
             if (newArray is null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(newArray));
             }
 
             OldArray = oldArray;
@@ -57,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
             var results = new List<SemanticTokensEdit>();
             foreach (var diff in diffs)
             {
-                var current = results.Any() ? results.Last() : null;
+                var current = results.Count > 0 ? results[results.Count - 1] : null;
                 switch (diff.Operation)
                 {
                     case DiffEdit.Type.Delete:
