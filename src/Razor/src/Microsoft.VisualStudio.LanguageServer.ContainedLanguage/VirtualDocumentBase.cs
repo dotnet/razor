@@ -61,23 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             for (var i = 0; i < changes.Count; i++)
             {
                 var change = changes[i];
-
-                if (change.IsDelete())
-                {
-                    edit.Delete(change.OldSpan.Start, change.OldSpan.Length);
-                }
-                else if (change.IsReplace())
-                {
-                    edit.Replace(change.OldSpan.Start, change.OldSpan.Length, change.NewText);
-                }
-                else if (change.IsInsert())
-                {
-                    edit.Insert(change.OldSpan.Start, change.NewText);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Unknown edit type when updating LSP HTML buffer.");
-                }
+                edit.Replace(change.OldSpan.Start, change.OldSpan.Length, change.NewText);
             }
 
             edit.Apply();
