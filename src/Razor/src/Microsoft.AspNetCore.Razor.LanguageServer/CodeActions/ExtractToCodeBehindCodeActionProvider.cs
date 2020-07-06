@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 new Command()
                 {
-                    Title = "Extract code block into backing document",
+                    Title = "Extract block to code behind",
                     Name = LanguageServerConstants.RazorCodeActionRunnerCommand,
                     Arguments = arguments,
                 }
