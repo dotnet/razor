@@ -29,7 +29,7 @@ export class RazorRenameProvider
         token: vscode.CancellationToken) {
 
         const projection = await this.getProjection(document, position, token);
-        if (!projection || projection.languageKind !== LanguageKind.CSharp) {
+        if (!projection || (projection.languageKind !== LanguageKind.CSharp && projection.languageKind !== LanguageKind.Html)) {
             // We only support C# renames for now. Reject the rename request.
             return Promise.reject('Cannot rename this symbol.');
         }
@@ -51,7 +51,7 @@ export class RazorRenameProvider
             return;
         }
 
-        if (projection.languageKind !== LanguageKind.CSharp) {
+        if (projection.languageKind !== LanguageKind.CSharp && projection.languageKind !== LanguageKind.Html) {
             // We only support C# renames for now.
             return;
         }

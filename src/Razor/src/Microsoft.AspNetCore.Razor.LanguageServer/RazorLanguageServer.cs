@@ -28,6 +28,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
 using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -83,6 +84,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<OnAutoInsertEndpoint>()
                     .WithHandler<CodeActionEndpoint>()
                     .WithHandler<CodeActionResolutionEndpoint>()
+                    .WithHandler<RazorComponentPrepareRenameEndpoint>()
+                    .WithHandler<RazorComponentRenameEndpoint>()
                     .WithServices(services =>
                     {
                         var filePathNormalizer = new FilePathNormalizer();
