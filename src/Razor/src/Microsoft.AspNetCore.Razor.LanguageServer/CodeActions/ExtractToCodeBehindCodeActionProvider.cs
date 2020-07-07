@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-=======
 // Copyright (c) .NET Foundation. All rights reserved.
->>>>>>> 81eac093a... Implement code action providers, resolvers, and ExtractToCodeBehind
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -32,21 +28,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return EmptyResult;
             }
 
-<<<<<<< HEAD
-            if (!FileKinds.IsComponent(context.Document.GetFileKind()))
-=======
             if (!FileKinds.IsComponent(context.CodeDocument.GetFileKind()))
->>>>>>> 81eac093a... Implement code action providers, resolvers, and ExtractToCodeBehind
             {
                 return EmptyResult;
             }
 
             var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
-<<<<<<< HEAD
-            var syntaxTree = context.Document.GetSyntaxTree();
-=======
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
->>>>>>> 81eac093a... Implement code action providers, resolvers, and ExtractToCodeBehind
             if (syntaxTree?.Root is null)
             {
                 return EmptyResult;
