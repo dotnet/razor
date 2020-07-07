@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -51,6 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         override public Task<CommandOrCodeActionContainer> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("in provide");
             var container = new List<CommandOrCodeAction>();
             var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
             var node = context.CodeDocument.GetSyntaxTree().Root.LocateOwner(change);
@@ -68,6 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var startTag = (MarkupStartTagSyntax)node;
             if (IsTagUnknown(startTag, context))
             {
+                _logger.LogDebug("in unknown");
                 AddCreateComponentFromTag(context, startTag, container);
                 AddComponentAccessFromTag(context, startTag, container);
             }
@@ -124,6 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 if (tagHelper.TagMatchingRules.All(rule => TagHelperMatchingConventions.SatisfiesRule(tagName, parentTagName, attributes, rule)))
                 {
                     matching.Add(tagHelper.Name, new TagHelperPair() { Short = tagHelper });
+                    _logger.LogDebug($"found matching {tagHelper.Name}");
                 }
             }
             foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
@@ -201,39 +205,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             public TagHelperDescriptor Short = null;
             public TagHelperDescriptor FullyQualified = null;
-        }
-
-        private void AddCreateComponentFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<CommandOrCodeAction> container)
-        {
-            var path = context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath();
-            var newComponentPath = Path.Combine(Path.GetDirectoryName(path), $"{startTag.Name.Content}.razor");
-            if (File.Exists(newComponentPath))
-            {
-                return;
-            }
-
-            var actionParams = new RefactorComponentCreateParams()
-            {
-                Uri = context.Request.TextDocument.Uri,
-                Name = startTag.Name.Content,
-                Where = newComponentPath,
-            };
-            var data = JObject.FromObject(actionParams);
-
-            var resolutionParams = new RazorCodeActionResolutionParams()
-            {
-                Action = Constants.RefactorComponentCreate,
-                Data = data,
-            };
-            var serializedParams = JToken.FromObject(resolutionParams);
-            var arguments = new JArray(serializedParams);
-
-            container.Add(new CommandOrCodeAction(new Command()
-            {
-                Title = "Create component from tag",
-                Name = "razor/runCodeAction",
-                Arguments = arguments,
-            }));
         }
 
         private bool IsTagUnknown(MarkupStartTagSyntax startTag, RazorCodeActionContext context)
