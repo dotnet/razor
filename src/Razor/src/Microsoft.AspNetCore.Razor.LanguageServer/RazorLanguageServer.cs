@@ -29,6 +29,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
 using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -36,6 +37,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private RazorLanguageServer()
         {
+        }
+
+        private class RenameOptions : OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities.RenameOptions
+        {
+            public DocumentSelector DocumentSelector { set; get; }
         }
 
         public static Task<ILanguageServer> CreateAsync(Stream input, Stream output, Trace trace)
@@ -53,6 +59,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         .SetMinimumLevel(RazorLSPOptions.GetLogLevelForTrace(trace)))
                     .OnInitialized(async (s, request, response) =>
                     {
+                        // Bug in OmniSharp
+                        response.Capabilities.RenameProvider = new RenameOptions
+                        {
+                            PrepareProvider = true,
+                            DocumentSelector = RazorDefaults.Selector,
+                        };
+
                         var jsonRpcHandlers = s.Services.GetServices<IJsonRpcHandler>();
                         var registrationExtensions = jsonRpcHandlers.OfType<IRegistrationExtension>();
                         if (registrationExtensions.Any())

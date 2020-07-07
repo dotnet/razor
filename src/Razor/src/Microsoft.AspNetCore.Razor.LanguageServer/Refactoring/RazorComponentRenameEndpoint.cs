@@ -47,6 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             return new RenameRegistrationOptions
             {
                 PrepareProvider = true,
+                DocumentSelector = RazorDefaults.Selector,
             };
         }
 

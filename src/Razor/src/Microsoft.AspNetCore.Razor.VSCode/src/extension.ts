@@ -36,7 +36,7 @@ import { resolveRazorLanguageServerTrace } from './RazorLanguageServerTraceResol
 import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
 import { RazorLogger } from './RazorLogger';
 import { RazorReferenceProvider } from './RazorReferenceProvider';
-import { RazorRenameProvider } from './RazorRenameProvider';
+// import { RazorRenameProvider } from './RazorRenameProvider';
 import { RazorSignatureHelpProvider } from './RazorSignatureHelpProvider';
 import { RazorDocumentSemanticTokensProvider } from './Semantic/RazorDocumentSemanticTokensProvider';
 import { TelemetryReporter } from './TelemetryReporter';
@@ -118,11 +118,11 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 documentManager,
                 languageServiceClient,
                 logger);
-            const renameProvider = new RazorRenameProvider(
-                documentSynchronizer,
-                documentManager,
-                languageServiceClient,
-                logger);
+            // const renameProvider = new RazorRenameProvider(
+            //     documentSynchronizer,
+            //     documentManager,
+            //     languageServiceClient,
+            //     logger);
             const referenceProvider = new RazorReferenceProvider(
                 documentSynchronizer,
                 documentManager,
@@ -168,9 +168,9 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 vscodeType.languages.registerCodeLensProvider(
                     RazorLanguage.id,
                     codeLensProvider),
-                vscodeType.languages.registerRenameProvider(
-                    RazorLanguage.id,
-                    renameProvider),
+                // vscodeType.languages.registerRenameProvider(
+                //     RazorLanguage.id,
+                //     renameProvider),
                 documentManager.register(),
                 csharpFeature.register(),
                 htmlFeature.register(),

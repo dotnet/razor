@@ -49,6 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
         public async Task<RangeOrPlaceholderRange> Handle(PrepareRenameParams request, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("in handle");
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
