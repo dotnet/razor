@@ -31,7 +31,7 @@ export class RazorRenameProvider
         const projection = await this.getProjection(document, position, token);
         if (!projection || projection.languageKind !== LanguageKind.CSharp) {
             // We only support C# renames for now. Reject the rename request.
-            return Promise.reject('Cannot rename this symbol.');
+            return null;  // Promise.reject('Cannot rename this symbol.');
         }
 
         // Let the rename go through. OmniSharp doesn't currently support "prepareRename" so we need to utilize document

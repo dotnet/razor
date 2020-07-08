@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using OmniSharp.Extensions.JsonRpc.Server.Messages;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
@@ -98,9 +99,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var start = codeDocument.Source.Lines.GetLocation(tagHelperStartTag.Name.Span.Start);
             var end = codeDocument.Source.Lines.GetLocation(tagHelperStartTag.Name.Span.End);
             _logger.LogDebug($"refactoring {start} {end}");
-            return new RangeOrPlaceholderRange(new Range(
+
+            var range = new Range(
                 new Position(start.LineIndex + 1, start.CharacterIndex),
-                new Position(end.LineIndex + 1, end.CharacterIndex)));
+                new Position(end.LineIndex + 1, end.CharacterIndex));
+            return new RangeOrPlaceholderRange(new PlaceholderRange
+            {
+                Range = range,
+                Placeholder = "This token cannot be renamed"
+            });
         }
 
         public void SetCapability(RenameCapability capability)
