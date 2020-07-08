@@ -19,11 +19,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class DefaultRazorFormattingService : RazorFormattingService
     {
+        private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILanguageServer _server;
         private readonly CSharpFormatter _csharpFormatter;
         private readonly HtmlFormatter _htmlFormatter;
         private readonly ILogger _logger;
-
 
         public DefaultRazorFormattingService(
             RazorDocumentMappingService documentMappingService,
@@ -31,7 +31,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             ILanguageServer server,
             ILoggerFactory loggerFactory)
         {
-
             if (documentMappingService is null)
             {
                 throw new ArgumentNullException(nameof(documentMappingService));
@@ -52,6 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
+            _documentMappingService = documentMappingService;
             _server = server;
             _csharpFormatter = new CSharpFormatter(documentMappingService, server, filePathNormalizer);
             _htmlFormatter = new HtmlFormatter(server, filePathNormalizer);
@@ -83,6 +83,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingContext = FormattingContext.Create(uri, codeDocument, range, options);
             var edits = await FormatCodeBlockDirectivesAsync(formattingContext);
             return edits;
+        }
+
+        public override Task<TextEdit[]> ApplyFormattedEditsAsync(Uri uri, RazorCodeDocument codeDocument, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options)
+        {
+            var span = TextSpan.FromBounds(0, codeDocument.Source.Length);
+            var range = span.AsRange(codeDocument.GetSourceText());
+            var formattingContext = FormattingContext.Create(uri, codeDocument, range, options);
+
+            // TODO
+            var edits = new List<TextEdit>();
+            for (var i = 0; i < formattedEdits.Length; i++)
+            {
+                var projectedRange = formattedEdits[i].Range;
+                if (codeDocument.IsUnsupported() ||
+                    !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
+                {
+                    // Can't map range. Discard this edit.
+                    continue;
+                }
+
+                var edit = new TextEdit()
+                {
+                    Range = originalRange,
+                    NewText = formattedEdits[i].NewText
+                };
+
+                edits.Add(edit);
+            }
+
+            return Task.FromResult(edits.ToArray());
         }
 
         private async Task<TextEdit[]> FormatCodeBlockDirectivesAsync(FormattingContext context)

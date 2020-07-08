@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -18,7 +19,7 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorLanguageEndpoint : IRazorLanguageQueryHandler, IRazorMapToDocumentRangesHandler
+    internal class RazorLanguageEndpoint : IRazorLanguageQueryHandler, IRazorMapToDocumentRangesHandler, IRazorMapToDocumentEditsHandler
     {
         // Internal for testing
         internal static readonly Range UndefinedRange = new Range(
@@ -29,7 +30,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
-        private readonly RazorDocumentMappingService _documentMappingservice;
+        private readonly RazorDocumentMappingService _documentMappingService;
+        private readonly RazorFormattingService _razorFormattingService;
         private readonly ILogger _logger;
 
         public RazorLanguageEndpoint(
@@ -37,6 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DocumentResolver documentResolver,
             DocumentVersionCache documentVersionCache,
             RazorDocumentMappingService documentMappingService,
+            RazorFormattingService razorFormattingService, 
             ILoggerFactory loggerFactory)
         {
             if (foregroundDispatcher == null)
@@ -59,6 +62,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(documentMappingService));
             }
 
+            if (razorFormattingService is null)
+            {
+                throw new ArgumentNullException(nameof(razorFormattingService));
+            }
+
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
@@ -67,7 +75,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
             _documentVersionCache = documentVersionCache;
-            _documentMappingservice = documentMappingService;
+            _documentMappingService = documentMappingService;
+            _razorFormattingService = razorFormattingService;
             _logger = loggerFactory.CreateLogger<RazorLanguageEndpoint>();
         }
 
@@ -114,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (languageKind == RazorLanguageKind.CSharp)
             {
-                if (_documentMappingservice.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
+                if (_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
                 {
                     // For C# locations, we attempt to return the corresponding position
                     // within the projected document
@@ -178,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 var projectedRange = request.ProjectedRanges[i];
                 if (codeDocument.IsUnsupported() ||
-                    !_documentMappingservice.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
+                    !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
                 {
                     // All language queries on unsupported documents return Html. This is equivalent to what pre-VSCode Razor was capable of.
                     ranges[i] = UndefinedRange;
@@ -191,6 +200,76 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return new RazorMapToDocumentRangesResponse()
             {
                 Ranges = ranges,
+                HostDocumentVersion = documentVersion,
+            };
+        }
+
+        public async Task<RazorMapToDocumentEditsResponse> Handle(RazorMapToDocumentEditsParams request, CancellationToken cancellationToken)
+        {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            long documentVersion = -1;
+            DocumentSnapshot documentSnapshot = null;
+            await Task.Factory.StartNew(() =>
+            {
+                _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
+                if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
+                {
+                    documentVersion = UndefinedDocumentVersion;
+                }
+
+                return documentSnapshot;
+            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+
+            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
+            if (request.ShouldFormat)
+            {
+                var mappedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
+                    request.RazorDocumentUri, codeDocument, request.Kind, request.ProjectedTextEdits, request.FormattingOptions);
+
+                return new RazorMapToDocumentEditsResponse()
+                {
+                    TextEdits = mappedEdits,
+                    HostDocumentVersion = documentVersion,
+                };
+            }
+
+            if (request.Kind != RazorLanguageKind.CSharp)
+            {
+                // All other non-C# requests map directly to where they are in the document.
+                return new RazorMapToDocumentEditsResponse()
+                {
+                    TextEdits = request.ProjectedTextEdits,
+                    HostDocumentVersion = documentVersion,
+                };
+            }
+
+            var edits = new List<TextEdit>();
+            for (var i = 0; i < request.ProjectedTextEdits.Length; i++)
+            {
+                var projectedRange = request.ProjectedTextEdits[i].Range;
+                if (codeDocument.IsUnsupported() ||
+                    !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
+                {
+                    // Can't map range. Discard this edit.
+                    continue;
+                }
+
+                var edit = new TextEdit()
+                {
+                    Range = originalRange,
+                    NewText = request.ProjectedTextEdits[i].NewText
+                };
+
+                edits.Add(edit);
+            }
+
+            return new RazorMapToDocumentEditsResponse()
+            {
+                TextEdits = edits.ToArray(),
                 HostDocumentVersion = documentVersion,
             };
         }
