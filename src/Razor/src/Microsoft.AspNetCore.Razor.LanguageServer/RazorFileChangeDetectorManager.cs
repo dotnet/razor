@@ -5,37 +5,39 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorFileChangeDetectorManager : IDisposable
     {
+        private readonly WorkspaceDirectoryResolver _workspaceDirectoryResolver;
         private readonly IEnumerable<IFileChangeDetector> _fileChangeDetectors;
         private readonly object _disposeLock = new object();
         private bool _disposed;
 
-        public RazorFileChangeDetectorManager(IEnumerable<IFileChangeDetector> fileChangeDetectors)
+        public RazorFileChangeDetectorManager(
+            WorkspaceDirectoryResolver workspaceDirectoryResolver,
+            IEnumerable<IFileChangeDetector> fileChangeDetectors)
         {
+            if (workspaceDirectoryResolver is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceDirectoryResolver));
+            }
+
             if (fileChangeDetectors is null)
             {
                 throw new ArgumentNullException(nameof(fileChangeDetectors));
             }
 
+            _workspaceDirectoryResolver = workspaceDirectoryResolver;
             _fileChangeDetectors = fileChangeDetectors;
         }
 
-        public async Task InitializedAsync(ILanguageServer languageServer)
+        public async Task InitializedAsync()
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
             // Initialized request, this occurs once the server and client have agreed on what sort of features they both support. It only happens once.
 
-            var workspaceDirectory = ResolveWorkspaceDirectory(languageServer.ClientSettings);
+            var workspaceDirectory = _workspaceDirectoryResolver.Resolve();
 
             foreach (var fileChangeDetector in _fileChangeDetectors)
             {
@@ -60,18 +62,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 fileChangeDetector.Stop();
             }
-        }
-
-        // Internal for testing
-        internal static string ResolveWorkspaceDirectory(InitializeParams clientSettings)
-        {
-            if (clientSettings.RootUri == null)
-            {
-                // RootUri was added in LSP3, fallback to RootPath
-                return clientSettings.RootPath;
-            }
-
-            return clientSettings.RootUri.LocalPath;
         }
 
         public void Dispose()
