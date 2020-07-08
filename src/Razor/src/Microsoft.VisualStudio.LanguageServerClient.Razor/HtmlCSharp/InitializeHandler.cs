@@ -26,6 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 {
                     TriggerCharacters = new[] { ">", "=", "-" }
                 },
+                DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions()
+                {
+                    FirstTriggerCharacter = "}",
+                    MoreTriggerCharacter = new[] { ";" }
+                },
                 HoverProvider = true,
                 DefinitionProvider = true,
                 DocumentHighlightProvider = true,
