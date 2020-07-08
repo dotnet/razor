@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var className = Path.GetFileNameWithoutExtension(path);
             var codeBlockContent = text.GetSubTextString(new CodeAnalysis.Text.TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart));
             var codeBehindContent = GenerateCodeBehindClass(className, codeBlockContent, codeDocument);
-
+                
             var start = codeDocument.Source.Lines.GetLocation(actionParams.RemoveStart);
             var end = codeDocument.Source.Lines.GetLocation(actionParams.RemoveEnd);
             var removeRange = new Range(

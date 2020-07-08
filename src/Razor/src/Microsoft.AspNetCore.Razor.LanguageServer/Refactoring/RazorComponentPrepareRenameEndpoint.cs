@@ -49,7 +49,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
         public async Task<RangeOrPlaceholderRange> Handle(PrepareRenameParams request, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("in handle");
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
@@ -96,11 +95,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            _logger.LogDebug($"refactor found {tagHelperStartTag.Name}");
-            var start = sourceText.Lines.GetLinePosition(tagHelperStartTag.Name.Span.Start);
-            var end = sourceText.Lines.GetLinePosition(tagHelperStartTag.Name.Span.End);
-            _logger.LogDebug($"{start} {end}");
-            return new RangeOrPlaceholderRange(new Range(new Position(start.Line + 1, start.Character), new Position(start.Line + 1, start.Character)));
+            var start = codeDocument.Source.Lines.GetLocation(tagHelperStartTag.Name.Span.Start);
+            var end = codeDocument.Source.Lines.GetLocation(tagHelperStartTag.Name.Span.End);
+            _logger.LogDebug($"refactoring {start} {end}");
+            return new RangeOrPlaceholderRange(new Range(
+                new Position(start.LineIndex + 1, start.CharacterIndex),
+                new Position(end.LineIndex + 1, end.CharacterIndex)));
         }
 
         public void SetCapability(RenameCapability capability)
