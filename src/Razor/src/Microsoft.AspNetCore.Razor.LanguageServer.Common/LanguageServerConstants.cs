@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
-    internal static class LanguageServerConstants
+    public static class LanguageServerConstants
     {
         public const string ProjectConfigurationFile = "project.razor.json";
 
@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorCodeActionResolutionEndpoint = "razor/resolveCodeAction";
 
-        internal static class CodeActions
+        public static class CodeActions
         {
             public const string ExtractToCodeBehindAction = "ExtractToCodeBehind";
         }
