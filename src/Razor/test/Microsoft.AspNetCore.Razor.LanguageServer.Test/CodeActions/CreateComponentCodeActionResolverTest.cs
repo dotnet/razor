@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
         {
             // Arrange
             var resolver = new CreateComponentCodeActionResolver(new DefaultForegroundDispatcher(), EmptyDocumentResolver);
-            var data = JObject.FromObject(new CreateComponentParams()
+            var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
                 Path = "c:/Another.razor",
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             codeDocument.SetUnsupported();
 
             var resolver = new CreateComponentCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
-            var data = JObject.FromObject(new CreateComponentParams()
+            var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri(documentPath),
                 Path = "c:/Another.razor",
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             codeDocument.SetFileKind(FileKinds.Legacy);
 
             var resolver = new CreateComponentCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
-            var data = JObject.FromObject(new CreateComponentParams()
+            var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri(documentPath),
                 Path = "c:/Another.razor",
@@ -96,7 +96,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var codeDocument = CreateCodeDocument(contents);
 
             var resolver = new CreateComponentCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
-            var actionParams = new CreateComponentParams
+            var actionParams = new CreateComponentCodeActionParams
             {
                 Uri = documentUri,
                 Path = "c:/Another.razor",
@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var codeDocument = CreateCodeDocument(contents);
 
             var resolver = new CreateComponentCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
-            var actionParams = new CreateComponentParams
+            var actionParams = new CreateComponentCodeActionParams
             {
                 Uri = documentUri,
                 Path = "c:/Another.razor",

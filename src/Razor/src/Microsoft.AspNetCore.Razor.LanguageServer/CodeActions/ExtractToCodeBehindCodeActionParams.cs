@@ -5,9 +5,12 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal sealed class CreateComponentParams
+    internal sealed class ExtractToCodeBehindCodeActionParams
     {
         public Uri Uri { get; set; }
-        public string Path { get; set;  }
+        public int ExtractStart { get; set; }
+        public int ExtractEnd { get; set; }
+        public int RemoveStart { get; set; }
+        public int RemoveEnd { get; set; }
     }
 }
