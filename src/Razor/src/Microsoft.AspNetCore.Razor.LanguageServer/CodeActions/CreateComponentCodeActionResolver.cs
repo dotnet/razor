@@ -76,36 +76,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new WorkspaceEditDocumentChange(new CreateFile() { Uri = newComponentUri.ToString() })
             };
 
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            if (syntaxTree != null)
-            {
-                var namespaceDirective = syntaxTree.Root.DescendantNodes()
-                    .Where(n => n.Kind == SyntaxKind.RazorDirective)
-                    .Cast<RazorDirectiveSyntax>()
-                    .Where(n => n.DirectiveDescriptor == NamespaceDirective.Directive)
-                    .FirstOrDefault();
-                if (namespaceDirective != null)
-                {
-                    var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newComponentUri };
-                    documentChanges.Add(new WorkspaceEditDocumentChange(new TextDocumentEdit
-                    {
-                        TextDocument = documentIdentifier,
-                        Edits = new[]
-                        {
-                            new TextEdit()
-                            {
-                                NewText = namespaceDirective.GetContent(),
-                                Range = new Range(new Position(0, 0), new Position(0, 0)),
-                            }
-                        }
-                    }));
-                }
-            }
+            TryAddNamespaceDirective(codeDocument, newComponentUri, documentChanges);
 
             return new WorkspaceEdit()
             {
                 DocumentChanges = documentChanges
             };
+        }
+
+        private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, List<WorkspaceEditDocumentChange> documentChanges)
+        {
+            var syntaxTree = codeDocument.GetSyntaxTree();
+            var namespaceDirective = syntaxTree.Root.DescendantNodes()
+                .Where(n => n.Kind == SyntaxKind.RazorDirective)
+                .Cast<RazorDirectiveSyntax>()
+                .Where(n => n.DirectiveDescriptor == NamespaceDirective.Directive)
+                .FirstOrDefault();
+
+            if (namespaceDirective != null)
+            {
+                var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newComponentUri };
+                documentChanges.Add(new WorkspaceEditDocumentChange(new TextDocumentEdit
+                {
+                    TextDocument = documentIdentifier,
+                    Edits = new[]
+                    {
+                        new TextEdit()
+                        {
+                            NewText = namespaceDirective.GetContent(),
+                            Range = new Range(new Position(0, 0), new Position(0, 0)),
+                        }
+                    }
+                }));
+            }
         }
     }
 }
