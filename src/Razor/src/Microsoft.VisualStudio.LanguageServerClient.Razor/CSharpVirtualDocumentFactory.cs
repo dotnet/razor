@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
@@ -15,13 +14,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Shared]
     [Export(typeof(VirtualDocumentFactory))]
-    internal class CSharpVirtualDocumentFactory : VirtualDocumentFactory
+    internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
-        private readonly IContentTypeRegistryService _contentTypeRegistry;
-        private readonly ITextBufferFactoryService _textBufferFactory;
-        private readonly ITextDocumentFactoryService _textDocumentFactory;
-        private readonly FileUriProvider _fileUriProvider;
-        private IContentType _csharpLSPContentType;
+        private static readonly Dictionary<object, object> _additionalLanguageBufferProperties = new Dictionary<object, object>
+        {
+            { LanguageClientConstants.ClientNamePropertyKey, "RazorCSharp" }
+        };
 
         [ImportingConstructor]
         public CSharpVirtualDocumentFactory(
@@ -29,80 +27,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             ITextBufferFactoryService textBufferFactory,
             ITextDocumentFactoryService textDocumentFactory,
             FileUriProvider fileUriProvider)
+            : base(contentTypeRegistry, textBufferFactory, textDocumentFactory, fileUriProvider)
         {
-            if (contentTypeRegistry is null)
-            {
-                throw new ArgumentNullException(nameof(contentTypeRegistry));
-            }
-
-            if (textBufferFactory is null)
-            {
-                throw new ArgumentNullException(nameof(textBufferFactory));
-            }
-
-            if (textDocumentFactory is null)
-            {
-                throw new ArgumentNullException(nameof(textDocumentFactory));
-            }
-
-            if (fileUriProvider is null)
-            {
-                throw new ArgumentNullException(nameof(fileUriProvider));
-            }
-
-            _contentTypeRegistry = contentTypeRegistry;
-            _textBufferFactory = textBufferFactory;
-            _textDocumentFactory = textDocumentFactory;
-            _fileUriProvider = fileUriProvider;
         }
 
-        private IContentType CSharpLSPContentType
-        {
-            get
-            {
-                if (_csharpLSPContentType == null)
-                {
-                    var registeredContentType = _contentTypeRegistry.GetContentType(RazorLSPConstants.CSharpLSPContentTypeName);
-                    _csharpLSPContentType = new RemoteContentDefinitionType(registeredContentType);
-                }
-
-                return _csharpLSPContentType;
-            }
-        }
-
-        public override bool TryCreateFor(ITextBuffer hostDocumentBuffer, out VirtualDocument virtualDocument)
-        {
-            if (hostDocumentBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(hostDocumentBuffer));
-            }
-
-            if (!hostDocumentBuffer.ContentType.IsOfType(RazorLSPConstants.RazorLSPContentTypeName))
-            {
-                // Another content type we don't care about.
-                virtualDocument = null;
-                return false;
-            }
-
-            var hostDocumentUri = _fileUriProvider.GetOrCreate(hostDocumentBuffer);
-
-            // Index.cshtml => Index.cshtml__virtual.cs
-            var virtualCSharpFilePath = hostDocumentUri.GetAbsoluteOrUNCPath() + RazorLSPConstants.VirtualCSharpFileNameSuffix;
-            var virtualCSharpUri = new Uri(virtualCSharpFilePath);
-
-            var csharpBuffer = _textBufferFactory.CreateTextBuffer();
-            _fileUriProvider.AddOrUpdate(csharpBuffer, virtualCSharpUri);
-            csharpBuffer.Properties.AddProperty(RazorLSPConstants.ContainedLanguageMarker, true);
-            csharpBuffer.Properties.AddProperty(LanguageClientConstants.ClientNamePropertyKey, "RazorCSharp");
-
-            // Create a text document to trigger the C# language server initialization.
-            _textDocumentFactory.CreateTextDocument(csharpBuffer, virtualCSharpFilePath);
-
-            csharpBuffer.ChangeContentType(CSharpLSPContentType, editTag: null);
-
-            virtualDocument = new CSharpVirtualDocument(virtualCSharpUri, csharpBuffer);
-            return true;
-        }
+        protected override string HostDocumentContentTypeName => RazorLSPConstants.RazorLSPContentTypeName;
+        protected override string LanguageContentTypeName => RazorLSPConstants.CSharpLSPContentTypeName;
+        protected override string LanguageFileNameSuffix => RazorLSPConstants.VirtualCSharpFileNameSuffix;
+        protected override IContentType ConvertToLSPContentType(IContentType registeredContentType) => new RemoteContentDefinitionType(registeredContentType);
+        protected override Dictionary<object, object> AdditionalLanguageBufferProperties => _additionalLanguageBufferProperties;
+        protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) =>
+            new CSharpVirtualDocument(uri, textBuffer);
 
         private class RemoteContentDefinitionType : IContentType
         {

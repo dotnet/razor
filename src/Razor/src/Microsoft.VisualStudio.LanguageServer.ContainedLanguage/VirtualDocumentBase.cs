@@ -71,5 +71,16 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         }
 
         protected abstract T GetUpdatedSnapshot();
+
+        public override void Dispose()
+        {
+            if (TextBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument textDocument))
+            {
+                TextBuffer.Properties.RemoveProperty(typeof(ITextDocument));
+                textDocument.Dispose();
+            }
+
+            TextBuffer.ChangeContentType(InertContentType.Instance, null);
+        }
     }
 }
