@@ -56,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Assert
             Assert.False(result);
             Assert.Null(virtualDocument);
+            virtualDocument.Dispose();
         }
 
         [Fact]
@@ -73,6 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.True(result);
             Assert.NotNull(virtualDocument);
             Assert.EndsWith(RazorLSPConstants.VirtualCSharpFileNameSuffix, virtualDocument.Uri.OriginalString, StringComparison.Ordinal);
+            virtualDocument.Dispose();
         }
     }
 }

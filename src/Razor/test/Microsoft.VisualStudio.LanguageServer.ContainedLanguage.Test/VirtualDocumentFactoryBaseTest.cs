@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test
             // Assert
             Assert.False(result);
             Assert.Null(virtualDocument);
+            virtualDocument.Dispose();
         }
 
         [Fact]
@@ -73,6 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test
             Assert.True(TestVirtualDocumentFactory.LanguageBufferPropertiesInstance.Keys.All(
                 (key) => virtualDocument.TextBuffer.Properties.TryGetProperty(key, out object value) && TestVirtualDocumentFactory.LanguageBufferPropertiesInstance[key] == value
                 ));
+            virtualDocument.Dispose();
         }
 
         private class TestVirtualDocumentFactory : VirtualDocumentFactoryBase

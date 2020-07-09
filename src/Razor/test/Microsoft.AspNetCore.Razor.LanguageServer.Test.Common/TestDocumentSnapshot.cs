@@ -33,6 +33,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 SourceText.From(text),
                 version,
                 () => Task.FromResult(TextAndVersion.Create(sourceText, version)));
+            testWorkspace.Dispose();
             var testDocument = new TestDocumentSnapshot(testProject, documentState);
 
             return testDocument;

@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 {
     internal class TestProjectSnapshot : DefaultProjectSnapshot
     {
-        public static TestProjectSnapshot Create(string filePath, ProjectWorkspaceState projectWorkspaceState = null) => Create(filePath, new string[0], projectWorkspaceState);
+        public static TestProjectSnapshot Create(string filePath, ProjectWorkspaceState projectWorkspaceState = null) => Create(filePath, Array.Empty<string>(), projectWorkspaceState);
 
         public static TestProjectSnapshot Create(string filePath, string[] documentFilePaths, ProjectWorkspaceState projectWorkspaceState = null) =>
             Create(filePath, documentFilePaths, RazorConfiguration.Default, projectWorkspaceState);
@@ -35,6 +35,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             var workspace = TestWorkspace.Create(hostServices);
             var hostProject = new HostProject(filePath, configuration, "TestRootNamespace");
             var state = ProjectState.Create(workspace.Services, hostProject);
+            workspace.Dispose();
             foreach (var documentFilePath in documentFilePaths)
             {
                 var hostDocument = new HostDocument(documentFilePath, documentFilePath);

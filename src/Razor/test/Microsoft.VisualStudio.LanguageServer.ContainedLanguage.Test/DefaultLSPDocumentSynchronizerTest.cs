@@ -146,6 +146,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Assert
             Assert.False(result1);
             Assert.True(result2);
+
+            cts.Dispose();
         }
 
         [Fact]
