@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class DefaultWorkspaceDirectoryResolverTest
+    public class DefaultWorkspaceDirectoryPathResolverTest
     {
         [Fact]
         public void Resolve_RootUriUnavailable_UsesRootPath()
@@ -21,13 +21,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 RootPath = expectedWorkspaceDirectory
             };
             var server = Mock.Of<ILanguageServer>(server => server.ClientSettings == clientSettings);
-            var workspaceDirectoryResolver = new DefaultWorkspaceDirectoryResolver(server);
+            var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server);
 
             // Act
-            var workspaceDirectory = workspaceDirectoryResolver.Resolve();
+            var workspaceDirectoryPath = workspaceDirectoryPathResolver.Resolve();
 
             // Assert
-            Assert.Equal(expectedWorkspaceDirectory, workspaceDirectory);
+            Assert.Equal(expectedWorkspaceDirectory, workspaceDirectoryPath);
         }
 
         [Fact]
@@ -41,13 +41,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 RootUri = new Uri(expectedWorkspaceDirectory),
             };
             var server = Mock.Of<ILanguageServer>(server => server.ClientSettings == clientSettings);
-            var workspaceDirectoryResolver = new DefaultWorkspaceDirectoryResolver(server);
+            var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server);
 
             // Act
-            var workspaceDirectory = workspaceDirectoryResolver.Resolve();
+            var workspaceDirectoryPath = workspaceDirectoryPathResolver.Resolve();
 
             // Assert
-            Assert.Equal(expectedWorkspaceDirectory, workspaceDirectory);
+            Assert.Equal(expectedWorkspaceDirectory, workspaceDirectoryPath);
         }
     }
 }

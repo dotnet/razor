@@ -10,18 +10,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorFileChangeDetectorManager : IDisposable
     {
-        private readonly WorkspaceDirectoryResolver _workspaceDirectoryResolver;
+        private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
         private readonly IEnumerable<IFileChangeDetector> _fileChangeDetectors;
         private readonly object _disposeLock = new object();
         private bool _disposed;
 
         public RazorFileChangeDetectorManager(
-            WorkspaceDirectoryResolver workspaceDirectoryResolver,
+            WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IFileChangeDetector> fileChangeDetectors)
         {
-            if (workspaceDirectoryResolver is null)
+            if (workspaceDirectoryPathResolver is null)
             {
-                throw new ArgumentNullException(nameof(workspaceDirectoryResolver));
+                throw new ArgumentNullException(nameof(workspaceDirectoryPathResolver));
             }
 
             if (fileChangeDetectors is null)
@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(fileChangeDetectors));
             }
 
-            _workspaceDirectoryResolver = workspaceDirectoryResolver;
+            _workspaceDirectoryPathResolver = workspaceDirectoryPathResolver;
             _fileChangeDetectors = fileChangeDetectors;
         }
 
@@ -37,13 +37,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Initialized request, this occurs once the server and client have agreed on what sort of features they both support. It only happens once.
 
-            var workspaceDirectory = _workspaceDirectoryResolver.Resolve();
+            var workspaceDirectoryPath = _workspaceDirectoryPathResolver.Resolve();
 
             foreach (var fileChangeDetector in _fileChangeDetectors)
             {
                 // We create a dummy cancellation token for now. Have an issue to pass through the cancellation token in the O# lib: https://github.com/OmniSharp/csharp-language-server-protocol/issues/200
                 var cancellationToken = CancellationToken.None;
-                await fileChangeDetector.StartAsync(workspaceDirectory, cancellationToken);
+                await fileChangeDetector.StartAsync(workspaceDirectoryPath, cancellationToken);
             }
 
             lock (_disposeLock)

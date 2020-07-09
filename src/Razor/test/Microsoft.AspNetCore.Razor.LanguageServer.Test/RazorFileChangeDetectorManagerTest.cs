@@ -31,8 +31,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             detector2.Setup(detector => detector.StartAsync(expectedWorkspaceDirectory, It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
-            var workspaceDirectoryResolver = new DefaultWorkspaceDirectoryResolver(languageServer);
-            var detectorManager = new RazorFileChangeDetectorManager(workspaceDirectoryResolver, new[] { detector1.Object, detector2.Object });
+            var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(languageServer);
+            var detectorManager = new RazorFileChangeDetectorManager(workspaceDirectoryPathResolver, new[] { detector1.Object, detector2.Object });
 
             // Act
             await detectorManager.InitializedAsync();
@@ -58,8 +58,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Returns(cts.Task);
             var stopCount = 0;
             detector.Setup(d => d.Stop()).Callback(() => stopCount++);
-            var workspaceDirectoryResolver = new DefaultWorkspaceDirectoryResolver(languageServer);
-            var detectorManager = new RazorFileChangeDetectorManager(workspaceDirectoryResolver, new[] { detector.Object });
+            var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(languageServer);
+            var detectorManager = new RazorFileChangeDetectorManager(workspaceDirectoryPathResolver, new[] { detector.Object });
 
             // Act
             var initializeTask = detectorManager.InitializedAsync();

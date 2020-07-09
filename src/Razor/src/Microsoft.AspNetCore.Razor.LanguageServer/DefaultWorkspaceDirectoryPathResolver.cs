@@ -6,11 +6,11 @@ using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServ
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class DefaultWorkspaceDirectoryResolver : WorkspaceDirectoryResolver
+    internal class DefaultWorkspaceDirectoryPathResolver : WorkspaceDirectoryPathResolver
     {
         private readonly ILanguageServer _languageServer;
 
-        public DefaultWorkspaceDirectoryResolver(ILanguageServer languageServer)
+        public DefaultWorkspaceDirectoryPathResolver(ILanguageServer languageServer)
         {
             if (languageServer is null)
             {
