@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public abstract void Set(string projectFilePath, string configurationFilePath);
 
-        public abstract bool TryGet(string projectFilePath, out string publishFilePath);
+        public abstract bool TryGet(string projectFilePath, out string configurationFilePath);
 
         public abstract void Remove(string projectFilePath);
     }

@@ -139,19 +139,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             lock (_publishLock)
             {
-                string publishFilePath = null;
+                string configurationFilePath = null;
                 try
                 {
-                    if (!_projectConfigurationFilePathStore.TryGet(projectSnapshot.FilePath, out publishFilePath))
+                    if (!_projectConfigurationFilePathStore.TryGet(projectSnapshot.FilePath, out configurationFilePath))
                     {
                         return;
                     }
 
-                    SerializeToFile(projectSnapshot, publishFilePath);
+                    SerializeToFile(projectSnapshot, configurationFilePath);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning($@"Could not update Razor project configuration file '{publishFilePath}':
+                    _logger.LogWarning($@"Could not update Razor project configuration file '{configurationFilePath}':
 {ex}");
                 }
             }
@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             lock (_publishLock)
             {
                 var oldProjectFilePath = projectSnapshot.FilePath;
-                if (!_projectConfigurationFilePathStore.TryGet(oldProjectFilePath, out var publishFilePath))
+                if (!_projectConfigurationFilePathStore.TryGet(oldProjectFilePath, out var configurationFilePath))
                 {
                     // If we don't track the value in PublishFilePathMappings that means it's already been removed, do nothing.
                     return;
