@@ -163,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         // Code actions
                         services.AddSingleton<RazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
                         services.AddSingleton<RazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
-                        services.AddSingleton<RazorCodeActionResolver, RefactorComponentCreateCodeActionResolver>();
+                        services.AddSingleton<RazorCodeActionResolver, CreateComponentCodeActionResolver>();
                     }));
 
             try

@@ -17,12 +17,12 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal class RefactorComponentCreateCodeActionResolver : RazorCodeActionResolver
+    internal class CreateComponentCodeActionResolver : RazorCodeActionResolver
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
 
-        public RefactorComponentCreateCodeActionResolver(
+        public CreateComponentCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver)
         {
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
-            var actionParams = data.ToObject<RefactorComponentCreateParams>();
+            var actionParams = data.ToObject<CreateComponentParams>();
             var path = actionParams.Uri.GetAbsoluteOrUNCPath();
 
             var document = await Task.Factory.StartNew(() =>
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var newComponentUri = new UriBuilder()
             {
                 Scheme = Uri.UriSchemeFile,
-                Path = actionParams.Where,
+                Path = actionParams.Path,
                 Host = string.Empty,
             }.Uri;
 
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var syntaxTree = codeDocument.GetSyntaxTree();
-            if (syntaxTree?.Root != null)
+            if (syntaxTree != null)
             {
                 var namespaceDirective = syntaxTree.Root.DescendantNodes()
                     .Where(n => n.Kind == SyntaxKind.RazorDirective)

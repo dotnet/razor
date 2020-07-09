@@ -5,10 +5,9 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal sealed class RefactorComponentCreateParams
+    internal sealed class CreateComponentParams
     {
         public Uri Uri { get; set; }
-        public string Name { get; set; }
-        public string Where { get; set;  }
+        public string Path { get; set;  }
     }
 }
