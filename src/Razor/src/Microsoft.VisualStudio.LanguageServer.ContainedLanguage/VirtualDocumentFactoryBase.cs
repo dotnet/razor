@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -7,11 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     internal abstract class VirtualDocumentFactoryBase : VirtualDocumentFactory
     {
-        private readonly IContentTypeRegistryService _contentTypeRegistry;
         private readonly ITextBufferFactoryService _textBufferFactory;
         private readonly ITextDocumentFactoryService _textDocumentFactory;
         private readonly FileUriProvider _fileUriProvider;
-        private IContentType _languageLSPContentType;
+
+        protected IContentTypeRegistryService ContentTypeRegistry { get; }
 
         public VirtualDocumentFactoryBase(
             IContentTypeRegistryService contentTypeRegistry,
@@ -39,25 +42,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 throw new ArgumentNullException(nameof(filePathProvider));
             }
 
-            _contentTypeRegistry = contentTypeRegistry;
+            ContentTypeRegistry = contentTypeRegistry;
+
             _textBufferFactory = textBufferFactory;
             _textDocumentFactory = textDocumentFactory;
             _fileUriProvider = filePathProvider;
         }
 
-        private IContentType LanguageLSPContentType
-        {
-            get
-            {
-                if (_languageLSPContentType == null)
-                {
-                    var contentType = _contentTypeRegistry.GetContentType(LanguageContentTypeName);
-                    _languageLSPContentType = ConvertToLSPContentType(contentType);
-                }
-
-                return _languageLSPContentType;
-            }
-        }
+        protected abstract IContentType LanguageLSPContentType { get; }
 
         /// <summary>
         /// Converts registered document content type to one that extends "code-languageserver-base" and
@@ -89,11 +81,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             var languageBuffer = _textBufferFactory.CreateTextBuffer();
             _fileUriProvider.AddOrUpdate(languageBuffer, virtualLanguageUri);
-            languageBuffer.Properties.AddProperty(LSPConstants.ContainedLanguageMarker, true);
 
-            if (!(AdditionalLanguageBufferProperties is null))
+            if (!(LanguageBufferProperties is null))
             {
-                foreach (KeyValuePair<object, object> keyValuePair in AdditionalLanguageBufferProperties)
+                foreach (var keyValuePair in LanguageBufferProperties)
                 {
                     languageBuffer.Properties.AddProperty(keyValuePair.Key, keyValuePair.Value);
                 }
@@ -117,11 +108,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         protected abstract VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer);
 
         /// <summary>
-        /// Returns contained language content type name that's registered with IContentTypeRegisteryService
-        /// </summary>
-        protected abstract string LanguageContentTypeName { get; }
-
-        /// <summary>
         /// Returns contained language uri suffix, e.g. __virtual.html or __virtual.css
         /// </summary>
         protected abstract string LanguageFileNameSuffix { get; }
@@ -129,10 +115,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         /// <summary>
         /// Returns additional properties (if any) to set on the language text buffer prior to language server init
         /// </summary>
-        protected virtual Dictionary<object, object> AdditionalLanguageBufferProperties => null;
+        protected virtual IReadOnlyDictionary<object, object> LanguageBufferProperties => null;
 
         /// <summary>
-        /// Returns supported host document content type name (i.e. host document content type of the for which this factory can create virtual documents)
+        /// Returns supported host document content type name (i.e. host document content type for which this factory can create virtual documents)
         /// </summary>
         protected abstract string HostDocumentContentTypeName { get; }
     }

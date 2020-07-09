@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Utilities;
@@ -17,14 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public IEnumerable<IContentType> BaseTypes => Enumerable.Empty<IContentType>();
 
-        public bool IsOfType(string type)
-        {
-            if (string.Equals(type, TypeName, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            return false;
-        }
+        public bool IsOfType(string type) => string.Equals(type, TypeName, StringComparison.OrdinalIgnoreCase);
     }
 }

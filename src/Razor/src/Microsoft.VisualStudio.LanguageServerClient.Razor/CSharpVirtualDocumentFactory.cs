@@ -21,6 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             { LanguageClientConstants.ClientNamePropertyKey, "RazorCSharp" }
         };
 
+        private static IContentType _csharpLSPContentType;
+
         [ImportingConstructor]
         public CSharpVirtualDocumentFactory(
             IContentTypeRegistryService contentTypeRegistry,
@@ -31,13 +33,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
         }
 
+        protected override IContentType LanguageLSPContentType
+        {
+            get
+            {
+                if (_csharpLSPContentType == null)
+                {
+                    var contentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.CSharpLSPContentTypeName);
+                    _csharpLSPContentType = new RemoteContentDefinitionType(contentType);
+                }
+
+                return _csharpLSPContentType;
+            }
+        }
+
         protected override string HostDocumentContentTypeName => RazorLSPConstants.RazorLSPContentTypeName;
-        protected override string LanguageContentTypeName => RazorLSPConstants.CSharpLSPContentTypeName;
         protected override string LanguageFileNameSuffix => RazorLSPConstants.VirtualCSharpFileNameSuffix;
-        protected override IContentType ConvertToLSPContentType(IContentType registeredContentType) => new RemoteContentDefinitionType(registeredContentType);
-        protected override Dictionary<object, object> AdditionalLanguageBufferProperties => _additionalLanguageBufferProperties;
-        protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) =>
-            new CSharpVirtualDocument(uri, textBuffer);
+        protected override IReadOnlyDictionary<object, object> LanguageBufferProperties => _additionalLanguageBufferProperties;
+        protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) => new CSharpVirtualDocument(uri, textBuffer);
 
         private class RemoteContentDefinitionType : IContentType
         {

@@ -13,6 +13,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [Export(typeof(VirtualDocumentFactory))]
     internal class HtmlVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
+        private static IContentType _htmlLSPContentType;
+
         [ImportingConstructor]
         public HtmlVirtualDocumentFactory(
             IContentTypeRegistryService contentTypeRegistry,
@@ -23,8 +25,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
         }
 
+        protected override IContentType LanguageLSPContentType
+        {
+            get
+            {
+                if (_htmlLSPContentType == null)
+                {
+                    _htmlLSPContentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPContentTypeName);
+                }
+
+                return _htmlLSPContentType;
+            }
+        }
+
         protected override string HostDocumentContentTypeName => RazorLSPConstants.RazorLSPContentTypeName;
-        protected override string LanguageContentTypeName => RazorLSPConstants.HtmlLSPContentTypeName;
         protected override string LanguageFileNameSuffix => RazorLSPConstants.VirtualHtmlFileNameSuffix;
         protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) => new HtmlVirtualDocument(uri, textBuffer);
     }
