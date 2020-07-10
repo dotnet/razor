@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [Export(typeof(VirtualDocumentFactory))]
     internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
-        private static readonly Dictionary<object, object> _additionalLanguageBufferProperties = new Dictionary<object, object>
+        private static readonly IReadOnlyDictionary<object, object> _languageBufferProperties = new Dictionary<object, object>
         {
             { LanguageClientConstants.ClientNamePropertyKey, "RazorCSharp" }
         };
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
         }
 
-        protected override IContentType LanguageLSPContentType
+        protected override IContentType LanguageContentType
         {
             get
             {
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         protected override string HostDocumentContentTypeName => RazorLSPConstants.RazorLSPContentTypeName;
         protected override string LanguageFileNameSuffix => RazorLSPConstants.VirtualCSharpFileNameSuffix;
-        protected override IReadOnlyDictionary<object, object> LanguageBufferProperties => _additionalLanguageBufferProperties;
+        protected override IReadOnlyDictionary<object, object> LanguageBufferProperties => _languageBufferProperties;
         protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) => new CSharpVirtualDocument(uri, textBuffer);
 
         private class RemoteContentDefinitionType : IContentType

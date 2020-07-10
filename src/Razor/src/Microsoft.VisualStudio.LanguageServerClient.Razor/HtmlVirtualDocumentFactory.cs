@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
         }
 
-        protected override IContentType LanguageLSPContentType
+        protected override IContentType LanguageContentType
         {
             get
             {

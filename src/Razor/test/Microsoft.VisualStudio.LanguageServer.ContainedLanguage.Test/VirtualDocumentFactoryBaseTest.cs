@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -37,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test
         private ITextDocumentFactoryService TextDocumentFactoryService { get; }
 
         [Fact]
-        public void TryCreateFor_NonHostLSPBuffer_ReturnsFalse()
+        public void TryCreateFor_IncompatibleHostDocumentBuffer_ReturnsFalse()
         {
             // Arrange
             var uri = new Uri("C:/path/to/file.razor");
@@ -53,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test
         }
 
         [Fact]
-        public void TryCreateFor_HostLSPBuffer_ReturnsLanguageVirtualDocumentAndTrue()
+        public void TryCreateFor_ReturnsLanguageVirtualDocumentAndTrue()
         {
             // Arrange
             var uri = new Uri("C:/path/to/file.razor");
@@ -68,6 +70,36 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test
             Assert.NotNull(virtualDocument);
             Assert.EndsWith(TestVirtualDocumentFactory.LanguageFileNameSuffixConst, virtualDocument.Uri.OriginalString, StringComparison.Ordinal);
             Assert.Equal(TestVirtualDocumentFactory.LanguageLSPContentTypeInstance, virtualDocument.TextBuffer.ContentType);
+            Assert.True(TestVirtualDocumentFactory.LanguageBufferPropertiesInstance.Keys.All(
+                (key) => virtualDocument.TextBuffer.Properties.TryGetProperty(key, out object value) && TestVirtualDocumentFactory.LanguageBufferPropertiesInstance[key] == value
+                ));
+        }
+
+        private class TestVirtualDocumentFactory : VirtualDocumentFactoryBase
+        {
+            public const string HostDocumentContentTypeNameConst = "TestHostContentTypeName";
+            public const string LanguageContentTypeNameConst = "TestLanguageContentTypeName";
+            public const string LanguageFileNameSuffixConst = "__virtual.test";
+
+            public static IContentType LanguageLSPContentTypeInstance { get; } = new TestContentType(LanguageContentTypeNameConst);
+            public static Dictionary<object, object> LanguageBufferPropertiesInstance = new Dictionary<object, object>() { {"testKey", "testValue"} };
+
+            public TestVirtualDocumentFactory(
+                IContentTypeRegistryService contentTypeRegistryService,
+                ITextBufferFactoryService textBufferFactoryService,
+                ITextDocumentFactoryService textDocumentFactoryService,
+                FileUriProvider fileUriProvider
+                ) : base(contentTypeRegistryService, textBufferFactoryService, textDocumentFactoryService, fileUriProvider) { }
+
+            protected override IContentType LanguageContentType => LanguageLSPContentTypeInstance;
+
+            protected override string LanguageFileNameSuffix => LanguageFileNameSuffixConst;
+
+            protected override string HostDocumentContentTypeName => HostDocumentContentTypeNameConst;
+
+            protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) => new TestVirtualDocument(uri, textBuffer);
+
+            protected override IReadOnlyDictionary<object, object> LanguageBufferProperties => LanguageBufferPropertiesInstance;
         }
     }
 }

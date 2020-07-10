@@ -49,15 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             _fileUriProvider = filePathProvider;
         }
 
-        protected abstract IContentType LanguageLSPContentType { get; }
-
-        /// <summary>
-        /// Converts registered document content type to one that extends "code-languageserver-base" and
-        /// CodeRemoteContentDefinition.CodeRemoteContentTypeName if needed.
-        /// </summary>
-        /// <param name="contentType">Content type registered with IContentTypeRegistryService</param>
-        /// <returns>Corresponding LSP/remote content type</returns>
-        protected virtual IContentType ConvertToLSPContentType(IContentType contentType) => contentType;
+        protected abstract IContentType LanguageContentType { get; }
 
         public override bool TryCreateFor(ITextBuffer hostDocumentBuffer, out VirtualDocument virtualDocument)
         {
@@ -93,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Create a text document to trigger language server initialization for the contained language.
             _textDocumentFactory.CreateTextDocument(languageBuffer, virtualLanguageFilePath);
 
-            languageBuffer.ChangeContentType(LanguageLSPContentType, editTag: null);
+            languageBuffer.ChangeContentType(LanguageContentType, editTag: null);
 
             virtualDocument = CreateVirtualDocument(virtualLanguageUri, languageBuffer);
             return true;
