@@ -55,6 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
         public async Task<WorkspaceEdit> Handle(RenameParams request, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("asdf");
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
