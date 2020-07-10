@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
@@ -53,24 +55,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
         public async Task<WorkspaceEdit> Handle(RenameParams request, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("refactor handle");
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var document = await Task.Factory.StartNew(() =>
+            var documentSnapshot = await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
 
-            if (document is null)
+            if (documentSnapshot is null)
             {
                 return null;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 return null;
@@ -81,10 +82,75 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var sourceText = await document.GetTextAsync().ConfigureAwait(false);
-            var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
+            var originTagHelperBinding = await GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, request.Position).ConfigureAwait(false);
+            var documentChanges = new List<WorkspaceEditDocumentChange>();
+
+            AddEditsForCodeDocument(documentChanges, originTagHelperBinding, request.TextDocument.Uri, codeDocument, request.NewName);
+
+            return new WorkspaceEdit
+            {
+                DocumentChanges = documentChanges,
+            };
+        }
+
+        public void AddEditsForCodeDocument(List<WorkspaceEditDocumentChange> documentChanges, TagHelperBinding originTagHelperBinding, Uri uri, RazorCodeDocument codeDocument, string newName)
+        {
+            var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = uri };
+            foreach (var node in codeDocument.GetSyntaxTree().Root.Ancestors().Where(n => n.Kind == SyntaxKind.MarkupTagHelperElement))
+            {
+                if (node is MarkupTagHelperElementSyntax tagHelperElement && BindingsMatch(originTagHelperBinding, tagHelperElement.TagHelperInfo.BindingResult))
+                {
+                    documentChanges.Add(new WorkspaceEditDocumentChange(new TextDocumentEdit
+                    {
+                        TextDocument = documentIdentifier,
+                        Edits = CreateEditsForMarkupTagHelperElement(tagHelperElement, codeDocument, newName)
+                    }));
+                }
+            }
+        }
+
+        public List<TextEdit> CreateEditsForMarkupTagHelperElement(MarkupTagHelperElementSyntax element, RazorCodeDocument codeDocument, string newName)
+        {
+            var edits = new List<TextEdit>
+            {
+                new TextEdit()
+                {
+                    Range = element.StartTag.Name.GetRange(codeDocument.Source),
+                    NewText = newName,
+                },
+            };
+            if (element.EndTag != null)
+            {
+                edits.Add(new TextEdit()
+                {
+                    Range = element.EndTag.Name.GetRange(codeDocument.Source),
+                    NewText = newName,
+                });
+            }
+            return edits;
+        }
+
+        private static bool BindingsMatch(TagHelperBinding left, TagHelperBinding right)
+        {
+            foreach (var leftDescriptor in left.Descriptors)
+            {
+                foreach (var rightDescriptor in right.Descriptors)
+                {
+                    if (leftDescriptor.Equals(rightDescriptor))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, Position position)
+        {
+            var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+            var linePosition = new LinePosition((int)position.Line, (int)position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceLocation(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character);
+            var location = new SourceLocation(hostDocumentIndex, (int)position.Line, (int)position.Character);
 
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: string.Empty);
             var syntaxTree = codeDocument.GetSyntaxTree();
@@ -100,8 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            _logger.LogDebug($"refactor found {tagHelperElement.TagHelperInfo.TagName}");
-            return null;
+            return tagHelperElement.TagHelperInfo.BindingResult;
         }
 
         public void SetCapability(RenameCapability capability)

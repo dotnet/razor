@@ -63,18 +63,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             if (document is null)
             {
-                return null;
+                return new Range();
             }
 
             var codeDocument = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
-                return null;
+                return new Range();
             }
 
             if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
             {
-                return null;
+                return new Range();
             }
 
             var sourceText = await document.GetTextAsync().ConfigureAwait(false);
@@ -83,31 +83,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var location = new SourceLocation(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character);
 
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: string.Empty);
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            if (syntaxTree?.Root is null)
-            {
-                return null;
-            }
-
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = codeDocument.GetSyntaxTree().Root.LocateOwner(change);
             var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.MarkupTagHelperStartTag);
             if (node == null || !(node is MarkupTagHelperStartTagSyntax tagHelperStartTag))
             {
-                return null;
+                return new Range();
             }
 
             var start = codeDocument.Source.Lines.GetLocation(tagHelperStartTag.Name.Span.Start);
             var end = codeDocument.Source.Lines.GetLocation(tagHelperStartTag.Name.Span.End);
-            _logger.LogDebug($"refactoring {start} {end}");
 
             var range = new Range(
                 new Position(start.LineIndex + 1, start.CharacterIndex),
                 new Position(end.LineIndex + 1, end.CharacterIndex));
-            return new RangeOrPlaceholderRange(new PlaceholderRange
-            {
-                Range = range,
-                Placeholder = "This token cannot be renamed"
-            });
+            return new RangeOrPlaceholderRange(range);
         }
 
         public void SetCapability(RenameCapability capability)

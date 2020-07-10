@@ -91,7 +91,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<CodeActionEndpoint>()
                     .WithHandler<CodeActionResolutionEndpoint>()
                     .WithHandler<RazorComponentRenameEndpoint>()
-                    .WithHandler<RazorComponentPrepareRenameEndpoint>()
                     .WithServices(services =>
                     {
                         var filePathNormalizer = new FilePathNormalizer();
