@@ -79,7 +79,24 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             if (TextBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument textDocument))
             {
                 TextBuffer.Properties.RemoveProperty(typeof(ITextDocument));
-                textDocument.Dispose();
+
+                try
+                {
+                    textDocument.Dispose();
+                }
+                catch
+                {
+                    // Eat the exception for now while we are investigating an issue.
+                    // There is System.OperationCanceledException: 'Project unload has already occurred or begun.'
+                    // that gets thrown if Razor file is open when you are shutting down VS at
+                    // Microsoft.VisualStudio.ProjectSystem.ProjectAsynchronousTasksServiceBase.RegisterAsyncTask(Microsoft.VisualStudio.Threading.JoinableTask, Microsoft.VisualStudio.ProjectSystem.ProjectCriticalOperation, bool)
+                    // Microsoft.VisualStudio.ProjectSystem.VS.Implementation.CodeGenerators.GeneratorScheduler.ScheduleFileGeneration(Microsoft.VisualStudio.ProjectSystem.VS.Implementation.CodeGenerators.IGeneratorSchedulerRequest)
+                    // Microsoft.VisualStudio.ProjectSystem.VS.Implementation.CodeGenerators.SingleFileGeneratorsService.ScheduleRefreshGeneratedFile(string)
+                    // Microsoft.VisualStudio.ProjectSystem.VS.Implementation.CodeGenerators.SingleFileGeneratorsService.TextDocumentFactoryService_TextDocumentDisposed(object, Microsoft.VisualStudio.Text.TextDocumentEventArgs)
+                    // Microsoft.VisualStudio.Text.Implementation.TextDocumentFactoryService.RaiseTextDocumentDisposed(Microsoft.VisualStudio.Text.ITextDocument)
+                    // Microsoft.VisualStudio.Text.Implementation.TextDocument.Dispose()
+                    // Microsoft.VisualStudio.LanguageServer.ContainedLanguage.VirtualDocumentBase<T>.Dispose() in VirtualDocumentBase
+                }
             }
         }
     }
