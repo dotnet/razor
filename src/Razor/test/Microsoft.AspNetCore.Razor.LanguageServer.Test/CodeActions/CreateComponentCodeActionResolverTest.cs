@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(1, workspaceEdit.DocumentChanges.Count());
+            Assert.Single(workspaceEdit.DocumentChanges);
 
             var documentChanges = workspaceEdit.DocumentChanges.ToArray();
             var createFileChange = documentChanges[0];
