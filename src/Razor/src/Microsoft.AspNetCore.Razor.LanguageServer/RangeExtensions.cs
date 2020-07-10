@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Text;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
