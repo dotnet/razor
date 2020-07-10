@@ -13,11 +13,13 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
 using OmniSharp.Extensions.LanguageServer.Server;
 using StreamJsonRpc;
+using Task = System.Threading.Tasks.Task;
 using Trace = Microsoft.AspNetCore.Razor.LanguageServer.Trace;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -101,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _server = await RazorLanguageServer.CreateAsync(autoFlushingStream, autoFlushingStream, Trace.Verbose).ConfigureAwait(false);
 
             // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
-            _ = _server.InitializedAsync(token);
+            _server.InitializedAsync(token).FileAndForget("RazorLanguageServerClient_ActivateAsync");
 
             var connection = new Connection(clientStream, clientStream);
             return connection;

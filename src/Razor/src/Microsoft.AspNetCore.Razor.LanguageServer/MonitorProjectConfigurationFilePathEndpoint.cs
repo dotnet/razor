@@ -135,6 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 // Request was cancelled while starting the detector. Need to stop it so we don't leak.
                 entry.Detector.Stop();
+                return Unit.Value;
             }
 
             if (!_outputPathMonitors.ContainsKey(request.ProjectFilePath))
@@ -142,6 +143,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 // This can happen if there were multiple concurrent requests to "remove" and "update" file change detectors for the same project path.
                 // In that case we need to stop the detector to ensure we don't leak.
                 entry.Detector.Stop();
+                return Unit.Value;
             }
 
             lock (_disposeLock)
