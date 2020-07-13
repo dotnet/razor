@@ -13,26 +13,28 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
     {
         public static readonly TagHelperResolutionResultJsonConverter Instance = new TagHelperResolutionResultJsonConverter();
 
-        public override bool CanConvert(Type objectType)
-        {
-            return typeof(TagHelperResolutionResult).IsAssignableFrom(objectType);
-        }
+        public override bool CanConvert(Type objectType) => objectType == typeof(TagHelperResolutionResult);
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (reader.TokenType != JsonToken.StartObject || !reader.Read())
+            var descriptors = new List<TagHelperDescriptor>();
+            var descriptorConverter = TagHelperDescriptorJsonConverter.Instance;
+
+            // Verify expected object structure based on `WriteJson`
+            if (!reader.ReadTokenAndAdvance(JsonToken.StartObject, out _))
             {
                 return null;
             }
 
-            var descriptors = new List<TagHelperDescriptor>();
-            var descriptorConverter = TagHelperDescriptorJsonConverter.Instance;
+            // Ensure we can read the `Descriptors` property name
+            if (!reader.ReadTokenAndAdvance(JsonToken.PropertyName, out var propertyName) ||
+                propertyName.ToString() != nameof(TagHelperResolutionResult.Descriptors))
+            {
+                return null;
+            }
 
-            if (reader.TokenType != JsonToken.PropertyName ||
-                reader.Value.ToString() != nameof(TagHelperResolutionResult.Descriptors) ||
-                !reader.Read() ||
-                reader.TokenType != JsonToken.StartArray ||
-                !reader.Read())
+            // Ensure we're at the start of an array (of descriptors)
+            if (!reader.ReadTokenAndAdvance(JsonToken.StartArray, out _))
             {
                 return null;
             }
