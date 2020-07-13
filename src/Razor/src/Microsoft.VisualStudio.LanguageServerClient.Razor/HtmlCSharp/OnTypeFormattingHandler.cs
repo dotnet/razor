@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName)]
     internal class OnTypeFormattingHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
-        private static readonly IReadOnlyList<string> CSharpTriggerCharacters = new[] { "}", ";", "\n" };
+        private static readonly IReadOnlyList<string> CSharpTriggerCharacters = new[] { "}", ";" };
         private static readonly IReadOnlyList<string> HtmlTriggerCharacters = Array.Empty<string>();
         private static readonly IReadOnlyList<string> AllTriggerCharacters = CSharpTriggerCharacters.Concat(HtmlTriggerCharacters).ToArray();
 
@@ -91,6 +91,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 TextDocument = new TextDocumentIdentifier() { Uri = projectionResult.Uri }
             };
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var serverKind = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? LanguageServerKind.CSharp : LanguageServerKind.Html;
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
                 Methods.TextDocumentOnTypeFormattingName,
@@ -102,6 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 return null;
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var remappedEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(projectionResult.Uri, response, request.Options, cancellationToken).ConfigureAwait(false);
             return remappedEdits;
