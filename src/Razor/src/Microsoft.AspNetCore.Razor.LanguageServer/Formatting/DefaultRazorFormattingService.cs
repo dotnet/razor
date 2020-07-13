@@ -88,7 +88,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public override Task<TextEdit[]> ApplyFormattedEditsAsync(Uri uri, RazorCodeDocument codeDocument, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options)
         {
             var span = TextSpan.FromBounds(0, codeDocument.Source.Length);
-            var range = span.AsRange(codeDocument.GetSourceText());
+            var documentText = codeDocument.GetSourceText();
+            var range = span.AsRange(documentText);
             var formattingContext = FormattingContext.Create(uri, codeDocument, range, options);
 
             // TODO

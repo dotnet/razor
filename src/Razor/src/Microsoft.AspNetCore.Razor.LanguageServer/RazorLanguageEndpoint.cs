@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(documentMappingService));
             }
 
-            if (razorFormattingService is null)
+            if (razorFormattingService == null)
             {
                 throw new ArgumentNullException(nameof(razorFormattingService));
             }
@@ -167,8 +167,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     documentVersion = UndefinedDocumentVersion;
                 }
-
-                return documentSnapshot;
             }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
             if (request.Kind != RazorLanguageKind.CSharp)
@@ -211,7 +209,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            long documentVersion = -1;
+            long documentVersion = UndefinedDocumentVersion;
             DocumentSnapshot documentSnapshot = null;
             await Task.Factory.StartNew(() =>
             {
@@ -225,6 +223,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
+            if (codeDocument.IsUnsupported())
+            {
+                return new RazorMapToDocumentEditsResponse()
+                {
+                    TextEdits = Array.Empty<TextEdit>(),
+                    HostDocumentVersion = documentVersion
+                };
+            }
+
             if (request.ShouldFormat)
             {
                 var mappedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
@@ -251,8 +258,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             for (var i = 0; i < request.ProjectedTextEdits.Length; i++)
             {
                 var projectedRange = request.ProjectedTextEdits[i].Range;
-                if (codeDocument.IsUnsupported() ||
-                    !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
+                if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
                 {
                     // Can't map range. Discard this edit.
                     continue;
