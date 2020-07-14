@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 }
             }
 
-            throw new JsonSerializationException("Could not find string property '" + propertyName + "'.");
+            throw new JsonSerializationException($"Could not find string property '{propertyName}'.");
         }
 
         public static IReadOnlyList<T> ReadPropertyArray<T>(this JsonReader reader, JsonSerializer serializer, string expectedPropertyName)

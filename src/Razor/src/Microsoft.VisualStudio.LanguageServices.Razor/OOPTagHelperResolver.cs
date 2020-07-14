@@ -120,13 +120,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                     factory?.GetType().AssemblyQualifiedName,
                 };
 
-                var resolutionJObject = await remoteClient.TryRunRemoteAsync<TagHelperResolutionResult>(
+                var result = await remoteClient.TryRunRemoteAsync<TagHelperResolutionResult>(
                     "GetTagHelpersAsync",
                     workspaceProject.Solution,
                     args,
                     CancellationToken.None).ConfigureAwait(false);
 
-                return resolutionJObject.HasValue ? resolutionJObject.Value : null;
+                return result.HasValue ? result.Value : null;
             }
             catch (Exception ex)
             {

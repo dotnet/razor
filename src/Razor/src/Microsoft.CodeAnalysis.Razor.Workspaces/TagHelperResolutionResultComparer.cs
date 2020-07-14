@@ -15,6 +15,15 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public bool Equals(TagHelperResolutionResult x, TagHelperResolutionResult y)
         {
+            if (x is null && y is null)
+            {
+                return true;
+            }
+            else if (x is null ^ y is null)
+            {
+                return false;
+            }
+
             return x.Descriptors.SequenceEqual(y.Descriptors, TagHelperDescriptorComparer.Default) &&
                 x.Diagnostics.SequenceEqual(y.Diagnostics);
         }
