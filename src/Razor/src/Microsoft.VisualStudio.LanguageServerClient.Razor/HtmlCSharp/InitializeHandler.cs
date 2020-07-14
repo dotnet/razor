@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 CompletionProvider = new CompletionOptions()
                 {
-                    AllCommitCharacters = new[] { " ", ".", ";", ">", "=", "(", ")" },
+                    AllCommitCharacters = new[] { " ", ".", ";", ">", "=", "(", ")", "[", "]", "{", "}", "!" },
                     ResolveProvider = true,
                     TriggerCharacters = new[] { ".", "@", "<", "&", "\\", "/", "'", "\"", "=", ":", " " }
                 },
