@@ -24,15 +24,11 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly RazorDynamicFileInfoProvider _infoProvider;
-        private readonly DocumentDivergenceChecker _documentDivergenceChecker;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
 
         [ImportingConstructor]
-        public BackgroundDocumentGenerator(
-            ForegroundDispatcher foregroundDispatcher,
-            RazorDynamicFileInfoProvider infoProvider,
-            DocumentDivergenceChecker documentDivergenceChecker)
+        public BackgroundDocumentGenerator(ForegroundDispatcher foregroundDispatcher, RazorDynamicFileInfoProvider infoProvider)
         {
             if (foregroundDispatcher == null)
             {
@@ -44,14 +40,9 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(infoProvider));
             }
 
-            if (documentDivergenceChecker is null)
-            {
-                throw new ArgumentNullException(nameof(documentDivergenceChecker));
-            }
-
             _foregroundDispatcher = foregroundDispatcher;
             _infoProvider = infoProvider;
-            _documentDivergenceChecker = documentDivergenceChecker;
+
             _work = new Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>();
         }
 
@@ -309,6 +300,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     }
 
                 case ProjectChangeKind.DocumentAdded:
+                case ProjectChangeKind.DocumentChanged:
                     {
                         var project = e.Newer;
                         var document = project.GetDocument(e.DocumentFilePath);
@@ -317,32 +309,6 @@ namespace Microsoft.CodeAnalysis.Razor
                         foreach (var relatedDocument in project.GetRelatedDocuments(document))
                         {
                             Enqueue(project, relatedDocument);
-                        }
-
-                        break;
-                    }
-                case ProjectChangeKind.DocumentChanged:
-                    {
-                        var project = e.Newer;
-                        var newer = project.GetDocument(e.DocumentFilePath);
-
-                        Enqueue(project, newer);
-
-                        var older = e.Older.GetDocument(e.DocumentFilePath);
-                        var possibleDivergence = _documentDivergenceChecker.PossibleDivergence(older, newer);
-
-                        foreach (var relatedDocument in project.GetRelatedDocuments(newer))
-                        {
-                            if (_projectManager.IsDocumentOpen(relatedDocument.FilePath) || possibleDivergence)
-                            {
-                                // If the document is open we always want to re-parse it. This ensures that any visible code will always be "up-to-date".
-
-                                Enqueue(project, relatedDocument);
-                            }
-                            else
-                            {
-                                // Closed file without a possible divergence. Don't reparse to avoid notifying Roslyn with unneeded noise.
-                            }
                         }
 
                         break;

@@ -14,41 +14,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     public class RazorFileChangeDetectorManagerTest
     {
         [Fact]
-        public void ResolveWorkspaceDirectory_RootUriUnavailable_UsesRootPath()
-        {
-            // Arrange
-            var expectedWorkspaceDirectory = "/testpath";
-            var clientSettings = new InitializeParams()
-            {
-                RootPath = expectedWorkspaceDirectory
-            };
-
-            // Act
-            var workspaceDirectory = RazorFileChangeDetectorManager.ResolveWorkspaceDirectory(clientSettings);
-
-            // Assert
-            Assert.Equal(expectedWorkspaceDirectory, workspaceDirectory);
-        }
-
-        [Fact]
-        public void ResolveWorkspaceDirectory_RootUriPrefered()
-        {
-            // Arrange
-            var expectedWorkspaceDirectory = "\\\\testpath";
-            var clientSettings = new InitializeParams()
-            {
-                RootPath = "/somethingelse",
-                RootUri = new Uri(expectedWorkspaceDirectory),
-            };
-
-            // Act
-            var workspaceDirectory = RazorFileChangeDetectorManager.ResolveWorkspaceDirectory(clientSettings);
-
-            // Assert
-            Assert.Equal(expectedWorkspaceDirectory, workspaceDirectory);
-        }
-
-        [Fact]
         public async Task InitializedAsync_StartsFileChangeDetectors()
         {
             // Arrange
@@ -66,14 +31,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             detector2.Setup(detector => detector.StartAsync(expectedWorkspaceDirectory, It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
-            var detectorManager = new RazorFileChangeDetectorManager(new[] { detector1.Object, detector2.Object });
+            var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(languageServer);
+            var detectorManager = new RazorFileChangeDetectorManager(workspaceDirectoryPathResolver, new[] { detector1.Object, detector2.Object });
 
             // Act
-            await detectorManager.InitializedAsync(languageServer);
+            await detectorManager.InitializedAsync();
 
             // Assert
             detector1.VerifyAll();
             detector2.VerifyAll();
+        }
+
+        [Fact]
+        public async Task InitializedAsync_Disposed_ReStopsFileChangeDetectors()
+        {
+            // Arrange
+            var expectedWorkspaceDirectory = "\\\\testpath";
+            var clientSettings = new InitializeParams()
+            {
+                RootUri = new Uri(expectedWorkspaceDirectory),
+            };
+            var languageServer = Mock.Of<ILanguageServer>(server => server.ClientSettings == clientSettings);
+            var detector = new Mock<IFileChangeDetector>(MockBehavior.Strict);
+            var cts = new TaskCompletionSource<bool>();
+            detector.Setup(d => d.StartAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(cts.Task);
+            var stopCount = 0;
+            detector.Setup(d => d.Stop()).Callback(() => stopCount++);
+            var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(languageServer);
+            var detectorManager = new RazorFileChangeDetectorManager(workspaceDirectoryPathResolver, new[] { detector.Object });
+
+            // Act
+            var initializeTask = detectorManager.InitializedAsync();
+            detectorManager.Dispose();
+
+            // Unblock the detector start
+            cts.SetResult(true);
+            await initializeTask;
+
+            // Assert
+            Assert.Equal(2, stopCount);
         }
     }
 }

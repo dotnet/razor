@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private static readonly InitializeResult InitializeResult = new InitializeResult
         {
-            Capabilities = new ServerCapabilities
+            Capabilities = new VSServerCapabilities
             {
                 CompletionProvider = new CompletionOptions()
                 {
@@ -22,14 +22,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     ResolveProvider = true,
                     TriggerCharacters = new[] { ".", "@", "<", "&", "\\", "/", "'", "\"", "=", ":", " " }
                 },
-                DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions()
+                OnAutoInsertProvider = new DocumentOnAutoInsertOptions()
                 {
-                    FirstTriggerCharacter = ">",
-                    MoreTriggerCharacter = new[] { "=", "-" }
+                    TriggerCharacters = new[] { ">", "=", "-" }
                 },
                 HoverProvider = true,
                 DefinitionProvider = true,
                 DocumentHighlightProvider = true,
+                RenameProvider = true,
+                ReferencesProvider = true,
+                SemanticTokensOptions = new SemanticTokensOptions()
+                {
+                    RangeProvider = true,
+                    DocumentProvider = new SemanticTokensDocumentProviderOptions(){
+                        Edits = true,
+                    },
+                },
+                SignatureHelpProvider = new SignatureHelpOptions()
+                {
+                    TriggerCharacters = new[] { "(", "," }
+                },
+                ImplementationProvider = true,
             }
         };
 

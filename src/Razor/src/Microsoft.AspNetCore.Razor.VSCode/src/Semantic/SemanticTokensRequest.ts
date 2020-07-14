@@ -4,14 +4,13 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { LanguageKind } from '../RPC/LanguageKind';
+import { TextDocumentIdentifier } from 'vscode-languageclient';
 
 export class SemanticTokensRequest {
-    public readonly razorDocumentUri: string;
+    public readonly textDocument: TextDocumentIdentifier;
 
     constructor(
-        public readonly kind: LanguageKind,
         razorDocumentUri: vscode.Uri) {
-        this.razorDocumentUri = razorDocumentUri.toString();
+        this.textDocument = TextDocumentIdentifier.create(razorDocumentUri.toString());
     }
 }

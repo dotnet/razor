@@ -3,11 +3,10 @@
 
 using System;
 using System.Composition;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using System.Threading;
-using Microsoft.VisualStudio.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -76,6 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var serverKind = LanguageServerKind.CSharp;
             var textDocumentPositionParams = new TextDocumentPositionParams()
             {
@@ -97,40 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return result;
             }
 
-            var remappedLocations = new List<Location>();
-
-            foreach (var location in result)
-            {
-                if (!RazorLSPConventions.IsRazorCSharpFile(location.Uri))
-                {
-                    // This location doesn't point to a virtual cs file. No need to remap.
-                    remappedLocations.Add(location);
-                    continue;
-                }
-
-                var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(location.Uri);
-                var mappingResult = await _documentMappingProvider.MapToDocumentRangeAsync(
-                    projectionResult.LanguageKind,
-                    razorDocumentUri,
-                    location.Range,
-                    cancellationToken).ConfigureAwait(false);
-
-                if (mappingResult == null || mappingResult.HostDocumentVersion != documentSnapshot.Version)
-                {
-                    // Couldn't remap the location or the document changed in the meantime. Discard this location.
-                    continue;
-                }
-                
-                var remappedLocation = new Location()
-                {
-                    Uri = razorDocumentUri,
-                    Range = mappingResult.Range
-                };
-
-                remappedLocations.Add(remappedLocation);
-            }
-
-            return remappedLocations.ToArray();
+            var remappedLocations = await _documentMappingProvider.RemapLocationsAsync(result, cancellationToken).ConfigureAwait(false);
+            return remappedLocations;
         }
     }
 }

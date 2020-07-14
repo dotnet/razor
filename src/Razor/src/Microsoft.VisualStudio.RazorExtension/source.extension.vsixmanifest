@@ -23,6 +23,7 @@
   </Prerequisites>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.RazorExtension.Custom" Path="Microsoft.VisualStudio.RazorExtension.Custom.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="razorLanguageService.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="razorLanguageService64.servicehub.service.json" />
@@ -65,5 +66,7 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent"  Path="Microsoft.VisualStudio.LiveShare.Razor.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly"  Path="Microsoft.VisualStudio.LanguageServerClient.Razor.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent"  Path="Microsoft.VisualStudio.LanguageServerClient.Razor.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly"  Path="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent"  Path="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" />
   </Assets>
 </PackageManifest>

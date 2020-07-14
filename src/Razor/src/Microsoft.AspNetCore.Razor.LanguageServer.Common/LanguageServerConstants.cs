@@ -7,13 +7,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
     {
         public const string ProjectConfigurationFile = "project.razor.json";
 
-        public const string ExpectsCursorPlaceholderKey = "expectsCursorPlaceholder";
+        public const string RazorSemanticTokensEndpoint = "textDocument/semanticTokens";
 
-        public const string CursorPlaceholderString = "__placeholder__";
+        public const string RazorSemanticTokensEditEndpoint = "textDocument/semanticTokens/edits";
 
-        public const string RazorSemanticTokensEndpoint = "_ms_/textDocument/semanticTokens";
+        public const string RazorSemanticTokensRangeEndpoint = "textDocument/semanticTokens/range";
 
-        public const string RazorSemanticTokenLegendEndpoint = "_ms_/textDocument/semanticTokensLegend";
+        public const string RazorSemanticTokensLegendEndpoint = "_ms_/textDocument/semanticTokensLegend";
 
         public const string RazorRangeFormattingEndpoint = "razor/rangeFormatting";
 
@@ -23,6 +23,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorLanguageQueryEndpoint = "razor/languageQuery";
 
-        public const string RazorMapToDocumentRangeEndpoint = "razor/mapToDocumentRange";
+        public const string RazorMonitorProjectConfigurationFilePathEndpoint = "razor/monitorProjectConfigurationFilePath";
+
+        public const string RazorMapToDocumentRangesEndpoint = "razor/mapToDocumentRanges";
+
+        public const string SemanticTokensProviderName = "semanticTokensProvider";
+
+        public const string RazorCodeActionRunnerCommand = "razor/runCodeAction";
+
+        public const string RazorCodeActionResolutionEndpoint = "razor/resolveCodeAction";
+
+        public static class CodeActions
+        {
+            public const string ExtractToCodeBehindAction = "ExtractToCodeBehind";
+
+            public const string CreateComponentFromTag = "CreateComponentFromTag";
+        }
     }
 }

@@ -9,6 +9,7 @@ import { ExtensionContext } from 'vscode';
 import { BlazorDebugConfigurationProvider } from './BlazorDebug/BlazorDebugConfigurationProvider';
 import { CompositeCodeActionTranslator } from './CodeActions/CompositeRazorCodeActionTranslator';
 import { RazorCodeActionProvider } from './CodeActions/RazorCodeActionProvider';
+import { RazorCodeActionRunner } from './CodeActions/RazorCodeActionRunner';
 import { RazorFullyQualifiedCodeActionTranslator } from './CodeActions/RazorFullyQualifiedCodeActionTranslator';
 import { listenToConfigurationChanges } from './ConfigurationChangeListener';
 import { RazorCSharpFeature } from './CSharp/RazorCSharpFeature';
@@ -70,6 +71,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
         const localRegistrations: vscode.Disposable[] = [];
         const reportIssueCommand = new ReportIssueCommand(vscodeType, documentManager, logger);
         const razorFormattingFeature = new RazorFormattingFeature(languageServerClient, documentManager, logger);
+        const razorCodeActionRunner = new RazorCodeActionRunner(languageServerClient, logger);
 
         const onStartRegistration = languageServerClient.onStart(async () => {
             vscodeType.commands.executeCommand<void>('omnisharp.registerLanguageMiddleware', razorLanguageMiddleware);
@@ -134,6 +136,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
               logger);
             if (legend) {
                 localRegistrations.push(vscodeType.languages.registerDocumentSemanticTokensProvider(RazorLanguage.id, semanticTokenProvider, legend));
+                localRegistrations.push(vscodeType.languages.registerDocumentRangeSemanticTokensProvider(RazorLanguage.id, semanticTokenProvider, legend));
             }
 
             localRegistrations.push(
@@ -182,6 +185,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
             }
 
             razorFormattingFeature.register();
+            razorCodeActionRunner.register();
         });
 
         const onStopRegistration = languageServerClient.onStop(() => {

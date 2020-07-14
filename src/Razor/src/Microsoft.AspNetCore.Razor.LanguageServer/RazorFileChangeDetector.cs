@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             for (var i = 0; i < RazorFileExtensions.Count; i++)
             {
                 var extension = RazorFileExtensions[i];
-                var watcher = new FileSystemWatcher(workspaceDirectory, "*" + extension)
+                var watcher = new RazorFileSystemWatcher(workspaceDirectory, "*" + extension)
                 {
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
                     IncludeSubdirectories = true,
@@ -126,6 +126,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 _watchers.Add(watcher);
             }
+        }
+
+        public void Stop()
+        {
+            // We're relying on callers to synchronize start/stops so we don't need to ensure one happens before the other.
+
+            for (var i = 0; i < _watchers.Count; i++)
+            {
+                _watchers[i].Dispose();
+            }
+
+            _watchers.Clear();
         }
 
         // Protected virtual for testing

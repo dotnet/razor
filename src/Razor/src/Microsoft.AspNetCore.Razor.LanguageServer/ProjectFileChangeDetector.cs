@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Start listening for project file changes (added/removed/renamed).
 
-            _watcher = new FileSystemWatcher(workspaceDirectory, ProjectFileExtensionPattern)
+            _watcher = new RazorFileSystemWatcher(workspaceDirectory, ProjectFileExtensionPattern)
             {
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
                 IncludeSubdirectories = true,
@@ -102,6 +103,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
 
             _watcher.EnableRaisingEvents = true;
+        }
+
+        public void Stop()
+        {
+            // We're relying on callers to synchronize start/stops so we don't need to ensure one happens before the other.
+
+            _watcher?.Dispose();
+            _watcher = null;
         }
 
         // Protected virtual for testing

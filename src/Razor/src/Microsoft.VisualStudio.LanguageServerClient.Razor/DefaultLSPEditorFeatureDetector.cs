@@ -3,6 +3,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly ProjectHierarchyInspector _projectHierarchyInspector;
         private readonly Lazy<IVsUIShellOpenDocument> _vsUIShellOpenDocument;
         private readonly IVsFeatureFlags _featureFlags;
+        private bool? _featureFlagEnabled;
         private bool? _environmentFeatureEnabled;
         private bool? _isVSServer;
 
@@ -47,12 +49,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
         }
 
-        public override bool IsLSPEditorAvailable(string documentMoniker, IVsHierarchy hierarchy)
+        public override bool IsLSPEditorAvailable(string documentMoniker, object hierarchy)
         {
             if (documentMoniker == null)
             {
                 return false;
             }
+
+            var ivsHierarchy = hierarchy as IVsHierarchy;
 
             if (!IsLSPEditorFeatureEnabled())
             {
@@ -60,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return false;
             }
 
-            if (!ProjectSupportsRazorLSPEditor(documentMoniker, hierarchy))
+            if (!ProjectSupportsRazorLSPEditor(documentMoniker, ivsHierarchy))
             {
                 // Current project hierarchy doesn't support the LSP Razor editor
                 return false;
@@ -157,12 +161,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Private protected virtual for testing
         private protected virtual bool IsFeatureFlagEnabled()
         {
-            if (_featureFlags.IsFeatureEnabled(RazorLSPEditorFeatureFlag, defaultValue: false))
+            if (!_featureFlagEnabled.HasValue)
             {
-                return true;
+                _featureFlagEnabled = _featureFlags.IsFeatureEnabled(RazorLSPEditorFeatureFlag, defaultValue: false);
             }
 
-            return false;
+            return _featureFlagEnabled.Value;
         }
 
         // Private protected virtual for testing

@@ -5,8 +5,8 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -54,6 +54,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public async Task<Hover> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (clientCapabilities is null)
+            {
+                throw new ArgumentNullException(nameof(clientCapabilities));
+            }
+
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
                 return null;
@@ -66,6 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var serverKind = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? LanguageServerKind.CSharp : LanguageServerKind.Html;
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var textDocumentPositionParams = new TextDocumentPositionParams()
             {
@@ -87,9 +99,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var mappingResult = await _documentMappingProvider.MapToDocumentRangeAsync(projectionResult.LanguageKind, request.TextDocument.Uri, result.Range, cancellationToken).ConfigureAwait(false);
-
-            if (mappingResult == null)
+            var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(projectionResult.LanguageKind, request.TextDocument.Uri, new[] { result.Range }, cancellationToken).ConfigureAwait(false);
+            if (mappingResult == null || mappingResult.Ranges[0].IsUndefined())
             {
                 // Couldn't remap the edits properly. Returning hover at initial request position.
                 return new Hover
@@ -111,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return new Hover
             {
                 Contents = result.Contents,
-                Range = mappingResult.Range
+                Range = mappingResult.Ranges[0]
             };
         }
     }
