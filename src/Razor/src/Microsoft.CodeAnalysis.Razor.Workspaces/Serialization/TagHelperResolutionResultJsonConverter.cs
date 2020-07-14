@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Newtonsoft.Json;
 
@@ -11,66 +10,55 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 {
     internal class TagHelperResolutionResultJsonConverter : JsonConverter
     {
+        private readonly JsonSerializer _serializer;
         public static readonly TagHelperResolutionResultJsonConverter Instance = new TagHelperResolutionResultJsonConverter();
+
+        public TagHelperResolutionResultJsonConverter()
+        {
+            _serializer = new JsonSerializer();
+            _serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
+            _serializer.Converters.Add(RazorDiagnosticJsonConverter.Instance);
+        }
 
         public override bool CanConvert(Type objectType) => objectType == typeof(TagHelperResolutionResult);
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            var descriptors = new List<TagHelperDescriptor>();
-            var descriptorConverter = TagHelperDescriptorJsonConverter.Instance;
-
             // Verify expected object structure based on `WriteJson`
             if (!reader.ReadTokenAndAdvance(JsonToken.StartObject, out _))
             {
                 return null;
             }
 
-            // Ensure we can read the `Descriptors` property name
-            if (!reader.ReadTokenAndAdvance(JsonToken.PropertyName, out var propertyName) ||
-                propertyName.ToString() != nameof(TagHelperResolutionResult.Descriptors))
-            {
-                return null;
-            }
+            var descriptors = reader.ReadPropertyArray<TagHelperDescriptor>(_serializer, nameof(TagHelperResolutionResult.Descriptors));
+            var diagnostics = reader.ReadPropertyArray<RazorDiagnostic>(_serializer, nameof(TagHelperResolutionResult.Diagnostics));
 
-            // Ensure we're at the start of an array (of descriptors)
-            if (!reader.ReadTokenAndAdvance(JsonToken.StartArray, out _))
-            {
-                return null;
-            }
+            reader.ReadTokenAndAdvance(JsonToken.EndObject, out _);
 
-            do
-            {
-                var descriptor = descriptorConverter.ReadJson(reader, typeof(TagHelperDescriptor), existingValue: null, serializer) as TagHelperDescriptor;
-                descriptors.Add(descriptor);
-
-                if (reader.TokenType == JsonToken.EndObject)
-                {
-                    reader.Read();
-                }
-            } while (reader.TokenType != JsonToken.EndArray);
-
-            return new TagHelperResolutionResult(descriptors, Array.Empty<RazorDiagnostic>());
+            return new TagHelperResolutionResult(descriptors, diagnostics);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var result = (TagHelperResolutionResult)value;
-            var descriptorConverter = TagHelperDescriptorJsonConverter.Instance;
 
             writer.WriteStartObject();
 
-            writer.WritePropertyName(nameof(TagHelperResolutionResult.Descriptors));
-            writer.WriteStartArray();
-            foreach (var descriptor in result.Descriptors)
-            {
-                descriptorConverter.WriteJson(writer, descriptor, serializer);
-            }
-            writer.WriteEndArray();
-
-            // NOTE: This doesn't currently support razor diagnostics
+            WritePropertyArray(writer, result.Descriptors, nameof(TagHelperResolutionResult.Descriptors));
+            WritePropertyArray(writer, result.Diagnostics, nameof(TagHelperResolutionResult.Diagnostics));
 
             writer.WriteEndObject();
+        }
+
+        private void WritePropertyArray<T>(JsonWriter writer, IReadOnlyList<T> collection, string propertyName)
+        {
+            writer.WritePropertyName(propertyName);
+            writer.WriteStartArray();
+            foreach (var item in collection)
+            {
+                _serializer.Serialize(writer, item);
+            }
+            writer.WriteEndArray();
         }
     }
 }
