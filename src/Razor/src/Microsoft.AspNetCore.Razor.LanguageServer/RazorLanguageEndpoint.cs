@@ -218,8 +218,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     documentVersion = UndefinedDocumentVersion;
                 }
-
-                return documentSnapshot;
             }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
