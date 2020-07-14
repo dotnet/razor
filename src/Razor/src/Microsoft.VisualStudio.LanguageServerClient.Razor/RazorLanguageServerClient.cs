@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private RazorLanguageServer _server;
         private IDisposable _serverShutdownDisposable;
 
-        private const string RazorLSPLogLevel = "RAZOR_LSP_LOGLEVEL";
+        private const string RazorLSPLogLevel = "RAZOR_TRACE";
 
         [ImportingConstructor]
         public RazorLanguageServerClient(
@@ -116,6 +116,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private Trace GetVerbosity()
         {
             Trace result;
+
+            // Since you can't set an Environment variable in CodeSpaces we need to default that scenario to Verbose.
             if(IsVSServer())
             {
                 result = Trace.Verbose;
@@ -136,6 +138,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return result;
         }
 
+        /// <summary>
+        /// Returns true if the client is a CodeSpace instance.
+        /// </summary>
         protected virtual bool IsVSServer()
         {
             var shell = AsyncPackage.GetGlobalService(typeof(SVsShell)) as IVsShell;
