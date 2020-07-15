@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Trace result;
 
             // Since you can't set an Environment variable in CodeSpaces we need to default that scenario to Verbose.
-            if(IsVSServer())
+            if (IsVSServer())
             {
                 result = Trace.Verbose;
             }
