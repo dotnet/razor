@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             // Ensure we're at the start of an array
             if (!reader.ReadTokenAndAdvance(JsonToken.StartArray, out _))
             {
-                throw new JsonSerializationException($"Invalid array structure, missing StartArray token.");
+                throw new JsonSerializationException($"Invalid array structure, missing StartArray token. Got '{reader.TokenType}'.");
             }
 
             var results = new List<T>();
