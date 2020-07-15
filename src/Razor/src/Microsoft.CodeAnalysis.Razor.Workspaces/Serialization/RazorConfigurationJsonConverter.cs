@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -24,10 +25,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
-            var obj = JObject.Load(reader);
-            var configurationName = obj[nameof(RazorConfiguration.ConfigurationName)].Value<string>();
-            var languageVersion = obj[nameof(RazorConfiguration.LanguageVersion)].Value<string>();
-            var extensions = obj[nameof(RazorConfiguration.Extensions)].ToObject<RazorExtension[]>(serializer);
+            var configurationName = reader.ReadNextStringProperty(nameof(RazorConfiguration.ConfigurationName));
+            var languageVersion = reader.ReadNextStringProperty(nameof(RazorConfiguration.LanguageVersion));
+            var extensions = reader.ReadPropertyArray<RazorExtension>(serializer, nameof(RazorConfiguration.Extensions)).ToArray();
 
             return RazorConfiguration.Create(RazorLanguageVersion.Parse(languageVersion), configurationName, extensions);
         }
