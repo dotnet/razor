@@ -29,27 +29,6 @@ namespace Microsoft.AspNetCore.Razor.Performance
         public JsonSerializer Serializer { get; set; }
         private ProjectSnapshot ProjectSnapshot { get; }
 
-        [Benchmark(Description = "Razor ProjectSnapshot Roundtrip JObject Serialization")]
-        public void TagHelper_JObject_Serialization_RoundTrip()
-        {
-            var jobject = JObject.FromObject(ProjectSnapshot, Serializer);
-
-            MemoryStream originalStream;
-            using (originalStream = new MemoryStream())
-            using (var writer = new StreamWriter(originalStream, Encoding.UTF8, bufferSize: 4096))
-            {
-                Serializer.Serialize(writer, jobject);
-            }
-
-            ProjectSnapshotHandle deserializedResult;
-            var stream = new MemoryStream(originalStream.GetBuffer());
-            using (stream)
-            using (var reader = new JsonTextReader(new StreamReader(stream)))
-            {
-                deserializedResult = Serializer.Deserialize<ProjectSnapshotHandle>(reader);
-            }
-        }
-
         [Benchmark(Description = "Razor ProjectSnapshot Roundtrip JsonConverter Serialization")]
         public void TagHelper_JsonConvert_Serialization_RoundTrip()
         {
