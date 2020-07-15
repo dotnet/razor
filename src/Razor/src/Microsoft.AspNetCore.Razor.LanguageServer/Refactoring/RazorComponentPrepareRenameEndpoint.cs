@@ -93,8 +93,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var end = codeDocument.Source.Lines.GetLocation(tagHelperStartTag.Name.Span.End);
 
             var range = new Range(
-                new Position(start.LineIndex + 1, start.CharacterIndex),
-                new Position(end.LineIndex + 1, end.CharacterIndex));
+                new Position(start.LineIndex, start.CharacterIndex),
+                new Position(end.LineIndex, end.CharacterIndex));
+            _logger.LogDebug($"Providing range {range.Start.Line}.{range.Start.Character}:{range.End.Line}.{range.End.Character} for prepareRename");
             return new RangeOrPlaceholderRange(range);
         }
 

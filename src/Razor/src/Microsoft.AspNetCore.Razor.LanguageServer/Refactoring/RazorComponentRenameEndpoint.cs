@@ -48,14 +48,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         {
             return new RenameRegistrationOptions
             {
-                PrepareProvider = true,
+                PrepareProvider = false,
                 DocumentSelector = RazorDefaults.Selector,
             };
         }
 
         public async Task<WorkspaceEdit> Handle(RenameParams request, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("asdf");
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
@@ -72,11 +71,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
+            // RazorComponentSearchEngine.Execute()
+
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 return null;
             }
+
+            RazorComponentSearchEngine.Execute(documentSnapshot);
 
             if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
             {
@@ -97,7 +100,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         public void AddEditsForCodeDocument(List<WorkspaceEditDocumentChange> documentChanges, TagHelperBinding originTagHelperBinding, Uri uri, RazorCodeDocument codeDocument, string newName)
         {
             var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = uri };
-            foreach (var node in codeDocument.GetSyntaxTree().Root.Ancestors().Where(n => n.Kind == SyntaxKind.MarkupTagHelperElement))
+            foreach (var node in codeDocument.GetSyntaxTree().Root.DescendantNodes().Where(n => n.Kind == SyntaxKind.MarkupTagHelperElement))
             {
                 if (node is MarkupTagHelperElementSyntax tagHelperElement && BindingsMatch(originTagHelperBinding, tagHelperElement.TagHelperInfo.BindingResult))
                 {
