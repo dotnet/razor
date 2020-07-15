@@ -6,11 +6,9 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 {
-    [JsonConverter(typeof(ProjectSnapshotHandleJsonConverter))]
     internal class ProjectSnapshotHandleJsonConverter : JsonConverter
     {
         public static readonly ProjectSnapshotHandleJsonConverter Instance = new ProjectSnapshotHandleJsonConverter();
