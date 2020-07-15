@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                                 // Non-marker spans do not own the edges after it unless they're whitespace sensitive. For instance:
                                 //      <p>@DateTi|</p>
                                 // The above example is whitespace sensitive because adding any sort of whitespace at that location will result in a different langauge experience.
-                                // At its core this check is semi-hacky because we're assuming that if something breaks down when whitespace is inserted that the edge should belong
+                                // At its core this check is semi-hacky because we're assuming that if something breaks down when whitespace is inserted then the edge should belong
                                 // to the left-hand-side. In practice, Razor almost always has this assumption.
                                 continue;
                             }
