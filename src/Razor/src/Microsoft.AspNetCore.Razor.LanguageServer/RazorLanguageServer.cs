@@ -179,6 +179,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
                         services.AddSingleton<RazorCodeActionResolver, CreateComponentCodeActionResolver>();
 
+                        // Refactoring
+                        services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
+
                         // Other
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();
