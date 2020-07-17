@@ -25,6 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
+        private readonly RazorComponentSearchEngine _componentSearchEngine;
         private readonly ILogger _logger;
 
         private RenameCapability _capability;
@@ -32,6 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         public RazorComponentRenameEndpoint(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
+            RazorComponentSearchEngine componentSearchEngine,
             ILoggerFactory loggerFactory)
         {
             if (loggerFactory is null)
@@ -41,6 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
             _logger = loggerFactory.CreateLogger<RazorComponentRenameEndpoint>();
         }
 
@@ -71,15 +74,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            // RazorComponentSearchEngine.Execute()
-
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 return null;
             }
-
-            RazorComponentSearchEngine.Execute(documentSnapshot);
 
             if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
             {
@@ -87,6 +86,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             var originTagHelperBinding = await GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, request.Position).ConfigureAwait(false);
+            var originTagDescriptor = originTagHelperBinding.Descriptors.First();
+
+            _logger.LogDebug($"rename: {originTagHelperBinding.TagName}, {originTagDescriptor.Name}");
+            var result = await _componentSearchEngine.TryLocateComponent(documentSnapshot.Project, originTagHelperBinding.TagName, originTagDescriptor.Name, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug($"rename: {result}");
+
             var documentChanges = new List<WorkspaceEditDocumentChange>();
 
             AddEditsForCodeDocument(documentChanges, originTagHelperBinding, request.TextDocument.Uri, codeDocument, request.NewName);
