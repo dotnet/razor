@@ -215,11 +215,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (referenceText is string text)
             {
-                if (text.Contains(codeBehindObjectPrefix))
+                if (text.StartsWith(codeBehindObjectPrefix))
                 {
                     return text
-                        .Replace(codeBehindObjectPrefix, string.Empty)
-                        .TrimEnd(';');
+                        .Substring(codeBehindObjectPrefix.Length, text.Length - codeBehindObjectPrefix.Length - 1); // -1 for trailing `;`
                 }
 
                 return text.Replace(codeBehindBackingFieldSuffix, string.Empty);
