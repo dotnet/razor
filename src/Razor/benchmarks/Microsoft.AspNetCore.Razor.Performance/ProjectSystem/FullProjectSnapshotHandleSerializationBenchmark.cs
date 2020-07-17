@@ -39,35 +39,6 @@ namespace Microsoft.AspNetCore.Razor.Performance
             Serializer.Converters.Add(FullProjectSnapshotHandleJsonConverter.Instance);
         }
 
-        [Benchmark(Description = "Razor FullProjectSnapshotHandle Roundtrip JObject Serialization")]
-        public void TagHelper_JObject_Serialization_RoundTrip()
-        {
-            var stream = new MemoryStream(FullProjectSnapshotBuffer);
-            Reader = new JsonTextReader(new StreamReader(stream));
-
-            var obj = JObject.Load(Reader);
-
-            // We need to add a serialization format to the project response to indicate that this version of the code is compatible with what's being serialized.
-            // This scenario typically happens when a user has an incompatible serialized project snapshot but is using the latest Razor bits.
-
-            obj.TryGetValue("SerializationFormat", out var serializationFormatToken);
-            var serializationFormat = serializationFormatToken.Value<string>();
-
-            var filePath = obj[nameof(FullProjectSnapshotHandle.FilePath)].Value<string>();
-            var configuration = obj[nameof(FullProjectSnapshotHandle.Configuration)].ToObject<RazorConfiguration>(Serializer);
-            var rootNamespace = obj[nameof(FullProjectSnapshotHandle.RootNamespace)].ToObject<string>(Serializer);
-            var projectWorkspaceState = obj[nameof(FullProjectSnapshotHandle.ProjectWorkspaceState)].ToObject<ProjectWorkspaceState>(Serializer);
-            var documents = obj[nameof(FullProjectSnapshotHandle.Documents)].ToObject<DocumentSnapshotHandle[]>(Serializer);
-
-            var res = new FullProjectSnapshotHandle(filePath, configuration, rootNamespace, projectWorkspaceState, documents);
-
-            if (res.FilePath != ExpectedFilePath ||
-                res.ProjectWorkspaceState.TagHelpers.Count != ExpectedTagHelperCount)
-            {
-                throw new InvalidDataException();
-            }
-        }
-
         [Benchmark(Description = "Razor ProjectSnapshotHandle Roundtrip JsonConverter Serialization")]
         public void TagHelper_JsonConvert_Serialization_RoundTrip()
         {
