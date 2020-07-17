@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
@@ -195,10 +197,52 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 referenceItem.DisplayPath = razorDocumentUri.AbsolutePath;
                 referenceItem.Location.Range = mappingResult.Ranges[0];
 
+                // Temporary fix for codebehind leaking through
+                // Revert when https://github.com/dotnet/aspnetcore/issues/22512 is resolved
+                referenceItem.DefinitionText = FilterReferenceDisplayText(referenceItem.DefinitionText);
+                referenceItem.Text = FilterReferenceDisplayText(referenceItem.Text);
+
                 remappedLocations.Add(referenceItem);
             }
 
             return remappedLocations.ToArray();
+        }
+
+        private object FilterReferenceDisplayText(object referenceText)
+        {
+            if (referenceText is string text)
+            {
+                return text
+                    .Replace("__o = ", string.Empty)
+                    .Replace("k__BackingField", string.Empty);
+            }
+
+            if (referenceText is ClassifiedTextElement textElement &&
+                FilterReferenceClassifiedRuns(textElement.Runs))
+            {
+                return new ClassifiedTextElement(textElement.Runs.Skip(4));
+            }
+
+            return referenceText;
+        }
+
+        private bool FilterReferenceClassifiedRuns(IEnumerable<ClassifiedTextRun> runs)
+        {
+            if (runs.Count() < 5)
+            {
+                return false;
+            }
+
+            return VerifyRunMatches(runs.ElementAt(0), "field name", "__o") &&
+                VerifyRunMatches(runs.ElementAt(1), "text", " ") &&
+                VerifyRunMatches(runs.ElementAt(2), "operator", "=") &&
+                VerifyRunMatches(runs.ElementAt(3), "text", " ");
+
+            static bool VerifyRunMatches(ClassifiedTextRun run, string expectedClassificationType, string expectedText)
+            {
+                return run.ClassificationTypeName == expectedClassificationType &&
+                    run.Text == expectedText;
+            }
         }
 
         // Temporary while the PartialResultToken serialization fix is in
