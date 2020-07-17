@@ -210,17 +210,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private object FilterReferenceDisplayText(object referenceText)
         {
+            const string codeBehindObjectPrefix = "__o = ";
+            const string codeBehindBackingFieldSuffix = "k__BackingField";
+
             if (referenceText is string text)
             {
-                return text
-                    .Replace("__o = ", string.Empty)
-                    .Replace("k__BackingField", string.Empty);
+                if (text.Contains(codeBehindObjectPrefix))
+                {
+                    return text
+                        .Replace(codeBehindObjectPrefix, string.Empty)
+                        .TrimEnd(';');
+                }
+
+                return text.Replace(codeBehindBackingFieldSuffix, string.Empty);
             }
 
             if (referenceText is ClassifiedTextElement textElement &&
                 FilterReferenceClassifiedRuns(textElement.Runs))
             {
-                return new ClassifiedTextElement(textElement.Runs.Skip(4));
+                var filteredRuns = textElement.Runs.Skip(4); // `__o`, ` `, `=`, ` `
+                filteredRuns = filteredRuns.Take(filteredRuns.Count() - 1); // Trailing `;`
+                return new ClassifiedTextElement(filteredRuns);
             }
 
             return referenceText;
@@ -236,7 +246,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return VerifyRunMatches(runs.ElementAt(0), "field name", "__o") &&
                 VerifyRunMatches(runs.ElementAt(1), "text", " ") &&
                 VerifyRunMatches(runs.ElementAt(2), "operator", "=") &&
-                VerifyRunMatches(runs.ElementAt(3), "text", " ");
+                VerifyRunMatches(runs.ElementAt(3), "text", " ") &&
+                VerifyRunMatches(runs.Last(), "punctuation", ";");
 
             static bool VerifyRunMatches(ClassifiedTextRun run, string expectedClassificationType, string expectedText)
             {

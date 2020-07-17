@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Uri = new Uri("C:/path/to/file.razor");
 
             // Long timeout after last notification to avoid triggering even in slow CI environments
-            TestWaitForProgressNotificationTimeout = TimeSpan.FromSeconds(3);
+            TestWaitForProgressNotificationTimeout = TimeSpan.FromSeconds(30);
         }
 
         private Uri Uri { get; }
@@ -295,7 +295,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Theory]
-        [InlineData("__o = food", "food")]
+        [InlineData("__o = food;", "food")]
         [InlineData("string Todo.<Title>k__BackingField", "string Todo.<Title>")]
         public async Task HandleRequestAsync_CSharpProjection_FiltersReferenceText(string rawText, string filteredText)
         {
@@ -374,6 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 new ClassifiedTextRun("operator", "="),
                 new ClassifiedTextRun("text", " "),
                 new ClassifiedTextRun("text", "counter"),
+                new ClassifiedTextRun("punctuation", ";"),
             });
             var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
             var csharpLocation = GetReferenceItem(100, 100, 100, 100, virtualCSharpUri, text: virtualClassifiedRun);
