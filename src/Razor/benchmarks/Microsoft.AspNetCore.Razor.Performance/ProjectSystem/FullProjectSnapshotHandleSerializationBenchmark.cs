@@ -15,6 +15,7 @@ namespace Microsoft.AspNetCore.Razor.Performance
 {
     public class FullProjectSnapshotHandleSerializationBenchmark
     {
+        // Hardcoded expectations from `ProjectSystem\project.razor.json`
         private static readonly string ExpectedFilePath = "C:\\Users\\admin\\location\\blazorserver\\blazorserver.csproj";
         private static readonly int ExpectedTagHelperCount = 228;
 
