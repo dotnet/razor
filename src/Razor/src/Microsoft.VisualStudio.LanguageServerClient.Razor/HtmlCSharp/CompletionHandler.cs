@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // This is a bit fraught. Basically in the scenario That someone types "@<slight pause>{" they'll get @__builder because '{' is a commit character.
             // Our solution is to make the results in this case empty, which is a bit of a lie.
             // It's the best we can do for now, if a user complains we can revisit.
-            if (result.HasValue && request.Context.TriggerCharacter.Equals("@"))
+            if (result.HasValue && request.Context.TriggerCharacter != null && request.Context.TriggerCharacter.Equals("@"))
             {
                 if (result.Value.Value is CompletionItem[] items)
                 {
