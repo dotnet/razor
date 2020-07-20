@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 else
                 {
                     var list = result.Value.Value as CompletionList;
-                    foreach (var item in list.Items)
+                    foreach (var item in list?.Items)
                     {
                         item.InsertText = string.Empty;
                     }
