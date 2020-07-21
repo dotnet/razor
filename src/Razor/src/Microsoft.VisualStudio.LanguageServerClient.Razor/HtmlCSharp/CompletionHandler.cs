@@ -128,21 +128,29 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // It's the best we can do for now, if a user complains we can revisit.
             if (result.HasValue && request.Context.TriggerCharacter != null && request.Context.TriggerCharacter.Equals("@"))
             {
-                if (result.Value.Value is CompletionItem[] items)
-                {
-                    foreach (var item in items)
+                var items = result.Value.Match(
+                    itemArray => itemArray,
+                    list =>
                     {
-                        item.InsertText = string.Empty;
+                        list.IsIncomplete = true;
+                        return list?.Items;
+                    });
+
+                foreach(var item in items)
+                {
+                    if (item.CommitCharacters != null)
+                    {
+                        item.CommitCharacters = item.CommitCharacters.Where(c => !c.Equals("{", StringComparison.Ordinal)).ToArray();
                     }
                 }
-                else
+
+                var list = new CompletionList
                 {
-                    var list = result.Value.Value as CompletionList;
-                    foreach (var item in list?.Items)
-                    {
-                        item.InsertText = string.Empty;
-                    }
-                }
+                    IsIncomplete = true,
+                    Items = items,
+                };
+
+                return items;
             }
 
             return result;
