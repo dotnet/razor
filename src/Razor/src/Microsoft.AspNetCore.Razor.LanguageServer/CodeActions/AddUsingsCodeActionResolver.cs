@@ -126,7 +126,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     continue;
                 }
 
+#pragma warning disable CA1307 // Specify StringComparison
                 if (newUsingNamespace.CompareTo(usingDirectiveNamespace) < 0)
+#pragma warning restore CA1307 // Specify StringComparison
                 {
                     var usingDirectiveLineIndex = codeDocument.Source.Lines.GetLocation(usingDirective.Node.Span.Start).LineIndex;
                     var head = new Position(usingDirectiveLineIndex, 0);
