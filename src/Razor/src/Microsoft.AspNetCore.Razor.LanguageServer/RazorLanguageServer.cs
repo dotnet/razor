@@ -179,15 +179,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
                         services.AddSingleton<RazorCodeActionResolver, CreateComponentCodeActionResolver>();
 
-                        // Refactoring
-                        services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
-
                         // Other
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
                         services.AddSingleton<WorkspaceDirectoryPathResolver, DefaultWorkspaceDirectoryPathResolver>();
+                        services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
                     }));
 
             try

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -13,11 +14,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManager _projectSnapshotManager;
 
-        public DefaultRazorComponentSearchEngine(ForegroundDispatcher dispatcher)
+        public DefaultRazorComponentSearchEngine(ProjectSnapshotManager projectSnapshotManager)
         {
-            _foregroundDispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+            _projectSnapshotManager = projectSnapshotManager ?? throw new ArgumentNullException(nameof(projectSnapshotManager));
         }
 
         /// <summary>Search for a component in a project based on its tag name and fully qualified name.</summary>
@@ -27,45 +28,51 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// component is present in has the same name as the assembly its corresponding tag helper is loaded from.
         /// Implicitly, this method inherits any assumptions made by TrySplitNamespaceAndType.
         /// </remarks>
-        /// <param name="project">A project to search for the component in.</param>
-        /// <param name="componentName">The name of the component.</param>
-        /// <param name="fullyQualifiedComponentName">The fully qualified name of the component.</param>
-        /// <param name="cancellationToken">A cancellation token, primarily for the document resolver.</param>
+        /// <param name="tagHelper">A TagHelperDescriptor to find the corresponding Razor component for.</param>
+        /// <param name="documentSnapshot">A document snapshot if found, null otherwise.</param>
         /// <returns>A tuple containing the document URI and related resources loaded during search.</returns>
-        public async override Task<Tuple<Uri, DocumentSnapshot, RazorCodeDocument>> TryLocateComponent(ProjectSnapshot project, string componentName, string fullyQualifiedComponentName, CancellationToken cancellationToken)
+        public override bool TryLocateComponent(TagHelperDescriptor tagHelper, out DocumentSnapshot documentSnapshot)
         {
-            foreach (var path in project.DocumentFilePaths)
+            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out _, out var typeSpan);
+            var typeName = tagHelper.Name.Substring(typeSpan.Start, typeSpan.Length);
+
+            foreach (var project in _projectSnapshotManager.Projects)
             {
-                // Rule out if not Razor component with correct name
-                if (!IsPathCandidateForComponent(path, componentName))
+                if (!project.FilePath.EndsWith($"{tagHelper.AssemblyName}.csproj", FilePathComparison.Instance))
                 {
                     continue;
                 }
 
-                // Get document and code document
-                var documentSnapshot = await Task.Factory.StartNew(() => project.GetDocument(path), cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
-                var razorCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-
-                // Make sure we have the right namespace of the fully qualified name
-                if (!ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, fullyQualifiedComponentName))
+                foreach (var path in project.DocumentFilePaths)
                 {
-                    continue;
+                    // Rule out if not Razor component with correct name
+                    if (!IsPathCandidateForComponent(path, typeName))
+                    {
+                        continue;
+                    }
+
+                    // Get document and code document
+                    documentSnapshot = project.GetDocument(path);
+                    if (!documentSnapshot.TryGetGeneratedOutput(out var razorCodeDocument))
+                    {
+                        continue;
+                    }
+
+                    // Make sure we have the right namespace of the fully qualified name
+                    if (!ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, tagHelper.Name))
+                    {
+                        continue;
+                    }
+                    return true;
                 }
-
-                var uri = new UriBuilder
-                {
-                    Scheme = "file",
-                    Path = path,
-                    Host = string.Empty,
-                }.Uri;
-                return Tuple.Create(uri, documentSnapshot, razorCodeDocument);
             }
-            return null;
+            documentSnapshot = null;
+            return false;
         }
 
         public static bool IsPathCandidateForComponent(string path, string componentName)
         {
-            return Path.GetFileName(path).Equals($"{componentName}.razor", StringComparison.Ordinal);
+            return path.EndsWith($"{componentName}.razor", FilePathComparison.Instance);
         }
 
         public static bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, string fullyQualifiedComponentName)
