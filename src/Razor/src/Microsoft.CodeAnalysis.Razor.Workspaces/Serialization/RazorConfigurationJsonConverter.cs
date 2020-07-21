@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
-            string version = string.Empty;
+            var major = string.Empty;
+            var minor = string.Empty;
 
             reader.ReadProperties(propertyName =>
             {
@@ -117,19 +118,19 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                     case "Major":
                         if (reader.Read())
                         {
-                            version = reader.Value.ToString();
+                            major = reader.Value.ToString();
                         }
                         break;
                     case "Minor":
                         if (reader.Read())
                         {
-                            version += $".{reader.Value}";
+                            minor = reader.Value.ToString();
                         }
                         break;
                 }
             });
 
-            return version;
+            return $"{major}.{minor}";
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
