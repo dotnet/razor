@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Newtonsoft.Json;
 
@@ -23,9 +24,39 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
-            var configurationName = reader.ReadNextStringProperty(nameof(RazorConfiguration.ConfigurationName));
-            var languageVersionValue = reader.ReadNextStringProperty(nameof(RazorConfiguration.LanguageVersion));
-            var extensions = reader.ReadPropertyArray<RazorExtension>(serializer, nameof(RazorConfiguration.Extensions));
+            string configurationName = null;
+            string languageVersionValue = null;
+            IReadOnlyList<RazorExtension> extensions = null;
+
+            reader.ReadProperties(propertyName =>
+            {
+                switch (propertyName)
+                {
+                    case nameof(RazorConfiguration.ConfigurationName):
+                        if (reader.Read())
+                        {
+                            configurationName = (string)reader.Value;
+                        }
+                        break;
+                    case nameof(RazorConfiguration.LanguageVersion):
+                        if (reader.Read())
+                        {
+                            languageVersionValue = reader.Value as string ??
+                                RazorLanguageVersionObjectJsonConverter.Instance.ReadJson(
+                                    reader,
+                                    objectType: null,
+                                    existingValue: null,
+                                    serializer) as string;
+                        }
+                        break;
+                    case nameof(RazorConfiguration.Extensions):
+                        if (reader.Read())
+                        {
+                            extensions = serializer.Deserialize<RazorExtension[]>(reader);
+                        }
+                        break;
+                }
+            });
 
             if (!RazorLanguageVersion.TryParse(languageVersionValue, out var languageVersion))
             {
@@ -58,6 +89,52 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             serializer.Serialize(writer, configuration.Extensions);
 
             writer.WriteEndObject();
+        }
+    }
+
+    internal class RazorLanguageVersionObjectJsonConverter : JsonConverter
+    {
+        public static readonly RazorLanguageVersionObjectJsonConverter Instance = new RazorLanguageVersionObjectJsonConverter();
+
+        public override bool CanConvert(Type objectType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            if (reader.TokenType != JsonToken.StartObject)
+            {
+                return null;
+            }
+
+            string version = string.Empty;
+
+            reader.ReadProperties(propertyName =>
+            {
+                switch (propertyName)
+                {
+                    case "Major":
+                        if (reader.Read())
+                        {
+                            version = reader.Value.ToString();
+                        }
+                        break;
+                    case "Minor":
+                        if (reader.Read())
+                        {
+                            version += $".{reader.Value}";
+                        }
+                        break;
+                }
+            });
+
+            return version;
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
         }
     }
 }
