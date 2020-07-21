@@ -132,16 +132,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     itemArray => itemArray,
                     list =>
                     {
-                        list.IsIncomplete = true;
                         return list?.Items;
                     });
 
                 foreach(var item in items)
                 {
-                    if (item.CommitCharacters != null)
-                    {
-                        item.CommitCharacters = item.CommitCharacters.Where(c => !c.Equals("{", StringComparison.Ordinal)).ToArray();
-                    }
+                    item.InsertText = string.Empty;
                 }
 
                 var list = new CompletionList
@@ -150,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Items = items,
                 };
 
-                return items;
+                return list;
             }
 
             return result;
