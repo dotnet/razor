@@ -90,52 +90,52 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
             writer.WriteEndObject();
         }
-    }
 
-    internal class RazorLanguageVersionObjectJsonConverter : JsonConverter
-    {
-        public static readonly RazorLanguageVersionObjectJsonConverter Instance = new RazorLanguageVersionObjectJsonConverter();
-
-        public override bool CanConvert(Type objectType)
+        private class RazorLanguageVersionObjectJsonConverter : JsonConverter
         {
-            throw new NotImplementedException();
-        }
+            public static readonly RazorLanguageVersionObjectJsonConverter Instance = new RazorLanguageVersionObjectJsonConverter();
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            if (reader.TokenType != JsonToken.StartObject)
+            public override bool CanConvert(Type objectType)
             {
-                return null;
+                throw new NotImplementedException();
             }
 
-            var major = string.Empty;
-            var minor = string.Empty;
-
-            reader.ReadProperties(propertyName =>
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
-                switch (propertyName)
+                if (reader.TokenType != JsonToken.StartObject)
                 {
-                    case "Major":
-                        if (reader.Read())
-                        {
-                            major = reader.Value.ToString();
-                        }
-                        break;
-                    case "Minor":
-                        if (reader.Read())
-                        {
-                            minor = reader.Value.ToString();
-                        }
-                        break;
+                    return null;
                 }
-            });
 
-            return $"{major}.{minor}";
-        }
+                var major = string.Empty;
+                var minor = string.Empty;
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            throw new NotImplementedException();
+                reader.ReadProperties(propertyName =>
+                {
+                    switch (propertyName)
+                    {
+                        case "Major":
+                            if (reader.Read())
+                            {
+                                major = reader.Value.ToString();
+                            }
+                            break;
+                        case "Minor":
+                            if (reader.Read())
+                            {
+                                minor = reader.Value.ToString();
+                            }
+                            break;
+                    }
+                });
+
+                return $"{major}.{minor}";
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
