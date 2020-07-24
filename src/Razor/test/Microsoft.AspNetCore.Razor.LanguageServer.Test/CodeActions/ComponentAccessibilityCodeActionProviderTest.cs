@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Language;
@@ -14,7 +15,6 @@ using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
-using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 {
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
         }
 
         [Fact]
-        public async Task Handle_OutsideComponent()
+        public async Task Handle_CursorOutsideComponent()
         {
             // Arrange
             var documentPath = "c:/Test.razor";
@@ -91,9 +91,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 
             // Assert
             Assert.Equal(3, commandOrCodeActionContainer.Count());
-            Assert.Equal("Create component from tag", commandOrCodeActionContainer.ElementAt(0).Command.Title) ;
-            Assert.Equal("@using Fully.Qualified", commandOrCodeActionContainer.ElementAt(1).Command.Title);
-            Assert.Equal("Fully.Qualified.Component", commandOrCodeActionContainer.ElementAt(2).CodeAction.Title);
+            Assert.Equal("@using Fully.Qualified", commandOrCodeActionContainer.ElementAt(0).Command.Title);
+            Assert.Equal("Fully.Qualified.Component", commandOrCodeActionContainer.ElementAt(1).CodeAction.Title);
+            Assert.Equal("Create component from tag", commandOrCodeActionContainer.ElementAt(2).Command.Title) ;
         }
 
         [Fact]
@@ -123,12 +123,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 
         private static RazorCodeActionContext CreateRazorCodeActionContext(CodeActionParams request, SourceLocation location, string filePath, string text, SourceSpan componentSourceSpan)
         {
-            var builder1 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.Component", "TestAssembly");
-            builder1.TagMatchingRule(rule => rule.TagName = "Component");
-            var builder2 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.Component", "TestAssembly");
-            builder2.TagMatchingRule(rule => rule.TagName = "Fully.Qualified.Component");
+            var shortComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.Component", "TestAssembly");
+            shortComponent.TagMatchingRule(rule => rule.TagName = "Component");
+            var fullyQualifiedComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.Component", "TestAssembly");
+            fullyQualifiedComponent.TagMatchingRule(rule => rule.TagName = "Fully.Qualified.Component");
 
-            var tagHelpers = new[] { builder1.Build(), builder2.Build() };
+            var tagHelpers = new[] { shortComponent.Build(), fullyQualifiedComponent.Build() };
 
             var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
             var projectEngine = RazorProjectEngine.Create(builder => {
@@ -151,4 +151,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
         }
     }
 }
-;

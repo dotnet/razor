@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -31,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
 
-        override public Task<CommandOrCodeActionContainer> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public override Task<CommandOrCodeActionContainer> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             var commandOrCodeActions = new List<CommandOrCodeAction>();
 
@@ -45,12 +46,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Find start tag
             var startTag = (MarkupStartTagSyntax)node.Ancestors().FirstOrDefault(n => n is MarkupStartTagSyntax);
-            if (startTag == null)
+            if (startTag is null)
             {
                 return Task.FromResult<CommandOrCodeActionContainer>(null);
             }
 
-            // Ignore if has dots, as we only handle short tags
+            // Ignore if start tag has dots, as we only handle short tags
             if (startTag.Name.Content.Contains("."))
             {
                 return Task.FromResult<CommandOrCodeActionContainer>(null);
@@ -58,8 +59,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             if (IsTagUnknown(startTag, context))
             {
-                AddCreateComponentFromTag(context, startTag, commandOrCodeActions);
                 AddComponentAccessFromTag(context, startTag, commandOrCodeActions);
+                AddCreateComponentFromTag(context, startTag, commandOrCodeActions);
             }
 
             return Task.FromResult(new CommandOrCodeActionContainer(commandOrCodeActions));
@@ -67,7 +68,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private void AddCreateComponentFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<CommandOrCodeAction> container)
         {
-            var path = _filePathNormalizer.Normalize(context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath());
+            var path = context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath();
+            path = _filePathNormalizer.Normalize(path);
             var newComponentPath = Path.Combine(Path.GetDirectoryName(path), $"{startTag.Name.Content}.razor");
             if (File.Exists(newComponentPath))
             {
@@ -92,49 +94,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             container.Add(new CommandOrCodeAction(new Command
             {
                 Title = "Create component from tag",
-                Name = "razor/runCodeAction",
+                Name = LanguageServerConstants.RazorCodeActionRunnerCommand,
                 Arguments = arguments,
             }));
         }
 
         private void AddComponentAccessFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<CommandOrCodeAction> container)
         {
-            // Get all data necessary for matching
-            var tagName = startTag.Name.Content;
-            string parentTagName = null;
-            if (startTag.Parent.Parent is MarkupElementSyntax parentElement)
-            {
-                parentTagName = parentElement.StartTag.Name.Content;
-            }
-            var attributes = _tagHelperFactsService.StringifyAttributes(startTag.Attributes);
-
-            // Find all matching tag helpers
-            var matching = new Dictionary<string, TagHelperPair>();
-            foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
-            {
-                if (tagHelper.TagMatchingRules.All(rule => TagHelperMatchingConventions.SatisfiesRule(tagName, parentTagName, attributes, rule)))
-                {
-                    matching.Add(tagHelper.Name, new TagHelperPair { Short = tagHelper });
-                }
-            }
-
-            // Iterate and find the fully qualified version
-            foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
-            {
-                if (matching.ContainsKey(tagHelper.Name))
-                {
-                    var tagHelperPair = matching[tagHelper.Name];
-                    if (tagHelperPair != null && tagHelper != tagHelperPair.Short)
-                    {
-                        tagHelperPair.FullyQualified = tagHelper;
-                    }
-                }
-            }
+            var matching = FindMatchingTagHelpers(context, startTag);
 
             // For all the matches, add options for add @using and fully qualify
             foreach (var tagHelperPair in matching.Values)
             {
-                DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelperPair.Short.Name, out var namespaceSpan, out var typeSpan);
+                if (tagHelperPair.FullyQualified is null)
+                {
+                    continue;
+                }
+
+                var fullyQualifiedComponentName = tagHelperPair.Short.Name;  // We assume .Name is the fully qualified component name
+                DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(fullyQualifiedComponentName, out var namespaceSpan, out var _);
                 var namespaceName = tagHelperPair.Short.Name.Substring(namespaceSpan.Start, namespaceSpan.Length);
                 var actionParams = new AddUsingsCodeActionParams
                 {
@@ -155,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 container.Add(new CommandOrCodeAction(new Command
                 {
                     Title = $"@using {namespaceName}",
-                    Name = "razor/runCodeAction",
+                    Name = LanguageServerConstants.RazorCodeActionRunnerCommand,
                     Arguments = arguments,
                 }));
 
@@ -168,6 +146,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
         }
 
+        private Dictionary<string, TagHelperPair> FindMatchingTagHelpers(RazorCodeActionContext context, MarkupStartTagSyntax startTag)
+        {
+            // Get all data necessary for matching
+            var tagName = startTag.Name.Content;
+            string parentTagName = null;
+            if (startTag.Parent?.Parent is MarkupElementSyntax parentElement)
+            {
+                parentTagName = parentElement.StartTag.Name.Content;
+            }
+            else if (startTag.Parent?.Parent is MarkupTagHelperElementSyntax parentTagHelperElement)
+            {
+                parentTagName = parentTagHelperElement.StartTag.Name.Content;
+            }
+            var attributes = _tagHelperFactsService.StringifyAttributes(startTag.Attributes);
+
+            // Find all matching tag helpers
+            var matching = new Dictionary<string, TagHelperPair>();
+            foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
+            {
+                if (tagHelper.TagMatchingRules.All(rule => TagHelperMatchingConventions.SatisfiesRule(tagName, parentTagName, attributes, rule)))
+                {
+                    matching.Add(tagHelper.Name, new TagHelperPair { Short = tagHelper });
+                }
+            }
+
+            // Iterate and find the fully qualified version
+            foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
+            {
+                if (matching.TryGetValue(tagHelper.Name, out var tagHelperPair))
+                {
+                    if (tagHelperPair != null && tagHelper != tagHelperPair.Short)
+                    {
+                        tagHelperPair.FullyQualified = tagHelper;
+                    }
+                }
+            }
+
+            return matching;
+        }
+
         private static WorkspaceEdit CreateRenameTagEdit(RazorCodeActionContext context, MarkupStartTagSyntax startTag, string newTagName)
         {
             var changes = new List<TextEdit>
@@ -178,7 +196,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     NewText = newTagName,
                 },
             };
-            var endTag = ((MarkupElementSyntax)startTag.Parent).EndTag;
+            var endTag = (startTag.Parent as MarkupElementSyntax).EndTag;
             if (endTag != null)
             {
                 changes.Add(new TextEdit
@@ -205,9 +223,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             foreach (var diagnostic in context.CodeDocument.GetCSharpDocument().Diagnostics)
             {
+                // Check that the diagnostic is to do with our start tag
                 if (!(diagnostic.Span.AbsoluteIndex > startTag.Span.End || startTag.Span.Start > diagnostic.Span.AbsoluteIndex + diagnostic.Span.Length))
                 {
-                    if (diagnostic.Id == "RZ10012")
+                    // Component is not recognized in environment
+                    if (diagnostic.Id == ComponentDiagnosticFactory.UnexpectedMarkupElement.Id)
                     {
                         return true;
                     }
