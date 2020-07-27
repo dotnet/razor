@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -36,8 +39,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return null;
             }
 
-            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out _, out var typeSpan);
-            var typeName = tagHelper.Name.Substring(typeSpan.Start, typeSpan.Length);
+            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var namespaceSpan, out var typeSpan);
+            var namespaceName = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.GetTextSpanContent(namespaceSpan, tagHelper.Name);
+            var typeName = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.GetTextSpanContent(typeSpan, tagHelper.Name);
 
             foreach (var project in _projectSnapshotManager.Projects)
             {
@@ -48,14 +52,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 foreach (var path in project.DocumentFilePaths)
                 {
+                    // Get document and code document
+                    var documentSnapshot = project.GetDocument(path);
+
                     // Rule out if not Razor component with correct name
-                    if (!IsPathCandidateForComponent(path, typeName))
+                    if (!IsPathCandidateForComponent(documentSnapshot, typeName))
                     {
                         continue;
                     }
 
-                    // Get document and code document
-                    var documentSnapshot = project.GetDocument(path);
                     var razorCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
                     if (razorCodeDocument is null)
                     {
@@ -63,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
 
                     // Make sure we have the right namespace of the fully qualified name
-                    if (!ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, tagHelper.Name))
+                    if (!ComponentNamespaceMatchesFullyQualifiedName(razorCodeDocument, namespaceName))
                     {
                         continue;
                     }
@@ -73,21 +78,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return null;
         }
 
-        public static bool IsPathCandidateForComponent(string path, string componentName)
+        public static bool IsPathCandidateForComponent(DocumentSnapshot documentSnapshot, string typeName)
         {
-            return path.EndsWith($"{componentName}.razor", FilePathComparison.Instance);
+            if (documentSnapshot.FileKind != FileKinds.Component)
+            {
+                return false;
+            }
+            var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
+            return fileName.Equals(typeName, FilePathComparison.Instance);
         }
 
-        public static bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, string fullyQualifiedComponentName)
+        public static bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, string namespaceName)
         {
             var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
                 .GetDocumentIntermediateNode()
                 .FindDescendantNodes<IntermediateNode>()
                 .First(n => n is NamespaceDeclarationIntermediateNode);
 
-            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(fullyQualifiedComponentName, out var namespaceNameSpan, out var typeNameSpan);
-            var namespaceName = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.GetTextSpanContent(namespaceNameSpan, fullyQualifiedComponentName);
-            return $"{namespaceNode.Content}".Equals(namespaceName, StringComparison.Ordinal);
+            return namespaceNode.Content.Equals(namespaceName, StringComparison.Ordinal);
         }
     }
 }

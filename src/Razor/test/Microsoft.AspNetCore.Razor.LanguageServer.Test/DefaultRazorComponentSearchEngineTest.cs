@@ -111,9 +111,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
                 .FirstOrDefault(n => n is NamespaceDeclarationIntermediateNode);
             namespaceNode.Content = rootNamespaceName;
 
-            var documentSnapshot = new Mock<DocumentSnapshot>();
-            documentSnapshot.Setup(d => d.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
-            return documentSnapshot.Object;
+            var documentSnapshot = Mock.Of<DocumentSnapshot>(d =>
+                d.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
+                d.FilePath == filePath &&
+                d.FileKind == FileKinds.Component);
+            return documentSnapshot;
         }
     
         internal static ProjectSnapshotManager CreateProjectSnapshotManager()
