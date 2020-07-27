@@ -31,6 +31,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <returns>The corresponding DocumentSnapshot if found, null otherwise.</returns>
         public override async Task<DocumentSnapshot> TryLocateComponentAsync(TagHelperDescriptor tagHelper)
         {
+            if (tagHelper is null)
+            {
+                return null;
+            }
+
             DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out _, out var typeSpan);
             var typeName = tagHelper.Name.Substring(typeSpan.Start, typeSpan.Length);
 
@@ -78,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
                 .GetDocumentIntermediateNode()
                 .FindDescendantNodes<IntermediateNode>()
-                .FirstOrDefault(n => n is NamespaceDeclarationIntermediateNode);
+                .First(n => n is NamespaceDeclarationIntermediateNode);
 
             DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(fullyQualifiedComponentName, out var namespaceNameSpan, out var typeNameSpan);
             var namespaceName = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.GetTextSpanContent(namespaceNameSpan, fullyQualifiedComponentName);
