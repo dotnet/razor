@@ -160,15 +160,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                         EnqueuePublish(args.Newer);
                     }
                     break;
-                case OmniSharpProjectChangeKind.ProjectAdded:
-                    if (args.Newer.ProjectWorkspaceState != null)
-                    {
-                        Publish(args.Newer);
-                    }
-                    break;
                 case OmniSharpProjectChangeKind.ProjectRemoved:
                     RemovePublishingData(args.Older);
                     break;
+
+                // We don't care about ProjectAdded scenarios because a newly added project does not have a workspace state associated with it meaning
+                // it isn't interesting for us to serialize quite yet.
             }
         }
 
