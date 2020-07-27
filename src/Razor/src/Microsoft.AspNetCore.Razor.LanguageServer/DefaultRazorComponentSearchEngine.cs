@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor;
@@ -27,9 +28,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// Implicitly, this method inherits any assumptions made by TrySplitNamespaceAndType.
         /// </remarks>
         /// <param name="tagHelper">A TagHelperDescriptor to find the corresponding Razor component for.</param>
-        /// <param name="documentSnapshot">A document snapshot if found, null otherwise.</param>
-        /// <returns>A tuple containing the document URI and related resources loaded during search.</returns>
-        public override bool TryLocateComponent(TagHelperDescriptor tagHelper, out DocumentSnapshot documentSnapshot)
+        /// <returns>The corresponding DocumentSnapshot if found, null otherwise.</returns>
+        public override async Task<DocumentSnapshot> TryLocateComponentAsync(TagHelperDescriptor tagHelper)
         {
             DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out _, out var typeSpan);
             var typeName = tagHelper.Name.Substring(typeSpan.Start, typeSpan.Length);
@@ -50,8 +50,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
 
                     // Get document and code document
-                    documentSnapshot = project.GetDocument(path);
-                    if (!documentSnapshot.TryGetGeneratedOutput(out var razorCodeDocument))
+                    var documentSnapshot = project.GetDocument(path);
+                    var razorCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+                    if (razorCodeDocument is null)
                     {
                         continue;
                     }
@@ -61,11 +62,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     {
                         continue;
                     }
-                    return true;
+                    return documentSnapshot;
                 }
             }
-            documentSnapshot = null;
-            return false;
+            return null;
         }
 
         public static bool IsPathCandidateForComponent(string path, string componentName)

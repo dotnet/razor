@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -12,44 +13,79 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Refactoring
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
     public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
     {
         private static ProjectSnapshotManager _projectSnapshotManager = CreateProjectSnapshotManager();
         private static readonly DefaultRazorComponentSearchEngine _searchEngine = new DefaultRazorComponentSearchEngine(_projectSnapshotManager);
 
-        [Theory]
-        [InlineData("First", "First.Components", "Component1")]
-        [InlineData("First", "Test", "Component2")]
-        [InlineData("Second", "Second.Components", "Component3")]
-        public void Handle_SearchBasic(string assemblyName, string namespaceName, string tagName)
+        [Fact]
+        public async void Handle_SearchFound()
         {
             // Arrange
-            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor(assemblyName, namespaceName, tagName);
+            var tagHelperDescriptor1 = CreateRazorComponentTagHelperDescriptor("First", "First.Components", "Component1");
+            var tagHelperDescriptor2 = CreateRazorComponentTagHelperDescriptor("Second", "Second.Components", "Component3");
 
             // Act
-            var found = _searchEngine.TryLocateComponent(tagHelperDescriptor, out var documentSnapshot);
+            var documentSnapshot1 = await _searchEngine.TryLocateComponentAsync(tagHelperDescriptor1).ConfigureAwait(false);
+            var documentSnapshot2 = await _searchEngine.TryLocateComponentAsync(tagHelperDescriptor2).ConfigureAwait(false);
 
             // Assert
-            Assert.True(found);
+            Assert.NotNull(documentSnapshot1);
+            Assert.NotNull(documentSnapshot2);
+        }
+
+        [Fact]
+        public async void Handle_SearchFound_SetNamespace()
+        {
+            // Arrange
+            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("First", "Test", "Component2");
+
+            // Act
+            var documentSnapshot = await _searchEngine.TryLocateComponentAsync(tagHelperDescriptor).ConfigureAwait(false);
+
+            // Assert
             Assert.NotNull(documentSnapshot);
         }
 
-        [Theory]
-        [InlineData("Third", "First.Components", "Component3")]  // Incorrect assembly name
-        [InlineData("First", "First.Components", "Component2")]  // Incorrect namespace
-        [InlineData("First", "First.Components", "Component3")]  // Incorrect tag name
-        public void Handle_SearchBasicMissing(string assemblyName, string namespaceName, string tagName)
+        [Fact]
+        public async void Handle_SearchMissing_IncorrectAssembly()
         {
             // Arrange
-            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor(assemblyName, namespaceName, tagName);
+            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("Third", "First.Components", "Component3");
 
             // Act
-            var found = _searchEngine.TryLocateComponent(tagHelperDescriptor, out var documentSnapshot);
+            var documentSnapshot = await _searchEngine.TryLocateComponentAsync(tagHelperDescriptor).ConfigureAwait(false);
 
             // Assert
-            Assert.False(found);
+            Assert.Null(documentSnapshot);
+        }
+
+        [Fact]
+        public async void Handle_SearchMissing_IncorrectNamespace()
+        {
+            // Arrange
+            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("First", "First.Components", "Component2");
+
+            // Act
+            var documentSnapshot = await _searchEngine.TryLocateComponentAsync(tagHelperDescriptor).ConfigureAwait(false);
+
+            // Assert
+            Assert.Null(documentSnapshot);
+        }
+
+        [Fact]
+        public async void Handle_SearchMissing_IncorrectComponent()
+        {
+            // Arrange
+            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("First", "First.Components", "Component3");
+
+            // Act
+            var documentSnapshot = await _searchEngine.TryLocateComponentAsync(tagHelperDescriptor).ConfigureAwait(false);
+
+            // Assert
+            Assert.Null(documentSnapshot);
         }
 
         internal static TagHelperDescriptor CreateRazorComponentTagHelperDescriptor(string assemblyName, string namespaceName, string tagName)
@@ -76,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Refactoring
             namespaceNode.Content = rootNamespaceName;
 
             var documentSnapshot = new Mock<DocumentSnapshot>();
-            documentSnapshot.Setup(d => d.TryGetGeneratedOutput(out codeDocument)).Returns(true);
+            documentSnapshot.Setup(d => d.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
             return documentSnapshot.Object;
         }
     
