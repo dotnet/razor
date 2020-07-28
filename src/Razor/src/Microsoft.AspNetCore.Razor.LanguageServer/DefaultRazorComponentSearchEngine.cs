@@ -4,11 +4,10 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -16,11 +15,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
     {
+        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
 
-        public DefaultRazorComponentSearchEngine(ProjectSnapshotManager projectSnapshotManager)
+        public DefaultRazorComponentSearchEngine(ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
-            _projectSnapshotManager = projectSnapshotManager ?? throw new ArgumentNullException(nameof(projectSnapshotManager));
+            _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
         }
 
         /// <summary>Search for a component in a project based on its tag name and fully qualified name.</summary>
