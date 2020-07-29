@@ -13,27 +13,29 @@ using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
+using Task = System.Threading.Tasks.Task;
+using Shared = System.Composition.SharedAttribute;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     /// <summary>
     /// Publishes project.razor.json files.
     /// </summary>
-    [System.Composition.Shared]
+    [Shared]
     [Export(typeof(ProjectSnapshotChangeTrigger))]
     internal class DefaultRazorProjectChangePublisher : ProjectSnapshotChangeTrigger
     {
-        internal readonly Dictionary<string, System.Threading.Tasks.Task> _deferredPublishTasks;
+        internal readonly Dictionary<string, Task> _deferredPublishTasks;
         private const string TempFileExt = ".temp";
         private readonly RazorLogger _logger;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
+        private readonly IVsOperationProgressStatusService _operationProgressStatusService = null;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly Dictionary<string, ProjectSnapshot> _pendingProjectPublishes;
         private readonly object _publishLock;
 
         private readonly JsonSerializer _serializer = new JsonSerializer();
 
-        private IVsOperationProgressStatusService _operationProgressStatusService = null;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
         [ImportingConstructor]
@@ -60,10 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (serviceProvider is null)
             {
-               throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            _deferredPublishTasks = new Dictionary<string, System.Threading.Tasks.Task>(FilePathComparer.Instance);
+            _deferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
             _pendingProjectPublishes = new Dictionary<string, ProjectSnapshot>(FilePathComparer.Instance);
             _publishLock = new object();
 
@@ -75,8 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _serializer.Converters.Add(RazorConfigurationJsonConverter.Instance);
             _serializer.Converters.Add(CodeAnalysis.Razor.Workspaces.Serialization.ProjectSnapshotJsonConverter.Instance);
 
-            var service = serviceProvider.GetService(typeof(SVsOperationProgress)) as IVsOperationProgressStatusService;
-            if (service != null)
+            if (serviceProvider.GetService(typeof(SVsOperationProgress)) is IVsOperationProgressStatusService service)
             {
                 _operationProgressStatusService = service;
             }
@@ -229,7 +230,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         protected virtual bool ShouldSerialize(string configurationFilePath)
         {
-            // I split this up as a premature optimization to avoid making unneeded queries.
             if (!File.Exists(configurationFilePath))
             {
                 return true;
@@ -245,9 +245,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return !status.IsInProgress;
         }
 
-        private async System.Threading.Tasks.Task PublishAfterDelayAsync(string projectFilePath)
+        private async Task PublishAfterDelayAsync(string projectFilePath)
         {
-            await System.Threading.Tasks.Task.Delay(EnqueueDelay).ConfigureAwait(false);
+            await Task.Delay(EnqueueDelay).ConfigureAwait(false);
 
             if (!_pendingProjectPublishes.TryGetValue(projectFilePath, out var projectSnapshot))
             {
