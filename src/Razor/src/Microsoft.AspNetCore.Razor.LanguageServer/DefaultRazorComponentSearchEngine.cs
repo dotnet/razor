@@ -18,8 +18,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
 
-        public DefaultRazorComponentSearchEngine(ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+        public DefaultRazorComponentSearchEngine(
+            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
+            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
         }
 
@@ -43,7 +46,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var namespaceName = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.GetTextSpanContent(namespaceSpan, tagHelper.Name);
             var typeName = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.GetTextSpanContent(typeSpan, tagHelper.Name);
 
-            foreach (var project in _projectSnapshotManager.Projects)
+            var projects = await Task.Factory.StartNew(() =>
+            {
+                return _projectSnapshotManager.Projects.ToArray();
+            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+
+            foreach (var project in projects)
             {
                 if (!project.FilePath.EndsWith($"{tagHelper.AssemblyName}.csproj", FilePathComparison.Instance))
                 {
