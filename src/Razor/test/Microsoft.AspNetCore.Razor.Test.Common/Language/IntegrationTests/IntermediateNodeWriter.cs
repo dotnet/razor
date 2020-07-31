@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -316,43 +314,6 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             _writer.Write(")");
         }
 
-        protected void WriteDiagnostics(IntermediateNode node)
-        {
-            if (node.HasDiagnostics)
-            {
-                _writer.Write("| ");
-                for (var i = 0; i < node.Diagnostics.Count; i++)
-                {
-                    var diagnostic = node.Diagnostics[i];
-                    _writer.Write("{");
-                    WriteSourceRange(diagnostic.Span);
-                    _writer.Write(": ");
-                    _writer.Write(diagnostic.Severity);
-                    _writer.Write(" ");
-                    _writer.Write(diagnostic.Id);
-                    _writer.Write(": ");
-
-                    // Purposefully not writing out the entire message to ensure readable IR and because messages 
-                    // can span multiple lines. Not using string.GetHashCode because we can't have any collisions.
-                    using (var sha = SHA256.Create())
-                    {
-                        var diagnosticMessage = diagnostic.GetMessage(CultureInfo.InvariantCulture);
-                        var messageBytes = Encoding.UTF8.GetBytes(diagnosticMessage);
-                        var messageHash = sha.ComputeHash(messageBytes);
-                        var stringHashBuilder = new StringBuilder();
-
-                        for (var j = 0; j < messageHash.Length; j++)
-                        {
-                            stringHashBuilder.Append(messageHash[j].ToString("x2", CultureInfo.InvariantCulture));
-                        }
-
-                        var stringHash = stringHashBuilder.ToString();
-                        _writer.Write(stringHash);
-                    }
-                    _writer.Write("} ");
-                }
-            }
-        }
 
         protected void WriteContent(string content)
         {

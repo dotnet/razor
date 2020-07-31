@@ -32,10 +32,9 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             var languageServices = new List<ILanguageService>();
 
             var hostServices = TestServices.Create(workspaceServices, languageServices);
-            var workspace = TestWorkspace.Create(hostServices);
+            using var workspace = TestWorkspace.Create(hostServices);
             var hostProject = new HostProject(filePath, configuration, "TestRootNamespace");
             var state = ProjectState.Create(workspace.Services, hostProject);
-            workspace.Dispose();
             foreach (var documentFilePath in documentFilePaths)
             {
                 var hostDocument = new HostDocument(documentFilePath, documentFilePath);

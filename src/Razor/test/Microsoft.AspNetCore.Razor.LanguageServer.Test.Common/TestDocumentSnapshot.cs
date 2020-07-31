@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         public static TestDocumentSnapshot Create(string filePath, string text, VersionStamp version)
         {
             var testProject = TestProjectSnapshot.Create(filePath + ".csproj");
-            var testWorkspace = TestWorkspace.Create();
+            using var testWorkspace = TestWorkspace.Create();
             var hostDocument = new HostDocument(filePath, filePath);
             var sourceText = SourceText.From(text);
             var documentState = new DocumentState(
@@ -33,7 +33,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 SourceText.From(text),
                 version,
                 () => Task.FromResult(TextAndVersion.Create(sourceText, version)));
-            testWorkspace.Dispose();
             var testDocument = new TestDocumentSnapshot(testProject, documentState);
 
             return testDocument;

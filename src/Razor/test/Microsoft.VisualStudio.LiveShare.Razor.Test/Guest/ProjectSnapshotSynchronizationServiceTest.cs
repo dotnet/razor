@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
 {
-    public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
+    public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase, IDisposable
     {
         public ProjectSnapshotSynchronizationServiceTest()
         {
@@ -189,6 +189,11 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             Assert.Equal("/guest/path/project.csproj", project.FilePath);
             Assert.Same(RazorConfiguration.Default, project.Configuration);
             Assert.Same(newProjectWorkspaceState.TagHelpers, project.TagHelpers);
+        }
+
+        public void Dispose()
+        {
+            JoinableTaskContext.Dispose();
         }
     }
 }

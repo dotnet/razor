@@ -48,11 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test
 
             // Act
             var result = factory.TryCreateFor(NonHostLSPBuffer, out var virtualDocument);
-
-            // Assert
-            Assert.False(result);
-            Assert.Null(virtualDocument);
-            virtualDocument.Dispose();
+            using (virtualDocument)
+            {
+                // Assert
+                Assert.False(result);
+                Assert.Null(virtualDocument);
+            }
         }
 
         [Fact]
@@ -66,15 +67,17 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test
             // Act
             var result = factory.TryCreateFor(HostLSPBuffer, out var virtualDocument);
 
-            // Assert
-            Assert.True(result);
-            Assert.NotNull(virtualDocument);
-            Assert.EndsWith(TestVirtualDocumentFactory.LanguageFileNameSuffixConst, virtualDocument.Uri.OriginalString, StringComparison.Ordinal);
-            Assert.Equal(TestVirtualDocumentFactory.LanguageLSPContentTypeInstance, virtualDocument.TextBuffer.ContentType);
-            Assert.True(TestVirtualDocumentFactory.LanguageBufferPropertiesInstance.Keys.All(
-                (key) => virtualDocument.TextBuffer.Properties.TryGetProperty(key, out object value) && TestVirtualDocumentFactory.LanguageBufferPropertiesInstance[key] == value
-                ));
-            virtualDocument.Dispose();
+            using (virtualDocument)
+            {
+                // Assert
+                Assert.True(result);
+                Assert.NotNull(virtualDocument);
+                Assert.EndsWith(TestVirtualDocumentFactory.LanguageFileNameSuffixConst, virtualDocument.Uri.OriginalString, StringComparison.Ordinal);
+                Assert.Equal(TestVirtualDocumentFactory.LanguageLSPContentTypeInstance, virtualDocument.TextBuffer.ContentType);
+                Assert.True(TestVirtualDocumentFactory.LanguageBufferPropertiesInstance.Keys.All(
+                    (key) => virtualDocument.TextBuffer.Properties.TryGetProperty(key, out object value) && TestVirtualDocumentFactory.LanguageBufferPropertiesInstance[key] == value
+                    ));
+            }
         }
 
         private class TestVirtualDocumentFactory : VirtualDocumentFactoryBase

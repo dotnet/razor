@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -126,9 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     continue;
                 }
 
-#pragma warning disable CA1307 // Specify StringComparison
-                if (newUsingNamespace.CompareTo(usingDirectiveNamespace) < 0)
-#pragma warning restore CA1307 // Specify StringComparison
+                if (string.CompareOrdinal(newUsingNamespace, usingDirectiveNamespace) < 0)
                 {
                     var usingDirectiveLineIndex = codeDocument.Source.Lines.GetLocation(usingDirective.Node.Span.Start).LineIndex;
                     var head = new Position(usingDirectiveLineIndex, 0);
