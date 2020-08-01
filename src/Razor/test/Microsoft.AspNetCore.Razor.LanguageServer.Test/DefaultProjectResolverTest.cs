@@ -72,7 +72,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var documentFilePath = "C:/path/to/document.cshtml";
             var unrelatedProject = Mock.Of<ProjectSnapshot>(p => p.FilePath == "C:/other/path/to/project.csproj");
-            var ownerProject = Mock.Of<ProjectSnapshot>(p => p.FilePath == "C:/path/to/project.csproj");
+            var ownerProject = Mock.Of<ProjectSnapshot>(
+                p => p.FilePath == "C:/path/to/project.csproj" &&
+                p.GetDocument(documentFilePath) == Mock.Of<DocumentSnapshot>());
+
             var projectResolver = CreateProjectResolver(() => new[] { unrelatedProject, ownerProject });
 
             // Act
@@ -83,13 +86,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Same(ownerProject, project);
         }
 
+        [Fact]
+        public void TryResolvePotentialProject_MiscellaneousOwnerProjectWithOthers_ReturnsTrue()
+        {
+            // Arrange
+            var documentFilePath = "C:/path/to/document.cshtml";
+            DefaultProjectResolver projectResolver = null;
+            var miscProject = new Mock<ProjectSnapshot>();
+            miscProject.Setup(p => p.FilePath)
+                .Returns(() => projectResolver._miscellaneousHostProject.FilePath);
+            miscProject.Setup(p => p.GetDocument(documentFilePath)).Returns(Mock.Of<DocumentSnapshot>());
+            var ownerProject = Mock.Of<ProjectSnapshot>(
+                p => p.FilePath == "C:/path/to/project.csproj" &&
+                p.GetDocument(documentFilePath) == null);
+
+            projectResolver = CreateProjectResolver(() => new[] { miscProject.Object, ownerProject });
+
+            // Act
+            var result = projectResolver.TryResolvePotentialProject(documentFilePath, out var project);
+
+            // Assert
+            Assert.True(result);
+            Assert.Same(miscProject.Object, project);
+        }
+
         [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Linux | OperatingSystems.MacOSX, SkipReason = "Linux/Mac have case sensitive file comparers.")]
         public void TryResolvePotentialProject_OwnerProjectDifferentCasing_ReturnsTrue()
         {
             // Arrange
             var documentFilePath = "c:/path/to/document.cshtml";
-            var ownerProject = Mock.Of<ProjectSnapshot>(p => p.FilePath == "C:/Path/To/project.csproj");
+            var ownerProject = Mock.Of<ProjectSnapshot>(
+                p => p.FilePath == "C:/Path/To/project.csproj" &&
+                p.GetDocument(documentFilePath) == Mock.Of<DocumentSnapshot>());
             var projectResolver = CreateProjectResolver(() => new[] { ownerProject });
 
             // Act

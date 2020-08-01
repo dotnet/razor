@@ -59,22 +59,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             var projects = _projectSnapshotManagerAccessor.Instance.Projects;
             for (var i = 0; i < projects.Count; i++)
             {
-                if (projects[i].FilePath == _miscellaneousHostProject.FilePath)
+                projectSnapshot = projects[i];
+
+                if (projectSnapshot.FilePath == _miscellaneousHostProject.FilePath)
                 {
+                    if (IsDocumentInProject(projectSnapshot, documentFilePath))
+                    {
+                        return true;
+                    }
+
                     // We don't resolve documents to belonging to the miscellaneous project.
                     continue;
                 }
 
-                var projectDirectory = _filePathNormalizer.GetDirectory(projects[i].FilePath);
-                if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance))
+                var projectDirectory = _filePathNormalizer.GetDirectory(projectSnapshot.FilePath);
+                if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance) &&
+                    IsDocumentInProject(projectSnapshot, documentFilePath))
                 {
-                    projectSnapshot = projects[i];
                     return true;
                 }
             }
 
             projectSnapshot = null;
             return false;
+
+            static bool IsDocumentInProject(ProjectSnapshot projectSnapshot, string documentFilePath) =>
+                projectSnapshot.GetDocument(documentFilePath) != null;
         }
 
         public override ProjectSnapshot GetMiscellaneousProject()
