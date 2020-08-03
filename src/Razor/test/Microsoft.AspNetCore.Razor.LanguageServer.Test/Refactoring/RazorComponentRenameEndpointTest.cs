@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         }
 
         [Fact]
-        public async Task Handle_SimpleRename()
+        public async Task Handle_Rename_WithNamespaceDirective()
         {
             // Arrange
             var request = new RenameParams
@@ -37,6 +37,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                 TextDocument = new TextDocumentIdentifier
                 {
                     Uri = new Uri("file:///c:/First/Component1.razor")
+                },
+                Position = new Position(2, 1),
+                NewName = "Component5"
+            };
+
+            // Act
+            var result = await _endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.DocumentChanges.Count());
+            var renameChange = result.DocumentChanges.ElementAt(0);
+            Assert.True(renameChange.IsRenameFile);
+            Assert.Equal("file:///c:/First/Component2.razor", renameChange.RenameFile.OldUri);
+            Assert.Equal("file:///c:/First/Component5.razor", renameChange.RenameFile.NewUri);
+            var editChange = result.DocumentChanges.ElementAt(1);
+            Assert.True(editChange.IsTextDocumentEdit);
+            Assert.Equal("file:///c:/First/Component1.razor", editChange.TextDocumentEdit.TextDocument.Uri.ToString());
+            Assert.Equal(2, editChange.TextDocumentEdit.Edits.Count());
+            var editChangeEdit1 = editChange.TextDocumentEdit.Edits.ElementAt(0);
+            Assert.Equal("Component5", editChangeEdit1.NewText);
+            Assert.Equal(2, editChangeEdit1.Range.Start.Line);
+            Assert.Equal(1, editChangeEdit1.Range.Start.Character);
+            Assert.Equal(2, editChangeEdit1.Range.End.Line);
+            Assert.Equal(11, editChangeEdit1.Range.End.Character);
+            var editChangeEdit2 = editChange.TextDocumentEdit.Edits.ElementAt(1);
+            Assert.Equal("Component5", editChangeEdit2.NewText);
+            Assert.Equal(2, editChangeEdit2.Range.Start.Line);
+            Assert.Equal(14, editChangeEdit2.Range.Start.Character);
+            Assert.Equal(2, editChangeEdit2.Range.End.Line);
+            Assert.Equal(24, editChangeEdit2.Range.End.Character);
+        }
+
+        [Fact]
+        public async Task Handle_Rename_MultipleFileUsages()
+        {
+            // Arrange
+            var request = new RenameParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = new Uri("file:///c:/Second/Component3.razor")
                 },
                 Position = new Position(1, 1),
                 NewName = "Component5"
@@ -47,23 +89,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             // Assert
             Assert.NotNull(result);
+            Assert.Equal(4, result.DocumentChanges.Count());
+            var renameChange = result.DocumentChanges.ElementAt(0);
+            Assert.True(renameChange.IsRenameFile);
+            Assert.Equal("file:///c:/Second/Component3.razor", renameChange.RenameFile.OldUri);
+            Assert.Equal("file:///c:/Second/Component5.razor", renameChange.RenameFile.NewUri);
+            var editChange1 = result.DocumentChanges.ElementAt(1);
+            Assert.True(editChange1.IsTextDocumentEdit);
+            Assert.Equal("file:///c:/Second/Component3.razor", editChange1.TextDocumentEdit.TextDocument.Uri.ToString());
+            Assert.Equal(2, editChange1.TextDocumentEdit.Edits.Count());
+            var editChange1Edit1 = editChange1.TextDocumentEdit.Edits.ElementAt(0);
+            Assert.Equal("Component5", editChange1Edit1.NewText);
+            Assert.Equal(1, editChange1Edit1.Range.Start.Line);
+            Assert.Equal(1, editChange1Edit1.Range.Start.Character);
+            Assert.Equal(1, editChange1Edit1.Range.End.Line);
+            Assert.Equal(11, editChange1Edit1.Range.End.Character);
+            var editChange1Edit2 = editChange1.TextDocumentEdit.Edits.ElementAt(1);
+            Assert.Equal("Component5", editChange1Edit2.NewText);
+            Assert.Equal(1, editChange1Edit2.Range.Start.Line);
+            Assert.Equal(14, editChange1Edit2.Range.Start.Character);
+            Assert.Equal(1, editChange1Edit2.Range.End.Line);
+            Assert.Equal(24, editChange1Edit2.Range.End.Character);
+            var editChange2 = result.DocumentChanges.ElementAt(2);
+            Assert.True(editChange2.IsTextDocumentEdit);
+            Assert.Equal("file:///c:/Second/Component4.razor", editChange2.TextDocumentEdit.TextDocument.Uri.ToString());
+            Assert.Equal(2, editChange2.TextDocumentEdit.Edits.Count());       
         }
 
         private static TagHelperDescriptor CreateRazorComponentTagHelperDescriptor(string assemblyName, string namespaceName, string tagName)
         {
             var fullyQualifiedName = $"{namespaceName}.{tagName}";
-            var builder1 = TagHelperDescriptorBuilder.Create(fullyQualifiedName, assemblyName);
-            builder1.TagMatchingRule(rule => rule.TagName = tagName);
-            return builder1.Build();
+            var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, fullyQualifiedName, assemblyName);
+            builder.TagMatchingRule(rule => rule.TagName = tagName);
+            builder.SetTypeName(fullyQualifiedName);
+            return builder.Build();
         }
 
         private static TestRazorProjectItem CreateProjectItem(string text, string filePath)
         {
-            var item = new TestRazorProjectItem(filePath, filePath, filePath, "/", FileKinds.Component)
+            return new TestRazorProjectItem(filePath, fileKind: FileKinds.Component)
             {
                 Content = text
             };
-            return item;
         }
 
         private DocumentSnapshot CreateRazorDocumentSnapshot(TestRazorProjectItem item, string rootNamespaceName)
@@ -92,22 +159,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var tag3 = CreateRazorComponentTagHelperDescriptor("Second", "Second.Components", "Component3");
             var tag4 = CreateRazorComponentTagHelperDescriptor("Second", "Second.Components", "Component4");
             var tagHelperDescriptors = new[] { tag1, tag2, tag3, tag4 };
-
-            var item1 = CreateProjectItem("@using Test\n<Component2></Component2>", "c:/First/Component1.razor");
+                
+            var item1 = CreateProjectItem("@namespace First.Components\n@using Test\n<Component2></Component2>", "c:/First/Component1.razor");
             var item2 = CreateProjectItem("@namespace Test", "c:/First/Component2.razor");
-            var item3 = CreateProjectItem("<Component3></Component3>", "c:/Second/Component3.razor");
-            var item4 = CreateProjectItem("<Component3></Component3>", "c:/Second/Component4.razor");
+            var item3 = CreateProjectItem("@namespace Second.Components\n<Component3></Component3>", "c:/Second/Component3.razor");
+            var item4 = CreateProjectItem("@namespace Second.Components\n<Component3></Component3>\n<Component3></Component3>", "c:/Second/Component4.razor");
             var fileSystem = new TestRazorProjectFileSystem(new[] { item1, item2, item3, item4 });
 
             _projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem, builder => {
                 builder.AddDirective(NamespaceDirective.Directive);
                 builder.AddTagHelpers(tagHelperDescriptors);
             });
-            _projectEngine.ProcessDeclarationOnly(item1);
-            _projectEngine.ProcessDeclarationOnly(item2);
-            _projectEngine.ProcessDeclarationOnly(item3);
-            _projectEngine.ProcessDeclarationOnly(item4);
-
+            
             var component1 = CreateRazorDocumentSnapshot(item1, "First.Components");
             var component2 = CreateRazorDocumentSnapshot(item2, "Test");
             var component3 = CreateRazorDocumentSnapshot(item3, "Second.Components");
@@ -121,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             var secondProject = Mock.Of<ProjectSnapshot>(p =>
                 p.FilePath == "c:/Second/Second.csproj" &&
-                p.DocumentFilePaths == new[] { "c:/Second/Component3.razor" } &&
+                p.DocumentFilePaths == new[] { "c:/Second/Component3.razor", "c:/Second/Component4.razor" } &&
                 p.GetDocument("c:/Second/Component3.razor") == component3 &&
                 p.GetDocument("c:/Second/Component4.razor") == component4);
 
