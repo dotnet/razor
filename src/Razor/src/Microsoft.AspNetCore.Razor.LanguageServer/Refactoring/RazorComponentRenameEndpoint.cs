@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
@@ -60,7 +61,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
             var requestDocumentSnapshot = await Task.Factory.StartNew(() =>
             {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
+                _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
 
@@ -86,9 +88,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var originTagDescriptor = originTagHelperBinding.Descriptors.First();
-            var originComponentDocumentSnapshot = await _componentSearchEngine.TryLocateComponentAsync(originTagDescriptor).ConfigureAwait(false);
+            var originTagDescriptor = originTagHelperBinding.Descriptors.FirstOrDefault();
+            if (originTagDescriptor is null)
+            {
+                return null;
+            }
 
+            var originComponentDocumentSnapshot = await _componentSearchEngine.TryLocateComponentAsync(originTagDescriptor).ConfigureAwait(false);
             if (originComponentDocumentSnapshot is null)
             {
                 return null;

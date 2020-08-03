@@ -105,7 +105,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
             var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, builder => {
                 builder.AddDirective(NamespaceDirective.Directive);
-                builder.SetRootNamespace(rootNamespaceName);
             });
             var codeDocument = projectEngine.Process(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());
 
