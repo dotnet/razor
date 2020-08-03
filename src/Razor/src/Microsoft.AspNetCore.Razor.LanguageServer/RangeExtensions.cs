@@ -38,6 +38,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return overlapStart.CompareTo(overlapEnd) < 0;
         }
 
+        public static bool LineOverlapsWith(this Range range, Range other)
+        {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
+            var overlapStart = range.Start.Line;
+            if (range.Start.Line.CompareTo(other.Start.Line) < 0)
+            {
+                overlapStart = other.Start.Line;
+            }
+
+            var overlapEnd = range.End.Line;
+            if (range.End.Line.CompareTo(other.End.Line) > 0)
+            {
+                overlapEnd = other.End.Line;
+            }
+
+            return overlapStart.CompareTo(overlapEnd) <= 0;
+        }
+
         public static Range Overlap(this Range range, Range other)
         {
             if (range is null)
@@ -69,6 +96,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             return null;
+        }
+
+        public static bool Contains(this Range range, Range other)
+        {
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            if (other is null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
+            return range.Start.CompareTo(other.Start) <= 0 && range.End.CompareTo(other.End) >= 0;
         }
 
         public static TextSpan AsTextSpan(this Range range, SourceText sourceText)

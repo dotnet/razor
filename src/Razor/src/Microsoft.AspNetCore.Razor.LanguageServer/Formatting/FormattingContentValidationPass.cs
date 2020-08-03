@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.Extensions.Logging;
@@ -50,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // Looks like we nuked some non-whitespace content as part of formatting. Oops.
                 // Discard this formatting result.
 
-                _logger.LogDebug("A formatting result was rejected because it was going to mess up the document.");
+                Debug.Fail("A formatting result was rejected because it was going to mess up the document.");
 
                 return new FormattingResult(Array.Empty<TextEdit>());
             }

@@ -62,6 +62,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         protected TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits, RazorLanguageKind projectedKind)
         {
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
+            if (projectedTextEdits is null)
+            {
+                throw new ArgumentNullException(nameof(projectedTextEdits));
+            }
+
             if (projectedKind != RazorLanguageKind.CSharp)
             {
                 // Non C# projections map directly to Razor. No need to remap.
@@ -93,6 +103,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         protected static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits)
         {
+            if (originalText is null)
+            {
+                throw new ArgumentNullException(nameof(originalText));
+            }
+
+            if (edits is null)
+            {
+                throw new ArgumentNullException(nameof(edits));
+            }
+
             var changes = edits.Select(e => e.AsTextChange(originalText));
             var changedText = originalText.WithChanges(changes);
             var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
@@ -103,6 +123,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
         protected static void TrackEncompassingChange(SourceText oldText, SourceText newText, out TextSpan spanBeforeChange, out TextSpan spanAfterChange)
         {
+            if (oldText is null)
+            {
+                throw new ArgumentNullException(nameof(oldText));
+            }
+
+            if (newText is null)
+            {
+                throw new ArgumentNullException(nameof(newText));
+            }
+
             var affectedRange = newText.GetEncompassingTextChangeRange(oldText);
 
             spanBeforeChange = affectedRange.Span;
@@ -114,6 +144,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         // and lines inside @{} should be reduced by two levels.
         protected static List<TextChange> AdjustCSharpIndentation(FormattingContext context, int startLine, int endLine)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var sourceText = context.SourceText;
             var editsToApply = new List<TextChange>();
 

@@ -120,5 +120,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return i == source.Length && j == other.Length;
         }
+
+        public static int? GetFirstNonWhitespaceOffset(this SourceText source, TextSpan? span = null)
+        {
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            span ??= new TextSpan(0, source.Length);
+
+            for (var i = span.Value.Start; i <= span.Value.End; i++)
+            {
+                if (!char.IsWhiteSpace(source[i]))
+                {
+                    return i - span.Value.Start;
+                }
+            }
+
+            return null;
+        }
     }
 }

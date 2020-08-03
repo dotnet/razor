@@ -45,7 +45,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = context.CodeDocument;
             var csharpText = SourceText.From(codeDocument.GetCSharpDocument().GeneratedCode);
             var normalizedEdits = NormalizeTextEdits(csharpText, result.Edits);
+            var tempText = csharpText.WithChanges(normalizedEdits.Select(c => c.AsTextChange(csharpText)));
             var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits, result.Kind);
+            if (mappedEdits.Length == 0)
+            {
+                // There are no CSharp edits for us to apply. No op.
+                return new FormattingResult(mappedEdits);
+            }
 
             // Find the lines that were affected by these edits.
             var originalText = codeDocument.GetSourceText();
@@ -81,6 +87,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private SourceText CleanupDocument(FormattingContext context, Range range = null)
         {
+            //
+            // We look through every source mapping that intersects with the affected range and
+            // adjust the indentation of the first line,
+            //
+            // E.g,
+            //
+            // @{   public int x = 0;
+            // }
+            //
+            // becomes,
+            //
+            // @{
+            //    public int x  = 0;
+            // }
+            // 
             var text = context.SourceText;
             range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
             var csharpDocument = context.CodeDocument.GetCSharpDocument();
@@ -90,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
                 var mappingRange = mappingSpan.AsRange(text);
-                if (!range.OverlapsWith(mappingRange))
+                if (!range.LineOverlapsWith(mappingRange))
                 {
                     // We don't care about this range. It didn't change.
                     continue;
@@ -100,25 +121,47 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 if (context.Indentations[mappingStartLineIndex].StartsInCSharpContext)
                 {
                     // Doesn't need cleaning up.
+                    // For corner cases like (Range marked with |...|),
+                    // @{
+                    //     if (true} { <div></div>| }|
+                    // }
+                    // We want to leave it alone because tackling it here is really complicated.
                     continue;
                 }
 
-                var mappingStartLine = text.Lines[mappingStartLineIndex];
-                var contentStart = mappingStartLine.GetFirstNonWhitespaceOffset((int)mappingRange.Start.Character);
-                if (contentStart == null)
+                // @{
+                //     if (true)
+                //     {     
+                //         <div></div>|
+                // 
+                //              |}
+                // }
+                // We want to return the length of the range marked by |...|
+                //
+                var whitespaceLength = text.GetFirstNonWhitespaceOffset(mappingSpan);
+                if (whitespaceLength == null)
                 {
                     // There was no content here. Skip.
                     continue;
                 }
 
-                var spanToReplace = new TextSpan(mappingSpan.Start, contentStart.Value);
+                var spanToReplace = new TextSpan(mappingSpan.Start, whitespaceLength.Value);
                 if (!context.TryGetIndentationLevel(spanToReplace.End, out var contentIndentLevel))
                 {
                     // Can't find the correct indentation for this content. Leave it alone.
                     continue;
                 }
 
-                var replacement = Environment.NewLine + context.GetIndentationLevelString(contentIndentLevel);
+                // At this point, `contentIndentLevel` should contain the correct indentation level for `}` in the above example.
+                var replacement = context.NewLineString + context.GetIndentationLevelString(contentIndentLevel);
+
+                // After the below change the above example should look like,
+                // @{
+                //     if (true)
+                //     {     
+                //         <div></div>
+                //     }
+                // }
                 var change = new TextChange(spanToReplace, replacement);
                 changes.Add(change);
             }

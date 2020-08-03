@@ -26,6 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public FormattingOptions Options { get; set; }
 
+        public string NewLineString => Environment.NewLine;
+
         public bool IsFormatOnType { get; set; }
 
         public Range Range { get; set; }
@@ -84,6 +86,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public async Task<FormattingContext> WithTextAsync(SourceText changedText)
         {
+            if (changedText is null)
+            {
+                throw new ArgumentNullException(nameof(changedText));
+            }
+
             var engine = OriginalSnapshot.Project.GetProjectEngine();
             var imports = ((DefaultDocumentSnapshot)OriginalSnapshot).State.GetImports((DefaultProjectSnapshot)OriginalSnapshot.Project);
             var importSources = new List<RazorSourceDocument>();

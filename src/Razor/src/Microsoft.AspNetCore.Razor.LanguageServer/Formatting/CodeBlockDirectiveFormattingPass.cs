@@ -269,7 +269,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     Range = new Range(
                         new Position(innerCodeBlockLine.LineNumber, innerCodeBlock.Position - innerCodeBlockLine.Start),
                         new Position(innerCodeBlockLine.LineNumber, innerCodeBlock.Position + whitespaceAfterBlockStart.Length - innerCodeBlockLine.Start)),
-                    NewText = Environment.NewLine + desiredInnerCodeBlockIndentation
+                    NewText = context.NewLineString + desiredInnerCodeBlockIndentation
                 };
                 edits.Add(edit);
             }
@@ -343,7 +343,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     Range = new Range(
                         new Position(closeCurlyLine.LineNumber, closeCurlyLocation - closeCurlyLine.Start),
                         new Position(closeCurlyLine.LineNumber, closeCurlyLocation - closeCurlyLine.Start)),
-                    NewText = Environment.NewLine + desiredIndentation
+                    NewText = context.NewLineString + desiredIndentation
                 };
                 edits.Add(edit);
             }

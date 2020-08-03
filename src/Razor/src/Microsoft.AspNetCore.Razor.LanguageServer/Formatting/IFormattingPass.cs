@@ -7,7 +7,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal interface IFormattingPass
     {
-        public int Order { get; }
+        int Order { get; }
 
         Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result);
     }
