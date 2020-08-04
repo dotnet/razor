@@ -55,5 +55,14 @@ namespace Microsoft.AspNetCore.Razor.Performance
                 tagHelpers = DefaultSerializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
             }
         }
+
+        [Benchmark(Description = "TagHelpers GetHashCode")]
+        public void Benchmark_TagHelpersGetHashCode()
+        {
+            for (var i = 0; i < DefaultTagHelpers.Count; i++)
+            {
+                _ = DefaultTagHelpers[i].GetHashCode();
+            }
+        }
     }
 }
