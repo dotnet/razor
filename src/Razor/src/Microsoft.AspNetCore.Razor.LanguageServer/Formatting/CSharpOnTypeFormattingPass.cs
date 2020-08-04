@@ -45,7 +45,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeDocument = context.CodeDocument;
             var csharpText = SourceText.From(codeDocument.GetCSharpDocument().GeneratedCode);
             var normalizedEdits = NormalizeTextEdits(csharpText, result.Edits);
-            var tempText = csharpText.WithChanges(normalizedEdits.Select(c => c.AsTextChange(csharpText)));
             var mappedEdits = RemapTextEdits(codeDocument, normalizedEdits, result.Kind);
             if (mappedEdits.Length == 0)
             {

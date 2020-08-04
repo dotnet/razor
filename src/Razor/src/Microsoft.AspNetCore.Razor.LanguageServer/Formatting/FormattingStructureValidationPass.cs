@@ -45,6 +45,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return result;
             }
 
+            if (!context.IsFormatOnType)
+            {
+                // We don't care about regular formatting for now.
+                return result;
+            }
+
             if (FormatsOutsidePureCSharpBlocks(context, result))
             {
                 return new FormattingResult(Array.Empty<TextEdit>());
@@ -55,12 +61,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private bool FormatsOutsidePureCSharpBlocks(FormattingContext context, FormattingResult result)
         {
-            if (!context.IsFormatOnType)
-            {
-                // We don't care about regular formatting for now.
-                return false;
-            }
-
             var text = context.SourceText;
             var changes = result.Edits.Select(e => e.AsTextChange(text));
             var changedText = text.WithChanges(changes);
