@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
         public static void ReadProperties(this JsonReader reader, Action<string> onProperty)
         {
-            while (reader.Read())
+            do
             {
                 switch (reader.TokenType)
                 {
@@ -28,28 +28,31 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                     case JsonToken.EndObject:
                         return;
                 }
-            }
+            } while (reader.Read());
         }
 
-        public static string ReadNextStringProperty(this JsonReader reader, string propertyName)
+        public static bool TryReadNextProperty(this JsonReader reader, string propertyName, out object value)
         {
-            while (reader.Read())
+            do
             {
                 switch (reader.TokenType)
                 {
                     case JsonToken.PropertyName:
-                        Debug.Assert(reader.Value.ToString() == propertyName);
-                        if (reader.Read())
+                        // Ensures we're at the expected property & the reader
+                        // can read the property value.
+                        if (reader.Value.ToString() == propertyName &&
+                            reader.Read())
                         {
-                            var value = (string)reader.Value;
-                            return value;
+                            value = reader.Value;
+                            return true;
                         }
                         else
                         {
-                            return null;
+                            value = default;
+                            return false;
                         }
                 }
-            }
+            } while (reader.Read());
 
             throw new JsonSerializationException($"Could not find string property '{propertyName}'.");
         }

@@ -24,18 +24,36 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
-            // Required tokens (order matters)
-            var (hash, descriptorKind) = ReadPropertyAndHash(reader, nameof(TagHelperDescriptor.Kind));
-
-            if (hash != null &&
-                TagHelperDescriptorCache.TryGetDescriptor(hash.Value, out var descriptor))
+            var hashWasRead = reader.TryReadNextProperty(RazorSerializationConstants.HashCodePropertyName, out var hashObj);
+            if (hashWasRead &&
+                hashObj is int hash &&
+                TagHelperDescriptorCache.TryGetDescriptor(hash, out var descriptor))
             {
                 ReadToEndOfCurrentObject(reader);
                 return descriptor;
             }
+            else
+            {
+                hash = 0;
+            }
 
-            var typeName = reader.ReadNextStringProperty(nameof(TagHelperDescriptor.Name));
-            var assemblyName = reader.ReadNextStringProperty(nameof(TagHelperDescriptor.AssemblyName));
+            // Required tokens (order matters)
+            if (!reader.TryReadNextProperty(nameof(TagHelperDescriptor.Kind), out var descriptorKindObj) ||
+                !(descriptorKindObj is string descriptorKind))
+            {
+                return default;
+            }
+            if (!reader.TryReadNextProperty(nameof(TagHelperDescriptor.Name), out var typeNameObj) ||
+                !(typeNameObj is string typeName))
+            {
+                return default;
+            }
+            if (!reader.TryReadNextProperty(nameof(TagHelperDescriptor.AssemblyName), out var assemblyNameObj) ||
+                !(assemblyNameObj is string assemblyName))
+            {
+                return default;
+            }
+
             var builder = TagHelperDescriptorBuilder.Create(descriptorKind, typeName, assemblyName);
 
             reader.ReadProperties(propertyName =>
@@ -82,9 +100,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             });
 
             descriptor = builder.Build();
-            if (hash != null)
+            if (hashWasRead)
             {
-                TagHelperDescriptorCache.Set(hash.Value, descriptor);
+                TagHelperDescriptorCache.Set(hash, descriptor);
             }
             return descriptor;
         }
@@ -863,43 +881,6 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
             var sourceSpan = new SourceSpan(filePath, absoluteIndex, lineIndex, characterIndex, length);
             return sourceSpan;
-        }
-
-        private static (int? hash, string propertyValue) ReadPropertyAndHash(JsonReader reader, string propertyName)
-        {
-            int? hash = null;
-
-            while (reader.Read())
-            {
-                switch (reader.TokenType)
-                {
-                    case JsonToken.PropertyName:
-                        var curProperty = reader.Value.ToString();
-                        if (reader.Read())
-                        {
-                            if (curProperty == RazorSerializationConstants.HashCodePropertyName)
-                            {
-                                hash = Convert.ToInt32(reader.Value);
-                            }
-                            else if (curProperty == propertyName)
-                            {
-                                var value = (string)reader.Value;
-                                return (hash, value);
-                            }
-                            else
-                            {
-                                throw new JsonSerializationException($"Encountered unknown property when looking for hash or '{propertyName}'.");
-                            }
-                        }
-                        else
-                        {
-                            return default;
-                        }
-                        break;
-                }
-            }
-
-            throw new JsonSerializationException($"Could not find string property '{propertyName}' with hash.");
         }
 
         private static void ReadToEndOfCurrentObject(JsonReader reader)
