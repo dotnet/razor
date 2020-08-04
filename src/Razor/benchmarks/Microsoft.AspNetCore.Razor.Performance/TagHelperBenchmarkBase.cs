@@ -26,12 +26,14 @@ namespace Microsoft.AspNetCore.Razor.Performance
             _tagHelperBuffer = File.ReadAllBytes(tagHelperFilePath);
 
             // Deserialize from json file.
+            TagHelperDescriptorJsonConverter.DisableCachingForTesting = true;
             DefaultSerializer = new JsonSerializer();
-            DefaultSerializer.Converters.Add(new TagHelperDescriptorJsonConverter());
+            DefaultSerializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
 
             using var stream = new MemoryStream(_tagHelperBuffer);
             using var reader = new JsonTextReader(new StreamReader(stream));
             DefaultTagHelpers = DefaultSerializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
+            TagHelperDescriptorJsonConverter.DisableCachingForTesting = false;
         }
 
         protected IReadOnlyList<TagHelperDescriptor> DefaultTagHelpers { get; set; }

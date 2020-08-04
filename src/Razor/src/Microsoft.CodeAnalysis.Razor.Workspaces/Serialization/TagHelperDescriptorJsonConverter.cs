@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
     {
         public static readonly TagHelperDescriptorJsonConverter Instance = new TagHelperDescriptorJsonConverter();
 
+        public static bool DisableCachingForTesting { private get; set; } = false;
+
         public override bool CanConvert(Type objectType)
         {
             return typeof(TagHelperDescriptor).IsAssignableFrom(objectType);
@@ -24,17 +26,16 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
+            // Try reading the optional hashcode
             var hashWasRead = reader.TryReadNextProperty(RazorSerializationConstants.HashCodePropertyName, out var hashObj);
-            if (hashWasRead &&
-                hashObj is int hash &&
-                TagHelperDescriptorCache.TryGetDescriptor(hash, out var descriptor))
+            var hash = hashObj as int?;
+            if (!DisableCachingForTesting &&
+                hashWasRead &&
+                hash.HasValue &&
+                TagHelperDescriptorCache.TryGetDescriptor(hash.Value, out var descriptor))
             {
                 ReadToEndOfCurrentObject(reader);
                 return descriptor;
-            }
-            else
-            {
-                hash = 0;
             }
 
             // Required tokens (order matters)
@@ -100,9 +101,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             });
 
             descriptor = builder.Build();
-            if (hashWasRead)
+            if (!DisableCachingForTesting && hash.HasValue)
             {
-                TagHelperDescriptorCache.Set(hash, descriptor);
+                TagHelperDescriptorCache.Set(hash.Value, descriptor);
             }
             return descriptor;
         }
