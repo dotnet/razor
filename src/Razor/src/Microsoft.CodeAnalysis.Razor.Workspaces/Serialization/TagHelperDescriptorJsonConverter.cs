@@ -25,7 +25,15 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             }
 
             // Required tokens (order matters)
-            var descriptorKind = reader.ReadNextStringProperty(nameof(TagHelperDescriptor.Kind));
+            var (hash, descriptorKind) = reader.ReadPropertyAndHash(nameof(TagHelperDescriptor.Kind));
+
+            if (hash != null &&
+                TagHelperDescriptorCache.TryGetDescriptor(hash.Value, out var descriptor))
+            {
+                reader.ReadToEndOfCurrentObject();
+                return descriptor;
+            }
+
             var typeName = reader.ReadNextStringProperty(nameof(TagHelperDescriptor.Name));
             var assemblyName = reader.ReadNextStringProperty(nameof(TagHelperDescriptor.AssemblyName));
             var builder = TagHelperDescriptorBuilder.Create(descriptorKind, typeName, assemblyName);
@@ -73,7 +81,12 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 }
             });
 
-            return builder.Build();
+            descriptor = builder.Build();
+            if (hash != null)
+            {
+                TagHelperDescriptorCache.Set(hash.Value, descriptor);
+            }
+            return descriptor;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -81,6 +94,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             var tagHelper = (TagHelperDescriptor)value;
 
             writer.WriteStartObject();
+
+            writer.WritePropertyName(RazorSerializationConstants.HashCodePropertyName);
+            writer.WriteValue(tagHelper.GetHashCode());
 
             writer.WritePropertyName(nameof(TagHelperDescriptor.Kind));
             writer.WriteValue(tagHelper.Kind);
