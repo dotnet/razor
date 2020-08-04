@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             }
 
             // Required tokens (order matters)
-            var (hash, descriptorKind) = reader.ReadPropertyAndHash(nameof(TagHelperDescriptor.Kind));
+            var (hash, descriptorKind) = ReadPropertyAndHash(reader, nameof(TagHelperDescriptor.Kind));
 
             if (hash != null &&
                 TagHelperDescriptorCache.TryGetDescriptor(hash.Value, out var descriptor))
             {
-                reader.ReadToEndOfCurrentObject();
+                ReadToEndOfCurrentObject(reader);
                 return descriptor;
             }
 
@@ -863,6 +863,69 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
             var sourceSpan = new SourceSpan(filePath, absoluteIndex, lineIndex, characterIndex, length);
             return sourceSpan;
+        }
+
+        private static (int? hash, string propertyValue) ReadPropertyAndHash(JsonReader reader, string propertyName)
+        {
+            int? hash = null;
+
+            while (reader.Read())
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonToken.PropertyName:
+                        var curProperty = reader.Value.ToString();
+                        if (reader.Read())
+                        {
+                            if (curProperty == RazorSerializationConstants.HashCodePropertyName)
+                            {
+                                hash = Convert.ToInt32(reader.Value);
+                            }
+                            else if (curProperty == propertyName)
+                            {
+                                var value = (string)reader.Value;
+                                return (hash, value);
+                            }
+                            else
+                            {
+                                throw new JsonSerializationException($"Encountered unknown property when looking for hash or '{propertyName}'.");
+                            }
+                        }
+                        else
+                        {
+                            return default;
+                        }
+                        break;
+                }
+            }
+
+            throw new JsonSerializationException($"Could not find string property '{propertyName}' with hash.");
+        }
+
+        private static void ReadToEndOfCurrentObject(JsonReader reader)
+        {
+            var nestingLevel = 0;
+
+            while (reader.Read())
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonToken.StartObject:
+                        nestingLevel++;
+                        break;
+                    case JsonToken.EndObject:
+                        nestingLevel--;
+
+                        if (nestingLevel == -1)
+                        {
+                            return;
+                        }
+
+                        break;
+                }
+            }
+
+            throw new JsonSerializationException($"Could not read till end of object, end of stream. Got '{reader.TokenType}'.");
         }
     }
 }
