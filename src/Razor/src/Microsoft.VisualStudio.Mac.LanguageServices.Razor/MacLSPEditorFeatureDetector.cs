@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
     [Shared]
     [Export(typeof(LSPEditorFeatureDetector))]
-    internal class DefaultLSPEditorFeatureDetector : LSPEditorFeatureDetector
+    internal class MacLSPEditorFeatureDetector : LSPEditorFeatureDetector
     {
         public override bool IsLSPEditorAvailable(string documentMoniker, object hierarchy) => false;
 
