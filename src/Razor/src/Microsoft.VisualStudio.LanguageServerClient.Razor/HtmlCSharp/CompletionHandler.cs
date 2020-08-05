@@ -22,6 +22,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private static readonly IReadOnlyList<string> HtmlTriggerCharacters = new[] { "<", "&", "\\", "/", "'", "\"", "=", ":", " " };
         private static readonly IReadOnlyList<string> AllTriggerCharacters = CSharpTriggerCharacters.Concat(HtmlTriggerCharacters).ToArray();
 
+        private static readonly IReadOnlyCollection<string> _keywords = new string[] {
+            "for", "foreach", "while", "switch", "lock",
+            "case", "if", "try", "do", "using"
+        };
+
+        private static readonly IReadOnlyCollection<CompletionItem> _keywordCompletionItems = _keywords.Select(k => new CompletionItem
+        {
+            Label = k,
+            InsertText = k,
+            FilterText = k,
+            Kind = CompletionItemKind.Keyword,
+            SortText = k,
+            InsertTextFormat = InsertTextFormat.Plaintext,
+        }).ToList();
+
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -120,7 +135,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 // Set some context on the CompletionItem so the CompletionResolveHandler can handle it accordingly.
                 result = SetResolveData(result.Value, serverKind);
-                result = IncludeCSharpKeywords(result.Value, serverKind);
+                if (serverKind == LanguageServerKind.CSharp)
+                {
+                    result = IncludeCSharpKeywords(result.Value, serverKind);
+                }
             }
 
             return result;
@@ -183,6 +201,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return (true, result);
         }
 
+        // C# keywords were previously provided by snippets, but as of now C# LSP doesn't provide snippets. 
+        // We're providing these for now to improve the user experience (not having to ESC out of completions to finish),
+        // but once C# starts providing them their completion will be offered instead, at which point we should be able to remove this step.
         private SumType<CompletionItem[], CompletionList>? IncludeCSharpKeywords(SumType<CompletionItem[], CompletionList> completionResult, LanguageServerKind kind)
         {
             var result = completionResult.Match<SumType<CompletionItem[], CompletionList>?>(
@@ -201,20 +222,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             return result;
         }
-
-        private static readonly IReadOnlyCollection<string> _keywords = new string[] {
-            "for", "foreach", "while", "switch", "lock",
-            "case", "if", "try", "do", "using"
-        };
-
-        private static readonly IReadOnlyCollection<CompletionItem> _keywordCompletionItems = _keywords.Select(k => new CompletionItem {
-                Label = k,
-                InsertText = k,
-                FilterText = k,
-                Kind = CompletionItemKind.Keyword,
-                SortText = k,
-                InsertTextFormat = InsertTextFormat.Plaintext,
-            }).ToList();
 
         // Internal for testing
         internal SumType<CompletionItem[], CompletionList>? SetResolveData(SumType<CompletionItem[], CompletionList> completionResult, LanguageServerKind kind)
@@ -316,15 +323,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             public bool Equals(CompletionItem x, CompletionItem y)
             {
-                return x.InsertText.Equals(y.InsertText, StringComparison.Ordinal)
-                    && x.FilterText.Equals(y.FilterText, StringComparison.Ordinal);
+                return x.Label.Equals(y.Label, StringComparison.Ordinal);
             }
 
             public int GetHashCode(CompletionItem obj)
             {
                 var hash = new HashCodeCombiner();
-                hash.Add(obj.InsertText);
-                hash.Add(obj.FilterText);
+                hash.Add(obj.Label);
 
                 return hash;
             }

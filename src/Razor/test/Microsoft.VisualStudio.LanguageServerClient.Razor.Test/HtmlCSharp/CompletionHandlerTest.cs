@@ -111,8 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.True(called);
-            Assert.NotEmpty((CompletionItem[])result.Value);
-            var item = ((CompletionItem[])result.Value).First();
+            var item = Assert.Single((CompletionItem[])result.Value);
             Assert.Equal(expectedItem.InsertText, item.InsertText);
         }
 
@@ -157,9 +156,146 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.True(called);
-            Assert.NotEmpty((CompletionItem[])result.Value);
             var item = ((CompletionItem[])result.Value).First();
             Assert.Equal(expectedItem.InsertText, item.InsertText);
+        }
+
+        [Fact]
+        public async Task HandleRequestAsync_CSharpProjection_ReturnsKeywordsFromRazor()
+        {
+            // Arrange
+            var called = false;
+            var expectedItem = new CompletionItem() { InsertText = "DateTime", Label = "DateTime" };
+            var completionRequest = new CompletionParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.Invoked },
+                Position = new Position(0, 1)
+            };
+
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
+
+            var requestInvoker = new Mock<LSPRequestInvoker>();
+            requestInvoker
+                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, LanguageServerKind, CompletionParams, CancellationToken>((method, serverKind, completionParams, ct) =>
+                {
+                    Assert.Equal(Methods.TextDocumentCompletionName, method);
+                    Assert.Equal(LanguageServerKind.CSharp, serverKind);
+                    called = true;
+                })
+                .Returns(Task.FromResult<SumType<CompletionItem[], CompletionList>?>(new[] { expectedItem }));
+
+            var projectionResult = new ProjectionResult()
+            {
+                LanguageKind = RazorLanguageKind.CSharp,
+            };
+            var projectionProvider = new Mock<LSPProjectionProvider>();
+            projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
+
+            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object);
+
+            // Act
+            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.True(called);
+            Assert.True(result.HasValue);
+            var _ = result.Value.Match<SumType<CompletionItem[], CompletionList>>(
+                array => {
+                    Assert.Collection(array,
+                        item => Assert.Equal("DateTime", item.Label),
+                        item => Assert.Equal("for", item.Label),
+                        item => Assert.Equal("foreach", item.Label),
+                        item => Assert.Equal("while", item.Label),
+                        item => Assert.Equal("switch", item.Label),
+                        item => Assert.Equal("lock", item.Label),
+                        item => Assert.Equal("case", item.Label),
+                        item => Assert.Equal("if", item.Label),
+                        item => Assert.Equal("try", item.Label),
+                        item => Assert.Equal("do", item.Label),
+                        item => Assert.Equal("using", item.Label)
+                    ); ;
+
+                    return array;
+                },
+                list => {
+                    throw new NotImplementedException();
+                });
+        }
+
+        [Fact]
+        public async Task HandleRequestAsync_CSharpProjection_ReturnsKeywordsFromCSharp()
+        {
+            // Arrange
+            var called = false;
+            var expectedItems = new CompletionItem[] {
+                 new CompletionItem() { InsertText = "DateTime", Label = "DateTime" },
+                 new CompletionItem() { InsertText = "FROMCSHARP", Label = "for" },
+
+            };
+
+            var completionRequest = new CompletionParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                Context = new CompletionContext() { TriggerKind = CompletionTriggerKind.Invoked },
+                Position = new Position(0, 1)
+            };
+
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
+
+            var requestInvoker = new Mock<LSPRequestInvoker>();
+            requestInvoker
+                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, LanguageServerKind, CompletionParams, CancellationToken>((method, serverKind, completionParams, ct) =>
+                {
+                    Assert.Equal(Methods.TextDocumentCompletionName, method);
+                    Assert.Equal(LanguageServerKind.CSharp, serverKind);
+                    called = true;
+                })
+                .Returns(Task.FromResult<SumType<CompletionItem[], CompletionList>?>(expectedItems));
+
+            var projectionResult = new ProjectionResult()
+            {
+                LanguageKind = RazorLanguageKind.CSharp,
+            };
+            var projectionProvider = new Mock<LSPProjectionProvider>();
+            projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
+
+            var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker.Object, documentManager, projectionProvider.Object);
+
+            // Act
+            var result = await completionHandler.HandleRequestAsync(completionRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.True(called);
+            Assert.True(result.HasValue);
+            var _ = result.Value.Match<SumType<CompletionItem[], CompletionList>>(
+                array => {
+                    Assert.Collection(array,
+                        item => Assert.Equal("DateTime", item.InsertText),
+                        item => {
+                            Assert.Equal("for", item.Label);
+                            Assert.Equal("FROMCSHARP", item.InsertText);
+                        },
+                        item => Assert.Equal("foreach", item.Label),
+                        item => Assert.Equal("while", item.Label),
+                        item => Assert.Equal("switch", item.Label),
+                        item => Assert.Equal("lock", item.Label),
+                        item => Assert.Equal("case", item.Label),
+                        item => Assert.Equal("if", item.Label),
+                        item => Assert.Equal("try", item.Label),
+                        item => Assert.Equal("do", item.Label),
+                        item => Assert.Equal("using", item.Label)
+                    ); ;
+
+                    return array;
+                },
+                list => {
+                    throw new NotImplementedException();
+                });
         }
 
         [Fact]
@@ -313,8 +449,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.True(called);
-            Assert.NotEmpty((CompletionItem[])result.Value);
-            var item = ((CompletionItem[])result.Value).First();
+            var item = Assert.Single((CompletionItem[])result.Value);
             Assert.Equal(expectedItem.InsertText, item.InsertText);
         }
 
