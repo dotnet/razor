@@ -27,30 +27,27 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             }
 
             // Try reading the optional hashcode
-            var hashWasRead = reader.TryReadNextProperty(RazorSerializationConstants.HashCodePropertyName, out var hashObj);
-            var hash = hashObj as int?;
+            // Note; the JsonReader will read a numeric value as a Int64 (long) by default
+            var hashWasRead = reader.TryReadNextProperty<long>(RazorSerializationConstants.HashCodePropertyName, out var hashLong);
+            var hash = hashWasRead ? Convert.ToInt32(hashLong) : 0;
             if (!DisableCachingForTesting &&
                 hashWasRead &&
-                hash.HasValue &&
-                TagHelperDescriptorCache.TryGetDescriptor(hash.Value, out var descriptor))
+                TagHelperDescriptorCache.TryGetDescriptor(hash, out var descriptor))
             {
                 ReadToEndOfCurrentObject(reader);
                 return descriptor;
             }
 
             // Required tokens (order matters)
-            if (!reader.TryReadNextProperty(nameof(TagHelperDescriptor.Kind), out var descriptorKindObj) ||
-                !(descriptorKindObj is string descriptorKind))
+            if (!reader.TryReadNextProperty<string>(nameof(TagHelperDescriptor.Kind), out var descriptorKind))
             {
                 return default;
             }
-            if (!reader.TryReadNextProperty(nameof(TagHelperDescriptor.Name), out var typeNameObj) ||
-                !(typeNameObj is string typeName))
+            if (!reader.TryReadNextProperty<string>(nameof(TagHelperDescriptor.Name), out var typeName))
             {
                 return default;
             }
-            if (!reader.TryReadNextProperty(nameof(TagHelperDescriptor.AssemblyName), out var assemblyNameObj) ||
-                !(assemblyNameObj is string assemblyName))
+            if (!reader.TryReadNextProperty<string>(nameof(TagHelperDescriptor.AssemblyName), out var assemblyName))
             {
                 return default;
             }
@@ -101,9 +98,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             });
 
             descriptor = builder.Build();
-            if (!DisableCachingForTesting && hash.HasValue)
+            if (!DisableCachingForTesting && hashWasRead)
             {
-                TagHelperDescriptorCache.Set(hash.Value, descriptor);
+                TagHelperDescriptorCache.Set(hash, descriptor);
             }
             return descriptor;
         }

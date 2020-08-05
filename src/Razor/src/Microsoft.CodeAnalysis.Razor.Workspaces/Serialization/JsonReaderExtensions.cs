@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             } while (reader.Read());
         }
 
-        public static bool TryReadNextProperty(this JsonReader reader, string propertyName, out object value)
+        public static bool TryReadNextProperty<TReturn>(this JsonReader reader, string propertyName, out TReturn value)
         {
             do
             {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         if (reader.Value.ToString() == propertyName &&
                             reader.Read())
                         {
-                            value = reader.Value;
+                            value = (TReturn)reader.Value;
                             return true;
                         }
                         else
