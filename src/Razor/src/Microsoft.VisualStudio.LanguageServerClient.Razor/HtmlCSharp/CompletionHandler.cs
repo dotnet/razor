@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
@@ -119,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 // Set some context on the CompletionItem so the CompletionResolveHandler can handle it accordingly.
                 result = SetResolveData(result.Value, serverKind);
+                result = IncludeCSharpKeywords(result.Value, serverKind);
             }
 
             return result;
@@ -180,6 +182,39 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             return (true, result);
         }
+
+        private SumType<CompletionItem[], CompletionList>? IncludeCSharpKeywords(SumType<CompletionItem[], CompletionList> completionResult, LanguageServerKind kind)
+        {
+            var result = completionResult.Match<SumType<CompletionItem[], CompletionList>?>(
+                items =>
+                {
+                    var newList = items.Union(_keywordCompletionItems, CompletionComparer.Instance);
+                    return newList.ToArray();
+                },
+                list =>
+                {
+                    var newList = list.Items.Union(_keywordCompletionItems, CompletionComparer.Instance);
+                    list.Items = newList.ToArray();
+
+                    return list;
+                });
+
+            return result;
+        }
+
+        private static readonly IReadOnlyCollection<string> _keywords = new string[] {
+            "for", "foreach", "while", "switch", "lock",
+            "case", "if", "try", "do", "using"
+        };
+
+        private static readonly IReadOnlyCollection<CompletionItem> _keywordCompletionItems = _keywords.Select(k => new CompletionItem {
+                Label = k,
+                InsertText = k,
+                FilterText = k,
+                Kind = CompletionItemKind.Keyword,
+                SortText = k,
+                InsertTextFormat = InsertTextFormat.Plaintext,
+            }).ToList();
 
         // Internal for testing
         internal SumType<CompletionItem[], CompletionList>? SetResolveData(SumType<CompletionItem[], CompletionList> completionResult, LanguageServerKind kind)
@@ -273,6 +308,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Unknown trigger character.
             return false;
+        }
+
+        private class CompletionComparer : IEqualityComparer<CompletionItem>
+        {
+            public static CompletionComparer Instance = new CompletionComparer();
+
+            public bool Equals(CompletionItem x, CompletionItem y)
+            {
+                return x.InsertText.Equals(y.InsertText, StringComparison.Ordinal)
+                    && x.FilterText.Equals(y.FilterText, StringComparison.Ordinal);
+            }
+
+            public int GetHashCode(CompletionItem obj)
+            {
+                var hash = new HashCodeCombiner();
+                hash.Add(obj.InsertText);
+                hash.Add(obj.FilterText);
+
+                return hash;
+            }
         }
     }
 }
