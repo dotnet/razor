@@ -170,6 +170,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
+                // Temporary fix for codebehind leaking through
+                // Revert when https://github.com/dotnet/aspnetcore/issues/22512 is resolved
+                referenceItem.DefinitionText = FilterReferenceDisplayText(referenceItem.DefinitionText);
+                referenceItem.Text = FilterReferenceDisplayText(referenceItem.Text);
+
                 if (!RazorLSPConventions.IsRazorCSharpFile(referenceItem.Location.Uri))
                 {
                     // This location doesn't point to a virtual cs file. No need to remap.
@@ -197,11 +202,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 referenceItem.DisplayPath = razorDocumentUri.AbsolutePath;
                 referenceItem.Location.Range = mappingResult.Ranges[0];
 
-                // Temporary fix for codebehind leaking through
-                // Revert when https://github.com/dotnet/aspnetcore/issues/22512 is resolved
-                referenceItem.DefinitionText = FilterReferenceDisplayText(referenceItem.DefinitionText);
-                referenceItem.Text = FilterReferenceDisplayText(referenceItem.Text);
-
                 remappedLocations.Add(referenceItem);
             }
 
@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (referenceText is string text)
             {
-                if (text.StartsWith(codeBehindObjectPrefix))
+                if (text.StartsWith(codeBehindObjectPrefix, StringComparison.Ordinal))
                 {
                     return text
                         .Substring(codeBehindObjectPrefix.Length, text.Length - codeBehindObjectPrefix.Length - 1); // -1 for trailing `;`

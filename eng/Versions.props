@@ -48,12 +48,12 @@
 
   -->
   <PropertyGroup Label="Automated">
-    <MicrosoftCodeAnalysisRazorPackageVersion>5.0.0-rc.1.20380.7</MicrosoftCodeAnalysisRazorPackageVersion>
-    <MicrosoftAspNetCoreRazorInternalTransportPackageVersion>5.0.0-rc.1.20380.7</MicrosoftAspNetCoreRazorInternalTransportPackageVersion>
-    <MicrosoftAspNetCoreRazorLanguagePackageVersion>5.0.0-rc.1.20380.7</MicrosoftAspNetCoreRazorLanguagePackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>5.0.0-rc.1.20380.7</MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>5.0.0-rc.1.20380.7</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>5.0.0-rc.1.20380.7</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>
+    <MicrosoftCodeAnalysisRazorPackageVersion>5.0.0-rc.1.20405.3</MicrosoftCodeAnalysisRazorPackageVersion>
+    <MicrosoftAspNetCoreRazorInternalTransportPackageVersion>5.0.0-rc.1.20405.3</MicrosoftAspNetCoreRazorInternalTransportPackageVersion>
+    <MicrosoftAspNetCoreRazorLanguagePackageVersion>5.0.0-rc.1.20405.3</MicrosoftAspNetCoreRazorLanguagePackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>5.0.0-rc.1.20405.3</MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>5.0.0-rc.1.20405.3</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>5.0.0-rc.1.20405.3</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>
     <MicrosoftExtensionsConfigurationJsonPackageVersion>5.0.0-rc.1.20370.4</MicrosoftExtensionsConfigurationJsonPackageVersion>
     <MicrosoftExtensionsDependencyModelPackageVersion>5.0.0-rc.1.20370.4</MicrosoftExtensionsDependencyModelPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>5.0.0-rc.1.20370.4</MicrosoftExtensionsLoggingPackageVersion>
@@ -61,12 +61,12 @@
     <MicrosoftNETCoreAppRefPackageVersion>5.0.0-rc.1.20370.4</MicrosoftNETCoreAppRefPackageVersion>
     <MicrosoftNETCoreAppRuntimewinx64PackageVersion>5.0.0-rc.1.20370.4</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>5.0.0-rc.1.20370.4</MicrosoftNETCorePlatformsPackageVersion>
-    <MicrosoftNETSdkRazorPackageVersion>5.0.0-rc.1.20380.7</MicrosoftNETSdkRazorPackageVersion>
+    <MicrosoftNETSdkRazorPackageVersion>5.0.0-rc.1.20405.3</MicrosoftNETSdkRazorPackageVersion>
     <SystemDiagnosticsDiagnosticSourcePackageVersion>5.0.0-rc.1.20370.4</SystemDiagnosticsDiagnosticSourcePackageVersion>
     <SystemResourcesExtensionsPackageVersion>5.0.0-rc.1.20370.4</SystemResourcesExtensionsPackageVersion>
     <SystemTextEncodingsWebPackageVersion>5.0.0-rc.1.20370.4</SystemTextEncodingsWebPackageVersion>
     <!-- Packages from dotnet/roslyn -->
-    <MicrosoftNetCompilersToolsetPackageVersion>3.8.0-1.20371.11</MicrosoftNetCompilersToolsetPackageVersion>
+    <MicrosoftNetCompilersToolsetPackageVersion>3.8.0-2.20379.3</MicrosoftNetCompilersToolsetPackageVersion>
   </PropertyGroup>
   <PropertyGroup Label="Dependency version settings">
     <!--
@@ -148,6 +148,7 @@
     <Tooling_MicrosoftCodeAnalysisRemoteRazorServiceHubPackageVersion>3.7.0-4.20351.7</Tooling_MicrosoftCodeAnalysisRemoteRazorServiceHubPackageVersion>
     <Tooling_MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>3.7.0-4.20351.7</Tooling_MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
     <Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>3.7.0-4.20351.7</Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
+    <Tooling_MicrosoftNetCoreAnalyzersPackageVersion>$(Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion)</Tooling_MicrosoftNetCoreAnalyzersPackageVersion>
     <Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion>3.7.0-4.20351.7</Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion>
     <Tooling_MicrosoftVisualStudioLanguageServicesRazorRemoteClientPackageVersion>3.7.0-4.20351.7</Tooling_MicrosoftVisualStudioLanguageServicesRazorRemoteClientPackageVersion>
     <XunitAnalyzersPackageVersion>0.10.0</XunitAnalyzersPackageVersion>
