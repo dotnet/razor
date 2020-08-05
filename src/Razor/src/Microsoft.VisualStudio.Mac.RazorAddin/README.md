@@ -13,5 +13,5 @@
     - Microsoft.CodeAnalysis.Razor.Workspaces
     Example:
     ![image](https://user-images.githubusercontent.com/2008729/89469968-7be10280-d72f-11ea-98af-d731c20167dd.png)
-7. Go back to your Razor.sln and hit run! You should now be able to hit breakpoints with your locally built code.
+7. Go back to your Razor.sln and click run. You should now be able to hit breakpoints with your locally built code.
 ![image](https://user-images.githubusercontent.com/2008729/89470234-2bb67000-d730-11ea-924c-2ec9588b0af6.png)
