@@ -66,3 +66,6 @@ dotnet_diagnostic.IDE0051.severity = warning
 
 # CS0219: Variable is assigned but its value is never used
 dotnet_diagnostic.CS0219.severity = warning
+
+# IDE0005: Using directive is unnecessary.
+dotnet_diagnostic.IDE0005.severity = warning
