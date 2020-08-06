@@ -300,7 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 FormattingOptions = formattingOptions
             };
 
-            var mappingResult = await _requestInvoker.CustomRequestServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(
+            var mappingResult = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(
                 LanguageServerConstants.RazorMapToDocumentEditsEndpoint,
                 LanguageServerKind.Razor,
                 mapToDocumentEditsParams,

@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -114,13 +112,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
             }
 
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            var classifiedSpans = syntaxTree.GetClassifiedSpans();
-            var tagHelperSpans = syntaxTree.GetTagHelperSpans();
-            var languageKind = GetLanguageKind(classifiedSpans, tagHelperSpans, hostDocumentIndex);
-
             var responsePositionIndex = hostDocumentIndex;
 
+            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
             if (languageKind == RazorLanguageKind.CSharp)
             {
                 if (_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out var projectedIndex))
@@ -209,7 +203,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            long documentVersion = UndefinedDocumentVersion;
+            var documentVersion = UndefinedDocumentVersion;
             DocumentSnapshot documentSnapshot = null;
             await Task.Factory.StartNew(() =>
             {
@@ -276,76 +270,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 TextEdits = edits.ToArray(),
                 HostDocumentVersion = documentVersion,
             };
-        }
-
-        // Internal for testing
-        internal static RazorLanguageKind GetLanguageKind(
-            IReadOnlyList<ClassifiedSpanInternal> classifiedSpans,
-            IReadOnlyList<TagHelperSpanInternal> tagHelperSpans,
-            int absoluteIndex)
-        {
-            for (var i = 0; i < classifiedSpans.Count; i++)
-            {
-                var classifiedSpan = classifiedSpans[i];
-                var span = classifiedSpan.Span;
-
-                if (span.AbsoluteIndex <= absoluteIndex)
-                {
-                    var end = span.AbsoluteIndex + span.Length;
-                    if (end >= absoluteIndex)
-                    {
-                        if (end == absoluteIndex)
-                        {
-                            // We're at an edge.
-
-                            if (span.Length > 0 &&
-                                classifiedSpan.AcceptedCharacters == AcceptedCharactersInternal.None)
-                            {
-                                // Non-marker spans do not own the edges after it
-                                continue;
-                            }
-                        }
-
-                        // Overlaps with request
-                        switch (classifiedSpan.SpanKind)
-                        {
-                            case SpanKindInternal.Markup:
-                                return RazorLanguageKind.Html;
-                            case SpanKindInternal.Code:
-                                return RazorLanguageKind.CSharp;
-                        }
-
-                        // Content type was non-C# or Html or we couldn't find a classified span overlapping the request position.
-                        // All other classified span kinds default back to Razor
-                        return RazorLanguageKind.Razor;
-                    }
-                }
-            }
-
-            for (var i = 0; i < tagHelperSpans.Count; i++)
-            {
-                var tagHelperSpan = tagHelperSpans[i];
-                var span = tagHelperSpan.Span;
-
-                if (span.AbsoluteIndex <= absoluteIndex)
-                {
-                    var end = span.AbsoluteIndex + span.Length;
-                    if (end >= absoluteIndex)
-                    {
-                        if (end == absoluteIndex)
-                        {
-                            // We're at an edge. TagHelper spans never own their edge and aren't represented by marker spans
-                            continue;
-                        }
-
-                        // Found intersection
-                        return RazorLanguageKind.Html;
-                    }
-                }
-            }
-
-            // Default to Razor
-            return RazorLanguageKind.Razor;
         }
     }
 }
