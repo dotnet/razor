@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             _miscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
         }
 
-        public override bool TryResolvePotentialProject(string documentFilePath, out ProjectSnapshot projectSnapshot)
+        public override bool TryResolveProject(string documentFilePath, out ProjectSnapshot projectSnapshot, bool enforceDocumentInProject = true)
         {
             if (documentFilePath == null)
             {
@@ -63,18 +63,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
                 if (projectSnapshot.FilePath == _miscellaneousHostProject.FilePath)
                 {
-                    if (IsDocumentInProject(projectSnapshot, documentFilePath))
+                    if (enforceDocumentInProject &&
+                        IsDocumentInProject(projectSnapshot, documentFilePath))
                     {
                         return true;
                     }
 
-                    // We don't resolve documents to belonging to the miscellaneous project.
                     continue;
                 }
 
                 var projectDirectory = _filePathNormalizer.GetDirectory(projectSnapshot.FilePath);
                 if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance) &&
-                    IsDocumentInProject(projectSnapshot, documentFilePath))
+                    (!enforceDocumentInProject || IsDocumentInProject(projectSnapshot, documentFilePath)))
                 {
                     return true;
                 }

@@ -17,14 +17,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     public class DocumentProjectResolverTest : LanguageServerTestBase
     {
         [Fact]
-        public void TryResolvePotentialProject_NoProjects_ReturnsFalse()
+        public void TryResolveProject_NoProjects_ReturnsFalse()
         {
             // Arrange
             var documentFilePath = "C:/path/to/document.cshtml";
             var projectResolver = CreateProjectResolver(() => Array.Empty<ProjectSnapshot>());
 
             // Act
-            var result = projectResolver.TryResolvePotentialProject(documentFilePath, out var project);
+            var result = projectResolver.TryResolveProject(documentFilePath, out var project);
 
             // Assert
             Assert.False(result);
@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public void TryResolvePotentialProject_OnlyMiscellaneousProject_ReturnsFalse()
+        public void TryResolveProject_OnlyMiscellaneousProject_ReturnsFalse()
         {
             // Arrange
             var documentFilePath = "C:/path/to/document.cshtml";
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectResolver = CreateProjectResolver(() => new[] { miscProject.Object });
 
             // Act
-            var result = projectResolver.TryResolvePotentialProject(documentFilePath, out var project);
+            var result = projectResolver.TryResolveProject(documentFilePath, out var project);
 
             // Assert
             Assert.False(result);
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public void TryResolvePotentialProject_UnrelatedProject_ReturnsFalse()
+        public void TryResolveProject_UnrelatedProject_ReturnsFalse()
         {
             // Arrange
             var documentFilePath = "C:/path/to/document.cshtml";
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var projectResolver = CreateProjectResolver(() => new[] { unrelatedProject });
 
             // Act
-            var result = projectResolver.TryResolvePotentialProject(documentFilePath, out var project);
+            var result = projectResolver.TryResolveProject(documentFilePath, out var project);
 
             // Assert
             Assert.False(result);
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public void TryResolvePotentialProject_OwnerProjectWithOthers_ReturnsTrue()
+        public void TryResolveProject_OwnerProjectWithOthers_ReturnsTrue()
         {
             // Arrange
             var documentFilePath = "C:/path/to/document.cshtml";
@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var projectResolver = CreateProjectResolver(() => new[] { unrelatedProject, ownerProject });
 
             // Act
-            var result = projectResolver.TryResolvePotentialProject(documentFilePath, out var project);
+            var result = projectResolver.TryResolveProject(documentFilePath, out var project);
 
             // Assert
             Assert.True(result);
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public void TryResolvePotentialProject_MiscellaneousOwnerProjectWithOthers_ReturnsTrue()
+        public void TryResolveProject_MiscellaneousOwnerProjectWithOthers_EnforceDocumentTrue_ReturnsTrue()
         {
             // Arrange
             var documentFilePath = "C:/path/to/document.cshtml";
@@ -103,16 +103,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectResolver = CreateProjectResolver(() => new[] { miscProject.Object, ownerProject });
 
             // Act
-            var result = projectResolver.TryResolvePotentialProject(documentFilePath, out var project);
+            var result = projectResolver.TryResolveProject(documentFilePath, out var project);
 
             // Assert
             Assert.True(result);
             Assert.Same(miscProject.Object, project);
         }
 
+        [Fact]
+        public void TryResolveProject_MiscellaneousOwnerProjectWithOthers_EnforceDocumentFalse_ReturnsTrue()
+        {
+            // Arrange
+            var documentFilePath = "C:/path/to/document.cshtml";
+            DefaultProjectResolver projectResolver = null;
+            var miscProject = new Mock<ProjectSnapshot>();
+            miscProject.Setup(p => p.FilePath)
+                .Returns(() => projectResolver._miscellaneousHostProject.FilePath);
+            miscProject.Setup(p => p.GetDocument(documentFilePath)).Returns(Mock.Of<DocumentSnapshot>());
+            var ownerProject = Mock.Of<ProjectSnapshot>(
+                p => p.FilePath == "C:/path/to/project.csproj" &&
+                p.GetDocument(documentFilePath) == null);
+
+            projectResolver = CreateProjectResolver(() => new[] { miscProject.Object, ownerProject });
+
+            // Act
+            var result = projectResolver.TryResolveProject(documentFilePath, out var project, enforceDocumentInProject: false);
+
+            // Assert
+            Assert.True(result);
+            Assert.Same(ownerProject, project);
+        }
+
         [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Linux | OperatingSystems.MacOSX, SkipReason = "Linux/Mac have case sensitive file comparers.")]
-        public void TryResolvePotentialProject_OwnerProjectDifferentCasing_ReturnsTrue()
+        public void TryResolveProject_OwnerProjectDifferentCasing_ReturnsTrue()
         {
             // Arrange
             var documentFilePath = "c:/path/to/document.cshtml";
@@ -122,7 +146,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var projectResolver = CreateProjectResolver(() => new[] { ownerProject });
 
             // Act
-            var result = projectResolver.TryResolvePotentialProject(documentFilePath, out var project);
+            var result = projectResolver.TryResolveProject(documentFilePath, out var project);
 
             // Assert
             Assert.True(result);
