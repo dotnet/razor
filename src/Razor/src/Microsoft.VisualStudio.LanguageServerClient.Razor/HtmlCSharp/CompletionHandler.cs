@@ -209,12 +209,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = completionResult.Match<SumType<CompletionItem[], CompletionList>?>(
                 items =>
                 {
-                    var newList = items.Union(_keywordCompletionItems, CompletionComparer.Instance);
+                    var newList = items.Union(_keywordCompletionItems, CompletionItemComparer.Instance);
                     return newList.ToArray();
                 },
                 list =>
                 {
-                    var newList = list.Items.Union(_keywordCompletionItems, CompletionComparer.Instance);
+                    var newList = list.Items.Union(_keywordCompletionItems, CompletionItemComparer.Instance);
                     list.Items = newList.ToArray();
 
                     return list;
@@ -317,9 +317,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return false;
         }
 
-        private class CompletionComparer : IEqualityComparer<CompletionItem>
+        private class CompletionItemComparer : IEqualityComparer<CompletionItem>
         {
-            public static CompletionComparer Instance = new CompletionComparer();
+            public static CompletionItemComparer Instance = new CompletionItemComparer();
 
             public bool Equals(CompletionItem x, CompletionItem y)
             {
