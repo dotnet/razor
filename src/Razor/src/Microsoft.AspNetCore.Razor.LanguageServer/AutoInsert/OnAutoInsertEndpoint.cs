@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             var uri = request.TextDocument.Uri;
             var position = request.Position;
 
-            var formattingContext = FormattingContext.Create(uri, codeDocument, new Range(position, position), request.Options);
+            var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, new Range(position, position));
             for (var i = 0; i < applicableProviders.Count; i++)
             {
                 if (applicableProviders[i].TryResolveInsertion(position, formattingContext, out var textEdit, out var format))

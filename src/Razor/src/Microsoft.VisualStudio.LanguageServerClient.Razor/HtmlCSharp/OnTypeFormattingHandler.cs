@@ -71,7 +71,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
+            // For onTypeFormatting, it makes more sense to look up the projection of the character that was inserted. Aka. request.Position.Character - 1
+            var position = new Position(request.Position.Line, request.Position.Character - 1);
+            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, position, cancellationToken).ConfigureAwait(false);
             if (projectionResult == null || projectionResult.LanguageKind != RazorLanguageKind.CSharp)
             {
                 return null;
@@ -87,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 Character = request.Character,
                 Options = request.Options,
-                Position = projectionResult.Position,
+                Position = new Position(projectionResult.Position.Line, projectionResult.Position.Character + 1),
                 TextDocument = new TextDocumentIdentifier() { Uri = projectionResult.Uri }
             };
 

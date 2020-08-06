@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -541,6 +542,8 @@ tabSize: 12);
             var path = "file:///path/to/document.razor";
             var uri = new Uri(path);
             var codeDocument = CreateCodeDocument(source, uri.AbsolutePath, fileKind: fileKind);
+            var documentSnapshot = new Mock<DocumentSnapshot>();
+            documentSnapshot.Setup(d => d.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,
@@ -550,7 +553,7 @@ tabSize: 12);
             var formattingService = CreateFormattingService(codeDocument);
 
             // Act
-            var edits = await formattingService.FormatAsync(uri, codeDocument, range, options);
+            var edits = await formattingService.FormatAsync(uri, documentSnapshot.Object, range, options);
 
             // Assert
             var edited = ApplyEdits(source, edits);
@@ -566,9 +569,12 @@ tabSize: 12);
             var client = new FormattingLanguageServerClient();
             client.AddCodeDocument(codeDocument);
             var languageServer = Mock.Of<ILanguageServer>(ls => ls.Client == client);
+            var passes = new List<IFormattingPass>()
+            {
+                new CodeBlockDirectiveFormattingPass(mappingService, filePathNormalizer, languageServer, LoggerFactory)
+            };
 
-
-            return new DefaultRazorFormattingService(mappingService, filePathNormalizer, languageServer, LoggerFactory);
+            return new DefaultRazorFormattingService(passes, LoggerFactory);
         }
 
         private SourceText ApplyEdits(SourceText source, TextEdit[] edits)

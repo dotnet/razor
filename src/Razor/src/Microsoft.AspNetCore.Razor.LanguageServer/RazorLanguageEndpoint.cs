@@ -233,7 +233,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (request.ShouldFormat)
             {
                 var mappedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
-                    request.RazorDocumentUri, codeDocument, request.Kind, request.ProjectedTextEdits, request.FormattingOptions);
+                    request.RazorDocumentUri, documentSnapshot, request.Kind, request.ProjectedTextEdits, request.FormattingOptions);
 
                 return new RazorMapToDocumentEditsResponse()
                 {
