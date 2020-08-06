@@ -22,12 +22,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private static readonly IReadOnlyList<string> HtmlTriggerCharacters = new[] { "<", "&", "\\", "/", "'", "\"", "=", ":", " " };
         private static readonly IReadOnlyList<string> AllTriggerCharacters = CSharpTriggerCharacters.Concat(HtmlTriggerCharacters).ToArray();
 
-        private static readonly IReadOnlyCollection<string> _keywords = new string[] {
+        private static readonly IReadOnlyCollection<string> Keywords = new string[] {
             "for", "foreach", "while", "switch", "lock",
             "case", "if", "try", "do", "using"
         };
 
-        private static readonly IReadOnlyCollection<CompletionItem> _keywordCompletionItems = _keywords.Select(k => new CompletionItem
+        private static readonly IReadOnlyCollection<CompletionItem> KeywordCompletionItems = Keywords.Select(k => new CompletionItem
         {
             Label = k,
             InsertText = k,
@@ -209,12 +209,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = completionResult.Match<SumType<CompletionItem[], CompletionList>?>(
                 items =>
                 {
-                    var newList = items.Union(_keywordCompletionItems, CompletionItemComparer.Instance);
+                    var newList = items.Union(KeywordCompletionItems, CompletionItemComparer.Instance);
                     return newList.ToArray();
                 },
                 list =>
                 {
-                    var newList = list.Items.Union(_keywordCompletionItems, CompletionItemComparer.Instance);
+                    var newList = list.Items.Union(KeywordCompletionItems, CompletionItemComparer.Instance);
                     list.Items = newList.ToArray();
 
                     return list;
