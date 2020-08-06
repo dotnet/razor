@@ -17,7 +17,7 @@ export class RazorDefinitionProvider
         token: vscode.CancellationToken) {
 
         const projection = await this.getProjection(document, position, token);
-        if (!projection) {
+        if (!projection || projection.languageKind === LanguageKind.Razor) {
             return;
         }
 

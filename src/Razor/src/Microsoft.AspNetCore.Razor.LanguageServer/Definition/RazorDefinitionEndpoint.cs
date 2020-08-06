@@ -16,13 +16,13 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
-    class RazorDefinitionEndpoint : IDefinitionHandler
+    internal class RazorDefinitionEndpoint : IDefinitionHandler
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
 
-        private DefinitionCapability _capability;
+        public DefinitionCapability _capability { get; private set }
 
         public RazorDefinitionEndpoint(
             ForegroundDispatcher foregroundDispatcher,
@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 return null;
             }
 
-            var originTagDescriptor = originTagHelperBinding.Descriptors.FirstOrDefault();
+            var originTagDescriptor = originTagHelperBinding.Descriptors.SingleOrDefault();
             if (originTagDescriptor is null)
             {
                 return null;
@@ -127,8 +127,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             }
 
             var owner = syntaxTree.Root.LocateOwner(change);
+            if (owner is null)
+            {
+                return null;
+            }
+
             var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.MarkupTagHelperStartTag);
             if (node == null || !(node is MarkupTagHelperStartTagSyntax tagHelperStartTag))
+            {
+                return null;
+            }
+            
+            if (!tagHelperStartTag.Name.Span.Contains(location.AbsoluteIndex))
             {
                 return null;
             }
