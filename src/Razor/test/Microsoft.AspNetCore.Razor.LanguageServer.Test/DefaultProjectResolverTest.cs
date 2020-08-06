@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public void TryResolveProject_OnlyMiscellaneousProject_ReturnsFalse()
+        public void TryResolveProject_OnlyMiscellaneousProjectDoesNotContainDocument_ReturnsFalse()
         {
             // Arrange
             var documentFilePath = "C:/path/to/document.cshtml";
@@ -48,6 +48,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Assert
             Assert.False(result);
             Assert.Null(project);
+        }
+
+        [Fact]
+        public void TryResolveProject_OnlyMiscellaneousProjectContainsDocument_ReturnsTrue()
+        {
+            // Arrange
+            var documentFilePath = "C:/path/to/document.cshtml";
+            DefaultProjectResolver projectResolver = null;
+            var miscProject = new Mock<ProjectSnapshot>();
+            miscProject.Setup(p => p.FilePath)
+                .Returns(() => projectResolver._miscellaneousHostProject.FilePath);
+            miscProject.Setup(p => p.GetDocument(documentFilePath)).Returns(Mock.Of<DocumentSnapshot>());
+            projectResolver = CreateProjectResolver(() => new[] { miscProject.Object });
+
+            // Act
+            var result = projectResolver.TryResolveProject(documentFilePath, out var project);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(miscProject.Object, project);
         }
 
         [Fact]
@@ -103,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectResolver = CreateProjectResolver(() => new[] { miscProject.Object, ownerProject });
 
             // Act
-            var result = projectResolver.TryResolveProject(documentFilePath, out var project);
+            var result = projectResolver.TryResolveProject(documentFilePath, out var project, enforceDocumentInProject: true);
 
             // Assert
             Assert.True(result);

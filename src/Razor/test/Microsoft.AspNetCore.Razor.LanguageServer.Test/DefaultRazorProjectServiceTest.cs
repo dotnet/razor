@@ -439,7 +439,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var documentFilePath = "C:/path/to/document.cshtml";
             var project = Mock.Of<ProjectSnapshot>();
             var projectResolver = new Mock<ProjectResolver>();
-            projectResolver.Setup(resolver => resolver.TryResolveProject(It.IsAny<string>(), out project, false))
+            projectResolver.Setup(resolver => resolver.TryResolveProject(It.IsAny<string>(), out project, It.IsAny<bool>()))
                 .Throws(new InvalidOperationException("This shouldn't have been called."));
             var alreadyOpenDoc = Mock.Of<DocumentSnapshot>();
             var documentResolver = Mock.Of<DocumentResolver>(resolver => resolver.TryResolveDocument(It.IsAny<string>(), out alreadyOpenDoc));

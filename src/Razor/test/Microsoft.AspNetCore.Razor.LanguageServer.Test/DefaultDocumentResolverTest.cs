@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -22,9 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var normalizedFilePath = "C:/path/to/document.cshtml";
             var filePathNormalizer = new FilePathNormalizer();
             var expectedDocument = Mock.Of<DocumentSnapshot>();
-            var project = Mock.Of<ProjectSnapshot>(shim =>
-                shim.GetDocument(normalizedFilePath) == expectedDocument &&
-                shim.DocumentFilePaths == new[] { normalizedFilePath });
+            var project = Mock.Of<ProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument);
             var projectResolver = Mock.Of<ProjectResolver>(resolver => resolver.TryResolveProject(normalizedFilePath, out project, true) == true);
             var documentResolver = new DefaultDocumentResolver(Dispatcher, projectResolver, filePathNormalizer);
 
@@ -44,8 +41,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var normalizedFilePath = "C:/path/to/document.cshtml";
             var filePathNormalizer = new FilePathNormalizer();
             var expectedDocument = Mock.Of<DocumentSnapshot>();
-            var project = Mock.Of<ProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument && shim.DocumentFilePaths == new[] { normalizedFilePath });
-            var projectResolver = Mock.Of<ProjectResolver>(resolver => resolver.TryResolveProject(normalizedFilePath, out project, true));
+            var project = Mock.Of<ProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument);
+            var projectResolver = Mock.Of<ProjectResolver>(resolver => resolver.TryResolveProject(normalizedFilePath, out project, true) == true);
             var documentResolver = new DefaultDocumentResolver(Dispatcher, projectResolver, filePathNormalizer);
 
             // Act
@@ -87,10 +84,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var filePathNormalizer = new FilePathNormalizer();
             var expectedDocument = Mock.Of<DocumentSnapshot>();
             var project = Mock.Of<ProjectSnapshot>(shim => shim.DocumentFilePaths == Array.Empty<string>());
-            var miscProject = Mock.Of<ProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument && shim.DocumentFilePaths ==new[] { normalizedFilePath });
+            var miscProject = Mock.Of<ProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument);
             var projectResolver = Mock.Of<ProjectResolver>(resolver =>
-                resolver.TryResolveProject(normalizedFilePath, out miscProject, true) == true &&
-                resolver.GetMiscellaneousProject() == miscProject);
+                resolver.TryResolveProject(normalizedFilePath, out miscProject, true) == true);
             var documentResolver = new DefaultDocumentResolver(Dispatcher, projectResolver, filePathNormalizer);
 
             // Act
@@ -99,24 +95,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Assert
             Assert.True(result);
             Assert.Same(expectedDocument, document);
-        }
-
-        [Fact]
-        public void TryResolveDocument_AsksMiscellaneousProjectForDocumentItIsNotTracking_ReturnsFalse()
-        {
-            // Arrange
-            var documentFilePath = "C:\\path\\to\\document.cshtml";
-            var filePathNormalizer = new FilePathNormalizer();
-            var project = Mock.Of<ProjectSnapshot>(shim => shim.DocumentFilePaths == Array.Empty<string>());
-            var projectResolver = Mock.Of<ProjectResolver>(resolver => resolver.GetMiscellaneousProject() == project);
-            var documentResolver = new DefaultDocumentResolver(Dispatcher, projectResolver, filePathNormalizer);
-
-            // Act
-            var result = documentResolver.TryResolveDocument(documentFilePath, out var document);
-
-            // Assert
-            Assert.False(result);
-            Assert.Null(document);
         }
     }
 }
