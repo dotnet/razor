@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             "case", "if", "try", "do", "using"
         };
 
-        private static readonly IEnumerable<CompletionItem> _keywordCompletionItems = _keywords.Select(k => new CompletionItem
+        private static readonly IReadOnlyCollection<CompletionItem> _keywordCompletionItems = _keywords.Select(k => new CompletionItem
         {
             Label = k,
             InsertText = k,
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Kind = CompletionItemKind.Keyword,
             SortText = k,
             InsertTextFormat = InsertTextFormat.Plaintext,
-        });
+        }).ToArray();
 
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPRequestInvoker _requestInvoker;
