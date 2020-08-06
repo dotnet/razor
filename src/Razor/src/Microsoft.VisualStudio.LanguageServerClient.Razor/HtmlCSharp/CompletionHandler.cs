@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             "case", "if", "try", "do", "using"
         };
 
-        private static readonly IReadOnlyCollection<CompletionItem> _keywordCompletionItems = _keywords.Select(k => new CompletionItem
+        private static readonly IEnumerable<CompletionItem> _keywordCompletionItems = _keywords.Select(k => new CompletionItem
         {
             Label = k,
             InsertText = k,
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Kind = CompletionItemKind.Keyword,
             SortText = k,
             InsertTextFormat = InsertTextFormat.Plaintext,
-        }).ToList();
+        });
 
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPRequestInvoker _requestInvoker;
@@ -323,16 +323,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             public bool Equals(CompletionItem x, CompletionItem y)
             {
+                if (x is null && y is null)
+                {
+                    return true;
+                }
+                else if (x is null || y is null)
+                {
+                    return false;
+                }
+
                 return x.Label.Equals(y.Label, StringComparison.Ordinal);
             }
 
-            public int GetHashCode(CompletionItem obj)
-            {
-                var hash = new HashCodeCombiner();
-                hash.Add(obj.Label);
-
-                return hash;
-            }
+            public int GetHashCode(CompletionItem obj) => obj?.Label?.GetHashCode() ?? 0;
         }
     }
 }

@@ -185,7 +185,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(LanguageServerKind.CSharp, serverKind);
                     called = true;
                 })
-                .Returns(Task.FromResult<SumType<CompletionItem[], CompletionList>?>(new[] { expectedItem }));
+                .Returns(Task.FromResult<SumType<CompletionItem[], CompletionList>?>(new CompletionList{
+                    Items = new[] { expectedItem }
+                }));
 
             var projectionResult = new ProjectionResult()
             {
@@ -203,8 +205,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.True(called);
             Assert.True(result.HasValue);
             var _ = result.Value.Match<SumType<CompletionItem[], CompletionList>>(
-                array => {
-                    Assert.Collection(array,
+                array => throw new NotImplementedException(),
+                list => {
+                    Assert.Collection(list.Items,
                         item => Assert.Equal("DateTime", item.Label),
                         item => Assert.Equal("for", item.Label),
                         item => Assert.Equal("foreach", item.Label),
@@ -216,12 +219,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         item => Assert.Equal("try", item.Label),
                         item => Assert.Equal("do", item.Label),
                         item => Assert.Equal("using", item.Label)
-                    ); ;
+                    );
 
-                    return array;
-                },
-                list => {
-                    throw new NotImplementedException();
+                    return list;
                 });
         }
 
