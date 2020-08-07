@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         private readonly DocumentResolver _documentResolver;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
 
-        public DefinitionCapability _capability { get; private set }
+        public DefinitionCapability _capability { get; private set; }
 
         public RazorDefinitionEndpoint(
             ForegroundDispatcher foregroundDispatcher,
