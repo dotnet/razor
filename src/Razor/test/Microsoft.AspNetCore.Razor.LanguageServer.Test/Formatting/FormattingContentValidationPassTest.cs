@@ -107,9 +107,11 @@ public class Foo { }
             var input = new FormattingResult(edits, RazorLanguageKind.Razor);
             var pass = GetPass(context.CodeDocument);
 
-            // Act & Assert
-            var ex = Assert.ThrowsAny<Exception>(() => pass.Execute(context, input));
-            Assert.Contains("A formatting result was rejected because it was going to mess up the document.", ex.Message, StringComparison.Ordinal);
+            // Act
+            var result = pass.Execute(context, input);
+
+            // Assert
+            Assert.Empty(result.Edits);
         }
 
         private FormattingContentValidationPass GetPass(RazorCodeDocument codeDocument)
@@ -120,6 +122,7 @@ public class Foo { }
             client.AddCodeDocument(codeDocument);
             var languageServer = Mock.Of<ILanguageServer>(ls => ls.Client == client);
             var pass = new FormattingContentValidationPass(mappingService, FilePathNormalizer, languageServer, LoggerFactory);
+            pass.DebugAssertsEnabled = false;
 
             return pass;
         }

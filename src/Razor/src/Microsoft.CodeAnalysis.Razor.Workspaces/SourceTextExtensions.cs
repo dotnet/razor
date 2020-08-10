@@ -67,10 +67,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return _checksum;
             }
 
-            public override string ToString()
-            {
-                return _sourceText.ToString();
-            }
+            public override string ToString() => _sourceText.ToString();
         }
 
         private class RazorTextLineCollection : RazorSourceLineCollection

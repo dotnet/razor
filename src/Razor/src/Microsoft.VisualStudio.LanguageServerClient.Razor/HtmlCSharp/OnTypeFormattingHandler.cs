@@ -135,12 +135,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var triggerCharacterPosition = new Position(triggerCharacterLine.LineNumber, triggerCharacterPoint.Position - triggerCharacterLine.Start.Position);
 
             var triggerCharacterProjectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, triggerCharacterPosition, cancellationToken).ConfigureAwait(false);
-            if (triggerCharacterProjectionResult == null)
-            {
-                return null;
-            }
 
-            return triggerCharacterProjectionResult.LanguageKind;
+            return triggerCharacterProjectionResult?.LanguageKind;
         }
 
         private static bool IsApplicableTriggerCharacter(string triggerCharacter, RazorLanguageKind languageKind)
