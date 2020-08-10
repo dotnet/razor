@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return visitor.FormattingSpans;
         }
 
-        public static RazorDirectiveSyntax[] GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
+        public static IReadOnlyList<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
         {
             if (syntaxTree == null)
             {
@@ -37,12 +37,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 .DescendantNodes(node => node is RazorDocumentSyntax || node is MarkupBlockSyntax || node is CSharpCodeBlockSyntax)
                 .OfType<RazorDirectiveSyntax>()
                 .Where(directive => directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock)
-                .ToArray();
+                .ToList();
 
             return codeBlockDirectives;
         }
 
-        public static CSharpStatementSyntax[] GetCSharpStatements(this RazorSyntaxTree syntaxTree)
+        public static IReadOnlyList<CSharpStatementSyntax> GetCSharpStatements(this RazorSyntaxTree syntaxTree)
         {
             if (syntaxTree is null)
             {
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             // We want all nodes that represent Razor C# statements, @{ ... }.
-            var statements = syntaxTree.Root.DescendantNodes().OfType<CSharpStatementSyntax>().ToArray();
+            var statements = syntaxTree.Root.DescendantNodes().OfType<CSharpStatementSyntax>().ToList();
             return statements;
         }
     }
