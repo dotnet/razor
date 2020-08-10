@@ -41,5 +41,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             return codeBlockDirectives;
         }
+
+        public static CSharpStatementSyntax[] GetCSharpStatements(this RazorSyntaxTree syntaxTree)
+        {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
+            // We want all nodes that represent Razor C# statements, @{ ... }.
+            var statements = syntaxTree.Root.DescendantNodes().OfType<CSharpStatementSyntax>().ToArray();
+            return statements;
+        }
     }
 }
