@@ -33,6 +33,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         // We want this to run at the very end.
         public override int Order => DefaultOrder + 1000;
 
+        // Internal for testing.
+        internal bool DebugAssertsEnabled { get; set; } = true;
+
         public override FormattingResult Execute(FormattingContext context, FormattingResult result)
         {
             if (result.Kind != RazorLanguageKind.Razor)
@@ -51,7 +54,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // Looks like we nuked some non-whitespace content as part of formatting. Oops.
                 // Discard this formatting result.
 
-                Debug.Fail("A formatting result was rejected because it was going to mess up the document.");
+                if (DebugAssertsEnabled)
+                {
+                    Debug.Fail("A formatting result was rejected because it was going to mess up the document.");
+                }
 
                 return new FormattingResult(Array.Empty<TextEdit>());
             }

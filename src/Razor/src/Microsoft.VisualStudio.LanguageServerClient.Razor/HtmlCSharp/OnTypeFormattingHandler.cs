@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -71,17 +72,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            // For onTypeFormatting, it makes more sense to look up the projection of the character that was inserted. Aka. request.Position.Character - 1
-            var position = new Position(request.Position.Line, request.Position.Character - 1);
-            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, position, cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null || projectionResult.LanguageKind != RazorLanguageKind.CSharp)
+            var triggerCharacterKind = await GetTriggerCharacterLanguageKindAsync(documentSnapshot, request.Position, request.Character, cancellationToken).ConfigureAwait(false);
+            if (triggerCharacterKind == null || triggerCharacterKind != RazorLanguageKind.CSharp)
             {
                 return null;
             }
 
-            if (!IsApplicableTriggerCharacter(request.Character, projectionResult.LanguageKind))
+            if (!IsApplicableTriggerCharacter(request.Character, triggerCharacterKind.Value))
             {
                 // We were triggered but the trigger character doesn't make sense for the current cursor position. Bail.
+                return null;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
+            if (projectionResult == null)
+            {
                 return null;
             }
 
@@ -89,13 +96,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 Character = request.Character,
                 Options = request.Options,
-                Position = new Position(projectionResult.Position.Line, projectionResult.Position.Character + 1),
+                Position = projectionResult.Position,
                 TextDocument = new TextDocumentIdentifier() { Uri = projectionResult.Uri }
             };
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var serverKind = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? LanguageServerKind.CSharp : LanguageServerKind.Html;
+            var serverKind = triggerCharacterKind.Value == RazorLanguageKind.CSharp ? LanguageServerKind.CSharp : LanguageServerKind.Html;
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
                 Methods.TextDocumentOnTypeFormattingName,
                 serverKind,
@@ -111,6 +118,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var remappedEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(projectionResult.Uri, response, request.Options, cancellationToken).ConfigureAwait(false);
             return remappedEdits;
+        }
+
+        private async Task<RazorLanguageKind?> GetTriggerCharacterLanguageKindAsync(LSPDocumentSnapshot documentSnapshot, Position positionAfterTriggerChar, string triggerCharacter, CancellationToken cancellationToken)
+        {
+            // request.Character will point to the position after the character that was inserted.
+            // For onTypeFormatting, it makes more sense to look up the projection of the character that was inserted.
+            var line = documentSnapshot.Snapshot.GetLineFromLineNumber(positionAfterTriggerChar.Line);
+            var position = line.Start.Position + positionAfterTriggerChar.Character;
+            var point = new SnapshotPoint(documentSnapshot.Snapshot, position);
+
+            // Subtract the trigger character length to go back to the position of the trigger character
+            var triggerCharacterPoint = point.Subtract(triggerCharacter.Length);
+
+            var triggerCharacterLine = documentSnapshot.Snapshot.GetLineFromPosition(triggerCharacterPoint.Position);
+            var triggerCharacterPosition = new Position(triggerCharacterLine.LineNumber, triggerCharacterPoint.Position - triggerCharacterLine.Start.Position);
+
+            var triggerCharacterProjectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, triggerCharacterPosition, cancellationToken).ConfigureAwait(false);
+
+            return triggerCharacterProjectionResult?.LanguageKind;
         }
 
         private static bool IsApplicableTriggerCharacter(string triggerCharacter, RazorLanguageKind languageKind)

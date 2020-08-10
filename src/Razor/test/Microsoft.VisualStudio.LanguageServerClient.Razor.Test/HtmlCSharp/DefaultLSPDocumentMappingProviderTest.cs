@@ -245,7 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 };
 
                 requestInvoker
-                    .Setup(r => r.ReinvokeRequestOnServerAsync<RazorMapToDocumentRangesParams, RazorMapToDocumentRangesResponse>(LanguageServerConstants.RazorMapToDocumentRangesEndpoint, LanguageServerKind.Razor, requestParams, It.IsAny<CancellationToken>()))
+                    .Setup(r => r.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(LanguageServerConstants.RazorMapToDocumentEditsEndpoint, LanguageServerKind.Razor, requestParams, It.IsAny<CancellationToken>()))
                     .Returns(Task.FromResult(response));
             }
 

@@ -92,13 +92,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var engine = OriginalSnapshot.Project.GetProjectEngine();
-            var imports = ((DefaultDocumentSnapshot)OriginalSnapshot).State.GetImports((DefaultProjectSnapshot)OriginalSnapshot.Project);
             var importSources = new List<RazorSourceDocument>();
-            foreach (var import in imports)
+
+            if (OriginalSnapshot is DefaultDocumentSnapshot documentSnapshot)
             {
-                var sourceText = await import.GetTextAsync();
-                var source = sourceText.GetRazorSourceDocument(import.FilePath, import.TargetPath);
-                importSources.Add(source);
+                var imports = documentSnapshot.State.GetImports((DefaultProjectSnapshot)OriginalSnapshot.Project);
+                foreach (var import in imports)
+                {
+                    var sourceText = await import.GetTextAsync();
+                    var source = sourceText.GetRazorSourceDocument(import.FilePath, import.TargetPath);
+                    importSources.Add(source);
+                }
             }
 
             var changedSourceDocument = changedText.GetRazorSourceDocument(OriginalSnapshot.FilePath, OriginalSnapshot.TargetPath);
