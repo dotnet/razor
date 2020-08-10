@@ -349,7 +349,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public void GetLanguageKindCore_RazorEdgeWithCSharp()
+        public void GetLanguageKindCore_CSharpEdgeWithCSharp()
         {
             // Arrange
             var text = "@{}";
