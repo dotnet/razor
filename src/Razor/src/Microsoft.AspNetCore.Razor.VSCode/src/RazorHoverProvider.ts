@@ -10,6 +10,8 @@ export class RazorHoverProvider
     extends RazorLanguageFeatureBase
     implements vscode.HoverProvider {
 
+    private static readonly GENERATED_PREFIX_LENGTH = 52;
+
     public async provideHover(
         document: vscode.TextDocument, position: vscode.Position,
         token: vscode.CancellationToken) {
@@ -62,20 +64,36 @@ export class RazorHoverProvider
             // string.
 
             if (typeof content === 'string') {
-                rewrittenContent.push(content);
+                const filteredValue = this.filterGeneratedNamespace(content);
+                rewrittenContent.push(filteredValue);
             } else if ((content as { language: string; value: string }).language) {
                 const contentObject = (content as { language: string; value: string });
                 const markdownString = new vscode.MarkdownString();
-                markdownString.appendCodeblock(contentObject.value, contentObject.language);
+                const filteredValue = this.filterGeneratedNamespace(contentObject.value);
+                markdownString.appendCodeblock(filteredValue, contentObject.language);
                 rewrittenContent.push(markdownString);
             } else {
                 const contentValue = (content as vscode.MarkdownString).value;
-                const markdownString = new vscode.MarkdownString(contentValue);
+                const filteredValue = this.filterGeneratedNamespace(contentValue);
+                const markdownString = new vscode.MarkdownString(filteredValue);
                 rewrittenContent.push(markdownString);
             }
         }
 
         const hover = new vscode.Hover(rewrittenContent, remappedResponse.ranges[0]);
         return hover;
+    }
+
+    private filterGeneratedNamespace(content: string): string {
+        // May contain the generated namespace which needs to be filtered out
+        /* Example:
+            ```csharp\nint AspNetCore_325c1543a2e5ffb7c4b17d99519708c8ca60e845.currentCount\n```\n
+        */
+
+        if (content == null || content.length <= RazorHoverProvider.GENERATED_PREFIX_LENGTH) {
+            return content;
+        }
+
+        return content.replace(/AspNetCore_\w{40}\./g, '');
     }
 }
