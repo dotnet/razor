@@ -17,6 +17,8 @@ Follow the [Getting Started](https://docs.microsoft.com/aspnet/core/getting-star
 
 Also check out the [.NET Homepage](https://www.microsoft.com/net) for released versions of .NET, getting started guides, and learning resources.
 
+[Instructions to build ASP.NET Core Tooling source code](https://github.com/dotnet/aspnetcore-tooling/blob/master/docs/contributing/BuildFromSource.md)
+
 ## How to Engage, Contribute, and Give Feedback
 
 Some of the best ways to contribute are to try things out, [file issues](https://github.com/dotnet/aspnetcore/issues), join in design conversations,
