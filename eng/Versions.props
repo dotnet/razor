@@ -94,6 +94,7 @@
     <MicrosoftBuildLocatorPackageVersion>1.2.6</MicrosoftBuildLocatorPackageVersion>
     <MicrosoftBuildPackageVersion>15.8.166</MicrosoftBuildPackageVersion>
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
+    <MicrosoftInternalVisualStudioShellEmbeddable>16.4.29305.180</MicrosoftInternalVisualStudioShellEmbeddable>
     <MicrosoftNETCoreApp50PackageVersion>$(MicrosoftNETCoreAppRuntimewinx64PackageVersion)</MicrosoftNETCoreApp50PackageVersion>
     <MicrosoftNetRoslynDiagnosticsPackageVersion>2.6.3</MicrosoftNetRoslynDiagnosticsPackageVersion>
     <MicrosoftVisualStudioCoreUtilityPackageVersion>16.7.66</MicrosoftVisualStudioCoreUtilityPackageVersion>
