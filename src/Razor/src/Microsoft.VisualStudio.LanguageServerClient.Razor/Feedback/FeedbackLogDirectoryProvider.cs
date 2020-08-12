@@ -5,8 +5,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
 {
     internal abstract class FeedbackLogDirectoryProvider
     {
-        public abstract bool DirectoryCreated { get; }
-
         public abstract string GetDirectory();
     }
 }
