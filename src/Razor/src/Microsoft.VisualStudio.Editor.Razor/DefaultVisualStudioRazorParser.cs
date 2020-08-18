@@ -383,7 +383,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             _dispatcher.AssertForegroundThread();
 
-            _latestChangeReference = _parser.QueueChange(change, snapshot);
+            _latestChangeReference = _parser?.QueueChange(change, snapshot);
         }
 
         private void OnNotifyForegroundIdle()
