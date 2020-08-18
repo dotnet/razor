@@ -383,6 +383,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             _dispatcher.AssertForegroundThread();
 
+            // _parser can be null if we're in the midst of rebuilding the internal parser (TagHelper refresh/solution teardown)
             _latestChangeReference = _parser?.QueueChange(change, snapshot);
         }
 
