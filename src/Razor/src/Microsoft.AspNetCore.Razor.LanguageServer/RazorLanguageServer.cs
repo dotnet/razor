@@ -31,7 +31,6 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
