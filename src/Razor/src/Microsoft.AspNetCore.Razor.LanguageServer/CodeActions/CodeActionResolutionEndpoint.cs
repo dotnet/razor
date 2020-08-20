@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -28,12 +29,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _logger = loggerFactory.CreateLogger<CodeActionResolutionEndpoint>();
-
             if (resolvers is null)
             {
                 throw new ArgumentNullException(nameof(resolvers));
             }
+
+            _logger = loggerFactory.CreateLogger<CodeActionResolutionEndpoint>();
 
             var resolverMap = new Dictionary<string, RazorCodeActionResolver>();
             foreach (var resolver in resolvers)
@@ -58,15 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(request));
             }
 
-            _logger.LogDebug($"Resolving action {request.Action} with data {request.Data}.");
-
-            if (!_resolvers.TryGetValue(request.Action, out var resolver))
-            {
-                Debug.Fail($"No resolver registered for {request.Action}.");
-                return new RazorCodeActionResolutionResponse();
-            }
-
-            var edit = await resolver.ResolveAsync(request.Data, cancellationToken).ConfigureAwait(false);
+            var edit = await GetWorkspaceEditAsync(request, cancellationToken).ConfigureAwait(false);
             return new RazorCodeActionResolutionResponse() { Edit = edit };
         }
 
@@ -85,16 +78,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var resolutionParams = paramsObj.ToObject<RazorCodeActionResolutionParams>();
-            _logger.LogDebug($"Resolving action {resolutionParams.Action} with data {resolutionParams.Data}.");
+            request.Edit = await GetWorkspaceEditAsync(resolutionParams, cancellationToken).ConfigureAwait(false);
+            return request;
+        }
+
+        private async Task<WorkspaceEdit> GetWorkspaceEditAsync(RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+        {
+            _logger.LogDebug($"Resolving workspace edit for action `{resolutionParams.Action}` with data `{resolutionParams.Data}`.");
 
             if (!_resolvers.TryGetValue(resolutionParams.Action, out var resolver))
             {
                 Debug.Fail($"No resolver registered for {resolutionParams.Action}.");
-                return request;
+                return default;
             }
 
-            request.Edit = await resolver.ResolveAsync(resolutionParams.Data, cancellationToken).ConfigureAwait(false);
-            return request;
+            return await resolver.ResolveAsync(resolutionParams.Data, cancellationToken).ConfigureAwait(false);
         }
     }
 }
