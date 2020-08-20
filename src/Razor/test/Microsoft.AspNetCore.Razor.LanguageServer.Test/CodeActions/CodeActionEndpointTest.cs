@@ -32,6 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             // Arrange
             var documentPath = "C:/path/to/Page.razor";
             var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, EmptyDocumentResolver, LanguageServer);
+            codeActionEndpoint.SupportsCodeActionResolve = false;
             var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -54,6 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             codeDocument.SetUnsupported();
             var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, documentResolver, LanguageServer);
+            codeActionEndpoint.SupportsCodeActionResolve = false;
             var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -75,6 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, documentResolver, LanguageServer);
+            codeActionEndpoint.SupportsCodeActionResolve = false;
             var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -98,6 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
                 new MockCodeActionProvider()
             }, Dispatcher, documentResolver, LanguageServer);
+            codeActionEndpoint.SupportsCodeActionResolve = false;
 
             var request = new CodeActionParams()
             {
@@ -125,6 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 new MockCodeActionProvider(),
                 new MockCodeActionProvider(),
             }, Dispatcher, documentResolver, LanguageServer);
+            codeActionEndpoint.SupportsCodeActionResolve = false;
 
             var request = new CodeActionParams()
             {
@@ -149,6 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
                 new NullMockCodeActionProvider()
             }, Dispatcher, documentResolver, LanguageServer);
+            codeActionEndpoint.SupportsCodeActionResolve = false;
 
             var request = new CodeActionParams()
             {
@@ -176,6 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 new MockCodeActionProvider(),
                 new NullMockCodeActionProvider(),
             }, Dispatcher, documentResolver, LanguageServer);
+            codeActionEndpoint.SupportsCodeActionResolve = false;
 
             var request = new CodeActionParams()
             {
@@ -190,19 +197,77 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             Assert.Equal(2, commandOrCodeActionContainer.Count());
         }
 
+        [Fact]
+        public async Task Handle_MultipleMixedProvider_SupportsCodeActionResolveTrue()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/Page.razor";
+            var codeDocument = CreateCodeDocument("@code {}");
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
+                new MockCodeActionProvider(),
+                new NullMockCodeActionProvider(),
+                new MockCodeActionProvider(),
+                new NullMockCodeActionProvider(),
+            }, Dispatcher, documentResolver, LanguageServer);
+            codeActionEndpoint.SupportsCodeActionResolve = true;
+
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                Range = new Range(new Position(0, 1), new Position(0, 1)),
+            };
+
+            // Act
+            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+
+            // Assert
+            Assert.Collection(commandOrCodeActionContainer,
+                c => Assert.True(c.CodeAction is RazorCodeAction),
+                c => Assert.True(c.CodeAction is RazorCodeAction));
+        }
+
+        [Fact]
+        public async Task Handle_MultipleMixedProvider_SupportsCodeActionResolveFalse()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/Page.razor";
+            var codeDocument = CreateCodeDocument("@code {}");
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
+                new MockCodeActionProvider(),
+                new NullMockCodeActionProvider(),
+                new MockCodeActionProvider(),
+                new NullMockCodeActionProvider(),
+            }, Dispatcher, documentResolver, LanguageServer);
+            codeActionEndpoint.SupportsCodeActionResolve = false;
+
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                Range = new Range(new Position(0, 1), new Position(0, 1)),
+            };
+
+            // Act
+            var commandOrCodeActionContainer = await codeActionEndpoint.Handle(request, default);
+
+            // Assert
+            Assert.Collection(commandOrCodeActionContainer,
+                c => Assert.False(c.CodeAction is RazorCodeAction),
+                c => Assert.False(c.CodeAction is RazorCodeAction));
+        }
+
         private class MockCodeActionProvider : RazorCodeActionProvider
         {
-            public override Task<CommandOrCodeActionContainer> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+            public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
-                return Task.FromResult(new CommandOrCodeActionContainer(new List<CommandOrCodeAction>() {
-                    new CommandOrCodeAction(new CodeAction()),
-                }));
+                return Task.FromResult(new[] { new RazorCodeAction() });
             }
         }
 
         private class NullMockCodeActionProvider : RazorCodeActionProvider
         {
-            public override Task<CommandOrCodeActionContainer> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+            public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
                 return null;
             }

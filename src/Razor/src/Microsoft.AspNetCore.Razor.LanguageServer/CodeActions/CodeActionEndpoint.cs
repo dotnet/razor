@@ -42,9 +42,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
         }
 
-        private bool SupportsCodeActionResolve
+        internal bool SupportsCodeActionResolve
         {
-            get
+            private get
             {
                 if (_supportsCodeActionResolve is null)
                 {
@@ -55,6 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
                 return _supportsCodeActionResolve.Value;
             }
+            set { _supportsCodeActionResolve = value; }
         }
 
         public CodeActionRegistrationOptions GetRegistrationOptions()
@@ -82,6 +83,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(request));
             }
 
+            var razorCodeActions = await GetCodeActionsAsync(request, cancellationToken).ConfigureAwait(false);
+            if (razorCodeActions is null)
+            {
+                return null;
+            }
+
+            // We must cast the RazorCodeAction into a platform compliant code action
+            // For VS (SupportsCodeActionResolve = true) this means just encapsulating the RazorCodeAction in the `CommandOrCodeAction` struct
+            // For VS Code (SupportsCodeActionResolve = false) we must convert it into a CodeAction or Command before encapsulating in the `CommandOrCodeAction` struct.
+            var commandsOrCodeActions = razorCodeActions.Select(c =>
+                SupportsCodeActionResolve ? new CommandOrCodeAction(c) : c.AsOmnisharpCommandOrCodeAction());
+
+            return new CommandOrCodeActionContainer(commandsOrCodeActions);
+        }
+
+        private async Task<IEnumerable<RazorCodeAction>> GetCodeActionsAsync(CodeActionParams request, CancellationToken cancellationToken)
+        {
             var documentSnapshot = await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
@@ -99,13 +117,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
+            if (cancellationToken.IsCancellationRequested)
+            {
+               return null;
+            }
+
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
             var linePosition = new LinePosition((int)request.Range.Start.Line, (int)request.Range.Start.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, (int)request.Range.Start.Line, (int)request.Range.Start.Character);
 
             var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location);
-            var tasks = new List<Task<CommandOrCodeActionContainer>>();
+            var tasks = new List<Task<RazorCodeAction[]>>();
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+               return null;
+            }
 
             foreach (var provider in _providers)
             {
@@ -116,21 +144,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 }
             }
 
-            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-            var container = new List<CommandOrCodeAction>();
-            foreach (var result in results)
+            if (cancellationToken.IsCancellationRequested)
             {
-                if (result != null)
+               return null;
+            }
+
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            var razorCodeActions = new List<RazorCodeAction>();
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+               return null;
+            }
+
+            for (var i = 0; i < results.Length; i++)
+            {
+                var result = results.ElementAt(i);
+
+                if (!(result is null))
                 {
-                    foreach (var commandOrCodeAction in result)
-                    {
-                        container.Add(commandOrCodeAction);
-                    }
+                    razorCodeActions.AddRange(result);
                 }
             }
 
-            return new CommandOrCodeActionContainer(container);
-        }
+            if (cancellationToken.IsCancellationRequested)
+            {
+               return null;
+            }
 
             return razorCodeActions;
         }
