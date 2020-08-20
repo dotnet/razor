@@ -3,17 +3,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using LanguageServerInstance = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -22,33 +24,55 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly IEnumerable<RazorCodeActionProvider> _providers;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
-        private readonly ILogger _logger;
+        private readonly ILanguageServer _languageServer;
 
         private CodeActionCapability _capability;
+
+        private bool? _supportsCodeActionResolve = null;
 
         public CodeActionEndpoint(
             IEnumerable<RazorCodeActionProvider> providers,
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
-            ILoggerFactory loggerFactory)
+            ILanguageServer languageServer)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _providers = providers ?? throw new ArgumentNullException(nameof(providers));
             _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _logger = loggerFactory.CreateLogger<CodeActionEndpoint>();
+            _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+        }
+
+        private bool SupportsCodeActionResolve
+        {
+            get
+            {
+                if (_supportsCodeActionResolve is null)
+                {
+                    var languageServerInstance = _languageServer as LanguageServerInstance;
+                    var extendableClientCapabilities = languageServerInstance?.ClientSettings?.Capabilities as ExtendableClientCapabilities;
+                    _supportsCodeActionResolve = extendableClientCapabilities?.SupportsCodeActionResolve ?? false;
+                }
+
+                return _supportsCodeActionResolve.Value;
+            }
         }
 
         public CodeActionRegistrationOptions GetRegistrationOptions()
         {
             return new CodeActionRegistrationOptions()
             {
-                DocumentSelector = RazorDefaults.Selector
+                DocumentSelector = RazorDefaults.Selector,
+                CodeActionKinds = new[] {
+                    CodeActionKind.RefactorExtract,
+                    CodeActionKind.QuickFix,
+                    CodeActionKind.Refactor
+                }
             };
+        }
+
+        public void SetCapability(CodeActionCapability capability)
+        {
+            _capability = capability;
         }
 
         public async Task<CommandOrCodeActionContainer> Handle(CodeActionParams request, CancellationToken cancellationToken)
@@ -108,9 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return new CommandOrCodeActionContainer(container);
         }
 
-        public void SetCapability(CodeActionCapability capability)
-        {
-            _capability = capability;
+            return razorCodeActions;
         }
     }
 }

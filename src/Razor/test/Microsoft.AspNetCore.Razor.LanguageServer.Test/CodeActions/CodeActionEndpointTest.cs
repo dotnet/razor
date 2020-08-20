@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using System.Threading;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -17,19 +16,22 @@ using Moq;
 using Xunit;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using OmniSharp.Extensions.LanguageServer.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 {
     public class CodeActionEndpointTest : LanguageServerTestBase
     {
         private readonly DocumentResolver EmptyDocumentResolver = Mock.Of<DocumentResolver>();
+        private readonly ILanguageServer LanguageServer = Mock.Of<ILanguageServer>();
 
         [Fact]
         public async Task Handle_NoDocument()
         {
             // Arrange
             var documentPath = "C:/path/to/Page.razor";
-            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, EmptyDocumentResolver, LoggerFactory);
+            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, EmptyDocumentResolver, LanguageServer);
             var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -51,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             codeDocument.SetUnsupported();
-            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, documentResolver, LoggerFactory);
+            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, documentResolver, LanguageServer);
             var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -72,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var documentPath = "C:/path/to/Page.razor";
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, documentResolver, LoggerFactory);
+            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, documentResolver, LanguageServer);
             var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -95,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
                 new MockCodeActionProvider()
-            }, Dispatcher, documentResolver, LoggerFactory);
+            }, Dispatcher, documentResolver, LanguageServer);
 
             var request = new CodeActionParams()
             {
@@ -122,7 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 new MockCodeActionProvider(),
                 new MockCodeActionProvider(),
                 new MockCodeActionProvider(),
-            }, Dispatcher, documentResolver, LoggerFactory);
+            }, Dispatcher, documentResolver, LanguageServer);
 
             var request = new CodeActionParams()
             {
@@ -146,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
                 new NullMockCodeActionProvider()
-            }, Dispatcher, documentResolver, LoggerFactory);
+            }, Dispatcher, documentResolver, LanguageServer);
 
             var request = new CodeActionParams()
             {
@@ -173,7 +175,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 new NullMockCodeActionProvider(),
                 new MockCodeActionProvider(),
                 new NullMockCodeActionProvider(),
-            }, Dispatcher, documentResolver, LoggerFactory);
+            }, Dispatcher, documentResolver, LanguageServer);
 
             var request = new CodeActionParams()
             {
