@@ -82,7 +82,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return request;
         }
 
-        private async Task<WorkspaceEdit> GetWorkspaceEditAsync(RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+        // Internal for testing
+        internal async Task<WorkspaceEdit> GetWorkspaceEditAsync(RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
         {
             _logger.LogDebug($"Resolving workspace edit for action `{resolutionParams.Action}` with data `{resolutionParams.Data}`.");
 
