@@ -7,7 +7,7 @@ using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    [Serial, Method(LanguageServerConstants.RazorCodeActionResolutionEndpoint)]
+    [Serial, Method(LanguageServerConstants.RazorCodeActionResolutionCommand)]
     internal interface ICodeActionResolutionHandler : IJsonRpcRequestHandler<RazorCodeActionResolutionParams, RazorCodeActionResolutionResponse>
     {
     }

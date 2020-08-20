@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorCodeActionRunnerCommand = "razor/runCodeAction";
 
-        public const string RazorCodeActionResolutionEndpoint = "razor/resolveCodeAction";
+        public const string RazorCodeActionResolutionCommand = "razor/resolveCodeAction";
 
         public static class CodeActions
         {
