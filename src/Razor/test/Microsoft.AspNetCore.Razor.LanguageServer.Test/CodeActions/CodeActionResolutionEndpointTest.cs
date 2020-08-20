@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
@@ -86,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 Action = action;
             }
 
-            public override Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
+            public override Task<WorkspaceEdit> ResolveAsync(object data, CancellationToken cancellationToken)
             {
                 return Task.FromResult(new WorkspaceEdit());
             }
@@ -101,7 +100,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 Action = action;
             }
 
-            public override Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
+            public override Task<WorkspaceEdit> ResolveAsync(object data, CancellationToken cancellationToken)
             {
                 return null;
             }
