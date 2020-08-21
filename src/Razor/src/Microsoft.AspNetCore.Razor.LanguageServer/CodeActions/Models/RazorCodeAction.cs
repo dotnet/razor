@@ -11,9 +11,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
     [JsonObject]
     public class RazorCodeAction : CodeAction, IRequest<RazorCodeAction>, IBaseRequest
     {
-        public RazorCodeAction()
-        {
-        }
+        // RazorCodeAction inherits from CodeAction to ensure we can utilize the O# CommandOrCodeAction
+        // Re-implements the properties to ensure we have direct control over property (de)serialization. 
+        // Extensive platform compatibility issues occur without this.
 
         [JsonProperty(PropertyName = "title", Required = Required.Always)]
         public new string Title { get; set; }

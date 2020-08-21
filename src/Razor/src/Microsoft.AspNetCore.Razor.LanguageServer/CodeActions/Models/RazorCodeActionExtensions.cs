@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 {
     internal static class RazorCodeActionExtensions
     {
-        public static CommandOrCodeAction AsOmnisharpCommandOrCodeAction(this RazorCodeAction razorCodeAction)
+        public static CommandOrCodeAction AsVSCodeCommandOrCodeAction(this RazorCodeAction razorCodeAction)
         {
             if (razorCodeAction.Data is null)
             {

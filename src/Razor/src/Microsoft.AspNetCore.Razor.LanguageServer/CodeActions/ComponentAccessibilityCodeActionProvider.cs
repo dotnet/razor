@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvider
     {
         private static readonly string CreateComponentFromTagTitle = "Create component from tag";
+        private static readonly Task<RazorCodeAction[]> EmptyResult = Task.FromResult<RazorCodeAction[]>(null);
 
         private readonly TagHelperFactsService _tagHelperFactsService;
         private readonly FilePathNormalizer _filePathNormalizer;
@@ -33,8 +34,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _tagHelperFactsService = tagHelperFactsService ?? throw new ArgumentNullException(nameof(tagHelperFactsService));
             _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
-
-        private static Task<RazorCodeAction[]> EmptyResult => Task.FromResult<RazorCodeAction[]>(null);
 
         public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {

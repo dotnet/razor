@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // For VS (SupportsCodeActionResolve = true) this means just encapsulating the RazorCodeAction in the `CommandOrCodeAction` struct
             // For VS Code (SupportsCodeActionResolve = false) we must convert it into a CodeAction or Command before encapsulating in the `CommandOrCodeAction` struct.
             var commandsOrCodeActions = razorCodeActions.Select(c =>
-                SupportsCodeActionResolve ? new CommandOrCodeAction(c) : c.AsOmnisharpCommandOrCodeAction());
+                SupportsCodeActionResolve ? new CommandOrCodeAction(c) : c.AsVSCodeCommandOrCodeAction());
 
             return new CommandOrCodeActionContainer(commandsOrCodeActions);
         }
@@ -144,11 +144,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 }
             }
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-               return null;
-            }
-
             var results = await Task.WhenAll(tasks).ConfigureAwait(false);
             var razorCodeActions = new List<RazorCodeAction>();
 
@@ -165,11 +160,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 {
                     razorCodeActions.AddRange(result);
                 }
-            }
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-               return null;
             }
 
             return razorCodeActions;

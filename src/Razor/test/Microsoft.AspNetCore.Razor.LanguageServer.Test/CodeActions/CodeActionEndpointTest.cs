@@ -31,8 +31,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
         {
             // Arrange
             var documentPath = "C:/path/to/Page.razor";
-            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, EmptyDocumentResolver, LanguageServer);
-            codeActionEndpoint.SupportsCodeActionResolve = false;
+            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, EmptyDocumentResolver, LanguageServer)
+            {
+                SupportsCodeActionResolve = false
+            };
             var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -54,8 +56,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             codeDocument.SetUnsupported();
-            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, documentResolver, LanguageServer);
-            codeActionEndpoint.SupportsCodeActionResolve = false;
+            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, documentResolver, LanguageServer)
+            {
+                SupportsCodeActionResolve = false
+            };
             var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -76,8 +80,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var documentPath = "C:/path/to/Page.razor";
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, documentResolver, LanguageServer);
-            codeActionEndpoint.SupportsCodeActionResolve = false;
+            var codeActionEndpoint = new CodeActionEndpoint(Array.Empty<RazorCodeActionProvider>(), Dispatcher, documentResolver, LanguageServer)
+            {
+                SupportsCodeActionResolve = false
+            };
             var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
@@ -100,8 +106,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
                 new MockCodeActionProvider()
-            }, Dispatcher, documentResolver, LanguageServer);
-            codeActionEndpoint.SupportsCodeActionResolve = false;
+            }, Dispatcher, documentResolver, LanguageServer)
+            {
+                SupportsCodeActionResolve = false
+            };
 
             var request = new CodeActionParams()
             {
@@ -128,8 +136,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 new MockCodeActionProvider(),
                 new MockCodeActionProvider(),
                 new MockCodeActionProvider(),
-            }, Dispatcher, documentResolver, LanguageServer);
-            codeActionEndpoint.SupportsCodeActionResolve = false;
+            }, Dispatcher, documentResolver, LanguageServer)
+            {
+                SupportsCodeActionResolve = false
+            };
 
             var request = new CodeActionParams()
             {
@@ -153,8 +163,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
                 new NullMockCodeActionProvider()
-            }, Dispatcher, documentResolver, LanguageServer);
-            codeActionEndpoint.SupportsCodeActionResolve = false;
+            }, Dispatcher, documentResolver, LanguageServer)
+            {
+                SupportsCodeActionResolve = false
+            };
 
             var request = new CodeActionParams()
             {
@@ -181,8 +193,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 new NullMockCodeActionProvider(),
                 new MockCodeActionProvider(),
                 new NullMockCodeActionProvider(),
-            }, Dispatcher, documentResolver, LanguageServer);
-            codeActionEndpoint.SupportsCodeActionResolve = false;
+            }, Dispatcher, documentResolver, LanguageServer)
+            {
+                SupportsCodeActionResolve = false
+            };
 
             var request = new CodeActionParams()
             {
@@ -209,8 +223,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 new NullMockCodeActionProvider(),
                 new MockCodeActionProvider(),
                 new NullMockCodeActionProvider(),
-            }, Dispatcher, documentResolver, LanguageServer);
-            codeActionEndpoint.SupportsCodeActionResolve = true;
+            }, Dispatcher, documentResolver, LanguageServer)
+            {
+                SupportsCodeActionResolve = true
+            };
 
             var request = new CodeActionParams()
             {
@@ -239,8 +255,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 new NullMockCodeActionProvider(),
                 new MockCodeActionProvider(),
                 new NullMockCodeActionProvider(),
-            }, Dispatcher, documentResolver, LanguageServer);
-            codeActionEndpoint.SupportsCodeActionResolve = false;
+            }, Dispatcher, documentResolver, LanguageServer)
+            {
+                SupportsCodeActionResolve = false
+            };
 
             var request = new CodeActionParams()
             {

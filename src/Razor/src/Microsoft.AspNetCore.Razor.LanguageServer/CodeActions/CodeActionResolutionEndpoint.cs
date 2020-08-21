@@ -13,7 +13,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal class CodeActionResolutionEndpoint : IRazorCodeActionResolutionHandler, ILSPCodeActionResolverHandler
+    internal class CodeActionResolutionEndpoint : ICodeActionResolveHandler
     {
         private static readonly string AssociatedServerCapability = "codeActionsResolveProvider";
 
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         // Internal for testing
         internal async Task<WorkspaceEdit> GetWorkspaceEditAsync(RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
         {
-            _logger.LogDebug($"Resolving workspace edit for action `{resolutionParams.Action}` with data `{resolutionParams.Data}`.");
+            _logger.LogInformation($"Resolving workspace edit for action `{resolutionParams.Action}`.");
 
             if (!_resolvers.TryGetValue(resolutionParams.Action, out var resolver))
             {
