@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private CodeActionCapability _capability;
 
-        private bool? _supportsCodeActionResolve = null;
+        internal bool SupportsCodeActionResolve = false;
 
         public CodeActionEndpoint(
             IEnumerable<RazorCodeActionProvider> providers,
@@ -40,22 +40,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
-        }
-
-        internal bool SupportsCodeActionResolve
-        {
-            private get
-            {
-                if (_supportsCodeActionResolve is null)
-                {
-                    var languageServerInstance = _languageServer as LanguageServerInstance;
-                    var extendableClientCapabilities = languageServerInstance?.ClientSettings?.Capabilities as ExtendableClientCapabilities;
-                    _supportsCodeActionResolve = extendableClientCapabilities?.SupportsCodeActionResolve ?? false;
-                }
-
-                return _supportsCodeActionResolve.Value;
-            }
-            set { _supportsCodeActionResolve = value; }
         }
 
         public CodeActionRegistrationOptions GetRegistrationOptions()
@@ -74,6 +58,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public void SetCapability(CodeActionCapability capability)
         {
             _capability = capability;
+
+            var languageServerInstance = _languageServer as LanguageServerInstance;
+            var extendableClientCapabilities = languageServerInstance?.ClientSettings?.Capabilities as ExtendableClientCapabilities;
+            SupportsCodeActionResolve = extendableClientCapabilities?.SupportsCodeActionResolve ?? false;
         }
 
         public async Task<CommandOrCodeActionContainer> Handle(CodeActionParams request, CancellationToken cancellationToken)
