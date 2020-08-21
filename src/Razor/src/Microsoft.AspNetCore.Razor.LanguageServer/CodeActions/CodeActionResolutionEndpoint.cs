@@ -51,19 +51,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         // Register VS LSP code action resolution server capability
         public RegistrationExtensionResult GetRegistration() => new RegistrationExtensionResult(AssociatedServerCapability, true);
 
-        // Handle the Razor VSCode `razor/resolveCodeAction` command
-        public async Task<RazorCodeActionResolutionResponse> Handle(RazorCodeActionResolutionParams request, CancellationToken cancellationToken)
-        {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var edit = await GetWorkspaceEditAsync(request, cancellationToken).ConfigureAwait(false);
-            return new RazorCodeActionResolutionResponse() { Edit = edit };
-        }
-
-        // Handle the VS LSP `textDocument/codeActionResolve` endpoint
         public async Task<RazorCodeAction> Handle(RazorCodeAction request, CancellationToken cancellationToken)
         {
             if (request is null)

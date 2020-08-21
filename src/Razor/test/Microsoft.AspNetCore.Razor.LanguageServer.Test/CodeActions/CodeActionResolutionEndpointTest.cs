@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -15,26 +14,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 {
     public class CodeActionResolutionEndpointTest : LanguageServerTestBase
     {
-        [Fact]
-        public async Task Handle_RazorCodeActionResolutionParams_Resolve()
-        {
-            // Arrange
-            var codeActionEndpoint = new CodeActionResolutionEndpoint(new RazorCodeActionResolver[] {
-                new MockCodeActionResolver("Test"),
-            }, LoggerFactory);
-            var request = new RazorCodeActionResolutionParams()
-            {
-                Action = "Test",
-                Data = null
-            };
-
-            // Act
-            var razorCodeActionResolutionResponse = await codeActionEndpoint.Handle(request, default);
-
-            // Assert
-            Assert.NotNull(razorCodeActionResolutionResponse.Edit);
-        }
-
         [Fact]
         public async Task Handle_Valid_RazorCodeAction_Resolve()
         {

@@ -31,9 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string SemanticTokensProviderName = "semanticTokensProvider";
 
-        public const string RazorCodeActionRunnerCommand = "razor/runCodeAction";
-
-        public const string RazorCodeActionResolutionCommand = "razor/resolveCodeAction";
+        public const string RazorCodeActionResolveEndpoint = "textDocument/codeActionResolve";
 
         public static class CodeActions
         {
