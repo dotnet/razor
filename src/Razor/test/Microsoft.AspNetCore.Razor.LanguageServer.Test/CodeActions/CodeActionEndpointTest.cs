@@ -17,7 +17,7 @@ using Xunit;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using OmniSharp.Extensions.LanguageServer.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 {
@@ -162,7 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
-                new NullMockCodeActionProvider()
+                new MockNullCodeActionProvider()
             }, Dispatcher, documentResolver, LanguageServer)
             {
                 _supportsCodeActionResolve = false
@@ -190,9 +190,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
                 new MockCodeActionProvider(),
-                new NullMockCodeActionProvider(),
+                new MockNullCodeActionProvider(),
                 new MockCodeActionProvider(),
-                new NullMockCodeActionProvider(),
+                new MockNullCodeActionProvider(),
             }, Dispatcher, documentResolver, LanguageServer)
             {
                 _supportsCodeActionResolve = false
@@ -220,9 +220,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
                 new MockCodeActionProvider(),
-                new NullMockCodeActionProvider(),
-                new MockCodeActionProvider(),
-                new NullMockCodeActionProvider(),
+                new MockCommandProvider(),
+                new MockNullCodeActionProvider()
             }, Dispatcher, documentResolver, LanguageServer)
             {
                 _supportsCodeActionResolve = true
@@ -239,8 +238,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 
             // Assert
             Assert.Collection(commandOrCodeActionContainer,
-                c => Assert.True(c.CodeAction is RazorCodeAction),
-                c => Assert.True(c.CodeAction is RazorCodeAction));
+                c =>
+                {
+                    Assert.True(c.IsCodeAction);
+                    Assert.True(c.CodeAction is RazorCodeAction);
+                },
+                c =>
+                {
+                    Assert.True(c.IsCodeAction);
+                    Assert.True(c.CodeAction is RazorCodeAction);
+                });
         }
 
         [Fact]
@@ -252,9 +259,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(new RazorCodeActionProvider[] {
                 new MockCodeActionProvider(),
-                new NullMockCodeActionProvider(),
-                new MockCodeActionProvider(),
-                new NullMockCodeActionProvider(),
+                new MockCommandProvider(),
+                new MockNullCodeActionProvider()
             }, Dispatcher, documentResolver, LanguageServer)
             {
                 _supportsCodeActionResolve = false
@@ -271,8 +277,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 
             // Assert
             Assert.Collection(commandOrCodeActionContainer,
-                c => Assert.False(c.CodeAction is RazorCodeAction),
-                c => Assert.False(c.CodeAction is RazorCodeAction));
+                c =>
+                {
+                    Assert.True(c.IsCodeAction);
+                    Assert.True(c.CodeAction is RazorCodeAction);
+                },
+                c => Assert.True(c.IsCommand));
         }
 
         private class MockCodeActionProvider : RazorCodeActionProvider
@@ -283,7 +293,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             }
         }
 
-        private class NullMockCodeActionProvider : RazorCodeActionProvider
+        private class MockCommandProvider : RazorCodeActionProvider
+        {
+            public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+            {
+                // O# Code Actions don't have `Data`, but `Commands` do
+                return Task.FromResult(new[] { 
+                    new RazorCodeAction() { 
+                        Title = "SomeTitle", 
+                        Data = new AddUsingsCodeActionParams() 
+                    } 
+                });
+            }
+        }
+
+        private class MockNullCodeActionProvider : RazorCodeActionProvider
         {
             public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
