@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRazorDocumentOperationService
     {
-        private readonly DynamicDocumentContainer _documentContainer;
+        private readonly DynamicDocumentContainer? _documentContainer;
         private readonly object _lock;
 
         private IRazorSpanMappingService? _spanMappingService;
