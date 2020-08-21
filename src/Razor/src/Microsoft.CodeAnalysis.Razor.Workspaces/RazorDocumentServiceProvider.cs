@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private readonly DynamicDocumentContainer _documentContainer;
         private readonly object _lock;
 
-        private IRazorSpanMappingService _spanMappingService;
-        private IRazorDocumentExcerptService _excerptService;
-        private IRazorDocumentPropertiesService _documentPropertiesService;
+        private IRazorSpanMappingService? _spanMappingService;
+        private IRazorDocumentExcerptService? _excerptService;
+        private IRazorDocumentPropertiesService? _documentPropertiesService;
 
         public RazorDocumentServiceProvider()
             : this(null)
