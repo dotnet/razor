@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public bool SupportDiagnostics => false;
 
-        public TService GetService<TService>() where TService : class
+        public TService? GetService<TService>() where TService : class
         {
             if (_documentContainer == null)
             {
