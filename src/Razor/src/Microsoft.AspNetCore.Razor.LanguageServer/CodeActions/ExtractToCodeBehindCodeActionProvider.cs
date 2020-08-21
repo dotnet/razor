@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     {
         private static readonly string Title = "Extract block to code behind";
 
-        private static Task<RazorCodeAction[]> EmptyResult => Task.FromResult<RazorCodeAction[]>(null);
+        private static readonly Task<RazorCodeAction[]> EmptyResult = Task.FromResult<RazorCodeAction[]>(null);
 
         public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {

@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private CodeActionCapability _capability;
 
-        internal bool SupportsCodeActionResolve = false;
+        internal bool _supportsCodeActionResolve = false;
 
         public CodeActionEndpoint(
             IEnumerable<RazorCodeActionProvider> providers,
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var languageServerInstance = _languageServer as LanguageServerInstance;
             var extendableClientCapabilities = languageServerInstance?.ClientSettings?.Capabilities as ExtendableClientCapabilities;
-            SupportsCodeActionResolve = extendableClientCapabilities?.SupportsCodeActionResolve ?? false;
+            _supportsCodeActionResolve = extendableClientCapabilities?.SupportsCodeActionResolve ?? false;
         }
 
         public async Task<CommandOrCodeActionContainer> Handle(CodeActionParams request, CancellationToken cancellationToken)
@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // For VS (SupportsCodeActionResolve = true) this means just encapsulating the RazorCodeAction in the `CommandOrCodeAction` struct
             // For VS Code (SupportsCodeActionResolve = false) we must convert it into a CodeAction or Command before encapsulating in the `CommandOrCodeAction` struct.
             var commandsOrCodeActions = razorCodeActions.Select(c =>
-                SupportsCodeActionResolve ? new CommandOrCodeAction(c) : c.AsVSCodeCommandOrCodeAction());
+                _supportsCodeActionResolve ? new CommandOrCodeAction(c) : c.AsVSCodeCommandOrCodeAction());
 
             return new CommandOrCodeActionContainer(commandsOrCodeActions);
         }

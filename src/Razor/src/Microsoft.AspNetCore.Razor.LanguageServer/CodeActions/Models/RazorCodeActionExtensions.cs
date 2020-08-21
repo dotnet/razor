@@ -14,14 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             if (razorCodeAction.Data is null)
             {
                 // No command data
-                return new CommandOrCodeAction(new CodeAction()
-                {
-                    Title = razorCodeAction.Title ?? string.Empty,
-                    Edit = razorCodeAction.Edit,
-                    Diagnostics = razorCodeAction.Diagnostics,
-                    Kind = razorCodeAction.Kind,
-                    Command = razorCodeAction.Command
-                });
+                return new CommandOrCodeAction(razorCodeAction);
             }
 
             var serializedParams = JToken.FromObject(razorCodeAction.Data);
