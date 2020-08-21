@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
-                Data = null
+                Data = new AddUsingsCodeActionParams()
             };
             var request = new RazorCodeAction()
             {
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "A",
-                Data = null
+                Data = new AddUsingsCodeActionParams()
             };
 
             // Act
@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "B",
-                Data = null
+                Data = new AddUsingsCodeActionParams()
             };
 
             // Act
