@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         {
         }
 
-        public RazorDocumentServiceProvider(DynamicDocumentContainer documentContainer)
+        public RazorDocumentServiceProvider(DynamicDocumentContainer? documentContainer)
         {
             _documentContainer = documentContainer;
 
