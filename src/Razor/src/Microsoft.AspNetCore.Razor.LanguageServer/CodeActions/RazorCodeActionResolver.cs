@@ -3,6 +3,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -11,6 +12,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     {
         public abstract string Action { get; }
 
-        public abstract Task<WorkspaceEdit> ResolveAsync(object data, CancellationToken cancellationToken);
+        public abstract Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken);
     }
 }

@@ -43,16 +43,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
 
-        public override async Task<WorkspaceEdit> ResolveAsync(object data, CancellationToken cancellationToken)
+        public override async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
             if (data is null)
             {
                 return null;
             }
 
-            if (!(data is ExtractToCodeBehindCodeActionParams actionParams))
+            var actionParams = data.ToObject<ExtractToCodeBehindCodeActionParams>();
+            if (actionParams is null)
             {
-                actionParams = (data as JObject)?.ToObject<ExtractToCodeBehindCodeActionParams>();
+                return null;
             }
 
             var path = _filePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());

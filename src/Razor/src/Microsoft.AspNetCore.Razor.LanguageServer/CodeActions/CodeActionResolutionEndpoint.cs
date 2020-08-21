@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return default;
             }
 
-            return await resolver.ResolveAsync(resolutionParams.Data, cancellationToken).ConfigureAwait(false);
+            return await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -33,16 +33,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
 
-        public override async Task<WorkspaceEdit> ResolveAsync(object data, CancellationToken cancellationToken)
+        public override async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
             if (data is null)
             {
                 return null;
             }
 
-            if (!(data is CreateComponentCodeActionParams actionParams))
+            var actionParams = data.ToObject<CreateComponentCodeActionParams>();
+            if (actionParams is null)
             {
-                actionParams = (data as JObject)?.ToObject<CreateComponentCodeActionParams>();
+                return null;
             }
 
             var path = actionParams.Uri.GetAbsoluteOrUNCPath();

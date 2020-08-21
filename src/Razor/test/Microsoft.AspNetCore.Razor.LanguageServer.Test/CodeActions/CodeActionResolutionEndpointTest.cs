@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 Action = action;
             }
 
-            public override Task<WorkspaceEdit> ResolveAsync(object data, CancellationToken cancellationToken)
+            public override Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
             {
                 return Task.FromResult(new WorkspaceEdit());
             }
@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 Action = action;
             }
 
-            public override Task<WorkspaceEdit> ResolveAsync(object data, CancellationToken cancellationToken)
+            public override Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
             {
                 return null;
             }

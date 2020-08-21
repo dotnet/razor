@@ -33,17 +33,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
 
-        public override async Task<WorkspaceEdit> ResolveAsync(object data, CancellationToken cancellationToken)
+        public override async Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
         {
             if (data is null)
             {
                 return null;
             }
 
-            if (!(data is AddUsingsCodeActionParams actionParams))
+            var actionParams = data.ToObject<AddUsingsCodeActionParams>();
+            if (actionParams is null)
             {
-                actionParams = (data as JObject)?.ToObject<AddUsingsCodeActionParams>();
+                return null;
             }
+
             var path = actionParams.Uri.GetAbsoluteOrUNCPath();
 
             var document = await Task.Factory.StartNew(() =>
