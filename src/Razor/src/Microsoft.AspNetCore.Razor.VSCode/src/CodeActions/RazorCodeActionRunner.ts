@@ -11,7 +11,8 @@ import { RazorCodeActionResolutionParams } from '../RPC/RazorCodeActionResolutio
 import { convertWorkspaceEditFromSerializable } from '../RPC/SerializableWorkspaceEdit';
 
 export class RazorCodeActionRunner {
-    private static readonly codeActionResolutionEndpoint = 'textDocument/codeActionResolve';
+    private static readonly codeActionResolveEndpoint = 'textDocument/codeActionResolve';
+    private static readonly razorCodeActionRunnerCommand = 'razor/runCodeAction';
 
     constructor(
         private readonly serverClient: RazorLanguageServerClient,
@@ -20,14 +21,14 @@ export class RazorCodeActionRunner {
 
     public register(): vscode.Disposable {
         return vscode.commands.registerCommand(
-            RazorCodeActionRunner.codeActionResolutionEndpoint,
+            RazorCodeActionRunner.razorCodeActionRunnerCommand,
             (request: RazorCodeActionResolutionParams) => this.runCodeAction(request),
             this);
     }
 
     private async runCodeAction(request: RazorCodeActionResolutionParams): Promise<boolean> {
         const response: RazorCodeAction = await this.serverClient.sendRequest(
-            RazorCodeActionRunner.codeActionResolutionEndpoint,
+            RazorCodeActionRunner.codeActionResolveEndpoint,
             { data: request, title: request.action });
 
         let changesWorkspaceEdit: vscode.WorkspaceEdit;

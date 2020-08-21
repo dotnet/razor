@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             return new CommandOrCodeAction(new Command
             {
                 Title = razorCodeAction.Title ?? string.Empty,
-                Name = LanguageServerConstants.RazorCodeActionResolveEndpoint,
+                Name = LanguageServerConstants.RazorCodeActionRunnerCommand,
                 Arguments = arguments
             });
         }
