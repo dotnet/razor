@@ -217,7 +217,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             foreach (var diagnostic in context.CodeDocument.GetCSharpDocument().Diagnostics)
             {
                 // Check that the diagnostic is to do with our start tag
-                if (!(diagnostic.Span.AbsoluteIndex > startTag.Span.End || startTag.Span.Start > diagnostic.Span.AbsoluteIndex + diagnostic.Span.Length))
+                if (!(diagnostic.Span.AbsoluteIndex > startTag.Span.End
+                    || startTag.Span.Start > diagnostic.Span.AbsoluteIndex + diagnostic.Span.Length))
                 {
                     // Component is not recognized in environment
                     if (diagnostic.Id == ComponentDiagnosticFactory.UnexpectedMarkupElement.Id)
@@ -229,7 +230,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return false;
         }
 
-        private sealed class TagHelperPair
+        private class TagHelperPair
         {
             public TagHelperDescriptor Short = null;
             public TagHelperDescriptor FullyQualified = null;

@@ -9,7 +9,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 {
     [JsonObject]
-    public class RazorCodeAction : CodeAction, IRequest<RazorCodeAction>, IBaseRequest
+    internal class RazorCodeAction : CodeAction, IRequest<RazorCodeAction>, IBaseRequest
     {
         // RazorCodeAction inherits from CodeAction to ensure we can utilize the O# CommandOrCodeAction
         // Re-implements the properties to ensure we have direct control over property (de)serialization. 
