@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor;
-using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 

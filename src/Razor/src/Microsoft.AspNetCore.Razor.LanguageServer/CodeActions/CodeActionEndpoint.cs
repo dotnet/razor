@@ -26,8 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly IEnumerable<RazorCodeActionProvider> _providers;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
-        private readonly ILanguageServer _languageServer;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly IClientLanguageServer _languageServer;
 
         private CodeActionCapability _capability;
 
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             IEnumerable<RazorCodeActionProvider> providers,
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
-            ILanguageServer languageServer,
+            IClientLanguageServer languageServer,
             LanguageServerFeatureOptions languageServerFeatureOptions)
         {
             _providers = providers ?? throw new ArgumentNullException(nameof(providers));
@@ -64,8 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             _capability = capability;
 
-            var languageServerInstance = _languageServer as LanguageServerInstance;
-            var extendableClientCapabilities = languageServerInstance?.ClientSettings?.Capabilities as ExtendableClientCapabilities;
+            var extendableClientCapabilities = _languageServer.ClientSettings?.Capabilities as ExtendableClientCapabilities;
             _supportsCodeActionResolve = extendableClientCapabilities?.SupportsCodeActionResolve ?? false;
         }
 
