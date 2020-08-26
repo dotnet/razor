@@ -12,8 +12,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class FormattingVisitor : SyntaxWalker
     {
-        private RazorSourceDocument _source;
-        private List<FormattingSpan> _spans;
+        private readonly RazorSourceDocument _source;
+        private readonly List<FormattingSpan> _spans;
         private FormattingBlockKind _currentBlockKind;
         private SyntaxNode _currentBlock;
         private int _currentIndentationLevel = 0;
