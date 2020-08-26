@@ -17,7 +17,6 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-using LanguageServerInstance = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {

@@ -61,22 +61,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager = documentManager;
         }
 
-        public override async Task UpdateCSharpBufferAsync(JToken token, CancellationToken cancellationToken)
+        public override async Task UpdateCSharpBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
         {
-            if (token is null)
-            {
-                throw new ArgumentNullException(nameof(token));
-            }
-
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            UpdateCSharpBuffer(token);
+            UpdateCSharpBuffer(request);
         }
 
         // Internal for testing
-        internal void UpdateCSharpBuffer(JToken token)
+        internal void UpdateCSharpBuffer(UpdateBufferRequest request)
         {
-            var request = token.ToObject<UpdateBufferRequest>();
             if (request == null || request.HostDocumentFilePath == null)
             {
                 return;
@@ -89,22 +83,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 request.HostDocumentVersion);
         }
 
-        public override async Task UpdateHtmlBufferAsync(JToken token, CancellationToken cancellationToken)
+        public override async Task UpdateHtmlBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
         {
-            if (token is null)
-            {
-                throw new ArgumentNullException(nameof(token));
-            }
-
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            UpdateHtmlBuffer(token);
+            UpdateHtmlBuffer(request);
         }
 
         // Internal for testing
-        internal void UpdateHtmlBuffer(JToken token)
+        internal void UpdateHtmlBuffer(UpdateBufferRequest request)
         {
-            var request = token.ToObject<UpdateBufferRequest>();
             if (request == null || request.HostDocumentFilePath == null)
             {
                 return;

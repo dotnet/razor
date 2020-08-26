@@ -78,10 +78,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 HostDocumentFilePath = filePath,
                 Changes = textChanges,
-                HostDocumentVersion = hostDocumentVersion,
+                HostDocumentVersion = (long)hostDocumentVersion,
             };
 
-            _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
+            var result = _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
+            result.ReturningVoid(System.Threading.CancellationToken.None);
         }
 
         public override void PublishHtml(string filePath, SourceText sourceText, int? hostDocumentVersion)
@@ -116,10 +117,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 HostDocumentFilePath = filePath,
                 Changes = textChanges,
-                HostDocumentVersion = hostDocumentVersion,
+                HostDocumentVersion = (long)hostDocumentVersion,
             };
 
-            _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);
+            var result = _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);
+            result.ReturningVoid(System.Threading.CancellationToken.None);
         }
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
