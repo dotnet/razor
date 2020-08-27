@@ -43,11 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override async Task FlushAsync(CancellationToken cancellationToken)
         {
+            // Try-catching temporarily in order to prevent VS from crashing in unexpected scenarios. Will be removed once we are able to upgrade our O# dependency.
+
             try
             {
                 await _inner.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception)
+            catch
             {
                 return;
             }
@@ -55,11 +57,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
+            // Try-catching temporarily in order to prevent VS from crashing in unexpected scenarios. Will be removed once we are able to upgrade our O# dependency.
+
             try
             {
                 return await _inner.ReadAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception)
+            catch
             {
                 return 0;
             }
@@ -67,12 +71,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
+            // Try-catching temporarily in order to prevent VS from crashing in unexpected scenarios. Will be removed once we are able to upgrade our O# dependency.
+
             try
             {
                 await _inner.WriteAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
                 await FlushAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception)
+            catch
             {
             }
         }
