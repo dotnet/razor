@@ -144,13 +144,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 return;
             }
 
-            if (!virtualDocumentAcquired)
-            {
-                // We can't update a document that doesn't exist.
-                // Who is asking us to update non-existent documents?
-                return;
-            }
-
             var old = lspDocument.CurrentSnapshot;
             var oldVirtual = virtualDocument?.CurrentSnapshot;
             var @new = lspDocument.UpdateVirtualDocument<TVirtualDocument>(changes, hostDocumentVersion);

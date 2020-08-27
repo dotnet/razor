@@ -63,6 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override async Task UpdateCSharpBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
         {
+            if (request is null){
+                throw new ArgumentNullException(nameof(request));
+            }
+
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             UpdateCSharpBuffer(request);
@@ -85,6 +89,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override async Task UpdateHtmlBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
         {
+            if (request is null){
+                throw new ArgumentNullException(nameof(request));
+            }
+
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             UpdateHtmlBuffer(request);
@@ -115,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             await _joinableTaskFactory.SwitchToMainThreadAsync();
-            
+
             var hostDocumentUri = new Uri(request.HostDocumentFilePath);
             if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
             {

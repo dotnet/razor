@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -15,13 +16,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             Uri uri,
             DocumentSnapshot documentSnapshot,
             Range range,
-            FormattingOptions options);
+            FormattingOptions options,
+            CancellationToken cancellationToken);
 
         public abstract Task<TextEdit[]> ApplyFormattedEditsAsync(
             Uri uri,
             DocumentSnapshot documentSnapshot,
             RazorLanguageKind kind,
             TextEdit[] formattedEdits,
-            FormattingOptions options);
+            FormattingOptions options,
+            CancellationToken cancellationToken);
     }
 }

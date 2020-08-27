@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _documentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
         }
 
-        public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int? version)
+        public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, long version)
         {
             if (documentSnapshot == null)
             {
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             documentEntries.Add(entry);
         }
 
-        public override bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot, out int? version)
+        public override bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot, out long version)
         {
             if (documentSnapshot == null)
             {
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Internal for testing
-        internal bool TryGetLatestVersionFromPath(string filePath, out int? version)
+        internal bool TryGetLatestVersionFromPath(string filePath, out long version)
         {
             if (!_documentLookup.TryGetValue(filePath, out var documentEntries))
             {
@@ -178,7 +178,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         internal class DocumentEntry
         {
-            public DocumentEntry(DocumentSnapshot document, int? version)
+            public DocumentEntry(DocumentSnapshot document, long version)
             {
                 Document = new WeakReference<DocumentSnapshot>(document);
                 Version = version;
@@ -186,7 +186,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public WeakReference<DocumentSnapshot> Document { get; }
 
-            public int? Version { get; }
+            public long Version { get; }
         }
     }
 }

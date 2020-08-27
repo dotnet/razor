@@ -43,7 +43,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             if (Version.TryParse("0.18.0.0", out var result))
             {
                 Assert.NotEqual(result.Major, -1);
-
+                Assert.NotEqual(result.Minor, -1);
+                Assert.NotEqual(result.Revision, -1);
             }
         }
 

@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
 
             await Task.Factory.StartNew(
-                () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version),
+                () => _projectService.UpdateDocument(document.FilePath, sourceText, (long)notification.TextDocument.Version),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.ForegroundScheduler);
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = SourceText.From(notification.TextDocument.Text);
 
             await Task.Factory.StartNew(
-                () => _projectService.OpenDocument(notification.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version),
+                () => _projectService.OpenDocument(notification.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath(), sourceText, (long)notification.TextDocument.Version),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.ForegroundScheduler);

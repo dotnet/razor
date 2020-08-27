@@ -41,7 +41,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorCodeDocument codeDocument,
             Range range,
             Uri uri,
-            LSPFormattingOptions options)
+            LSPFormattingOptions options,
+            CancellationToken cancellationToken)
         {
             var @params = new RazorDocumentRangeFormattingParams()
             {
@@ -51,8 +52,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Options = options
             };
 
-            var response = _server.SendRequest<RazorDocumentRangeFormattingParams>(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentRangeFormattingResponse>(CancellationToken.None);
+            var response = _server.SendRequest(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
+            var result = await response.Returning<RazorDocumentRangeFormattingResponse>(cancellationToken);
 
             return result.Edits;
         }

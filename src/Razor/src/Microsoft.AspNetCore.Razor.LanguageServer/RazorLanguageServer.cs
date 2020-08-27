@@ -60,20 +60,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, Action<RazorLanguageServerBuilder> configure = null)
         {
-            // Serializer.Instance.Settings.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
             Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
 
             // Custom ClientCapabilities deserializer to extract experimental capabilities
             Serializer.Instance.JsonSerializer.Converters.Add(ExtendableClientCapabilitiesJsonConverter.Instance);
 
             ILanguageServer server = null;
-            var logLevel = trace switch
-            {
-                Trace.Messages => LogLevel.Information,
-                Trace.Off => LogLevel.None,
-                Trace.Verbose => LogLevel.Trace,
-                _ => default,
-            };
+            var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
 
             server = OmniSharp.Extensions.LanguageServer.Server.LanguageServer.PreInit(options =>
                 options
@@ -82,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithContentModifiedSupport(false)
                     .WithSerializer(Serializer.Instance)
                     .ConfigureLogging(builder => builder
-                        .SetMinimumLevel(RazorLSPOptions.GetLogLevelForTrace(trace))
+                        .SetMinimumLevel(logLevel)
                         .AddLanguageProtocolLogging(logLevel))
                     .OnInitialized(async (s, request, response, cancellationToken) =>
                     {
@@ -122,10 +115,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<MonitorProjectConfigurationFilePathEndpoint>()
                     .WithHandler<RazorComponentRenameEndpoint>()
                     .WithHandler<RazorDefinitionEndpoint>()
-                    //.AddHandlerLink("textDocument/semanticTokens/full", "textDocument/semanticTokens")
-                    //.AddHandlerLink("textDocument/semanticTokens/full/delta", "textDocument/semanticTokens/edits")
-                    //.AddHandlerLink("textDocument/semanticTokens", "textDocument/semanticTokens/full")
-                    //.AddHandlerLink("textDocument/semanticTokens/edits", "textDocument/semanticTokens/full/delta")
                     .WithServices(services =>
                     {
                         if (configure != null)

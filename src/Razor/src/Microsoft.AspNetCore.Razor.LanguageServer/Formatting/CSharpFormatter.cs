@@ -49,7 +49,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorCodeDocument codeDocument,
             Range range,
             Uri uri,
-            FormattingOptions options)
+            FormattingOptions options,
+            CancellationToken cancellationToken)
         {
             if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, range, out var projectedRange))
             {
@@ -65,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
 
             var response = _server.SendRequest(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentRangeFormattingResponse>(CancellationToken.None);
+            var result = await response.Returning<RazorDocumentRangeFormattingResponse>(cancellationToken);
 
             var mappedEdits = MapEditsToHostDocument(codeDocument, result.Edits);
 

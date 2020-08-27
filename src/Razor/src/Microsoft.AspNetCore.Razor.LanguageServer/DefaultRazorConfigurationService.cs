@@ -18,7 +18,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly IClientLanguageServer _server;
         private readonly ILogger _logger;
 
-        // ILanguageServerClient instead of ILanguageServer
         public DefaultRazorConfigurationService(IClientLanguageServer languageServer, ILoggerFactory loggerFactory)
         {
             if (languageServer is null)

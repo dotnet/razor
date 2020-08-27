@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal static readonly Range UndefinedRange = new Range(
             start: new Position(-1, -1),
             end: new Position(-1, -1));
-        private static readonly int? UndefinedDocumentVersion = -1;
+        private static readonly long UndefinedDocumentVersion = -1;
 
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<RazorLanguageQueryResponse> Handle(RazorLanguageQueryParams request, CancellationToken cancellationToken)
         {
-            int? documentVersion = -1;
+            long documentVersion = -1;
             DocumentSnapshot documentSnapshot = null;
             await Task.Factory.StartNew(() =>
             {
@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            int? documentVersion = -1;
+            long documentVersion = -1;
             DocumentSnapshot documentSnapshot = null;
             await Task.Factory.StartNew(() =>
             {
@@ -227,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (request.ShouldFormat)
             {
                 var mappedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
-                    request.RazorDocumentUri, documentSnapshot, request.Kind, request.ProjectedTextEdits, request.FormattingOptions);
+                    request.RazorDocumentUri, documentSnapshot, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, cancellationToken);
 
                 return new RazorMapToDocumentEditsResponse()
                 {
