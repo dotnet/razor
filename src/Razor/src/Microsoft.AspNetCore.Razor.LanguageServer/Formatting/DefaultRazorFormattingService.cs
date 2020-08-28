@@ -63,6 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var result = new FormattingResult(Array.Empty<TextEdit>());
             foreach (var pass in _formattingPasses)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 result = await pass.ExecuteAsync(context, result, cancellationToken);
             }
 
@@ -83,6 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             foreach (var pass in _formattingPasses)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 result = await pass.ExecuteAsync(context, result, cancellationToken);
             }
 

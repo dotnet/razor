@@ -16,7 +16,7 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
-    public class FormattingStructureValidationPassTest : LanguageServerTestBase
+    public class OnTypeFormattingStructureValidationPassTest : LanguageServerTestBase
     {
         [Fact]
         public void Execute_RegularFormatting_Noops()
@@ -234,7 +234,7 @@ if (true) { }
             Assert.Empty(result.Edits);
         }
 
-        private FormattingStructureValidationPass GetPass(RazorCodeDocument codeDocument)
+        private OnTypeFormattingStructureValidationPass GetPass(RazorCodeDocument codeDocument)
         {
             var mappingService = new DefaultRazorDocumentMappingService();
 

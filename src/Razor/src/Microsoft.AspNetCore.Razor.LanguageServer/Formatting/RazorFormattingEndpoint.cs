@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -141,8 +142,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, document, request.Range, request.Options, cancellationToken);
+            var filteredEdits = edits.Where(e => request.Range.OverlapsWith(e.Range));
 
-            var editContainer = new TextEditContainer(edits);
+            var editContainer = new TextEditContainer(filteredEdits);
             return editContainer;
         }
 
