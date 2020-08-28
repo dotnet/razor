@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             var documentSnapshot = await Task.Factory.StartNew(() =>
             {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
 

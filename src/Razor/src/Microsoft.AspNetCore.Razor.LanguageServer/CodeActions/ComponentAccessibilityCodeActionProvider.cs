@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var actionParams = new CreateComponentCodeActionParams
             {
-                Uri = context.Request.TextDocument.Uri.ToUri(),
+                Uri = context.Request.TextDocument.Uri,
                 Path = newComponentPath,
             };
 
@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
                 var actionParams = new AddUsingsCodeActionParams
                 {
-                    Uri = context.Request.TextDocument.Uri.ToUri(),
+                    Uri = context.Request.TextDocument.Uri,
                     Namespace = namespaceName,
                 };
 

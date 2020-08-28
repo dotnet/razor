@@ -23,9 +23,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private SemanticTokensCapability _capability;
 
-        protected readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
-        protected readonly ForegroundDispatcher _foregroundDispatcher;
-        protected readonly DocumentResolver _documentResolver;
+        private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
+        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly DocumentResolver _documentResolver;
 
         public RazorSemanticTokensEndpoint(
             ForegroundDispatcher foregroundDispatcher,
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return await Handle(request.TextDocument.Uri.ToUri().AbsolutePath, cancellationToken, range: null);
+            return await Handle(request.TextDocument.Uri.GetAbsolutePath(), cancellationToken, range: null);
         }
 
         public async Task<SemanticTokens> Handle(SemanticTokensRangeParams request, CancellationToken cancellationToken)
@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return await Handle(request.TextDocument.Uri.ToUri().AbsolutePath, cancellationToken, request.Range);
+            return await Handle(request.TextDocument.Uri.GetAbsolutePath(), cancellationToken, request.Range);
         }
 
         public async Task<SemanticTokensFullOrDelta?> Handle(SemanticTokensDeltaParams request, CancellationToken cancellationToken)
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var codeDocument = await TryGetCodeDocumentAsync(request.TextDocument.Uri.ToUri().AbsolutePath, cancellationToken);
+            var codeDocument = await TryGetCodeDocumentAsync(request.TextDocument.Uri.GetAbsolutePath(), cancellationToken);
             if (codeDocument is null)
             {
                 return null;

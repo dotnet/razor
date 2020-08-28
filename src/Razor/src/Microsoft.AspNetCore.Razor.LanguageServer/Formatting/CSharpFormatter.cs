@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
@@ -48,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public async Task<TextEdit[]> FormatAsync(
             RazorCodeDocument codeDocument,
             Range range,
-            Uri uri,
+            DocumentUri uri,
             FormattingOptions options,
             CancellationToken cancellationToken)
         {

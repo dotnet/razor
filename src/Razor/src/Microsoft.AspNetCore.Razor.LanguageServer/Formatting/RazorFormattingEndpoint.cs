@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var document = await Task.Factory.StartNew(() =>
             {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var span = TextSpan.FromBounds(0, codeDocument.Source.Length);
             var range = span.AsRange(codeDocument.GetSourceText());
-            var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri.ToUri(), document, range, request.Options, cancellationToken);
+            var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, document, range, request.Options, cancellationToken);
 
             var editContainer = new TextEditContainer(edits);
             return editContainer;
@@ -124,7 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var document = await Task.Factory.StartNew(() =>
             {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
@@ -140,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri.ToUri(), document, request.Range, request.Options, cancellationToken);
+            var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, document, request.Range, request.Options, cancellationToken);
 
             var editContainer = new TextEditContainer(edits);
             return editContainer;

@@ -78,10 +78,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 HostDocumentFilePath = filePath,
                 Changes = textChanges,
-                HostDocumentVersion = (long)hostDocumentVersion,
+                HostDocumentVersion = hostDocumentVersion,
             };
 
             var result = _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
+            // This is the call that actually makes the request, any SendRequest without a .Returning* after it will do nothing.
             result.ReturningVoid(System.Threading.CancellationToken.None);
         }
 
@@ -117,7 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 HostDocumentFilePath = filePath,
                 Changes = textChanges,
-                HostDocumentVersion = (long)hostDocumentVersion,
+                HostDocumentVersion = hostDocumentVersion,
             };
 
             var result = _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);

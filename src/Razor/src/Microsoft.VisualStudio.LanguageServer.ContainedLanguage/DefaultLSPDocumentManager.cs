@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
 
             var old = lspDocument.CurrentSnapshot;
-            var oldVirtual = virtualDocument?.CurrentSnapshot;
+            var oldVirtual = virtualDocument.CurrentSnapshot;
             var @new = lspDocument.UpdateVirtualDocument<TVirtualDocument>(changes, hostDocumentVersion);
 
             if (old == @new)
