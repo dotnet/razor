@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
-        public override void PublishCSharp(string filePath, SourceText sourceText, long hostDocumentVersion)
+        public override void PublishCSharp(string filePath, SourceText sourceText, int hostDocumentVersion)
         {
             if (filePath is null)
             {
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             result.ReturningVoid(System.Threading.CancellationToken.None);
         }
 
-        public override void PublishHtml(string filePath, SourceText sourceText, long hostDocumentVersion)
+        public override void PublishHtml(string filePath, SourceText sourceText, int hostDocumentVersion)
         {
             if (filePath is null)
             {
@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             public static readonly PublishData Default = new PublishData(SourceText.From(string.Empty), -1);
 
-            public PublishData(SourceText sourceText, long hostDocumentVersion)
+            public PublishData(SourceText sourceText, int hostDocumentVersion)
             {
                 SourceText = sourceText;
                 HostDocumentVersion = hostDocumentVersion;
@@ -162,7 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public SourceText SourceText { get; }
 
-            public long HostDocumentVersion { get; }
+            public int HostDocumentVersion { get; }
         }
     }
 }

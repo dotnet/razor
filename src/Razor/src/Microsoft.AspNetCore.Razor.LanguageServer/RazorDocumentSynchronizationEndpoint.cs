@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -79,13 +80,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = await document.GetTextAsync();
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
 
+            var version = GetDocumentVersion(notification.TextDocument.Version);
+
             await Task.Factory.StartNew(
-                () => _projectService.UpdateDocument(document.FilePath, sourceText, (long)notification.TextDocument.Version),
+                () => _projectService.UpdateDocument(document.FilePath, sourceText, version),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.ForegroundScheduler);
 
             return Unit.Value;
+        }
+
+        private static int GetDocumentVersion(int? version)
+        {
+
+            if (version is null)
+            {
+                throw new NotImplementedException("Provided version should not be null.");
+            }
+
+            return version.Value;
         }
 
         public async Task<Unit> Handle(DidOpenTextDocumentParams notification, CancellationToken token)
@@ -94,8 +108,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var sourceText = SourceText.From(notification.TextDocument.Text);
 
+            var version = GetDocumentVersion(notification.TextDocument.Version);
+
             await Task.Factory.StartNew(
-                () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, (long)notification.TextDocument.Version),
+                () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, version),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.ForegroundScheduler);
