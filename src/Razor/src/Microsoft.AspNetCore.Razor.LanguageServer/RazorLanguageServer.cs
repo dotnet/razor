@@ -31,6 +31,7 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -111,12 +112,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorDefinitionEndpoint>()
                     .WithServices(services =>
                     {
-                        if (configure != null)
-                        {
-                            var builder = new RazorLanguageServerBuilder(services);
-                            configure(builder);
-                        }
-
                         var filePathNormalizer = new FilePathNormalizer();
                         services.AddSingleton<FilePathNormalizer>(filePathNormalizer);
 
@@ -207,6 +202,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
                         services.AddSingleton<WorkspaceDirectoryPathResolver, DefaultWorkspaceDirectoryPathResolver>();
                         services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
+                        services.AddSingleton<LanguageServerFeatureOptions, DefaultLanguageServerFeatureOptions>();
+
+                        if (configure != null)
+                        {
+                            var builder = new RazorLanguageServerBuilder(services);
+                            configure(builder);
+                        }
                     }));
 
             try

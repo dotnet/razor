@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly FeedbackFileLoggerProviderFactory _feedbackFileLoggerProviderFactory;
-        private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
+        private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
 
         private object _shutdownLock;
         private RazorLanguageServer _server;
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             FeedbackFileLoggerProviderFactory feedbackFileLoggerProviderFactory,
-            LSPEditorFeatureDetector lspEditorFeatureDetector)
+            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions)
         {
             if (customTarget is null)
             {
@@ -77,9 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(feedbackFileLoggerProviderFactory));
             }
 
-            if (lspEditorFeatureDetector is null)
+            if (vsLanguageServerFeatureOptions is null)
             {
-                throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
+                throw new ArgumentNullException(nameof(vsLanguageServerFeatureOptions));
             }
 
             _customMessageTarget = customTarget;
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _requestInvoker = requestInvoker;
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
             _feedbackFileLoggerProviderFactory = feedbackFileLoggerProviderFactory;
-            _lspEditorFeatureDetector = lspEditorFeatureDetector;
+            _vsLanguageServerFeatureOptions = vsLanguageServerFeatureOptions;
 
             _shutdownLock = new object();
         }
@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var services = builder.Services;
             var loggerProvider = (FeedbackFileLoggerProvider)_feedbackFileLoggerProviderFactory.GetOrCreate();
             services.AddSingleton<ILoggerProvider>(loggerProvider);
-            services.AddSingleton(_lspEditorFeatureDetector);
+            services.AddSingleton<LanguageServerFeatureOptions, VSLanguageServerFeatureOptions>(s => _vsLanguageServerFeatureOptions);
         }
 
         private Trace GetVerbosity()
