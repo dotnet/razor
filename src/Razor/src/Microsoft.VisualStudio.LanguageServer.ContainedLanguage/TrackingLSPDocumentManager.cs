@@ -16,6 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public abstract void UpdateVirtualDocument<TVirtualDocument>(
             Uri hostDocumentUri,
             IReadOnlyList<ITextChange> changes,
-            long hostDocumentVersion) where TVirtualDocument : VirtualDocument;
+            int? hostDocumentVersion) where TVirtualDocument : VirtualDocument;
     }
 }

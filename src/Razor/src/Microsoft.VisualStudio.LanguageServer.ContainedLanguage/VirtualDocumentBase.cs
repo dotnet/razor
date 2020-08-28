@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     public abstract class VirtualDocumentBase<T> : VirtualDocument where T : VirtualDocumentSnapshot
     {
         private T _currentSnapshot;
-        private long? _hostDocumentSyncVersion;
+        private int? _hostDocumentSyncVersion;
 
         protected VirtualDocumentBase(Uri uri, ITextBuffer textBuffer)
         {
@@ -33,11 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public override ITextBuffer TextBuffer { get; }
 
-        public override long? HostDocumentSyncVersion => _hostDocumentSyncVersion;
+        public override int? HostDocumentSyncVersion => _hostDocumentSyncVersion;
 
         public override VirtualDocumentSnapshot CurrentSnapshot => _currentSnapshot;
 
-        public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
+        public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int? hostDocumentVersion)
         {
             if (changes is null)
             {

@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectManager = projectManager;
         }
 
-        private bool UnchangedHostDocument(DocumentSnapshot document, DocumentSnapshot latestSynchronizedDocument, long syncVersion)
+        private bool UnchangedHostDocument(DocumentSnapshot document, DocumentSnapshot latestSynchronizedDocument, int? syncVersion)
         {
             return latestSynchronizedDocument.TryGetTextVersion(out var latestSourceVersion) &&
                 document.TryGetTextVersion(out var documentSourceVersion) &&

@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         private class TestVirtualDocument : VirtualDocument
         {
-            private long? _hostDocumentVersion;
+            private int? _hostDocumentVersion;
 
             public IReadOnlyList<ITextChange> Changes { get; private set; }
 
@@ -50,9 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             public override VirtualDocumentSnapshot CurrentSnapshot => null;
 
-            public override long? HostDocumentSyncVersion => _hostDocumentVersion;
+            public override int? HostDocumentSyncVersion => _hostDocumentVersion;
 
-            public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
+            public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int? hostDocumentVersion)
             {
                 _hostDocumentVersion = hostDocumentVersion;
                 Changes = changes;

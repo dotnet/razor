@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             // Arrange
             var generatedDocumentPublisher = new Mock<GeneratedDocumentPublisher>(MockBehavior.Strict);
-            var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int>());
+            var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int?>());
             var listener = new UnsynchronizableContentDocumentProcessedListener(Dispatcher, cache, generatedDocumentPublisher.Object);
             listener.Initialize(ProjectSnapshotManager);
             var document = TestDocumentSnapshot.Create("C:/path/file.cshtml");
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var generatedDocumentPublisher = new Mock<GeneratedDocumentPublisher>(MockBehavior.Strict);
             var documentVersion = VersionStamp.Default.GetNewerVersion();
             var document = TestDocumentSnapshot.Create("C:/path/file.cshtml", documentVersion);
-            var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int>()
+            var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int?>()
             {
                 [document] = 1337,
             });
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var lastVersion = VersionStamp.Default.GetNewerVersion();
             var lastDocument = TestDocumentSnapshot.Create("C:/path/old.cshtml", lastVersion);
             var oldDocument = TestDocumentSnapshot.Create("C:/path/file.cshtml", VersionStamp.Default);
-            var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int>()
+            var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int?>()
             {
                 [oldDocument] = 1337,
                 [lastDocument] = 1338,
@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var lastVersion = VersionStamp.Default.GetNewerVersion();
             var lastDocument = TestDocumentSnapshot.Create("C:/path/old.cshtml", lastVersion);
             var document = TestDocumentSnapshot.Create("C:/path/file.cshtml", VersionStamp.Default);
-            var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int>()
+            var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int?>()
             {
                 [document] = 1338,
                 [lastDocument] = 1337,
@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Assert.Equal(document.State.GeneratedDocumentContainer.HtmlSourceTextContainer.CurrentText.ToString(), sourceText.ToString());
                 })
                 .Verifiable();
-            var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int>()
+            var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int?>()
             {
                 [document] = 1338,
                 [lastDocument] = 1337,
@@ -161,9 +161,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private class TestDocumentVersionCache : DocumentVersionCache
         {
-            private readonly Dictionary<DocumentSnapshot, int> _versions;
+            private readonly Dictionary<DocumentSnapshot, int?> _versions;
 
-            public TestDocumentVersionCache(Dictionary<DocumentSnapshot, int> versions)
+            public TestDocumentVersionCache(Dictionary<DocumentSnapshot, int?> versions)
             {
                 if (versions == null)
                 {
@@ -173,12 +173,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _versions = versions;
             }
 
-            public override bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot, out int version)
+            public override bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot, out int? version)
             {
                 return _versions.TryGetValue(documentSnapshot, out version);
             }
 
-            public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int version) => throw new NotImplementedException();
+            public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int? version) => throw new NotImplementedException();
 
             public override void Initialize(ProjectSnapshotManagerBase projectManager)
             {

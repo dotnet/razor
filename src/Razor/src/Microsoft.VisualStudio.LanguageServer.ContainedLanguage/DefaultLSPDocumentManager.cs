@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public override void UpdateVirtualDocument<TVirtualDocument>(
             Uri hostDocumentUri,
             IReadOnlyList<ITextChange> changes,
-            long hostDocumentVersion)
+            int? hostDocumentVersion)
         {
             if (hostDocumentUri is null)
             {

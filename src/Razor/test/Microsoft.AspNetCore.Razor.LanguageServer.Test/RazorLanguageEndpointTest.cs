@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public RazorLanguageEndpointTest()
         {
             var documentVersionCache = new Mock<DocumentVersionCache>();
-            var version = 1337;
+            int? version = 1337;
             documentVersionCache.Setup(cache => cache.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version))
                 .Returns(true);
 
