@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public Task WaitForExit => _innerServer.WaitForExit;
 
-        public Task InitializedAsync(CancellationToken token) => _innerServer.InitializedAsync(token);
+        public Task InitializedAsync(CancellationToken token) => _innerServer.Initialize(token);
 
         public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, Action<RazorLanguageServerBuilder> configure = null)
         {
@@ -72,6 +72,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 options
                     .WithInput(input)
                     .WithOutput(output)
+                    // StreamJsonRpc has both Serial and Parallel requests. With WithContentModifiedSupport(true) (which is default) when a Serial
+                    // request is made any Parallel requests will be cancelled because the assumption is that Serial requests modify state, and that
+                    // therefore any Parallel request is now invalid and should just try again. A specific instance of this can be seen when you
+                    // hover over a TagHelper while the switch is set to true. Hover is parallel, and a lot of our endpoints like
+                    // textDocument/_ms_onAutoInsert, and razor/languageQuery are Serial. I BELIEVE that specifically what happened is the serial
+                    // languageQuery event gets fired by our semantic tokens endpoint (which fires constantly), cancelling the hover, which red-bars.
+                    // We can prevent that behavior entirely by doing WithContentModifiedSupport, at the possible expense of some delays due doing all requests in serial.
+                    // 
+                    // I recommend that we attempt to resolve this and switch back to WithContentModifiedSupport(true) in the future,
+                    // I think that would mean either having 0 Serial Handlers in the whole LS, or making VSLanguageServerClient handle this more gracefully.
                     .WithContentModifiedSupport(false)
                     .WithSerializer(Serializer.Instance)
                     .ConfigureLogging(builder => builder

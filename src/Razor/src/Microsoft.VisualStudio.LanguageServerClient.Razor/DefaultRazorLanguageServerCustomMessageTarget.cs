@@ -63,7 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override async Task UpdateCSharpBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
         {
-            if (request is null){
+            if (request is null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
 
@@ -89,7 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override async Task UpdateHtmlBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
         {
-            if (request is null){
+            if (request is null)
+            {
                 throw new ArgumentNullException(nameof(request));
             }
 
