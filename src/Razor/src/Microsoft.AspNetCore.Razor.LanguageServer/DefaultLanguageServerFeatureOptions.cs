@@ -7,6 +7,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOptions
     {
-        public override bool SupportsFileCreation { get; } = true;
+        public override bool SupportsFileManipulation { get; } = true;
     }
 }

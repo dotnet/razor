@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var services = builder.Services;
             var loggerProvider = (FeedbackFileLoggerProvider)_feedbackFileLoggerProviderFactory.GetOrCreate();
             services.AddSingleton<ILoggerProvider>(loggerProvider);
-            services.AddSingleton<LanguageServerFeatureOptions, VSLanguageServerFeatureOptions>(s => _vsLanguageServerFeatureOptions);
+            services.AddSingleton<LanguageServerFeatureOptions>(_vsLanguageServerFeatureOptions);
         }
 
         private Trace GetVerbosity()

@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // We don't currently support file creation operations on VS Codespaces or VS Liveshare
-        public override bool SupportsFileCreation => !IsCodespacesOrLiveshare;
+        public override bool SupportsFileManipulation => !IsCodespacesOrLiveshare;
 
         private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
     }

@@ -5,6 +5,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal abstract class LanguageServerFeatureOptions
     {
-        public abstract bool SupportsFileCreation { get; }
+        public abstract bool SupportsFileManipulation { get; }
     }
 }

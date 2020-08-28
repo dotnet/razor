@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
     {
         private readonly DocumentResolver EmptyDocumentResolver = Mock.Of<DocumentResolver>();
         private readonly ILanguageServer LanguageServer = Mock.Of<ILanguageServer>();
-        private readonly LanguageServerFeatureOptions LanguageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(l => l.SupportsFileCreation == true);
+        private readonly LanguageServerFeatureOptions LanguageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(l => l.SupportsFileManipulation == true);
 
         [Fact]
         public async Task Handle_NoDocument()

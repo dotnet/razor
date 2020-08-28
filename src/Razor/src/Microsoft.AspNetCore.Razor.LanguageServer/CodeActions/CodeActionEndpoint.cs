@@ -119,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, (int)request.Range.Start.Line, (int)request.Range.Start.Character);
 
-            var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, _languageServerFeatureOptions.SupportsFileCreation);
+            var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, _languageServerFeatureOptions.SupportsFileManipulation);
             var tasks = new List<Task<RazorCodeAction[]>>();
 
             if (cancellationToken.IsCancellationRequested)
