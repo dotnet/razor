@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             public override VirtualDocumentSnapshot CurrentSnapshot => null;
 
             [Obsolete]
-            public override long HostDocumentSyncVersion => throw new NotImplementedException();
+            public override long? HostDocumentSyncVersion => throw new NotImplementedException();
 
             public override int HostDocumentVersion => _hostDocumentVersion;
 

@@ -106,7 +106,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         }
 
         [Obsolete("Use the int override instead")]
-        public override void UpdateVirtualDocument<TVirtualDocument>(Uri hostDocumentUri, IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
+        public override void UpdateVirtualDocument<TVirtualDocument>(
+            Uri hostDocumentUri,
+            IReadOnlyList<ITextChange> changes,
+            long hostDocumentVersion)
         {
             UpdateVirtualDocument<TVirtualDocument>(hostDocumentUri, changes, (int)hostDocumentVersion);
         }

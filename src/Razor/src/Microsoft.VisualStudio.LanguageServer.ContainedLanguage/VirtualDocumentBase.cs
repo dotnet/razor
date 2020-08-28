@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public override int HostDocumentVersion => _hostDocumentSyncVersion;
 
         [Obsolete("Use HostDocumentVersion instead")]
-        public override long HostDocumentSyncVersion => _hostDocumentSyncVersion;
+        public override long? HostDocumentSyncVersion => _hostDocumentSyncVersion;
 
         public override VirtualDocumentSnapshot CurrentSnapshot => _currentSnapshot;
 

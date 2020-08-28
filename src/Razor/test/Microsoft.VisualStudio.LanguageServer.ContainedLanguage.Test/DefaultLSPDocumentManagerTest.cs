@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             public override VirtualDocumentSnapshot CurrentSnapshot { get; } = new TestVirtualDocumentSnapshot(new Uri("C:/path/to/something.razor.g.cs"), 123);
 
             [Obsolete]
-            public override long HostDocumentSyncVersion => throw new NotImplementedException();
+            public override long? HostDocumentSyncVersion => throw new NotImplementedException();
 
             public override int HostDocumentVersion => 123;
 
