@@ -1,6 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
+#pragma warning disable CS0618
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +19,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class RazorSemanticTokensEndpoint : ISemanticTokensHandler, ISemanticTokensRangeHandler, ISemanticTokensDeltaHandler, IRegistrationExtension
     {
-        private readonly ILogger _logger;
-
         private SemanticTokensCapability _capability;
 
-        private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
+        private readonly ILogger _logger;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
+        private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
 
         public RazorSemanticTokensEndpoint(
             ForegroundDispatcher foregroundDispatcher,
@@ -53,10 +52,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
-            _semanticTokensInfoService = semanticTokensInfoService;
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
+            _semanticTokensInfoService = semanticTokensInfoService;
+            _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
         }
 
         public async Task<SemanticTokens> Handle(SemanticTokensParams request, CancellationToken cancellationToken)
