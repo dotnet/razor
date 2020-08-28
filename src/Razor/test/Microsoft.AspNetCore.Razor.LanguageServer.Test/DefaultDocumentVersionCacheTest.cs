@@ -168,6 +168,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert - 2
             Assert.False(result);
+            Assert.Null(version);
         }
 
         [Fact]

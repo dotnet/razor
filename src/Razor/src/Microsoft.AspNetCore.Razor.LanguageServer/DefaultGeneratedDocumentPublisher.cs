@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
-        public override void PublishCSharp(string filePath, SourceText sourceText, int? hostDocumentVersion)
+        public override void PublishCSharp(string filePath, SourceText sourceText, int hostDocumentVersion)
         {
             if (filePath is null)
             {
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             result.ReturningVoid(System.Threading.CancellationToken.None);
         }
 
-        public override void PublishHtml(string filePath, SourceText sourceText, int? hostDocumentVersion)
+        public override void PublishHtml(string filePath, SourceText sourceText, int hostDocumentVersion)
         {
             if (filePath is null)
             {
@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private sealed class PublishData
         {
-            public static readonly PublishData Default = new PublishData(SourceText.From(string.Empty), -1);
+            public static readonly PublishData Default = new PublishData(SourceText.From(string.Empty), null);
 
             public PublishData(SourceText sourceText, int? hostDocumentVersion)
             {
