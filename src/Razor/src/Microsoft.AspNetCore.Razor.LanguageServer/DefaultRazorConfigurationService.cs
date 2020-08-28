@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
         }
 
-        public async override Task<RazorLSPOptions> GetLatestOptionsAsync()
+        public async override Task<RazorLSPOptions> GetLatestOptionsAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -53,8 +53,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
                 };
 
-                var response = _server.SendRequest<ConfigurationParams>("workspace/configuration", request);
-                var result = await response.Returning<object[]>(CancellationToken.None);
+                var response = _server.SendRequest("workspace/configuration", request);
+                var result = await response.Returning<object[]>(cancellationToken);
                 if (result == null || result.Length < 2 || result[0] == null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");

@@ -28,16 +28,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _documentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
         }
 
-        public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int? version)
+        public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int version)
         {
             if (documentSnapshot == null)
             {
                 throw new ArgumentNullException(nameof(documentSnapshot));
-            }
-
-            if (version is null)
-            {
-                throw new ArgumentOutOfRangeException(nameof(version));
             }
 
             _foregroundDispatcher.AssertForegroundThread();
@@ -57,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 documentEntries.RemoveAt(0);
             }
 
-            var entry = new DocumentEntry(documentSnapshot, version.Value);
+            var entry = new DocumentEntry(documentSnapshot, version);
             documentEntries.Add(entry);
         }
 
@@ -146,7 +141,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             // Update our internal tracking state to track the changed document as the latest document.
-            TrackDocumentVersion(document, latestVersion);
+            TrackDocumentVersion(document, latestVersion.Value);
         }
 
         // Internal for testing

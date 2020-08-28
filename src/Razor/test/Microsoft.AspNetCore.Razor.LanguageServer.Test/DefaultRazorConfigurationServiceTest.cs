@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
 
             // Act
-            var options = await configurationService.GetLatestOptionsAsync();
+            var options = await configurationService.GetLatestOptionsAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(expectedOptions, options);
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
 
             // Act
-            var options = await configurationService.GetLatestOptionsAsync();
+            var options = await configurationService.GetLatestOptionsAsync(CancellationToken.None);
 
             // Assert
             Assert.Null(options);
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
 
             // Act
-            var options = await configurationService.GetLatestOptionsAsync();
+            var options = await configurationService.GetLatestOptionsAsync(CancellationToken.None);
 
             // Assert
             Assert.Null(options);

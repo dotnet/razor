@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void UpdateCSharpBuffer(UpdateBufferRequest request)
         {
-            if (request == null || request.HostDocumentFilePath == null)
+            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
             {
                 return;
             }
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 hostDocumentUri,
                 request.Changes?.Select(change => change.ToVisualStudioTextChange()).ToArray(),
-                request.HostDocumentVersion);
+                request.HostDocumentVersion.Value);
         }
 
         public override async Task UpdateHtmlBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void UpdateHtmlBuffer(UpdateBufferRequest request)
         {
-            if (request == null || request.HostDocumentFilePath == null)
+            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
             {
                 return;
             }
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
                 hostDocumentUri,
                 request.Changes?.Select(change => change.ToVisualStudioTextChange()).ToArray(),
-                request.HostDocumentVersion);
+                request.HostDocumentVersion.Value);
         }
 
         public override async Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams request, CancellationToken cancellationToken)

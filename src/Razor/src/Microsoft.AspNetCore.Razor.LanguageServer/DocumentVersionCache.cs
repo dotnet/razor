@@ -9,6 +9,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public abstract bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot, out int? version);
 
-        public abstract void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int? version);
+        public abstract void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int version);
     }
 }

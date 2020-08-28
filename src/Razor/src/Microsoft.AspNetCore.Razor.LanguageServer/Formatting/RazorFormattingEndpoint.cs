@@ -155,6 +155,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             _rangeFormattingCapability = capability;
         }
-
     }
 }

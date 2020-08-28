@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -83,7 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var result = _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
             // This is the call that actually makes the request, any SendRequest without a .Returning* after it will do nothing.
-            result.ReturningVoid(System.Threading.CancellationToken.None);
+            result.ReturningVoid(CancellationToken.None);
         }
 
         public override void PublishHtml(string filePath, SourceText sourceText, int hostDocumentVersion)
@@ -122,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
 
             var result = _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);
-            result.ReturningVoid(System.Threading.CancellationToken.None);
+            result.ReturningVoid(CancellationToken.None);
         }
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)

@@ -127,19 +127,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             processedOpenDocument.With(codeDocument);
             var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
             languageServer.Setup(server => server.SendNotification((It.IsAny<IRequest>()))).Callback<IRequest>((@params) =>
-                 {
-                     var diagnosticParams = (PublishDiagnosticsParams)@params;
-                     Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), diagnosticParams.Uri.ToUri().AbsolutePath);
-                     var diagnostic = Assert.Single(diagnosticParams.Diagnostics);
-                     var razorDiagnostic = SingleDiagnosticCollection[0];
-                     processedOpenDocument.TryGetText(out var sourceText);
-                     var expectedDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText);
-                     Assert.Equal(expectedDiagnostic.Message, diagnostic.Message);
-                     Assert.Equal(expectedDiagnostic.Severity, diagnostic.Severity);
-                     Assert.Equal(expectedDiagnostic.Range, diagnostic.Range);
-                 });
+                {
+                    var diagnosticParams = (PublishDiagnosticsParams)@params;
+                    Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), diagnosticParams.Uri.ToUri().AbsolutePath);
+                    var diagnostic = Assert.Single(diagnosticParams.Diagnostics);
+                    var razorDiagnostic = SingleDiagnosticCollection[0];
+                    processedOpenDocument.TryGetText(out var sourceText);
+                    var expectedDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText);
+                    Assert.Equal(expectedDiagnostic.Message, diagnostic.Message);
+                    Assert.Equal(expectedDiagnostic.Severity, diagnostic.Severity);
+                    Assert.Equal(expectedDiagnostic.Range, diagnostic.Range);
+                });
 
-            //languageServer.Setup(server => server.TextDocument).Returns(languageServerDocument.Object);
             using (var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, languageServer.Object, LoggerFactory))
             {
                 publisher._publishedDiagnostics[processedOpenDocument.FilePath] = EmptyDiagnostics;

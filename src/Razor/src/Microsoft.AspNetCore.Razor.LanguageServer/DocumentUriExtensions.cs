@@ -28,15 +28,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return documentUri.ToUri().AbsolutePath;
         }
-
-        public static string GetLocalPath(this DocumentUri documentUri)
-        {
-            if (documentUri is null)
-            {
-                throw new ArgumentNullException(nameof(documentUri));
-            }
-
-            return documentUri.GetFileSystemPath();
-        }
     }
 }

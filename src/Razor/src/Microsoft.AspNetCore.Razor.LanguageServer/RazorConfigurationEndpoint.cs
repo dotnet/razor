@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             _logger.LogTrace("Settings changed. Updating the server.");
 
-            await _optionsMonitor.UpdateAsync();
+            await _optionsMonitor.UpdateAsync(cancellationToken);
 
             return new Unit();
         }

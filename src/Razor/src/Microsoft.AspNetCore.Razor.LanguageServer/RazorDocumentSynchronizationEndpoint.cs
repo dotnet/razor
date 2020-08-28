@@ -80,26 +80,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = await document.GetTextAsync();
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
 
-            var version = GetDocumentVersion(notification.TextDocument.Version);
+            if(notification.TextDocument.Version is null)
+            {
+                throw new NotImplementedException("Provided version should not be null.");
+            }
 
             await Task.Factory.StartNew(
-                () => _projectService.UpdateDocument(document.FilePath, sourceText, version),
+                () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version.Value),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.ForegroundScheduler);
 
             return Unit.Value;
-        }
-
-        private static int GetDocumentVersion(int? version)
-        {
-
-            if (version is null)
-            {
-                throw new NotImplementedException("Provided version should not be null.");
-            }
-
-            return version.Value;
         }
 
         public async Task<Unit> Handle(DidOpenTextDocumentParams notification, CancellationToken token)
@@ -108,10 +100,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var sourceText = SourceText.From(notification.TextDocument.Text);
 
-            var version = GetDocumentVersion(notification.TextDocument.Version);
+            if (notification.TextDocument.Version is null)
+            {
+                throw new NotImplementedException("Provided version should not be null.");
+            }
 
             await Task.Factory.StartNew(
-                () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, version),
+                () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version.Value),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.ForegroundScheduler);

@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public abstract IReadOnlyList<VirtualDocument> VirtualDocuments { get; }
 
-        public abstract LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int? hostDocumentVersion) where TVirtualDocument : VirtualDocument;
+        public abstract LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int hostDocumentVersion) where TVirtualDocument : VirtualDocument;
 
         public bool TryGetVirtualDocument<TVirtualDocument>(out TVirtualDocument virtualDocument) where TVirtualDocument : VirtualDocument
         {

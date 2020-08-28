@@ -178,7 +178,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return _versions.TryGetValue(documentSnapshot, out version);
             }
 
-            public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int? version) => throw new NotImplementedException();
+            public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int version) => throw new NotImplementedException();
 
             public override void Initialize(ProjectSnapshotManagerBase projectManager)
             {
