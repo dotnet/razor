@@ -41,5 +41,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             UpdateVirtualDocumentCallCount++;
         }
+
+        [Obsolete]
+        public override void UpdateVirtualDocument<TVirtualDocument>(Uri hostDocumentUri, IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

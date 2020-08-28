@@ -33,7 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public override ITextBuffer TextBuffer { get; }
 
-        public override int HostDocumentSyncVersion => _hostDocumentSyncVersion;
+        public override int HostDocumentVersion => _hostDocumentSyncVersion;
+
+        [Obsolete("Use HostDocumentVersion instead")]
+        public override long HostDocumentSyncVersion => _hostDocumentSyncVersion;
 
         public override VirtualDocumentSnapshot CurrentSnapshot => _currentSnapshot;
 

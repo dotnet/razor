@@ -57,6 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
         }
 
+        [Obsolete]
+        public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
+        {
+            return UpdateVirtualDocument<TVirtualDocument>(changes, (int)hostDocumentVersion);
+        }
+
         public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int hostDocumentVersion)
         {
             if (!TryGetVirtualDocument<TVirtualDocument>(out var virtualDocument))

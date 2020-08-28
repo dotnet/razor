@@ -105,6 +105,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             lspDocument.Dispose();
         }
 
+        [Obsolete("Use the int override instead")]
+        public override void UpdateVirtualDocument<TVirtualDocument>(Uri hostDocumentUri, IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
+        {
+            UpdateVirtualDocument<TVirtualDocument>(hostDocumentUri, changes, (int)hostDocumentVersion);
+        }
+
         public override void UpdateVirtualDocument<TVirtualDocument>(
             Uri hostDocumentUri,
             IReadOnlyList<ITextChange> changes,
@@ -137,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
 
             if (changes.Count == 0 &&
-                virtualDocument.HostDocumentSyncVersion == hostDocumentVersion)
+                virtualDocument.HostDocumentVersion == hostDocumentVersion)
             {
                 // The current virtual document already knows about this update.
                 // Ignore it so we don't prematurely invoke a change event.
