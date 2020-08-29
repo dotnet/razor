@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
         }
 
-        [Obsolete]
+        [Obsolete("Use the int overload instead")]
         public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
         {
             return UpdateVirtualDocument<TVirtualDocument>(changes, (int)hostDocumentVersion);

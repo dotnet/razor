@@ -80,9 +80,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = await document.GetTextAsync();
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
 
-            if(notification.TextDocument.Version is null)
+            if (notification.TextDocument.Version is null)
             {
-                throw new NotImplementedException("Provided version should not be null.");
+                throw new InvalidOperationException("Provided version should not be null.");
             }
 
             await Task.Factory.StartNew(
@@ -102,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (notification.TextDocument.Version is null)
             {
-                throw new NotImplementedException("Provided version should not be null.");
+                throw new InvalidOperationException("Provided version should not be null.");
             }
 
             await Task.Factory.StartNew(
