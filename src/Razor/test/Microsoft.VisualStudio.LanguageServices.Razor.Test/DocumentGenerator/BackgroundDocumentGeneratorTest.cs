@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             HostProject1 = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
             HostProject2 = new HostProject(TestProjectData.AnotherProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.AnotherProject.RootNamespace);
 
-            var foregroundDispatcher = Mock.Of<ForegroundDispatcher>();
-            var razorDocumentServiceProviderFactory = new DefaultRazorDocumentServiceProviderFactory(foregroundDispatcher);
+            var razorDocumentServiceProviderFactory = new DefaultRazorDocumentServiceProviderFactory();
             var testLSPEnabledEditorFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorFeatureEnabled() == true);
             DynamicFileInfoProvider = new DefaultRazorDynamicFileInfoProvider(razorDocumentServiceProviderFactory, testLSPEnabledEditorFeatureDetector);
         }
