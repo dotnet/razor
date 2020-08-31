@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         public RazorDocumentInfoProviderTest()
         {
-            var serviceProviderFactory = new DefaultRazorDocumentServiceProviderFactory();
+            var foregroundDispatcher = Mock.Of<ForegroundDispatcher>();
+            var serviceProviderFactory = new DefaultRazorDocumentServiceProviderFactory(foregroundDispatcher);
             var lspEditorEnabledFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorFeatureEnabled() == true);
             InnerDynamicDocumentInfoProvider = new DefaultRazorDynamicFileInfoProvider(serviceProviderFactory, lspEditorEnabledFeatureDetector);
             ProjectSnapshotManager = new TestProjectSnapshotManager(Workspace);
