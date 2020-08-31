@@ -8,11 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -114,13 +114,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var client = new FormattingLanguageServerClient();
             client.AddCodeDocument(codeDocument);
+            var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(p => p.Instance.Workspace == new AdhocWorkspace());
             var passes = new List<IFormattingPass>()
             {
-                new HtmlFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
-                new CSharpFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
-                new CSharpOnTypeFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
-                new OnTypeFormattingStructureValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory),
-                new FormattingContentValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory),
+                new HtmlFormattingPass(mappingService, FilePathNormalizer, client, projectSnapshotManagerAccessor, LoggerFactory),
+                new CSharpFormattingPass(mappingService, FilePathNormalizer, client, projectSnapshotManagerAccessor, LoggerFactory),
+                new CSharpOnTypeFormattingPass(mappingService, FilePathNormalizer, client, projectSnapshotManagerAccessor, LoggerFactory),
+                new OnTypeFormattingStructureValidationPass(mappingService, FilePathNormalizer, client, projectSnapshotManagerAccessor, LoggerFactory),
+                new FormattingDiagnosticValidationPass(mappingService, FilePathNormalizer, client, projectSnapshotManagerAccessor, LoggerFactory),
+                new FormattingContentValidationPass(mappingService, FilePathNormalizer, client, projectSnapshotManagerAccessor, LoggerFactory),
             };
 
             return new DefaultRazorFormattingService(passes, LoggerFactory);

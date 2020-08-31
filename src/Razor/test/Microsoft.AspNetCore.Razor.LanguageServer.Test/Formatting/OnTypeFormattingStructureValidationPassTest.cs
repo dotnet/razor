@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
@@ -240,7 +239,8 @@ if (true) { }
 
             var client = new FormattingLanguageServerClient();
             client.AddCodeDocument(codeDocument);
-            var pass = new FormattingStructureValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory);
+            var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>();
+            var pass = new OnTypeFormattingStructureValidationPass(mappingService, FilePathNormalizer, client, projectSnapshotManagerAccessor, LoggerFactory);
 
             return pass;
         }

@@ -11,8 +11,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
@@ -108,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private async Task<TextEdit[]> FormatOnClientAsync(
             RazorCodeDocument codeDocument,
             Range projectedRange,
-            Uri uri,
+            DocumentUri uri,
             FormattingOptions options,
             CancellationToken cancellationToken)
         {
@@ -129,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private async Task<TextEdit[]> FormatOnServerAsync(
             RazorCodeDocument codeDocument,
             Range projectedRange,
-            Uri uri,
+            DocumentUri uri,
             FormattingOptions options,
             CancellationToken cancellationToken)
         {

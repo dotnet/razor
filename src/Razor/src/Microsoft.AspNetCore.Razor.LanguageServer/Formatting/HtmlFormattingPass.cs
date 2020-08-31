@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public HtmlFormattingPass(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            ILanguageServer server,
+            IClientLanguageServer server,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server, projectSnapshotManagerAccessor)
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var originalText = context.SourceText;
 
-            var htmlEdits = await HtmlFormatter.FormatAsync(context.CodeDocument, context.Range, context.Uri, context.Options);
+            var htmlEdits = await HtmlFormatter.FormatAsync(context.CodeDocument, context.Range, context.Uri, context.Options, cancellationToken);
             var normalizedEdits = NormalizeTextEdits(originalText, htmlEdits);
             var mappedEdits = RemapTextEdits(context.CodeDocument, normalizedEdits, RazorLanguageKind.Html);
             var changes = mappedEdits.Select(e => e.AsTextChange(originalText));

@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public CSharpFormattingPass(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            ILanguageServer server,
+            IClientLanguageServer server,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server, projectSnapshotManagerAccessor)
@@ -162,7 +162,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 //
                 // `@inject |SomeType SomeName` - true
                 //
-                return owner.AncestorsAndSelf().Any(n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine);
+                // Note: @using directives don't have a descriptor associated with them, hence the extra null check.
+                //
+                return owner.AncestorsAndSelf().Any(
+                    n => n is RazorDirectiveSyntax directive && (directive.DirectiveDescriptor == null || directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine));
             }
 
             bool IsImplicitOrExplicitExpression()

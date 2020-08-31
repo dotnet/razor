@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public FormattingPassBase(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            IClientLanguageServer server
+            IClientLanguageServer server,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
             if (documentMappingService is null)
@@ -360,7 +360,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 //
                 // `@inject |SomeType SomeName` - true
                 //
-                return owner.AncestorsAndSelf().Any(n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine);
+                // Note: @using directives don't have a descriptor associated with them, hence the extra null check.
+                //
+                return owner.AncestorsAndSelf().Any(
+                    n => n is RazorDirectiveSyntax directive && (directive.DirectiveDescriptor == null || directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine));
             }
 
             bool IsImplicitOrExplicitExpression()
