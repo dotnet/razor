@@ -90,13 +90,6 @@ Out-File -FilePath $sentinelFile -InputObject $JobName | Out-Null;
     }
   }
 
-  if(
-    [Console]::InputEncoding -is [Text.UTF8Encoding] -and
-    [Console]::InputEncoding.GetPreamble().Length -ne 0
-  ) {
-    [Console]::InputEncoding = New-Object Text.UTF8Encoding $false
-  }
-
   Write-Output "Starting process dump capture.";
 
   $dumpFullPath = [System.IO.Path]::Combine($ProcDumpOutputPath, "hung_PROCESSNAME_PID_YYMMDD_HHMMSS.dmp");
