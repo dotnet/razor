@@ -34,11 +34,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void Resolve_RootUriPrefered()
         {
             // Arrange
-            var expectedWorkspaceDirectory = "\\\\testpath";
+            var initialWorkspaceDirectory = "\\\\testpath";
             var clientSettings = new InitializeParams()
             {
                 RootPath = "/somethingelse",
-                RootUri = new DocumentUri("file", authority: null, path: expectedWorkspaceDirectory, query: null, fragment: null),
+                RootUri = new DocumentUri("file", authority: null, path: initialWorkspaceDirectory, query: null, fragment: null),
             };
             var server = Mock.Of<IClientLanguageServer>(server => server.ClientSettings == clientSettings);
             var workspaceDirectoryPathResolver = new DefaultWorkspaceDirectoryPathResolver(server);
@@ -47,6 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var workspaceDirectoryPath = workspaceDirectoryPathResolver.Resolve();
 
             // Assert
+            var expectedWorkspaceDirectory = "/"+initialWorkspaceDirectory;
             Assert.Equal(expectedWorkspaceDirectory, workspaceDirectoryPath);
         }
     }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -201,8 +202,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
 
-            var newResultId = AssertSemanticTokenEdits(txt, new SemanticTokensDelta {
-                Edits = new List<SemanticTokensEdit>() }, isRazor: false, previousResultId: previousResultId, out var _, service: service);
+            var newResultId = AssertSemanticTokenEdits(txt, new SemanticTokensDelta
+            {
+                Edits = new List<SemanticTokensEdit>()
+            }, isRazor: false, previousResultId: previousResultId, out var _, service: service);
             Assert.NotEqual(previousResultId, newResultId);
         }
 
@@ -231,7 +234,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                         DeleteCount = 20,
                         Start = 10
                     }
-            }}, isRazor: false, previousResultId: previousResultId, out var _, service);
+            }
+            }, isRazor: false, previousResultId: previousResultId, out var _, service);
             Assert.NotEqual(previousResultId, newResultId);
         }
 
@@ -318,7 +322,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         [Fact]
         public void GetSemanticTokens_Razor_OriginallyNone_ThenSome()
         {
-            var expectedData = new List<int> {};
+            var expectedData = new List<int> { };
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p></p>";
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -543,14 +547,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             {
                 for (var i = 0; i < expectedEdits.Delta.Edits.Count(); i++)
                 {
-                    Assert.Equal(expectedEdits.Delta.Edits.ElementAt(i), edits.Delta.Edits.ElementAt(i));
+                    Assert.Equal(expectedEdits.Delta.Edits.ElementAt(i), edits.Delta.Edits.ElementAt(i), SemanticEditComparer.Instance);
                 }
 
                 return edits.Delta.ResultId;
             }
             else
             {
-                Assert.Equal(expectedEdits.Full.Data, edits.Full.Data);
+                Assert.Equal(expectedEdits.Full.Data, edits.Full.Data, ImmutableArrayIntComparer.Instance);
 
                 return edits.Full.ResultId;
             }
@@ -559,6 +563,57 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         private RazorSemanticTokensInfoService GetDefaultRazorSemanticTokenInfoService()
         {
             return new DefaultRazorSemanticTokensInfoService();
+        }
+
+        private class SemanticEditComparer : IEqualityComparer<SemanticTokensEdit>
+        {
+            public static SemanticEditComparer Instance = new SemanticEditComparer();
+
+            public bool Equals([AllowNull] SemanticTokensEdit x, [AllowNull] SemanticTokensEdit y)
+            {
+                if (x == null && y == null)
+                {
+                    return true;
+                }
+                else if (x is null || y is null)
+                {
+                    return false;
+                }
+
+                Assert.Equal(x.DeleteCount, y.DeleteCount);
+                Assert.Equal(x.Start, y.Start);
+                Assert.Equal(x.Data, y.Data, ImmutableArrayIntComparer.Instance);
+
+                return x.DeleteCount == y.DeleteCount &&
+                    x.Start == y.Start;
+            }
+
+            public int GetHashCode([DisallowNull] SemanticTokensEdit obj)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ImmutableArrayIntComparer : IEqualityComparer<ImmutableArray<int>>
+        {
+            public static ImmutableArrayIntComparer Instance = new ImmutableArrayIntComparer();
+
+            public bool Equals([AllowNull] ImmutableArray<int> x, [AllowNull] ImmutableArray<int> y)
+            {
+                Assert.Equal(x.Length, y.Length);
+
+                for (var i = 0; i < Math.Min(x.Length, y.Length); i++)
+                {
+                    Assert.Equal(x[i], y[i]);
+                }
+
+                return true;
+            }
+
+            public int GetHashCode([DisallowNull] ImmutableArray<int> obj)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

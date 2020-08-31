@@ -64,8 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             processedOpenDocument.With(codeDocument);
             // ILanguageServerDocument
             var languageServerDocument = Mock.Of<ITextDocumentLanguageServer>();
-            var languageServer = Mock.Of<ITextDocumentLanguageServer>(server => server == languageServerDocument);
-            using (var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, languageServer, LoggerFactory)
+            using (var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, languageServerDocument, LoggerFactory)
             {
                 BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: true),
                 NotifyBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false),

@@ -125,14 +125,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var document = TestDocumentSnapshot.Create("C:/path/file.cshtml", lastVersion);
             var generatedDocumentPublisher = new Mock<GeneratedDocumentPublisher>();
             generatedDocumentPublisher.Setup(publisher => publisher.PublishCSharp(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
-                .Callback<string, SourceText, long>((filePath, sourceText, hostDocumentVersion) =>
+                .Callback<string, SourceText, int>((filePath, sourceText, hostDocumentVersion) =>
                 {
                     Assert.Equal(document.FilePath, filePath);
                     Assert.Equal(document.State.GeneratedDocumentContainer.CSharpSourceTextContainer.CurrentText.ToString(), sourceText.ToString());
                 })
                 .Verifiable();
             generatedDocumentPublisher.Setup(publisher => publisher.PublishHtml(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
-                .Callback<string, SourceText, long>((filePath, sourceText, hostDocumentVersion) =>
+                .Callback<string, SourceText, int>((filePath, sourceText, hostDocumentVersion) =>
                 {
                     Assert.Equal(document.FilePath, filePath);
                     Assert.Equal(document.State.GeneratedDocumentContainer.HtmlSourceTextContainer.CurrentText.ToString(), sourceText.ToString());

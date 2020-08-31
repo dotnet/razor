@@ -479,7 +479,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                     _updateRequests.Add(updateRequest);
 
-                    return new Mock<IResponseRouterReturns>(MockBehavior.Strict).Object;
+                    var mock = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
+                    mock.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+                    return mock.Object;
                 }
 
                 public IResponseRouterReturns SendRequest(string method)

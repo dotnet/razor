@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var documentResolver = CreateDocumentResolver(documentPath, sourceText);
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.UpdateDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
-                .Callback<string, SourceText, long>((path, text, version) =>
+                .Callback<string, SourceText, int>((path, text, version) =>
                 {
                     var resultString = GetString(text);
                     Assert.Equal("<p></p>", resultString);
@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var documentPath = "C:/path/to/document.cshtml";
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.OpenDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
-                .Callback<string, SourceText, long>((path, text, version) =>
+                .Callback<string, SourceText, int>((path, text, version) =>
                 {
                     var resultString = GetString(text);
                     Assert.Equal("hello", resultString);

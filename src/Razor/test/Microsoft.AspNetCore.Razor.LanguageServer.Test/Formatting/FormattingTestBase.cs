@@ -115,13 +115,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var client = new FormattingLanguageServerClient();
             client.AddCodeDocument(codeDocument);
-            var languageServer = Mock.Of<IClientLanguageServer>(ls => ls == client);
             var passes = new List<IFormattingPass>()
             {
-                new CodeBlockDirectiveFormattingPass(mappingService, FilePathNormalizer, languageServer, LoggerFactory),
-                new CSharpOnTypeFormattingPass(mappingService, FilePathNormalizer, languageServer, LoggerFactory),
-                new FormattingStructureValidationPass(mappingService, FilePathNormalizer, languageServer, LoggerFactory),
-                new FormattingContentValidationPass(mappingService, FilePathNormalizer, languageServer, LoggerFactory),
+                new CodeBlockDirectiveFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
+                new CSharpOnTypeFormattingPass(mappingService, FilePathNormalizer, client, LoggerFactory),
+                new FormattingStructureValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory),
+                new FormattingContentValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory),
             };
 
             return new DefaultRazorFormattingService(passes, LoggerFactory);

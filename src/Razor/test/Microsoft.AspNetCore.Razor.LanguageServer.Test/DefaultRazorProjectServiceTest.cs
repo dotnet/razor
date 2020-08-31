@@ -670,7 +670,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var documentResolver = Mock.Of<DocumentResolver>(resolver => resolver.TryResolveDocument(It.IsAny<string>(), out documentSnapshot) == true);
             var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
             documentVersionCache.Setup(cache => cache.TrackDocumentVersion(documentSnapshot, It.IsAny<int>()))
-                .Callback<DocumentSnapshot, long>((snapshot, version) =>
+                .Callback<DocumentSnapshot, int>((snapshot, version) =>
                 {
                     Assert.Same(documentSnapshot, snapshot);
                     Assert.Equal(1337, version);

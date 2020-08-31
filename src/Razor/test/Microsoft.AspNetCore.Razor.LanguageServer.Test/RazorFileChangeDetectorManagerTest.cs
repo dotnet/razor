@@ -17,15 +17,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task InitializedAsync_StartsFileChangeDetectors()
         {
             // Arrange
-            var expectedWorkspaceDirectory = "\\\\testpath";
+            var initialWorkspaceDirectory = "\\\\testpath";
+
             var clientSettings = new InitializeParams()
             {
-                RootUri = new DocumentUri("file", authority: null, path: expectedWorkspaceDirectory, query: null, fragment: null),
+                RootUri = new DocumentUri("file", authority: null, path: initialWorkspaceDirectory, query: null, fragment: null),
             };
             var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
             languageServer.SetupGet(s => s.ClientSettings)
                 .Returns(clientSettings);
             var detector1 = new Mock<IFileChangeDetector>(MockBehavior.Strict);
+            var expectedWorkspaceDirectory = "/" + initialWorkspaceDirectory;
             detector1.Setup(detector => detector.StartAsync(expectedWorkspaceDirectory, It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
