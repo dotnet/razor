@@ -35,6 +35,13 @@ if ($JobName.Count -ne 1) {
   }
 }
 
+if(
+  [Console]::InputEncoding -is [Text.UTF8Encoding] -and
+  [Console]::InputEncoding.GetPreamble().Length -ne 0
+) {
+  [Console]::InputEncoding = New-Object Text.UTF8Encoding $false
+}
+
 $dumpCollectionJob = Get-Job -Name $JobName -ErrorAction SilentlyContinue;
 $registeredJob = Get-ScheduledJob -Name $JobName -ErrorAction SilentlyContinue;
 
