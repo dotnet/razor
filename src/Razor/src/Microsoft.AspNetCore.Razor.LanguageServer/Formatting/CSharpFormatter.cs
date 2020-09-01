@@ -3,10 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis.Razor;
+using OmniSharp.Extensions.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
@@ -17,11 +22,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly FilePathNormalizer _filePathNormalizer;
-        private readonly ILanguageServer _server;
+        private readonly IClientLanguageServer _server;
+        private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
         public CSharpFormatter(
             RazorDocumentMappingService documentMappingService,
-            ILanguageServer languageServer,
+            IClientLanguageServer languageServer,
+            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             FilePathNormalizer filePathNormalizer)
         {
             if (documentMappingService is null)
@@ -34,6 +41,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
+            if (projectSnapshotManagerAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
+            }
+
             if (filePathNormalizer is null)
             {
                 throw new ArgumentNullException(nameof(filePathNormalizer));
@@ -41,33 +53,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             _documentMappingService = documentMappingService;
             _server = languageServer;
+            _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
             _filePathNormalizer = filePathNormalizer;
         }
 
         public async Task<TextEdit[]> FormatAsync(
             RazorCodeDocument codeDocument,
             Range range,
-            Uri uri,
-            FormattingOptions options)
+            DocumentUri uri,
+            FormattingOptions options,
+            CancellationToken cancellationToken,
+            bool formatOnClient = false)
         {
-            if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, range, out var projectedRange))
+            Range projectedRange = null;
+            if (range != null && !_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, range, out projectedRange))
             {
                 return Array.Empty<TextEdit>();
             }
 
-            var @params = new RazorDocumentRangeFormattingParams()
+            TextEdit[] edits;
+            if (formatOnClient)
             {
-                Kind = RazorLanguageKind.CSharp,
-                ProjectedRange = projectedRange,
-                HostDocumentFilePath = _filePathNormalizer.Normalize(uri.GetAbsoluteOrUNCPath()),
-                Options = options
-            };
+                edits = await FormatOnClientAsync(codeDocument, projectedRange, uri, options, cancellationToken);
+            }
+            else
+            {
+                edits = await FormatOnServerAsync(codeDocument, projectedRange, uri, options, cancellationToken);
+            }
 
-            var result = await _server.Client.SendRequest<RazorDocumentRangeFormattingParams, RazorDocumentRangeFormattingResponse>(
-                LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
-
-            var mappedEdits = MapEditsToHostDocument(codeDocument, result.Edits);
-
+            var mappedEdits = MapEditsToHostDocument(codeDocument, edits);
             return mappedEdits;
         }
 
@@ -87,6 +101,51 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             return actualEdits.ToArray();
+        }
+
+        private async Task<TextEdit[]> FormatOnClientAsync(
+            RazorCodeDocument codeDocument,
+            Range projectedRange,
+            DocumentUri uri,
+            FormattingOptions options,
+            CancellationToken cancellationToken)
+        {
+            var @params = new RazorDocumentRangeFormattingParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+                ProjectedRange = projectedRange,
+                HostDocumentFilePath = _filePathNormalizer.Normalize(uri.GetAbsoluteOrUNCPath()),
+                Options = options
+            };
+
+            var response = _server.SendRequest(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
+            var result = await response.Returning<RazorDocumentRangeFormattingResponse>(cancellationToken);
+
+            return result.Edits;
+        }
+
+        private async Task<TextEdit[]> FormatOnServerAsync(
+            RazorCodeDocument codeDocument,
+            Range projectedRange,
+            DocumentUri uri,
+            FormattingOptions options,
+            CancellationToken cancellationToken)
+        {
+            var workspace = _projectSnapshotManagerAccessor.Instance.Workspace;
+            var cSharpOptions = workspace.Options
+                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, LanguageNames.CSharp, (int)options.TabSize)
+                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, LanguageNames.CSharp, !options.InsertSpaces);
+
+            var csharpDocument = codeDocument.GetCSharpDocument();
+            var syntaxTree = CSharpSyntaxTree.ParseText(csharpDocument.GeneratedCode);
+            var sourceText = SourceText.From(csharpDocument.GeneratedCode);
+            var root = await syntaxTree.GetRootAsync();
+            var spanToFormat = projectedRange.AsTextSpan(sourceText);
+
+            var changes = CodeAnalysis.Formatting.Formatter.GetFormattedTextChanges(root, spanToFormat, workspace, options: cSharpOptions);
+
+            var edits = changes.Select(c => c.AsTextEdit(sourceText)).ToArray();
+            return edits;
         }
     }
 }

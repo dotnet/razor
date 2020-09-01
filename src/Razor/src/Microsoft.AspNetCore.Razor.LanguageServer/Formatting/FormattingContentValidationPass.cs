@@ -18,9 +18,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public FormattingContentValidationPass(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            ILanguageServer server,
+            IClientLanguageServer server,
+            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             ILoggerFactory loggerFactory)
-            : base(documentMappingService, filePathNormalizer, server)
+            : base(documentMappingService, filePathNormalizer, server, projectSnapshotManagerAccessor)
         {
             if (loggerFactory is null)
             {
@@ -56,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 if (DebugAssertsEnabled)
                 {
-                    Debug.Fail("A formatting result was rejected because it was going to mess up the document.");
+                    Debug.Fail("A formatting result was rejected because it was going to change non-whitespace content in the document.");
                 }
 
                 return new FormattingResult(Array.Empty<TextEdit>());
