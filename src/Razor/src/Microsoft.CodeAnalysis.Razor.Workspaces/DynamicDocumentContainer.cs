@@ -7,9 +7,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal abstract class DynamicDocumentContainer
     {
-        public bool SupportsDiagnostics { get; set; }
-
         public abstract string FilePath { get; }
+
+        public abstract bool SupportsDiagnostics { get; set; }
 
         public abstract TextLoader GetTextLoader(string filePath);
 
