@@ -53,12 +53,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return;
             }
 
-            if (!_documentVersionCache.TryGetDocumentVersion(document, out var nullableSyncVersion))
+            if (!_documentVersionCache.TryGetDocumentVersion(document, out var syncVersion))
             {
                 // Document is no longer important.
                 return;
             }
-            var syncVersion = nullableSyncVersion.Value;
 
             var documentContainer = defaultDocument.State.GeneratedDocumentContainer;
             var latestSynchronizedDocument = documentContainer.LatestDocument;
@@ -82,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectManager = projectManager;
         }
 
-        private bool UnchangedHostDocument(DocumentSnapshot document, DocumentSnapshot latestSynchronizedDocument, int syncVersion)
+        private bool UnchangedHostDocument(DocumentSnapshot document, DocumentSnapshot latestSynchronizedDocument, long syncVersion)
         {
             return latestSynchronizedDocument.TryGetTextVersion(out var latestSourceVersion) &&
                 document.TryGetTextVersion(out var documentSourceVersion) &&

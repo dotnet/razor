@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 
@@ -47,9 +46,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return disposable;
         }
 
-        public virtual async Task UpdateAsync(CancellationToken cancellationToken)
+        public virtual async Task UpdateAsync()
         {
-            var latestOptions = await _configurationService.GetLatestOptionsAsync(cancellationToken);
+            var latestOptions = await _configurationService.GetLatestOptionsAsync();
             if (latestOptions != null)
             {
                 _currentValue = latestOptions;

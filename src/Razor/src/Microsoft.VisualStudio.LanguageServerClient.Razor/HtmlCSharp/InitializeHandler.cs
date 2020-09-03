@@ -40,8 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 SemanticTokensOptions = new SemanticTokensOptions()
                 {
                     RangeProvider = true,
-                    DocumentProvider = new SemanticTokensDocumentProviderOptions()
-                    {
+                    DocumentProvider = new SemanticTokensDocumentProviderOptions(){
                         Edits = true,
                     },
                 },

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -47,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
-        public override void PublishCSharp(string filePath, SourceText sourceText, int hostDocumentVersion)
+        public override void PublishCSharp(string filePath, SourceText sourceText, long hostDocumentVersion)
         {
             if (filePath is null)
             {
@@ -82,12 +81,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 HostDocumentVersion = hostDocumentVersion,
             };
 
-            var result = _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
-            // This is the call that actually makes the request, any SendRequest without a .Returning* after it will do nothing.
-            result.ReturningVoid(CancellationToken.None);
+            _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
         }
 
-        public override void PublishHtml(string filePath, SourceText sourceText, int hostDocumentVersion)
+        public override void PublishHtml(string filePath, SourceText sourceText, long hostDocumentVersion)
         {
             if (filePath is null)
             {
@@ -122,8 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 HostDocumentVersion = hostDocumentVersion,
             };
 
-            var result = _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);
-            result.ReturningVoid(CancellationToken.None);
+            _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);
         }
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
@@ -153,9 +149,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private sealed class PublishData
         {
-            public static readonly PublishData Default = new PublishData(SourceText.From(string.Empty), null);
+            public static readonly PublishData Default = new PublishData(SourceText.From(string.Empty), -1);
 
-            public PublishData(SourceText sourceText, int? hostDocumentVersion)
+            public PublishData(SourceText sourceText, long hostDocumentVersion)
             {
                 SourceText = sourceText;
                 HostDocumentVersion = hostDocumentVersion;
@@ -163,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public SourceText SourceText { get; }
 
-            public int? HostDocumentVersion { get; }
+            public long HostDocumentVersion { get; }
         }
     }
 }

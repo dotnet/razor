@@ -1,21 +1,18 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using System.Threading;
+using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
@@ -25,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         private readonly DocumentResolver _documentResolver;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
 
-        private DefinitionCapability _capability { get; set; }
+        public DefinitionCapability _capability { get; private set; }
 
         public RazorDefinitionEndpoint(
             ForegroundDispatcher foregroundDispatcher,
@@ -37,11 +34,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
         }
 
-        public DefinitionRegistrationOptions GetRegistrationOptions()
+        public TextDocumentRegistrationOptions GetRegistrationOptions()
         {
-            return new DefinitionRegistrationOptions
+            return new TextDocumentRegistrationOptions
             {
-                DocumentSelector = RazorDefaults.Selector,
+                DocumentSelector = RazorDefaults.Selector
             };
         }
 
@@ -140,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             {
                 return null;
             }
-
+            
             if (!tagHelperStartTag.Name.Span.Contains(location.AbsoluteIndex))
             {
                 return null;

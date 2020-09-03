@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,10 +14,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorConfigurationService : RazorConfigurationService
     {
-        private readonly IClientLanguageServer _server;
+        private readonly ILanguageServer _server;
         private readonly ILogger _logger;
 
-        public DefaultRazorConfigurationService(IClientLanguageServer languageServer, ILoggerFactory loggerFactory)
+        public DefaultRazorConfigurationService(ILanguageServer languageServer, ILoggerFactory loggerFactory)
         {
             if (languageServer is null)
             {
@@ -34,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
         }
 
-        public async override Task<RazorLSPOptions> GetLatestOptionsAsync(CancellationToken cancellationToken)
+        public async override Task<RazorLSPOptions> GetLatestOptionsAsync()
         {
             try
             {
@@ -53,8 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
                 };
 
-                var response = _server.SendRequest("workspace/configuration", request);
-                var result = await response.Returning<object[]>(cancellationToken);
+                var result = await _server.Client.SendRequest<ConfigurationParams, object[]>("workspace/configuration", request);
                 if (result == null || result.Length < 2 || result[0] == null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");

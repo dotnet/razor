@@ -5,9 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
@@ -24,24 +22,20 @@ using FormattingOptions = Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
-    public class FormattingLanguageServerClient : IClientLanguageServer
+    public class FormattingLanguageServerClient : ILanguageServerClient
     {
         private readonly FilePathNormalizer _filePathNormalizer = new FilePathNormalizer();
         private readonly Dictionary<string, RazorCodeDocument> _documents = new Dictionary<string, RazorCodeDocument>();
 
-        public IProgressManager ProgressManager => throw new NotImplementedException();
-
-        public IServerWorkDoneManager WorkDoneManager => throw new NotImplementedException();
-
-        public ILanguageServerConfiguration Configuration => throw new NotImplementedException();
-
-        public OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeParams ClientSettings => throw new NotImplementedException();
-
-        public OmniSharp.Extensions.LanguageServer.Protocol.Models.InitializeResult ServerSettings => throw new NotImplementedException();
-
         public void SendNotification(string method) => throw new NotImplementedException();
 
         public void SendNotification<T>(string method, T @params) => throw new NotImplementedException();
+
+        public Task<TResponse> SendRequest<TResponse>(string method) => throw new NotImplementedException();
+
+        public Task SendRequest<T>(string method, T @params) => throw new NotImplementedException();
+
+        public TaskCompletionSource<JToken> GetRequest(long id) => throw new NotImplementedException();
 
         public void AddCodeDocument(RazorCodeDocument codeDocument)
         {
@@ -49,7 +43,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _documents.TryAdd(path, codeDocument);
         }
 
-        private RazorDocumentRangeFormattingResponse Format(RazorDocumentRangeFormattingParams @params)
+        async Task<TResponse> IResponseRouter.SendRequest<T, TResponse>(string method, T @params)
+        {
+            if (!(@params is RazorDocumentRangeFormattingParams formattingParams) ||
+                !string.Equals(method, "razor/rangeFormatting", StringComparison.Ordinal))
+            {
+                throw new NotImplementedException();
+            }
+
+            var response = await FormatAsync(formattingParams);
+
+            return Convert<RazorDocumentRangeFormattingResponse, TResponse>(response);
+        }
+
+        private async Task<RazorDocumentRangeFormattingResponse> FormatAsync(RazorDocumentRangeFormattingParams @params)
         {
             if (@params.Kind == RazorLanguageKind.Razor)
             {
@@ -86,31 +93,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return response;
         }
 
-        private class ResponseRouterReturns : IResponseRouterReturns
-        {
-            private object _response;
-
-            public ResponseRouterReturns(object response)
-            {
-                _response = response;
-            }
-
-            public Task<TResponse> Returning<TResponse>(CancellationToken cancellationToken)
-            {
-                return Task.FromResult((TResponse)_response);
-            }
-
-            public Task ReturningVoid(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private static IResponseRouterReturns Convert<T>(T instance)
-        {
-            return new ResponseRouterReturns(instance);
-        }
-
         private static TResponse Convert<T, TResponse>(T instance)
         {
             var parameter = Expression.Parameter(typeof(T));
@@ -118,44 +100,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var lambda = Expression.Lambda<Func<T, TResponse>>(convert, parameter).Compile();
 
             return lambda(instance);
-        }
-
-        public void SendNotification(IRequest request)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IResponseRouterReturns SendRequest<T>(string method, T @params)
-        {
-            if (!(@params is RazorDocumentRangeFormattingParams formattingParams) ||
-                !string.Equals(method, "razor/rangeFormatting", StringComparison.Ordinal))
-            {
-                throw new NotImplementedException();
-            }
-
-            var response = Format(formattingParams);
-
-            return Convert<RazorDocumentRangeFormattingResponse>(response);
-        }
-
-        public IResponseRouterReturns SendRequest(string method)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TResponse> SendRequest<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        (string method, TaskCompletionSource<JToken> pendingTask) IResponseRouter.GetRequest(long id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public object GetService(Type serviceType)
-        {
-            throw new NotImplementedException();
         }
     }
 }

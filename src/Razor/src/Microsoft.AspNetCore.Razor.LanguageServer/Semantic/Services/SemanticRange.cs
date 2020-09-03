@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class SemanticRange
     {
-        public SemanticRange(int kind, Range range)
+        public SemanticRange(uint kind, Range range)
         {
             if (range is null)
             {
@@ -21,6 +21,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public Range Range { get; set; }
 
-        public int Kind { get; set; }
+        public uint Kind { get; set; }
     }
 }

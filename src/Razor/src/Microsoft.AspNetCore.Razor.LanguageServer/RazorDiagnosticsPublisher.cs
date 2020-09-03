@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
@@ -27,14 +26,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private static readonly TimeSpan CheckForDocumentClosedDelay = TimeSpan.FromSeconds(5);
         private readonly ForegroundDispatcher _foregroundDispatcher;
-        private readonly ITextDocumentLanguageServer _languageServer;
+        private readonly ILanguageServer _languageServer;
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private readonly ILogger<RazorDiagnosticsPublisher> _logger;
         private ProjectSnapshotManager _projectManager;
 
         public RazorDiagnosticsPublisher(
             ForegroundDispatcher foregroundDispatcher,
-            ITextDocumentLanguageServer languageServer,
+            ILanguageServer languageServer,
             ILoggerFactory loggerFactory)
         {
             if (foregroundDispatcher == null)
@@ -243,8 +242,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Path = filePath,
                 Host = string.Empty,
             };
-
-            _languageServer.PublishDiagnostics(new PublishDiagnosticsParams()
+            _languageServer.Document.PublishDiagnostics(new PublishDiagnosticsParams()
             {
                 Uri = uriBuilder.Uri,
                 Diagnostics = new Container<Diagnostic>(diagnostics),

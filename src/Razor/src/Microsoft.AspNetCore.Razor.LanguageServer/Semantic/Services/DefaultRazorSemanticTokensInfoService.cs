@@ -1,16 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-#pragma warning disable CS0618
+
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -20,8 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         // We need to keep track of the last couple of requests for use in previousResultId,
         // but if we let the grow unbounded it could quickly allocate a lot of memory.
         // Solution: an in-memory cache
-        private static readonly MemoryCache<string, IReadOnlyList<int>> _semanticTokensCache =
-            new MemoryCache<string, IReadOnlyList<int>>();
+        private static readonly MemoryCache<string, IReadOnlyList<uint>> _semanticTokensCache =
+            new MemoryCache<string, IReadOnlyList<uint>>();
 
         public override SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument)
         {
@@ -42,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticTokens;
         }
 
-        public override SemanticTokensFullOrDelta GetSemanticTokensEdits(RazorCodeDocument codeDocument, string previousResultId)
+        public override SemanticTokensOrSemanticTokensEdits GetSemanticTokensEdits(RazorCodeDocument codeDocument, string previousResultId)
         {
             if (codeDocument is null)
             {
@@ -51,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var semanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument);
 
-            IReadOnlyList<int> previousResults = null;
+            IReadOnlyList<uint> previousResults = null;
 
             if (previousResultId != null)
             {
@@ -80,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             SemanticRange previousResult = null;
 
-            var data = new List<int>();
+            var data = new List<uint>();
             foreach (var result in semanticRanges)
             {
                 var newData = GetData(result, previousResult, razorCodeDocument);
@@ -93,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var tokensResult = new SemanticTokens
             {
-                Data = data.ToImmutableArray(),
+                Data = data.ToArray(),
                 ResultId = resultId.ToString()
             };
 
@@ -110,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
          *  - at index `5*i+3` - `tokenType`: will be looked up in `SemanticTokensLegend.tokenTypes`
          *  - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
         **/
-        private static IEnumerable<int> GetData(
+        private static IEnumerable<uint> GetData(
             SemanticRange currentRange,
             SemanticRange previousRange,
             RazorCodeDocument razorCodeDocument)
@@ -120,23 +119,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             // deltaLine
             var previousLineIndex = previousRange?.Range == null ? 0 : previousRange.Range.Start.Line;
-            yield return currentRange.Range.Start.Line - previousLineIndex;
+            yield return (uint)(currentRange.Range.Start.Line - previousLineIndex);
 
             // deltaStart
             if (previousRange != null && previousRange?.Range.Start.Line == currentRange.Range.Start.Line)
             {
-                yield return currentRange.Range.Start.Character - previousRange.Range.Start.Character;
+                yield return (uint)(currentRange.Range.Start.Character - previousRange.Range.Start.Character);
             }
             else
             {
-                yield return currentRange.Range.Start.Character;
+                yield return (uint)currentRange.Range.Start.Character;
             }
 
             // length
             var textSpan = currentRange.Range.AsTextSpan(razorCodeDocument.GetSourceText());
             var length = textSpan.Length;
             Debug.Assert(length > 0);
-            yield return length;
+            yield return (uint)length;
 
             // tokenType
             yield return currentRange.Kind;

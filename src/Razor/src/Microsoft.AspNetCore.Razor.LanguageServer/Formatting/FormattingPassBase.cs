@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public FormattingPassBase(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            IClientLanguageServer server,
+            ILanguageServer server,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
             if (documentMappingService is null)

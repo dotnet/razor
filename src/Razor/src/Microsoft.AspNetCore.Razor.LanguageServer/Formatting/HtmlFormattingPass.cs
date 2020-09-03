@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public HtmlFormattingPass(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            IClientLanguageServer server,
+            ILanguageServer server,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server, projectSnapshotManagerAccessor)

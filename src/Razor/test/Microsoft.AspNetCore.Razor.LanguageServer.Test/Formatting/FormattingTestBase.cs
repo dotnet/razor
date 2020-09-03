@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -43,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var formattingService = CreateFormattingService(codeDocument);
 
             // Act
-            var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options, CancellationToken.None);
+            var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options);
 
             // Assert
             var edited = ApplyEdits(source, edits);
@@ -74,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var (kind, projectedEdits) = GetFormattedEdits(codeDocument, expected, beforeTrigger);
 
             // Act
-            var edits = await formattingService.ApplyFormattedEditsAsync(uri, documentSnapshot, kind, projectedEdits, options, CancellationToken.None);
+            var edits = await formattingService.ApplyFormattedEditsAsync(uri, documentSnapshot, kind, projectedEdits, options);
 
             // Assert
             var edited = ApplyEdits(source, edits);

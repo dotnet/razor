@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.False(documentVersionCache.TryGetDocumentVersion(untrackedDocument, out var version));
-            Assert.Null(version);
+            Assert.Equal(-1, version);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.False(result);
-            Assert.Null(version);
+            Assert.Equal(-1, version);
         }
 
         [Fact]
@@ -168,7 +168,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert - 2
             Assert.False(result);
-            Assert.Null(version);
         }
 
         [Fact]
@@ -223,7 +222,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.False(result);
-            Assert.Null(version);
+            Assert.Equal(-1, version);
         }
 
         [Fact]
@@ -240,7 +239,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.False(result);
-            Assert.Null(version);
+            Assert.Equal(-1, version);
         }
 
         [Fact]

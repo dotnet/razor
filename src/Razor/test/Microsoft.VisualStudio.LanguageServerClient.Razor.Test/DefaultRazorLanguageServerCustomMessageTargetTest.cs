@@ -8,10 +8,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
+using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Sdk;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -26,6 +29,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private JoinableTaskContext JoinableTaskContext { get; }
 
         [Fact]
+        public void UpdateCSharpBuffer_CanNotDeserializeRequest_NoopsGracefully()
+        {
+            // Arrange
+            LSPDocumentSnapshot document;
+            var documentManager = new Mock<TrackingLSPDocumentManager>();
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
+                .Throws<XunitException>();
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
+            var token = JToken.FromObject(new { });
+
+            // Act & Assert
+            target.UpdateCSharpBuffer(token);
+        }
+
+        [Fact]
         public void UpdateCSharpBuffer_CannotLookupDocument_NoopsGracefully()
         {
             // Arrange
@@ -38,9 +56,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 HostDocumentFilePath = "C:/path/to/file.razor",
             };
+            var token = JToken.FromObject(request);
 
             // Act & Assert
-            target.UpdateCSharpBuffer(request);
+            target.UpdateCSharpBuffer(token);
         }
 
         [Fact]
@@ -57,9 +76,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 HostDocumentVersion = 1337,
                 Changes = Array.Empty<TextChange>(),
             };
+            var token = JToken.FromObject(request);
 
             // Act
-            target.UpdateCSharpBuffer(request);
+            target.UpdateCSharpBuffer(token);
 
             // Assert
             documentManager.VerifyAll();

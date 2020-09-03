@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public FormattingContentValidationPass(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            IClientLanguageServer server,
+            ILanguageServer server,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server, projectSnapshotManagerAccessor)

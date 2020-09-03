@@ -10,10 +10,9 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -66,17 +65,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _logger = loggerFactory.CreateLogger<RazorFormattingEndpoint>();
         }
 
-        DocumentRangeFormattingRegistrationOptions IRegistration<DocumentRangeFormattingRegistrationOptions>.GetRegistrationOptions()
+        public TextDocumentRegistrationOptions GetRegistrationOptions()
         {
-            return new DocumentRangeFormattingRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector,
-            };
-        }
-
-        DocumentFormattingRegistrationOptions IRegistration<DocumentFormattingRegistrationOptions>.GetRegistrationOptions()
-        {
-            return new DocumentFormattingRegistrationOptions
+            return new TextDocumentRegistrationOptions()
             {
                 DocumentSelector = RazorDefaults.Selector,
             };

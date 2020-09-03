@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -22,12 +23,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly FilePathNormalizer _filePathNormalizer;
-        private readonly IClientLanguageServer _server;
+        private readonly ILanguageServer _server;
         private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
         public CSharpFormatter(
             RazorDocumentMappingService documentMappingService,
-            IClientLanguageServer languageServer,
+            ILanguageServer languageServer,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             FilePathNormalizer filePathNormalizer)
         {
@@ -60,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public async Task<TextEdit[]> FormatAsync(
             RazorCodeDocument codeDocument,
             Range range,
-            DocumentUri uri,
+            Uri uri,
             FormattingOptions options,
             CancellationToken cancellationToken,
             bool formatOnClient = false)
@@ -106,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private async Task<TextEdit[]> FormatOnClientAsync(
             RazorCodeDocument codeDocument,
             Range projectedRange,
-            DocumentUri uri,
+            Uri uri,
             FormattingOptions options,
             CancellationToken cancellationToken)
         {
@@ -118,16 +119,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Options = options
             };
 
-            var response = _server.SendRequest(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentRangeFormattingResponse>(cancellationToken);
+            var response = await _server.Client.SendRequest<RazorDocumentRangeFormattingParams, RazorDocumentRangeFormattingResponse>(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
 
-            return result.Edits;
+            return response.Edits;
         }
 
         private async Task<TextEdit[]> FormatOnServerAsync(
             RazorCodeDocument codeDocument,
             Range projectedRange,
-            DocumentUri uri,
+            Uri uri,
             FormattingOptions options,
             CancellationToken cancellationToken)
         {

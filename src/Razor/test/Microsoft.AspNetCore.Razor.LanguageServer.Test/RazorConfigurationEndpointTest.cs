@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public bool Called { get; private set; }
 
-            public override Task UpdateAsync(CancellationToken cancellationToken)
+            public override Task UpdateAsync()
             {
                 Called = true;
                 return Task.CompletedTask;

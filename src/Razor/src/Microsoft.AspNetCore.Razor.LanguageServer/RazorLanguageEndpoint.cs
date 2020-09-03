@@ -23,6 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal static readonly Range UndefinedRange = new Range(
             start: new Position(-1, -1),
             end: new Position(-1, -1));
+        private static readonly long UndefinedDocumentVersion = -1;
 
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -79,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<RazorLanguageQueryResponse> Handle(RazorLanguageQueryParams request, CancellationToken cancellationToken)
         {
-            int? documentVersion = null;
+            long documentVersion = -1;
             DocumentSnapshot documentSnapshot = null;
             await Task.Factory.StartNew(() =>
             {
@@ -87,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
                 {
                     // This typically happens for closed documents.
-                    documentVersion = null;
+                    documentVersion = UndefinedDocumentVersion;
                 }
 
                 return documentSnapshot;
@@ -151,14 +152,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            int? documentVersion = null;
+            long documentVersion = -1;
             DocumentSnapshot documentSnapshot = null;
             await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
                 if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
                 {
-                    documentVersion = null;
+                    documentVersion = UndefinedDocumentVersion;
                 }
             }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
@@ -202,14 +203,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            int? documentVersion = null;
+            var documentVersion = UndefinedDocumentVersion;
             DocumentSnapshot documentSnapshot = null;
             await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
                 if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
                 {
-                    documentVersion = null;
+                    documentVersion = UndefinedDocumentVersion;
                 }
             }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 

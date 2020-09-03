@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-#pragma warning disable CS0618
+
 using System.Collections.Generic;
 using System.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    internal class RazorSemanticTokensLegend
+    internal class SemanticTokensLegend
     {
         public const string RazorTagHelperElement = "razorTagHelperElement";
         public const string RazorTagHelperAttribute = "razorTagHelperAttribute";
@@ -28,9 +27,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "None"
         };
 
-        public static readonly IReadOnlyDictionary<string, int> TokenTypesLegend = GetMap(_tokenTypes);
+        public static readonly IReadOnlyDictionary<string, uint> TokenTypesLegend = GetMap(_tokenTypes);
 
-        private RazorSemanticTokensLegend()
+        private SemanticTokensLegend()
         {
         }
 
@@ -44,12 +43,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 
         public Container<string> TokenModifiers { get; private set; }
 
-        private static IReadOnlyDictionary<string, int> GetMap(IReadOnlyCollection<string> tokens)
+        private static IReadOnlyDictionary<string, uint> GetMap(IReadOnlyCollection<string> tokens)
         {
-            var result = new Dictionary<string, int>();
+            var result = new Dictionary<string, uint>();
             for (var i = 0; i < tokens.Count; i++)
             {
-                result[tokens.ElementAt(i)] = i;
+                result[tokens.ElementAt(i)] = (uint)i;
             }
 
             return result;

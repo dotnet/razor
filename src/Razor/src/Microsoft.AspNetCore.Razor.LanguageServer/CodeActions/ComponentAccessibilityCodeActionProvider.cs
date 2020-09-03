@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -217,7 +216,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return new WorkspaceEdit
             {
-                Changes = new Dictionary<DocumentUri, IEnumerable<TextEdit>> {
+                Changes = new Dictionary<Uri, IEnumerable<TextEdit>> {
                     [context.Request.TextDocument.Uri] = changes,
                 }
             };

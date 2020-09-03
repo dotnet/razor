@@ -7,14 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -80,13 +79,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = await document.GetTextAsync();
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
 
-            if (notification.TextDocument.Version is null)
-            {
-                throw new InvalidOperationException("Provided version should not be null.");
-            }
-
             await Task.Factory.StartNew(
-                () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version.Value),
+                () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.ForegroundScheduler);
@@ -100,13 +94,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var sourceText = SourceText.From(notification.TextDocument.Text);
 
-            if (notification.TextDocument.Version is null)
-            {
-                throw new InvalidOperationException("Provided version should not be null.");
-            }
-
             await Task.Factory.StartNew(
-                () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version.Value),
+                () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version),
                 CancellationToken.None,
                 TaskCreationOptions.None,
                 _foregroundDispatcher.ForegroundScheduler);
@@ -132,6 +121,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger.LogInformation($"Saved Document {notification.TextDocument.Uri.GetAbsoluteOrUNCPath()}");
 
             return Unit.Task;
+        }
+
+        public TextDocumentAttributes GetTextDocumentAttributes(Uri uri)
+        {
+            return new TextDocumentAttributes(uri, "razor");
         }
 
         TextDocumentChangeRegistrationOptions IRegistration<TextDocumentChangeRegistrationOptions>.GetRegistrationOptions()
@@ -179,11 +173,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             return sourceText;
-        }
-
-        public TextDocumentAttributes GetTextDocumentAttributes(DocumentUri uri)
-        {
-            return new TextDocumentAttributes(uri, "razor");
         }
     }
 }

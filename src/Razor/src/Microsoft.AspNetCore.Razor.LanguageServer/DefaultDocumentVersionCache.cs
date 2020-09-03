@@ -28,11 +28,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _documentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
         }
 
-        public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int version)
+        public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, long version)
         {
             if (documentSnapshot == null)
             {
                 throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
+            if (version < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(version));
             }
 
             _foregroundDispatcher.AssertForegroundThread();
@@ -56,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             documentEntries.Add(entry);
         }
 
-        public override bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot, out int? version)
+        public override bool TryGetDocumentVersion(DocumentSnapshot documentSnapshot, out long version)
         {
             if (documentSnapshot == null)
             {
@@ -67,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (!_documentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
             {
-                version = null;
+                version = -1;
                 return false;
             }
 
@@ -85,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (entry == null)
             {
-                version = null;
+                version = -1;
                 return false;
             }
 
@@ -141,15 +146,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             // Update our internal tracking state to track the changed document as the latest document.
-            TrackDocumentVersion(document, latestVersion.Value);
+            TrackDocumentVersion(document, latestVersion);
         }
 
         // Internal for testing
-        internal bool TryGetLatestVersionFromPath(string filePath, out int? version)
+        internal bool TryGetLatestVersionFromPath(string filePath, out long version)
         {
             if (!_documentLookup.TryGetValue(filePath, out var documentEntries))
             {
-                version = null;
+                version = -1;
                 return false;
             }
 
@@ -173,7 +178,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         internal class DocumentEntry
         {
-            public DocumentEntry(DocumentSnapshot document, int version)
+            public DocumentEntry(DocumentSnapshot document, long version)
             {
                 Document = new WeakReference<DocumentSnapshot>(document);
                 Version = version;
@@ -181,7 +186,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public WeakReference<DocumentSnapshot> Document { get; }
 
-            public int Version { get; }
+            public long Version { get; }
         }
     }
 }

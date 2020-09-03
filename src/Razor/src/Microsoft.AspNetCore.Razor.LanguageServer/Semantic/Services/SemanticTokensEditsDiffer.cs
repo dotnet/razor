@@ -1,32 +1,35 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-#pragma warning disable CS0618
+
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
 {
     internal class SemanticTokensEditsDiffer : TextDiffer
     {
-        private SemanticTokensEditsDiffer(IReadOnlyList<int> oldArray, ImmutableArray<int> newArray)
+        private SemanticTokensEditsDiffer(uint[] oldArray, uint[] newArray)
         {
             if (oldArray is null)
             {
                 throw new ArgumentNullException(nameof(oldArray));
             }
 
+            if (newArray is null)
+            {
+                throw new ArgumentNullException(nameof(newArray));
+            }
+
             OldArray = oldArray;
             NewArray = newArray;
         }
 
-        private IReadOnlyList<int> OldArray { get; }
-        private ImmutableArray<int> NewArray { get; }
+        private uint[] OldArray { get; }
+        private uint[] NewArray { get; }
 
-        protected override int OldTextLength => OldArray.Count;
+        protected override int OldTextLength => OldArray.Length;
         protected override int NewTextLength => NewArray.Length;
 
         protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
@@ -34,14 +37,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
             return OldArray[oldTextIndex] == NewArray[newTextIndex];
         }
 
-        public static SemanticTokensFullOrDelta ComputeSemanticTokensEdits(
+        public static SemanticTokensOrSemanticTokensEdits ComputeSemanticTokensEdits(
             SemanticTokens newTokens,
-            IReadOnlyList<int> previousResults)
+            IReadOnlyList<uint> previousResults)
         {
-            var differ = new SemanticTokensEditsDiffer(previousResults, newTokens.Data);
+            var differ = new SemanticTokensEditsDiffer(previousResults.ToArray(), newTokens.Data);
             var diffs = differ.ComputeDiff();
             var edits = differ.ProcessEdits(diffs);
-            var result = new SemanticTokensDelta
+            var result = new SemanticTokensEditCollection
             {
                 ResultId = newTokens.ResultId,
                 Edits = edits,
@@ -50,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
             return result;
         }
 
-        private Container<SemanticTokensEdit> ProcessEdits(IReadOnlyList<DiffEdit> diffs)
+        private IReadOnlyList<SemanticTokensEdit> ProcessEdits(IReadOnlyList<DiffEdit> diffs)
         {
             var results = new List<SemanticTokensEdit>();
             foreach (var diff in diffs)
@@ -69,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                             results.Add(new SemanticTokensEdit
                             {
                                 Start = diff.Position,
-                                Data = ImmutableArray<int>.Empty,
+                                Data = Array.Empty<uint>(),
                                 DeleteCount = 1,
                             });
                         }
@@ -79,17 +82,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                             current.Data.Any() &&
                             current.Start == diff.Position)
                         {
-                            current.Data = current.Data.Append(NewArray[diff.NewTextPosition.Value]).ToImmutableArray();
+                            current.Data = current.Data.Append(NewArray[diff.NewTextPosition.Value]);
                         }
                         else
                         {
-                            var semanticTokensEdit = new SemanticTokensEdit
+                            results.Add(new SemanticTokensEdit
                             {
                                 Start = diff.Position,
-                                Data = ImmutableArray.Create(NewArray[diff.NewTextPosition.Value]),
+                                Data = new uint[] { NewArray[diff.NewTextPosition.Value] },
                                 DeleteCount = 0,
-                            };
-                            results.Add(semanticTokensEdit);
+                            });
                         }
                         break;
                 }

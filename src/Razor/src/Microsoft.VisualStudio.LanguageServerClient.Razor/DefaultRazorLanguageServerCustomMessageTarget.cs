@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -60,22 +61,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager = documentManager;
         }
 
-        public override async Task UpdateCSharpBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
+        public override async Task UpdateCSharpBufferAsync(JToken token, CancellationToken cancellationToken)
         {
-            if (request is null)
+            if (token is null)
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new ArgumentNullException(nameof(token));
             }
 
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            UpdateCSharpBuffer(request);
+            UpdateCSharpBuffer(token);
         }
 
         // Internal for testing
-        internal void UpdateCSharpBuffer(UpdateBufferRequest request)
+        internal void UpdateCSharpBuffer(JToken token)
         {
-            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
+            var request = token.ToObject<UpdateBufferRequest>();
+            if (request == null || request.HostDocumentFilePath == null)
             {
                 return;
             }
@@ -84,25 +86,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 hostDocumentUri,
                 request.Changes?.Select(change => change.ToVisualStudioTextChange()).ToArray(),
-                request.HostDocumentVersion.Value);
+                request.HostDocumentVersion);
         }
 
-        public override async Task UpdateHtmlBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
+        public override async Task UpdateHtmlBufferAsync(JToken token, CancellationToken cancellationToken)
         {
-            if (request is null)
+            if (token is null)
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new ArgumentNullException(nameof(token));
             }
 
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            UpdateHtmlBuffer(request);
+            UpdateHtmlBuffer(token);
         }
 
         // Internal for testing
-        internal void UpdateHtmlBuffer(UpdateBufferRequest request)
+        internal void UpdateHtmlBuffer(JToken token)
         {
-            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
+            var request = token.ToObject<UpdateBufferRequest>();
+            if (request == null || request.HostDocumentFilePath == null)
             {
                 return;
             }
@@ -111,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
                 hostDocumentUri,
                 request.Changes?.Select(change => change.ToVisualStudioTextChange()).ToArray(),
-                request.HostDocumentVersion.Value);
+                request.HostDocumentVersion);
         }
 
         public override async Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams request, CancellationToken cancellationToken)
@@ -124,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             await _joinableTaskFactory.SwitchToMainThreadAsync();
-
+            
             var hostDocumentUri = new Uri(request.HostDocumentFilePath);
             if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
             {

@@ -180,26 +180,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private SemanticRange CreateSemanticRange(SyntaxNode node, SyntaxKind kind)
         {
-            int semanticKind;
+            uint kindUint;
             switch (kind)
             {
                 case SyntaxKind.MarkupTagHelperDirectiveAttribute:
                 case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                    semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorDirectiveAttribute];
+                    kindUint = SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorDirectiveAttribute];
                     break;
                 case SyntaxKind.MarkupTagHelperStartTag:
                 case SyntaxKind.MarkupTagHelperEndTag:
-                    semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorTagHelperElement];
+                    kindUint = SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTagHelperElement];
                     break;
                 case SyntaxKind.MarkupTagHelperAttribute:
                 case SyntaxKind.MarkupMinimizedTagHelperAttribute:
-                    semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorTagHelperAttribute];
+                    kindUint = SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTagHelperAttribute];
                     break;
                 case SyntaxKind.Transition:
-                    semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorTransition];
+                    kindUint = SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTransition];
                     break;
                 case SyntaxKind.Colon:
-                    semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorDirectiveColon];
+                    kindUint = SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorDirectiveColon];
                     break;
                 default:
                     throw new NotImplementedException();
@@ -208,7 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var source = _razorCodeDocument.Source;
             var range = node.GetRange(source);
 
-            var result = new SemanticRange(semanticKind, range);
+            var result = new SemanticRange(kindUint, range);
 
             return result;
         }

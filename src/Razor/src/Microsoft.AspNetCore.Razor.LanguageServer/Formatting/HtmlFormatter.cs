@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using OmniSharp.Extensions.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using LSPFormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions;
@@ -17,10 +17,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     internal class HtmlFormatter
     {
         private readonly FilePathNormalizer _filePathNormalizer;
-        private readonly IClientLanguageServer _server;
+        private readonly ILanguageServer _server;
 
         public HtmlFormatter(
-            IClientLanguageServer languageServer,
+            ILanguageServer languageServer,
             FilePathNormalizer filePathNormalizer)
         {
             if (languageServer is null)
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public async Task<TextEdit[]> FormatAsync(
             RazorCodeDocument codeDocument,
             Range range,
-            DocumentUri uri,
+            Uri uri,
             LSPFormattingOptions options,
             CancellationToken cancellationToken)
         {
@@ -52,8 +52,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Options = options
             };
 
-            var response = _server.SendRequest(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentRangeFormattingResponse>(cancellationToken);
+            var result = await _server.Client.SendRequest<RazorDocumentRangeFormattingParams, RazorDocumentRangeFormattingResponse>(
+                LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
 
             return result.Edits;
         }
