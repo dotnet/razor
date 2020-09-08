@@ -75,6 +75,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
 
         const onStartRegistration = languageServerClient.onStart(async () => {
             vscodeType.commands.executeCommand<void>('omnisharp.registerLanguageMiddleware', razorLanguageMiddleware);
+            localRegistrations.push(documentManager.register());
             const documentSynchronizer = new RazorDocumentSynchronizer(documentManager, logger);
             const provisionalCompletionOrchestrator = new ProvisionalCompletionOrchestrator(
                 documentManager,
@@ -171,7 +172,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 vscodeType.languages.registerRenameProvider(
                     RazorLanguage.id,
                     renameProvider),
-                documentManager.register(),
                 csharpFeature.register(),
                 htmlFeature.register(),
                 documentSynchronizer.register(),
