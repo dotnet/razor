@@ -39,7 +39,7 @@ export class CompositeCodeActionTranslator implements IRazorCodeActionTranslator
     public canHandleEdit(uri: vscode.Uri, edit: vscode.TextEdit): boolean {
         for (const actionTranslator of this.codeActionTranslators) {
             if (actionTranslator.canHandleEdit(uri, edit)) {
-                return actionTranslator.canHandleEdit(uri, edit);
+                return true;
             }
         }
 

@@ -8,8 +8,6 @@ import { IRazorCodeActionTranslator } from './IRazorCodeActionTranslator';
 
 export class RazorFullyQualifiedCodeActionTranslator implements IRazorCodeActionTranslator {
 
-    private static expectedCode = 'CS0246';
-
     public applyEdit(
         uri: vscode.Uri,
         edit: vscode.TextEdit): [vscode.Uri | undefined, vscode.TextEdit | undefined] {
@@ -59,7 +57,14 @@ export class RazorFullyQualifiedCodeActionTranslator implements IRazorCodeAction
         document: vscode.TextDocument): boolean {
         const isMissingDiag = (value: vscode.Diagnostic) => {
             return value.severity === vscode.DiagnosticSeverity.Error &&
-                value.code === RazorFullyQualifiedCodeActionTranslator.expectedCode;
+                // `The type or namespace name 'type/namespace' could not be found
+                //  (are you missing a using directive or an assembly reference?)`
+                // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0246
+                (value.code === 'CS0246' ||
+
+                // `The name 'identifier' does not exist in the current context`
+                // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0103
+                value.code === 'CS0103');
         };
 
         const diagnostic = codeContext.diagnostics.find(isMissingDiag);
