@@ -24,14 +24,29 @@ export class RazorFullyQualifiedCodeActionTranslator implements IRazorCodeAction
         // however we're going to hold off on that for now as it isn't immediately necessary and we don't
         // (currently) support any other kind of multi-line edits.
 
+        let leadingNewLines = 0;
+        let leadingPadding = 0;
+
+        for (const c of edit.newText) {
+            if (c === '\n') {
+                leadingNewLines++;
+            } else if (c === ' ') {
+                leadingPadding++;
+            } else {
+                break;
+            }
+        }
+
         const newText = edit.newText.trim();
 
         // The starting and ending range may be equal in the case when we have other items on the same line. Ex:
         // Render|Tree apple
         // where `|` is the cursor. We want to ensure we dont't overwrite `apple` in this case with our edit.
         if (newText !== edit.newText && !edit.range.start.isEqual(edit.range.end)) {
-            const end = new vscode.Position(edit.range.start.line, edit.range.start.character + newText.length);
-            edit.range = new vscode.Range(edit.range.start, end);
+            const startLine = edit.range.start.line + leadingNewLines;
+            const start = new vscode.Position(startLine, edit.range.start.character + leadingPadding);
+            const end = new vscode.Position(startLine, edit.range.start.character + newText.length);
+            edit.range = new vscode.Range(start, end);
         }
 
         const newEdit = new vscode.TextEdit(edit.range, newText);
