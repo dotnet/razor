@@ -74,8 +74,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var razorCodeActions = await GetCodeActionsAsync(request, cancellationToken).ConfigureAwait(false);
-            if (razorCodeActions is null)
+            var razorCodeActions = await GetRazorCodeActionsAsync(request, cancellationToken).ConfigureAwait(false);
+            var csharpCodeActions = await GetCSharpCodeActionsAsync(request, cancellationToken).ConfigureAwait(false);
+
+            var codeActions = Enumerable.Concat(
+                razorCodeActions ?? Array.Empty<RazorCodeAction>(),
+                csharpCodeActions ?? Array.Empty<RazorCodeAction>());
+
+            if (!codeActions.Any())
             {
                 return null;
             }
@@ -83,13 +89,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // We must cast the RazorCodeAction into a platform compliant code action
             // For VS (SupportsCodeActionResolve = true) this means just encapsulating the RazorCodeAction in the `CommandOrCodeAction` struct
             // For VS Code (SupportsCodeActionResolve = false) we must convert it into a CodeAction or Command before encapsulating in the `CommandOrCodeAction` struct.
-            var commandsOrCodeActions = razorCodeActions.Select(c =>
+            var commandsOrCodeActions = codeActions.Select(c =>
                 _supportsCodeActionResolve ? new CommandOrCodeAction(c) : c.AsVSCodeCommandOrCodeAction());
 
             return new CommandOrCodeActionContainer(commandsOrCodeActions);
         }
 
-        private async Task<IEnumerable<RazorCodeAction>> GetCodeActionsAsync(CodeActionParams request, CancellationToken cancellationToken)
+        private async Task<IEnumerable<RazorCodeAction>> GetCSharpCodeActionsAsync(CodeActionParams request, CancellationToken cancellationToken)
+        {
+            var csharpCodeActions = await GetCSharpCodeActionsFromLanguageServerAsync(request, cancellationToken);
+
+            await Task.Delay(1);
+            return Array.Empty<RazorCodeAction>();
+        }
+
+        private async Task<IEnumerable<RazorCodeAction>> GetCSharpCodeActionsFromLanguageServerAsync(CodeActionParams request, CancellationToken cancellationToken)
+        {
+            if (_supportsCodeActionResolve)
+            {
+                // Only VS has the Code Action Resolve ClientCapability
+                // We must get the code actions from HTMLCSharpLanguageServer
+
+            }
+            else
+            {
+                // We must get the code actions from VSCode / Typescript LS
+                var response = _languageServer.SendRequest(LanguageServerConstants.RazorGetCodeActionsEndpoint, request);
+                return await response.Returning<RazorCodeAction[]>(cancellationToken);
+            }
+
+            return Array.Empty<RazorCodeAction>();
+        }
+
+        private async Task<IEnumerable<RazorCodeAction>> GetRazorCodeActionsAsync(CodeActionParams request, CancellationToken cancellationToken)
         {
             var documentSnapshot = await Task.Factory.StartNew(() =>
             {

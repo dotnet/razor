@@ -3,7 +3,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -17,6 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Called by the Razor Language Server to update the contents of the virtual Html buffer.
         [JsonRpcMethod(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task UpdateHtmlBufferAsync(UpdateBufferRequest token, CancellationToken cancellationToken);
+
+        // Called by the Razor Language Server to get code actions from the platform.
+        [JsonRpcMethod(LanguageServerConstants.RazorGetCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<RazorCodeAction[]> GetCodeActions(CodeActionParams codeActionParams, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to invoke a textDocument/rangeFormatting request
         // on the virtual Html/CSharp buffer.

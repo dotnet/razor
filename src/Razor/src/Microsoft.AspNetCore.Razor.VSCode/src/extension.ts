@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import * as vscodeapi from 'vscode';
 import { ExtensionContext } from 'vscode';
 import { BlazorDebugConfigurationProvider } from './BlazorDebug/BlazorDebugConfigurationProvider';
+import { CodeActionsHandler } from './CodeActions/CodeActionsHandler';
 import { CompositeCodeActionTranslator } from './CodeActions/CompositeRazorCodeActionTranslator';
 import { RazorCodeActionProvider } from './CodeActions/RazorCodeActionProvider';
 import { RazorCodeActionRunner } from './CodeActions/RazorCodeActionRunner';
@@ -87,6 +88,11 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 languageServiceClient,
                 logger,
                 compositeCodeActionTranslator);
+            const codeActionHandler = new CodeActionsHandler(
+                documentSynchronizer,
+                documentManager,
+                languageServiceClient,
+                logger);
             const completionItemProvider = new RazorCompletionItemProvider(
                 documentSynchronizer,
                 documentManager,
@@ -186,6 +192,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
 
             razorFormattingFeature.register();
             razorCodeActionRunner.register();
+            codeActionHandler.register(languageServerClient);
         });
 
         const onStopRegistration = languageServerClient.onStop(() => {
