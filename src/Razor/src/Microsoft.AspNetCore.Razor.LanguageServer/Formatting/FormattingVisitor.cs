@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             Visit(node.StartTag);
 
-            // Temporary fix to not break the default Html formatting behavior
+            // Temporary fix to not break the default Html formatting behavior. Remove after https://github.com/dotnet/aspnetcore/issues/25475.
             if (!string.Equals(node.StartTag?.Name?.Content, HtmlTagName, StringComparison.OrdinalIgnoreCase))
             {
                 _currentIndentationLevel++;
@@ -146,7 +146,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Visit(child);
             }
 
-            // Temporary fix to not break the default Html formatting behavior
+            // Temporary fix to not break the default Html formatting behavior. Remove after https://github.com/dotnet/aspnetcore/issues/25475.
             if (!string.Equals(node.StartTag?.Name?.Content, HtmlTagName, StringComparison.OrdinalIgnoreCase))
             {
                 _currentIndentationLevel--;
