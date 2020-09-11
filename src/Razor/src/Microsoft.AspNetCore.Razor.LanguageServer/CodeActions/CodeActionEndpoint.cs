@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -22,6 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class CodeActionEndpoint : ICodeActionHandler
     {
+        private readonly RazorDocumentMappingService _documentMappingService;
         private readonly IEnumerable<RazorCodeActionProvider> _providers;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -33,12 +35,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         internal bool _supportsCodeActionResolve = false;
 
         public CodeActionEndpoint(
+            RazorDocumentMappingService documentMappingService,
             IEnumerable<RazorCodeActionProvider> providers,
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             IClientLanguageServer languageServer,
             LanguageServerFeatureOptions languageServerFeatureOptions)
         {
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _providers = providers ?? throw new ArgumentNullException(nameof(providers));
             _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
@@ -97,6 +101,41 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private async Task<IEnumerable<RazorCodeAction>> GetCSharpCodeActionsAsync(CodeActionParams request, CancellationToken cancellationToken)
         {
+            var documentSnapshot = await Task.Factory.StartNew(() =>
+            {
+                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                return documentSnapshot;
+            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+
+            if (documentSnapshot is null)
+            {
+                return null;
+            }
+
+            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            if (codeDocument.IsUnsupported())
+            {
+                return null;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+               return null;
+            }
+
+            Range projectedRange = null;
+            if (request.Range != null && !_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, request.Range, out projectedRange))
+            {
+                return Array.Empty<RazorCodeAction>();
+            }
+
+            request.Range = projectedRange;
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+               return null;
+            }
+
             var csharpCodeActions = await GetCSharpCodeActionsFromLanguageServerAsync(request, cancellationToken);
 
             await Task.Delay(1);

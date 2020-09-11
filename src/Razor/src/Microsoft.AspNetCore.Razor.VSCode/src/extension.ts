@@ -92,6 +92,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 documentSynchronizer,
                 documentManager,
                 languageServiceClient,
+                languageServerClient,
                 logger);
             const completionItemProvider = new RazorCompletionItemProvider(
                 documentSynchronizer,
@@ -192,7 +193,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
 
             razorFormattingFeature.register();
             razorCodeActionRunner.register();
-            codeActionHandler.register(languageServerClient);
+            codeActionHandler.register();
         });
 
         const onStopRegistration = languageServerClient.onStop(() => {
