@@ -123,6 +123,100 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                return null;
             }
 
+            var csharpCodeActions = await GetCSharpCodeActionsFromLanguageServerAsync(request, codeDocument, cancellationToken);
+
+            return await FilterCSharpCodeActionsAsync(request, csharpCodeActions, documentSnapshot, cancellationToken);
+        }
+
+        private async Task<IEnumerable<RazorCodeAction>> FilterCSharpCodeActionsAsync(CodeActionParams request, IEnumerable<RazorCodeAction> csharpCodeActions, CodeAnalysis.Razor.ProjectSystem.DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+        {
+            var fqnDiagnostic = request.Context.Diagnostics.FirstOrDefault(diagnostic =>
+                diagnostic.Severity == DiagnosticSeverity.Error &&
+                diagnostic.Code.HasValue &&
+                diagnostic.Code.Value.IsString &&
+                (diagnostic.Code.Value.String.Equals("CS0246", StringComparison.OrdinalIgnoreCase) || diagnostic.Code.Value.String.Equals("CS0103", StringComparison.OrdinalIgnoreCase)));
+
+            if (fqnDiagnostic is null)
+            {
+                return default;
+            }
+
+            var sourceText = await documentSnapshot.GetTextAsync();
+            var codeRange = fqnDiagnostic.Range.AsTextSpan(sourceText);
+            var associatedValue = sourceText.GetSubTextString(codeRange);
+
+            var results = new List<RazorCodeAction>();
+
+            foreach (var codeAction in csharpCodeActions)
+            {
+                if (!codeAction.Title.Any(c => char.IsWhiteSpace(c)) &&
+                    codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    var fqnWorkspaceEdit = new WorkspaceEdit()
+                    {
+                        Changes = new Dictionary<DocumentUri, IEnumerable<TextEdit>>()
+                        {
+                            {
+                                request.TextDocument.Uri,
+                                new List<TextEdit>()
+                                {
+                                    new TextEdit()
+                                    {
+                                        NewText = codeAction.Title,
+                                        Range = fqnDiagnostic.Range
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    var fqnCodeAction = new RazorCodeAction()
+                    {
+                        Title = codeAction.Title,
+                        Edit = fqnWorkspaceEdit
+                    };
+
+                    results.Add(fqnCodeAction);
+
+                    if (!TrySplitNamespaceAndType(codeAction.Title, out var @namespace, out var @type))
+                    {
+                        continue;
+                    }
+
+                    var addUsingStatement = $"@using {@namespace}";
+                    var addUsingWorkspaceEdit = new WorkspaceEdit()
+                    {
+                        Changes = new Dictionary<DocumentUri, IEnumerable<TextEdit>>()
+                        {
+                            {
+                                request.TextDocument.Uri,
+                                new List<TextEdit>()
+                                {
+                                    new TextEdit()
+                                    {
+                                        NewText = $"{addUsingStatement}\n",
+                                        Range = new Range(new Position(0, 0), new Position(0, 0))
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                    var addUsingCodeAction = new RazorCodeAction()
+                    {
+                        Title = addUsingStatement,
+                        Edit = addUsingWorkspaceEdit
+                    };
+
+                    results.Add(addUsingCodeAction);
+                }
+            }
+
+            return results;
+        }
+
+        private async Task<IEnumerable<RazorCodeAction>> GetCSharpCodeActionsFromLanguageServerAsync(CodeActionParams request, RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        {
             Range projectedRange = null;
             if (request.Range != null && !_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, request.Range, out projectedRange))
             {
@@ -136,14 +230,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                return null;
             }
 
-            var csharpCodeActions = await GetCSharpCodeActionsFromLanguageServerAsync(request, cancellationToken);
-
-            await Task.Delay(1);
-            return Array.Empty<RazorCodeAction>();
-        }
-
-        private async Task<IEnumerable<RazorCodeAction>> GetCSharpCodeActionsFromLanguageServerAsync(CodeActionParams request, CancellationToken cancellationToken)
-        {
             if (_supportsCodeActionResolve)
             {
                 // Only VS has the Code Action Resolve ClientCapability
@@ -225,6 +311,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             return razorCodeActions;
+        }
+
+        internal static bool TrySplitNamespaceAndType(string fullTypeName, out string @namespace, out string typeName)
+        {
+            @namespace = default;
+            typeName = default;
+
+            if (string.IsNullOrEmpty(fullTypeName))
+            {
+                return false;
+            }
+
+            var nestingLevel = 0;
+            var splitLocation = -1;
+            for (var i = fullTypeName.Length - 1; i >= 0; i--)
+            {
+                var c = fullTypeName[i];
+                if (c == Type.Delimiter && nestingLevel == 0)
+                {
+                    splitLocation = i;
+                    break;
+                }
+                else if (c == '>')
+                {
+                    nestingLevel++;
+                }
+                else if (c == '<')
+                {
+                    nestingLevel--;
+                }
+            }
+
+            if (splitLocation == -1)
+            {
+                typeName = fullTypeName.Substring(0, fullTypeName.Length);
+                return true;
+            }
+
+            @namespace = fullTypeName.Substring(0, splitLocation);
+
+            var typeNameStartLocation = splitLocation + 1;
+            if (typeNameStartLocation < fullTypeName.Length)
+            {
+                typeName = fullTypeName.Substring(typeNameStartLocation, fullTypeName.Length - typeNameStartLocation);
+            }
+
+            return true;
         }
     }
 }
