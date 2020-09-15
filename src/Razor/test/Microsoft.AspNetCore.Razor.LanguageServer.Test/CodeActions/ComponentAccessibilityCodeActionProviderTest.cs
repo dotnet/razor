@@ -101,6 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 {
                     Assert.Equal("Fully.Qualified.Component", e.Title);
                     Assert.NotNull(e.Edit);
+                    Assert.NotNull(e.Edit.DocumentChanges);
                     Assert.Null(e.Data);
                 },
                 e =>
@@ -194,6 +195,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 {
                     Assert.Equal("Fully.Qualified.Component", e.Title);
                     Assert.NotNull(e.Edit);
+                    Assert.NotNull(e.Edit.DocumentChanges);
                     Assert.Null(e.Data);
                 });
         }
