@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
@@ -100,33 +101,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             // when it's disconnected (user stops the process).
             //
             // This will change in the future to an easier to consume API but for VS RTM this is what we have.
-            try
-            {
-                var remoteClient = await RazorRemoteHostClient.CreateAsync(_workspace, CancellationToken.None);
+            var remoteClient = await RazorRemoteHostClient.CreateAsync(_workspace, CancellationToken.None);
 
-                var args = new object[]
-                {
-                    projectSnapshot,
-                    factory?.GetType().AssemblyQualifiedName,
-                };
+            var factoryTypeName = factory?.GetType().AssemblyQualifiedName;
 
-                var result = await remoteClient.TryRunRemoteAsync<TagHelperResolutionResult>(
-                    "GetTagHelpersAsync",
-                    workspaceProject.Solution,
-                    args,
-                    CancellationToken.None).ConfigureAwait(false);
+            var result = await remoteClient.TryInvokeAsync<IRemoteLanguageService, TagHelperResolutionResult>(
+                workspaceProject.Solution,
+                (service, solutionInfo, cancellationToken) => service.GetTagHelpersAsync(solutionInfo, projectSnapshot, factoryTypeName, cancellationToken),
+                callbackTarget: null,
+                CancellationToken.None).ConfigureAwait(false);
 
-                return result.HasValue ? result.Value : null;
-            }
-            catch (Exception ex)
-            {
-                // We silence exceptions from the OOP host because we don't want to bring down VS for an OOP failure.
-                // We will retry all failures in process anyway, so if there's a real problem that isn't unique to OOP
-                // then it will report a crash in VS.
-                _errorReporter.ReportError(ex, projectSnapshot);
-            }
-
-            return null;
+            return result.HasValue ? result.Value : null;
         }
 
         protected virtual Task<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(Project project, ProjectSnapshot projectSnapshot)

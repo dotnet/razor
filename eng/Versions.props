@@ -65,6 +65,7 @@
     <SystemDiagnosticsDiagnosticSourcePackageVersion>6.0.0-alpha.1.20460.3</SystemDiagnosticsDiagnosticSourcePackageVersion>
     <SystemResourcesExtensionsPackageVersion>6.0.0-alpha.1.20460.3</SystemResourcesExtensionsPackageVersion>
     <SystemTextEncodingsWebPackageVersion>6.0.0-alpha.1.20460.3</SystemTextEncodingsWebPackageVersion>
+    <MicrosoftServiceHubFrameworkVersion>2.7.69-alpha</MicrosoftServiceHubFrameworkVersion>
     <!-- Packages from dotnet/roslyn -->
     <MicrosoftNetCompilersToolsetPackageVersion>3.8.0-3.20458.6</MicrosoftNetCompilersToolsetPackageVersion>
   </PropertyGroup>

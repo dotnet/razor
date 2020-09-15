@@ -45,11 +45,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="razorLanguageService.servicehub.service.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="razorLanguageService64.servicehub.service.json">
+    <Content Include="Microsoft.VisualStudio.Razor.LanguageService.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -190,7 +186,7 @@
     <_GeneratedVSIXBindingRedirectFile>$(IntermediateOutputPath)$(MSBuildProjectName).BindingRedirects.cs</_GeneratedVSIXBindingRedirectFile>
   </PropertyGroup>
 
-  <Target Name="_BuildRazorGrammar">
+  <!--<Target Name="_BuildRazorGrammar">
     <MSBuild Projects="..\Microsoft.AspNetCore.Razor.VSCode.Extension\Microsoft.AspNetCore.Razor.VSCode.Extension.npmproj" Targets="Build" />
   </Target>
 
@@ -202,7 +198,7 @@
         <VSIXSubPath>Grammars\</VSIXSubPath>
       </Content>
     </ItemGroup>
-  </Target>
+  </Target>-->
 
   <Target Name="_GenerateVSIXBindingRedirects" DependsOnTargets="PrepareForBuild;GetAssemblyVersion" BeforeTargets="CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(_GeneratedVSIXBindingRedirectFile)">
     <ItemGroup>

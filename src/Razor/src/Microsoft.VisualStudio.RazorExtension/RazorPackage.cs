@@ -6,13 +6,15 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.RazorExtension
 {
+    [Guid(PackageGuidString)]
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [AboutDialogInfo(PackageGuidString, "ASP.NET Core Razor Language Services", "#110", "#112", IconResourceID = "#400")]
-    [Guid(PackageGuidString)]
+    [ProvideBrokeredService("Microsoft.VisualStudio.Razor.LanguageService", Audience = Shell.ServiceBroker.ServiceAudience.Local)]
     public sealed class RazorPackage : AsyncPackage
     {
         public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";
