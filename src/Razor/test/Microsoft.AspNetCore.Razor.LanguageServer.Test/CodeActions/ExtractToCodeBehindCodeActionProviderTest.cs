@@ -244,8 +244,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
                 document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()));
 
-
-            var sourceText = Mock.Of<SourceText>();
+            var sourceText = SourceText.From("mock");
 
             var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, sourceText, supportsFileCreation);
             context.Location = location;
