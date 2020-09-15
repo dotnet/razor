@@ -20,13 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         [JsonRpcMethod(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task UpdateHtmlBufferAsync(UpdateBufferRequest token, CancellationToken cancellationToken);
 
-        // Called by the Razor Language Server to get code actions from the platform.
-        [JsonRpcMethod(LanguageServerConstants.RazorGetCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<RazorCodeAction[]> GetCodeActions(CodeActionParams codeActionParams, CancellationToken cancellationToken);
-
         // Called by the Razor Language Server to invoke a textDocument/rangeFormatting request
         // on the virtual Html/CSharp buffer.
         [JsonRpcMethod(LanguageServerConstants.RazorRangeFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams token, CancellationToken cancellationToken);
+
+        // Called by the Razor Language Server to get code actions from the platform.
+        [JsonRpcMethod(LanguageServerConstants.RazorGetCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<VSCodeAction[]> GetCodeActions(CodeActionParams codeActionParams, CancellationToken cancellationToken);
     }
 }
