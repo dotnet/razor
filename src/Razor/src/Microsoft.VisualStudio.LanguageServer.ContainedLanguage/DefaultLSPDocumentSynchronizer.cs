@@ -73,6 +73,20 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private void VirtualDocumentBuffer_PostChanged(object sender, EventArgs e)
         {
             var textBuffer = (ITextBuffer)sender;
+
+            UpdateDocumentContextVersionInternal(textBuffer);
+        }
+
+        public static void UpdateDocumentContextVersion(ITextBuffer textBuffer)
+        {
+            if (textBuffer.Properties.TryGetProperty(typeof(DefaultLSPDocumentSynchronizer), out DefaultLSPDocumentSynchronizer defaultLSPDocumentSynchronizer))
+            {
+                defaultLSPDocumentSynchronizer.UpdateDocumentContextVersionInternal(textBuffer);
+            }
+        }
+
+        private void UpdateDocumentContextVersionInternal(ITextBuffer textBuffer)
+        {
             if (!_fileUriProvider.TryGet(textBuffer, out var virtualDocumentUri))
             {
                 return;
@@ -115,6 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
                         var virtualDocumentTextBuffer = virtualDocument.Snapshot.TextBuffer;
                         virtualDocumentTextBuffer.PostChanged += VirtualDocumentBuffer_PostChanged;
+                        virtualDocumentTextBuffer.Properties.AddProperty(typeof(DefaultLSPDocumentSynchronizer), this);
                         _virtualDocumentContexts[virtualDocument.Uri] = new DocumentContext(_synchronizationTimeout);
                     }
                 }
@@ -129,6 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
                         var virtualDocumentTextBuffer = virtualDocument.Snapshot.TextBuffer;
                         virtualDocumentTextBuffer.PostChanged -= VirtualDocumentBuffer_PostChanged;
+                        virtualDocumentTextBuffer.Properties.RemoveProperty(typeof(DefaultLSPDocumentSynchronizer));
                         _virtualDocumentContexts.Remove(virtualDocument.Uri);
                     }
                 }
