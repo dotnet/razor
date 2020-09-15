@@ -24,7 +24,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     internal class CodeActionEndpoint : ICodeActionHandler
     {
         private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly IEnumerable<RazorCodeActionProvider> _providers;
+        private readonly IEnumerable<RazorCodeActionProvider> _razorCodeActionProviders;
+        private readonly IEnumerable<CSharpCodeActionProvider> _csharpCodeActionProviders;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
@@ -36,14 +37,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public CodeActionEndpoint(
             RazorDocumentMappingService documentMappingService,
-            IEnumerable<RazorCodeActionProvider> providers,
+            IEnumerable<RazorCodeActionProvider> razorCodeActionProviders,
+            IEnumerable<CSharpCodeActionProvider> csharpCodeActionProviders,
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             IClientLanguageServer languageServer,
             LanguageServerFeatureOptions languageServerFeatureOptions)
         {
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-            _providers = providers ?? throw new ArgumentNullException(nameof(providers));
+            _razorCodeActionProviders = razorCodeActionProviders ?? throw new ArgumentNullException(nameof(razorCodeActionProviders));
+            _csharpCodeActionProviders = csharpCodeActionProviders ?? throw new ArgumentNullException(nameof(csharpCodeActionProviders));
             _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
@@ -162,103 +165,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private async Task<IEnumerable<RazorCodeAction>> FilterCSharpCodeActionsAsync(RazorCodeActionContext context, IEnumerable<RazorCodeAction> csharpCodeActions, CancellationToken cancellationToken)
         {
-            var fqnDiagnostic = context.Request.Context.Diagnostics.FirstOrDefault(diagnostic =>
-                diagnostic.Severity == DiagnosticSeverity.Error &&
-                diagnostic.Code.HasValue &&
-                diagnostic.Code.Value.IsString &&
-                (diagnostic.Code.Value.String.Equals("CS0246", StringComparison.OrdinalIgnoreCase) || diagnostic.Code.Value.String.Equals("CS0103", StringComparison.OrdinalIgnoreCase)));
-
-            if (fqnDiagnostic is null)
+            if (cancellationToken.IsCancellationRequested)
             {
-                return default;
+               return null;
             }
 
-            var codeRange = fqnDiagnostic.Range.AsTextSpan(context.SourceText);
-            var associatedValue = context.SourceText.GetSubTextString(codeRange);
+            var tasks = new List<Task<RazorCodeAction[]>>();
 
-            var results = new HashSet<RazorCodeAction>();
-
-            foreach (var codeAction in csharpCodeActions)
+            foreach (var provider in _csharpCodeActionProviders)
             {
-                if (!codeAction.Title.Any(c => char.IsWhiteSpace(c)) &&
-                    codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase))
+                var result = provider.ProvideAsync(context, csharpCodeActions, cancellationToken);
+                if (result != null)
                 {
-                    var fqnCodeAction = CreateFQNCodeAction(context, fqnDiagnostic, codeAction);
-                    results.Add(fqnCodeAction);
-
-                    var addUsingCodeAction = CreateAddUsingCodeAction(context, codeAction);
-                    if (addUsingCodeAction != null)
-                    {
-                        results.Add(addUsingCodeAction);
-                    }
+                    tasks.Add(result);
                 }
             }
 
-            return results;
-        }
-
-        private static RazorCodeAction CreateFQNCodeAction(RazorCodeActionContext context, Diagnostic fqnDiagnostic, RazorCodeAction codeAction)
-        {
-            var fqnWorkspaceEdit = new WorkspaceEdit()
-            {
-                Changes = new Dictionary<DocumentUri, IEnumerable<TextEdit>>()
-                {
-                    {
-                        context.Request.TextDocument.Uri,
-                        new List<TextEdit>()
-                        {
-                            new TextEdit()
-                            {
-                                NewText = codeAction.Title,
-                                Range = fqnDiagnostic.Range
-                            }
-                        }
-                    }
-                }
-            };
-
-            return new RazorCodeAction()
-            {
-                Title = codeAction.Title,
-                Edit = fqnWorkspaceEdit
-            };
-        }
-
-        private RazorCodeAction CreateAddUsingCodeAction(RazorCodeActionContext context, RazorCodeAction codeAction)
-        {
-            if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(
-                    codeAction.Title,
-                    out var @namespaceSpan,
-                    out _))
-            {
-                return default;
-            }
-
-            var @namespace = codeAction.Title.Substring(@namespaceSpan.Start, @namespaceSpan.Length);
-            var addUsingStatement = $"@using {@namespace}";
-            var addUsingWorkspaceEdit = new WorkspaceEdit()
-            {
-                Changes = new Dictionary<DocumentUri, IEnumerable<TextEdit>>()
-                {
-                    {
-                        context.Request.TextDocument.Uri,
-                        new List<TextEdit>()
-                        {
-                            new TextEdit()
-                            {
-                                NewText = $"{addUsingStatement}\n",
-                                Range = new Range(new Position(0, 0), new Position(0, 0))
-                            }
-                        }
-                    }
-                }
-            };
-
-            return new RazorCodeAction()
-            {
-                Title = addUsingStatement,
-                Edit = addUsingWorkspaceEdit
-            };
+            return await ConsolidateCodeActionsFromProvidersAsync(tasks, cancellationToken);
         }
 
         private async Task<IEnumerable<RazorCodeAction>> GetCSharpCodeActionsFromLanguageServerAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
@@ -307,14 +230,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 context.Request.Range.Start.Line,
                 context.Request.Range.Start.Character);
 
-            var tasks = new List<Task<RazorCodeAction[]>>();
-
             if (cancellationToken.IsCancellationRequested)
             {
                return null;
             }
 
-            foreach (var provider in _providers)
+            var tasks = new List<Task<RazorCodeAction[]>>();
+
+            foreach (var provider in _razorCodeActionProviders)
             {
                 var result = provider.ProvideAsync(context, cancellationToken);
                 if (result != null)
@@ -323,8 +246,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 }
             }
 
+            return await ConsolidateCodeActionsFromProvidersAsync(tasks, cancellationToken);
+        }
+
+        private async Task<IEnumerable<RazorCodeAction>> ConsolidateCodeActionsFromProvidersAsync(
+            List<Task<RazorCodeAction[]>> tasks,
+            CancellationToken cancellationToken)
+        {
             var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-            var razorCodeActions = new List<RazorCodeAction>();
+            var codeActions = new List<RazorCodeAction>();
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -337,11 +267,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
                 if (!(result is null))
                 {
-                    razorCodeActions.AddRange(result);
+                    codeActions.AddRange(result);
                 }
             }
 
-            return razorCodeActions;
+            return codeActions;
         }
     }
 }

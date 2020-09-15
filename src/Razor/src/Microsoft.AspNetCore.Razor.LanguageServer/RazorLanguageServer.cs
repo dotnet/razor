@@ -218,6 +218,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorCodeActionResolver, CreateComponentCodeActionResolver>();
                         services.AddSingleton<RazorCodeActionResolver, AddUsingsCodeActionResolver>();
 
+                        // CSharp Code actions
+                        services.AddSingleton<CSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
+
                         // Other
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();
