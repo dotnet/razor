@@ -3,18 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -99,26 +91,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorCodeAction codeAction,
             ICollection<RazorCodeAction> results)
         {
-            if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(
-                    codeAction.Title,
-                    out var @namespaceSpan,
-                    out _))
+            var addUsingCodeAction = AddUsingsCodeActionProviderHelper.CreateAddUsingCodeAction(codeAction.Title, context.Request.TextDocument.Uri);
+            if (addUsingCodeAction != null)
             {
-                return;
+                results.Add(addUsingCodeAction);
             }
-
-            var @namespace = codeAction.Title.Substring(@namespaceSpan.Start, @namespaceSpan.Length);
-
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
-            var addUsingWorkspaceEdit = AddUsingsCodeActionHelper.CreateAddUsingWorkspaceEdit(@namespace, context.CodeDocument, codeDocumentIdentifier);
-
-            var addUsingStatement = $"@using {@namespace}";
-            var addUsingCodeAction = new RazorCodeAction()
-            {
-                Title = addUsingStatement,
-                Edit = addUsingWorkspaceEdit
-            };
-            results.Add(addUsingCodeAction);
         }
     }
 }

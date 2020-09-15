@@ -120,34 +120,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     continue;
                 }
 
-                var fullyQualifiedComponentName = tagHelperPair.Short.Name;  // We assume .Name is the fully qualified component name
-                DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(fullyQualifiedComponentName, out var namespaceSpan, out var _);
-                var namespaceName = tagHelperPair.Short.Name.Substring(namespaceSpan.Start, namespaceSpan.Length);
-
-                var actionParams = new AddUsingsCodeActionParams
-                {
-                    Uri = context.Request.TextDocument.Uri,
-                    Namespace = namespaceName,
-                };
-
-                var resolutionParams = new RazorCodeActionResolutionParams
-                {
-                    Action = LanguageServerConstants.CodeActions.AddUsing,
-                    Data = actionParams,
-                };
+                var fullyQualifiedName = tagHelperPair.Short.Name;
 
                 // Insert @using
-                container.Add(new RazorCodeAction()
+                var addUsingCodeAction = AddUsingsCodeActionProviderHelper.CreateAddUsingCodeAction(fullyQualifiedName, context.Request.TextDocument.Uri);
+                if (addUsingCodeAction != null)
                 {
-                    Title = $"@using {namespaceName}",
-                    Data = resolutionParams
-                });
+                    container.Add(addUsingCodeAction);
+                }
 
                 // Fully qualify
                 container.Add(new RazorCodeAction()
                 {
-                    Title = $"{tagHelperPair.Short.Name}",
-                    Edit = CreateRenameTagEdit(context, startTag, tagHelperPair.Short.Name),
+                    Title = $"{fullyQualifiedName}",
+                    Edit = CreateRenameTagEdit(context, startTag, fullyQualifiedName),
                 });
             }
         }
