@@ -125,9 +125,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
             localRegistrations.push(
                 languageConfiguration.register(),
                 provisionalCompletionOrchestrator.register(),
-                vscodeType.languages.registerCodeActionsProvider(
-                    RazorLanguage.id,
-                    codeActionProvider),
                 vscodeType.languages.registerCompletionItemProvider(
                     RazorLanguage.id,
                     completionItemProvider,
