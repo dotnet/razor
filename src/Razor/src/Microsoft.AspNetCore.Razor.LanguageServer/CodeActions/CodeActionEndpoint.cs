@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -203,20 +202,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                return null;
             }
 
-            if (_supportsCodeActionResolve)
-            {
-                // Only VS has the Code Action Resolve ClientCapability
-                // We must get the code actions from HTMLCSharpLanguageServer
-
-            }
-            else
-            {
-                // We must get the code actions from VSCode / Typescript LS
-                var response = _languageServer.SendRequest(LanguageServerConstants.RazorGetCodeActionsEndpoint, context.Request);
-                return await response.Returning<RazorCodeAction[]>(cancellationToken);
-            }
-
-            return Array.Empty<RazorCodeAction>();
+            var response = _languageServer.SendRequest(LanguageServerConstants.RazorGetCodeActionsEndpoint, context.Request);
+            return await response.Returning<RazorCodeAction[]>(cancellationToken);
         }
 
         private async Task<IEnumerable<RazorCodeAction>> GetRazorCodeActionsAsync(RazorCodeActionContext context, CancellationToken cancellationToken)

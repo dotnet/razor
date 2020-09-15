@@ -108,35 +108,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var @namespace = codeAction.Title.Substring(@namespaceSpan.Start, @namespaceSpan.Length);
-            var addUsingStatement = $"@using {@namespace}";
 
             var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
             var addUsingWorkspaceEdit = AddUsingsCodeActionHelper.CreateAddUsingWorkspaceEdit(@namespace, context.CodeDocument, codeDocumentIdentifier);
 
+            var addUsingStatement = $"@using {@namespace}";
             var addUsingCodeAction = new RazorCodeAction()
             {
                 Title = addUsingStatement,
                 Edit = addUsingWorkspaceEdit
             };
             results.Add(addUsingCodeAction);
-        }
-
-        private bool IsTagUnknown(MarkupStartTagSyntax startTag, RazorCodeActionContext context)
-        {
-            foreach (var diagnostic in context.CodeDocument.GetCSharpDocument().Diagnostics)
-            {
-                // Check that the diagnostic is to do with our start tag
-                if (!(diagnostic.Span.AbsoluteIndex > startTag.Span.End
-                    || startTag.Span.Start > diagnostic.Span.AbsoluteIndex + diagnostic.Span.Length))
-                {
-                    // Component is not recognized in environment
-                    if (diagnostic.Id == ComponentDiagnosticFactory.UnexpectedMarkupElement.Id)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
     }
 }

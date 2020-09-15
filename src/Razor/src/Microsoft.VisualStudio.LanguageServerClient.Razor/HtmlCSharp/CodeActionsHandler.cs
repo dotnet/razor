@@ -125,33 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return Array.Empty<VSCodeAction>();
             }
 
-            var filteredResults = results.Where(r => CanHandleCodeAction(request.Context, documentSnapshot, r));
-
-            if (!filteredResults.Any())
-            {
-                return Array.Empty<VSCodeAction>();
-            }
-
-            return filteredResults.ToArray();
-        }
-
-        private bool CanHandleCodeAction(CodeActionContext context, LSPDocumentSnapshot documentSnapshot, VSCodeAction codeAction)
-        {
-            var fqnDiagnostic = context.Diagnostics.FirstOrDefault(diagnostic =>
-                diagnostic.Severity == DiagnosticSeverity.Error &&
-                diagnostic.Code.Equals("CS0246", StringComparison.OrdinalIgnoreCase));
-
-            if (fqnDiagnostic is null)
-            {
-                return false;
-            }
-
-            var sourceText = documentSnapshot.Snapshot.AsText();
-            var codeRange = fqnDiagnostic.Range.AsTextSpan(sourceText);
-            var associatedValue = documentSnapshot.Snapshot.GetText(codeRange.Start, codeRange.Length);
-
-            return !codeAction.Title.Any(c => char.IsWhiteSpace(c)) &&
-                codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase);
+            return Array.Empty<VSCodeAction>();
         }
     }
 }
