@@ -14,6 +14,7 @@ using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 {
@@ -223,7 +224,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 document.GetTextAsync() == Task.FromResult(codeDocument.GetSourceText()) &&
                 document.Project.TagHelpers == tagHelpers);
 
-            return new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, supportsFileCreation);
+            var sourceText = SourceText.From("mock");
+
+            var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, sourceText, supportsFileCreation);
+            context.Location = location;
+
+            return context;
         }
     }
 }

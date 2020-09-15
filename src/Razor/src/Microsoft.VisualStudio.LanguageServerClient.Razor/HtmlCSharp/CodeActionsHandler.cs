@@ -132,41 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return Array.Empty<VSCodeAction>();
             }
 
-            var remappedResults = new List<VSCodeAction>();
-
-            //var rangesToMap = filteredResults.Select(r => r.Range).ToArray();
-            //var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
-            //    projectionResult.LanguageKind,
-            //    request.TextDocument.Uri,
-            //    rangesToMap,
-            //    cancellationToken).ConfigureAwait(false);
-
-            //if (mappingResult == null || mappingResult.HostDocumentVersion != documentSnapshot.Version)
-            //{
-            //    // Couldn't remap the range or the document changed in the meantime. Discard this highlight.
-            //    return Array.Empty<DocumentHighlight>();
-            //}
-
-            //for (var i = 0; i < highlights.Length; i++)
-            //{
-            //    var highlight = highlights[i];
-            //    var range = mappingResult.Ranges[i];
-            //    if (range.IsUndefined())
-            //    {
-            //        // Couldn't remap the range correctly. Discard this range.
-            //        continue;
-            //    }
-
-            //    var remappedHighlight = new DocumentHighlight()
-            //    {
-            //        Range = range,
-            //        Kind = highlight.Kind
-            //    };
-
-            //    remappedResults.Add(remappedHighlight);
-            //}
-
-            return remappedResults.ToArray();
+            return filteredResults.ToArray();
         }
 
         private bool CanHandleCodeAction(CodeActionContext context, LSPDocumentSnapshot documentSnapshot, VSCodeAction codeAction)
@@ -188,19 +154,4 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase);
         }
     }
-
-    //internal class CodeActionResult
-    //{
-    //    public CodeActionResult(
-    //        SumType<Command, CodeAction> codeAction,
-    //        Func<Command, CancellationToken, Task> executeCodeActionDelegate)
-    //    {
-    //        this.CodeAction = codeAction;
-    //        this.ExecuteCodeActionDelegate = executeCodeActionDelegate;
-    //    }
-
-    //    public SumType<Command, CodeAction> CodeAction { get; }
-
-    //    public Func<Command, CancellationToken, Task> ExecuteCodeActionDelegate { get; }
-    //}
 }
