@@ -84,7 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var documentChanges = new List<WorkspaceEditDocumentChange>
             {
-                new WorkspaceEditDocumentChange(new CreateFile() { Uri = newComponentUri })
+                new WorkspaceEditDocumentChange(new CreateFile() { Uri = newComponentUri.ToString() })
             };
 
             TryAddNamespaceDirective(codeDocument, newComponentUri, documentChanges);

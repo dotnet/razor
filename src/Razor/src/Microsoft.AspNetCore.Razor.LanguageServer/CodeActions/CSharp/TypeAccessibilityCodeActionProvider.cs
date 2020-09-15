@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -60,22 +61,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorCodeAction codeAction,
             ICollection<RazorCodeAction> results)
         {
+            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
+
+            var fqnTextEdit = new TextEdit()
+            {
+                NewText = codeAction.Title,
+                Range = fqnDiagnostic.Range
+            };
+
+            var fqnWorkspaceEditDocumentChange = new WorkspaceEditDocumentChange(new TextDocumentEdit()
+            {
+                TextDocument = codeDocumentIdentifier,
+                Edits = new[] { fqnTextEdit },
+            });
+
             var fqnWorkspaceEdit = new WorkspaceEdit()
             {
-                Changes = new Dictionary<DocumentUri, IEnumerable<TextEdit>>()
-                {
-                    {
-                        context.Request.TextDocument.Uri,
-                        new List<TextEdit>()
-                        {
-                            new TextEdit()
-                            {
-                                NewText = codeAction.Title,
-                                Range = fqnDiagnostic.Range
-                            }
-                        }
-                    }
-                }
+                DocumentChanges = new[] { fqnWorkspaceEditDocumentChange }
             };
 
             var fqnCodeAction = new RazorCodeAction()

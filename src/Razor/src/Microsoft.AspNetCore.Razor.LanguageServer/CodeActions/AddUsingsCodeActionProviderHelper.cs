@@ -12,8 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     {
         internal static string GetNamespaceFromFQN(string fullyQualifiedName)
         {
-            if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor
-                .TrySplitNamespaceAndType(
+            if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(
                     fullyQualifiedName,
                     out var namespaceSpan,
                     out var _))
