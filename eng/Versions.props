@@ -65,8 +65,6 @@
     <SystemDiagnosticsDiagnosticSourcePackageVersion>6.0.0-alpha.1.20464.10</SystemDiagnosticsDiagnosticSourcePackageVersion>
     <SystemResourcesExtensionsPackageVersion>6.0.0-alpha.1.20464.10</SystemResourcesExtensionsPackageVersion>
     <SystemTextEncodingsWebPackageVersion>6.0.0-alpha.1.20464.10</SystemTextEncodingsWebPackageVersion>
-    <!-- Packages from dotnet/roslyn -->
-    <MicrosoftNetCompilersToolsetPackageVersion>3.8.0-3.20454.4</MicrosoftNetCompilersToolsetPackageVersion>
   </PropertyGroup>
   <PropertyGroup Label="Dependency version settings">
     <!--
@@ -96,6 +94,8 @@
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftInternalVisualStudioShellEmbeddablePackageVersion>16.4.29305.180</MicrosoftInternalVisualStudioShellEmbeddablePackageVersion>
     <MicrosoftNETCoreApp50PackageVersion>$(MicrosoftNETCoreAppRuntimewinx64PackageVersion)</MicrosoftNETCoreApp50PackageVersion>
+    <!-- Packages from dotnet/roslyn -->
+    <MicrosoftNetCompilersToolsetPackageVersion>3.8.0-3.20454.4</MicrosoftNetCompilersToolsetPackageVersion>
     <MicrosoftNetRoslynDiagnosticsPackageVersion>2.6.3</MicrosoftNetRoslynDiagnosticsPackageVersion>
     <MicrosoftServiceHubFrameworkPackageVersion>2.6.44</MicrosoftServiceHubFrameworkPackageVersion>
     <MicrosoftVisualStudioCoreUtilityPackageVersion>16.7.66</MicrosoftVisualStudioCoreUtilityPackageVersion>
