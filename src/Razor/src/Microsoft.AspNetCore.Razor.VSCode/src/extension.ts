@@ -8,10 +8,7 @@ import * as vscodeapi from 'vscode';
 import { ExtensionContext } from 'vscode';
 import { BlazorDebugConfigurationProvider } from './BlazorDebug/BlazorDebugConfigurationProvider';
 import { CodeActionsHandler } from './CodeActions/CodeActionsHandler';
-import { CompositeCodeActionTranslator } from './CodeActions/CompositeRazorCodeActionTranslator';
-import { RazorCodeActionProvider } from './CodeActions/RazorCodeActionProvider';
 import { RazorCodeActionRunner } from './CodeActions/RazorCodeActionRunner';
-import { RazorFullyQualifiedCodeActionTranslator } from './CodeActions/RazorFullyQualifiedCodeActionTranslator';
 import { listenToConfigurationChanges } from './ConfigurationChangeListener';
 import { RazorCSharpFeature } from './CSharp/RazorCSharpFeature';
 import { ReportIssueCommand } from './Diagnostics/ReportIssueCommand';
@@ -57,12 +54,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
         const languageServerClient = new RazorLanguageServerClient(vscodeType, languageServerDir, telemetryReporter, logger);
         const languageServiceClient = new RazorLanguageServiceClient(languageServerClient);
 
-        const codeActionTranslators = [
-            new RazorFullyQualifiedCodeActionTranslator(),
-        ];
-        const compositeCodeActionTranslator = new CompositeCodeActionTranslator(codeActionTranslators);
-
-        const razorLanguageMiddleware = new RazorCSharpLanguageMiddleware(languageServiceClient, logger, compositeCodeActionTranslator);
+        const razorLanguageMiddleware = new RazorCSharpLanguageMiddleware(languageServiceClient, logger);
 
         const documentManager = new RazorDocumentManager(languageServerClient, logger);
         reportTelemetryForDocuments(documentManager, telemetryReporter);
@@ -82,12 +74,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 csharpFeature.projectionProvider,
                 languageServiceClient,
                 logger);
-            const codeActionProvider = new RazorCodeActionProvider(
-                documentSynchronizer,
-                documentManager,
-                languageServiceClient,
-                logger,
-                compositeCodeActionTranslator);
             const codeActionHandler = new CodeActionsHandler(
                 documentSynchronizer,
                 documentManager,
