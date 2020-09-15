@@ -18,7 +18,7 @@ import { convertRangeFromSerializable } from '../RPC/SerializableRange';
 export class CodeActionsHandler
     extends RazorLanguageFeatureBase {
 
-    private static readonly getCodeActionsEndpoint = 'razor/getCodeActions';
+    private static readonly getCodeActionsEndpoint = 'razor/provideCodeActions';
     private codeActionRequestType: RequestType<SerializableCodeActionParams, RazorCodeAction[], any, any> = new RequestType(CodeActionsHandler.getCodeActionsEndpoint);
     private emptyCodeActionResponse: RazorCodeAction[] = [];
 

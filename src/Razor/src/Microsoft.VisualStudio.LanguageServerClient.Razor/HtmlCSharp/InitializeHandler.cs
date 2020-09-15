@@ -51,14 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     TriggerCharacters = new[] { "(", "," }
                 },
                 ImplementationProvider = true,
-                CodeActionProvider = new CodeActionOptions {
-                    CodeActionKinds = new[] {
-                        CodeActionKind.RefactorExtract,
-                        CodeActionKind.QuickFix,
-                        CodeActionKind.Refactor
-                    }
-                },
-                CodeActionsResolveProvider = true,
             }
         };
 

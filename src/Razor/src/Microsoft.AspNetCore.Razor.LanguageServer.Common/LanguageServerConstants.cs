@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorUpdateHtmlBufferEndpoint = "razor/updateHtmlBuffer";
 
-        public const string RazorGetCodeActionsEndpoint = "razor/getCodeActions";
+        public const string RazorProvideCodeActionsEndpoint = "razor/provideCodeActions";
 
         public const string RazorLanguageQueryEndpoint = "razor/languageQuery";
 
