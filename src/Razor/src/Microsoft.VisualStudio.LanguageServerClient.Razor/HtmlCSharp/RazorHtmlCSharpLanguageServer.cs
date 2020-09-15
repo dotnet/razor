@@ -202,28 +202,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentImplementationName, positionParams, _clientCapabilities, cancellationToken);
         }
 
-        [JsonRpcMethod(Methods.TextDocumentCodeActionName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSCodeAction[]> CodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
-        {
-            if (codeActionParams is null)
-            {
-                throw new ArgumentNullException(nameof(codeActionParams));
-            }
-
-            return ExecuteRequestAsync<CodeActionParams, VSCodeAction[]>(Methods.TextDocumentCodeActionName, codeActionParams, _clientCapabilities, cancellationToken);
-        }
-
-        [JsonRpcMethod(MSLSPMethods.TextDocumentCodeActionResolveName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSCodeAction> CodeActionResolveAsync(VSCodeAction codeAction, CancellationToken cancellationToken)
-        {
-            if (codeAction is null)
-            {
-                throw new ArgumentNullException(nameof(codeAction));
-            }
-
-            return ExecuteRequestAsync<VSCodeAction, VSCodeAction>(MSLSPMethods.TextDocumentCodeActionResolveName, codeAction, _clientCapabilities, cancellationToken);
-        }
-
         // Internal for testing
         internal Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,

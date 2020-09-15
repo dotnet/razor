@@ -25,8 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         [JsonRpcMethod(LanguageServerConstants.RazorRangeFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams token, CancellationToken cancellationToken);
 
-        // Called by the Razor Language Server to get code actions from the platform.
+        // Called by the Razor Language Server to provide code actions from the platform.
         [JsonRpcMethod(LanguageServerConstants.RazorProvideCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<VSCodeAction[]> GetCodeActions(CodeActionParams codeActionParams, CancellationToken cancellationToken);
+        public abstract Task<VSCodeAction[]> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken);
     }
 }
