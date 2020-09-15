@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             .WithResolver(CompositeResolver.Create(
                 new IMessagePackFormatter[]
                 {
-                    RazorRemoteServices.Formatters
+                    RazorRemoteUtilities.Formatters
                 },
                 new IFormatterResolver[]
                 {
