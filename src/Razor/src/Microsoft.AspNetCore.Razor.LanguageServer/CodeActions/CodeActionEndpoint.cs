@@ -202,7 +202,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                return null;
             }
 
-            var response = _languageServer.SendRequest(LanguageServerConstants.RazorGetCodeActionsEndpoint, context.Request);
+            var response = _languageServer.SendRequest(LanguageServerConstants.RazorProvideCodeActionsEndpoint, context.Request);
             return await response.Returning<RazorCodeAction[]>(cancellationToken);
         }
 
