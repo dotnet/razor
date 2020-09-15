@@ -80,9 +80,5 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>91470b0b14ba016c1fb78211b12775287c17b34e</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="3.8.0-3.20454.4" CoherentParentDependency="Microsoft.CodeAnalysis.Razor">
-      <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>100f4bee62f45e4ef8756956529d91a7f3407a20</Sha>
-    </Dependency>
   </ToolsetDependencies>
 </Dependencies>
