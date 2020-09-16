@@ -56,14 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             _hostDocumentSyncVersion = hostDocumentVersion;
             TextBuffer.SetHostDocumentSyncVersion(_hostDocumentSyncVersion);
 
-            if (changes.Count == 0)
-            {
-                DefaultLSPDocumentSynchronizer.UpdateDocumentContextVersion(TextBuffer);
-
-                _currentSnapshot = GetUpdatedSnapshot();
-                return _currentSnapshot;
-            }
-
             using var edit = TextBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, InviolableEditTag.Instance);
             for (var i = 0; i < changes.Count; i++)
             {
