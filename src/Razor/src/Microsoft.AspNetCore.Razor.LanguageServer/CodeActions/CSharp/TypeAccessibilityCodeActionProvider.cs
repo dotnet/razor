@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 }
             }
 
-            results.Sort((a, b) => a.Title.CompareTo(b.Title));
+            results.Sort((a, b) => string.Compare(a.Title, b.Title, StringComparison.Ordinal));
             return Task.FromResult(results as IReadOnlyList<RazorCodeAction>);
         }
 
