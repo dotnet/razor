@@ -228,8 +228,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 
             var sourceText = SourceText.From("mock");
 
-            var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, sourceText, supportsFileCreation);
-            context.Location = location;
+            var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation);
 
             return context;
         }

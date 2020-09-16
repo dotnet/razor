@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -353,29 +354,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 
         private class MockCodeActionProvider : RazorCodeActionProvider
         {
-            public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+            public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
-                return Task.FromResult(new[] { new RazorCodeAction() });
+                return Task.FromResult(new List<RazorCodeAction>() { new RazorCodeAction() } as IReadOnlyList<RazorCodeAction>);
             }
         }
 
         private class MockCommandProvider : RazorCodeActionProvider
         {
-            public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+            public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
                 // O# Code Actions don't have `Data`, but `Commands` do
-                return Task.FromResult(new[] {
+                return Task.FromResult(new List<RazorCodeAction>() {
                     new RazorCodeAction() {
                         Title = "SomeTitle",
                         Data = new AddUsingsCodeActionParams()
                     }
-                });
+                } as IReadOnlyList<RazorCodeAction>);
             }
         }
 
         private class MockNullCodeActionProvider : RazorCodeActionProvider
         {
-            public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+            public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
             {
                 return null;
             }
