@@ -69,34 +69,80 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
                 foreach (var codeAction in codeActions)
                 {
-                    if (!codeAction.Title.Any(c => char.IsWhiteSpace(c)) &&
-                        codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase))
+                    if (TryProcessCodeAction(
+                            context,
+                            codeAction,
+                            diagnostic,
+                            associatedValue,
+                            out var typeAccessibilityCodeActions))
                     {
-                        var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction);
-                        results.Add(fqnCodeAction);
-
-                        var addUsingCodeAction = CreateAddUsingCodeAction(context, codeAction);
-                        if (addUsingCodeAction != null)
-                        {
-                            results.Add(addUsingCodeAction);
-                        }
+                        results.AddRange(typeAccessibilityCodeActions);
                     }
                 }
             }
 
+            results.Sort((a, b) => a.Title.CompareTo(b.Title));
             return Task.FromResult(results as IReadOnlyList<RazorCodeAction>);
+        }
+
+        private static bool TryProcessCodeAction(
+            RazorCodeActionContext context,
+            RazorCodeAction codeAction,
+            Diagnostic diagnostic,
+            string associatedValue,
+            out ICollection<RazorCodeAction> typeAccessibilityCodeActions)
+        {
+            var fqn = string.Empty;
+
+            // When there's only one FQN suggestion, code action title is of the form:
+            // `System.Net.Dns`
+            if (!codeAction.Title.Any(c => char.IsWhiteSpace(c)) &&
+                codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase))
+            {
+                fqn = codeAction.Title;
+            }
+            else
+            {
+                // When there are multiple FQN suggestions, the code action title is of the form:
+                // `Fully qualify 'Dns' -> System.Net.Dns`
+                var expectedCodeActionPrefix = $"Fully qualify '{associatedValue}' -> ";
+                if (codeAction.Title.StartsWith(expectedCodeActionPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    fqn = codeAction.Title.Substring(expectedCodeActionPrefix.Length);
+                }
+            }
+
+            if (string.IsNullOrEmpty(fqn))
+            {
+                typeAccessibilityCodeActions = default;
+                return false;
+            }
+
+            typeAccessibilityCodeActions = new List<RazorCodeAction>();
+
+            var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
+            typeAccessibilityCodeActions.Add(fqnCodeAction);
+
+            var addUsingCodeAction = CreateAddUsingCodeAction(context, fqn);
+            if (addUsingCodeAction != null)
+            {
+                typeAccessibilityCodeActions.Add(addUsingCodeAction);
+            }
+
+            return true;
         }
 
         private static RazorCodeAction CreateFQNCodeAction(
             RazorCodeActionContext context,
             Diagnostic fqnDiagnostic,
-            RazorCodeAction codeAction)
+            RazorCodeAction codeAction,
+            string fullyQualifiedName)
         {
             var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
             var fqnTextEdit = new TextEdit()
             {
-                NewText = codeAction.Title,
+                NewText = fullyQualifiedName,
                 Range = fqnDiagnostic.Range
             };
 
@@ -120,10 +166,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private static RazorCodeAction CreateAddUsingCodeAction(
             RazorCodeActionContext context,
-            RazorCodeAction codeAction)
+            string fullyQualifiedName)
         {
             return AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(
-                fullyQualifiedName: codeAction.Title,
+                fullyQualifiedName,
                 context.Request.TextDocument.Uri);
         }
     }
