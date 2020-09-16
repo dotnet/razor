@@ -8,14 +8,14 @@ using OmniSharp.Extensions.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal static class AddUsingsCodeActionProviderHelper
+    internal static class AddUsingsCodeActionProviderFactory
     {
         internal static string GetNamespaceFromFQN(string fullyQualifiedName)
         {
             if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(
                     fullyQualifiedName,
                     out var namespaceSpan,
-                    out var _))
+                    out _))
             {
                 return string.Empty;
             }
@@ -26,10 +26,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         internal static RazorCodeAction CreateAddUsingCodeAction(string fullyQualifiedName, DocumentUri uri)
         {
-            var @namespace = AddUsingsCodeActionProviderHelper.GetNamespaceFromFQN(fullyQualifiedName);
+            var @namespace = AddUsingsCodeActionProviderFactory.GetNamespaceFromFQN(fullyQualifiedName);
             if (string.IsNullOrEmpty(@namespace))
             {
-                return default;
+                return null;
             }
 
             var actionParams = new AddUsingsCodeActionParams

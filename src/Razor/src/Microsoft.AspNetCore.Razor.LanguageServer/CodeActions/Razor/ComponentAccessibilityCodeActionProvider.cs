@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -21,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvider
     {
         private static readonly string CreateComponentFromTagTitle = "Create component from tag";
-        private static readonly Task<RazorCodeAction[]> EmptyResult = Task.FromResult<RazorCodeAction[]>(null);
+        private static readonly Task<IReadOnlyList<RazorCodeAction>> EmptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
 
         private readonly TagHelperFactsService _tagHelperFactsService;
         private readonly FilePathNormalizer _filePathNormalizer;
@@ -34,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
 
-        public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             var codeActions = new List<RazorCodeAction>();
 
@@ -65,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 AddCreateComponentFromTag(context, startTag, codeActions);
             }
 
-            return Task.FromResult(codeActions.ToArray());
+            return Task.FromResult(codeActions as IReadOnlyList<RazorCodeAction>);
         }
 
         private void AddCreateComponentFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<RazorCodeAction> container)
@@ -122,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 var fullyQualifiedName = tagHelperPair.Short.Name;
 
                 // Insert @using
-                var addUsingCodeAction = AddUsingsCodeActionProviderHelper.CreateAddUsingCodeAction(fullyQualifiedName, context.Request.TextDocument.Uri);
+                var addUsingCodeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(fullyQualifiedName, context.Request.TextDocument.Uri);
                 if (addUsingCodeAction != null)
                 {
                     container.Add(addUsingCodeAction);

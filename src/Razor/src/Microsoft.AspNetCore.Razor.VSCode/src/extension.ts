@@ -75,9 +75,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 languageServiceClient,
                 logger);
             const codeActionHandler = new CodeActionsHandler(
-                documentSynchronizer,
                 documentManager,
-                languageServiceClient,
                 languageServerClient,
                 logger);
             const completionItemProvider = new RazorCompletionItemProvider(

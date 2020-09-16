@@ -86,24 +86,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-               return null;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             var razorCodeActions = await GetRazorCodeActionsAsync(razorCodeActionContext, cancellationToken).ConfigureAwait(false);
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-               return null;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             var csharpCodeActions = await GetCSharpCodeActionsAsync(razorCodeActionContext, cancellationToken).ConfigureAwait(false);
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-               return null;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             var codeActions = Enumerable.Concat(
                 razorCodeActions ?? Array.Empty<RazorCodeAction>(),
@@ -144,10 +135,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
 
+            var linePosition = new LinePosition(
+                request.Range.Start.Line,
+                request.Range.Start.Character);
+            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+            var location = new SourceLocation(
+                hostDocumentIndex,
+                request.Range.Start.Line,
+                request.Range.Start.Character);
+
             var context = new RazorCodeActionContext(
                 request,
                 documentSnapshot,
                 codeDocument,
+                location,
                 sourceText,
                 _languageServerFeatureOptions.SupportsFileManipulation);
 
@@ -164,12 +165,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private async Task<IEnumerable<RazorCodeAction>> FilterCSharpCodeActionsAsync(RazorCodeActionContext context, IEnumerable<RazorCodeAction> csharpCodeActions, CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-               return null;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
-            var tasks = new List<Task<RazorCodeAction[]>>();
+            var tasks = new List<Task<IReadOnlyList<RazorCodeAction>>>();
 
             foreach (var provider in _csharpCodeActionProviders)
             {
@@ -197,10 +195,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             context.Request.Range = projectedRange;
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-               return null;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             var response = _languageServer.SendRequest(LanguageServerConstants.RazorProvideCodeActionsEndpoint, context.Request);
             return await response.Returning<RazorCodeAction[]>(cancellationToken);
@@ -208,21 +203,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private async Task<IEnumerable<RazorCodeAction>> GetRazorCodeActionsAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
-            var linePosition = new LinePosition(
-                context.Request.Range.Start.Line,
-                context.Request.Range.Start.Character);
-            var hostDocumentIndex = context.SourceText.Lines.GetPosition(linePosition);
-            context.Location = new SourceLocation(
-                hostDocumentIndex,
-                context.Request.Range.Start.Line,
-                context.Request.Range.Start.Character);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-               return null;
-            }
-
-            var tasks = new List<Task<RazorCodeAction[]>>();
+            var tasks = new List<Task<IReadOnlyList<RazorCodeAction>>>();
 
             foreach (var provider in _razorCodeActionProviders)
             {
@@ -237,16 +220,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         private async Task<IEnumerable<RazorCodeAction>> ConsolidateCodeActionsFromProvidersAsync(
-            List<Task<RazorCodeAction[]>> tasks,
+            List<Task<IReadOnlyList<RazorCodeAction>>> tasks,
             CancellationToken cancellationToken)
         {
             var results = await Task.WhenAll(tasks).ConfigureAwait(false);
             var codeActions = new List<RazorCodeAction>();
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-               return null;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             for (var i = 0; i < results.Length; i++)
             {

@@ -10,6 +10,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal abstract class CSharpCodeActionProvider
     {
-        public abstract Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, IEnumerable<RazorCodeAction> codeActions, CancellationToken cancellationToken);
+        public abstract Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
+            RazorCodeActionContext context,
+            IEnumerable<RazorCodeAction> codeActions,
+            CancellationToken cancellationToken);
     }
 }

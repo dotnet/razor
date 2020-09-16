@@ -4,62 +4,93 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
     {
-        private static readonly Task<RazorCodeAction[]> EmptyResult = Task.FromResult<RazorCodeAction[]>(null);
-
-        public override Task<RazorCodeAction[]> ProvideAsync(RazorCodeActionContext context, IEnumerable<RazorCodeAction> codeActions, CancellationToken cancellationToken)
+        private static readonly IEnumerable<string> SupportedDiagnostics = new[]
         {
-            var diagnostic = context.Request.Context.Diagnostics.FirstOrDefault(diagnostic =>
-                diagnostic.Severity == DiagnosticSeverity.Error &&
-                (diagnostic.Code?.IsString ?? false) &&
+            // `The type or namespace name 'type/namespace' could not be found
+            //  (are you missing a using directive or an assembly reference?)`
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0246
+            "CS0246",
 
-                // `The type or namespace name 'type/namespace' could not be found
-                //  (are you missing a using directive or an assembly reference?)`
-                // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0246
-                (diagnostic.Code.Value.String.Equals("CS0246", StringComparison.OrdinalIgnoreCase) ||
+            // `The name 'identifier' does not exist in the current context`
+            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0103
+            "CS0103"
+        };
 
-                // `The name 'identifier' does not exist in the current context`
-                // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0103
-                diagnostic.Code.Value.String.Equals("CS0103", StringComparison.OrdinalIgnoreCase)));
-
-            if (diagnostic is null)
+        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
+            RazorCodeActionContext context,
+            IEnumerable<RazorCodeAction> codeActions,
+            CancellationToken cancellationToken)
+        {
+            if (context is null)
             {
-                return default;
+                throw new ArgumentNullException(nameof(context));
             }
 
-            var diagnosticSpan = diagnostic.Range.AsTextSpan(context.SourceText);
-            var associatedValue = context.SourceText.GetSubTextString(diagnosticSpan);
-
-            var results = new HashSet<RazorCodeAction>();
-
-            foreach (var codeAction in codeActions)
+            if (codeActions is null)
             {
-                if (!codeAction.Title.Any(c => char.IsWhiteSpace(c)) &&
-                    codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentNullException(nameof(codeActions));
+            }
+
+            if (context.Request?.Context?.Diagnostics is null)
+            {
+                return null;
+            }
+
+            if (codeActions is null || !codeActions.Any())
+            {
+                return null;
+            }
+
+            var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
+                diagnostic.Severity == DiagnosticSeverity.Error &&
+                diagnostic.Code?.IsString == true &&
+                SupportedDiagnostics.Any(d => diagnostic.Code.Value.String.Equals(d, StringComparison.OrdinalIgnoreCase)));
+
+            if (diagnostics is null)
+            {
+                return null;
+            }
+
+            var results = new List<RazorCodeAction>();
+
+            foreach (var diagnostic in diagnostics)
+            {
+                var diagnosticSpan = diagnostic.Range.AsTextSpan(context.SourceText);
+                var associatedValue = context.SourceText.GetSubTextString(diagnosticSpan);
+
+                foreach (var codeAction in codeActions)
                 {
-                    CreateFQNCodeAction(context, diagnostic, codeAction, results);
-                    CreateAddUsingCodeAction(context, codeAction, results);
+                    if (!codeAction.Title.Any(c => char.IsWhiteSpace(c)) &&
+                        codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction);
+                        results.Add(fqnCodeAction);
+
+                        var addUsingCodeAction = CreateAddUsingCodeAction(context, codeAction);
+                        if (addUsingCodeAction != null)
+                        {
+                            results.Add(addUsingCodeAction);
+                        }
+                    }
                 }
             }
 
-            return Task.FromResult(results.ToArray());
+            return Task.FromResult(results as IReadOnlyList<RazorCodeAction>);
         }
 
-        private static void CreateFQNCodeAction(
+        private static RazorCodeAction CreateFQNCodeAction(
             RazorCodeActionContext context,
             Diagnostic fqnDiagnostic,
-            RazorCodeAction codeAction,
-            ICollection<RazorCodeAction> results)
+            RazorCodeAction codeAction)
         {
             var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
@@ -80,24 +111,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 DocumentChanges = new[] { fqnWorkspaceEditDocumentChange }
             };
 
-            var fqnCodeAction = new RazorCodeAction()
+            return new RazorCodeAction()
             {
                 Title = codeAction.Title,
                 Edit = fqnWorkspaceEdit
             };
-            results.Add(fqnCodeAction);
         }
 
-        private static void CreateAddUsingCodeAction(
+        private static RazorCodeAction CreateAddUsingCodeAction(
             RazorCodeActionContext context,
-            RazorCodeAction codeAction,
-            ICollection<RazorCodeAction> results)
+            RazorCodeAction codeAction)
         {
-            var addUsingCodeAction = AddUsingsCodeActionProviderHelper.CreateAddUsingCodeAction(codeAction.Title, context.Request.TextDocument.Uri);
-            if (addUsingCodeAction != null)
-            {
-                results.Add(addUsingCodeAction);
-            }
+            return AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(
+                fullyQualifiedName: codeAction.Title,
+                context.Request.TextDocument.Uri);
         }
     }
 }

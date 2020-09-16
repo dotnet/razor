@@ -6,29 +6,22 @@
 import * as vscode from 'vscode';
 import { RequestType } from 'vscode-languageclient';
 import { RazorDocumentManager } from '../RazorDocumentManager';
-import { RazorDocumentSynchronizer } from '../RazorDocumentSynchronizer';
-import { RazorLanguageFeatureBase } from '../RazorLanguageFeatureBase';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
-import { RazorLanguageServiceClient } from '../RazorLanguageServiceClient';
 import { RazorLogger } from '../RazorLogger';
 import { RazorCodeAction } from '../RPC/RazorCodeAction';
 import { SerializableCodeActionParams } from '../RPC/SerializableCodeActionParams';
 import { convertRangeFromSerializable } from '../RPC/SerializableRange';
 
-export class CodeActionsHandler
-    extends RazorLanguageFeatureBase {
+export class CodeActionsHandler {
 
     private static readonly getCodeActionsEndpoint = 'razor/provideCodeActions';
     private codeActionRequestType: RequestType<SerializableCodeActionParams, RazorCodeAction[], any, any> = new RequestType(CodeActionsHandler.getCodeActionsEndpoint);
     private emptyCodeActionResponse: RazorCodeAction[] = [];
 
     constructor(
-        documentSynchronizer: RazorDocumentSynchronizer,
-        documentManager: RazorDocumentManager,
-        serviceClient: RazorLanguageServiceClient,
+        private readonly documentManager: RazorDocumentManager,
         private readonly serverClient: RazorLanguageServerClient,
-        logger: RazorLogger) {
-            super(documentSynchronizer, documentManager, serviceClient, logger);
+        private readonly logger: RazorLogger) {
     }
 
     public register() {
@@ -40,17 +33,21 @@ export class CodeActionsHandler
 
     private async getCodeActions(
         codeActionParams: SerializableCodeActionParams,
-        token: vscode.CancellationToken) {
+        cancellationToken: vscode.CancellationToken) {
         try {
             const razorDocumentUri = vscode.Uri.parse(codeActionParams.textDocument.uri);
             const razorDocument = await this.documentManager.getDocument(razorDocumentUri);
-            const virtualCsharpUri = razorDocument.csharpDocument.uri;
+            if (razorDocument === undefined) {
+                return this.emptyCodeActionResponse;
+            }
+
+            const virtualCSharpUri = razorDocument.csharpDocument.uri;
 
             const range = convertRangeFromSerializable(codeActionParams.range);
 
             const commands = await vscode.commands.executeCommand<vscode.Command[]>(
                 'vscode.executeCodeActionProvider',
-                virtualCsharpUri,
+                virtualCSharpUri,
                 range) as vscode.Command[];
 
             if (commands.length === 0) {

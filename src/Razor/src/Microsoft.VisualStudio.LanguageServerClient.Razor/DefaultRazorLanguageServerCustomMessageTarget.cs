@@ -180,8 +180,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return default;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
             if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
             {
                 return default;

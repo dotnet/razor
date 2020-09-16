@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         private ITextBuffer VirtualDocumentTextBuffer { get; }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         [Fact]
         public async Task TrySynchronizeVirtualDocumentAsync_SynchronizedDocument_ReturnsTrue()
         {
@@ -209,6 +208,5 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             edit.Insert(0, "Test");
             edit.Apply();
         }
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
     }
 }
