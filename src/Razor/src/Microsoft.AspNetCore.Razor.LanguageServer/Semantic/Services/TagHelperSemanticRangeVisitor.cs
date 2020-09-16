@@ -34,6 +34,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return visitor._semanticRanges;
         }
 
+        public override void VisitRazorDirective(RazorDirectiveSyntax node)
+        {
+            var result = CreateSemanticRange(node.Transition, SyntaxKind.Transition);
+            AddNode(result);
+
+            base.VisitRazorDirective(node);
+        }
+
+        public override void VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
+        {
+            var result = CreateSemanticRange(node.Keyword, SyntaxKind.RazorDirective);
+            AddNode(result);
+
+            base.VisitRazorDirectiveBody(node);
+        }
+
         public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
         {
             if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
@@ -200,6 +216,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     break;
                 case SyntaxKind.Colon:
                     semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorDirectiveColon];
+                    break;
+                case SyntaxKind.RazorDirective:
+                    semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorDirective];
                     break;
                 default:
                     throw new NotImplementedException();

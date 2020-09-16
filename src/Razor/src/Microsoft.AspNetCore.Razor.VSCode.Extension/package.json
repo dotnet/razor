@@ -184,7 +184,8 @@
               "razorTagHelperAttribute": [ "entity.name.class.attribute.taghelper" ],
               "razorTransition": [ "keyword.control.razor.transition" ],
               "razorDirectiveAttribute": [ "keyword.control.razor.directive.attribute", "keyword.control.cshtml.directive.attribute" ],
-              "razorDirectiveColon": [ "keyword.control.razor.directive.colon", "keyword.control.cshtml.directive.colon" ]
+              "razorDirectiveColon": [ "keyword.control.razor.directive.colon", "keyword.control.cshtml.directive.colon" ],
+              "razorDirective": [ "keyword.control.razor.directive", "keyword.control.cshtml.directive" ]
             }
           }
         ],
