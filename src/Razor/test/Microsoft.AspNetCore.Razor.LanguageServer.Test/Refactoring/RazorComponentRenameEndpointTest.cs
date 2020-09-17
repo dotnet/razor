@@ -81,19 +81,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var editChange = result.DocumentChanges.ElementAt(1);
             Assert.True(editChange.IsTextDocumentEdit);
             Assert.Equal("file:///c:/First/Component1.razor", editChange.TextDocumentEdit.TextDocument.Uri.ToString());
-            Assert.Equal(2, editChange.TextDocumentEdit.Edits.Count());
-            var editChangeEdit1 = editChange.TextDocumentEdit.Edits.ElementAt(0);
-            Assert.Equal("Component5", editChangeEdit1.NewText);
-            Assert.Equal(2, editChangeEdit1.Range.Start.Line);
-            Assert.Equal(1, editChangeEdit1.Range.Start.Character);
-            Assert.Equal(2, editChangeEdit1.Range.End.Line);
-            Assert.Equal(11, editChangeEdit1.Range.End.Character);
-            var editChangeEdit2 = editChange.TextDocumentEdit.Edits.ElementAt(1);
-            Assert.Equal("Component5", editChangeEdit2.NewText);
-            Assert.Equal(2, editChangeEdit2.Range.Start.Line);
-            Assert.Equal(14, editChangeEdit2.Range.Start.Character);
-            Assert.Equal(2, editChangeEdit2.Range.End.Line);
-            Assert.Equal(24, editChangeEdit2.Range.End.Character);
+            Assert.Collection(
+                editChange.TextDocumentEdit.Edits,
+                edit =>
+                {
+                    Assert.Equal("Component5", edit.NewText);
+                    Assert.Equal(2, edit.Range.Start.Line);
+                    Assert.Equal(1, edit.Range.Start.Character);
+                    Assert.Equal(2, edit.Range.End.Line);
+                    Assert.Equal(11, edit.Range.End.Character);
+                },
+                edit =>
+                {
+                    Assert.Equal("Component5", edit.NewText);
+                    Assert.Equal(2, edit.Range.Start.Line);
+                    Assert.Equal(14, edit.Range.Start.Character);
+                    Assert.Equal(2, edit.Range.End.Line);
+                    Assert.Equal(24, edit.Range.End.Character);
+                });
         }
 
         [Fact]
@@ -123,36 +128,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var editChange1 = result.DocumentChanges.ElementAt(1);
             Assert.True(editChange1.IsTextDocumentEdit);
             Assert.Equal("file:///c:/First/Index.razor", editChange1.TextDocumentEdit.TextDocument.Uri.ToString());
-            Assert.Equal(2, editChange1.TextDocumentEdit.Edits.Count());
-            var editChange1Edit1 = editChange1.TextDocumentEdit.Edits.ElementAt(0);
-            Assert.Equal("Component5", editChange1Edit1.NewText);
-            Assert.Equal(2, editChange1Edit1.Range.Start.Line);
-            Assert.Equal(1, editChange1Edit1.Range.Start.Character);
-            Assert.Equal(2, editChange1Edit1.Range.End.Line);
-            Assert.Equal(14, editChange1Edit1.Range.End.Character);
-            var editChange1Edit2 = editChange1.TextDocumentEdit.Edits.ElementAt(1);
-            Assert.Equal("Component5", editChange1Edit2.NewText);
-            Assert.Equal(2, editChange1Edit2.Range.Start.Line);
-            Assert.Equal(17, editChange1Edit2.Range.Start.Character);
-            Assert.Equal(2, editChange1Edit2.Range.End.Line);
-            Assert.Equal(30, editChange1Edit2.Range.End.Character);
+            Assert.Collection(
+                editChange1.TextDocumentEdit.Edits,
+                edit =>
+                {
+                    Assert.Equal("Component5", edit.NewText);
+                    Assert.Equal(2, edit.Range.Start.Line);
+                    Assert.Equal(1, edit.Range.Start.Character);
+                    Assert.Equal(2, edit.Range.End.Line);
+                    Assert.Equal(14, edit.Range.End.Character);
+                },
+                edit =>
+                {
+                    Assert.Equal("Component5", edit.NewText);
+                    Assert.Equal(2, edit.Range.Start.Line);
+                    Assert.Equal(17, edit.Range.Start.Character);
+                    Assert.Equal(2, edit.Range.End.Line);
+                    Assert.Equal(30, edit.Range.End.Character);
+                });
 
             var editChange2 = result.DocumentChanges.ElementAt(2);
             Assert.True(editChange2.IsTextDocumentEdit);
             Assert.Equal("file:///c:/First/Index.razor", editChange2.TextDocumentEdit.TextDocument.Uri.ToString());
-            Assert.Equal(2, editChange2.TextDocumentEdit.Edits.Count());
-            var editChange2Edit1 = editChange2.TextDocumentEdit.Edits.ElementAt(0);
-            Assert.Equal("Test.Component5", editChange2Edit1.NewText);
-            Assert.Equal(3, editChange2Edit1.Range.Start.Line);
-            Assert.Equal(1, editChange2Edit1.Range.Start.Character);
-            Assert.Equal(3, editChange2Edit1.Range.End.Line);
-            Assert.Equal(19, editChange2Edit1.Range.End.Character);
-            var editChange2Edit2 = editChange2.TextDocumentEdit.Edits.ElementAt(1);
-            Assert.Equal("Test.Component5", editChange2Edit2.NewText);
-            Assert.Equal(3, editChange2Edit2.Range.Start.Line);
-            Assert.Equal(22, editChange2Edit2.Range.Start.Character);
-            Assert.Equal(3, editChange2Edit2.Range.End.Line);
-            Assert.Equal(40, editChange2Edit2.Range.End.Character);
+            Assert.Collection(
+                editChange2.TextDocumentEdit.Edits,
+                edit =>
+                {
+                    Assert.Equal("Test.Component5", edit.NewText);
+                    Assert.Equal(3, edit.Range.Start.Line);
+                    Assert.Equal(1, edit.Range.Start.Character);
+                    Assert.Equal(3, edit.Range.End.Line);
+                    Assert.Equal(19, edit.Range.End.Character);
+                },
+                edit =>
+                {
+                    Assert.Equal("Test.Component5", edit.NewText);
+                    Assert.Equal(3, edit.Range.Start.Line);
+                    Assert.Equal(22, edit.Range.Start.Character);
+                    Assert.Equal(3, edit.Range.End.Line);
+                    Assert.Equal(40, edit.Range.End.Character);
+                });
         }
 
         [Fact]
@@ -182,19 +197,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var editChange1 = result.DocumentChanges.ElementAt(1);
             Assert.True(editChange1.IsTextDocumentEdit);
             Assert.Equal("file:///c:/Second/Component3.razor", editChange1.TextDocumentEdit.TextDocument.Uri.ToString());
-            Assert.Equal(2, editChange1.TextDocumentEdit.Edits.Count());
-            var editChange1Edit1 = editChange1.TextDocumentEdit.Edits.ElementAt(0);
-            Assert.Equal("Component5", editChange1Edit1.NewText);
-            Assert.Equal(1, editChange1Edit1.Range.Start.Line);
-            Assert.Equal(1, editChange1Edit1.Range.Start.Character);
-            Assert.Equal(1, editChange1Edit1.Range.End.Line);
-            Assert.Equal(11, editChange1Edit1.Range.End.Character);
-            var editChange1Edit2 = editChange1.TextDocumentEdit.Edits.ElementAt(1);
-            Assert.Equal("Component5", editChange1Edit2.NewText);
-            Assert.Equal(1, editChange1Edit2.Range.Start.Line);
-            Assert.Equal(14, editChange1Edit2.Range.Start.Character);
-            Assert.Equal(1, editChange1Edit2.Range.End.Line);
-            Assert.Equal(24, editChange1Edit2.Range.End.Character);
+            Assert.Collection(
+                editChange1.TextDocumentEdit.Edits,
+                edit =>
+                {
+                    Assert.Equal("Component5", edit.NewText);
+                    Assert.Equal(1, edit.Range.Start.Line);
+                    Assert.Equal(1, edit.Range.Start.Character);
+                    Assert.Equal(1, edit.Range.End.Line);
+                    Assert.Equal(11, edit.Range.End.Character);
+                },
+                edit =>
+                {
+                    Assert.Equal("Component5", edit.NewText);
+                    Assert.Equal(1, edit.Range.Start.Line);
+                    Assert.Equal(14, edit.Range.Start.Character);
+                    Assert.Equal(1, edit.Range.End.Line);
+                    Assert.Equal(24, edit.Range.End.Character);
+                });
             var editChange2 = result.DocumentChanges.ElementAt(2);
             Assert.True(editChange2.IsTextDocumentEdit);
             Assert.Equal("file:///c:/Second/Component4.razor", editChange2.TextDocumentEdit.TextDocument.Uri.ToString());
@@ -228,19 +248,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var editChange = result.DocumentChanges.ElementAt(1);
             Assert.True(editChange.IsTextDocumentEdit);
             Assert.Equal("file:///c:/Dir1/Directory1.razor", editChange.TextDocumentEdit.TextDocument.Uri.ToString());
-            Assert.Equal(2, editChange.TextDocumentEdit.Edits.Count());
-            var editChangeEdit1 = editChange.TextDocumentEdit.Edits.ElementAt(0);
-            Assert.Equal("TestComponent", editChangeEdit1.NewText);
-            Assert.Equal(1, editChangeEdit1.Range.Start.Line);
-            Assert.Equal(1, editChangeEdit1.Range.Start.Character);
-            Assert.Equal(1, editChangeEdit1.Range.End.Line);
-            Assert.Equal(11, editChangeEdit1.Range.End.Character);
-            var editChangeEdit2 = editChange.TextDocumentEdit.Edits.ElementAt(1);
-            Assert.Equal("TestComponent", editChangeEdit2.NewText);
-            Assert.Equal(1, editChangeEdit2.Range.Start.Line);
-            Assert.Equal(14, editChangeEdit2.Range.Start.Character);
-            Assert.Equal(1, editChangeEdit2.Range.End.Line);
-            Assert.Equal(24, editChangeEdit2.Range.End.Character);
+            Assert.Collection(
+                editChange.TextDocumentEdit.Edits,
+                edit =>
+                {
+                    Assert.Equal("TestComponent", edit.NewText);
+                    Assert.Equal(1, edit.Range.Start.Line);
+                    Assert.Equal(1, edit.Range.Start.Character);
+                    Assert.Equal(1, edit.Range.End.Line);
+                    Assert.Equal(11, edit.Range.End.Character);
+                },
+                edit =>
+                {
+                    Assert.Equal("TestComponent", edit.NewText);
+                    Assert.Equal(1, edit.Range.Start.Line);
+                    Assert.Equal(14, edit.Range.Start.Character);
+                    Assert.Equal(1, edit.Range.End.Line);
+                    Assert.Equal(24, edit.Range.End.Character);
+                });
         }
 
         private static IEnumerable<TagHelperDescriptor> CreateRazorComponentTagHelperDescriptors(string assemblyName, string namespaceName, string tagName)

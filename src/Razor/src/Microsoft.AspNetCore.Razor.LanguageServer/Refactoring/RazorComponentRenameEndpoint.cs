@@ -311,9 +311,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var originTagHelpers = new List<TagHelperDescriptor>();
-            originTagHelpers.Add(primaryTagHelper);
-
+            var originTagHelpers = new List<TagHelperDescriptor>() { primaryTagHelper };
             var associatedTagHelper = FindAssociatedTagHelper(primaryTagHelper, documentSnapshot.Project.TagHelpers);
             if (associatedTagHelper == null)
             {
