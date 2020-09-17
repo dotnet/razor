@@ -14,13 +14,12 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal class CodeActionEndpoint : ICodeActionHandler
+    internal class CodeActionEndpoint : IRazorCodeActionHandler
     {
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly IEnumerable<RazorCodeActionProvider> _razorCodeActionProviders;
@@ -73,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _supportsCodeActionResolve = extendableClientCapabilities?.SupportsCodeActionResolve ?? false;
         }
 
-        public async Task<CommandOrCodeActionContainer> Handle(CodeActionParams request, CancellationToken cancellationToken)
+        public async Task<CommandOrCodeActionContainer> Handle(RazorCodeActionParams request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -114,7 +113,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return new CommandOrCodeActionContainer(commandsOrCodeActions);
         }
 
-        private async Task<RazorCodeActionContext> GenerateRazorCodeActionContextAsync(CodeActionParams request, CancellationToken cancellationToken)
+        // internal for testing
+        internal async Task<RazorCodeActionContext> GenerateRazorCodeActionContextAsync(RazorCodeActionParams request, CancellationToken cancellationToken)
         {
             var documentSnapshot = await Task.Factory.StartNew(() =>
             {
@@ -134,6 +134,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
+
+            if (request.Context.SelectionRange != null)
+            {
+                request.Range = request.Context.SelectionRange;
+            }
 
             var linePosition = new LinePosition(
                 request.Range.Start.Line,
