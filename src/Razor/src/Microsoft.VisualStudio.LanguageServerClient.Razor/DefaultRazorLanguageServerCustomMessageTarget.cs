@@ -195,5 +195,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return results;
         }
+
+        public override async Task<VSCodeAction> ResolveCodeActionsAsync(VSCodeAction codeAction, CancellationToken cancellationToken)
+        {
+            if (codeAction is null)
+            {
+                throw new ArgumentNullException(nameof(codeAction));
+            }
+
+            return await _requestInvoker.ReinvokeRequestOnServerAsync<VSCodeAction, VSCodeAction>(
+                MSLSPMethods.TextDocumentCodeActionResolveName,
+                LanguageServerKind.CSharp.ToContentType(),
+                codeAction,
+                cancellationToken).ConfigureAwait(false);
+        }
     }
 }

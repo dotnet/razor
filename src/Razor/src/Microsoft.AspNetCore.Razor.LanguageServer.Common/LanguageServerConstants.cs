@@ -43,6 +43,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorProvideCodeActionsEndpoint = "razor/provideCodeActions";
 
+        public const string RazorResolveCodeActionsEndpoint = "razor/resolveCodeActions";
+
 
         public static class CodeActions
         {
