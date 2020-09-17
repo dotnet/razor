@@ -11,18 +11,28 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
+    internal class ImplementInterfaceAbstractClassCodeActionProvider : CSharpCodeActionProvider
     {
+        // `A class is required to implement all the abstract members
+        // in the base class, unless the class is also abstract.`
+        // https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0534
+        private static readonly string ImplementAbstractClassDiagnostic = "CS0534";
+        private static readonly string ImplementAbstractClassCodeActionTitle = "Implement abstract class";
+
+
+        // `'class' does not implement interface member 'member'`
+        // https://docs.microsoft.com/en-us/dotnet/csharp/misc/cs0535
+        private static readonly string ImplementInterfaceDiagnostic = "CS0535";
+        private static readonly IEnumerable<string> ImplementInterfaceCodeActionTitle = new HashSet<string>()
+        {
+            "Implement interface",
+            "Implement interface with Dispose pattern"
+        };
+
         private static readonly IEnumerable<string> SupportedDiagnostics = new[]
         {
-            // `The type or namespace name 'type/namespace' could not be found
-            //  (are you missing a using directive or an assembly reference?)`
-            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0246
-            "CS0246",
-
-            // `The name 'identifier' does not exist in the current context`
-            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0103
-            "CS0103"
+            ImplementAbstractClassDiagnostic,
+            ImplementInterfaceDiagnostic
         };
 
         public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
