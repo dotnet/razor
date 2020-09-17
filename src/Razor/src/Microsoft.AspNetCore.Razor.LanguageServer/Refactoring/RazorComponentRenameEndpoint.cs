@@ -94,12 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             var originTagHelpers = await GetOriginTagHelpersAsync(requestDocumentSnapshot, codeDocument, request.Position).ConfigureAwait(false);
-            if (originTagHelpers is null)
-            {
-                return null;
-            }
-
-            if (originTagHelpers is null)
+            if (originTagHelpers is null || originTagHelpers.Count == 0)
             {
                 return null;
             }
@@ -281,18 +276,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             return edits;
         }
 
-        private static bool BindingContainsTagHelper(TagHelperDescriptor primaryTagHelper, TagHelperBinding potentialBinding)
-        {
-            foreach (var descriptor in potentialBinding.Descriptors)
-            {
-                if (descriptor.Equals(primaryTagHelper))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+        private static bool BindingContainsTagHelper(TagHelperDescriptor tagHelper, TagHelperBinding potentialBinding) => potentialBinding.Descriptors.Any(descriptor => descriptor.Equals(tagHelper));
 
         private async Task<IReadOnlyList<TagHelperDescriptor>> GetOriginTagHelpersAsync(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, Position position)
         {
