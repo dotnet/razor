@@ -175,6 +175,14 @@
           {
             "id": "razorDirectiveColon",
             "description": "A colon between directive attribute parameters"
+          },
+          {
+            "id": "razorDirective",
+            "description": "A Razor directive such as 'code' or 'function'"
+          },
+          {
+            "id": "razorComment",
+            "description": "A Razor comment"
           }
         ],
         "semanticTokenScopes": [
@@ -185,7 +193,8 @@
               "razorTransition": [ "keyword.control.razor.transition" ],
               "razorDirectiveAttribute": [ "keyword.control.razor.directive.attribute", "keyword.control.cshtml.directive.attribute" ],
               "razorDirectiveColon": [ "keyword.control.razor.directive.colon", "keyword.control.cshtml.directive.colon" ],
-              "razorDirective": [ "keyword.control.razor.directive", "keyword.control.cshtml.directive" ]
+              "razorDirective": [ "keyword.control.razor.directive", "keyword.control.cshtml.directive" ],
+              "razorComment": [ "comment.block.razor"]
             }
           }
         ],

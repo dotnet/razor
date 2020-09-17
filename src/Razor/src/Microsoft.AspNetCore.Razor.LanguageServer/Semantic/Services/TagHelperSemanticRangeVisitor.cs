@@ -34,19 +34,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return visitor._semanticRanges;
         }
 
+        public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
+        {
+            AddSemanticRange(node, SyntaxKind.RazorComment);
+            base.VisitRazorCommentBlock(node);
+        }
+
         public override void VisitRazorDirective(RazorDirectiveSyntax node)
         {
-            var result = CreateSemanticRange(node.Transition, SyntaxKind.Transition);
-            AddNode(result);
-
+            AddSemanticRange(node.Transition, SyntaxKind.Transition);
             base.VisitRazorDirective(node);
         }
 
         public override void VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
         {
-            var result = CreateSemanticRange(node.Keyword, SyntaxKind.RazorDirective);
-            AddNode(result);
-
+            AddSemanticRange(node.Keyword, SyntaxKind.RazorDirective);
             base.VisitRazorDirectiveBody(node);
         }
 
@@ -54,9 +56,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
             {
-                var result = CreateSemanticRange(node.Name, SyntaxKind.MarkupTagHelperStartTag);
-                AddNode(result);
+                AddSemanticRange(node.Name, SyntaxKind.MarkupTagHelperStartTag);
             }
+
             base.VisitMarkupTagHelperStartTag(node);
         }
 
@@ -64,9 +66,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
             {
-                var result = CreateSemanticRange(node.Name, SyntaxKind.MarkupTagHelperEndTag);
-                AddNode(result);
+                AddSemanticRange(node.Name, SyntaxKind.MarkupTagHelperEndTag);
             }
+
             base.VisitMarkupTagHelperEndTag(node);
         }
 
@@ -74,8 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (node.TagHelperAttributeInfo.Bound)
             {
-                var result = CreateSemanticRange(node.Name, SyntaxKind.MarkupMinimizedTagHelperAttribute);
-                AddNode(result);
+                AddSemanticRange(node.Name, SyntaxKind.MarkupMinimizedTagHelperAttribute);
             }
 
             base.VisitMarkupMinimizedTagHelperAttribute(node);
@@ -85,8 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (node.TagHelperAttributeInfo.Bound)
             {
-                var result = CreateSemanticRange(node.Name, SyntaxKind.MarkupTagHelperAttribute);
-                AddNode(result);
+                AddSemanticRange(node.Name, SyntaxKind.MarkupTagHelperAttribute);
             }
 
             base.VisitMarkupTagHelperAttribute(node);
@@ -96,22 +96,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (node.TagHelperAttributeInfo.Bound)
             {
-                var transition = CreateSemanticRange(node.Transition, SyntaxKind.Transition);
-                AddNode(transition);
-
-                var directiveAttribute = CreateSemanticRange(node.Name, SyntaxKind.MarkupTagHelperDirectiveAttribute);
-                AddNode(directiveAttribute);
+                AddSemanticRange(node.Transition, SyntaxKind.Transition);
+                AddSemanticRange(node.Name, SyntaxKind.MarkupTagHelperDirectiveAttribute);
 
                 if (node.Colon != null)
                 {
-                    var colon = CreateSemanticRange(node.Colon, SyntaxKind.Colon);
-                    AddNode(colon);
+                    AddSemanticRange(node.Colon, SyntaxKind.Colon);
                 }
 
                 if (node.ParameterName != null)
                 {
-                    var parameterName = CreateSemanticRange(node.ParameterName, SyntaxKind.MarkupTagHelperDirectiveAttribute);
-                    AddNode(parameterName);
+                    AddSemanticRange(node.ParameterName, SyntaxKind.MarkupTagHelperDirectiveAttribute);
                 }
             }
 
@@ -122,35 +117,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (node.TagHelperAttributeInfo.Bound)
             {
-                var transition = CreateSemanticRange(node.Transition, SyntaxKind.Transition);
-                AddNode(transition);
-
-                var directiveAttribute = CreateSemanticRange(node.Name, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute);
-                AddNode(directiveAttribute);
+                AddSemanticRange(node.Transition, SyntaxKind.Transition);
+                AddSemanticRange(node.Name, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute);
 
                 if (node.Colon != null)
                 {
-                    var colon = CreateSemanticRange(node.Colon, SyntaxKind.Colon);
-                    AddNode(colon);
+                    AddSemanticRange(node.Colon, SyntaxKind.Colon);
                 }
 
                 if (node.ParameterName != null)
                 {
-                    var parameterName = CreateSemanticRange(node.ParameterName, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute);
-
-                    AddNode(parameterName);
+                    AddSemanticRange(node.ParameterName, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute);
                 }
             }
 
             base.VisitMarkupMinimizedTagHelperDirectiveAttribute(node);
-        }
-
-        private void AddNode(SemanticRange semanticRange)
-        {
-            if (_range is null || semanticRange.Range.OverlapsWith(_range))
-            {
-                _semanticRanges.Add(semanticRange);
-            }
         }
 
         // We don't want to classify TagNames of well-known HTML
@@ -194,7 +175,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return false;
         }
 
-        private SemanticRange CreateSemanticRange(SyntaxNode node, SyntaxKind kind)
+        private void AddSemanticRange(SyntaxNode node, SyntaxKind kind)
         {
             int semanticKind;
             switch (kind)
@@ -220,6 +201,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 case SyntaxKind.RazorDirective:
                     semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorDirective];
                     break;
+                case SyntaxKind.RazorComment:
+                    semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorComment];
+                    break;
                 default:
                     throw new NotImplementedException();
             }
@@ -227,9 +211,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var source = _razorCodeDocument.Source;
             var range = node.GetRange(source);
 
-            var result = new SemanticRange(semanticKind, range);
+            var semanticRange = new SemanticRange(semanticKind, range);
 
-            return result;
+            if (_range is null || semanticRange.Range.OverlapsWith(_range))
+            {
+                _semanticRanges.Add(semanticRange);
+            }
         }
     }
 }
