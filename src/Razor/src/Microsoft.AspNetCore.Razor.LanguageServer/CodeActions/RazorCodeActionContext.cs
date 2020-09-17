@@ -3,16 +3,16 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal sealed class RazorCodeActionContext
     {
         public RazorCodeActionContext(
-            RazorCodeActionParams request,
+            CodeActionParams request,
             DocumentSnapshot documentSnapshot,
             RazorCodeDocument codeDocument,
             SourceLocation location,
@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             SupportsFileCreation = supportsFileCreation;
         }
 
-        public RazorCodeActionParams Request { get; }
+        public CodeActionParams Request { get; }
         public DocumentSnapshot DocumentSnapshot { get; }
         public RazorCodeDocument CodeDocument { get; }
         public SourceLocation Location { get; }

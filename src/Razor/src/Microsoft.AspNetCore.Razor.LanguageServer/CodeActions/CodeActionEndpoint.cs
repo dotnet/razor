@@ -135,6 +135,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
 
+            // VS Provides `CodeActionParams.Context.SelectionRange` in addition to
+            // `CodeActionParams.Range`. The `SelectionRange` is relative to where the
+            // code action was invoked (ex. line 14, char 3) whereas the `Range` is
+            // always at the start of the line (ex. line 14, char 0). We want to utilize
+            // the relative positioning to ensure we provide code actions for the appropriate
+            // context.
+            //
+            // Note: VS Code doesn't provide a `SelectionRange`.
             if (request.Context.SelectionRange != null)
             {
                 request.Range = request.Context.SelectionRange;

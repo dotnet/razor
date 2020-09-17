@@ -6,7 +6,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 {
-    class ExtendedCodeActionContext : CodeActionContext
+    internal class ExtendedCodeActionContext : CodeActionContext
     {
         [Optional]
         public Range SelectionRange { get; set; }
