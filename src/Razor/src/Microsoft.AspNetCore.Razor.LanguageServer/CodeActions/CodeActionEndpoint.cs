@@ -148,6 +148,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 request.Range = request.Context.SelectionRange;
             }
 
+            // We hide `CodeActionParams.CodeActionContext` in order to capture
+            // `RazorCodeActionParams.ExtendedCodeActionContext`, we must
+            // restore this context to access diagnostics.
+            (request as CodeActionParams).Context = request.Context;
+
             var linePosition = new LinePosition(
                 request.Range.Start.Line,
                 request.Range.Start.Character);
