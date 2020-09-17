@@ -273,7 +273,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var source = _razorCodeDocument.Source;
             var range = node.GetRange(source);
 
-            var semanticRange = new SemanticRange(semanticKind, range);
+            var semanticRange = new SemanticRange(semanticKind, range, modifier: 0);
 
             if (_range is null || semanticRange.Range.OverlapsWith(_range))
             {

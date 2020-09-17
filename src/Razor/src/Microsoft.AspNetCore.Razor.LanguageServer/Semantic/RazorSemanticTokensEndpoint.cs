@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return await Handle(request.TextDocument.Uri.GetAbsolutePath(), cancellationToken, request.Range);
+            return await Handle(request.TextDocument, cancellationToken, request.Range);
         }
 
         public async Task<SemanticTokensFullOrDelta?> Handle(SemanticTokensDeltaParams request, CancellationToken cancellationToken)
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var edits = _semanticTokensInfoService.GetSemanticTokensEdits(codeDocument, request.PreviousResultId);
+            var edits = await _semanticTokensInfoService.GetSemanticTokensEdits(codeDocument, request.TextDocument, request.PreviousResultId, cancellationToken);
 
             return edits;
         }
@@ -125,15 +125,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             });
         }
 
-        private async Task<SemanticTokens> Handle(string absolutePath, CancellationToken cancellationToken, Range range = null)
+        private async Task<SemanticTokens> Handle(TextDocumentIdentifier textDocument, CancellationToken cancellationToken, Range range = null)
         {
+            var absolutePath = textDocument.Uri.GetAbsolutePath();
             var codeDocument = await TryGetCodeDocumentAsync(absolutePath, cancellationToken);
             if (codeDocument is null)
             {
                 return null;
             }
 
-            var tokens = _semanticTokensInfoService.GetSemanticTokens(codeDocument, range);
+            var tokens = await _semanticTokensInfoService.GetSemanticTokens(codeDocument, textDocument, range, cancellationToken);
 
             return tokens;
         }

@@ -37,6 +37,7 @@ import { RazorReferenceProvider } from './RazorReferenceProvider';
 import { RazorRenameProvider } from './RazorRenameProvider';
 import { RazorSignatureHelpProvider } from './RazorSignatureHelpProvider';
 import { RazorDocumentSemanticTokensProvider } from './Semantic/RazorDocumentSemanticTokensProvider';
+import { SemanticTokensHandler } from './Semantic/SemanticTokensHandler';
 import { TelemetryReporter } from './TelemetryReporter';
 
 // We specifically need to take a reference to a particular instance of the vscode namespace,
@@ -75,6 +76,10 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 languageServiceClient,
                 logger);
             const codeActionHandler = new CodeActionsHandler(
+                documentManager,
+                languageServerClient,
+                logger);
+            const semanticTokenHandler = new SemanticTokensHandler(
                 documentManager,
                 languageServerClient,
                 logger);
@@ -176,6 +181,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
             razorFormattingFeature.register();
             razorCodeActionRunner.register();
             codeActionHandler.register();
+            semanticTokenHandler.register();
         });
 
         const onStopRegistration = languageServerClient.onStop(() => {
