@@ -223,7 +223,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             {
                 0, 0, 1, 2, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, 5, 0,
-                1, 0, 14, 6, 0
+                1, 0, 1, 7, 0,
+                0, 0, 1, 8, 0,
+                0, 0, 10, 6, 0,
+                0, 0, 1, 8, 0,
+                0, 0, 1, 7, 0
             }.ToImmutableArray();
 
             AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);

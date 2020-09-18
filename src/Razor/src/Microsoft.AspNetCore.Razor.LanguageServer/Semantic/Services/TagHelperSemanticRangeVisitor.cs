@@ -36,7 +36,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
         {
-            AddSemanticRange(node, SyntaxKind.RazorComment);
+            AddSemanticRange(node.StartCommentTransition, SyntaxKind.RazorCommentTransition);
+            AddSemanticRange(node.StartCommentStar, SyntaxKind.RazorCommentStar);
+            AddSemanticRange(node.Comment, SyntaxKind.RazorComment);
+            AddSemanticRange(node.EndCommentStar, SyntaxKind.RazorCommentStar);
+            AddSemanticRange(node.EndCommentTransition, SyntaxKind.RazorCommentTransition);
+
             base.VisitRazorCommentBlock(node);
         }
 
@@ -200,6 +205,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     break;
                 case SyntaxKind.RazorDirective:
                     semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorDirective];
+                    break;
+                case SyntaxKind.RazorCommentTransition:
+                    semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorCommentTransition];
+                    break;
+                case SyntaxKind.RazorCommentStar:
+                    semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorCommentStar];
                     break;
                 case SyntaxKind.RazorComment:
                     semanticKind = RazorSemanticTokensLegend.TokenTypesLegend[RazorSemanticTokensLegend.RazorComment];

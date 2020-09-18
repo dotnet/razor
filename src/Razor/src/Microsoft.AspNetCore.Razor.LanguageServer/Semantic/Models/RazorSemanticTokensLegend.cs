@@ -17,6 +17,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         public const string RazorDirectiveColon = "razorDirectiveColon";
         public const string RazorDirective = "razorDirective";
         public const string RazorComment = "razorComment";
+        public const string RazorCommentTransition = "razorCommentTransition";
+        public const string RazorCommentStar = "razorCommentStar";
 
         private static readonly IReadOnlyCollection<string> _tokenTypes = new string[] {
             RazorTagHelperElement,
@@ -25,7 +27,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             RazorDirectiveColon,
             RazorDirectiveAttribute,
             RazorDirective,
-            RazorComment
+            RazorComment,
+            RazorCommentTransition,
+            RazorCommentStar,
         };
 
         private static readonly string[] _tokenModifiers = new string[] {
