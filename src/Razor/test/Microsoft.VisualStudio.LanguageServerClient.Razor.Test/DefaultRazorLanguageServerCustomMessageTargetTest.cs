@@ -199,12 +199,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public async void ProvideCodeActionsAsync_CannotLookupVirtualDocument_ReturnsNull()
         {
             // Arrange
-            CSharpVirtualDocumentSnapshot csharpDocument;
-            LSPDocumentSnapshot document = Mock.Of<LSPDocumentSnapshot>(
-                document => document.TryGetVirtualDocument(out csharpDocument) == false
-            );
+            var testDocUri = new Uri("C:/path/to/file.razor");
+            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0);
+
             var documentManager = new Mock<TrackingLSPDocumentManager>();
-            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
             var request = new CodeActionParams()
@@ -226,13 +225,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public async void ProvideCodeActionsAsync_ReturnsCodeActions()
         {
             // Arrange
-            var virtualUri = new Uri("C:/path/to/file.razor.g.cs");
-            var csharpDocument = new CSharpVirtualDocumentSnapshot(virtualUri, Mock.Of<ITextSnapshot>(), 0);
-            LSPDocumentSnapshot document = Mock.Of<LSPDocumentSnapshot>(
-                document => document.TryGetVirtualDocument(out csharpDocument) == true
-            );
+            var testDocUri = new Uri("C:/path/to/file.razor");
+            var testVirtualDocUri = new Uri("C:/path/to/file2.razor.g");
+            var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
+
+            var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
+            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, Mock.Of<ITextSnapshot>(), 0);
+            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0, testVirtualDocument, csharpVirtualDocument);
+
             var documentManager = new Mock<TrackingLSPDocumentManager>();
-            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
 
             var expectedResults = new[] { new VSCodeAction() };
@@ -248,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = new Uri("C:/path/to/file.razor")
+                    Uri = testDocUri
                 }
             };
 

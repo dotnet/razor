@@ -16,7 +16,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
     {
@@ -44,8 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var csharpCodeActions = new[] {
                 new RazorCodeAction()
                 {
-                    Title = "System.Net.Dns",
-
+                    Title = "System.Net.Dns"
                 }
             };
 
@@ -99,8 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var csharpCodeActions = new[] {
                 new RazorCodeAction()
                 {
-                    Title = "System.Net.Dns",
-
+                    Title = "System.Net.Dns"
                 }
             };
 
