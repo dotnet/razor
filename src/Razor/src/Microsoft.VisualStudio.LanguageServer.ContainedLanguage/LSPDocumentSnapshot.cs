@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public abstract IReadOnlyList<VirtualDocumentSnapshot> VirtualDocuments { get; }
 
-        public bool TryGetVirtualDocument<TVirtualDocument>(out TVirtualDocument virtualDocument) where TVirtualDocument : VirtualDocumentSnapshot
+        public virtual bool TryGetVirtualDocument<TVirtualDocument>(out TVirtualDocument virtualDocument) where TVirtualDocument : VirtualDocumentSnapshot
         {
             for (var i = 0; i < VirtualDocuments.Count; i++)
             {

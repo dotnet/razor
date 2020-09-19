@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
@@ -168,6 +169,94 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.NotNull(result);
             var edit = Assert.Single(result.Edits);
             Assert.Equal("SomeEdit", edit.NewText);
+        }
+
+        [Fact]
+        public async void ProvideCodeActionsAsync_CannotLookupDocument_ReturnsNull()
+        {
+            // Arrange
+            LSPDocumentSnapshot document;
+            var documentManager = new Mock<TrackingLSPDocumentManager>();
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
+                .Returns(false);
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = new Uri("C:/path/to/file.razor")
+                }
+            };
+
+            // Act
+            var result = await target.ProvideCodeActionsAsync(request, CancellationToken.None);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async void ProvideCodeActionsAsync_CannotLookupVirtualDocument_ReturnsNull()
+        {
+            // Arrange
+            CSharpVirtualDocumentSnapshot csharpDocument;
+            LSPDocumentSnapshot document = Mock.Of<LSPDocumentSnapshot>(
+                document => document.TryGetVirtualDocument(out csharpDocument) == false
+            );
+            var documentManager = new Mock<TrackingLSPDocumentManager>();
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
+                .Returns(true);
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = new Uri("C:/path/to/file.razor")
+                }
+            };
+
+            // Act
+            var result = await target.ProvideCodeActionsAsync(request, CancellationToken.None);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async void ProvideCodeActionsAsync_ReturnsCodeActions()
+        {
+            // Arrange
+            var virtualUri = new Uri("C:/path/to/file.razor.g.cs");
+            var csharpDocument = new CSharpVirtualDocumentSnapshot(virtualUri, Mock.Of<ITextSnapshot>(), 0);
+            LSPDocumentSnapshot document = Mock.Of<LSPDocumentSnapshot>(
+                document => document.TryGetVirtualDocument(out csharpDocument) == true
+            );
+            var documentManager = new Mock<TrackingLSPDocumentManager>();
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
+                .Returns(true);
+
+            var expectedResults = new[] { new VSCodeAction() };
+            var requestInvoker = new Mock<LSPRequestInvoker>();
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<CodeActionParams, VSCodeAction[]>(
+                Methods.TextDocumentCodeActionName,
+                LanguageServerKind.CSharp.ToContentType(),
+                It.IsAny<CodeActionParams>(),
+                It.IsAny<CancellationToken>()
+            )).Returns(Task.FromResult(expectedResults));
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, JoinableTaskContext, requestInvoker.Object);
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = new Uri("C:/path/to/file.razor")
+                }
+            };
+
+            // Act
+            var result = await target.ProvideCodeActionsAsync(request, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(expectedResults, result);
         }
     }
 }
