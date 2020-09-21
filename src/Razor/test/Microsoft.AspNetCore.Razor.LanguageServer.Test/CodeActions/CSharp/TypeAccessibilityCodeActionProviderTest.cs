@@ -186,6 +186,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
             var provider = new TypeAccessibilityCodeActionProvider();
+
+            // A valid code actions is expected to end with `Path` as that's the `associatedText`
+            // indicated in the `Diagnostic.Range` for `CS0246` above.
             var csharpCodeActions = new[] {
                 new RazorCodeAction()
                 {
