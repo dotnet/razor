@@ -176,7 +176,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private async Task<IEnumerable<RazorCodeAction>> GetCSharpCodeActionsAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             var csharpCodeActions = await GetCSharpCodeActionsFromLanguageServerAsync(context, cancellationToken);
-            if (csharpCodeActions is null || csharpCodeActions.Count() == 0)
+            if (csharpCodeActions is null || !csharpCodeActions.Any())
             {
                 return null;
             }
