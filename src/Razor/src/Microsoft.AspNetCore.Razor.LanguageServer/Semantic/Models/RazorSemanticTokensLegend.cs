@@ -10,26 +10,67 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
     internal class RazorSemanticTokensLegend
     {
-        public const string RazorTagHelperElement = "razorTagHelperElement";
-        public const string RazorTagHelperAttribute = "razorTagHelperAttribute";
-        public const string RazorTransition = "razorTransition";
-        public const string RazorDirectiveAttribute = "razorDirectiveAttribute";
-        public const string RazorDirectiveColon = "razorDirectiveColon";
-        public const string RazorDirective = "razorDirective";
-        public const string RazorComment = "razorComment";
-        public const string RazorCommentTransition = "razorCommentTransition";
-        public const string RazorCommentStar = "razorCommentStar";
+        private const string RazorTagHelperElementString = "razorTagHelperElement";
+        private const string RazorTagHelperAttributeString = "razorTagHelperAttribute";
+        private const string RazorTransitionString = "razorTransition";
+        private const string RazorDirectiveAttributeString = "razorDirectiveAttribute";
+        private const string RazorDirectiveColonString = "razorDirectiveColon";
+        private const string RazorDirectiveString = "razorDirective";
+        private const string RazorCommentString = "razorComment";
+        private const string RazorCommentTransitionString = "razorCommentTransition";
+        private const string RazorCommentStarString = "razorCommentStar";
+
+        private const string OpenAngleString = "openAngle";
+        private const string ForwardSlashString = "forwardSlash";
+        private const string CloseAngleString = "closeAngle";
+        private const string EqualTokenString = "equals";
+        private const string MarkupElementString = "markupElement";
+        private const string MarkupAttributeString = "markupAttribute";
+        private const string MarkupAttributeQuoteString = "markupAttributeQuoteString";
+        private const string MarkupTextLiteralString = "markupTextLiteral";
+        private const string MarkupCommentPunctuationString = "markupCommentPunctuation";
+        private const string MarkupCommentString = "markupComment";
+
+        public static int RazorCommentTransition => TokenTypesLegend[RazorCommentTransitionString];
+        public static int RazorCommentStar => TokenTypesLegend[RazorCommentStarString];
+        public static int RazorComment => TokenTypesLegend[RazorCommentString];
+        public static int RazorTransition => TokenTypesLegend[RazorTransitionString];
+        public static int RazorTagHelperElement => TokenTypesLegend[RazorTagHelperElementString];
+        public static int RazorTagHelperAttribute => TokenTypesLegend[RazorTagHelperAttributeString];
+        public static int OpenAngle => TokenTypesLegend[OpenAngleString];
+        public static int CloseAngle => TokenTypesLegend[CloseAngleString];
+        public static int Slash => TokenTypesLegend[ForwardSlashString];
+        public static int EqualToken => TokenTypesLegend[EqualTokenString];
+        public static int MarkupElement => TokenTypesLegend[MarkupElementString];
+        public static int MarkupAttribute => TokenTypesLegend[MarkupAttributeString];
+        public static int MarkupAttributeQuote => TokenTypesLegend[MarkupAttributeQuoteString];
+        public static int RazorDirectiveAttribute => TokenTypesLegend[RazorDirectiveAttributeString];
+        public static int RazorDirectiveColon => TokenTypesLegend[RazorDirectiveColonString];
+        public static int RazorDirective => TokenTypesLegend[RazorDirectiveString];
+        public static int MarkupTextLiteral => TokenTypesLegend[MarkupTextLiteralString];
+        public static int MarkupCommentPunctuation => TokenTypesLegend[MarkupCommentPunctuationString];
+        public static int MarkupComment => TokenTypesLegend[MarkupCommentString];
 
         private static readonly IReadOnlyCollection<string> _tokenTypes = new string[] {
-            RazorTagHelperElement,
-            RazorTagHelperAttribute,
-            RazorTransition,
-            RazorDirectiveColon,
-            RazorDirectiveAttribute,
-            RazorDirective,
-            RazorComment,
-            RazorCommentTransition,
-            RazorCommentStar,
+            RazorTagHelperElementString,
+            RazorTagHelperAttributeString,
+            RazorTransitionString,
+            RazorDirectiveColonString,
+            RazorDirectiveAttributeString,
+            RazorDirectiveString,
+            RazorCommentString,
+            RazorCommentTransitionString,
+            RazorCommentStarString,
+            OpenAngleString,
+            ForwardSlashString,
+            CloseAngleString,
+            MarkupElementString,
+            EqualTokenString,
+            MarkupAttributeString,
+            MarkupAttributeQuoteString,
+            MarkupTextLiteralString,
+            MarkupCommentPunctuationString,
+            MarkupCommentString,
         };
 
         private static readonly string[] _tokenModifiers = new string[] {
