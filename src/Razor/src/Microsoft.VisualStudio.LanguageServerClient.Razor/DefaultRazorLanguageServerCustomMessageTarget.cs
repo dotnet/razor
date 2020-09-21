@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -203,11 +204,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(codeAction));
             }
 
-            return await _requestInvoker.ReinvokeRequestOnServerAsync<VSCodeAction, VSCodeAction>(
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSCodeAction, VSCodeAction>(
                 MSLSPMethods.TextDocumentCodeActionResolveName,
                 LanguageServerKind.CSharp.ToContentType(),
                 codeAction,
                 cancellationToken).ConfigureAwait(false);
+
+            return result;
         }
     }
 }

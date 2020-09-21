@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 {
-    public class CodeActionResolutionEndpointTest : LanguageServerTestBase
+    /*public class CodeActionResolutionEndpointTest : LanguageServerTestBase
     {
         [Fact]
         public async Task Handle_Valid_RazorCodeAction_Resolve()
@@ -111,5 +111,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 return null;
             }
         }
-    }
+    }*/
 }

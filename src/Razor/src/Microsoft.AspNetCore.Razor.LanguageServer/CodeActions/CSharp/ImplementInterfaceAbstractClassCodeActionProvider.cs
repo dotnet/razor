@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -56,9 +58,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
-                diagnostic.Severity == DiagnosticSeverity.Error &&
-                diagnostic.Code?.IsString == true &&
-                SupportedDiagnostics.Any(d => diagnostic.Code.Value.String.Equals(d, StringComparison.OrdinalIgnoreCase)));
+                    diagnostic.Severity == DiagnosticSeverity.Error &&
+                    diagnostic.Code?.IsString == true)
+                .Select(diagnostic => diagnostic.Code.Value.String)
+                .ToImmutableHashSet();
 
             if (diagnostics is null)
             {
@@ -67,115 +70,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var results = new List<RazorCodeAction>();
 
-            foreach (var diagnostic in diagnostics)
+            if (diagnostics.Contains(ImplementAbstractClassDiagnostic))
             {
-                var diagnosticSpan = diagnostic.Range.AsTextSpan(context.SourceText);
-                var associatedValue = context.SourceText.GetSubTextString(diagnosticSpan);
-
-                foreach (var codeAction in codeActions)
-                {
-                    if (TryProcessCodeAction(
-                            context,
-                            codeAction,
-                            diagnostic,
-                            associatedValue,
-                            out var typeAccessibilityCodeActions))
-                    {
-                        results.AddRange(typeAccessibilityCodeActions);
-                    }
-                }
+                var implementAbstractClassCodeAction = codeActions.Where(c =>
+                    c.Title == ImplementAbstractClassCodeActionTitle);
+                results.AddRange(implementAbstractClassCodeAction);
             }
 
-            results.Sort((a, b) => string.Compare(a.Title, b.Title, StringComparison.Ordinal));
-            return Task.FromResult(results as IReadOnlyList<RazorCodeAction>);
-        }
-
-        private static bool TryProcessCodeAction(
-            RazorCodeActionContext context,
-            RazorCodeAction codeAction,
-            Diagnostic diagnostic,
-            string associatedValue,
-            out ICollection<RazorCodeAction> typeAccessibilityCodeActions)
-        {
-            var fqn = string.Empty;
-
-            // When there's only one FQN suggestion, code action title is of the form:
-            // `System.Net.Dns`
-            if (!codeAction.Title.Any(c => char.IsWhiteSpace(c)) &&
-                codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase))
+            if (diagnostics.Contains(ImplementInterfaceDiagnostic))
             {
-                fqn = codeAction.Title;
-            }
-            else
-            {
-                // When there are multiple FQN suggestions, the code action title is of the form:
-                // `Fully qualify 'Dns' -> System.Net.Dns`
-                var expectedCodeActionPrefix = $"Fully qualify '{associatedValue}' -> ";
-                if (codeAction.Title.StartsWith(expectedCodeActionPrefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    fqn = codeAction.Title.Substring(expectedCodeActionPrefix.Length);
-                }
+                var implementInterfaceCodeActions = codeActions.Where(c =>
+                    ImplementInterfaceCodeActionTitle.Contains(c.Title));
+                results.AddRange(implementInterfaceCodeActions);
             }
 
-            if (string.IsNullOrEmpty(fqn))
-            {
-                typeAccessibilityCodeActions = default;
-                return false;
-            }
-
-            typeAccessibilityCodeActions = new List<RazorCodeAction>();
-
-            var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
-            typeAccessibilityCodeActions.Add(fqnCodeAction);
-
-            var addUsingCodeAction = CreateAddUsingCodeAction(context, fqn);
-            if (addUsingCodeAction != null)
-            {
-                typeAccessibilityCodeActions.Add(addUsingCodeAction);
-            }
-
-            return true;
-        }
-
-        private static RazorCodeAction CreateFQNCodeAction(
-            RazorCodeActionContext context,
-            Diagnostic fqnDiagnostic,
-            RazorCodeAction codeAction,
-            string fullyQualifiedName)
-        {
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
-
-            var fqnTextEdit = new TextEdit()
-            {
-                NewText = fullyQualifiedName,
-                Range = fqnDiagnostic.Range
-            };
-
-            var fqnWorkspaceEditDocumentChange = new WorkspaceEditDocumentChange(new TextDocumentEdit()
-            {
-                TextDocument = codeDocumentIdentifier,
-                Edits = new[] { fqnTextEdit },
-            });
-
-            var fqnWorkspaceEdit = new WorkspaceEdit()
-            {
-                DocumentChanges = new[] { fqnWorkspaceEditDocumentChange }
-            };
-
-            return new RazorCodeAction()
-            {
-                Title = codeAction.Title,
-                Edit = fqnWorkspaceEdit
-            };
-        }
-
-        private static RazorCodeAction CreateAddUsingCodeAction(
-            RazorCodeActionContext context,
-            string fullyQualifiedName)
-        {
-            return AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(
-                fullyQualifiedName,
-                context.Request.TextDocument.Uri);
+            return Task.FromResult(results.Select(c => c.WrapCSharpCodeAction(context)).ToList() as IReadOnlyList<RazorCodeAction>);
         }
     }
 }
