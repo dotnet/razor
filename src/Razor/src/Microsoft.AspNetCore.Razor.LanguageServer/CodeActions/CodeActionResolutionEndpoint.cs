@@ -4,15 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -25,28 +23,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static readonly string CodeActionsResolveProviderCapability = "codeActionsResolveProvider";
 
         private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly IReadOnlyDictionary<string, RazorCodeActionResolver> _resolvers;
+        private readonly IReadOnlyDictionary<string, RazorCodeActionResolver> _razorCodeActionResolvers;
+        private readonly IReadOnlyDictionary<string, CSharpCodeActionResolver> _csharpCodeActionResolvers;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly ILogger _logger;
         private readonly IClientLanguageServer _languageServer;
+        private readonly CSharpFormatter _csharpFormatter;
 
         public CodeActionResolutionEndpoint(
             RazorDocumentMappingService documentMappingService,
-            IEnumerable<RazorCodeActionResolver> resolvers,
+            IEnumerable<RazorCodeActionResolver> razorCodeActionResolvers,
+            IEnumerable<CSharpCodeActionResolver> csharpCodeActionResolvers,
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             ILoggerFactory loggerFactory,
-            IClientLanguageServer languageServer)
+            IClientLanguageServer languageServer,
+            FilePathNormalizer filePathNormalizer,
+            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
             if (documentMappingService is null)
             {
                 throw new ArgumentNullException(nameof(documentMappingService));
             }
 
-            if (resolvers is null)
+            if (razorCodeActionResolvers is null)
             {
-                throw new ArgumentNullException(nameof(resolvers));
+                throw new ArgumentNullException(nameof(razorCodeActionResolvers));
+            }
+
+            if (csharpCodeActionResolvers is null)
+            {
+                throw new ArgumentNullException(nameof(csharpCodeActionResolvers));
             }
 
             if (foregroundDispatcher is null)
@@ -69,22 +77,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
+            if (filePathNormalizer is null)
+            {
+                throw new ArgumentNullException(nameof(filePathNormalizer));
+            }
+
+            if (projectSnapshotManagerAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
+            }
+
             _documentMappingService = documentMappingService;
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
             _logger = loggerFactory.CreateLogger<CodeActionResolutionEndpoint>();
             _languageServer = languageServer;
 
-            var resolverMap = new Dictionary<string, RazorCodeActionResolver>();
-            foreach (var resolver in resolvers)
+
+            var razorResolverMap = new Dictionary<string, RazorCodeActionResolver>();
+            foreach (var resolver in razorCodeActionResolvers)
             {
-                if (resolverMap.ContainsKey(resolver.Action))
+                if (razorResolverMap.ContainsKey(resolver.Action))
                 {
                     Debug.Fail($"Duplicate resolver action for {resolver.Action}.");
                 }
-                resolverMap[resolver.Action] = resolver;
+                razorResolverMap[resolver.Action] = resolver;
             }
-            _resolvers = resolverMap;
+            _razorCodeActionResolvers = razorResolverMap;
+
+
+            var csharpResolverMap = new Dictionary<string, CSharpCodeActionResolver>();
+            foreach (var resolver in csharpCodeActionResolvers)
+            {
+                if (csharpResolverMap.ContainsKey(resolver.Action))
+                {
+                    Debug.Fail($"Duplicate resolver action for {resolver.Action}.");
+                }
+                csharpResolverMap[resolver.Action] = resolver;
+            }
+            _csharpCodeActionResolvers = csharpResolverMap;
+
+
+            _csharpFormatter = new CSharpFormatter(documentMappingService, languageServer, projectSnapshotManagerAccessor, filePathNormalizer);
         }
 
         // Register VS LSP code action resolution server capability
@@ -99,38 +133,50 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             if (!(request.Data is JObject paramsObj))
             {
-                Debug.Fail($"Invalid CodeAction Received {request.Title}.");
+                Debug.Fail($"Invalid CodeAction Received '{request.Title}'.");
                 return request;
             }
 
             var resolutionParams = paramsObj.ToObject<RazorCodeActionResolutionParams>();
 
-            if (resolutionParams.Action == LanguageServerConstants.CodeActions.CSharp)
+            _logger.LogInformation($"Resolving workspace edit for action {GetCodeActionId(resolutionParams)}.");
+
+            switch (resolutionParams.Language)
             {
-                return await ResolveCSharpCodeActionsFromLanguageServerAsync(request, resolutionParams, cancellationToken);
-            }
-            else
-            {
-                request.Edit = await GetWorkspaceEditAsync(resolutionParams, cancellationToken).ConfigureAwait(false);
-                return request;
+                case LanguageServerConstants.Languages.Razor:
+                    return await ResolveRazorCodeAction(
+                        request,
+                        resolutionParams,
+                        cancellationToken).ConfigureAwait(false);
+                case LanguageServerConstants.Languages.CSharp:
+                    return await ResolveCSharpCodeAction(
+                        request,
+                        resolutionParams,
+                        cancellationToken);
+                default:
+                    Debug.Fail($"Invalid CodeAction.Data.Language. Received {GetCodeActionId(resolutionParams)}.");
+                    return request;
             }
         }
 
         // Internal for testing
-        internal async Task<WorkspaceEdit> GetWorkspaceEditAsync(RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+        internal async Task<RazorCodeAction> ResolveRazorCodeAction(
+            RazorCodeAction request,
+            RazorCodeActionResolutionParams resolutionParams,
+            CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Resolving workspace edit for action `{resolutionParams.Action}`.");
-
-            if (!_resolvers.TryGetValue(resolutionParams.Action, out var resolver))
+            if (!_razorCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
             {
-                Debug.Fail($"No resolver registered for {resolutionParams.Action}.");
+                Debug.Fail($"No resolver registered for {GetCodeActionId(resolutionParams)}.");
                 return null;
             }
 
-            return await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
+            request.Edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
+            return request;
         }
 
-        private async Task<RazorCodeAction> ResolveCSharpCodeActionsFromLanguageServerAsync(
+        // Internal for testing
+        internal async Task<RazorCodeAction> ResolveCSharpCodeAction(
             RazorCodeAction codeAction,
             RazorCodeActionResolutionParams resolutionParams,
             CancellationToken cancellationToken)
@@ -144,61 +190,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var csharpParams = csharpParamsObj.ToObject<CSharpCodeActionParams>();
             codeAction.Data = csharpParams.Data;
 
-            var response = _languageServer.SendRequest(LanguageServerConstants.RazorResolveCodeActionsEndpoint, codeAction);
-            var resolvedCodeAction = await response.Returning<RazorCodeAction>(cancellationToken);
-
-            if (resolvedCodeAction.Edit?.DocumentChanges is null)
+            if (!_csharpCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
             {
-                return resolvedCodeAction;
+                Debug.Fail($"No resolver registered for {GetCodeActionId(resolutionParams)}.");
+                return codeAction;
             }
 
-            var documentSnapshot = await Task.Factory.StartNew(() =>
-            {
-                _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
-
-            if (documentSnapshot is null)
-            {
-                return null;
-            }
-
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-
-            var oldText = SourceText.From(codeDocument.GetCSharpDocument().GeneratedCode);
-            var newText = SourceText.From(resolvedCodeAction.Edit.DocumentChanges.First().TextDocumentEdit.Edits.First().NewText);
-
-            var changes = SourceTextDiffer.GetMinimalTextChanges(oldText, newText);
-
-            var edits = new List<TextEdit>();
-
-            foreach (var change in changes)
-            {
-                var csharpTextEdit = change.AsTextEdit(oldText);
-
-                if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, csharpTextEdit.Range, out var razorTextEditRange))
-                {
-                    csharpTextEdit.Range = razorTextEditRange;
-                    edits.Add(csharpTextEdit);
-                }
-            }
-
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = csharpParams.RazorFileUri };
-            resolvedCodeAction.Edit = new WorkspaceEdit()
-            {
-                DocumentChanges = new List<WorkspaceEditDocumentChange>() {
-                    new WorkspaceEditDocumentChange(
-                        new TextDocumentEdit()
-                        {
-                            TextDocument = codeDocumentIdentifier,
-                            Edits = edits,
-                        }
-                    )
-                }
-            };
-
-
+            var resolvedCodeAction = await resolver.ResolveAsync(csharpParams, codeAction, cancellationToken);
             return resolvedCodeAction;
         }
+
+        private static string GetCodeActionId(RazorCodeActionResolutionParams resolutionParams) =>
+            $"`{resolutionParams.Language}.{resolutionParams.Action}`";
     }
 }

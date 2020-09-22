@@ -24,6 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
+                Language = LanguageServerConstants.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
             };
             var request = new RazorCodeAction()
@@ -50,6 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "A",
+                Language = LanguageServerConstants.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
             };
 
@@ -71,6 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "B",
+                Language = LanguageServerConstants.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
             };
 

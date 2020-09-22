@@ -30,11 +30,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             });
         }
 
-        public static RazorCodeAction WrapCSharpCodeAction(this RazorCodeAction razorCodeAction, RazorCodeActionContext context)
+        public static RazorCodeAction WrapCSharpCodeAction(
+            this RazorCodeAction razorCodeAction,
+            RazorCodeActionContext context,
+            string action = LanguageServerConstants.CodeActions.Default)
         {
             if (razorCodeAction is null)
             {
                 throw new ArgumentNullException(nameof(razorCodeAction));
+            }
+
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
             }
 
             var csharpParams = new CSharpCodeActionParams()
@@ -45,7 +53,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 
             razorCodeAction.Data = new RazorCodeActionResolutionParams()
             {
-                Action = LanguageServerConstants.CodeActions.CSharp,
+                Action = action,
+                Language = LanguageServerConstants.Languages.CSharp,
                 Data = csharpParams
             };
 

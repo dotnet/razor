@@ -41,6 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var resolutionParams = new RazorCodeActionResolutionParams
             {
                 Action = LanguageServerConstants.CodeActions.AddUsing,
+                Language = LanguageServerConstants.Languages.Razor,
                 Data = actionParams,
             };
 

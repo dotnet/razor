@@ -54,7 +54,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             public const string AddUsing = "AddUsing";
 
+            public const string Default = "Default";
+        }
+
+
+        public static class Languages
+        {
             public const string CSharp = "CSharp";
+
+            public const string Razor = "Razor";
         }
     }
 }
