@@ -221,6 +221,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         // CSharp Code actions
                         services.AddSingleton<CSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
                         services.AddSingleton<CSharpCodeActionProvider, ImplementInterfaceAbstractClassCodeActionProvider>();
+                        services.AddSingleton<CSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
 
                         // Other
                         services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
