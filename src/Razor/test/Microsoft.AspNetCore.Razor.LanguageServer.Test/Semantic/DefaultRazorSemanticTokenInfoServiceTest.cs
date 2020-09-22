@@ -40,14 +40,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         [Fact]
         public void GetSemanticTokens_HTMLComment()
         {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<!-- comment --> ";
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<!-- comment with comma's --> ";
             var expectedData = new List<int>
             {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
                 1, 0, 4, RazorSemanticTokensLegend.MarkupCommentPunctuation, 0,
-                0, 4, 9, RazorSemanticTokensLegend.MarkupComment, 0,
-                0, 9, 3, RazorSemanticTokensLegend.MarkupCommentPunctuation, 0,
+                0, 4, 22, RazorSemanticTokensLegend.MarkupComment, 0,
+                0, 22, 3, RazorSemanticTokensLegend.MarkupCommentPunctuation, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
@@ -629,8 +629,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     0, 5, 1, RazorSemanticTokensLegend.CloseAngle, 0,
                 }.ToImmutableArray(),
             };
-
-            var previousResultId = AssertSemanticTokenEdits(txt, expectedEdits, isRazor: false, previousResultId: null, out var service);
+            var previousResultId = AssertSemanticTokenEdits(txt, expectedEdits, isRazor: false, previousResultId: null, out _);
             Assert.NotNull(previousResultId);
         }
 
