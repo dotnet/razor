@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -76,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
         {
-            System.Diagnostics.Debug.Assert(node.Children.Count == 3, $"There should be 3 nodes but were {node.Children.Count}");
+            Debug.Assert(node.Children.Count == 3, $"There should be 3 nodes but were {node.Children.Count}");
             AddSemanticRange(node.Children[0], RazorSemanticTokensLegend.MarkupCommentPunctuation);
             AddSemanticRange(node.Children[1], SyntaxKind.MarkupCommentBlock);
             AddSemanticRange(node.Children[2], RazorSemanticTokensLegend.MarkupCommentPunctuation);

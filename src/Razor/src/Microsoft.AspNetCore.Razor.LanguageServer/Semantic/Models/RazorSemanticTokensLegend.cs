@@ -20,8 +20,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         private const string RazorCommentTransitionString = "razorCommentTransition";
         private const string RazorCommentStarString = "razorCommentStar";
 
-        private const string MarkupTagDelimiterString = "angleBracket";
-        private const string MarkupOperatorString = "equals";
+        private const string MarkupTagDelimiterString = "markupTagDelimiter";
+        private const string MarkupOperatorString = "markupOperator";
         private const string MarkupElementString = "markupElement";
         private const string MarkupAttributeString = "markupAttribute";
         private const string MarkupAttributeQuoteString = "markupAttributeQuoteString";

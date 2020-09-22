@@ -185,23 +185,15 @@
             "description": "A Razor comment"
           },
           {
-            "id": "razorCommentTransition",
-            "description": "The transition of a Razor comment."
+            "id": "markupCommentPunctuation",
+            "description": "The '@' or '*' of a Razor comment."
           },
           {
-            "id": "razorCommentStar",
-            "description": "The '*' in a Razor comment."
+            "id": "markupTagDelimiter",
+            "description": "Markup delimiters like '<', '>', and '/'."
           },
           {
-            "id": "angleBracket",
-            "description": "Markup angle brackets '<' and '>'."
-          },
-          {
-            "id": "forwardSlash",
-            "description": "Markup '/' for ending tags."
-          },
-          {
-            "id": "equals",
+            "id": "markupOperator",
             "description": "Delimiter for Markup Attribute Key-Value pairs."
           },
           {
