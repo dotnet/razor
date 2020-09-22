@@ -139,5 +139,38 @@ expected: @"@page ""/test""
 }
 ");
         }
+
+        [Fact]
+        public async Task FormatsMixedRazorBlock()
+        {
+            await RunFormattingTestAsync(
+input: @"|@page ""/test""
+@{
+<p>
+        @if (true) {
+                var t = 1;
+if (true)
+{
+<div>@DateTime.Now</div>
+            }
+        }
+        </p>
+}
+|",
+expected: @"@page ""/test""
+@{
+    <p>
+        @if (true)
+        {
+            var t = 1;
+            if (true)
+            {
+                <div>@DateTime.Now</div>
+            }
+        }
+    </p>
+}
+");
+        }
     }
 }
