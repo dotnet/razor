@@ -351,13 +351,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     break;
                 case SyntaxKind.OpenAngle:
                 case SyntaxKind.CloseAngle:
-                    semanticKind = RazorSemanticTokensLegend.AngleBracket;
-                    break;
                 case SyntaxKind.ForwardSlash:
-                    semanticKind = RazorSemanticTokensLegend.Slash;
+                    semanticKind = RazorSemanticTokensLegend.MarkupTagDelimiter;
                     break;
                 case SyntaxKind.Equals:
-                    semanticKind = RazorSemanticTokensLegend.EqualToken;
+                    semanticKind = RazorSemanticTokensLegend.MarkupOperator;
                     break;
                 case SyntaxKind.MarkupElement:
                     semanticKind = RazorSemanticTokensLegend.MarkupElement;

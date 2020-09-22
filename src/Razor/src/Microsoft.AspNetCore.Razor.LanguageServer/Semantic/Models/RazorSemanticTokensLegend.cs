@@ -20,9 +20,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         private const string RazorCommentTransitionString = "razorCommentTransition";
         private const string RazorCommentStarString = "razorCommentStar";
 
-        private const string AngleBracketString = "angleBracket";
-        private const string ForwardSlashString = "forwardSlash";
-        private const string EqualTokenString = "equals";
+        private const string MarkupTagDelimiterString = "angleBracket";
+        private const string MarkupOperatorString = "equals";
         private const string MarkupElementString = "markupElement";
         private const string MarkupAttributeString = "markupAttribute";
         private const string MarkupAttributeQuoteString = "markupAttributeQuoteString";
@@ -36,9 +35,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         public static int RazorTransition => TokenTypesLegend[RazorTransitionString];
         public static int RazorTagHelperElement => TokenTypesLegend[RazorTagHelperElementString];
         public static int RazorTagHelperAttribute => TokenTypesLegend[RazorTagHelperAttributeString];
-        public static int AngleBracket => TokenTypesLegend[AngleBracketString];
-        public static int Slash => TokenTypesLegend[ForwardSlashString];
-        public static int EqualToken => TokenTypesLegend[EqualTokenString];
+        public static int MarkupTagDelimiter => TokenTypesLegend[MarkupTagDelimiterString];
+        public static int MarkupOperator => TokenTypesLegend[MarkupOperatorString];
         public static int MarkupElement => TokenTypesLegend[MarkupElementString];
         public static int MarkupAttribute => TokenTypesLegend[MarkupAttributeString];
         public static int MarkupAttributeQuote => TokenTypesLegend[MarkupAttributeQuoteString];
@@ -59,10 +57,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             RazorCommentString,
             RazorCommentTransitionString,
             RazorCommentStarString,
-            AngleBracketString,
-            ForwardSlashString,
+            MarkupTagDelimiterString,
             MarkupElementString,
-            EqualTokenString,
+            MarkupOperatorString,
             MarkupAttributeString,
             MarkupAttributeQuoteString,
             MarkupTextLiteralString,

@@ -183,6 +183,42 @@
           {
             "id": "razorComment",
             "description": "A Razor comment"
+          },
+          {
+            "id": "razorCommentTransition",
+            "description": "The transition of a Razor comment."
+          },
+          {
+            "id": "razorCommentStar",
+            "description": "The '*' in a Razor comment."
+          },
+          {
+            "id": "angleBracket",
+            "description": "Markup angle brackets '<' and '>'."
+          },
+          {
+            "id": "forwardSlash",
+            "description": "Markup '/' for ending tags."
+          },
+          {
+            "id": "equals",
+            "description": "Delimiter for Markup Attribute Key-Value pairs."
+          },
+          {
+            "id": "markupElement",
+            "description": "The name of a Markup element."
+          },
+          {
+            "id": "markupAttribute",
+            "description": "The name of a Markup attribute."
+          },
+          {
+            "id": "markupComment",
+            "description": "The contents of a Markup comment."
+          },
+          {
+            "id": "markupCommentPunctuation",
+            "description": "The begining or ending punctuation of a Markup comment."
           }
         ],
         "semanticTokenScopes": [

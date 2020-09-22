@@ -28,10 +28,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.MarkupElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.Slash, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
@@ -62,13 +62,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
@@ -81,15 +81,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
                 0, 6, 8, RazorSemanticTokensLegend.RazorTagHelperAttribute, 0,
-                0, 8, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 7, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 7, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
@@ -102,14 +102,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
                 0, 6, 8, RazorSemanticTokensLegend.RazorTagHelperAttribute, 0,
-                0, 8, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
@@ -122,17 +122,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
                 0, 6, 8, RazorSemanticTokensLegend.RazorTagHelperAttribute, 0,
-                0, 8, 1, RazorSemanticTokensLegend.EqualToken, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
                 0, 8, 5, RazorSemanticTokensLegend.MarkupAttribute, 0,
-                0, 5, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 15, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 15, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
@@ -145,17 +145,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.MarkupElement, 0,
                 0, 6, 8, RazorSemanticTokensLegend.MarkupAttribute, 0,
-                0, 8, 1, RazorSemanticTokensLegend.EqualToken, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
                 0, 8, 5, RazorSemanticTokensLegend.MarkupAttribute, 0,
-                0, 5, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 15, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 15, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.MarkupElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);
@@ -168,15 +168,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
                 0, 2, 8, RazorSemanticTokensLegend.MarkupAttribute, 0,
-                0, 8, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 7, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 7, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
@@ -192,14 +192,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 11, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
                 0, 12, 1, RazorSemanticTokensLegend.RazorTransition, 0,
                 0, 1, 9, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
                 0, 9, 1, RazorSemanticTokensLegend.RazorDirectiveColon, 0,
                 0, 1, 9, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
-                0, 10, 1, RazorSemanticTokensLegend.Slash, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 10, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);
@@ -212,18 +212,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
                 0, 6, 1, RazorSemanticTokensLegend.RazorTransition, 0,
                 0, 1, 4, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
                 0, 4, 1, RazorSemanticTokensLegend.RazorDirectiveColon, 0,
                 0, 1, 9, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
-                0, 9, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 11, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 9, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 11, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);
@@ -236,15 +236,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.MarkupElement, 0,
                 0, 6, 8, RazorSemanticTokensLegend.MarkupAttribute, 0,
-                0, 8, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 7, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 7, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.MarkupElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);
@@ -257,16 +257,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
                 0, 6, 1, RazorSemanticTokensLegend.RazorTransition, 0,
                 0, 1, 4, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
-                0, 4, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 11, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 4, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 11, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);
@@ -277,16 +277,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"{Environment.NewLine}<p @test='Function'></p> ";
             var expectedData = new List<int> {
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
                 0, 2, 1, RazorSemanticTokensLegend.RazorTransition, 0,
                 0, 1, 4, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
-                0, 4, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 11, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 4, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 11, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);
@@ -297,13 +297,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelpers *, TestAssembly{Environment.NewLine}<p></p> ";
             var expectedData = new List<int> {
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);
@@ -384,13 +384,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -410,29 +410,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
 
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
 
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
 
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -459,13 +459,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -477,7 +477,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     new SemanticTokensEdit
                     {
                         Start = 21,
-                        Data = new List<int>{ 6, 8, 1, 0, 0, 8, 1, 13, 0, 0, 7, }.ToImmutableArray(),
+                        Data = new List<int>{ 6, 8, 1, 0, 0, 8, 1, 11, 0, 0, 7, }.ToImmutableArray(),
                         DeleteCount = 1,
                     },
                 }
@@ -494,10 +494,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 6, 1, RazorSemanticTokensLegend.Slash, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 6, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -529,7 +529,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                         DeleteCount = 1,
                         Data = new List<int>
                         {
-                            1, 12
+                            1, 10
                         }.ToImmutableArray()
                     },
                     new SemanticTokensEdit
@@ -594,13 +594,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     {
                         Start = 10,
                         Data = new int[]{
-                            1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                            1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                             0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                            0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                            0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                            0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                            0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                            0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                            0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                             0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                            0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                            0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                         }.ToImmutableArray(),
                         DeleteCount = 0,
                     }
@@ -620,13 +620,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 Data = new int[] {
                     0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                     0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                    1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                     0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                    0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                    0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                    0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                    0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                    0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                    0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                     0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                    0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                    0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 }.ToImmutableArray(),
             };
             var previousResultId = AssertSemanticTokenEdits(txt, expectedEdits, isRazor: false, previousResultId: null, out _);
@@ -640,13 +640,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new int[]{
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -659,7 +659,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     new SemanticTokensEdit
                     {
                         Start = 17,
-                        Data = new int[]{ 1, 12 }.ToImmutableArray(),
+                        Data = new int[]{ 1, 10 }.ToImmutableArray(),
                         DeleteCount = 1,
                     },
                     new SemanticTokensEdit
@@ -671,7 +671,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     new SemanticTokensEdit
                     {
                         Start = 37,
-                        Data = new int[]{ 1, 12 }.ToImmutableArray(),
+                        Data = new int[]{ 1, 10 }.ToImmutableArray(),
                         DeleteCount = 1,
                     },
                     new SemanticTokensEdit
@@ -694,13 +694,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -715,11 +715,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                         Data = new int[]{
                             0, 1, 1, 9, 0,
                             0, 1, 5, 0, 0,
-                            0, 5, 1, 11, 0,
+                            0, 5, 1, 9, 0,
                             0, 1, 1, 9, 0,
-                            0, 1, 1, 10, 0,
+                            0, 1, 1, 9, 0,
                             0, 1, 5, 0, 0,
-                            0, 5, 1, 11, 0,
+                            0, 5, 1, 9, 0,
                         }.ToImmutableArray(),
                         DeleteCount = 0,
                     }
@@ -740,26 +740,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
 
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
                 0, 6, 8, RazorSemanticTokensLegend.RazorTagHelperAttribute, 0,
-                0, 8, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 8, 1, RazorSemanticTokensLegend.Slash, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
 
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
                 0, 6, 8, RazorSemanticTokensLegend.RazorTagHelperAttribute, 0,
-                0, 8, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 8, 1, RazorSemanticTokensLegend.Slash, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
 
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
                 0, 6, 8, RazorSemanticTokensLegend.RazorTagHelperAttribute, 0,
-                0, 8, 1, RazorSemanticTokensLegend.EqualToken, 0,
-                0, 8, 1, RazorSemanticTokensLegend.Slash, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 8, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -775,7 +775,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     new SemanticTokensEdit
                     {
                         Start = 22,
-                        Data = new int[]{ 7, 14 }.ToImmutableArray(),
+                        Data = new int[]{ 7, 12 }.ToImmutableArray(),
                         DeleteCount = 2,
                     },
                     new SemanticTokensEdit
@@ -797,13 +797,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             var previousResultId = AssertSemanticTokens(txt, expectedData, isRazor: false, out var service);
@@ -817,13 +817,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     {
                         Start = 45,
                         Data = new int[]{
-                            1, 0, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                            1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                             0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                            0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                            0, 1, 1, RazorSemanticTokensLegend.AngleBracket, 0,
-                            0, 1, 1, RazorSemanticTokensLegend.Slash, 0,
+                            0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                            0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                            0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                             0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                            0, 5, 1, RazorSemanticTokensLegend.AngleBracket, 0,
+                            0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                         }.ToImmutableArray(),
                         DeleteCount = 0,
                     }
