@@ -20,9 +20,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         private const string RazorCommentTransitionString = "razorCommentTransition";
         private const string RazorCommentStarString = "razorCommentStar";
 
-        private const string OpenAngleString = "openAngle";
+        private const string AngleBracketString = "angleBracket";
         private const string ForwardSlashString = "forwardSlash";
-        private const string CloseAngleString = "closeAngle";
         private const string EqualTokenString = "equals";
         private const string MarkupElementString = "markupElement";
         private const string MarkupAttributeString = "markupAttribute";
@@ -37,8 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         public static int RazorTransition => TokenTypesLegend[RazorTransitionString];
         public static int RazorTagHelperElement => TokenTypesLegend[RazorTagHelperElementString];
         public static int RazorTagHelperAttribute => TokenTypesLegend[RazorTagHelperAttributeString];
-        public static int OpenAngle => TokenTypesLegend[OpenAngleString];
-        public static int CloseAngle => TokenTypesLegend[CloseAngleString];
+        public static int AngleBracket => TokenTypesLegend[AngleBracketString];
         public static int Slash => TokenTypesLegend[ForwardSlashString];
         public static int EqualToken => TokenTypesLegend[EqualTokenString];
         public static int MarkupElement => TokenTypesLegend[MarkupElementString];
@@ -61,9 +59,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             RazorCommentString,
             RazorCommentTransitionString,
             RazorCommentStarString,
-            OpenAngleString,
+            AngleBracketString,
             ForwardSlashString,
-            CloseAngleString,
             MarkupElementString,
             EqualTokenString,
             MarkupAttributeString,

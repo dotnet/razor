@@ -194,7 +194,16 @@
               "razorDirectiveAttribute": [ "keyword.control.razor.directive.attribute", "keyword.control.cshtml.directive.attribute" ],
               "razorDirectiveColon": [ "keyword.control.razor.directive.colon", "keyword.control.cshtml.directive.colon" ],
               "razorDirective": [ "keyword.control.razor.directive", "keyword.control.cshtml.directive" ],
-              "razorComment": [ "comment.block.razor"]
+              "razorComment": [ "comment.block.razor"],
+              "razorCommentTransition": [ "meta.comment.razor", "keyword.control.cshtml.transition" ],
+              "razorCommentStar": [ "keyword.control.razor.comment.star", "meta.comment.razor" ],
+              "angleBracket": [ "punctuation.definition.tag" ],
+              "forwardSlash": [ "punctuation.definition.tag" ],
+              "equals": [ "punctuation.separator.key-value.html" ],
+              "markupElement": [ "entity.name.tag.html" ],
+              "markupAttribute": [ "entity.other.attribute-name.html" ],
+              "markupComment": [ "comment.block.html" ],
+              "markupCommentPunctuation": [ "punctuation.definition.comment.html", "comment.block.html" ]
             }
           }
         ],

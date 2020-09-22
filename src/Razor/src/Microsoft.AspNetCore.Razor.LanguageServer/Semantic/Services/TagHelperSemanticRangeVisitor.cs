@@ -174,9 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             base.VisitMarkupTagHelperEndTag(node);
-
             AddSemanticRange(node.CloseAngle);
-
         }
 
         public override void VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
@@ -352,13 +350,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     semanticKind = RazorSemanticTokensLegend.RazorComment;
                     break;
                 case SyntaxKind.OpenAngle:
-                    semanticKind = RazorSemanticTokensLegend.OpenAngle;
+                case SyntaxKind.CloseAngle:
+                    semanticKind = RazorSemanticTokensLegend.AngleBracket;
                     break;
                 case SyntaxKind.ForwardSlash:
                     semanticKind = RazorSemanticTokensLegend.Slash;
-                    break;
-                case SyntaxKind.CloseAngle:
-                    semanticKind = RazorSemanticTokensLegend.CloseAngle;
                     break;
                 case SyntaxKind.Equals:
                     semanticKind = RazorSemanticTokensLegend.EqualToken;
