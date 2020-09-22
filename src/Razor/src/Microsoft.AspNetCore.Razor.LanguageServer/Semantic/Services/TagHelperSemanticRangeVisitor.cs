@@ -84,35 +84,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             base.VisitMarkupCommentBlock(node);
         }
 
-        public override void VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
-        {
-            base.VisitMarkupTextLiteral(node);
-        }
-
-        public override void VisitMarkupBlock(MarkupBlockSyntax node)
-        {
-            base.VisitMarkupBlock(node);
-        }
-
-        public override void VisitMarkupElement(MarkupElementSyntax node)
-        {
-            base.VisitMarkupElement(node);
-        }
-
         public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
         {
             AddSemanticRange(node.Name);
             base.VisitMarkupMinimizedAttributeBlock(node);
-        }
-
-        public override void VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
-        {
-            base.VisitMarkupLiteralAttributeValue(node);
-        }
-
-        public override void VisitMarkupMiscAttributeContent(MarkupMiscAttributeContentSyntax node)
-        {
-            base.VisitMarkupMiscAttributeContent(node);
         }
         #endregion HTML
 
@@ -312,6 +287,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (kind is null)
             {
                 kind = node.Kind;
+            }
+
+            if (node.Width == 0)
+            {
+                // Under no circumstances can we have 0-width spans.
+                // This can happen in situations like "@* comment ", where EndCommentStar and EndCommentTransition are empty.
+                return;
             }
 
             int semanticKind;

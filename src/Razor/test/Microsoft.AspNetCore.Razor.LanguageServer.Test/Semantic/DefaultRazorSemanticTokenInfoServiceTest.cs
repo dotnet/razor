@@ -52,9 +52,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
         }
+
+        [Fact]
+        public void GetSemanticTokens_PartialHTMLComment()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<!-- comment";
+            var expectedData = new List<int>
+            {
+                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
+                0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
+            };
+
+            AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);
+        }
         #endregion
 
         #region TagHelpers
+        [Fact]
+        public void GetSemanticTokens_HalfOfComment()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@* comment";
+            var expectedData = new List<int>
+            {
+                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
+                0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
+                1, 0, 1, RazorSemanticTokensLegend.RazorCommentTransition, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorCommentStar, 0,
+                0, 1, 8, RazorSemanticTokensLegend.RazorComment, 0,
+            };
+
+            AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
+        }
+
         [Fact]
         public void GetSemanticTokens_NoAttributes()
         {
