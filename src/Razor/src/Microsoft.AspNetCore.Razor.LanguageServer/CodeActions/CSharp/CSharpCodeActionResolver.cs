@@ -10,7 +10,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal abstract class CSharpCodeActionResolver
+    internal abstract class CSharpCodeActionResolver : BaseCodeActionResolver
     {
         protected readonly IClientLanguageServer _languageServer;
 
@@ -23,8 +23,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             _languageServer = languageServer;
         }
-
-        public abstract string Action { get; }
 
         public abstract Task<RazorCodeAction> ResolveAsync(
             CSharpCodeActionParams csharpParams,

@@ -43,29 +43,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             _logger = loggerFactory.CreateLogger<CodeActionResolutionEndpoint>();
 
-
-            var razorResolverMap = new Dictionary<string, RazorCodeActionResolver>();
-            foreach (var resolver in razorCodeActionResolvers)
-            {
-                if (razorResolverMap.ContainsKey(resolver.Action))
-                {
-                    Debug.Fail($"Duplicate resolver action for {resolver.Action}.");
-                }
-                razorResolverMap[resolver.Action] = resolver;
-            }
-            _razorCodeActionResolvers = razorResolverMap;
-
-
-            var csharpResolverMap = new Dictionary<string, CSharpCodeActionResolver>();
-            foreach (var resolver in csharpCodeActionResolvers)
-            {
-                if (csharpResolverMap.ContainsKey(resolver.Action))
-                {
-                    Debug.Fail($"Duplicate resolver action for {resolver.Action}.");
-                }
-                csharpResolverMap[resolver.Action] = resolver;
-            }
-            _csharpCodeActionResolvers = csharpResolverMap;
+            _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);;
+            _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
         }
 
         // Register VS LSP code action resolution server capability
@@ -108,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         // Internal for testing
         internal async Task<RazorCodeAction> ResolveRazorCodeAction(
-            RazorCodeAction request,
+            RazorCodeAction codeAction,
             RazorCodeActionResolutionParams resolutionParams,
             CancellationToken cancellationToken)
         {
@@ -118,8 +97,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            request.Edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
-            return request;
+            codeAction.Edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
+            return codeAction;
         }
 
         // Internal for testing
@@ -145,6 +124,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var resolvedCodeAction = await resolver.ResolveAsync(csharpParams, codeAction, cancellationToken);
             return resolvedCodeAction;
+        }
+
+        private static Dictionary<string, T> CreateResolverMap<T>(IEnumerable<T> codeActionResolvers)
+            where T : BaseCodeActionResolver
+        {
+            var resolverMap = new Dictionary<string, T>();
+            foreach (var resolver in codeActionResolvers)
+            {
+                if (resolverMap.ContainsKey(resolver.Action))
+                {
+                    Debug.Fail($"Duplicate resolver action for {resolver.Action} of type {typeof(T).ToString()}.");
+                }
+                resolverMap[resolver.Action] = resolver;
+            }
+
+            return resolverMap;
         }
 
         private static string GetCodeActionId(RazorCodeActionResolutionParams resolutionParams) =>
