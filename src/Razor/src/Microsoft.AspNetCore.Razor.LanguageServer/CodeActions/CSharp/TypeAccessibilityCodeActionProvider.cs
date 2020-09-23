@@ -60,6 +60,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             foreach (var diagnostic in diagnostics)
             {
                 var diagnosticSpan = diagnostic.Range.AsTextSpan(context.SourceText);
+
+                // Edge case handling for diagnostics which (momentarily) linger after
+                // @code block is cleared out
+                if (diagnosticSpan.IsEmpty ||
+                    diagnosticSpan.End >= context.SourceText.Length)
+                {
+                    continue;
+                }
+
                 var associatedValue = context.SourceText.GetSubTextString(diagnosticSpan);
 
                 foreach (var codeAction in codeActions)
