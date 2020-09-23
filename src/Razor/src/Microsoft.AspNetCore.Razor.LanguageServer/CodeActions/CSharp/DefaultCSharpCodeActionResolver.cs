@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -23,11 +25,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
+        private readonly CSharpFormatter _csharpFormatter;
 
         public DefaultCSharpCodeActionResolver(
             RazorDocumentMappingService documentMappingService,
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
+            FilePathNormalizer filePathNormalizer,
             IClientLanguageServer languageServer)
             : base(languageServer)
         {
@@ -46,9 +50,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
+            if (filePathNormalizer is null)
+            {
+                throw new ArgumentNullException(nameof(filePathNormalizer));
+            }
+
             _documentMappingService = documentMappingService;
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
+
+            _csharpFormatter = new CSharpFormatter(documentMappingService, languageServer, filePathNormalizer);
         }
 
         public override string Action => LanguageServerConstants.CodeActions.Default;
@@ -93,21 +104,65 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var oldText = SourceText.From(generatedCode);
-            var newText = SourceText.From(resolvedCodeAction.Edit.DocumentChanges.First().TextDocumentEdit.Edits.First().NewText);
 
-            var changes = SourceTextDiffer.GetMinimalTextChanges(oldText, newText);
-
-            var edits = new List<TextEdit>();
-
-            foreach (var change in changes)
+            // We don't yet support multi-document code actions
+            if (resolvedCodeAction.Edit.DocumentChanges.Count() != 1)
             {
-                var csharpTextEdit = change.AsTextEdit(oldText);
+                return codeAction;
+            }
 
-                if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, csharpTextEdit.Range, out var razorTextEditRange))
+            var documentChanged = resolvedCodeAction.Edit.DocumentChanges.First();
+
+            // Only Text Document Edit changes are supported currently
+            if (!documentChanged.IsTextDocumentEdit)
+            {
+                return codeAction;
+            }
+
+            var textDocumentEdit = documentChanged.TextDocumentEdit;
+            var oldText = SourceText.From(generatedCode);
+            var razorDocumentEdits = new List<TextEdit>();
+
+
+            foreach (var generatedCodeEdit in textDocumentEdit.Edits)
+            {
+                var newText = SourceText.From(generatedCodeEdit.NewText);
+                var changes = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, true);
+
+                foreach (var change in changes)
                 {
-                    csharpTextEdit.Range = razorTextEditRange;
-                    edits.Add(csharpTextEdit);
+                    var csharpTextEdit = change.AsTextEdit(oldText);
+
+                    //var formattingOptions = new FormattingOptions()
+                    //{
+                    //    TabSize = 4,
+                    //    InsertSpaces = true,
+                    //    TrimTrailingWhitespace = true,
+                    //    InsertFinalNewline = true,
+                    //    TrimFinalNewlines = true
+                    //};
+
+                    //var formattingContext = FormattingContext.Create(
+                    //    csharpParams.RazorFileUri, // textDocumentEdit.TextDocument.Uri,
+                    //    documentSnapshot,
+                    //    codeDocument,
+                    //    formattingOptions);
+
+                    //var formattingTextEdits = await _csharpFormatter.FormatProjectedAsync(formattingContext, newText, csharpTextEdit.Range, cancellationToken);
+
+                    // razorDocumentEdits.AddRange(formattingTextEdits);
+
+                    if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, csharpTextEdit.Range, out var razorTextEditRange))
+                    {
+                        csharpTextEdit.Range = razorTextEditRange;
+
+                        var formattedLines = csharpTextEdit.NewText.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                            .AsEnumerable()
+                            .Select(line => line.StartsWith("    ", StringComparison.OrdinalIgnoreCase) ? line.Substring(4) : line);
+                        csharpTextEdit.NewText = string.Join(Environment.NewLine, formattedLines);
+
+                        razorDocumentEdits.Add(csharpTextEdit);
+                    }
                 }
             }
 
@@ -119,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         new TextDocumentEdit()
                         {
                             TextDocument = codeDocumentIdentifier,
-                            Edits = edits,
+                            Edits = razorDocumentEdits,
                         }
                     )
                 }
