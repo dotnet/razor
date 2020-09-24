@@ -32,12 +32,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // "Implement interface with Dispose pattern"
         };
 
-        private static readonly IEnumerable<string> SupportedDiagnostics = new[]
-        {
-            ImplementAbstractClassDiagnostic,
-            ImplementInterfaceDiagnostic
-        };
-
         public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
             RazorCodeActionContext context,
             IEnumerable<RazorCodeAction> codeActions,
@@ -85,7 +79,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 results.AddRange(implementInterfaceCodeActions);
             }
 
-            return Task.FromResult(results.Select(c => c.WrapCSharpCodeAction(context)).ToList() as IReadOnlyList<RazorCodeAction>);
+            var wrappedResults = results.Select(c => c.WrapCSharpCodeAction(context)).ToList();
+            return Task.FromResult(wrappedResults as IReadOnlyList<RazorCodeAction>);
         }
     }
 }
