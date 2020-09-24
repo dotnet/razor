@@ -128,6 +128,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var sourceMappingIndentations = new SortedDictionary<int, int>();
             foreach (var mapping in context.CodeDocument.GetCSharpDocument().SourceMappings)
             {
+                var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
+                var mappingRange = mappingSpan.AsRange(context.SourceText);
+                if (!ShouldFormat(context, mappingRange.Start))
+                {
+                    // We don't care about this range as this can potentially lead to incorrect scopes.
+                    continue;
+                }
+
                 var startIndentation = CSharpFormatter.GetCSharpIndentation(context, mapping.GeneratedSpan.AbsoluteIndex, cancellationToken);
                 sourceMappingIndentations[mapping.OriginalSpan.AbsoluteIndex] = startIndentation;
 
@@ -160,7 +168,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // Couldn't remap. This is probably a non-C# location.
                     // Use SourceMapping indentations to locate the C# scope of this line.
                     // E.g,
-                    // 
+                    //
                     // @if (true) {
                     //   <div>
                     //  |</div>
@@ -169,16 +177,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // We can't find a direct mapping at |, but we can infer its base indentation from the
                     // indentation of the latest source mapping prior to this line.
                     // We use binary search to find that spot.
-                    
+
                     var index = Array.BinarySearch(sourceMappingIndentationScopes, lineStart);
                     if (index < 0)
                     {
-                        // Couldn't find the exact value. Find the index of the element to the right of the searched value.
-                        index = ~index;
+                        // Couldn't find the exact value. Find the index of the element to the left of the searched value.
+                        index = (~index) - 1;
                     }
 
                     // This will now be set to the same value as the end of the closest source mapping.
-                    csharpDesiredIndentation = index == 0 ? 0 : sourceMappingIndentations[sourceMappingIndentationScopes[index - 1]];
+                    csharpDesiredIndentation = index < 0 ? 0 : sourceMappingIndentations[sourceMappingIndentationScopes[index]];
                 }
 
                 // Now let's use that information to figure out the effective C# indentation.

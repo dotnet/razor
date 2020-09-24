@@ -145,6 +145,9 @@ expected: @"@page ""/test""
         {
             await RunFormattingTestAsync(
 input: @"|@page ""/test""
+
+<div class=@className>Some Text</div>
+
 @{
 <p>
         @if (true) {
@@ -158,6 +161,9 @@ if (true)
 }
 |",
 expected: @"@page ""/test""
+
+<div class=@className>Some Text</div>
+
 @{
     <p>
         @if (true)

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -50,10 +49,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _server = languageServer;
             _filePathNormalizer = filePathNormalizer;
 
-            var type = typeof(CSharpFormattingOptions).Assembly.GetType("Microsoft.CodeAnalysis.CSharp.Indentation.CSharpIndentationService", throwOnError: true);
-            _indentationService = Activator.CreateInstance(type);
-            var indentationService = type.GetInterface("IIndentationService");
-            _getIndentationMethod = indentationService.GetMethod("GetIndentation");
+            try
+            {
+                var type = typeof(CSharpFormattingOptions).Assembly.GetType("Microsoft.CodeAnalysis.CSharp.Indentation.CSharpIndentationService", throwOnError: true);
+                _indentationService = Activator.CreateInstance(type);
+                var indentationService = type.GetInterface("IIndentationService");
+                _getIndentationMethod = indentationService.GetMethod("GetIndentation");
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    "Error occured when creating an instance of Roslyn's IIndentationService. Roslyn may have changed in an unexpected way.",
+                    ex);
+            }
         }
 
         public async Task<TextEdit[]> FormatAsync(
@@ -108,19 +116,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Get the line number at the position after the marker
             var line = changedText.Lines.GetLinePosition(projectedDocumentIndex + marker.Length).Line;
 
-            var result = _getIndentationMethod.Invoke(
-                _indentationService,
-                new object[] { changedDocument, line, CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart, cancellationToken });
+            try
+            {
+                var result = _getIndentationMethod.Invoke(
+                    _indentationService,
+                    new object[] { changedDocument, line, CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart, cancellationToken });
 
-            var baseProperty = result.GetType().GetProperty("BasePosition");
-            var basePosition = (int)baseProperty.GetValue(result);
-            var offsetProperty = result.GetType().GetProperty("Offset");
-            var offset = (int)offsetProperty.GetValue(result);
+                var baseProperty = result.GetType().GetProperty("BasePosition");
+                var basePosition = (int)baseProperty.GetValue(result);
+                var offsetProperty = result.GetType().GetProperty("Offset");
+                var offset = (int)offsetProperty.GetValue(result);
 
-            var resultLine = changedText.Lines.GetLinePosition(basePosition);
-            var indentation = resultLine.Character + offset;
+                var resultLine = changedText.Lines.GetLinePosition(basePosition);
+                var indentation = resultLine.Character + offset;
 
-            return indentation;
+                // IIndentationService always returns offset as the number of spaces.
+                // So if the client uses tabs instead of spaces, we need to convert accordingly.
+                if (!context.Options.InsertSpaces)
+                {
+                    indentation /= (int)context.Options.TabSize;
+                }
+
+                return indentation;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    "Error occured when reflection invoking Roslyn's IIndentationService. Roslyn may have changed in an unexpected way.",
+                    ex);
+            }
         }
 
         private TextEdit[] MapEditsToHostDocument(RazorCodeDocument codeDocument, TextEdit[] csharpEdits)
