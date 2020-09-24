@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -28,7 +27,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static readonly IEnumerable<string> ImplementInterfaceCodeActionTitle = new HashSet<string>()
         {
             "Implement interface",
-            "Implement interface with Dispose pattern"
+
+            // Temporarily disable till we can support multi-part edit formatting
+            // "Implement interface with Dispose pattern"
         };
 
         private static readonly IEnumerable<string> SupportedDiagnostics = new[]

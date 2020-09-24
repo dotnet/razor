@@ -38,7 +38,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var results = codeActions.Where(c =>
                 IsGenerateConstructorCodeAction(c) ||
                 IsGenerateEqualsAndGetHashCodeCodeAction(c) ||
-                IsAddDebuggerDisplayAttributeCodeAction(c));
+
+                // Temporarily disable till we can support multi-part edit formatting
+                // IsAddDebuggerDisplayAttributeCodeAction(c)
+            );
 
             var wrappedResults = results.Select(c => c.WrapCSharpCodeAction(context)).ToList();
 
