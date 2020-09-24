@@ -49,10 +49,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _server = languageServer;
             _filePathNormalizer = filePathNormalizer;
 
-            var type = typeof(CSharpFormattingOptions).Assembly.GetType("Microsoft.CodeAnalysis.CSharp.Indentation.CSharpIndentationService", throwOnError: true);
-            _indentationService = Activator.CreateInstance(type);
-            var indentationService = type.GetInterface("IIndentationService");
-            _getIndentationMethod = indentationService.GetMethod("GetIndentation");
+            try
+            {
+                var type = typeof(CSharpFormattingOptions).Assembly.GetType("Microsoft.CodeAnalysis.CSharp.Indentation.CSharpIndentationService", throwOnError: true);
+                _indentationService = Activator.CreateInstance(type);
+                var indentationService = type.GetInterface("IIndentationService");
+                _getIndentationMethod = indentationService.GetMethod("GetIndentation");
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    "Error occured when creating an instance of Roslyn's IIndentationService. Roslyn may have changed in an unexpected way.",
+                    ex);
+            }
         }
 
         public async Task<TextEdit[]> FormatAsync(

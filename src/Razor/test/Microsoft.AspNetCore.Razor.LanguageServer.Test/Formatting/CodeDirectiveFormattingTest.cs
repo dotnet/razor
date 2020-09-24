@@ -254,7 +254,7 @@ public class HelloWorld
 }
 
 @functions{
-    
+
  public class Bar {}
 }
 |",
@@ -323,7 +323,7 @@ expected: @"
 ");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/25475")]
+        [Fact]
         public async Task IndentsCodeBlockDirectiveStart()
         {
             await RunFormattingTestAsync(
@@ -340,7 +340,7 @@ Hello World
 ");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/25475")]
+        [Fact]
         public async Task IndentsCodeBlockDirectiveEnd()
         {
             await RunFormattingTestAsync(

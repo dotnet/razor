@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 #if GENERATE_BASELINES
             Assert.False(true, "GENERATE_BASELINES is set to true.");
 #else
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected, actual, ignoreLineEndingDifferences: true);
 #endif
         }
 
