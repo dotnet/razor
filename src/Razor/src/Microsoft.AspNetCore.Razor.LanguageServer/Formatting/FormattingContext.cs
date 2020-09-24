@@ -39,6 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     var adhocWorkspace = new AdhocWorkspace();
                     var csharpOptions = adhocWorkspace.Options
                         .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, LanguageNames.CSharp, (int)Options.TabSize)
+                        .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, LanguageNames.CSharp, (int)Options.TabSize)
                         .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, LanguageNames.CSharp, !Options.InsertSpaces);
                     adhocWorkspace.TryApplyChanges(adhocWorkspace.CurrentSolution.WithOptions(csharpOptions));
 

@@ -126,6 +126,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var sourceMappingIndentations = new SortedDictionary<int, int>();
             foreach (var mapping in context.CodeDocument.GetCSharpDocument().SourceMappings)
             {
+                var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
+                var mappingRange = mappingSpan.AsRange(context.SourceText);
+                if (!ShouldFormat(context, mappingRange.Start))
+                {
+                    // We don't care about this range as this can potentially lead to incorrect scopes.
+                    continue;
+                }
+
                 var startIndentation = CSharpFormatter.GetCSharpIndentation(context, mapping.GeneratedSpan.AbsoluteIndex, cancellationToken);
                 sourceMappingIndentations[mapping.OriginalSpan.AbsoluteIndex] = startIndentation;
 
