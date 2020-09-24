@@ -100,7 +100,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 response.Edits = Array.Empty<TextEdit>();
 
                 var codeDocument = _documents[@params.HostDocumentFilePath];
-                var generatedHtml = codeDocument.GetHtmlDocument().GeneratedHtml.Replace("\r", "").Replace("\n", "\r\n");
+                var generatedHtml = codeDocument.GetHtmlDocument().GeneratedHtml;
+                generatedHtml = generatedHtml.Replace("\r", "", StringComparison.Ordinal).Replace("\n", "\r\n", StringComparison.Ordinal);
 
                 // Get formatted baseline file
                 var baselineInputFileName = Path.ChangeExtension(_baselineFileName, ".input.html");
