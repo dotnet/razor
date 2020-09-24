@@ -138,7 +138,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     RazorLanguageKind.CSharp,
                     csharpTextEdits.ToArray(),
                     DefaultFormattingOptions,
-                    cancellationToken);
+                    cancellationToken,
+                    bypassValidationPasses: true);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
