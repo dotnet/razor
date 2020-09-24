@@ -17,7 +17,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static readonly string GenerateConstructorCodeActionTitlePattern = @"Generate constructor '.+\(.*\)'";
         private static readonly Regex GenerateConstructorCodeActionRegex = new Regex(GenerateConstructorCodeActionTitlePattern, RegexOptions.IgnoreCase);
 
+        private static readonly string CreateAndAssignPropertyFieldCodeActionTitlePattern = "Create and assign (property|field) '.+'";
+        private static readonly Regex CreateAndAssignPropertyFieldCodeActionRegex = new Regex(CreateAndAssignPropertyFieldCodeActionTitlePattern, RegexOptions.IgnoreCase);
+
         private static readonly string GenerateEqualsAndGetHashCodeCodeActionTitle = "Generate Equals and GetHashCode";
+        private static readonly string AddNullCheckCodeActionTitle = "Add null check";
         private static readonly string AddDebuggerDisplayAttributeCodeActionTitle = "Add 'DebuggerDisplay' attribute";
 
         public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
@@ -38,6 +42,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var results = codeActions.Where(c =>
                 IsGenerateConstructorCodeAction(c) ||
                 IsGenerateEqualsAndGetHashCodeCodeAction(c) ||
+                IsAddNullCheckCodeAction(c) ||
+                IsCreateAndAssignPropertyFieldCodeAction(c)
 
                 // Temporarily disable till we can support multi-part edit formatting
                 // IsAddDebuggerDisplayAttributeCodeAction(c)
@@ -51,8 +57,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         internal bool IsGenerateConstructorCodeAction(RazorCodeAction codeAction)
             => GenerateConstructorCodeActionRegex.Match(codeAction.Title).Success;
 
+        internal bool IsCreateAndAssignPropertyFieldCodeAction(RazorCodeAction codeAction)
+            => CreateAndAssignPropertyFieldCodeActionRegex.Match(codeAction.Title).Success;
+
         internal bool IsGenerateEqualsAndGetHashCodeCodeAction(RazorCodeAction codeAction)
             => codeAction.Title.Equals(GenerateEqualsAndGetHashCodeCodeActionTitle, StringComparison.Ordinal);
+        internal bool IsAddNullCheckCodeAction(RazorCodeAction codeAction)
+            => codeAction.Title.Equals(AddNullCheckCodeActionTitle, StringComparison.Ordinal);
 
         internal bool IsAddDebuggerDisplayAttributeCodeAction(RazorCodeAction codeAction)
             => codeAction.Title.Equals(AddDebuggerDisplayAttributeCodeActionTitle, StringComparison.Ordinal);
