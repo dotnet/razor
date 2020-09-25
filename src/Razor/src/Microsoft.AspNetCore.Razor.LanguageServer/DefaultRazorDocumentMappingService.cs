@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -74,6 +75,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var endIndex = range.End.GetAbsoluteIndex(sourceText);
             if (!TryMapToProjectedDocumentPosition(codeDocument, endIndex, out var projectedEnd, out var _))
             {
+                return false;
+            }
+
+            // Ensures a valid range is returned
+            if ((projectedEnd.Line < projectedStart.Line) ||
+                (projectedEnd.Line == projectedStart.Line &&
+                 projectedEnd.Character < projectedStart.Character))
+            {
+                Debug.Fail($"DefaultRazorDocumentMappingService:TryMapToProjectedDocumentRange projected range end < start '{projectedRange}'");
                 return false;
             }
 
