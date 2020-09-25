@@ -57,7 +57,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             public const string Default = "Default";
         }
 
-
         public static class Languages
         {
             public const string CSharp = "CSharp";

@@ -61,7 +61,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
             _razorFormattingService = razorFormattingService;
-
         }
 
         public override string Action => LanguageServerConstants.CodeActions.Default;
@@ -126,9 +125,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             foreach (var generatedCodeEdit in documentChanged.TextDocumentEdit.Edits)
             {
                 var newText = SourceText.From(generatedCodeEdit.NewText);
-                var changes = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, true);
+                var changes = SourceTextDiffer.GetMinimalTextChanges(oldText, newText);
 
-                var csharpTextEdits = changes.Select(c => c.AsTextEdit(oldText));
+                var csharpTextEdits = changes.Select(c => c.AsTextEdit(oldText)).ToArray();
 
                 // Remaps the text edits from the generated C# to the razor file,
                 // as well as applying appropriate formatting.
@@ -136,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     csharpParams.RazorFileUri,
                     documentSnapshot,
                     RazorLanguageKind.CSharp,
-                    csharpTextEdits.ToArray(),
+                    csharpTextEdits,
                     DefaultFormattingOptions,
                     cancellationToken,
                     bypassValidationPasses: true);
