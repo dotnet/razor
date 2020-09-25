@@ -127,8 +127,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 Data = JObject.FromObject(requestParams)
             };
 
+#if DEBUG
             // Act & Assert (Throws due to debug assert on no Razor.Test resolver)
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
+#else
+            // Act
+            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeAction(codeAction, request, default);
+
+            // Assert
+            Assert.Null(resolvedCodeAction.Edit);
+#endif
         }
 
         [Fact]
@@ -151,8 +159,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 Data = JObject.FromObject(requestParams)
             };
 
+#if DEBUG
             // Act & Assert (Throws due to debug assert on no resolver registered for CSharp.Test)
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
+#else
+            // Act
+            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeAction(codeAction, request, default);
+
+            // Assert
+            Assert.Null(resolvedCodeAction.Edit);
+#endif
         }
 
         [Fact]
@@ -177,8 +193,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 Data = JObject.FromObject(requestParams)
             };
 
+#if DEBUG
             // Act & Assert (Throws due to debug assert on no resolver registered for Razor.Test)
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
+#else
+            // Act
+            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeAction(codeAction, request, default);
+
+            // Assert
+            Assert.Null(resolvedCodeAction.Edit);
+#endif
         }
 
         [Fact]
@@ -203,8 +227,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 Data = JObject.FromObject(requestParams)
             };
 
+#if DEBUG
             // Act & Assert (Throws due to debug asserts)
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
+#else
+            // Act
+            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeAction(codeAction, request, default);
+
+            // Assert
+            Assert.Null(resolvedCodeAction.Edit);
+#endif
         }
 
         [Fact]
