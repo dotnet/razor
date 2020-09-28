@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal class DefaultCodeActionProvider : CSharpCodeActionProvider
+    internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
     {
         private static readonly HashSet<Regex> RegexMatchCodeActions = new HashSet<Regex>()
         {
