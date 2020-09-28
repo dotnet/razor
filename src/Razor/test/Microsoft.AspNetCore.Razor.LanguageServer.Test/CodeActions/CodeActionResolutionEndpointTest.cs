@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeAction(codeAction, request, default);
+            var resolvedCodeAction = await codeActionEndpoint.Handle(request, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
@@ -164,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeAction(codeAction, request, default);
+            var resolvedCodeAction = await codeActionEndpoint.Handle(request, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
@@ -198,7 +198,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeAction(codeAction, request, default);
+            var resolvedCodeAction = await codeActionEndpoint.Handle(request, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
@@ -232,7 +232,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             await Assert.ThrowsAnyAsync<Exception>(async () => await codeActionEndpoint.Handle(request, default));
 #else
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeAction(codeAction, request, default);
+            var resolvedCodeAction = await codeActionEndpoint.Handle(request, default);
 
             // Assert
             Assert.Null(resolvedCodeAction.Edit);
