@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
-                Language = LanguageServerConstants.Languages.Razor,
+                Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
             };
             var request = new RazorCodeAction()
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
-                Language = LanguageServerConstants.Languages.CSharp,
+                Language = LanguageServerConstants.CodeActions.Languages.CSharp,
                 Data = JObject.FromObject(new CSharpCodeActionParams())
             };
             var request = new RazorCodeAction()
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "TestCSharp",
-                Language = LanguageServerConstants.Languages.CSharp,
+                Language = LanguageServerConstants.CodeActions.Languages.CSharp,
                 Data = JObject.FromObject(new CSharpCodeActionParams())
             };
             var request = new RazorCodeAction()
@@ -118,7 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
-                Language = LanguageServerConstants.Languages.Razor,
+                Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
             };
             var request = new RazorCodeAction()
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
-                Language = LanguageServerConstants.Languages.CSharp,
+                Language = LanguageServerConstants.CodeActions.Languages.CSharp,
                 Data = JObject.FromObject(new CSharpCodeActionParams())
             };
             var request = new RazorCodeAction()
@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
-                Language = LanguageServerConstants.Languages.Razor,
+                Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
             };
             var request = new RazorCodeAction()
@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
-                Language = LanguageServerConstants.Languages.CSharp,
+                Language = LanguageServerConstants.CodeActions.Languages.CSharp,
                 Data = JObject.FromObject(new CSharpCodeActionParams())
             };
             var request = new RazorCodeAction()
@@ -254,7 +254,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "A",
-                Language = LanguageServerConstants.Languages.Razor,
+                Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
             };
 
@@ -280,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "B",
-                Language = LanguageServerConstants.Languages.Razor,
+                Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = new AddUsingsCodeActionParams()
             };
 
@@ -306,7 +306,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "A",
-                Language = LanguageServerConstants.Languages.CSharp,
+                Language = LanguageServerConstants.CodeActions.Languages.CSharp,
                 Data = JObject.FromObject(new CSharpCodeActionParams())
             };
 
@@ -332,7 +332,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "B",
-                Language = LanguageServerConstants.Languages.Razor,
+                Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = JObject.FromObject(new CSharpCodeActionParams())
             };
 
@@ -361,7 +361,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "D",
-                Language = LanguageServerConstants.Languages.CSharp,
+                Language = LanguageServerConstants.CodeActions.Languages.CSharp,
                 Data = JObject.FromObject(new CSharpCodeActionParams())
             };
 

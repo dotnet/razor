@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             razorCodeAction.Data = new RazorCodeActionResolutionParams()
             {
                 Action = action,
-                Language = LanguageServerConstants.Languages.CSharp,
+                Language = LanguageServerConstants.CodeActions.Languages.CSharp,
                 Data = csharpParams
             };
 

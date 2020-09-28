@@ -69,12 +69,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             switch (resolutionParams.Language)
             {
-                case LanguageServerConstants.Languages.Razor:
+                case LanguageServerConstants.CodeActions.Languages.Razor:
                     return await ResolveRazorCodeAction(
                         request,
                         resolutionParams,
                         cancellationToken).ConfigureAwait(false);
-                case LanguageServerConstants.Languages.CSharp:
+                case LanguageServerConstants.CodeActions.Languages.CSharp:
                     return await ResolveCSharpCodeAction(
                         request,
                         resolutionParams,

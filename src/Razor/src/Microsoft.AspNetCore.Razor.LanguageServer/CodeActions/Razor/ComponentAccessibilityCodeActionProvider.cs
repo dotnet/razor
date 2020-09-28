@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var resolutionParams = new RazorCodeActionResolutionParams
             {
                 Action = LanguageServerConstants.CodeActions.CreateComponentFromTag,
-                Language = LanguageServerConstants.Languages.Razor,
+                Language = LanguageServerConstants.CodeActions.Languages.Razor,
                 Data = actionParams,
             };
 
