@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             if (!_razorCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
             {
                 Debug.Fail($"No resolver registered for {GetCodeActionId(resolutionParams)}.");
-                return null;
+                return codeAction;
             }
 
             codeAction.Edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             if (!(resolutionParams.Data is JObject csharpParamsObj))
             {
                 Debug.Fail($"Invalid CSharp CodeAction Received.");
-                return null;
+                return codeAction;
             }
 
             var csharpParams = csharpParamsObj.ToObject<CSharpCodeActionParams>();
