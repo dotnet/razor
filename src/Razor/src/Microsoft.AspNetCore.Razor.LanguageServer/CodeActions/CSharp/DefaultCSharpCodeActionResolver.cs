@@ -35,12 +35,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorFormattingService _razorFormattingService;
+        private readonly DocumentVersionCache _documentVersionCache;
 
         public DefaultCSharpCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             IClientLanguageServer languageServer,
-            RazorFormattingService razorFormattingService)
+            RazorFormattingService razorFormattingService,
+            DocumentVersionCache documentVersionCache)
             : base(languageServer)
         {
             if (foregroundDispatcher is null)
@@ -58,9 +60,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(razorFormattingService));
             }
 
+            if (documentVersionCache is null)
+            {
+                throw new ArgumentNullException(nameof(documentVersionCache));
+            }
+
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
             _razorFormattingService = razorFormattingService;
+            _documentVersionCache = documentVersionCache;
         }
 
         public override string Action => LanguageServerConstants.CodeActions.Default;
@@ -107,45 +115,41 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var documentChanged = resolvedCodeAction.Edit.DocumentChanges.First();
-
-            // Only Text Document Edit changes are supported currently
             if (!documentChanged.IsTextDocumentEdit)
             {
+                // Only Text Document Edit changes are supported currently, return original code action
                 return codeAction;
             }
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
-            var generatedCode = codeDocument.GetCSharpDocument().GeneratedCode;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var csharpTextEdits = documentChanged.TextDocumentEdit.Edits.ToArray();
+
+            // Remaps the text edits from the generated C# to the razor file,
+            // as well as applying appropriate formatting.
+            var formattedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
+                csharpParams.RazorFileUri,
+                documentSnapshot,
+                RazorLanguageKind.CSharp,
+                csharpTextEdits,
+                DefaultFormattingOptions,
+                cancellationToken,
+                bypassValidationPasses: true);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var oldText = SourceText.From(generatedCode);
-            var razorDocumentEdits = new List<TextEdit>();
-
-            foreach (var generatedCodeEdit in documentChanged.TextDocumentEdit.Edits)
+            var documentVersion = await Task.Factory.StartNew(() =>
             {
-                var newText = SourceText.From(generatedCodeEdit.NewText);
-                var changes = SourceTextDiffer.GetMinimalTextChanges(oldText, newText);
+                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
+                return version;
+            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
 
-                var csharpTextEdits = changes.Select(c => c.AsTextEdit(oldText)).ToArray();
+            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier()
+            {
+                Uri = csharpParams.RazorFileUri,
+                Version = documentVersion.Value
+            };
 
-                // Remaps the text edits from the generated C# to the razor file,
-                // as well as applying appropriate formatting.
-                var formattedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
-                    csharpParams.RazorFileUri,
-                    documentSnapshot,
-                    RazorLanguageKind.CSharp,
-                    csharpTextEdits,
-                    DefaultFormattingOptions,
-                    cancellationToken,
-                    bypassValidationPasses: true);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                razorDocumentEdits.AddRange(formattedEdits);
-            }
-
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = csharpParams.RazorFileUri };
             resolvedCodeAction.Edit = new WorkspaceEdit()
             {
                 DocumentChanges = new[] {
@@ -153,7 +157,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         new TextDocumentEdit()
                         {
                             TextDocument = codeDocumentIdentifier,
-                            Edits = razorDocumentEdits,
+                            Edits = formattedEdits,
                         }
                     )
                 }
