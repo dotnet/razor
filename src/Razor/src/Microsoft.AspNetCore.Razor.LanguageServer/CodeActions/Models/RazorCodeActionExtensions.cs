@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             });
         }
 
-        public static RazorCodeAction WrapCSharpCodeAction(
+        public static RazorCodeAction WrapResolvableCSharpCodeAction(
             this RazorCodeAction razorCodeAction,
             RazorCodeActionContext context,
             string action = LanguageServerConstants.CodeActions.Default)

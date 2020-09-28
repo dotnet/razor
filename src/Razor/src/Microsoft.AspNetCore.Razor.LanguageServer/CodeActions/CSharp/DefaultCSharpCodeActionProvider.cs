@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 RegexMatchCodeActions.Any(pattern => pattern.Match(codeAction.Title).Success)
             );
 
-            var wrappedResults = results.Select(c => c.WrapCSharpCodeAction(context)).ToList();
+            var wrappedResults = results.Select(c => c.WrapResolvableCSharpCodeAction(context)).ToList();
             return Task.FromResult(wrappedResults as IReadOnlyList<RazorCodeAction>);
         }
     }

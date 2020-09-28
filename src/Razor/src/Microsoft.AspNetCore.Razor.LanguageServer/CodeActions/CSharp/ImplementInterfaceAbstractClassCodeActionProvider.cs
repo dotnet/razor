@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 results.AddRange(implementInterfaceCodeActions);
             }
 
-            var wrappedResults = results.Select(c => c.WrapCSharpCodeAction(context)).ToList();
+            var wrappedResults = results.Select(c => c.WrapResolvableCSharpCodeAction(context)).ToList();
             return Task.FromResult(wrappedResults as IReadOnlyList<RazorCodeAction>);
         }
     }
