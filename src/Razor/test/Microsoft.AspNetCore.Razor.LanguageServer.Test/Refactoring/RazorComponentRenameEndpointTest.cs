@@ -123,6 +123,90 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         }
 
         [Fact]
+        public async Task Handle_Rename_OnOpeningBrace_ReturnsNull()
+        {
+            // Arrange
+            var request = new RenameParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                },
+                Position = new Position(1, 0),
+                NewName = "Test2"
+            };
+
+            // Act
+            var result = await _endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task Handle_Rename_OnComponentNameLeadingEdge_ReturnsResult()
+        {
+            // Arrange
+            var request = new RenameParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                },
+                Position = new Position(1, 1),
+                NewName = "Test2"
+            };
+
+            // Act
+            var result = await _endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task Handle_Rename_OnComponentName_ReturnsResult()
+        {
+            // Arrange
+            var request = new RenameParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                },
+                Position = new Position(1, 3),
+                NewName = "Test2"
+            };
+
+            // Act
+            var result = await _endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task Handle_Rename_OnComponentNameTrailingEdge_ReturnsResult()
+        {
+            // Arrange
+            var request = new RenameParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = new Uri("file:///c:/Second/ComponentWithParam.razor")
+                },
+                Position = new Position(1, 10),
+                NewName = "Test2"
+            };
+
+            // Act
+            var result = await _endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(result);
+        }
+
+        [Fact]
         public async Task Handle_Rename_FullyQualifiedAndNot()
         {
             // Arrange

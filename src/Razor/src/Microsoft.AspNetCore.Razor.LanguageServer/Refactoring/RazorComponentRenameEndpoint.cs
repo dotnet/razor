@@ -310,7 +310,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             // mitigation till `textDocument/prepareRename` is supported 
             // and we can ensure renames aren't triggered in unsupported
             // contexts. (https://github.com/dotnet/aspnetcore/issues/26407)
-            if (owner.SpanStart != tagHelperStartTag.SpanStart)
+            if (!tagHelperStartTag.Name.FullSpan.IntersectsWith(hostDocumentIndex))
             {
                 return null;
             }
