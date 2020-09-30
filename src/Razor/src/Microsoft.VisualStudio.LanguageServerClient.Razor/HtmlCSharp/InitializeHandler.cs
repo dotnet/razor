@@ -13,45 +13,45 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.InitializeName)]
     internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeResult>
     {
-        private static InitializeResult InitializeResult = new InitializeResult
+        private static readonly InitializeResult InitializeResult = new InitializeResult
+        {
+            Capabilities = new VSServerCapabilities
             {
-                Capabilities = new VSServerCapabilities
+                CompletionProvider = new CompletionOptions()
                 {
-                    CompletionProvider = new CompletionOptions()
+                    AllCommitCharacters = new[] { " ", "{", "}", "[", "]", "(", ")", ".", ",", ":", ";", "+", "-", "*", "/", "%", "&", "|", "^", "!", "~", "=", "<", ">", "?", "@", "#", "'", "\"", "\\" },
+                    ResolveProvider = true,
+                    TriggerCharacters = CompletionHandler.AllTriggerCharacters.ToArray()
+                },
+                OnAutoInsertProvider = new DocumentOnAutoInsertOptions()
+                {
+                    TriggerCharacters = new[] { ">", "=", "-" }
+                },
+                DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions()
+                {
+                    // These trigger characters cannot overlap with OnAutoInsert trigger characters or they will be ignored.
+                    FirstTriggerCharacter = "}",
+                    MoreTriggerCharacter = new[] { ";" }
+                },
+                HoverProvider = true,
+                DefinitionProvider = true,
+                DocumentHighlightProvider = true,
+                RenameProvider = true,
+                ReferencesProvider = true,
+                SemanticTokensOptions = new SemanticTokensOptions()
+                {
+                    RangeProvider = true,
+                    DocumentProvider = new SemanticTokensDocumentProviderOptions()
                     {
-                        AllCommitCharacters = new[] { " ", "{", "}", "[", "]", "(", ")", ".", ",", ":", ";", "+", "-", "*", "/", "%", "&", "|", "^", "!", "~", "=", "<", ">", "?", "@", "#", "'", "\"", "\\" },
-                        ResolveProvider = true,
-                        TriggerCharacters = CompletionHandler.AllTriggerCharacters.ToArray()
+                        Edits = true,
                     },
-                    OnAutoInsertProvider = new DocumentOnAutoInsertOptions()
-                    {
-                        TriggerCharacters = new[] { ">", "=", "-" }
-                    },
-                    DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions()
-                    {
-                        // These trigger characters cannot overlap with OnAutoInsert trigger characters or they will be ignored.
-                        FirstTriggerCharacter = "}",
-                        MoreTriggerCharacter = new[] { ";" }
-                    },
-                    HoverProvider = true,
-                    DefinitionProvider = true,
-                    DocumentHighlightProvider = true,
-                    RenameProvider = true,
-                    ReferencesProvider = true,
-                    SemanticTokensOptions = new SemanticTokensOptions()
-                    {
-                        RangeProvider = true,
-                        DocumentProvider = new SemanticTokensDocumentProviderOptions()
-                        {
-                            Edits = true,
-                        },
-                    },
-                    SignatureHelpProvider = new SignatureHelpOptions()
-                    {
-                        TriggerCharacters = new[] { "(", "," }
-                    },
-                    ImplementationProvider = true,
-                }
+                },
+                SignatureHelpProvider = new SignatureHelpOptions()
+                {
+                    TriggerCharacters = new[] { "(", "," }
+                },
+                ImplementationProvider = true,
+            }
         };
 
         public Task<InitializeResult> HandleRequestAsync(InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)

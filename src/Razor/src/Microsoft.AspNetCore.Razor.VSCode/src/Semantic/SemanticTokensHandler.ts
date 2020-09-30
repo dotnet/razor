@@ -33,39 +33,9 @@ export class SemanticTokensHandler {
     private async getSemanticTokens(
         semanticTokensParams: SerializableSemanticTokensParams,
         cancellationToken: vscode.CancellationToken) {
-        try {
-            const razorDocumentUri = vscode.Uri.parse(semanticTokensParams.textDocument.uri);
-            const razorDocument = await this.documentManager.getDocument(razorDocumentUri);
-            if (razorDocument === undefined) {
-                return this.emptySemanticTokensResponse;
-            }
 
-            const virtualCSharpUri = razorDocument.csharpDocument.uri;
-
-            let range: vscode.Range | undefined;
-            if (semanticTokensParams.range !== undefined) {
-                range = convertRangeFromSerializable(semanticTokensParams.range);
-            }
-            const commands = await vscode.commands.getCommands(true);
-            for (const command of commands) {
-                if (command.lastIndexOf('semantic') >= 0 || command.lastIndexOf('Semantic') >= 0) {
-                    console.log(command);
-                }
-            }
-            const semanticTokens = await vscode.commands.executeCommand<vscode.SemanticTokens>(
-                'vscode.executeDocumentColorProvider',
-                virtualCSharpUri,
-                range) as vscode.SemanticTokens;
-
-            if (semanticTokens === undefined) {
-                return this.emptySemanticTokensResponse;
-            }
-
-            return semanticTokens;
-        } catch (error) {
-            this.logger.logWarning(`${SemanticTokensHandler.getSemanticTokensEndpoint} failed with ${error}`);
-        }
-
+        // This is currently a No-Op because we don't have a way to get the semantic tokens from CSharp.
+        // Other functions accomplish this with `vscode.execute<Blank>Provider`, but that doesn't exiset for Semantic Tokens yet because it's still not an official part of the spec.
         return this.emptySemanticTokensResponse;
     }
 }

@@ -7,10 +7,8 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using SemanticTokensFullOrDelta = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokensFullOrDelta;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
@@ -92,62 +90,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             return ExecuteRequestAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(Methods.TextDocumentCompletionName, completionParams, _clientCapabilities, cancellationToken);
-        }
-
-        [JsonRpcMethod(LanguageServerConstants.LegacyRazorSemanticTokensRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokens> ProvideLegacySemanticTokensRangeAsync(SemanticTokensRangeParams semanticTokensRangeParams, CancellationToken cancellationToken)
-        {
-            if (semanticTokensRangeParams is null)
-            {
-                throw new ArgumentNullException(nameof(semanticTokensRangeParams));
-            }
-
-            return ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(LanguageServerConstants.LegacyRazorSemanticTokensRangeEndpoint, semanticTokensRangeParams, _clientCapabilities, cancellationToken);
-        }
-
-        [JsonRpcMethod(LanguageServerConstants.LegacyRazorSemanticTokensEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokens> ProvideLegacySemanticTokensAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
-        {
-            if (semanticTokensParams is null)
-            {
-                throw new ArgumentNullException(nameof(semanticTokensParams));
-            }
-
-            return ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(LanguageServerConstants.LegacyRazorSemanticTokensEndpoint, semanticTokensParams, _clientCapabilities, cancellationToken);
-        }
-
-        [JsonRpcMethod(LanguageServerConstants.LegacyRazorSemanticTokensEditEndpoint)]
-        [Obsolete]
-        public Task<SemanticTokensFullOrDelta> ProvideLegacySemanticTokensEditAsync(SemanticTokensEditsParams semanticTokensEditsParams, CancellationToken cancellationToken)
-        {
-            if (semanticTokensEditsParams is null)
-            {
-                throw new ArgumentNullException(nameof(semanticTokensEditsParams));
-            }
-
-            return ExecuteRequestAsync<SemanticTokensEditsParams, SemanticTokensFullOrDelta>(LanguageServerConstants.LegacyRazorSemanticTokensEditEndpoint, semanticTokensEditsParams, _clientCapabilities, cancellationToken);
-        }
-
-        [JsonRpcMethod(LanguageServerConstants.RazorSemanticTokensEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokens> ProvideSemanticTokens(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
-        {
-            if (semanticTokensParams is null)
-            {
-                throw new ArgumentNullException(nameof(semanticTokensParams));
-            }
-
-            return ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(LanguageServerConstants.RazorSemanticTokensEndpoint, semanticTokensParams, _clientCapabilities, cancellationToken);
-        }
-
-        [JsonRpcMethod(LanguageServerConstants.RazorSemanticTokensEditEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public Task<SemanticTokens> ProvideSemanticTokensRange(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
-        {
-            if (semanticTokensParams is null)
-            {
-                throw new ArgumentNullException(nameof(semanticTokensParams));
-            }
-
-            return ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(LanguageServerConstants.RazorSemanticTokensEndpoint, semanticTokensParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentHoverName, UseSingleObjectParameterDeserialization = true)]

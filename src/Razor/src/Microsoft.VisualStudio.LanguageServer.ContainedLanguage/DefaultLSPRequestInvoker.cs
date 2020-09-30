@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             var serializedParams = JToken.FromObject(parameters);
 
-            var (client, resultToken) = await _languageServiceBroker.RequestAsync(
+            var (_, resultToken) = await _languageServiceBroker.RequestAsync(
                 new[] { contentType },
                 capabilitiesFilter,
                 method,
