@@ -123,7 +123,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 var fullyQualifiedName = tagHelperPair.Short.Name;
 
                 // Insert @using
-                var addUsingCodeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(fullyQualifiedName, context.Request.TextDocument.Uri);
+                var addUsingCodeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(
+                    fullyQualifiedName,
+                    context.Request.TextDocument.Uri,
+                    enforceCodeActionInvokedInComponent: true);
                 if (addUsingCodeAction != null)
                 {
                     container.Add(addUsingCodeAction);

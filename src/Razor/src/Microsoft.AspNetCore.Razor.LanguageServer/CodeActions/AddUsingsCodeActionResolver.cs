@@ -70,7 +70,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
+            if (actionParams.EnforceCodeActionInvokedInComponent &&
+                !FileKinds.IsComponent(codeDocument.GetFileKind()))
             {
                 return null;
             }

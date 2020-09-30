@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -28,10 +27,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             // Arrange
             var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), EmptyDocumentResolver);
-            var data = JObject.FromObject(new CreateComponentCodeActionParams()
+            var data = JObject.FromObject(new AddUsingsCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
-                Path = "c:/Another.razor",
+                Namespace = "System",
+                EnforceCodeActionInvokedInComponent = true
             });
 
             // Act
@@ -51,10 +51,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             codeDocument.SetUnsupported();
 
             var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
-            var data = JObject.FromObject(new CreateComponentCodeActionParams()
+            var data = JObject.FromObject(new AddUsingsCodeActionParams()
             {
                 Uri = new Uri(documentPath),
-                Path = "c:/Another.razor",
+                Namespace = "System",
+                EnforceCodeActionInvokedInComponent = true
             });
 
             // Act
@@ -65,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         [Fact]
-        public async Task Handle_InvalidFileKind()
+        public async Task Handle_EnforceCodeActionInvokedInComponent_True_InvalidFileKind()
         {
             // Arrange
             var documentPath = "c:/Test.razor";
@@ -74,10 +75,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             codeDocument.SetFileKind(FileKinds.Legacy);
 
             var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
-            var data = JObject.FromObject(new CreateComponentCodeActionParams()
+            var data = JObject.FromObject(new AddUsingsCodeActionParams()
             {
                 Uri = new Uri(documentPath),
-                Path = "c:/Another.razor",
+                Namespace = "System",
+                EnforceCodeActionInvokedInComponent = true
             });
 
             // Act
@@ -85,6 +87,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             Assert.Null(workspaceEdit);
+        }
+
+        [Fact]
+        public async Task Handle_EnforceCodeActionInvokedInComponent_False_InvalidFileKind()
+        {
+            // Arrange
+            var documentPath = "c:/Test.razor";
+            var documentUri = new Uri(documentPath);
+            var contents = string.Empty;
+            var codeDocument = CreateCodeDocument(contents);
+            codeDocument.SetFileKind(FileKinds.Legacy);
+
+            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var actionParams = new AddUsingsCodeActionParams
+            {
+                Uri = documentUri,
+                Namespace = "System",
+                EnforceCodeActionInvokedInComponent = false
+            };
+            var data = JObject.FromObject(actionParams);
+
+            // Act
+            var workspaceEdit = await resolver.ResolveAsync(data, default);
+
+            // Assert
+            Assert.NotNull(workspaceEdit);
+            Assert.NotNull(workspaceEdit.DocumentChanges);
+            Assert.Single(workspaceEdit.DocumentChanges);
+
+            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
+            var addUsingsChange = documentChanges[0];
+            Assert.True(addUsingsChange.IsTextDocumentEdit);
+            Assert.Single(addUsingsChange.TextDocumentEdit.Edits);
+            var firstEdit = addUsingsChange.TextDocumentEdit.Edits.First();
+            Assert.Equal(0, firstEdit.Range.Start.Line);
+            Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
         }
 
         [Fact]
@@ -100,7 +138,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
-                Namespace = "System"
+                Namespace = "System",
+                EnforceCodeActionInvokedInComponent = true
             };
             var data = JObject.FromObject(actionParams);
 
@@ -134,7 +173,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
-                Namespace = "System"
+                Namespace = "System",
+                EnforceCodeActionInvokedInComponent = true
             };
             var data = JObject.FromObject(actionParams);
 
@@ -167,7 +207,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
-                Namespace = "System"
+                Namespace = "System",
+                EnforceCodeActionInvokedInComponent = true
             };
             var data = JObject.FromObject(actionParams);
 
@@ -200,7 +241,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
-                Namespace = "System"
+                Namespace = "System",
+                EnforceCodeActionInvokedInComponent = true
             };
             var data = JObject.FromObject(actionParams);
 
@@ -233,7 +275,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
-                Namespace = "System"
+                Namespace = "System",
+                EnforceCodeActionInvokedInComponent = true
             };
             var data = JObject.FromObject(actionParams);
 
@@ -266,7 +309,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
-                Namespace = "System.Linq"
+                Namespace = "System.Linq",
+                EnforceCodeActionInvokedInComponent = true
             };
             var data = JObject.FromObject(actionParams);
 
@@ -299,7 +343,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
-                Namespace = "Microsoft.AspNetCore.Razor.Language"
+                Namespace = "Microsoft.AspNetCore.Razor.Language",
+                EnforceCodeActionInvokedInComponent = true
             };
             var data = JObject.FromObject(actionParams);
 

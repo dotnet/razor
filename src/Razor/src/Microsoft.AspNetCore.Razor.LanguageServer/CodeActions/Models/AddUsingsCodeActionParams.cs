@@ -9,5 +9,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
     {
         public DocumentUri Uri { get; set; }
         public string Namespace { get; set; }
+        public bool EnforceCodeActionInvokedInComponent { get; set; }
     }
 }
