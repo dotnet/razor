@@ -6,10 +6,7 @@
 import * as vscode from 'vscode';
 import { SemanticTokens } from 'vscode';
 import { RequestType } from 'vscode-languageclient';
-import { RazorDocumentManager } from '../RazorDocumentManager';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
-import { RazorLogger } from '../RazorLogger';
-import { convertRangeFromSerializable } from '../RPC/SerializableRange';
 import { SerializableSemanticTokensParams } from '../RPC/SerializableSemanticTokensParams';
 
 export class SemanticTokensHandler {
@@ -17,10 +14,7 @@ export class SemanticTokensHandler {
     private semanticTokensRequestType: RequestType<SerializableSemanticTokensParams, vscode.SemanticTokens, any, any> = new RequestType(SemanticTokensHandler.getSemanticTokensEndpoint);
     private emptySemanticTokensResponse: SemanticTokens = new vscode.SemanticTokens(new Uint32Array());
 
-    constructor(
-        private readonly documentManager: RazorDocumentManager,
-        private readonly serverClient: RazorLanguageServerClient,
-        private readonly logger: RazorLogger) {
+    constructor(private readonly serverClient: RazorLanguageServerClient) {
     }
 
     public register() {

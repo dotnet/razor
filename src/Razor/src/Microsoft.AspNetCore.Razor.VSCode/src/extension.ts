@@ -79,10 +79,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 documentManager,
                 languageServerClient,
                 logger);
-            const semanticTokenHandler = new SemanticTokensHandler(
-                documentManager,
-                languageServerClient,
-                logger);
+            const semanticTokenHandler = new SemanticTokensHandler(languageServerClient);
             const completionItemProvider = new RazorCompletionItemProvider(
                 documentSynchronizer,
                 documentManager,
