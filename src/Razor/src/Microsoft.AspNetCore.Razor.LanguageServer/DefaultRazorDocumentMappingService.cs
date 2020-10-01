@@ -83,7 +83,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 (projectedEnd.Line == projectedStart.Line &&
                  projectedEnd.Character < projectedStart.Character))
             {
-                Debug.Fail($"DefaultRazorDocumentMappingService:TryMapToProjectedDocumentRange projected range end < start '{projectedRange}'");
                 return false;
             }
 
