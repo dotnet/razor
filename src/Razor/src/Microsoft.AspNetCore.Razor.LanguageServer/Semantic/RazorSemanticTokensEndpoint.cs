@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var edits = await _semanticTokensInfoService.GetSemanticTokensEdits(codeDocument, request.TextDocument, request.PreviousResultId, cancellationToken);
+            var edits = await _semanticTokensInfoService.GetSemanticTokensEditsAsync(codeDocument, request.TextDocument, request.PreviousResultId, cancellationToken);
 
             return edits;
         }
@@ -134,7 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var tokens = await _semanticTokensInfoService.GetSemanticTokens(codeDocument, textDocument, range, cancellationToken);
+            var tokens = await _semanticTokensInfoService.GetSemanticTokensAsync(codeDocument, textDocument, range, cancellationToken);
 
             return tokens;
         }

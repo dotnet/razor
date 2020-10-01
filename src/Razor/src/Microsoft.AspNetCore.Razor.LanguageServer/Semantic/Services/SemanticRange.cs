@@ -29,12 +29,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public int CompareTo(SemanticRange other)
         {
-            if(other is null)
+            if (other is null)
             {
                 return 1;
             }
 
-            if(other.Range is null && Range is null)
+            if (other.Range is null && Range is null)
             {
                 return 0;
             }

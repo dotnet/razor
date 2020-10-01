@@ -11,10 +11,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal abstract class RazorSemanticTokensInfoService
     {
-        public abstract Task<SemanticTokens> GetSemanticTokens(RazorCodeDocument codeDocument, TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken);
+        public abstract Task<SemanticTokens> GetSemanticTokensAsync(RazorCodeDocument codeDocument, TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken);
 
-        public abstract Task<SemanticTokens> GetSemanticTokens(RazorCodeDocument codeDocument, TextDocumentIdentifier textDocumentIdentifier, Range range, CancellationToken cancellationToken);
+        public abstract Task<SemanticTokens> GetSemanticTokensAsync(RazorCodeDocument codeDocument, TextDocumentIdentifier textDocumentIdentifier, Range range, CancellationToken cancellationToken);
 
-        public abstract Task<SemanticTokensFullOrDelta> GetSemanticTokensEdits(RazorCodeDocument codeDocument, TextDocumentIdentifier textDocumentIdentifier, string previousId, CancellationToken cancellationToken);
+        public abstract Task<SemanticTokensFullOrDelta> GetSemanticTokensEditsAsync(RazorCodeDocument codeDocument, TextDocumentIdentifier textDocumentIdentifier, string previousId, CancellationToken cancellationToken);
     }
 }

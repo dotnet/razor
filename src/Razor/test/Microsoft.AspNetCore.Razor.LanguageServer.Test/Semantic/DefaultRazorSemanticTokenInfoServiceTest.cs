@@ -1001,7 +1001,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             }
 
             // Act
-            var tokens = await service.GetSemanticTokens(codeDocument, textDocumentIdentifier, location, CancellationToken.None);
+            var tokens = await service.GetSemanticTokensAsync(codeDocument, textDocumentIdentifier, location, CancellationToken.None);
 
             // Assert
             Assert.True(ArrayEqual(expectedData, tokens.Data));
@@ -1013,9 +1013,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var expectedArray = expectedData.ToArray();
             var actualArray = actualData.ToArray();
-            for(var i = 0; i < Math.Min(expectedData.Count(), actualData.Count()); i++)
+            for (var i = 0; i < Math.Min(expectedData.Count(), actualData.Count()); i++)
             {
-                if(expectedArray[i] != actualArray[i])
+                if (expectedArray[i] != actualArray[i])
                 {
                     Assert.True(false, $"expected: {expectedArray[i]}, actual: {actualArray[i]} i: {i}");
                     return false;
@@ -1049,7 +1049,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             }
 
             // Act
-            var edits = await service.GetSemanticTokensEdits(codeDocument, textDocumentIdentifier, previousResultId, CancellationToken.None);
+            var edits = await service.GetSemanticTokensEditsAsync(codeDocument, textDocumentIdentifier, previousResultId, CancellationToken.None);
 
             // Assert
             if (expectedEdits.IsDelta)

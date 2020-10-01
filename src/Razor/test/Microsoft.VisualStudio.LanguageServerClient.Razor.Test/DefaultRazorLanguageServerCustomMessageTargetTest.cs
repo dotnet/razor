@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -176,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             LSPDocumentSnapshot document;
-            var documentManager = new Mock<TrackingLSPDocumentManager>();
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
                 .Returns(false);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
@@ -202,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var testDocUri = new Uri("C:/path/to/file.razor");
             LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0);
 
-            var documentManager = new Mock<TrackingLSPDocumentManager>();
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
@@ -233,12 +234,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, Mock.Of<ITextSnapshot>(), 0);
             LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0, testVirtualDocument, csharpVirtualDocument);
 
-            var documentManager = new Mock<TrackingLSPDocumentManager>();
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
 
             var expectedResults = new[] { new VSCodeAction() };
-            var requestInvoker = new Mock<LSPRequestInvoker>();
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<CodeActionParams, VSCodeAction[]>(
                 Methods.TextDocumentCodeActionName,
                 LanguageServerKind.CSharp.ToContentType(),
@@ -291,6 +292,95 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             // Assert
             Assert.Equal(expectedResponse, result);
+        }
+        [Fact]
+        public async void ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNull()
+        {
+            // Arrange
+            LSPDocumentSnapshot document;
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
+                .Returns(false);
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
+            var request = new SemanticTokensParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = new Uri("C:/path/to/file.razor")
+                }
+            };
+
+            // Act
+            var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async void ProvideSemanticTokensAsync_CannotLookupVirtualDocument_ReturnsNull()
+        {
+            // Arrange
+            var testDocUri = new Uri("C:/path/to/file.razor");
+            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0);
+
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
+                .Returns(true);
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
+            var request = new SemanticTokensParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = new Uri("C:/path/to/file.razor")
+                }
+            };
+
+            // Act
+            var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async void ProvideSemanticTokensAsync_ReturnsSemanticTokens()
+        {
+            // Arrange
+            var testDocUri = new Uri("C:/path/to/file.razor");
+            var testVirtualDocUri = new Uri("C:/path/to/file2.razor.g");
+            var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
+
+            var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
+            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, Mock.Of<ITextSnapshot>(), 0);
+            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0, testVirtualDocument, csharpVirtualDocument);
+
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
+                .Returns(true);
+
+            var expectedResults = new SemanticTokens {};
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
+                LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
+                LanguageServerKind.CSharp.ToContentType(),
+                It.IsAny<SemanticTokensParams>(),
+                It.IsAny<CancellationToken>()
+            )).Returns(Task.FromResult(expectedResults));
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, JoinableTaskContext, requestInvoker.Object);
+            var request = new SemanticTokensParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = testDocUri
+                }
+            };
+
+            // Act
+            var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(expectedResults, result);
         }
     }
 }
