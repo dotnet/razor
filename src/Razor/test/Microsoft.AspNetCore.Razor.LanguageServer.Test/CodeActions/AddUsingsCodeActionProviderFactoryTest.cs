@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             var docUri = DocumentUri.From("c:/path");
 
             // Act
-            var codeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(fqn, docUri, enforceCodeActionInvokedInComponent: false);
+            var codeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(fqn, docUri);
 
             // Assert
             Assert.Equal("@using Abc", codeAction.Title);

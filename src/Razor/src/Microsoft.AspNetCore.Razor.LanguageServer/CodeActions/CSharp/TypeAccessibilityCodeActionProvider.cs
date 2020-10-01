@@ -178,8 +178,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             return AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(
                 fullyQualifiedName,
-                context.Request.TextDocument.Uri,
-                enforceCodeActionInvokedInComponent: false);
+                context.Request.TextDocument.Uri);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return namespaceName;
         }
 
-        internal static RazorCodeAction CreateAddUsingCodeAction(string fullyQualifiedName, DocumentUri uri, bool enforceCodeActionInvokedInComponent)
+        internal static RazorCodeAction CreateAddUsingCodeAction(string fullyQualifiedName, DocumentUri uri)
         {
             var @namespace = GetNamespaceFromFQN(fullyQualifiedName);
             if (string.IsNullOrEmpty(@namespace))
@@ -36,8 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = uri,
-                Namespace = @namespace,
-                EnforceCodeActionInvokedInComponent = enforceCodeActionInvokedInComponent
+                Namespace = @namespace
             };
 
             var resolutionParams = new RazorCodeActionResolutionParams

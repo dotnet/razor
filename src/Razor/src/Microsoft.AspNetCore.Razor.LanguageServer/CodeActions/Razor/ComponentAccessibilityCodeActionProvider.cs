@@ -125,8 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 // Insert @using
                 var addUsingCodeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(
                     fullyQualifiedName,
-                    context.Request.TextDocument.Uri,
-                    enforceCodeActionInvokedInComponent: true);
+                    context.Request.TextDocument.Uri);
                 if (addUsingCodeAction != null)
                 {
                     container.Add(addUsingCodeAction);
