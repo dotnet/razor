@@ -47,6 +47,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(codeActions));
             }
 
+            // Used to identify if this is VSCode which doesn't support
+            // code action resolve.
+            if (!context.SupportsCodeActionResolve)
+            {
+                return EmptyResult;
+            }
+
             if (context.Request?.Context?.Diagnostics is null)
             {
                 return null;

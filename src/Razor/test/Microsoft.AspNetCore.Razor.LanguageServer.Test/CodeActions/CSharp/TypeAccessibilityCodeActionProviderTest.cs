@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         [Fact]
-        public async Task Handle_InvalidCodeActions_ReturnsEmpty()
+        public async Task Handle_EmptyCodeActions_ReturnsEmpty()
         {
             // Arrange
             var documentPath = "c:/Test.razor";
@@ -391,7 +391,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var sourceText = SourceText.From(text);
 
-            var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation);
+            var context = new RazorCodeActionContext(request, documentSnapshot, codeDocument, location, sourceText, supportsFileCreation, supportsCodeActionResolve: true);
 
             return context;
         }
