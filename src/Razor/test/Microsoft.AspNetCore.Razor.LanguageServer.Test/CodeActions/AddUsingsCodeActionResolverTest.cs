@@ -64,29 +64,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         [Fact]
-        public async Task Handle_EnforceCodeActionInvokedInComponent_True_InvalidFileKind()
-        {
-            // Arrange
-            var documentPath = "c:/Test.razor";
-            var contents = "@page \"/test\"";
-            var codeDocument = CreateCodeDocument(contents);
-            codeDocument.SetFileKind(FileKinds.Legacy);
-
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
-            var data = JObject.FromObject(new AddUsingsCodeActionParams()
-            {
-                Uri = new Uri(documentPath),
-                Namespace = "System"
-            });
-
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
-
-            // Assert
-            Assert.Null(workspaceEdit);
-        }
-
-        [Fact]
         public async Task Handle_AddOneUsingToEmpty()
         {
             // Arrange
