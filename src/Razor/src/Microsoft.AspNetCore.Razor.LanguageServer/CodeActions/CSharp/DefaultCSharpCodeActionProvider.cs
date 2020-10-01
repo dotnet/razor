@@ -16,10 +16,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static readonly HashSet<Regex> RegexMatchCodeActions = new HashSet<Regex>()
         {
             // Supports generating the empty constructor `ClassName()`, as well as constructor with args `ClassName(int)`
-            new Regex(@"Generate constructor '.+\(.*\)'", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1)),
+            new Regex(@"^Generate constructor '.+\(.*\)'$", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1)),
 
             // Temporarily disable till we can support multi-part edit formatting
-            // new Regex("Create and assign (property|field) '.+'", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1))
+            // new Regex("^Create and assign (property|field) '.+'$", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1))
         };
 
         private static readonly HashSet<string> StringMatchCodeActions = new HashSet<string>()

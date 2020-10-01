@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             if (context.Request?.Context?.Diagnostics is null)
             {
-                return null;
+                return EmptyResult;
             }
 
             var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
