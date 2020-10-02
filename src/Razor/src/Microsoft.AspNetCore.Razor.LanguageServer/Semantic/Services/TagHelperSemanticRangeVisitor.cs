@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
         {
-            AddSemanticRange(node.Name);
+            AddSemanticRange(node.Name, SyntaxKind.MarkupAttributeBlock);
             base.VisitMarkupMinimizedAttributeBlock(node);
         }
         #endregion HTML

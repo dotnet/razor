@@ -22,6 +22,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     {
         #region HTML
         [Fact]
+        public void GetSemanticTokens_IncompleteTag()
+        {
+            var txt = "<str";
+            var expectedData = new List<int>
+            {
+                0, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 3, RazorSemanticTokensLegend.MarkupElement, 0,
+            };
+
+            AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
+        }
+
+        [Fact]
+        public void GetSemanticTokens_MinimizedHTMLAttribute()
+        {
+            var txt = "<p attr />";
+            var expectedData = new List<int>
+            {
+                0, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
+                0, 2, 4, RazorSemanticTokensLegend.MarkupAttribute, 0,
+                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+            };
+
+            AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
+        }
+
+        [Fact]
         public void GetSemanticTokens_MinimizedHTML()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<input/> ";
