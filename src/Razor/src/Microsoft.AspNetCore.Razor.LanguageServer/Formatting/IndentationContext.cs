@@ -15,6 +15,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public FormattingSpan FirstSpan { get; set; }
 
+        public bool EmptyOrWhitespaceLine { get; set; }
+
         public bool StartsInHtmlContext => FirstSpan.Kind == FormattingSpanKind.Markup;
 
         public bool StartsInCSharpContext => FirstSpan.Kind == FormattingSpanKind.Code;

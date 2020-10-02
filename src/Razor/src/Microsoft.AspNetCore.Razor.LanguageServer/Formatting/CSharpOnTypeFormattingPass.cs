@@ -58,35 +58,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Find the lines that were affected by these edits.
             var originalText = codeDocument.GetSourceText();
             var changes = filteredEdits.Select(e => e.AsTextChange(originalText));
-            var changedText = originalText.WithChanges(changes);
-            TrackEncompassingChange(originalText, changedText, out var spanBeforeChange, out var spanAfterChange);
-            var rangeBeforeEdit = spanBeforeChange.AsRange(originalText);
-            var rangeAfterEdit = spanAfterChange.AsRange(changedText);
 
-            // Create a new formatting context for the changed razor document.
-            var changedContext = await context.WithTextAsync(changedText);
+            // Apply the format on type edits sent over by the client.
+            var formattedText = originalText.WithChanges(changes);
+            TrackEncompassingChange(originalText, formattedText, out _, out var spanAfterChange);
+            var rangeAfterEdit = spanAfterChange.AsRange(formattedText);
+            var changedContext = await context.WithTextAsync(formattedText);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Now, for each affected line in the edited version of the document, remove x amount of spaces
-            // at the front to account for extra indentation applied by the C# formatter.
-            // This should be based on context.
-            // For instance, lines inside @code/@functions block should be reduced one level
-            // and lines inside @{} should be reduced by two levels.
-            var indentationChanges = AdjustCSharpIndentation(changedContext, (int)rangeAfterEdit.Start.Line, (int)rangeAfterEdit.End.Line);
+            // We make an optimistic attempt at fixing corner cases.
+            var cleanedText = CleanupDocument(changedContext, rangeAfterEdit);
+            TrackEncompassingChange(formattedText, cleanedText, out _, out spanAfterChange);
+            rangeAfterEdit = spanAfterChange.AsRange(cleanedText);
+            changedContext = await changedContext.WithTextAsync(cleanedText);
 
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // At this point we should have applied all edits that adds/removes newlines.
+            // Let's now ensure the indentation of each of those lines is correct.
+            var indentationChanges = AdjustIndentation(changedContext, cancellationToken, rangeAfterEdit);
             if (indentationChanges.Count > 0)
             {
                 // Apply the edits that modify indentation.
-                changedText = changedText.WithChanges(indentationChanges);
-                changedContext = await changedContext.WithTextAsync(changedText);
+                cleanedText = cleanedText.WithChanges(indentationChanges);
             }
 
-            // We make an optimistic attempt at fixing corner cases.
-            changedText = CleanupDocument(changedContext, rangeAfterEdit);
-
             // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
-            var finalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
+            var finalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, cleanedText, lineDiffOnly: false);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);
@@ -94,24 +93,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private TextEdit[] FilterCSharpTextEdits(FormattingContext context, TextEdit[] edits)
         {
-            var filteredEdits = edits.Where(e => !AffectsWhitespaceInNonCSharpLine(e)).ToArray();
+            var filteredEdits = edits.Where(e => ShouldFormat(context, e.Range.Start, allowImplicitStatements: false)).ToArray();
             return filteredEdits;
-
-            bool AffectsWhitespaceInNonCSharpLine(TextEdit edit)
-            {
-                //
-                // Example:
-                //     @{
-                //       var x = "asdf";
-                // |  |}
-                // ^  ^ - C# formatter wants to remove this whitespace because it doesn't know about the '}'.
-                // But we can't let it happen.
-                //
-                return
-                    edit.Range.Start.Character == 0 &&
-                    edit.Range.Start.Line == edit.Range.End.Line &&
-                    !context.Indentations[(int)edit.Range.Start.Line].StartsInCSharpContext;
-            }
         }
     }
 }

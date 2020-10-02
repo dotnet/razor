@@ -66,7 +66,7 @@ input: @"
 expected: @"
 <div>
     @{
-      if(true) { }
+        if(true) { }
     }
 </div>
 

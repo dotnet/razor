@@ -208,38 +208,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 IsFormatOnType = isFormatOnType
             };
 
-            var source = codeDocument.Source;
+            var sourceText = codeDocument.GetSourceText();
             var syntaxTree = codeDocument.GetSyntaxTree();
             var formattingSpans = syntaxTree.GetFormattingSpans();
             var indentations = new Dictionary<int, IndentationContext>();
 
-            var total = 0;
             var previousIndentationLevel = 0;
-            for (var i = 0; i < source.Lines.Count; i++)
+            for (var i = 0; i < sourceText.Lines.Count; i++)
             {
                 // Get first non-whitespace character position
-                var lineLength = source.Lines.GetLineLength(i);
-                var nonWsChar = 0;
-                for (var j = 0; j < lineLength; j++)
+                var nonWsPos = sourceText.Lines[i].GetFirstNonWhitespacePosition();
+                var existingIndentation = (nonWsPos ?? sourceText.Lines[i].End) - sourceText.Lines[i].Start;
+                var emptyOrWhitespaceLine = false;
+                if (nonWsPos == null)
                 {
-                    var ch = source[total + j];
-                    if (!char.IsWhiteSpace(ch) && !ParserHelpers.IsNewLine(ch))
-                    {
-                        nonWsChar = j;
-                        break;
-                    }
+                    emptyOrWhitespaceLine = true;
+                    nonWsPos = sourceText.Lines[i].Start;
                 }
 
                 // position now contains the first non-whitespace character or 0. Get the corresponding FormattingSpan.
-                if (TryGetFormattingSpan(total + nonWsChar, formattingSpans, out var span))
+                if (TryGetFormattingSpan(nonWsPos.Value, formattingSpans, out var span))
                 {
                     indentations[i] = new IndentationContext
                     {
                         Line = i,
                         IndentationLevel = span.IndentationLevel,
                         RelativeIndentationLevel = span.IndentationLevel - previousIndentationLevel,
-                        ExistingIndentation = nonWsChar,
+                        ExistingIndentation = existingIndentation,
                         FirstSpan = span,
+                        EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
                     };
                     previousIndentationLevel = span.IndentationLevel;
                 }
@@ -248,8 +245,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // Couldn't find a corresponding FormattingSpan. Happens if it is a 0 length line.
                     // Let's create a 0 length span to represent this and default it to HTML.
                     var placeholderSpan = new FormattingSpan(
-                        new Language.Syntax.TextSpan(total + nonWsChar, 0),
-                        new Language.Syntax.TextSpan(total + nonWsChar, 0),
+                        new Language.Syntax.TextSpan(nonWsPos.Value, 0),
+                        new Language.Syntax.TextSpan(nonWsPos.Value, 0),
                         FormattingSpanKind.Markup,
                         FormattingBlockKind.Markup,
                         indentationLevel: 0,
@@ -260,12 +257,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         Line = i,
                         IndentationLevel = 0,
                         RelativeIndentationLevel = previousIndentationLevel,
-                        ExistingIndentation = nonWsChar,
+                        ExistingIndentation = existingIndentation,
                         FirstSpan = placeholderSpan,
+                        EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
                     };
                 }
-
-                total += lineLength;
             }
 
             result.Indentations = indentations;
