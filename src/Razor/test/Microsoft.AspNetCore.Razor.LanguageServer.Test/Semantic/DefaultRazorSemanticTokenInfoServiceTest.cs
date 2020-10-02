@@ -1079,7 +1079,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             }
             var outService = service;
             TextDocumentIdentifier textDocumentIdentifier;
-            if(documentSnapshot is null)
+            if (documentSnapshot is null)
             {
                 var tuple = CreateDocumentSnapshot(txt, isRazor, DefaultTagHelpers);
                 documentSnapshot = tuple.Item1;
