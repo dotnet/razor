@@ -80,28 +80,36 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.ImplementationProvider != null;
+            return serverCapabilities?.ImplementationProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private bool CheckTypeDefinitionCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.TypeDefinitionProvider != null;
+            return serverCapabilities?.TypeDefinitionProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckFindAllReferencesCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.ReferencesProvider != null;
+            return serverCapabilities?.ReferencesProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckRenameCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.RenameProvider != null;
+            return serverCapabilities?.RenameProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckSignatureHelpCapabilities(JToken token)
@@ -129,14 +137,18 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.DocumentRangeFormattingProvider != null;
+            return serverCapabilities?.DocumentRangeFormattingProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckWorkspaceSymbolCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.WorkspaceSymbolProvider != null;
+            return serverCapabilities?.WorkspaceSymbolProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckOnTypeFormattingCapabilities(JToken token)
@@ -150,21 +162,27 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.DocumentFormattingProvider != null;
+            return serverCapabilities?.DocumentFormattingProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckHoverCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.HoverProvider != null;
+            return serverCapabilities?.HoverProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckCodeActionCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.CodeActionProvider != null;
+            return serverCapabilities?.CodeActionProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckCodeLensCapabilities(JToken token)
@@ -192,14 +210,18 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.DefinitionProvider != null;
+            return serverCapabilities?.DefinitionProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckHighlightCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.DocumentHighlightProvider != null;
+            return serverCapabilities?.DocumentHighlightProvider.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
         }
 
         private static bool CheckMSReferencesCapabilities(JToken token)
