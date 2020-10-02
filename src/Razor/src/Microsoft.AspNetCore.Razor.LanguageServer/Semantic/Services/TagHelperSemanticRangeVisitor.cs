@@ -111,6 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
         {
+            // We can't provide colors for CSharp because if we both provided them then they would overlap, which violates the LSP spec.
             if (node.Keyword.Kind != SyntaxKind.CSharpStatementLiteral)
             {
                 AddSemanticRange(node.Keyword, SyntaxKind.RazorDirective);
