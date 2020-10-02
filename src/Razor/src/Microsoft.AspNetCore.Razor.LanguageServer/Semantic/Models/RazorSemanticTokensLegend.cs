@@ -151,19 +151,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 
         public static readonly IReadOnlyDictionary<string, int> TokenTypesLegend = GetMap(_tokenTypes);
 
-        private RazorSemanticTokensLegend()
-        {
-        }
-
         public static readonly SemanticTokensLegend Instance = new SemanticTokensLegend
         {
             TokenModifiers = new Container<string>(_tokenModifiers),
             TokenTypes = new Container<string>(_tokenTypes),
         };
-
-        public static Container<string> TokenTypes { get; private set; }
-
-        public static Container<string> TokenModifiers { get; private set; }
 
         private static IReadOnlyDictionary<string, int> GetMap(IReadOnlyCollection<string> tokens)
         {

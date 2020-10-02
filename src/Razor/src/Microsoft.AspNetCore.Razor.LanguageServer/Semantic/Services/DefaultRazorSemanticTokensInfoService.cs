@@ -25,8 +25,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         // We need to keep track of the last couple of requests for use in previousResultId,
         // but if we let the grow unbounded it could quickly allocate a lot of memory.
         // Solution: an in-memory cache
-        private readonly MemoryCache<string, (VersionStamp, IReadOnlyList<int>)> _semanticTokensCache =
-            new MemoryCache<string, (VersionStamp, IReadOnlyList<int>)>();
+        private readonly MemoryCache<string, (VersionStamp Version, IReadOnlyList<int> Data)> _semanticTokensCache =
+            new MemoryCache<string, (VersionStamp Version, IReadOnlyList<int> Data)>();
 
         private readonly IClientLanguageServer _languageServer;
         private readonly RazorDocumentMappingService _documentMappingService;
@@ -55,10 +55,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 throw new ArgumentNullException(nameof(codeDocument));
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
             var documentVersion = await documentSnapshot.GetTextVersionAsync();
 
+            cancellationToken.ThrowIfCancellationRequested();
             var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
             var csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, cancellationToken);
+
             var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
 
             var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, documentVersion);
@@ -77,19 +81,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 throw new ArgumentNullException(nameof(codeDocument));
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
             var documentVersion = await documentSnapshot.GetTextVersionAsync();
+            cancellationToken.ThrowIfCancellationRequested();
 
             VersionStamp? cachedVersionStamp = null;
             IReadOnlyList<int> previousResults = null;
-            if(previousResultId != null)
+            if (previousResultId != null)
             {
                 _semanticTokensCache.TryGetValue(previousResultId, out var tuple);
 
-                cachedVersionStamp = tuple.Item1;
-                previousResults = tuple.Item2;
+                cachedVersionStamp = tuple.Version;
+                previousResults = tuple.Data;
             }
 
-            if (documentVersion == null || cachedVersionStamp != documentVersion)
+            if (documentVersion == default || cachedVersionStamp != documentVersion)
             {
                 var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument);
                 var csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range: null, cancellationToken);
@@ -155,8 +162,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Range range,
             CancellationToken cancellationToken)
         {
-            var csharpDocument = codeDocument.GetCSharpDocument();
-
             var parameter = new SemanticTokensParams
             {
                 TextDocument = textDocumentIdentifier,

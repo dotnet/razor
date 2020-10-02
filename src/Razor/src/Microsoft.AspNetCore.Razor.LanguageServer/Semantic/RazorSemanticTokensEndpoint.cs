@@ -101,7 +101,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return new SemanticTokensRegistrationOptions
             {
                 DocumentSelector = RazorDefaults.Selector,
-                Full = new SemanticTokensCapabilityRequestFull{
+                Full = new SemanticTokensCapabilityRequestFull
+                {
                     Delta = true,
                 },
                 Legend = RazorSemanticTokensLegend.Instance,
@@ -116,8 +117,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public RegistrationExtensionResult GetRegistration()
         {
-            return new RegistrationExtensionResult(LanguageServerConstants.SemanticTokensProviderName, new LegacySemanticTokensOptions {
-                DocumentProvider = new SemanticTokensDocumentProviderOptions {
+            return new RegistrationExtensionResult(LanguageServerConstants.SemanticTokensProviderName, new LegacySemanticTokensOptions
+            {
+                DocumentProvider = new SemanticTokensDocumentProviderOptions
+                {
                     Edits = true,
                 },
                 Legend = RazorSemanticTokensLegend.Instance,
