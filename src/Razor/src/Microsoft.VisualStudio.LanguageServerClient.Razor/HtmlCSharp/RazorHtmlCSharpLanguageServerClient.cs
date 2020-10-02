@@ -21,7 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private RazorHtmlCSharpLanguageServer _languageServer;
 
         [ImportingConstructor]
-        public RazorHtmlCSharpLanguageServerClient([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+        public RazorHtmlCSharpLanguageServerClient(
+            [ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
         {
             if (requestHandlers is null)
             {
@@ -47,14 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             remove { }
         }
 
-        public Task<Connection> ActivateAsync(CancellationToken token)
+        public async Task<Connection> ActivateAsync(CancellationToken token)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
             _languageServer = new RazorHtmlCSharpLanguageServer(serverStream, serverStream, _requestHandlers);
 
             var connection = new Connection(clientStream, clientStream);
-            return Task.FromResult(connection);
+            return connection;
         }
 
         public Task OnLoadedAsync()
