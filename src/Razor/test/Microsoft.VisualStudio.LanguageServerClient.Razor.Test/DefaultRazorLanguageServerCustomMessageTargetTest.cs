@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
-        public async void ProvideCodeActionsAsync_CannotLookupDocument_ReturnsNull()
+        public async Task ProvideCodeActionsAsync_CannotLookupDocument_ReturnsNullAsync()
         {
             // Arrange
             LSPDocumentSnapshot document;
@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
-        public async void ProvideCodeActionsAsync_CannotLookupVirtualDocument_ReturnsNull()
+        public async Task ProvideCodeActionsAsync_CannotLookupVirtualDocument_ReturnsNullAsync()
         {
             // Arrange
             var testDocUri = new Uri("C:/path/to/file.razor");
@@ -223,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
-        public async void ProvideCodeActionsAsync_ReturnsCodeActions()
+        public async Task ProvideCodeActionsAsync_ReturnsCodeActionsAsync()
         {
             // Arrange
             var testDocUri = new Uri("C:/path/to/file.razor");
@@ -294,7 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.Equal(expectedResponse, result);
         }
         [Fact]
-        public async void ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNull()
+        public async Task ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNullAsync()
         {
             // Arrange
             LSPDocumentSnapshot document;
@@ -318,7 +318,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
-        public async void ProvideSemanticTokensAsync_CannotLookupVirtualDocument_ReturnsNull()
+        public async Task ProvideSemanticTokensAsync_CannotLookupVirtualDocument_ReturnsNullAsync()
         {
             // Arrange
             var testDocUri = new Uri("C:/path/to/file.razor");
@@ -344,7 +344,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
-        public async void ProvideSemanticTokensAsync_ReturnsSemanticTokens()
+        public async Task ProvideSemanticTokensAsync_ReturnsSemanticTokensAsync()
         {
             // Arrange
             var testDocUri = new Uri("C:/path/to/file.razor");

@@ -5,7 +5,10 @@ using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor;
+using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using DefaultRazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.DefaultTagHelperCompletionService;
 using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
@@ -145,17 +148,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return CreateCodeDocument(text, CSHtmlFile, tagHelpers);
         }
 
-        internal static (RazorCodeDocument, TextDocumentIdentifier) CreateRazorDocument(string text, params TagHelperDescriptor[] tagHelpers)
+        internal static (DocumentSnapshot, TextDocumentIdentifier) CreateDocumentSnapshot(string text, bool isRazor, params TagHelperDescriptor[] tagHelpers)
         {
-            var document = CreateCodeDocument(text, RazorFile, tagHelpers);
-            var identifier = new TextDocumentIdentifier(new Uri($"c:\\${RazorFile}"));
+            var file = isRazor ? RazorFile : CSHtmlFile;
 
-            return (document, identifier);
+            var document = CreateCodeDocument(text, file, tagHelpers);
+            var identifier = new TextDocumentIdentifier(new Uri($"c:\\${file}"));
+
+            var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
+            documentSnapshot.Setup(d => d.GetGeneratedOutputAsync())
+                .ReturnsAsync(document);
+
+            var version = VersionStamp.Create();
+            documentSnapshot.Setup(d => d.GetTextVersionAsync())
+                .ReturnsAsync(version);
+
+            return (documentSnapshot.Object, identifier);
         }
 
         internal static RazorCodeDocument CreateCodeDocument(string text, string filePath, params TagHelperDescriptor[] tagHelpers)
         {
-            tagHelpers = tagHelpers ?? Array.Empty<TagHelperDescriptor>();
+            tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
             var projectEngine = RazorProjectEngine.Create(builder => { });
             var fileKind = filePath.EndsWith(".razor", StringComparison.Ordinal) ? FileKinds.Component : FileKinds.Legacy;

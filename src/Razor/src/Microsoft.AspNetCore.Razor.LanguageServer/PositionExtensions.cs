@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -22,11 +21,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            var linePosition = new LinePosition((int)position.Line, (int)position.Character);
+            var linePosition = new LinePosition(position.Line, position.Character);
             if (linePosition.Line >= sourceText.Lines.Count)
             {
-                Debug.Fail("Trying to get an absoute index beyond the sourceText, this might happen if your document is out of date.");
-                return -1;
+                throw new ArgumentOutOfRangeException($"Line '{position.Line}' outside of the {nameof(sourceText)} range of '{sourceText.Lines.Count}' was queried. The document may not be up to date.");
             }
             var index = sourceText.Lines.GetPosition(linePosition);
             return index;
