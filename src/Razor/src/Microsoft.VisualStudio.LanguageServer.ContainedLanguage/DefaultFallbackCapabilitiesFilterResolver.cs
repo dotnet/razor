@@ -13,6 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     {
         public override Func<JToken, bool> Resolve(string lspRequestMethodName)
         {
+            if (lspRequestMethodName is null)
+            {
+                throw new ArgumentNullException(nameof(lspRequestMethodName));
+            }
+
             switch (lspRequestMethodName)
             {
                 // Standard LSP capabilities
@@ -75,166 +80,166 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.ImplementationProvider != null;
+            return serverCapabilities?.ImplementationProvider != null;
         }
 
         private bool CheckTypeDefinitionCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.TypeDefinitionProvider != null;
+            return serverCapabilities?.TypeDefinitionProvider != null;
         }
 
         private static bool CheckFindAllReferencesCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.ReferencesProvider != null;
+            return serverCapabilities?.ReferencesProvider != null;
         }
 
         private static bool CheckRenameCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.RenameProvider != null;
+            return serverCapabilities?.RenameProvider != null;
         }
 
         private static bool CheckSignatureHelpCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.SignatureHelpProvider != null;
+            return serverCapabilities?.SignatureHelpProvider != null;
         }
 
         private static bool CheckWillSaveCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.TextDocumentSync?.WillSave == true;
+            return serverCapabilities?.TextDocumentSync?.WillSave == true;
         }
 
         private static bool CheckWillSaveWaitUntilCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.TextDocumentSync?.WillSaveWaitUntil == true;
+            return serverCapabilities?.TextDocumentSync?.WillSaveWaitUntil == true;
         }
 
         private static bool CheckRangeFormattingCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.DocumentRangeFormattingProvider != null;
+            return serverCapabilities?.DocumentRangeFormattingProvider != null;
         }
 
         private static bool CheckWorkspaceSymbolCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.WorkspaceSymbolProvider != null;
+            return serverCapabilities?.WorkspaceSymbolProvider != null;
         }
 
         private static bool CheckOnTypeFormattingCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.DocumentOnTypeFormattingProvider != null;
+            return serverCapabilities?.DocumentOnTypeFormattingProvider != null;
         }
 
         private static bool CheckFormattingCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.DocumentFormattingProvider != null;
+            return serverCapabilities?.DocumentFormattingProvider != null;
         }
 
         private static bool CheckHoverCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.HoverProvider != null;
+            return serverCapabilities?.HoverProvider != null;
         }
 
         private static bool CheckCodeActionCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.CodeActionProvider != null;
+            return serverCapabilities?.CodeActionProvider != null;
         }
 
         private static bool CheckCodeLensCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.CodeLensProvider != null;
+            return serverCapabilities?.CodeLensProvider != null;
         }
 
         private static bool CheckCompletionCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.CompletionProvider != null;
+            return serverCapabilities?.CompletionProvider != null;
         }
 
         private static bool CheckCompletionResolveCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.CompletionProvider?.ResolveProvider == true;
+            return serverCapabilities?.CompletionProvider?.ResolveProvider == true;
         }
 
         private static bool CheckDefinitionCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.DefinitionProvider != null;
+            return serverCapabilities?.DefinitionProvider != null;
         }
 
         private static bool CheckHighlightCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities.DocumentHighlightProvider != null;
+            return serverCapabilities?.DocumentHighlightProvider != null;
         }
 
         private static bool CheckMSReferencesCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<VSServerCapabilities>();
 
-            return serverCapabilities.MSReferencesProvider == true;
+            return serverCapabilities?.MSReferencesProvider == true;
         }
 
         private static bool CheckProjectContextsCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<VSServerCapabilities>();
 
-            return serverCapabilities.ProjectContextProvider == true;
+            return serverCapabilities?.ProjectContextProvider == true;
         }
 
         private static bool CheckCodeActionResolveCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<VSServerCapabilities>();
 
-            return serverCapabilities.CodeActionsResolveProvider == true;
+            return serverCapabilities?.CodeActionsResolveProvider == true;
         }
 
         private static bool CheckOnAutoInsertCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<VSServerCapabilities>();
 
-            return serverCapabilities.OnAutoInsertProvider != null;
+            return serverCapabilities?.OnAutoInsertProvider != null;
         }
 
         private static bool CheckPullDiagnosticCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<VSServerCapabilities>();
 
-            return serverCapabilities.SupportsDiagnosticRequests == true;
+            return serverCapabilities?.SupportsDiagnosticRequests == true;
         }
 
         private bool FallbackCheckCapabilties(JToken token)
         {
-            // Fallback is just assume present
+            // Fallback is to assume present
 
             return true;
         }

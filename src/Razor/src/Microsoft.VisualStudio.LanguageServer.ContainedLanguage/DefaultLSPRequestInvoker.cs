@@ -65,7 +65,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public override Task<IEnumerable<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, TIn parameters, CancellationToken cancellationToken)
         {
-            return RequestMultipleServerCoreAsync<TIn, TOut>(method, contentType, token => true, parameters, cancellationToken);
+            var capabilitiesFilter = _fallbackCapabilitiesFilterResolver.Resolve(method);
+            return RequestMultipleServerCoreAsync<TIn, TOut>(method, contentType, capabilitiesFilter, parameters, cancellationToken);
         }
 
         public override Task<IEnumerable<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
