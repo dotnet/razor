@@ -377,6 +377,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
+        public void GetSemanticTokens_Razor_UsingDirective()
+        {
+            var txt = $"@using Microsoft.AspNetCore.Razor";
+            var expectedData = new List<int>
+            {
+                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+            }.ToImmutableArray();
+
+            AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);
+        }
+
+        [Fact]
         public void GetSemanticTokens_Razor_FunctionsDirective()
         {
             var txt = $"@functions {{}}";

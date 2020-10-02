@@ -111,7 +111,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
         {
-            AddSemanticRange(node.Keyword, SyntaxKind.RazorDirective);
+            if (node.Keyword.Kind != SyntaxKind.CSharpStatementLiteral)
+            {
+                AddSemanticRange(node.Keyword, SyntaxKind.RazorDirective);
+            }
             base.VisitRazorDirectiveBody(node);
         }
 
