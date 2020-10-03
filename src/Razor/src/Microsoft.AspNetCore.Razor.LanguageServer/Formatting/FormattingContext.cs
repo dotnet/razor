@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         /// <returns>A whitespace string representing the indentation level based on the configuration.</returns>
         public string GetIndentationLevelString(int indentationLevel)
         {
-            var indentation = indentationLevel * (int)Options.TabSize;
+            var indentation = GetIndentationOffsetForLevel(indentationLevel);
             var indentationString = GetIndentationString(indentation);
             return indentationString;
         }
@@ -113,6 +113,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             return offset;
+        }
+
+        /// <summary>
+        /// Given a level, returns the corresponding offset.
+        /// </summary>
+        /// <param name="level">A value representing the indentation level.</param>
+        /// <returns></returns>
+        public int GetIndentationOffsetForLevel(int level)
+        {
+            return level * (int)Options.TabSize;
         }
 
         public bool TryGetIndentationLevel(int position, out int indentationLevel)
@@ -232,7 +242,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     indentations[i] = new IndentationContext
                     {
                         Line = i,
-                        IndentationLevel = span.IndentationLevel,
+                        RazorIndentationLevel = span.RazorIndentationLevel,
+                        HtmlIndentationLevel = span.HtmlIndentationLevel,
                         RelativeIndentationLevel = span.IndentationLevel - previousIndentationLevel,
                         ExistingIndentation = existingIndentation,
                         FirstSpan = span,
@@ -249,13 +260,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         new Language.Syntax.TextSpan(nonWsPos.Value, 0),
                         FormattingSpanKind.Markup,
                         FormattingBlockKind.Markup,
-                        indentationLevel: 0,
+                        razorIndentationLevel: 0,
+                        htmlIndentationLevel: 0,
                         isInClassBody: false);
 
                     indentations[i] = new IndentationContext
                     {
                         Line = i,
-                        IndentationLevel = 0,
+                        RazorIndentationLevel = 0,
+                        HtmlIndentationLevel = 0,
                         RelativeIndentationLevel = previousIndentationLevel,
                         ExistingIndentation = existingIndentation,
                         FirstSpan = placeholderSpan,

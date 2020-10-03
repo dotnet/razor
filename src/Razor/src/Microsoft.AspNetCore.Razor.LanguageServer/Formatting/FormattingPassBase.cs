@@ -227,37 +227,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // For instance, lines inside @code/@functions block should be reduced one level
                 // and lines inside @{} should be reduced by two levels.
 
-                var csharpDesiredIndentLevel = context.GetIndentationLevelForOffset(csharpDesiredIndentation);
-                var minCSharpIndentLevel = context.Indentations[i].MinCSharpIndentLevel;
-                if (csharpDesiredIndentLevel < minCSharpIndentLevel)
+                var minCSharpIndentation = context.GetIndentationOffsetForLevel(context.Indentations[i].MinCSharpIndentLevel);
+                if (csharpDesiredIndentation < minCSharpIndentation)
                 {
                     // CSharp formatter doesn't want to indent this. Let's not touch it.
                     continue;
                 }
 
-                var effectiveCSharpDesiredIndentationLevel = csharpDesiredIndentLevel - minCSharpIndentLevel;
-                var razorDesiredIndentationLevel = context.Indentations[i].IndentationLevel;
+                var effectiveCSharpDesiredIndentation = csharpDesiredIndentation - minCSharpIndentation;
+                var razorDesiredIndentation = context.GetIndentationOffsetForLevel(context.Indentations[i].IndentationLevel);
                 if (!context.Indentations[i].StartsInCSharpContext)
                 {
                     // This is a non-C# line.
                     if (context.IsFormatOnType)
                     {
                         // HTML formatter doesn't run in the case of format on type.
-                        // Let's use our syntax understanding of HTML to figure out the desired indent level.
-                        razorDesiredIndentationLevel = context.Indentations[i].IndentationLevel;
+                        // Let's stick with our syntax understanding of HTML to figure out the desired indentation.
                     }
                     else
                     {
                         // Given that the HTML formatter ran before this, we can assume
                         // HTML is already correctly formatted. So we can use the existing indentation as is.
-                        razorDesiredIndentationLevel = context.GetIndentationLevelForOffset(context.Indentations[i].ExistingIndentation);
-
+                        razorDesiredIndentation = context.Indentations[i].ExistingIndentation;
                     }
                 }
-                var effectiveDesiredIndentationLevel = razorDesiredIndentationLevel + effectiveCSharpDesiredIndentationLevel;
+                var effectiveDesiredIndentation = razorDesiredIndentation + effectiveCSharpDesiredIndentation;
 
                 // This will now contain the indentation we ultimately want to apply to this line.
-                newIndentations[i] = effectiveDesiredIndentationLevel;
+                newIndentations[i] = effectiveDesiredIndentation;
             }
 
             // Now that we have collected all the indentations for each line, let's convert them to text edits.
@@ -265,12 +262,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             foreach (var item in newIndentations)
             {
                 var line = item.Key;
-                var indentationLevel = item.Value;
-                Debug.Assert(indentationLevel >= 0, "Negative indent level. This is unexpected.");
+                var indentation = item.Value;
+                Debug.Assert(indentation >= 0, "Negative indentation. This is unexpected.");
 
                 var existingIndentationLength = context.Indentations[line].ExistingIndentation;
                 var spanToReplace = new TextSpan(context.SourceText.Lines[line].Start, existingIndentationLength);
-                var effectiveDesiredIndentation = context.GetIndentationLevelString(indentationLevel);
+                var effectiveDesiredIndentation = context.GetIndentationString(indentation);
                 changes.Add(new TextChange(spanToReplace, effectiveDesiredIndentation));
             }
 

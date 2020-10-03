@@ -7,7 +7,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         public int Line { get; set; }
 
-        public int IndentationLevel { get; set; }
+        public int RazorIndentationLevel { get; set; }
+
+        public int HtmlIndentationLevel { get; set; }
+
+        public int IndentationLevel => RazorIndentationLevel + HtmlIndentationLevel;
 
         public int RelativeIndentationLevel { get; set; }
 
