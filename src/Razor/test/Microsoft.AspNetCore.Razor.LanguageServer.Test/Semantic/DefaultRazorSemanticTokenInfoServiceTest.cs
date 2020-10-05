@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -138,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
         #region HTML
         [Fact]
-        public void GetSemanticTokens_IncompleteTag()
+        public async Task GetSemanticTokens_IncompleteTag()
         {
             var txt = "<str";
             var expectedData = new List<int>
@@ -147,11 +148,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 1, 3, RazorSemanticTokensLegend.MarkupElement, 0,
             };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
+            await AssertSemanticTokens(txt, expectedData, isRazor: false);
         }
 
         [Fact]
-        public void GetSemanticTokens_MinimizedHTMLAttribute()
+        public async Task GetSemanticTokens_MinimizedHTMLAttribute()
         {
             var txt = "<p attr />";
             var expectedData = new List<int>
@@ -163,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
-            AssertSemanticTokens(txt, expectedData, isRazor: false, out var _);
+            await AssertSemanticTokens(txt, expectedData, isRazor: false);
         }
 
         [Fact]
@@ -522,7 +523,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
-        public void GetSemanticTokens_Razor_UsingDirective()
+        public async Task GetSemanticTokens_Razor_UsingDirective()
         {
             var txt = $"@using Microsoft.AspNetCore.Razor";
             var expectedData = new List<int>
@@ -530,7 +531,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
             }.ToImmutableArray();
 
-            AssertSemanticTokens(txt, expectedData, isRazor: true, out var _);
+            await AssertSemanticTokens(txt, expectedData, isRazor: true);
         }
 
         [Fact]
@@ -1134,8 +1135,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                         .Returns(razorRange != null);
                 }
             }
+            var loggingFactory = new Mock<LoggerFactory>();
 
-            return (new DefaultRazorSemanticTokensInfoService(languageServer.Object, documentMappingService.Object), languageServer);
+            return (new DefaultRazorSemanticTokensInfoService(languageServer.Object, documentMappingService.Object, loggingFactory.Object), languageServer);
         }
 
         private class SemanticEditComparer : IEqualityComparer<SemanticTokensEdit>
