@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
@@ -29,14 +30,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             new MemoryCache<string, (VersionStamp Version, IReadOnlyList<int> Data)>();
 
         private readonly IClientLanguageServer _languageServer;
+        private readonly ILogger _logger;
         private readonly RazorDocumentMappingService _documentMappingService;
 
         public DefaultRazorSemanticTokensInfoService(
             IClientLanguageServer languageServer,
-            RazorDocumentMappingService documentMappingService)
+            RazorDocumentMappingService documentMappingService,
+            ILoggerFactory loggerFactory)
         {
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            if(loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
         }
 
         public override Task<SemanticTokens> GetSemanticTokensAsync(DocumentSnapshot documentSnapshot, TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
@@ -61,7 +70,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             cancellationToken.ThrowIfCancellationRequested();
             var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
-            var csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, cancellationToken);
+            IReadOnlyList<SemanticRange> csharpSemanticRanges = null;
+            try
+            {
+                csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, cancellationToken);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range");
+            }
 
             var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
 
