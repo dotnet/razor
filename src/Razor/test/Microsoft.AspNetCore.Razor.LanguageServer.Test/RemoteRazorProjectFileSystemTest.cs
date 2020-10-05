@@ -49,8 +49,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void GetItem_RootedFilePath_DoesNotBelongToProject()
         {
             // Arrange
-            var fileSystem = new RemoteRazorProjectFileSystem("C:/path/to", FilePathNormalizer);
-            var documentFilePath = "C:/otherpath/to/file.cshtml";
+            var fileSystem = new RemoteRazorProjectFileSystem("/C:/path/to", FilePathNormalizer);
+            var documentFilePath = "/C:/otherpath/to/file.cshtml";
 
             // Act
             var item = fileSystem.GetItem(documentFilePath, fileKind: null);

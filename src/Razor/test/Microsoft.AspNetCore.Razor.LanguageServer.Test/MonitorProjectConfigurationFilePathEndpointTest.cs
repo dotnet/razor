@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Testing;
 using Microsoft.CodeAnalysis.Razor;
 using Moq;
 using Xunit;
@@ -150,7 +151,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Equal(0, detector.StopCount);
         }
 
-        [Fact]
+        [ConditionalFact]
+        [OSSkipCondition(OperatingSystems.Linux)]
+        [OSSkipCondition(OperatingSystems.MacOSX)]
         public async Task Handle_ChangedConfigurationOutputPath_StartsWithNewPath()
         {
             // Arrange
@@ -181,7 +184,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Equal(1, detector.StopCount);
         }
 
-        [Fact]
+        [ConditionalFact]
+        [OSSkipCondition(OperatingSystems.Linux)]
+        [OSSkipCondition(OperatingSystems.MacOSX)]
         public async Task Handle_ChangedConfigurationExternalToInternal_StopsWithoutRestarting()
         {
             // Arrange
@@ -212,7 +217,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Equal(1, detector.StopCount);
         }
 
-        [Fact]
+        [ConditionalFact]
+        [OSSkipCondition(OperatingSystems.Linux)]
+        [OSSkipCondition(OperatingSystems.MacOSX)]
         public async Task Handle_MultipleProjects_StartedAndStopped()
         {
             // Arrange
