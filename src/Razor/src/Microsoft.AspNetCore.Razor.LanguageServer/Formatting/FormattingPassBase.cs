@@ -128,18 +128,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
-        protected static void TrackEncompassingChange(SourceText oldText, SourceText newText, out TextSpan spanBeforeChange, out TextSpan spanAfterChange)
+        protected static void TrackEncompassingChange(SourceText oldText, IEnumerable<TextChange> changes, out TextSpan spanBeforeChange, out TextSpan spanAfterChange)
         {
             if (oldText is null)
             {
                 throw new ArgumentNullException(nameof(oldText));
             }
 
-            if (newText is null)
+            if (changes is null)
             {
-                throw new ArgumentNullException(nameof(newText));
+                throw new ArgumentNullException(nameof(changes));
             }
 
+            var newText = oldText.WithChanges(changes);
             var affectedRange = newText.GetEncompassingTextChangeRange(oldText);
 
             spanBeforeChange = affectedRange.Span;
@@ -274,7 +275,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return changes;
         }
 
-        protected SourceText CleanupDocument(FormattingContext context, Range range = null)
+        protected List<TextChange> CleanupDocument(FormattingContext context, Range range = null)
         {
             var text = context.SourceText;
             range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
@@ -296,8 +297,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 CleanupSourceMappingEnd(context, mappingRange, changes);
             }
 
-            var changedText = text.WithChanges(changes);
-            return changedText;
+            return changes;
         }
 
         private void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes)

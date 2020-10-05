@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,23 +63,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Apply the format on type edits sent over by the client.
             var formattedText = originalText.WithChanges(changes);
-            TrackEncompassingChange(originalText, formattedText, out _, out var spanAfterChange);
-            var rangeAfterEdit = spanAfterChange.AsRange(formattedText);
             var changedContext = await context.WithTextAsync(formattedText);
+            TrackEncompassingChange(originalText, changes, out _, out var spanAfterFormatting);
+            var rangeAfterFormatting = spanAfterFormatting.AsRange(formattedText);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // We make an optimistic attempt at fixing corner cases.
-            var cleanedText = CleanupDocument(changedContext, rangeAfterEdit);
-            TrackEncompassingChange(formattedText, cleanedText, out _, out spanAfterChange);
-            rangeAfterEdit = spanAfterChange.AsRange(cleanedText);
+            var cleanupChanges = CleanupDocument(changedContext, rangeAfterFormatting);
+            var cleanedText = formattedText.WithChanges(cleanupChanges);
             changedContext = await changedContext.WithTextAsync(cleanedText);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // At this point we should have applied all edits that adds/removes newlines.
             // Let's now ensure the indentation of each of those lines is correct.
-            var indentationChanges = AdjustIndentation(changedContext, cancellationToken, rangeAfterEdit);
+
+            // We only want to adjust the range that was affected.
+            // We need to take into account the lines affected by formatting as well as cleanup.
+            var cleanupLineDelta = LineDelta(formattedText, cleanupChanges);
+            var rangeToAdjust = new Range(rangeAfterFormatting.Start, new Position(rangeAfterFormatting.End.Line + cleanupLineDelta, 0));
+            Debug.Assert(rangeToAdjust.End.IsValid(cleanedText), "Invalid range. This is unexpected.");
+
+            var indentationChanges = AdjustIndentation(changedContext, cancellationToken, rangeToAdjust);
             if (indentationChanges.Count > 0)
             {
                 // Apply the edits that modify indentation.
@@ -95,6 +103,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             var filteredEdits = edits.Where(e => ShouldFormat(context, e.Range.Start, allowImplicitStatements: false)).ToArray();
             return filteredEdits;
+        }
+
+        private static int LineDelta(SourceText text, IEnumerable<TextChange> changes)
+        {
+            // Let's compute the number of newlines added/removed by the incoming changes.
+            var delta = 0;
+
+            foreach (var change in changes)
+            {
+                var newLineCount = change.NewText.Split('\n').Length - 1;
+
+                var range = change.Span.AsRange(text);
+                Debug.Assert(range.Start.Line <= range.End.Line, "Invalid range.");
+
+                // The number of lines added/removed will be,
+                // the number of lines added by the change  - the number of lines the change span represents
+                delta +=  newLineCount - (range.End.Line - range.Start.Line);
+            }
+
+            return delta;
         }
     }
 }
