@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
-    // Sets the FormattingTestBase.FileName static variable.
+    // Sets the FileName static variable.
     // Finds the test method name using reflection, and uses
     // that to find the expected input/output test files in the file system.
     [IntializeTestFile]
