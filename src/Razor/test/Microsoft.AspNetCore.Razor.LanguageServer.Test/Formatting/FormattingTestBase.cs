@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
@@ -18,7 +17,13 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
+    // Sets the FileName static variable.
+    // Finds the test method name using reflection, and uses
+    // that to find the expected input/output test files in the file system.
     [IntializeTestFile]
+
+    // These tests must be run serially due to the test specific FileName static var.
+    [Collection("FormattingTestSerialRuns")]
     public class FormattingTestBase : LanguageServerTestBase
     {
         private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
