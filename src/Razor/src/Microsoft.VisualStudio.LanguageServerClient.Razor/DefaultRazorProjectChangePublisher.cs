@@ -129,11 +129,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     // A Razor document was just opened, we should become "active" which means we'll constantly be monitoring project state.
                     _active = true;
 
-                    if (args.Kind == ProjectChangeKind.DocumentChanged &&
-                        args.Newer.ProjectWorkspaceState != null)
+                    if (args.Newer?.ProjectWorkspaceState != null)
                     {
                         // Typically document open events don't result in us re-processing project state; however, given this is the first time a user opened a Razor document we should.
-                        EnqueuePublish(args.Newer);
+                        // Don't enqueue, just publish to get the most immediate result.
+                        Publish(args.Newer);
                         return;
                     }
                 }

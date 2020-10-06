@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         }
 
         [Fact]
-        public async Task ProjectManager_Changed_DocumentOpened_InitializedProject_NotActive_Enqueues()
+        public void ProjectManager_Changed_DocumentOpened_InitializedProject_NotActive_Publishes()
         {
             // Arrange
             var serializationSuccessful = false;
@@ -142,8 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.DocumentOpened(hostProject.FilePath, hostDocument.FilePath, SourceText.From(string.Empty));
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
-            await kvp.Value.ConfigureAwait(false);
+            Assert.Empty(publisher._deferredPublishTasks);
             Assert.True(serializationSuccessful);
         }
 
