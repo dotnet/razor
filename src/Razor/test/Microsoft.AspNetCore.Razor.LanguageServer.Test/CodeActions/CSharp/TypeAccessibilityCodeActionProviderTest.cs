@@ -297,21 +297,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0132")
-                        },
-                        new Diagnostic()
-                        {
-                            Severity = DiagnosticSeverity.Error,
                             Code = new DiagnosticCode("CS0246"),
                             Range = new Range(
                                 new Position(0, 8),
                                 new Position(0, 16)
                             )
-                        },
-                        new Diagnostic()
-                        {
-                            Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0183")
                         }
                     )
                 }
@@ -352,21 +342,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         new Diagnostic()
                         {
                             Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0132")
-                        },
-                        new Diagnostic()
-                        {
-                            Severity = DiagnosticSeverity.Error,
                             Code = new DiagnosticCode("CS0246"),
                             Range = new Range(
                                 new Position(0, 9),
                                 new Position(1, 12)
                             )
-                        },
-                        new Diagnostic()
-                        {
-                            Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0183")
                         }
                     )
                 }
