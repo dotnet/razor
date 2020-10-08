@@ -202,6 +202,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentImplementationName, positionParams, _clientCapabilities, cancellationToken);
         }
 
+        [JsonRpcMethod(MSLSPMethods.WorkspacePullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public Task<WorkspaceDiagnosticReport[]?> WorkspacePullDiagnosticsAsync(WorkspaceDocumentDiagnosticsParams workspaceDocumentDiagnosticsParams, CancellationToken cancellationToken)
+        {
+            if (workspaceDocumentDiagnosticsParams is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceDocumentDiagnosticsParams));
+            }
+
+            return default;
+
+            return ExecuteRequestAsync<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]?>(MSLSPMethods.WorkspacePullDiagnosticName, workspaceDocumentDiagnosticsParams, _clientCapabilities, cancellationToken);
+        }
+
+        [JsonRpcMethod(MSLSPMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public Task<DiagnosticReport[]?> DocumentPullDiagnosticsAsync(DocumentDiagnosticsParams documentDiagnosticsParams, CancellationToken cancellationToken)
+        {
+            if (documentDiagnosticsParams is null)
+            {
+                throw new ArgumentNullException(nameof(documentDiagnosticsParams));
+            }
+
+            return default;
+
+            return ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]?>(MSLSPMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, cancellationToken);
+        }
+
         // Internal for testing
         internal Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,
