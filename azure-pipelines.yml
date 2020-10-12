@@ -142,7 +142,7 @@ stages:
               /p:ManifestBuildNumber=$(Build.BuildNumber)
               /p:VisualStudioDropName=Products/dotnet/aspnetcore-tooling/$(Build.SourceBranchName)/$(Build.BuildNumber)
         
-        - ${{ if eq(_BuildConfig, 'Debug') }}:
+        - ${{ if eq($(_BuildConfig), 'Debug') }}:
           - enableRichCodeNavigation: true
 
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
