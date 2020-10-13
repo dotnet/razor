@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.Extensions.CommandLineUtils.Sources" Version="3.1.10-servicing.20513.2">
+    <Dependency Name="Microsoft.Extensions.CommandLineUtils.Sources" Version="3.1.10-servicing.20513.3">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>5b3290c2fa0ffacf0608b43642617890e9fa61cf</Sha>
+      <Sha>69b47ca32ce556ea53a654b94746e1f458f42b23</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.HashCodeCombiner.Sources" Version="3.1.10-servicing.20513.2">
+    <Dependency Name="Microsoft.Extensions.HashCodeCombiner.Sources" Version="3.1.10-servicing.20513.3">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>5b3290c2fa0ffacf0608b43642617890e9fa61cf</Sha>
+      <Sha>69b47ca32ce556ea53a654b94746e1f458f42b23</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.NonCapturingTimer.Sources" Version="3.1.10-servicing.20513.2">
+    <Dependency Name="Microsoft.Extensions.NonCapturingTimer.Sources" Version="3.1.10-servicing.20513.3">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>5b3290c2fa0ffacf0608b43642617890e9fa61cf</Sha>
+      <Sha>69b47ca32ce556ea53a654b94746e1f458f42b23</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Extensions.Logging" Version="3.1.10">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>5b3290c2fa0ffacf0608b43642617890e9fa61cf</Sha>
+      <Sha>69b47ca32ce556ea53a654b94746e1f458f42b23</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.1.10-servicing.20513.2">
+    <Dependency Name="Microsoft.AspNetCore.BenchmarkRunner.Sources" Version="3.1.10-servicing.20513.3">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>5b3290c2fa0ffacf0608b43642617890e9fa61cf</Sha>
+      <Sha>69b47ca32ce556ea53a654b94746e1f458f42b23</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Testing" Version="3.1.10-servicing.20513.2">
+    <Dependency Name="Microsoft.AspNetCore.Testing" Version="3.1.10-servicing.20513.3">
       <Uri>https://github.com/dotnet/extensions</Uri>
-      <Sha>5b3290c2fa0ffacf0608b43642617890e9fa61cf</Sha>
+      <Sha>69b47ca32ce556ea53a654b94746e1f458f42b23</Sha>
     </Dependency>
     <Dependency Name="System.Text.Json" Version="4.7.2" CoherentParentDependency="Microsoft.NETCore.App.Runtime.win-x64">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-corefx</Uri>
