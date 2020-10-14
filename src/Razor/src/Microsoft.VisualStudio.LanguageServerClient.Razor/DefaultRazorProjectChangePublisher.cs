@@ -200,6 +200,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     if (ShouldSerialize(configurationFilePath))
                     {
                         SerializeToFile(projectSnapshot, configurationFilePath);
+
+                        // Set the UIContext for RazorActive to Active. We use this in some tests to tell when things are chill.
+                        _logger.SetUIContext(RazorLSPConstants.RazorActiveUIContextGuid, isActive: true);
                     }
                 }
                 catch (Exception ex)
