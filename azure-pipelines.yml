@@ -89,6 +89,8 @@ stages:
       enableTelemetry: true
       helixRepo: dotnet/aspnetcore-tooling
       helixType: build.product/
+      ${{ if eq(variables['System.TeamProject'], 'public') }}:
+        enableRichCodeNavigation: true
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
       ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         enableMicrobuild: true
@@ -141,9 +143,6 @@ stages:
               /p:ManifestBuildBranch=$(Build.SourceBranchName)
               /p:ManifestBuildNumber=$(Build.BuildNumber)
               /p:VisualStudioDropName=Products/dotnet/aspnetcore-tooling/$(Build.SourceBranchName)/$(Build.BuildNumber)
-        
-        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          - enableRichCodeNavigation: true
 
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - group: DotNet-Blob-Feed
