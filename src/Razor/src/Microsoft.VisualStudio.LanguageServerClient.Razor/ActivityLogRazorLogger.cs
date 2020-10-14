@@ -49,16 +49,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Log(__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, message);
         }
 
-        public override void SetUIContext(Guid uiContextGuid, bool isActive)
+        public async override void SetUIContext(Guid uiContextGuid, bool isActive)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await _joinableTaskFactory.SwitchToMainThreadAsync();
+
             var monitorSelection = _serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
             Assumes.Present(monitorSelection);
             var cookieResult = monitorSelection.GetCmdUIContextCookie(uiContextGuid, out var cookie);
-            Assumes.True(cookieResult == VSConstants.S_OK, $"GetCmdUIContextCookie failed with error code {cookieResult}.");
+            _ = ErrorHandler.ThrowOnFailure(cookieResult);
 
             var setContextResult = monitorSelection.SetCmdUIContext(cookie, isActive ? 1 : 0);
-            Assumes.True(setContextResult == VSConstants.S_OK, $"SetCmdUIContext faied with error code {setContextResult}.");
+            _ = ErrorHandler.ThrowOnFailure(setContextResult);
         }
 
         private async void Log(__ACTIVITYLOG_ENTRYTYPE logType, string message)
