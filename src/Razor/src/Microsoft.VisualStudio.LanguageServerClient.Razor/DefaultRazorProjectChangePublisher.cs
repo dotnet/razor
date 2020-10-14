@@ -193,16 +193,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                         return;
                     }
 
-
                     // We don't want to serialize the project until it's ready to avoid flashing as the project loads different parts.
                     // Since the project.razor.json from last session likely still exists the experience is unlikely to be degraded by this delay.
                     // An exception is made for when there's no existing project.razor.json because some flashing is preferable to having no TagHelper knowledge.
                     if (ShouldSerialize(configurationFilePath))
                     {
                         SerializeToFile(projectSnapshot, configurationFilePath);
-
-                        // Set the UIContext for RazorActive to Active. We use this in some tests to tell when things are chill.
-                        _logger.SetUIContext(RazorLSPConstants.RazorActiveUIContextGuid, isActive: true);
                     }
                 }
                 catch (Exception ex)

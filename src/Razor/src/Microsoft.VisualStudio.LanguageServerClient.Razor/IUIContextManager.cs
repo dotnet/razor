@@ -1,14 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Threading;
+using Task = System.Threading.Tasks.Task;
+
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    internal abstract class RazorLogger
+    public interface IUIContextManager
     {
-        public abstract void LogError(string message);
-
-        public abstract void LogWarning(string message);
-
-        public abstract void LogVerbose(string message);
+        Task SetUIContextAsync(Guid guid, bool isActive, CancellationToken cancellationToken);
     }
 }

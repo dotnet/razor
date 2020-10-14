@@ -49,19 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Log(__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, message);
         }
 
-        public async override void SetUIContext(Guid uiContextGuid, bool isActive)
-        {
-            await _joinableTaskFactory.SwitchToMainThreadAsync();
-
-            var monitorSelection = _serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            Assumes.Present(monitorSelection);
-            var cookieResult = monitorSelection.GetCmdUIContextCookie(uiContextGuid, out var cookie);
-            _ = ErrorHandler.ThrowOnFailure(cookieResult);
-
-            var setContextResult = monitorSelection.SetCmdUIContext(cookie, isActive ? 1 : 0);
-            _ = ErrorHandler.ThrowOnFailure(setContextResult);
-        }
-
         private async void Log(__ACTIVITYLOG_ENTRYTYPE logType, string message)
         {
             // This is an async void method. Catch all exceptions so it doesn't crash the process.
