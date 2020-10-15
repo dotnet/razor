@@ -3,12 +3,12 @@
 
 using System;
 using System.Threading;
-using Task = System.Threading.Tasks.Task;
+using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public interface IUIContextManager
+    internal abstract class RazorUIContextManager
     {
-        Task SetUIContextAsync(Guid guid, bool isActive, CancellationToken cancellationToken);
+        public abstract Task SetUIContextAsync(Guid guid, bool isActive, CancellationToken cancellationToken);
     }
 }

@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         [JsonRpcMethod(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<SemanticTokens> ProvideSemanticTokensAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken);
 
-        [JsonRpcMethod(LanguageServerConstants.RazorReadyEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task RazorReadyAsync(CancellationToken cancellationToken);
+        [JsonRpcMethod(LanguageServerConstants.RazorServerReadyEndpoint, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task RazorServerReadyAsync(CancellationToken cancellationToken);
     }
 }

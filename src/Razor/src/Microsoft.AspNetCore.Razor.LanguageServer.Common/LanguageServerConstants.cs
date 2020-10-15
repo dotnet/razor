@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorProvideSemanticTokensEndpoint = "razor/provideSemanticTokens";
 
-        public const string RazorReadyEndpoint = "razor/razorReady";
+        public const string RazorServerReadyEndpoint = "razor/serverReady";
 
         public static class CodeActions
         {

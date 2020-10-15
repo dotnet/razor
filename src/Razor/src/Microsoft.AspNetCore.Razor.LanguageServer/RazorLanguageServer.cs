@@ -162,7 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorDocumentMappingService, DefaultRazorDocumentMappingService>();
                         services.AddSingleton<RazorFileChangeDetectorManager>();
 
-                        services.AddSingleton<ProjectSnapshotChangeTrigger, RazorReadyPublisher>();
+                        services.AddSingleton<ProjectSnapshotChangeTrigger, RazorServerReadyPublisher>();
 
                         // Options
                         services.AddSingleton<RazorConfigurationService, DefaultRazorConfigurationService>();

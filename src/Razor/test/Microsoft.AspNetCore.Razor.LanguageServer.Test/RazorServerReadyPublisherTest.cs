@@ -1,26 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-
 using Moq;
-
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
-    public class RazorReadyPublisherTest : LanguageServerTestBase
+    public class RazorServerReadyPublisherTest : LanguageServerTestBase
     {
         [Fact]
         public void ProjectSnapshotManager_WorkspaceNull_DoesNothing()
@@ -28,16 +23,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             // Arrange
             var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
 
-            var razorReadyPublisher = new RazorReadyPublisher(Dispatcher, languageServer.Object);
+            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, languageServer.Object);
 
             var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
             projectManager.AllowNotifyListeners = true;
 
-            razorReadyPublisher.Initialize(projectManager);
+            razorServerReadyPublisher.Initialize(projectManager);
 
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
-            _ = document.TryGetText(out var text);
-            _ = document.TryGetTextVersion(out var textVersion);
+            document.TryGetText(out var text);
+            document.TryGetTextVersion(out var textVersion);
             var textAndVersion = TextAndVersion.Create(text, textVersion);
 
             // Act
@@ -49,29 +44,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             languageServer.Verify();
         }
 
-        private const string _razorReadyEndpoint = "razor/razorReady";
+        private const string _razorServerReadyEndpoint = "razor/serverReady";
 
         [Fact]
         public void ProjectSnapshotManager_WorkspacePopulated_SetsUIContext()
         {
             // Arrange
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            _ = responseRouterReturns.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>())).Returns(() => Task.CompletedTask);
+            responseRouterReturns.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>())).Returns(() => Task.CompletedTask);
 
             var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
-            _ = languageServer.Setup(l => l.SendRequest(_razorReadyEndpoint))
+            languageServer.Setup(l => l.SendRequest(_razorServerReadyEndpoint))
                 .Returns(responseRouterReturns.Object);
 
-            var razorReadyPublisher = new RazorReadyPublisher(Dispatcher, languageServer.Object);
+            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, languageServer.Object);
 
             var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
             projectManager.AllowNotifyListeners = true;
 
-            razorReadyPublisher.Initialize(projectManager);
+            razorServerReadyPublisher.Initialize(projectManager);
 
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
-            _ = document.TryGetText(out var text);
-            _ = document.TryGetTextVersion(out var textVersion);
+            document.TryGetText(out var text);
+            document.TryGetTextVersion(out var textVersion);
             var textAndVersion = TextAndVersion.Create(text, textVersion);
 
             // Act
@@ -88,22 +83,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         {
             // Arrange
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            _ = responseRouterReturns.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>()))
+            responseRouterReturns.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>()))
                 .Returns(() => Task.CompletedTask);
 
             var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
-            _ = languageServer.Setup(l => l.SendRequest(_razorReadyEndpoint))
+            languageServer.Setup(l => l.SendRequest(_razorServerReadyEndpoint))
                 .Returns(responseRouterReturns.Object);
 
-            var razorReadyPublisher = new RazorReadyPublisher(Dispatcher, languageServer.Object);
+            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, languageServer.Object);
 
             var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
             projectManager.AllowNotifyListeners = true;
 
-            razorReadyPublisher.Initialize(projectManager);
+            razorServerReadyPublisher.Initialize(projectManager);
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
-            _ = document.TryGetText(out var text);
-            _ = document.TryGetTextVersion(out var textVersion);
+            document.TryGetText(out var text);
+            document.TryGetTextVersion(out var textVersion);
             var textAndVersion = TextAndVersion.Create(text, textVersion);
 
             projectManager.ProjectAdded(document.ProjectInternal.HostProject);

@@ -10,13 +10,14 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorReadyPublisher : ProjectSnapshotChangeTrigger
+    internal class RazorServerReadyPublisher : ProjectSnapshotChangeTrigger
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
-        private IClientLanguageServer _languageServer;
+        private readonly IClientLanguageServer _languageServer;
+        private bool _hasNotified = false;
 
-        public RazorReadyPublisher(
+        public RazorServerReadyPublisher(
             ForegroundDispatcher foregroundDispatcher,
             IClientLanguageServer languageServer)
         {
@@ -51,13 +52,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _foregroundDispatcher.AssertForegroundThread();
 
             var projectSnapshot = args.Newer;
-            if (projectSnapshot.ProjectWorkspaceState != null)
+            if (projectSnapshot?.ProjectWorkspaceState != null && !_hasNotified)
             {
-                var response = _languageServer.SendRequest(LanguageServerConstants.RazorReadyEndpoint);
-                await response.ReturningVoid(CancellationToken.None);
-
                 // Un-register this method, we only need to send this once.
                 _projectManager.Changed -= ProjectSnapshotManager_Changed;
+
+                var response = _languageServer.SendRequest(LanguageServerConstants.RazorServerReadyEndpoint);
+                await response.ReturningVoid(CancellationToken.None);
+
+                _hasNotified = true;
             }
         }
     }

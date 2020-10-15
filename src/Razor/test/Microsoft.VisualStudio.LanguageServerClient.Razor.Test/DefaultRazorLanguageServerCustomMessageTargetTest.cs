@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Arrange
             var documentManager = Mock.Of<TrackingLSPDocumentManager>();
             var requestInvoker = new Mock<LSPRequestInvoker>();
-            var uIContextManager = new Mock<IUIContextManager>(MockBehavior.Strict);
+            var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager, JoinableTaskContext, requestInvoker.Object, uIContextManager.Object);
 
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Arrange
             var documentManager = Mock.Of<TrackingLSPDocumentManager>();
             var requestInvoker = new Mock<LSPRequestInvoker>();
-            var uIContextManager = new Mock<IUIContextManager>(MockBehavior.Strict);
+            var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager, JoinableTaskContext, requestInvoker.Object, uIContextManager.Object);
 
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentRangeFormattingParams>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new[] { expectedEdit }));
 
-            var uIContextManager = new Mock<IUIContextManager>(MockBehavior.Strict);
+            var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
   
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, JoinableTaskContext, requestInvoker.Object, uIContextManager.Object);
 
@@ -257,7 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(expectedResults));
 
-            var uIContextManager = new Mock<IUIContextManager>(MockBehavior.Strict);
+            var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, JoinableTaskContext, requestInvoker.Object, uIContextManager.Object);
             var request = new CodeActionParams()
@@ -304,7 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(expectedResponses));
 
-            var uIContextManager = new Mock<IUIContextManager>(MockBehavior.Strict);
+            var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, JoinableTaskContext, requestInvoker.Object, uIContextManager.Object);
             var request = new VSCodeAction()
@@ -394,7 +394,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(expectedResults));
 
-            var uIContextManager = new Mock<IUIContextManager>(MockBehavior.Strict);
+            var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, JoinableTaskContext, requestInvoker.Object, uIContextManager.Object);
             var request = new SemanticTokensParams()
@@ -413,7 +413,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
-        public async Task RazorReadyAsync_SetsUIContext()
+        public async Task RazorServerReadyAsync_SetsUIContext()
         {
             // Arrange
             var testDocUri = new Uri("C:/path/to/file.razor");
@@ -437,7 +437,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(expectedResults));
 
-            var uIContextManager = new Mock<IUIContextManager>(MockBehavior.Strict);
+            var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             uIContextManager.Setup(m => m.SetUIContextAsync(RazorLSPConstants.RazorActiveUIContextGuid, true, It.IsAny<CancellationToken>()))
                 .Returns(() => Task.CompletedTask)
                 .Verifiable();
@@ -445,7 +445,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, JoinableTaskContext, requestInvoker.Object, uIContextManager.Object);
 
             // Act
-            await target.RazorReadyAsync(CancellationToken.None);
+            await target.RazorServerReadyAsync(CancellationToken.None);
 
             // Assert
             uIContextManager.Verify();

@@ -22,14 +22,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly TrackingLSPDocumentManager _documentManager;
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPRequestInvoker _requestInvoker;
-        private readonly IUIContextManager _uIContextManager;
+        private readonly RazorUIContextManager _uIContextManager;
 
         [ImportingConstructor]
         public DefaultRazorLanguageServerCustomMessageTarget(
             LSPDocumentManager documentManager,
             JoinableTaskContext joinableTaskContext,
             LSPRequestInvoker requestInvoker,
-            IUIContextManager uIContextManager)
+            RazorUIContextManager uIContextManager)
         {
             if (documentManager is null)
             {
@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return results;
         }
 
-        public override async Task RazorReadyAsync(CancellationToken cancellationToken)
+        public override async Task RazorServerReadyAsync(CancellationToken cancellationToken)
         {
             await _uIContextManager.SetUIContextAsync(RazorLSPConstants.RazorActiveUIContextGuid, isActive: true, cancellationToken);
         }

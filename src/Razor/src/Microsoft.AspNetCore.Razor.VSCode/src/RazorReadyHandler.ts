@@ -7,7 +7,7 @@ import { RequestType } from 'vscode-languageclient';
 import { RazorLanguageServerClient } from './RazorLanguageServerClient';
 
 export class RazorReadyHandler {
-    private static readonly razorReadyEndpoint = 'razor/razorReady';
+    private static readonly razorReadyEndpoint = 'razor/serverReady';
     private razorReadyHandlerType: RequestType<void, void, any, any> = new RequestType(RazorReadyHandler.razorReadyEndpoint);
 
     constructor(private readonly serverClient: RazorLanguageServerClient) {
