@@ -1,7 +1,7 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * -------------------------------------------------------------------------------------------- */
 
 import * as vscode from 'vscode';
 import { RequestType } from 'vscode-languageclient';
@@ -24,16 +24,16 @@ export class CodeActionsHandler {
         private readonly logger: RazorLogger) {
     }
 
-    public register() {
+    public register(): void {
         // tslint:disable-next-line: no-floating-promises
         this.serverClient.onRequestWithParams<SerializableCodeActionParams, RazorCodeAction[], any, any>(
             this.codeActionRequestType,
-            async (request, token) => this.provideCodeActions(request, token));
+            async (request: SerializableCodeActionParams, token: vscode.CancellationToken) => this.provideCodeActions(request, token));
     }
 
     private async provideCodeActions(
         codeActionParams: SerializableCodeActionParams,
-        cancellationToken: vscode.CancellationToken) {
+        _cancellationToken: vscode.CancellationToken): Promise<RazorCodeAction[]> {
         try {
             const razorDocumentUri = vscode.Uri.parse(codeActionParams.textDocument.uri);
             const razorDocument = await this.documentManager.getDocument(razorDocumentUri);
@@ -48,9 +48,9 @@ export class CodeActionsHandler {
             const commands = await vscode.commands.executeCommand<vscode.Command[]>(
                 'vscode.executeCodeActionProvider',
                 virtualCSharpUri,
-                range) as vscode.Command[];
+                range);
 
-            if (commands.length === 0) {
+            if (commands === undefined || commands.length === 0) {
                 return this.emptyCodeActionResponse;
             }
 

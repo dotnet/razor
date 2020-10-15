@@ -14,6 +14,7 @@
 
     <NodeJsProjects Include="$(RepoRoot)src\Razor\src\**\*.npmproj" Exclude="$(RepoRoot)src\**\node_modules\**" RestoreInParallel="false"/>
     <NodeJsProjects Include="$(RepoRoot)src\Razor\test\**\*.npmproj" Exclude="$(RepoRoot)src\**\node_modules\**" RestoreInParallel="false" />
+    <NodeJsProjects Include="$(RepoRoot)src\Razor\eslint-config-razor-tooling\eslint-config-razor-tooling.npmproj" RestoreInParallel="false" />
 
     <ProjectToBuild Include="@(NodeJsProjects)" Condition="'$(BuildNodeJs)' == 'true'" />
   </ItemGroup>

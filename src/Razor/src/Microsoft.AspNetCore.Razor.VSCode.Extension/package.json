@@ -542,7 +542,7 @@
   },
   "devDependencies": {
     "@types/node": "9.4.7",
-    "@types/vscode": "1.31.0",
+    "@types/vscode": "1.45.1",
     "@typescript-eslint/eslint-plugin": "2.31.0",
     "@typescript-eslint/parser": "2.31.0",
     "cross-env": "^5.2.0",
