@@ -5,17 +5,17 @@
 variables:
 - name: Build.Repository.Clean
   value: true
-- name: _TeamName
-  value: AspNetCore
-- name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
-  value: true
-- name: _InternalRuntimeDownloadArgs
-  value: ''
 
 trigger:
   branches:
     include:
       - master
+
+pr:
+  autoCancel: true
+  branches:
+    include:
+      master
 
 stages:
 - stage: build
@@ -31,8 +31,6 @@ stages:
         pool:
           name: NetCorePublic-Pool
           queue: buildpool.windows.10.amd64.vs2019.pre.open
-        variables:
-        - _BuildArgs: ''
 
         steps:
         - task: NodeTool@0
@@ -53,8 +51,6 @@ stages:
             -configuration $(_BuildConfig)
             -msbuildEngine dotnet
             -prepareMachine
-            $(_BuildArgs)
-            $(_InternalRuntimeDownloadArgs)
           name: Build
           displayName: Build
           condition: succeeded()
