@@ -6,9 +6,9 @@
 import { RequestType } from 'vscode-languageclient';
 import { RazorLanguageServerClient } from './RazorLanguageServerClient';
 
-export class RazorReadyHandler {
-    private static readonly razorReadyEndpoint = 'razor/serverReady';
-    private razorReadyHandlerType: RequestType<void, void, any, any> = new RequestType(RazorReadyHandler.razorReadyEndpoint);
+export class RazorServerReadyHandler {
+    private static readonly razorServerReadyEndpoint = 'razor/serverReady';
+    private razorServerReadyHandlerType: RequestType<void, void, any, any> = new RequestType(RazorServerReadyHandler.razorServerReadyEndpoint);
 
     constructor(private readonly serverClient: RazorLanguageServerClient) {
     }
@@ -16,11 +16,11 @@ export class RazorReadyHandler {
     public register() {
         // tslint:disable-next-line: no-floating-promises
         this.serverClient.onRequestWithParams<void, void,  any, any>(
-            this.razorReadyHandlerType,
-            async (request, token) => this.handleRazorReady());
+            this.razorServerReadyHandlerType,
+            async (request, token) => this.handleRazorServerReady());
     }
 
-    private handleRazorReady(): void {
+    private handleRazorServerReady(): void {
         return;
     }
 }
