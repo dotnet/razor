@@ -25,7 +25,8 @@ stages:
     parameters:
       helixRepo: dotnet/aspnetcore-tooling
       helixType: build.product/
-      enablRichCodeNavigation: true
+      enableRichCodeNavigation: true
+      richCodeNavigationLanguage: 'csharp,typescript'
       jobs:
       - job: Windows
         pool:
