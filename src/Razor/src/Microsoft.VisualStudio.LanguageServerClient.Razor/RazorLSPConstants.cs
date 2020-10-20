@@ -27,6 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public const string LanguageServiceString = "4513FA64-5B72-4B58-9D4C-1D3C81996C2C";
 
-        public static readonly Guid LanguageServiceGuid = new Guid(LanguageServiceString);
+        public static readonly Guid RazorLanguageServiceGuid = new Guid(RazorLanguageServiceString);
     }
 }
