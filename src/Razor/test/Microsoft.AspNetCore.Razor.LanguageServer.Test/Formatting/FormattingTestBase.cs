@@ -42,7 +42,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             set { _fileName.Value = value; }
         }
 
-        protected async Task RunFormattingTestAsync(string input, string expected, int tabSize = 4, bool insertSpaces = true, string fileKind = null)
+        protected async Task RunFormattingTestAsync(
+            string input,
+            string expected,
+            int tabSize = 4,
+            bool insertSpaces = true,
+            string fileKind = null,
+            IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
         {
             // Arrange
             fileKind ??= FileKinds.Component;
@@ -59,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var path = "file:///path/to/document.razor";
             var uri = new Uri(path);
-            var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, fileKind: fileKind);
+            var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, tagHelpers, fileKind);
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,

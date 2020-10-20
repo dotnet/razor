@@ -188,6 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
+                var minCSharpIndentation = context.GetIndentationOffsetForLevel(context.Indentations[i].MinCSharpIndentLevel);
                 var line = context.SourceText.Lines[i];
                 var lineStart = line.Start;
                 int csharpDesiredIndentation;
@@ -219,7 +220,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     }
 
                     // This will now be set to the same value as the end of the closest source mapping.
-                    csharpDesiredIndentation = index < 0 ? 0 : sourceMappingIndentations[sourceMappingIndentationScopes[index]];
+                    if (index < 0)
+                    {
+                        csharpDesiredIndentation = 0;
+                    }
+                    else
+                    {
+                        var absoluteIndex = sourceMappingIndentationScopes[index];
+                        csharpDesiredIndentation = sourceMappingIndentations[absoluteIndex];
+
+                        // This means we didn't find an exact match and so we used the indentation of the end of a previous mapping.
+                        // So let's use the MinCSharpIndentation of that same location if possible.
+                        if (context.TryGetFormattingSpan(absoluteIndex, out var span))
+                        {
+                            minCSharpIndentation = context.GetIndentationOffsetForLevel(span.MinCSharpIndentLevel);
+                        }
+                    }
                 }
 
                 // Now let's use that information to figure out the effective C# indentation.
@@ -227,7 +243,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // For instance, lines inside @code/@functions block should be reduced one level
                 // and lines inside @{} should be reduced by two levels.
 
-                var minCSharpIndentation = context.GetIndentationOffsetForLevel(context.Indentations[i].MinCSharpIndentLevel);
                 if (csharpDesiredIndentation < minCSharpIndentation)
                 {
                     // CSharp formatter doesn't want to indent this. Let's not touch it.

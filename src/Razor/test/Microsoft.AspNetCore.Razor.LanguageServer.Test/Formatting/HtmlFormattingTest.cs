@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Xunit;
 
@@ -261,6 +263,39 @@ expected: @"@page ""/""
     }
 }
 ");
+        }
+
+        [Fact]
+        public async Task FormatsComponentTags()
+        {
+            var counterComponent = GetCounterComponent();
+            var tagHelpers = new[] { counterComponent };
+            await RunFormattingTestAsync(
+input: @"
+|   <Counter>
+    @if(true){
+        <p>@DateTime.Now</p>
+}
+</Counter>|
+",
+expected: @"
+<Counter>
+    @if (true)
+    {
+        <p>@DateTime.Now</p>
+    }
+</Counter>
+",
+tagHelpers: tagHelpers);
+        }
+
+        private static TagHelperDescriptor GetCounterComponent()
+        {
+            var builder = TagHelperDescriptorBuilder.Create("Components.Component", "Counter", "TestAssembly");
+            builder.CaseSensitive = true;
+            builder.Metadata[TagHelperMetadata.Runtime.Name] = "Components.IComponent";
+            builder.TagMatchingRule(r => r.TagName = "Counter");
+            return builder.Build();
         }
     }
 }
