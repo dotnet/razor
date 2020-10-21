@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             if (!_editorFeatureDetector.IsRemoteClient())
             {
                 vsTextView.GetBuffer(out var vsBuffer);
-                vsBuffer.SetLanguageServiceID(RazorLSPConstants.LanguageServiceGuid);
+                vsBuffer.SetLanguageServiceID(RazorLSPConstants.RazorLanguageServiceGuid);
             }
 
             RazorLSPTextViewFilter.CreateAndRegister(vsTextView);
