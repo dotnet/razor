@@ -39,39 +39,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public override void VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)
         {
             AddSemanticRange(node.Name, SyntaxKind.MarkupAttributeBlock);
-            AddSemanticRange(node.EqualsToken);
+            AddSemanticRange(node.EqualsToken, SyntaxKind.Equals);
             base.VisitMarkupAttributeBlock(node);
         }
 
         public override void VisitMarkupStartTag(MarkupStartTagSyntax node)
         {
-            AddSemanticRange(node.OpenAngle);
+            AddSemanticRange(node.OpenAngle, SyntaxKind.OpenAngle);
             if (node.Bang != null)
             {
-                AddSemanticRange(node.Bang);
+                AddSemanticRange(node.Bang, SyntaxKind.Bang);
             }
             AddSemanticRange(node.Name, SyntaxKind.MarkupElement);
             base.VisitMarkupStartTag(node);
             if (node.ForwardSlash != null)
             {
-                AddSemanticRange(node.ForwardSlash);
+                AddSemanticRange(node.ForwardSlash, SyntaxKind.ForwardSlash);
             }
-            AddSemanticRange(node.CloseAngle);
+            AddSemanticRange(node.CloseAngle, SyntaxKind.CloseAngle);
         }
 
         public override void VisitMarkupEndTag(MarkupEndTagSyntax node)
         {
-            AddSemanticRange(node.OpenAngle);
+            AddSemanticRange(node.OpenAngle, SyntaxKind.OpenAngle);
             if (node.Bang != null)
             {
-                AddSemanticRange(node.Bang);
+                AddSemanticRange(node.Bang, SyntaxKind.Bang);
             }
             if (node.ForwardSlash != null)
             {
-                AddSemanticRange(node.ForwardSlash);
+                AddSemanticRange(node.ForwardSlash, SyntaxKind.ForwardSlash);
             }
             AddSemanticRange(node.Name, SyntaxKind.MarkupElement);
-            AddSemanticRange(node.CloseAngle);
+            AddSemanticRange(node.CloseAngle, SyntaxKind.CloseAngle);
             base.VisitMarkupEndTag(node);
         }
 
@@ -94,11 +94,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         #region Razor
         public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
         {
-            AddSemanticRange(node.StartCommentTransition);
-            AddSemanticRange(node.StartCommentStar);
-            AddSemanticRange(node.Comment);
-            AddSemanticRange(node.EndCommentStar);
-            AddSemanticRange(node.EndCommentTransition);
+            AddSemanticRange(node.StartCommentTransition, SyntaxKind.RazorCommentTransition);
+            AddSemanticRange(node.StartCommentStar, SyntaxKind.RazorCommentStar);
+            AddSemanticRange(node.Comment, SyntaxKind.RazorComment);
+            AddSemanticRange(node.EndCommentStar, SyntaxKind.RazorCommentStar);
+            AddSemanticRange(node.EndCommentTransition, SyntaxKind.RazorCommentTransition);
 
             base.VisitRazorCommentBlock(node);
         }
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
         {
-            AddSemanticRange(node.OpenAngle);
+            AddSemanticRange(node.OpenAngle, SyntaxKind.OpenAngle);
             if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
             {
                 AddSemanticRange(node.Name, SyntaxKind.MarkupTagHelperStartTag);
@@ -135,15 +135,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (node.ForwardSlash != null)
             {
-                AddSemanticRange(node.ForwardSlash);
+                AddSemanticRange(node.ForwardSlash, SyntaxKind.ForwardSlash);
             }
-            AddSemanticRange(node.CloseAngle);
+            AddSemanticRange(node.CloseAngle, SyntaxKind.CloseAngle);
         }
 
         public override void VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
         {
-            AddSemanticRange(node.OpenAngle);
-            AddSemanticRange(node.ForwardSlash);
+            AddSemanticRange(node.OpenAngle, SyntaxKind.OpenAngle);
+            AddSemanticRange(node.ForwardSlash, SyntaxKind.ForwardSlash);
             if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
             {
                 AddSemanticRange(node.Name, SyntaxKind.MarkupTagHelperEndTag);
@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             base.VisitMarkupTagHelperEndTag(node);
-            AddSemanticRange(node.CloseAngle);
+            AddSemanticRange(node.CloseAngle, SyntaxKind.CloseAngle);
         }
 
         public override void VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
@@ -177,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 AddSemanticRange(node.Name, SyntaxKind.MarkupAttributeBlock);
             }
-            AddSemanticRange(node.EqualsToken);
+            AddSemanticRange(node.EqualsToken, SyntaxKind.Equals);
 
             base.VisitMarkupTagHelperAttribute(node);
         }
@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            AddSemanticRange(node.EqualsToken);
+            AddSemanticRange(node.EqualsToken, SyntaxKind.Equals);
 
             base.VisitMarkupTagHelperDirectiveAttribute(node);
         }
@@ -281,16 +281,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
         }
 
-        private void AddSemanticRange(SyntaxNode node, SyntaxKind? kind = null)
+        private void AddSemanticRange(SyntaxNode node, SyntaxKind kind)
         {
             if (node is null)
             {
                 throw new ArgumentNullException(nameof(node));
-            }
-
-            if (kind is null)
-            {
-                kind = node.Kind;
             }
 
             if (node.Width == 0)
@@ -345,6 +340,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     semanticKind = RazorSemanticTokensLegend.MarkupOperator;
                     break;
                 case SyntaxKind.MarkupElement:
+                case SyntaxKind.Bang:
                     semanticKind = RazorSemanticTokensLegend.MarkupElement;
                     break;
                 case SyntaxKind.MarkupAttributeBlock:
@@ -354,7 +350,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     semanticKind = RazorSemanticTokensLegend.MarkupComment;
                     break;
                 default:
-                    throw new NotImplementedException();
+                    Debug.Fail($"No unknown SyntaxKind's should be passed, but recieved '{kind}'.");
+                    return;
             }
 
             AddSemanticRange(node, semanticKind);
