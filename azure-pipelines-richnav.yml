@@ -15,7 +15,7 @@ pr:
   autoCancel: true
   branches:
     include:
-      master
+    - master
 
 stages:
 - stage: build
@@ -26,6 +26,7 @@ stages:
       helixRepo: dotnet/aspnetcore-tooling
       helixType: build.product/
       enableRichCodeNavigation: true
+      richCodeNavigationEnvironment: 'production'
       richCodeNavigationLanguage: 'csharp,typescript'
       jobs:
       - job: Windows
@@ -49,7 +50,7 @@ stages:
             arguments: 'locals all -clear'
 
         - script: eng\common\cibuild.cmd
-            -configuration $(_BuildConfig)
+            -configuration Debug
             -msbuildEngine dotnet
             -prepareMachine
           name: Build
