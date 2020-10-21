@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         {
                             // Initialize our options for the first time.
                             var optionsMonitor = languageServer.Services.GetRequiredService<RazorLSPOptionsMonitor>();
-                            _ = Task.Delay(TimeSpan.FromSeconds(3)).ContinueWith(async (_) => await optionsMonitor.UpdateAsync(cancellationToken));
+                            _ = Task.Delay(TimeSpan.FromSeconds(3)).ContinueWith(async (_) => await optionsMonitor.UpdateAsync(cancellationToken), TaskScheduler.Default);
                         }
                     })
                     .WithHandler<RazorDocumentSynchronizationEndpoint>()

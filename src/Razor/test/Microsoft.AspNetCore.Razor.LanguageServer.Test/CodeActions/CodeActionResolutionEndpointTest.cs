@@ -259,7 +259,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             };
 
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeAction(codeAction, request, default);
+            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeActionAsync(codeAction, request, default);
 
             // Assert
             Assert.NotNull(resolvedCodeAction.Edit);
@@ -285,7 +285,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             };
 
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeAction(codeAction, request, default);
+            var resolvedCodeAction = await codeActionEndpoint.ResolveRazorCodeActionAsync(codeAction, request, default);
 
             // Assert
             Assert.NotNull(resolvedCodeAction.Edit);
@@ -311,7 +311,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             };
 
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeAction(codeAction, request, default);
+            var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(codeAction, request, default);
 
             // Assert
             Assert.NotNull(resolvedCodeAction.Edit);
@@ -337,7 +337,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             };
 
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeAction(codeAction, request, default);
+            var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(codeAction, request, default);
 
             // Assert
             Assert.NotNull(resolvedCodeAction.Edit);
@@ -366,7 +366,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             };
 
             // Act
-            var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeAction(codeAction, request, default);
+            var resolvedCodeAction = await codeActionEndpoint.ResolveCSharpCodeActionAsync(codeAction, request, default);
 
             // Assert
             Assert.NotNull(resolvedCodeAction.Edit);
