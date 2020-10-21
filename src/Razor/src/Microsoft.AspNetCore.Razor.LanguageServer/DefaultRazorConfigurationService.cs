@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
 
                 var response = _server.SendRequest("workspace/configuration", request);
-                var result = await response.Returning<JObject[]>(CancellationToken.None);
+                var result = await response.Returning<JObject[]>(cancellationToken);
                 if (result == null || result.Length < 2 || result[0] == null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");

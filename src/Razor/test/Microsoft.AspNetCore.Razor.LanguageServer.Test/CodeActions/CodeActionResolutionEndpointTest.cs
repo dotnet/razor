@@ -398,7 +398,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 
             public override Task<WorkspaceEdit> ResolveAsync(JObject data, CancellationToken cancellationToken)
             {
-                return null;
+                return Task.FromResult<WorkspaceEdit>(null);
             }
         }
 
@@ -431,7 +431,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 
             public override Task<RazorCodeAction> ResolveAsync(CSharpCodeActionParams csharpParams, RazorCodeAction codeAction, CancellationToken cancellationToken)
             {
-                return null;
+                return Task.FromResult<RazorCodeAction>(null);
             }
         }
     }
