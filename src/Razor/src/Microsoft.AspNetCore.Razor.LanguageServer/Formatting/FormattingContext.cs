@@ -158,20 +158,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var formattingspan = FormattingSpans[i];
                 var span = formattingspan.Span;
 
-                if (span.Start <= absoluteIndex)
+                if (span.Start <= absoluteIndex && span.End >= absoluteIndex)
                 {
-                    if (span.End >= absoluteIndex)
+                    if (span.End == absoluteIndex && span.Length > 0)
                     {
-                        if (span.End == absoluteIndex && span.Length > 0)
-                        {
-                            // We're at an edge.
-                            // Non-marker spans (spans.length == 0) do not own the edges after it
-                            continue;
-                        }
-
-                        result = formattingspan;
-                        return true;
+                        // We're at an edge.
+                        // Non-marker spans (spans.length == 0) do not own the edges after it
+                        continue;
                     }
+
+                    result = formattingspan;
+                    return true;
                 }
             }
 
