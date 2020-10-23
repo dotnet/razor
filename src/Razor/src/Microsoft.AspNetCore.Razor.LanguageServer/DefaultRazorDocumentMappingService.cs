@@ -260,7 +260,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var csharpSourceText = SourceText.From(codeDocument.GetCSharpDocument().GeneratedCode);
             var range = projectedRange;
             var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText);
-            if (!TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out var _))
+            if (!TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _))
             {
                 return false;
             }
