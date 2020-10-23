@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "System.Net.Dns"
                 }
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "System.Net.Dns"
                 }
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
             var provider = new TypeAccessibilityCodeActionProvider();
-            var csharpCodeActions = Array.Empty<RazorCodeAction>();
+            var csharpCodeActions = Array.Empty<CodeAction>();
 
             // Act
             var results = await provider.ProvideAsync(context, csharpCodeActions, default);
