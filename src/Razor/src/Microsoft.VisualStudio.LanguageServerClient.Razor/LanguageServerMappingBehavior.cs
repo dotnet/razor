@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         ///     - Overlaps > 1 generated range = No mapping
         ///     - Intersects > 1 generated range = No mapping
         ///     - Overlaps 1 generated range = Will reduce the provided range down to the generated range.
-        ///     - Intersects 1 generated range = Will use the generated ranges mapping
+        ///     - Intersects 1 generated range = Will use the generated range mappings
         /// </summary>
         Inclusive
     }
