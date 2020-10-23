@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement abstract class"
                 }
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement abstract class"
                 }
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
-            var csharpCodeActions = Array.Empty<RazorCodeAction>();
+            var csharpCodeActions = Array.Empty<CodeAction>();
 
             // Act
             var results = await provider.ProvideAsync(context, csharpCodeActions, default);
@@ -198,11 +198,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // A valid code actions is expected to end with `Path` as that's the `associatedText`
             // indicated in the `Diagnostic.Range` for `CS0246` above.
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement non-abstract class"
                 },
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement interface that doesn't exist"
                 }
@@ -266,11 +266,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement abstract class"
                 },
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement interface"
                 }
@@ -353,11 +353,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement abstract class"
                 },
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement interface"
                 }
@@ -421,11 +421,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement abstract class"
                 },
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement interface"
                 }
