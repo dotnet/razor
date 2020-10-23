@@ -266,7 +266,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             var endIndex = range.End.GetAbsoluteIndex(csharpSourceText);
-            if (!TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out var _))
+            if (!TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _))
             {
                 return false;
             }
