@@ -189,11 +189,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // A valid code actions is expected to end with `Path` as that's the `associatedText`
             // indicated in the `Diagnostic.Range` for `CS0246` above.
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "System.IO.OneThing"
                 },
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "System.IO.SomethingElse"
                 }
@@ -251,11 +251,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "System.IO.Path"
                 },
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "System.IO.SomethingElse"
                 }
@@ -313,7 +313,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "System.IO.Path"
                 }
@@ -358,7 +358,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "System.IO.Path"
                 }
@@ -413,11 +413,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new TypeAccessibilityCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Fully qualify 'Path' -> System.IO.Path"
                 },
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Fully qualify 'Path' -> SuperSpecialNamespace.Path"
                 }
