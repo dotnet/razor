@@ -74,13 +74,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             if (!_fileUriProvider.TryGet(textBuffer, out var documentUri))
             {
-                // Not an addressable Razor document. Do not allow a breakpoint here.
+                // Not an addressable Razor document. Do not allow a breakpoint here. In practice this shouldn't happen, just being defensive.
                 return null;
             }
 
             if (!_documentManager.TryGetDocument(documentUri, out var documentSnapshot))
             {
-                // No associated Razor document. Do not allow a breakpoint here.
+                // No associated Razor document. Do not allow a breakpoint here. In practice this shouldn't happen, just being defensive.
                 return null;
             }
 
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, lspPosition, cancellationToken).ConfigureAwait(false);
             if (projectionResult == null)
             {
-                // Can't map the position, invalid breakpoitn location.
+                // Can't map the position, invalid breakpoint location.
                 return null;
             }
 
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var virtualDocument))
             {
-                Debug.Fail("Some how there's no C# document associated with the host Razor document when validating breakpoint locations.");
+                Debug.Fail($"Some how there's no C# document associated with the host Razor document {documentUri.OriginalString} when validating breakpoint locations.");
                 return null;
             }
 
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                     End = new Position(endLineIndex, endCharacterIndex),
                 },
             };
-            var hostDocumentMapping = await _documentMappingProvider.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, documentUri, projectedRange, cancellationToken);
+            var hostDocumentMapping = await _documentMappingProvider.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, documentUri, projectedRange, cancellationToken).ConfigureAwait(false);
             if (hostDocumentMapping == null)
             {
                 return null;
@@ -133,11 +133,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             cancellationToken.ThrowIfCancellationRequested();
 
             var hostDocumentRange = hostDocumentMapping.Ranges.FirstOrDefault();
-            if (hostDocumentRange == null)
-            {
-                return null;
-            }
-
             return hostDocumentRange;
         }
     }
