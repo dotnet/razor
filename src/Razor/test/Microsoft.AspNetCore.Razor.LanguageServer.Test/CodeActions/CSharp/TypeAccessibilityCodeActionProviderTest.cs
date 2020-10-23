@@ -14,6 +14,7 @@ using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -270,7 +271,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     Assert.Equal("@using System.IO", r.Title);
                     Assert.Null(r.Edit);
                     Assert.NotNull(r.Data);
-                    var resolutionParams = Assert.IsType<RazorCodeActionResolutionParams>(r.Data);
+                    var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
                     Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, resolutionParams.Action);
                 },
                 r => {
@@ -432,14 +433,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     Assert.Equal("@using SuperSpecialNamespace", r.Title);
                     Assert.Null(r.Edit);
                     Assert.NotNull(r.Data);
-                    var resolutionParams = Assert.IsType<RazorCodeActionResolutionParams>(r.Data);
+                    var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
                     Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, resolutionParams.Action);
                 },
                 r => {
                     Assert.Equal("@using System.IO", r.Title);
                     Assert.Null(r.Edit);
                     Assert.NotNull(r.Data);
-                    var resolutionParams = Assert.IsType<RazorCodeActionResolutionParams>(r.Data);
+                    var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
                     Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, resolutionParams.Action);
                 },
                 r => {
