@@ -68,6 +68,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             _logger.LogInformation($"Resolving workspace edit for action {GetCodeActionId(resolutionParams)}.");
 
+            // If it's a special "edit based code action" then the edit has been pre-computed and we
+            // can extract the edit details and return to the client. This is only required for VSCode
+            // as it does not support Command.Edit based code actions anymore.
+            if (resolutionParams.Action == LanguageServerConstants.CodeActions.EditBasedCodeActionCommand)
+            {
+                request.Edit = (resolutionParams.Data as JObject)?.ToObject<WorkspaceEdit>();
+                return request;
+            }
+
             switch (resolutionParams.Language)
             {
                 case LanguageServerConstants.CodeActions.Languages.Razor:

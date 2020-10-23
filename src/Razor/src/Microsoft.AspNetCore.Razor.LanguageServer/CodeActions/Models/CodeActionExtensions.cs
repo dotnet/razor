@@ -14,8 +14,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
         {
             if (razorCodeAction.Data is null)
             {
-                // No command data
-                return new CommandOrCodeAction(razorCodeAction);
+                // Only code action edit, we must convert this to a resolvable command
+
+                var resolutionParams = new RazorCodeActionResolutionParams
+                {
+                    Action = LanguageServerConstants.CodeActions.EditBasedCodeActionCommand,
+                    Language = LanguageServerConstants.CodeActions.Languages.Razor,
+                    Data = razorCodeAction.Edit ?? new WorkspaceEdit()
+                };
+
+                razorCodeAction = new CodeAction()
+                {
+                    Title = razorCodeAction.Title,
+                    Data = JToken.FromObject(resolutionParams)
+                };
             }
 
             var serializedParams = JToken.FromObject(razorCodeAction.Data);

@@ -372,6 +372,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             Assert.NotNull(resolvedCodeAction.Edit);
         }
 
+
+        [Fact]
+        public async Task Handle_ResolveEditBasedCodeActionCommand()
+        {
+            // Arrange
+            var codeActionEndpoint = new CodeActionResolutionEndpoint(
+                Array.Empty<RazorCodeActionResolver>(),
+                new CSharpCodeActionResolver[] {
+                    new MockCSharpCodeActionResolver("Test"),
+                },
+                LoggerFactory);
+            var requestParams = new RazorCodeActionResolutionParams()
+            {
+                Action = LanguageServerConstants.CodeActions.EditBasedCodeActionCommand,
+                Language = LanguageServerConstants.CodeActions.Languages.Razor,
+                Data = JToken.FromObject(new WorkspaceEdit())
+            };
+
+            var request = new CodeAction()
+            {
+                Title = "Valid request",
+                Data = JToken.FromObject(requestParams)
+            };
+
+            // Act
+            var razorCodeAction = await codeActionEndpoint.Handle(request, default);
+
+            // Assert
+            Assert.NotNull(razorCodeAction.Edit);
+        }
+
         private class MockRazorCodeActionResolver : RazorCodeActionResolver
         {
             public override string Action { get; }

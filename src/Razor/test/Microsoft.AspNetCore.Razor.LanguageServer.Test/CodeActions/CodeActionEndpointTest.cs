@@ -480,8 +480,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             Assert.Collection(commandOrCodeActionContainer,
                 c =>
                 {
-                    Assert.True(c.IsCodeAction);
-                    Assert.True(c.CodeAction is CodeAction);
+                    Assert.True(c.IsCommand);
+                    var command = Assert.IsType<Command>(c.Command);
+                    var codeActionParams = command.Arguments.First().ToObject<RazorCodeActionResolutionParams>();
+                    Assert.Equal(LanguageServerConstants.CodeActions.EditBasedCodeActionCommand, codeActionParams.Action);
                 },
                 c => Assert.True(c.IsCommand));
         }
