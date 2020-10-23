@@ -287,10 +287,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var projectedRangeAsSpan = projectedRange.AsTextSpan(csharpSourceText);
             var range = projectedRange;
             var startIndex = projectedRangeAsSpan.Start;
-            var startMappedDirectly = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out var _);
+            var startMappedDirectly = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
 
             var endIndex = projectedRangeAsSpan.End;
-            var endMappedDirectly = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out var _);
+            var endMappedDirectly = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
 
             if (startMappedDirectly && endMappedDirectly)
             {
