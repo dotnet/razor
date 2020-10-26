@@ -47,8 +47,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorProvideSemanticTokensEndpoint = "razor/provideSemanticTokens";
 
+        public const string RazorServerReadyEndpoint = "razor/serverReady";
+
         public static class CodeActions
         {
+            public const string EditBasedCodeActionCommand = "EditBasedCodeActionCommand";
+
             public const string ExtractToCodeBehindAction = "ExtractToCodeBehind";
 
             public const string CreateComponentFromTag = "CreateComponentFromTag";

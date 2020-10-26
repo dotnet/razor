@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null || projectionResult.LanguageKind != RazorLanguageKind.CSharp)
+            if (projectionResult == null)
             {
                 return null;
             }
@@ -116,13 +116,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
-                RazorLSPConstants.CSharpContentTypeName,
+                projectionResult.LanguageKind.ToContainedLanguageContentType(),
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
+
+            if (result == null)
+            {
+                return null;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // We must not return till we have received the progress notifications
             // and reported the results via the PartialResultToken
             await onCompleted.ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Results returned through Progress notification
             var remappedResults = await RemapReferenceItemsAsync(result, cancellationToken).ConfigureAwait(false);
@@ -162,7 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 referenceItem.DefinitionText = FilterReferenceDisplayText(referenceItem.DefinitionText);
                 referenceItem.Text = FilterReferenceDisplayText(referenceItem.Text);
 
-                if (!RazorLSPConventions.IsRazorCSharpFile(referenceItem.Location.Uri))
+                if (!RazorLSPConventions.IsRazorCSharpFile(referenceItem.Location.Uri) &&
+                    !RazorLSPConventions.IsRazorHtmlFile(referenceItem.Location.Uri))
                 {
                     // This location doesn't point to a virtual cs file. No need to remap.
                     remappedLocations.Add(referenceItem);
@@ -170,8 +180,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
 
                 var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(referenceItem.Location.Uri);
+                var languageKind = RazorLSPConventions.IsRazorCSharpFile(referenceItem.Location.Uri) ? RazorLanguageKind.CSharp : RazorLanguageKind.Html;
                 var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
-                    RazorLanguageKind.CSharp,
+                    languageKind,
                     razorDocumentUri,
                     new[] { referenceItem.Location.Range },
                     cancellationToken).ConfigureAwait(false);

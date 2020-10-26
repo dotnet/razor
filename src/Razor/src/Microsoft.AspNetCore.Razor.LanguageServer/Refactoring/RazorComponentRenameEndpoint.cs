@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             AddFileRenameForComponent(documentChanges, originComponentDocumentSnapshot, newPath);
             AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument);
 
-            var documentSnapshots = await GetAllDocumentSnapshots(requestDocumentSnapshot, cancellationToken).ConfigureAwait(false);
+            var documentSnapshots = await GetAllDocumentSnapshotsAsync(requestDocumentSnapshot, cancellationToken).ConfigureAwait(false);
             foreach (var documentSnapshot in documentSnapshots)
             {
                 await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, request.NewName, documentSnapshot, cancellationToken);
@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             };
         }
 
-        private async Task<List<DocumentSnapshot>> GetAllDocumentSnapshots(DocumentSnapshot skipDocumentSnapshot, CancellationToken cancellationToken)
+        private async Task<List<DocumentSnapshot>> GetAllDocumentSnapshotsAsync(DocumentSnapshot skipDocumentSnapshot, CancellationToken cancellationToken)
         {
             return await Task.Factory.StartNew(() =>
             {
@@ -188,7 +188,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             return newPath;
         }
 
-        public async Task AddEditsForCodeDocumentAsync(List<WorkspaceEditDocumentChange> documentChanges, IReadOnlyList<TagHelperDescriptor> originTagHelpers, string newName, DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+        public async Task AddEditsForCodeDocumentAsync(
+            List<WorkspaceEditDocumentChange> documentChanges,
+            IReadOnlyList<TagHelperDescriptor> originTagHelpers,
+            string newName,
+            DocumentSnapshot documentSnapshot,
+            CancellationToken cancellationToken)
         {
             if (documentSnapshot is null)
             {
@@ -212,10 +217,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 Host = string.Empty,
                 Scheme = Uri.UriSchemeFile,
             }.Uri;
+
             AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, uri, codeDocument);
         }
 
-        public void AddEditsForCodeDocument(List<WorkspaceEditDocumentChange> documentChanges, IReadOnlyList<TagHelperDescriptor> originTagHelpers, string newName, DocumentUri uri, RazorCodeDocument codeDocument)
+        public void AddEditsForCodeDocument(
+            List<WorkspaceEditDocumentChange> documentChanges,
+            IReadOnlyList<TagHelperDescriptor> originTagHelpers,
+            string newName,
+            DocumentUri uri,
+            RazorCodeDocument codeDocument)
         {
             var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = uri };
             var tagHelperElements = codeDocument.GetSyntaxTree().Root
@@ -276,7 +287,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             return edits;
         }
 
-        private static bool BindingContainsTagHelper(TagHelperDescriptor tagHelper, TagHelperBinding potentialBinding) => potentialBinding.Descriptors.Any(descriptor => descriptor.Equals(tagHelper));
+        private static bool BindingContainsTagHelper(TagHelperDescriptor tagHelper, TagHelperBinding potentialBinding) =>
+            potentialBinding.Descriptors.Any(descriptor => descriptor.Equals(tagHelper));
 
         private async Task<IReadOnlyList<TagHelperDescriptor>> GetOriginTagHelpersAsync(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, Position position)
         {

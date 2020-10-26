@@ -14,6 +14,7 @@ using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -41,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement abstract class"
                 }
@@ -95,7 +96,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement abstract class"
                 }
@@ -135,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
-            var csharpCodeActions = Array.Empty<RazorCodeAction>();
+            var csharpCodeActions = Array.Empty<CodeAction>();
 
             // Act
             var results = await provider.ProvideAsync(context, csharpCodeActions, default);
@@ -198,11 +199,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // A valid code actions is expected to end with `Path` as that's the `associatedText`
             // indicated in the `Diagnostic.Range` for `CS0246` above.
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement non-abstract class"
                 },
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement interface that doesn't exist"
                 }
@@ -216,7 +217,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         [Fact]
-        public async Task Handle_ValidDiagnostic_ValidCodeAction_ReturnsCodeActions()
+        public async Task Handle_ValidDiagnostic_ValidCodeAction_CodeBlock_ReturnsCodeActions()
         {
             // Arrange
             var documentPath = "c:/Test.razor";
@@ -260,17 +261,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 }
             };
 
-            var location = new SourceLocation(0, -1, -1);
+            var location = new SourceLocation(8, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4));
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement abstract class"
                 },
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement interface"
                 }
@@ -285,21 +286,89 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     Assert.Equal("Implement abstract class", r.Title);
                     Assert.Null(r.Edit);
                     Assert.NotNull(r.Data);
-                    var resolutionParams = Assert.IsType<RazorCodeActionResolutionParams>(r.Data);
+                    var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
                     Assert.Equal(LanguageServerConstants.CodeActions.Languages.CSharp, resolutionParams.Language);
                     Assert.Equal(LanguageServerConstants.CodeActions.Default, resolutionParams.Action);
-                    Assert.IsType<CSharpCodeActionParams>(resolutionParams.Data);
+                    Assert.NotNull((resolutionParams.Data as JObject).ToObject<CSharpCodeActionParams>());
                 },
                 r => {
                     Assert.Equal("Implement interface", r.Title);
                     Assert.Null(r.Edit);
                     Assert.NotNull(r.Data);
-                    var resolutionParams = Assert.IsType<RazorCodeActionResolutionParams>(r.Data);
+                    var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
                     Assert.Equal(LanguageServerConstants.CodeActions.Languages.CSharp, resolutionParams.Language);
                     Assert.Equal(LanguageServerConstants.CodeActions.Default, resolutionParams.Action);
-                    Assert.IsType<CSharpCodeActionParams>(resolutionParams.Data);
+                    Assert.NotNull((resolutionParams.Data as JObject).ToObject<CSharpCodeActionParams>());
                 }
             );
+        }
+
+        [Fact]
+        public async Task Handle_ValidDiagnostic_ValidCodeAction_FunctionsBlock_ReturnsEmpty()
+        {
+            // Arrange
+            var documentPath = "c:/Test.razor";
+            var contents = "@functions { Path; }";
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                Range = new Range(),
+                Context = new CodeActionContext()
+                {
+                    Diagnostics = new Container<Diagnostic>(
+                        new Diagnostic()
+                        {
+                            Severity = DiagnosticSeverity.Error,
+                            Code = new DiagnosticCode("CS0132")
+                        },
+                        new Diagnostic()
+                        {
+                            Severity = DiagnosticSeverity.Error,
+                            Code = new DiagnosticCode("CS0534"),
+                            Range = new Range(
+                                new Position(0, 13),
+                                new Position(0, 17)
+                            )
+                        },
+                        new Diagnostic()
+                        {
+                            Severity = DiagnosticSeverity.Error,
+                            Code = new DiagnosticCode("CS0535"),
+                            Range = new Range(
+                                new Position(0, 13),
+                                new Position(0, 17)
+                            )
+                        },
+                        new Diagnostic()
+                        {
+                            Severity = DiagnosticSeverity.Error,
+                            Code = new DiagnosticCode("CS0183")
+                        }
+                    )
+                }
+            };
+
+            var location = new SourceLocation(13, -1, -1);
+            var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(13, 4));
+            context.CodeDocument.SetFileKind(FileKinds.Legacy);
+
+            var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
+            var csharpCodeActions = new[] {
+                new CodeAction()
+                {
+                    Title = "Implement abstract class"
+                },
+                new CodeAction()
+                {
+                    Title = "Implement interface"
+                }
+            };
+
+            // Act
+            var results = await provider.ProvideAsync(context, csharpCodeActions, default);
+
+            // Assert
+            Assert.Empty(results);
         }
 
         [Fact]
@@ -353,11 +422,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var provider = new ImplementInterfaceAbstractClassCodeActionProvider();
             var csharpCodeActions = new[] {
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement abstract class"
                 },
-                new RazorCodeAction()
+                new CodeAction()
                 {
                     Title = "Implement interface"
                 }

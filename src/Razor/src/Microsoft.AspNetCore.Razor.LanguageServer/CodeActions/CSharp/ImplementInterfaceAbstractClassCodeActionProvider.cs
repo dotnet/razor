@@ -30,9 +30,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             "Implement interface with Dispose pattern"
         };
 
-        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
+        public override Task<IReadOnlyList<CodeAction>> ProvideAsync(
             RazorCodeActionContext context,
-            IEnumerable<RazorCodeAction> codeActions,
+            IEnumerable<CodeAction> codeActions,
             CancellationToken cancellationToken)
         {
             if (context is null)
@@ -57,6 +57,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return EmptyResult;
             }
 
+            // Disable multi-line code actions in @functions block
+            // Will be removed once https://github.com/dotnet/aspnetcore/issues/26501 is unblocked.
+            if (InFunctionsBlock(context))
+            {
+                return EmptyResult;
+            }
+
             var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
                     diagnostic.Severity == DiagnosticSeverity.Error &&
                     diagnostic.Code?.IsString == true)
@@ -65,10 +72,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             if (diagnostics is null)
             {
-                return null;
+                return EmptyResult;
             }
 
-            var results = new List<RazorCodeAction>();
+            var results = new List<CodeAction>();
 
             if (diagnostics.Contains(ImplementAbstractClassDiagnostic))
             {
@@ -85,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var wrappedResults = results.Select(c => c.WrapResolvableCSharpCodeAction(context)).ToList();
-            return Task.FromResult(wrappedResults as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult(wrappedResults as IReadOnlyList<CodeAction>);
         }
     }
 }

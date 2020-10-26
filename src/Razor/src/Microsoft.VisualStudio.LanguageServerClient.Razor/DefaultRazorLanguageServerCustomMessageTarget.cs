@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -21,12 +22,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly TrackingLSPDocumentManager _documentManager;
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPRequestInvoker _requestInvoker;
+        private readonly RazorUIContextManager _uIContextManager;
 
         [ImportingConstructor]
         public DefaultRazorLanguageServerCustomMessageTarget(
             LSPDocumentManager documentManager,
             JoinableTaskContext joinableTaskContext,
-            LSPRequestInvoker requestInvoker)
+            LSPRequestInvoker requestInvoker,
+            RazorUIContextManager uIContextManager)
         {
             if (documentManager is null)
             {
@@ -43,6 +46,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(requestInvoker));
             }
 
+            if (uIContextManager is null)
+            {
+                throw new ArgumentNullException(nameof(uIContextManager));
+            }
+
             _documentManager = documentManager as TrackingLSPDocumentManager;
 
             if (_documentManager is null)
@@ -54,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _joinableTaskFactory = joinableTaskContext.Factory;
             _requestInvoker = requestInvoker;
+            _uIContextManager = uIContextManager;
         }
 
         // Testing constructor
@@ -160,11 +169,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Options = request.Options
             };
 
-            response.Edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
+            var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
                 Methods.TextDocumentRangeFormattingName,
                 serverContentType,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
+
+            response.Edits = edits ?? Array.Empty<TextEdit>();
 
             return response;
         }
@@ -188,13 +199,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             codeActionParams.TextDocument.Uri = csharpDoc.Uri;
 
-            var results = await _requestInvoker.ReinvokeRequestOnServerAsync<CodeActionParams, VSCodeAction[]>(
+            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSCodeAction[]>(
                 Methods.TextDocumentCodeActionName,
                 LanguageServerKind.CSharp.ToContentType(),
+                SupportsCSharpCodeActions,
                 codeActionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            return results;
+            return results.SelectMany(l => l).ToArray();
         }
 
         public override async Task<VSCodeAction> ResolveCodeActionsAsync(VSCodeAction codeAction, CancellationToken cancellationToken)
@@ -204,13 +216,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(codeAction));
             }
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSCodeAction, VSCodeAction>(
+            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSCodeAction, VSCodeAction>(
                 MSLSPMethods.TextDocumentCodeActionResolveName,
                 LanguageServerKind.CSharp.ToContentType(),
+                SupportsCSharpCodeActions,
                 codeAction,
                 cancellationToken).ConfigureAwait(false);
 
-            return result;
+            return results.FirstOrDefault(c => c != null);
         }
 
         public override async Task<SemanticTokens> ProvideSemanticTokensAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
@@ -239,6 +252,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 cancellationToken).ConfigureAwait(false);
 
             return results;
+        }
+
+        public override async Task RazorServerReadyAsync(CancellationToken cancellationToken)
+        {
+            await _uIContextManager.SetUIContextAsync(RazorLSPConstants.RazorActiveUIContextGuid, isActive: true, cancellationToken);
+        }
+
+        private static bool SupportsCSharpCodeActions(JToken token)
+        {
+            var serverCapabilities = token.ToObject<VSServerCapabilities>();
+
+            var providesCodeActions = serverCapabilities?.CodeActionProvider?.Match(
+                boolValue => boolValue,
+                options => options != null) ?? false;
+
+            var resolvesCodeActions = serverCapabilities?.CodeActionsResolveProvider == true;
+
+            return providesCodeActions && resolvesCodeActions;
         }
     }
 }
