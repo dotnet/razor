@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // To work around this, we wait for up to 3.5s since the last notification before timing out.
         //
         // Internal for testing
-        internal TimeSpan WaitForProgressNotificationTimeout { get; set; } = TimeSpan.FromSeconds(3.5);
+        internal TimeSpan WaitForProgressNotificationTimeout { get; set; } = TimeSpan.FromSeconds(35);
 
         public async Task<TResult> HandleRequestAsync(TParams requestParams, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {

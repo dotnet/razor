@@ -90,14 +90,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var referenceParams = new SerializableDocumentDiagnosticsParams()
+            var referenceParams = new DocumentDiagnosticsParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
                     Uri = csharpDoc.Uri
                 },
                 PreviousResultId = request.PreviousResultId,
-                PartialResultToken = token // request.PartialResultToken
+                PartialResultToken = request.PartialResultToken // token // request.PartialResultToken
             };
 
             if (!_lspProgressListener.TryListenForProgress(
@@ -110,11 +110,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableDocumentDiagnosticsParams, DiagnosticReport[]?>(
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentDiagnosticsParams, DiagnosticReport[]?>(
                 MSLSPMethods.DocumentPullDiagnosticName,
                 RazorLSPConstants.CSharpContentTypeName,
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
+
+            if (result == null)
+            {
+                return null;
+            }
 
             // We must not return till we have received the progress notifications
             // and reported the results via the PartialResultToken

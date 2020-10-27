@@ -102,6 +102,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
 
+            if (result == null)
+            {
+                return null;
+            }
+
             // We must not return till we have received the progress notifications
             // and reported the results via the PartialResultToken
             await onCompleted.ConfigureAwait(false);
