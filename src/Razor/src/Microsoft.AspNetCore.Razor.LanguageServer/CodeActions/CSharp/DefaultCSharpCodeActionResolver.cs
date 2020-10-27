@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
@@ -122,6 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var csharpTextEdits = documentChanged.TextDocumentEdit.Edits.ToArray();
 
+
             // Remaps the text edits from the generated C# to the razor file,
             // as well as applying appropriate formatting.
             var formattedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
@@ -134,6 +136,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 bypassValidationPasses: true);
 
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (await DoesFormattingChangeNonWhitespaceContentAsync(documentSnapshot, csharpTextEdits, formattedEdits))
+            {
+                return codeAction;
+            }
 
             var documentVersion = await Task.Factory.StartNew(() =>
             {
@@ -161,6 +168,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             return resolvedCodeAction;
+        }
+
+        private static async Task<bool> DoesFormattingChangeNonWhitespaceContentAsync(CodeAnalysis.Razor.ProjectSystem.DocumentSnapshot documentSnapshot, TextEdit[] csharpTextEdits, TextEdit[] formattedEdits)
+        {
+            var expectedUnformattedSourceText = SourceText.From(csharpTextEdits.FirstOrDefault()?.NewText);
+            var originalSourceText = await documentSnapshot.GetTextAsync();
+            var formattedChanges = formattedEdits.Select(e => e.AsTextChange(originalSourceText));
+            var actualFormattedSourceText = originalSourceText.WithChanges(formattedChanges);
+
+            return !expectedUnformattedSourceText.NonWhitespaceContentEquals(actualFormattedSourceText);
         }
     }
 }
