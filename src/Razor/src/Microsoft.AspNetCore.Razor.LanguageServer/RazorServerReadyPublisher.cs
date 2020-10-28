@@ -13,12 +13,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
-        private readonly ClientNotifierService _clientNotifierService;
+        private readonly ClientNotifierServiceBase _clientNotifierService;
         private bool _hasNotified = false;
 
         public RazorServerReadyPublisher(
             ForegroundDispatcher foregroundDispatcher,
-            ClientNotifierService clientNotifierService)
+            ClientNotifierServiceBase clientNotifierService)
         {
             if (foregroundDispatcher is null)
             {

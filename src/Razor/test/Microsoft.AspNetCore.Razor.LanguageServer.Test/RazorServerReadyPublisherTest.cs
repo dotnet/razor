@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Moq;
 using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
@@ -21,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         public void ProjectSnapshotManager_WorkspaceNull_DoesNothing()
         {
             // Arrange
-            var clientNotifierService = new Mock<ClientNotifierService>(MockBehavior.Strict);
+            var clientNotifierService = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
 
             var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, clientNotifierService.Object);
 
@@ -54,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             responseRouterReturns.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>()))
                 .Returns(() => Task.CompletedTask);
 
-            var clientNotifierService = new Mock<ClientNotifierService>(MockBehavior.Strict);
+            var clientNotifierService = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             clientNotifierService.Setup(l => l.SendRequestAsync(_razorServerReadyEndpoint))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
@@ -87,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             responseRouterReturns.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>()))
                 .Returns(() => Task.CompletedTask);
 
-            var clientNotifierService = new Mock<ClientNotifierService>(MockBehavior.Strict);
+            var clientNotifierService = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             clientNotifierService.Setup(l => l.SendRequestAsync(_razorServerReadyEndpoint))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 

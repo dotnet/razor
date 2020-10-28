@@ -172,9 +172,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         services.AddSingleton<ProjectSnapshotChangeTrigger, RazorServerReadyPublisher>();
 
-                        services.AddSingleton<ClientNotifierService>((serviceProvider) => {
+                        services.AddSingleton<ClientNotifierServiceBase>((serviceProvider) => {
                             var languageServer = serviceProvider.GetRequiredService<IClientLanguageServer>();
-                            var clientNotifierService = new ClientNotifierService(languageServer, initializedCompletionSource);
+                            var clientNotifierService = new DefaultClientNotifierService(languageServer, initializedCompletionSource);
 
                             return clientNotifierService;
                         });
