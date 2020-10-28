@@ -68,7 +68,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             ILanguageServer server = null;
             var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
             var initializedCompletionSource = new TaskCompletionSource<bool>();
-            var clientNotifierService = new ClientNotifierService(initializedCompletionSource);
 
             server = OmniSharp.Extensions.LanguageServer.Server.LanguageServer.PreInit(options =>
                 options
@@ -86,9 +85,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // I think that would mean either having 0 Serial Handlers in the whole LS, or making VSLanguageServerClient handle this more gracefully.
                     .WithContentModifiedSupport(false)
                     .WithSerializer(Serializer.Instance)
-                    .OnStarted(async (server, cancellationToken) => {
-                        initializedCompletionSource.SetResult(true);
-                    })
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+                    .OnStarted(async (server, cancellationToken) =>
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+                        initializedCompletionSource.SetResult(true))
                     .OnInitialized(async (s, request, response, cancellationToken) =>
                     {
                         var handlersManager = s.GetRequiredService<IHandlersManager>();
@@ -172,7 +172,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         services.AddSingleton<ProjectSnapshotChangeTrigger, RazorServerReadyPublisher>();
 
-                        services.AddSingleton<ClientNotifierService>(clientNotifierService);
+                        services.AddSingleton<ClientNotifierService>((serviceProvider) => {
+                            var languageServer = serviceProvider.GetRequiredService<IClientLanguageServer>();
+                            var clientNotifierService = new ClientNotifierService(languageServer, initializedCompletionSource);
+
+                            return clientNotifierService;
+                        });
 
                         // Options
                         services.AddSingleton<RazorConfigurationService, DefaultRazorConfigurationService>();

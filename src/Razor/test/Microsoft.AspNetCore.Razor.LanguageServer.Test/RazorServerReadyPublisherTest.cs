@@ -21,9 +21,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         public void ProjectSnapshotManager_WorkspaceNull_DoesNothing()
         {
             // Arrange
-            var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
+            var clientNotifierService = new Mock<ClientNotifierService>(MockBehavior.Strict);
 
-            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, languageServer.Object);
+            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, clientNotifierService.Object);
 
             var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
             projectManager.AllowNotifyListeners = true;
@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 
             // Assert
             // Should not have been called
-            languageServer.Verify();
+            clientNotifierService.Verify();
         }
 
         private const string _razorServerReadyEndpoint = "razor/serverReady";
@@ -51,13 +51,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         {
             // Arrange
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>())).Returns(() => Task.CompletedTask);
+            responseRouterReturns.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>()))
+                .Returns(() => Task.CompletedTask);
 
-            var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
-            languageServer.Setup(l => l.SendRequest(_razorServerReadyEndpoint))
-                .Returns(responseRouterReturns.Object);
+            var clientNotifierService = new Mock<ClientNotifierService>(MockBehavior.Strict);
+            clientNotifierService.Setup(l => l.SendRequestAsync(_razorServerReadyEndpoint))
+                .Returns(Task.FromResult(responseRouterReturns.Object));
 
-            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, languageServer.Object);
+            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, clientNotifierService.Object);
 
             var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
             projectManager.AllowNotifyListeners = true;
@@ -74,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             projectManager.ProjectWorkspaceStateChanged(document.ProjectInternal.HostProject.FilePath, CreateProjectWorkspace());
 
             // Assert
-            languageServer.VerifyAll();
+            clientNotifierService.VerifyAll();
             responseRouterReturns.VerifyAll();
         }
 
@@ -86,11 +87,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             responseRouterReturns.Setup(r => r.ReturningVoid(It.IsAny<CancellationToken>()))
                 .Returns(() => Task.CompletedTask);
 
-            var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
-            languageServer.Setup(l => l.SendRequest(_razorServerReadyEndpoint))
-                .Returns(responseRouterReturns.Object);
+            var clientNotifierService = new Mock<ClientNotifierService>(MockBehavior.Strict);
+            clientNotifierService.Setup(l => l.SendRequestAsync(_razorServerReadyEndpoint))
+                .Returns(Task.FromResult(responseRouterReturns.Object));
 
-            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, languageServer.Object);
+            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, clientNotifierService.Object);
 
             var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
             projectManager.AllowNotifyListeners = true;
@@ -106,13 +107,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             // Act
             projectManager.ProjectWorkspaceStateChanged(document.ProjectInternal.HostProject.FilePath, CreateProjectWorkspace());
 
-            languageServer.VerifyAll();
+            clientNotifierService.VerifyAll();
             responseRouterReturns.VerifyAll();
 
             projectManager.ProjectWorkspaceStateChanged(document.ProjectInternal.HostProject.FilePath, CreateProjectWorkspace());
 
             // Assert
-            languageServer.VerifyAll();
+            clientNotifierService.VerifyAll();
             responseRouterReturns.Verify(r => r.ReturningVoid(It.IsAny<CancellationToken>()), Times.Once);
         }
 
