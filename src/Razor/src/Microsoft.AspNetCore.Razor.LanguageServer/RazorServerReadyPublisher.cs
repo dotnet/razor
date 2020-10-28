@@ -15,11 +15,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
         private readonly IClientLanguageServer _languageServer;
+        private readonly ClientNotifierService _clientNotifierService;
         private bool _hasNotified = false;
 
         public RazorServerReadyPublisher(
             ForegroundDispatcher foregroundDispatcher,
-            IClientLanguageServer languageServer)
+            IClientLanguageServer languageServer,
+            ClientNotifierService clientNotifierService)
         {
             if (foregroundDispatcher is null)
             {
@@ -31,8 +33,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
+            if (clientNotifierService is null)
+            {
+                throw new ArgumentNullException(nameof(clientNotifierService));
+            }
+
             _foregroundDispatcher = foregroundDispatcher;
             _languageServer = languageServer;
+            _clientNotifierService = clientNotifierService;
         }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
@@ -59,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 // Un-register this method, we only need to send this once.
                 _projectManager.Changed -= ProjectSnapshotManager_Changed;
 
-                var response = _languageServer.SendRequest(LanguageServerConstants.RazorServerReadyEndpoint);
+                var response = await _clientNotifierService.SendRequestAsync(_languageServer, LanguageServerConstants.RazorServerReadyEndpoint);
                 await response.ReturningVoid(CancellationToken.None);
 
                 _hasNotified = true;

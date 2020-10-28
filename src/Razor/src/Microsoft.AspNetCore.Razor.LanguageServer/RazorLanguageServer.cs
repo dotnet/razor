@@ -67,6 +67,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             ILanguageServer server = null;
             var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
+            var initializedCompletionSource = new TaskCompletionSource<bool>();
+            var clientNotifierService = new ClientNotifierService(initializedCompletionSource);
 
             server = OmniSharp.Extensions.LanguageServer.Server.LanguageServer.PreInit(options =>
                 options
@@ -96,6 +98,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         }
                         var fileChangeDetectorManager = s.Services.GetRequiredService<RazorFileChangeDetectorManager>();
                         await fileChangeDetectorManager.InitializedAsync();
+
+                        initializedCompletionSource.SetResult(true);
 
                         // Workaround for https://github.com/OmniSharp/csharp-language-server-protocol/issues/106
                         var languageServer = (OmniSharp.Extensions.LanguageServer.Server.LanguageServer)server;
@@ -166,6 +170,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorFileChangeDetectorManager>();
 
                         services.AddSingleton<ProjectSnapshotChangeTrigger, RazorServerReadyPublisher>();
+
+                        services.AddSingleton<ClientNotifierService>(clientNotifierService);
 
                         // Options
                         services.AddSingleton<RazorConfigurationService, DefaultRazorConfigurationService>();
