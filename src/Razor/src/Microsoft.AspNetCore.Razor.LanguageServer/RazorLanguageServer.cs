@@ -86,6 +86,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // I think that would mean either having 0 Serial Handlers in the whole LS, or making VSLanguageServerClient handle this more gracefully.
                     .WithContentModifiedSupport(false)
                     .WithSerializer(Serializer.Instance)
+                    .OnStarted(async (server, cancellationToken) => {
+                        initializedCompletionSource.SetResult(true);
+                    })
                     .OnInitialized(async (s, request, response, cancellationToken) =>
                     {
                         var handlersManager = s.GetRequiredService<IHandlersManager>();
@@ -98,8 +101,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         }
                         var fileChangeDetectorManager = s.Services.GetRequiredService<RazorFileChangeDetectorManager>();
                         await fileChangeDetectorManager.InitializedAsync();
-
-                        initializedCompletionSource.SetResult(true);
 
                         // Workaround for https://github.com/OmniSharp/csharp-language-server-protocol/issues/106
                         var languageServer = (OmniSharp.Extensions.LanguageServer.Server.LanguageServer)server;

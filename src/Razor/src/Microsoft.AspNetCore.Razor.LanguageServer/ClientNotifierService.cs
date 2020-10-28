@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             await _taskCompletionSource.Task;
 
-            return languageServer.SendRequest<T>(method, params);
+            return languageServer.SendRequest<T>(method, @params);
         }
     }
 }
