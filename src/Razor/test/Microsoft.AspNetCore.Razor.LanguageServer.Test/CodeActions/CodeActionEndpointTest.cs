@@ -669,7 +669,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
                 r => r.Returning<CodeAction[]>(It.IsAny<CancellationToken>()) == Task.FromResult(new[] { new CodeAction() })
             );
             var languageServer = Mock.Of<ClientNotifierServiceBase>(
-                l => l.SendRequestAsync(LanguageServerConstants.RazorProvideCodeActionsEndpoint, It.IsAny<CodeActionParams>()) == response
+                l => l.SendRequestAsync(LanguageServerConstants.RazorProvideCodeActionsEndpoint, It.IsAny<CodeActionParams>()) == Task.FromResult(response)
             );
             return languageServer;
         }
