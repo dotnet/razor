@@ -237,5 +237,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             throw new NotImplementedException();
         }
+
+        public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
