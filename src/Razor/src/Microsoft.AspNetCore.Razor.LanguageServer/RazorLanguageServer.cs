@@ -85,10 +85,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // I think that would mean either having 0 Serial Handlers in the whole LS, or making VSLanguageServerClient handle this more gracefully.
                     .WithContentModifiedSupport(false)
                     .WithSerializer(Serializer.Instance)
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-                    .OnStarted(async (server, cancellationToken) =>
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-                        initializedCompletionSource.SetResult(true))
                     .OnInitialized(async (s, request, response, cancellationToken) =>
                     {
                         var handlersManager = s.GetRequiredService<IHandlersManager>();
