@@ -210,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(workspaceDocumentDiagnosticsParams));
             }
 
-            return ExecuteRequestAsync<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]?>(MSLSPMethods.WorkspacePullDiagnosticName, workspaceDocumentDiagnosticsParams, _clientCapabilities, CancellationToken.None);
+            return ExecuteRequestAsync<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]?>(MSLSPMethods.WorkspacePullDiagnosticName, workspaceDocumentDiagnosticsParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(MSLSPMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentDiagnosticsParams));
             }
 
-            return ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]?>(MSLSPMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, CancellationToken.None);
+            return ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]?>(MSLSPMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, cancellationToken);
         }
 
         // Internal for testing
