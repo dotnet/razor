@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import * as vscodeapi from 'vscode';
 import { ExtensionContext } from 'vscode';
 import { BlazorDebugConfigurationProvider } from './BlazorDebug/BlazorDebugConfigurationProvider';
-import { CodeActionsHandler } from './CodeActions/CodeActionsHandler';
+import { CodeActionsFeature } from './CodeActions/CodeActionsFeature';
 import { RazorCodeActionRunner } from './CodeActions/RazorCodeActionRunner';
 import { listenToConfigurationChanges } from './ConfigurationChangeListener';
 import { RazorCSharpFeature } from './CSharp/RazorCSharpFeature';
@@ -35,10 +35,10 @@ import { RazorLanguageServiceClient } from './RazorLanguageServiceClient';
 import { RazorLogger } from './RazorLogger';
 import { RazorReferenceProvider } from './RazorReferenceProvider';
 import { RazorRenameProvider } from './RazorRenameProvider';
-import { RazorServerReadyHandler } from './RazorServerReadyHandler';
+import { RazorServerReadyFeature } from './RazorServerReadyFeature';
 import { RazorSignatureHelpProvider } from './RazorSignatureHelpProvider';
 import { RazorDocumentSemanticTokensProvider } from './Semantic/RazorDocumentSemanticTokensProvider';
-import { SemanticTokensHandler } from './Semantic/SemanticTokensHandler';
+import { SemanticTokensFeature } from './Semantic/SemanticTokensFeature';
 import { TelemetryReporter } from './TelemetryReporter';
 
 // We specifically need to take a reference to a particular instance of the vscode namespace,
@@ -65,10 +65,22 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
         const htmlFeature = new RazorHtmlFeature(documentManager, languageServiceClient, eventEmitterFactory, logger);
         const localRegistrations: vscode.Disposable[] = [];
         const reportIssueCommand = new ReportIssueCommand(vscodeType, documentManager, logger);
-        const razorFormattingFeature = new RazorFormattingFeature(languageServerClient, documentManager, logger);
         const razorCodeActionRunner = new RazorCodeActionRunner(languageServerClient, logger);
 
         let documentSynchronizer: RazorDocumentSynchronizer;
+        languageServerClient.registerFeatures([
+            new RazorServerReadyFeature(languageServerClient),
+            new CodeActionsFeature(
+                documentManager,
+                languageServerClient,
+                logger),
+            new SemanticTokensFeature(languageServerClient),
+            new RazorFormattingFeature(
+                languageServerClient,
+                documentManager,
+                logger),
+            documentManager,
+        ]);
         languageServerClient.onStart(async () => {
             vscodeType.commands.executeCommand<void>('omnisharp.registerLanguageMiddleware', razorLanguageMiddleware);
             documentSynchronizer = new RazorDocumentSynchronizer(documentManager, logger);
@@ -77,12 +89,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 csharpFeature.projectionProvider,
                 languageServiceClient,
                 logger);
-            const codeActionHandler = new CodeActionsHandler(
-                documentManager,
-                languageServerClient,
-                logger);
-            const semanticTokenHandler = new SemanticTokensHandler(languageServerClient);
-            const razorServerReadyHandler = new RazorServerReadyHandler(languageServerClient);
 
             const completionItemProvider = new RazorCompletionItemProvider(
                 documentSynchronizer,
@@ -126,8 +132,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 languageServiceClient,
                 logger);
 
-            razorServerReadyHandler.register();
-
             localRegistrations.push(
                 languageConfiguration.register(),
                 provisionalCompletionOrchestrator.register(),
@@ -170,10 +174,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 await proposedApisFeature.register(vscodeType, localRegistrations);
             }
 
-            razorFormattingFeature.register();
             razorCodeActionRunner.register();
-            codeActionHandler.register();
-            semanticTokenHandler.register();
         });
 
         const onStopRegistration = languageServerClient.onStop(() => {
@@ -196,7 +197,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 localRegistrations.push(vscodeType.languages.registerDocumentRangeSemanticTokensProvider(RazorLanguage.id, semanticTokenProvider, legend));
             }
 
-            await documentManager.initialize();
+            await documentManager.initializeDocuments();
         });
 
         await startLanguageServer(vscodeType, languageServerClient, logger, context);

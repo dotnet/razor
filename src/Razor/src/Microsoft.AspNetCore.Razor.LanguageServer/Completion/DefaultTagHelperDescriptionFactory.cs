@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using RazorAttributeDescriptionInfo = Microsoft.CodeAnalysis.Razor.Completion.AttributeDescriptionInfo;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
@@ -37,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         // Need to have a lazy server here because if we try to resolve the server it creates types which create a DefaultTagHelperDescriptionFactory, and we end up StackOverflowing.
         // This lazy can be avoided in the future by using an upcoming ILanguageServerSettings interface, but it doesn't exist/work yet.
-        public DefaultTagHelperDescriptionFactory(ClientNotifierServiceBase languageServer)
+        public DefaultTagHelperDescriptionFactory(IClientLanguageServer languageServer)
         {
             if (languageServer is null)
             {
@@ -47,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             LanguageServer = languageServer;
         }
 
-        public ClientNotifierServiceBase LanguageServer;
+        public IClientLanguageServer LanguageServer;
 
         public override bool TryCreateDescription(ElementDescriptionInfo elementDescriptionInfo, out MarkupContent tagHelperDescription)
         {

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -20,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public FormattingDiagnosticValidationPass(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            ClientNotifierServiceBase server,
+            IClientLanguageServer server,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server)
         {

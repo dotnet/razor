@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -24,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public FormattingPassBase(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            ClientNotifierServiceBase server)
+            IClientLanguageServer server)
         {
             if (documentMappingService is null)
             {

@@ -4,7 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { CancellationToken, RequestType } from 'vscode-languageclient';
+import {
+    CancellationToken,
+    ClientCapabilities,
+    DocumentSelector,
+    InitializeParams,
+    RequestType,
+    ServerCapabilities,
+    StaticFeature,
+} from 'vscode-languageclient';
 import { RazorDocumentManager } from './RazorDocumentManager';
 import { RazorLanguageServerClient } from './RazorLanguageServerClient';
 import { RazorLogger } from './RazorLogger';
@@ -14,8 +22,8 @@ import { RazorDocumentRangeFormattingResponse } from './RPC/RazorDocumentRangeFo
 import { convertRangeFromSerializable } from './RPC/SerializableRange';
 import { convertTextEditToSerializable } from './RPC/SerializableTextEdit';
 
-export class RazorFormattingFeature {
-
+export class RazorFormattingFeature implements StaticFeature {
+    public fillInitializeParams?: ((params: InitializeParams) => void) | undefined;
     private rangeFormattingRequestType: RequestType<RazorDocumentRangeFormattingRequest, RazorDocumentRangeFormattingResponse, any, any> = new RequestType('razor/rangeFormatting');
     private emptyRangeFormattingResponse: RazorDocumentRangeFormattingResponse = new RazorDocumentRangeFormattingResponse([]);
 
@@ -25,7 +33,11 @@ export class RazorFormattingFeature {
         private readonly logger: RazorLogger) {
     }
 
-    public register() {
+    public fillClientCapabilities(capabilities: ClientCapabilities): void {
+        return;
+    }
+
+    public async initialize(capabilities: ServerCapabilities, documentSelector: DocumentSelector | undefined): Promise<void> {
         // tslint:disable-next-line: no-floating-promises
         this.serverClient.onRequestWithParams<RazorDocumentRangeFormattingRequest, RazorDocumentRangeFormattingResponse, any, any>(
             this.rangeFormattingRequestType,

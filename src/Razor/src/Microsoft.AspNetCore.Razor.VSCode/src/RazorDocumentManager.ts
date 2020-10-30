@@ -4,6 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
+import { ClientCapabilities, DocumentSelector, InitializeParams, ServerCapabilities, StaticFeature } from 'vscode-languageclient';
 import { CSharpProjectedDocument } from './CSharp/CSharpProjectedDocument';
 import { HtmlProjectedDocument } from './Html/HtmlProjectedDocument';
 import { IRazorDocument } from './IRazorDocument';
@@ -17,7 +18,14 @@ import { RazorLogger } from './RazorLogger';
 import { UpdateBufferRequest } from './RPC/UpdateBufferRequest';
 import { getUriPath } from './UriPaths';
 
-export class RazorDocumentManager implements IRazorDocumentManager {
+export class RazorDocumentManager implements IRazorDocumentManager, StaticFeature {
+
+    public get onChange() { return this.onChangeEmitter.event; }
+
+    public get documents() {
+        return Object.values(this.razorDocuments);
+    }
+    public fillInitializeParams?: ((params: InitializeParams) => void) | undefined;
     private readonly razorDocuments: { [hostDocumentPath: string]: IRazorDocument } = {};
     private onChangeEmitter = new vscode.EventEmitter<IRazorDocumentChangeEvent>();
 
@@ -25,11 +33,18 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         private readonly serverClient: RazorLanguageServerClient,
         private readonly logger: RazorLogger) {
     }
+    public fillClientCapabilities(capabilities: ClientCapabilities): void {
+        return;
+    }
 
-    public get onChange() { return this.onChangeEmitter.event; }
+    public async initialize(capabilities: ServerCapabilities, documentSelector: DocumentSelector | undefined): Promise<void> {
+        this.serverClient.onRequest(
+            'razor/updateCSharpBuffer',
+            async updateBufferRequest => this.updateCSharpBuffer(updateBufferRequest));
 
-    public get documents() {
-        return Object.values(this.razorDocuments);
+        this.serverClient.onRequest(
+            'razor/updateHtmlBuffer',
+            async updateBufferRequest => this.updateHtmlBuffer(updateBufferRequest));
     }
 
     public async getDocument(uri: vscode.Uri) {
@@ -53,7 +68,7 @@ export class RazorDocumentManager implements IRazorDocumentManager {
         return activeDocument;
     }
 
-    public async initialize() {
+    public async initializeDocuments() {
         // Track current documents
         const documentUris = await vscode.workspace.findFiles(RazorLanguage.globbingPattern);
 
@@ -95,13 +110,6 @@ export class RazorDocumentManager implements IRazorDocumentManager {
 
             this.closeDocument(document.uri);
         });
-        this.serverClient.onRequest(
-            'razor/updateCSharpBuffer',
-            async updateBufferRequest => this.updateCSharpBuffer(updateBufferRequest));
-
-        this.serverClient.onRequest(
-            'razor/updateHtmlBuffer',
-            async updateBufferRequest => this.updateHtmlBuffer(updateBufferRequest));
 
         return vscode.Disposable.from(
             watcher,

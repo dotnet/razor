@@ -6,6 +6,7 @@
 import { EventEmitter } from 'events';
 import * as vscode from 'vscode';
 import {
+    DynamicFeature,
     GenericRequestHandler,
     LanguageClient,
     LanguageClientOptions,
@@ -13,6 +14,7 @@ import {
     RequestType,
     ServerOptions,
     State,
+    StaticFeature,
 } from 'vscode-languageclient/lib/main';
 import { RazorLanguageServerOptions } from './RazorLanguageServerOptions';
 import { resolveRazorLanguageServerOptions } from './RazorLanguageServerOptionsResolver';
@@ -60,6 +62,10 @@ export class RazorLanguageServerClient implements vscode.Disposable {
 
     public onStart(listener: () => Promise<any>) {
         this.onStartListeners.push(listener);
+    }
+
+    public registerFeatures(features: (StaticFeature | DynamicFeature<any>)[]) {
+        this.client.registerFeatures(features);
     }
 
     public onStop(listener: () => any) {
@@ -162,10 +168,6 @@ export class RazorLanguageServerClient implements vscode.Disposable {
     }
 
     public async onRequestWithParams<P, R, E, RO>(method: RequestType<P, R, E, RO>, handler: RequestHandler<P, R, E>) {
-        if (!this.isStarted) {
-            throw new Error('Tried to bind on request logic while server is not started.');
-        }
-
         this.client.onRequest(method, handler);
     }
 

@@ -4,22 +4,33 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { RequestType } from 'vscode-languageclient';
+import {
+    ClientCapabilities,
+    DocumentSelector,
+    InitializeParams,
+    RequestType,
+    ServerCapabilities,
+    StaticFeature,
+} from 'vscode-languageclient';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
 import { SerializableSemanticTokensParams } from '../RPC/SerializableSemanticTokensParams';
 import { SemanticTokensResponse } from './SemanticTokensResponse';
 
-export class SemanticTokensHandler {
+export class SemanticTokensFeature implements StaticFeature {
     private static readonly getSemanticTokensEndpoint = 'razor/provideSemanticTokens';
-    private semanticTokensRequestType: RequestType<SerializableSemanticTokensParams, SemanticTokensResponse, any, any> = new RequestType(SemanticTokensHandler.getSemanticTokensEndpoint);
+    public fillInitializeParams?: ((params: InitializeParams) => void) | undefined;
+    private semanticTokensRequestType: RequestType<SerializableSemanticTokensParams, SemanticTokensResponse, any, any> = new RequestType(SemanticTokensFeature.getSemanticTokensEndpoint);
     private emptySemanticTokensResponse: SemanticTokensResponse = new SemanticTokensResponse(new Array<number>(), '');
 
     constructor(private readonly serverClient: RazorLanguageServerClient) {
     }
 
-    public register() {
-        // tslint:disable-next-line: no-floating-promises
-        this.serverClient.onRequestWithParams<SerializableSemanticTokensParams, SemanticTokensResponse, any, any>(
+    public fillClientCapabilities(capabilities: ClientCapabilities): void {
+        return;
+    }
+
+    public async initialize(capabilities: ServerCapabilities, documentSelector: DocumentSelector | undefined): Promise<void> {
+        await this.serverClient.onRequestWithParams<SerializableSemanticTokensParams, SemanticTokensResponse, any, any>(
             this.semanticTokensRequestType,
             async (request, token) => this.getSemanticTokens(request, token));
     }

@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -13,12 +14,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
-        private readonly ClientNotifierServiceBase _clientNotifierService;
+        private readonly IClientLanguageServer _clientNotifierService;
         private bool _hasNotified = false;
 
         public RazorServerReadyPublisher(
             ForegroundDispatcher foregroundDispatcher,
-            ClientNotifierServiceBase clientNotifierService)
+            IClientLanguageServer clientNotifierService)
         {
             if (foregroundDispatcher is null)
             {
@@ -58,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 // Un-register this method, we only need to send this once.
                 _projectManager.Changed -= ProjectSnapshotManager_Changed;
 
-                var response = await _clientNotifierService.SendRequestAsync(LanguageServerConstants.RazorServerReadyEndpoint);
+                var response = _clientNotifierService.SendRequest(LanguageServerConstants.RazorServerReadyEndpoint);
                 await response.ReturningVoid(CancellationToken.None);
 
                 _hasNotified = true;

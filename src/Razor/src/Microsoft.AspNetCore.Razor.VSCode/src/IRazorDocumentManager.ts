@@ -12,6 +12,6 @@ export interface IRazorDocumentManager {
     readonly documents: IRazorDocument[];
     getDocument(uri: vscode.Uri): Promise<IRazorDocument>;
     getActiveDocument(): Promise<IRazorDocument | null>;
-    initialize(): Promise<void>;
+    initializeDocuments(): Promise<void>;
     register(): vscode.Disposable;
 }

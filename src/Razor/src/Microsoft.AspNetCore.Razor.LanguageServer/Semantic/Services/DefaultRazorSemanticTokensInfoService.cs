@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -28,12 +29,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly MemoryCache<string, (VersionStamp Version, IReadOnlyList<int> Data)> _semanticTokensCache =
             new MemoryCache<string, (VersionStamp Version, IReadOnlyList<int> Data)>();
 
-        private readonly ClientNotifierServiceBase _languageServer;
+        private readonly IClientLanguageServer _languageServer;
         private readonly ILogger _logger;
         private readonly RazorDocumentMappingService _documentMappingService;
 
         public DefaultRazorSemanticTokensInfoService(
-            ClientNotifierServiceBase languageServer,
+            IClientLanguageServer languageServer,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
@@ -183,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 TextDocument = textDocumentIdentifier,
             };
 
-            var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, parameter);
+            var request = _languageServer.SendRequest(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, parameter);
             var csharpResponses = await request.Returning<SemanticTokens>(cancellationToken);
             if (csharpResponses is null)
             {
