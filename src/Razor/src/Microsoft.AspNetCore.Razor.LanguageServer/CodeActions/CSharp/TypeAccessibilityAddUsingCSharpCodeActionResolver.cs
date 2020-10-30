@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -19,8 +18,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
-
-        private static readonly Regex AddUsingVSCodeAction = new Regex("using (.+);", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
         public TypeAccessibilityAddUsingCSharpCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
@@ -97,19 +94,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var regexMatchedTextEdit = AddUsingVSCodeAction.Match(addUsingTextEdit.NewText);
-            if (!regexMatchedTextEdit.Success ||
-
-                // Two Regex matching groups are expected
-                // 1. `using namespace;`
-                // 2. `namespace`
-                regexMatchedTextEdit.Groups.Count != 2)
+            var @namespace = AddUsingsCodeActionProviderFactory.ExtractNamespaceFromVSCSharpAddUsing(addUsingTextEdit.NewText);
+            if (string.IsNullOrEmpty(@namespace))
             {
-                // Text edit in an unexpected format
+                // Invalid text edit, missing namespace
                 return codeAction;
             }
-
-            var @namespace = regexMatchedTextEdit.Groups[1].Value;
 
             cancellationToken.ThrowIfCancellationRequested();
             

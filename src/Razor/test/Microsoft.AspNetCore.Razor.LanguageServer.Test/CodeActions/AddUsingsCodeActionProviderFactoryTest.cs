@@ -48,5 +48,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
             // Assert
             Assert.Equal("@using Abc", codeAction.Title);
         }
+
+        [Fact]
+        public void ExtractNamespaceFromVSCSharpAddUsing_Invalid_ReturnsEmpty()
+        {
+            // Arrange
+            var csharpAddUsing = "Abc.Xyz;";
+
+            // Act
+            var @namespace = AddUsingsCodeActionProviderFactory.ExtractNamespaceFromVSCSharpAddUsing(csharpAddUsing);
+
+            // Assert
+            Assert.Empty(@namespace);
+        }
+
+        [Fact]
+        public void ExtractNamespaceFromVSCSharpAddUsing_ReturnsNamespace()
+        {
+            // Arrange
+            var csharpAddUsing = "using Abc.Xyz;";
+
+            // Act
+            var @namespace = AddUsingsCodeActionProviderFactory.ExtractNamespaceFromVSCSharpAddUsing(csharpAddUsing);
+
+            // Assert
+            Assert.Equal("Abc.Xyz", @namespace);
+        }
     }
 }

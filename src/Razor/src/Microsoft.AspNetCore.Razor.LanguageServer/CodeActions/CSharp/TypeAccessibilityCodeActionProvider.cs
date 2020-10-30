@@ -202,6 +202,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // `using System.Net;`
             else if (AddUsingVSCodeAction.Match(codeAction.Title).Success)
             {
+                var @namespace = AddUsingsCodeActionProviderFactory.ExtractNamespaceFromVSCSharpAddUsing(codeAction.Title);
+                if (string.IsNullOrEmpty(@namespace))
+                {
+                    // Invalid text edit, missing namespace
+                    typeAccessibilityCodeActions = Array.Empty<CodeAction>();
+                    return false;
+                }
+
+                codeAction.Title = $"@using {@namespace}";
                 processedCodeAction = codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing);
             }
             // Not a type accessibility code action
