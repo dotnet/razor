@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -26,6 +29,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // `The name 'identifier' does not exist in the current context`
             "IDE1007"
         };
+
+        private static readonly Regex AddUsingVSCodeAction = new Regex("^using .+;$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
         public override Task<IReadOnlyList<CodeAction>> ProvideAsync(
             RazorCodeActionContext context,
@@ -112,6 +117,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             string associatedValue,
             out ICollection<CodeAction> typeAccessibilityCodeActions)
         {
+            // VS & VSCode provide type accessibility code actions in different formats
+            // We must handle them seperately.
+            return context.SupportsCodeActionResolve ?
+                TryProcessCodeActionVS(context, codeAction, diagnostic, associatedValue, out typeAccessibilityCodeActions) :
+                TryProcessCodeActionVSCode(context, codeAction, diagnostic, associatedValue, out typeAccessibilityCodeActions);
+        }
+
+        private static bool TryProcessCodeActionVSCode(
+            RazorCodeActionContext context,
+            CodeAction codeAction,
+            Diagnostic diagnostic,
+            string associatedValue,
+            out ICollection<CodeAction> typeAccessibilityCodeActions)
+        {
             var fqn = string.Empty;
 
             // When there's only one FQN suggestion, code action title is of the form:
@@ -121,10 +140,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 fqn = codeAction.Title;
             }
+            // When there are multiple FQN suggestions, the code action title is of the form:
+            // `Fully qualify 'Dns' -> System.Net.Dns`
             else
             {
-                // When there are multiple FQN suggestions, the code action title is of the form:
-                // `Fully qualify 'Dns' -> System.Net.Dns`
                 var expectedCodeActionPrefix = $"Fully qualify '{associatedValue}' -> ";
                 if (codeAction.Title.StartsWith(expectedCodeActionPrefix, StringComparison.OrdinalIgnoreCase))
                 {
@@ -143,12 +162,56 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
             typeAccessibilityCodeActions.Add(fqnCodeAction);
 
-            var addUsingCodeAction = CreateAddUsingCodeAction(context, fqn);
+            var addUsingCodeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(fqn, context.Request.TextDocument.Uri);
             if (addUsingCodeAction != null)
             {
                 typeAccessibilityCodeActions.Add(addUsingCodeAction);
             }
 
+            return true;
+        }
+
+        private static bool TryProcessCodeActionVS(
+            RazorCodeActionContext context,
+            CodeAction codeAction,
+            Diagnostic diagnostic,
+            string associatedValue,
+            out ICollection<CodeAction> typeAccessibilityCodeActions)
+        {
+            CodeAction processedCodeAction = null;
+
+            // When there's only one FQN suggestion, code action title is of the form:
+            // `System.Net.Dns`
+            if (!codeAction.Title.Any(c => char.IsWhiteSpace(c)) &&
+                codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase))
+            {
+                var fqn = codeAction.Title;
+                processedCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
+            }
+            // When there are multiple FQN suggestions, the code action title is of the form:
+            // `Fully qualify 'Dns'`
+            else if (codeAction.Title.Equals($"Fully qualify '{associatedValue}'", StringComparison.OrdinalIgnoreCase))
+            {
+                // Not currently supported as we need O# CodeAction to support the CodeAction.Children field.
+                // processedCodeAction = codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.FullyQualifyType);
+
+                typeAccessibilityCodeActions = Array.Empty<CodeAction>();
+                return false;
+            }
+            // For add using suggestions, the code action title is of the form:
+            // `using System.Net;`
+            else if (AddUsingVSCodeAction.Match(codeAction.Title).Success)
+            {
+                processedCodeAction = codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing);
+            }
+            // Not a type accessibility code action
+            else
+            {
+                typeAccessibilityCodeActions = Array.Empty<CodeAction>();
+                return false;
+            }
+
+            typeAccessibilityCodeActions = new[] { processedCodeAction };
             return true;
         }
 
@@ -182,15 +245,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Title = codeAction.Title,
                 Edit = fqnWorkspaceEdit
             };
-        }
-
-        private static CodeAction CreateAddUsingCodeAction(
-            RazorCodeActionContext context,
-            string fullyQualifiedName)
-        {
-            return AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(
-                fullyQualifiedName,
-                context.Request.TextDocument.Uri);
         }
     }
 }
