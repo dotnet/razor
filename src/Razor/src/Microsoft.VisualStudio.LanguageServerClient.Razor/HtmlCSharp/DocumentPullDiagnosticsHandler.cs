@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly LSPProgressListener _lspProgressListener;
 
-        internal override TimeSpan WaitForProgressNotificationTimeout { get; set; } = TimeSpan.FromSeconds(6);
+        internal override TimeSpan WaitForProgressNotificationTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
         [ImportingConstructor]
         public DocumentPullDiagnosticsHandler(
@@ -176,6 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         RazorLanguageKind.CSharp,
                         razorDocumentUri,
                         new[] { diagnostic.Range },
+                        LanguageServerMappingBehavior.Inclusive,
                         cancellationToken).ConfigureAwait(false);
 
                     if (mappingResult == null ||
