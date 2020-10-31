@@ -27,7 +27,7 @@ using FormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.Fo
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
-    internal class FormattingLanguageServerClient : ClientNotifierServiceBase
+    internal class FormattingLanguageServerClient : IClientLanguageServer
     {
         private readonly FilePathNormalizer _filePathNormalizer = new FilePathNormalizer();
         private readonly Dictionary<string, RazorCodeDocument> _documents = new Dictionary<string, RazorCodeDocument>();
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public ILanguageServerConfiguration Configuration => throw new NotImplementedException();
 
-        public override InitializeParams ClientSettings
+        public InitializeParams ClientSettings
         {
             get
             {
@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             throw new NotImplementedException();
         }
 
-        public override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
+        public IResponseRouterReturns SendRequest<T>(string method, T @params)
         {
             if (!(@params is RazorDocumentRangeFormattingParams formattingParams) ||
                 !string.Equals(method, "razor/rangeFormatting", StringComparison.Ordinal))
@@ -215,10 +215,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var response = Format(formattingParams);
 
-            return Task.FromResult(Convert<RazorDocumentRangeFormattingResponse>(response));
+            return Convert<RazorDocumentRangeFormattingResponse>(response);
         }
 
-        public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+        public IResponseRouterReturns SendRequest(string method)
         {
             throw new NotImplementedException();
         }
@@ -234,11 +234,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         public bool TryGetRequest(long id, [NotNullWhen(true)] out string method, [NotNullWhen(true)] out TaskCompletionSource<JToken> pendingTask)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

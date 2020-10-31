@@ -25,7 +25,7 @@ export class RazorServerReadyFeature implements StaticFeature {
     }
 
     public async initialize(capabilities: ServerCapabilities, documentSelector: DocumentSelector | undefined): Promise<void> {
-        await this.client.onRequestWithParams<void, void,  any, any>(
+        this.client.onRequestWithParams<void, void,  any, any>(
             this.razorServerReadyHandlerType,
             async (request, token) => this.handleRazorServerReady());
     }

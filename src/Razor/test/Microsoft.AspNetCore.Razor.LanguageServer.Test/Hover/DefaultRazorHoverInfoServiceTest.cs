@@ -9,6 +9,7 @@ using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 using RangeModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
@@ -16,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
 {
     public class DefaultRazorHoverInfoServiceTest : DefaultTagHelperServiceTestBase
     {
-        internal ClientNotifierServiceBase LanguageServer
+        internal IClientLanguageServer LanguageServer
         {
             get
             {
@@ -37,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                     }
                 };
 
-                var languageServer = new Mock<ClientNotifierServiceBase>();
+                var languageServer = new Mock<IClientLanguageServer>();
                 languageServer.SetupGet(server => server.ClientSettings)
                     .Returns(initializeParams);
 
@@ -330,7 +331,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             Assert.Null(hover);
         }
 
-        private DefaultRazorHoverInfoService GetDefaultRazorHoverInfoService(ClientNotifierServiceBase languageServer = null)
+        private DefaultRazorHoverInfoService GetDefaultRazorHoverInfoService(IClientLanguageServer languageServer = null)
         {
             if (languageServer is null)
             {

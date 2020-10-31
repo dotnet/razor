@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public class DefaultTagHelperDescriptionFactoryTest
     {
-        internal ClientNotifierServiceBase LanguageServer
+        internal IClientLanguageServer LanguageServer
         {
             get
             {
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     }
                 };
 
-                var languageServer = new Mock<ClientNotifierServiceBase>();
+                var languageServer = new Mock<IClientLanguageServer>();
                 languageServer.SetupGet(server => server.ClientSettings)
                     .Returns(initializeParams);
 
