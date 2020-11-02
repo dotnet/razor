@@ -133,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             });
 
             await AssertSemanticTokenEdits(txt, expectedDelta, isRazor, previousResultId: previousResultId, document, service: service);
-            mockClient.Verify(l => l.SendRequest(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, It.IsAny<SemanticTokensParams>()), Times.Once());
+            mockClient.Verify(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, It.IsAny<SemanticTokensParams>()), Times.Once());
         }
         #endregion
 
@@ -210,6 +210,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             };
 
             await AssertSemanticTokens(txt, expectedData, isRazor: true);
+        }
+
+        [Fact]
+        public async Task GetSemanticTokens_HTMLIncludesBang()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<!input/>";
+            var expectedData = new List<int>
+            {
+                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
+                0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
+                0, 1, 5, RazorSemanticTokensLegend.MarkupElement, 0,
+                0, 5, 1,  RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+            };
+
+            await AssertSemanticTokens(txt, expectedData, isRazor: false);
         }
         #endregion
 
@@ -733,7 +751,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                         DeleteCount = 1,
                         Data = new List<int>
                         {
-                            80, 0, 0, 2, 1, 72
+                            RazorSemanticTokensLegend.MarkupElement, 0, 0, 2, 1, RazorSemanticTokensLegend.RazorTransition
                         }.ToImmutableArray()
                     },
                     new SemanticTokensEdit
@@ -742,7 +760,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                         DeleteCount = 2,
                         Data = new List<int>
                         {
-                            9, 74
+                            9, RazorSemanticTokensLegend.RazorDirectiveAttribute
                         }.ToImmutableArray()
                     },
                     new SemanticTokensEdit
@@ -1024,7 +1042,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             Assert.NotEqual(previousResultId, newResultId);
         }
 
-        private async Task<(string, RazorSemanticTokensInfoService, Mock<IClientLanguageServer>, DocumentSnapshot)> AssertSemanticTokens(
+        private async Task<(string, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>, DocumentSnapshot)> AssertSemanticTokens(
             string txt,
             IEnumerable<int> expectedData,
             bool isRazor,
@@ -1034,7 +1052,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             (OmniSharpRange, OmniSharpRange)[] documentMappings = null)
         {
             // Arrange
-            Mock<IClientLanguageServer> serviceMock = null;
+            Mock<ClientNotifierServiceBase> serviceMock = null;
             if (service is null)
             {
                 (service, serviceMock) = GetDefaultRazorSemanticTokenInfoService(cSharpTokens, documentMappings);
@@ -1070,10 +1088,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             return true;
         }
 
-        private async Task<(string, RazorSemanticTokensInfoService, Mock<IClientLanguageServer>)> AssertSemanticTokenEdits(string txt, SemanticTokensFullOrDelta expectedEdits, bool isRazor, string previousResultId, DocumentSnapshot documentSnapshot = null, RazorSemanticTokensInfoService service = null)
+        private async Task<(string, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>)> AssertSemanticTokenEdits(string txt, SemanticTokensFullOrDelta expectedEdits, bool isRazor, string previousResultId, DocumentSnapshot documentSnapshot = null, RazorSemanticTokensInfoService service = null)
         {
             // Arrange
-            Mock<IClientLanguageServer> clientMock = null;
+            Mock<ClientNotifierServiceBase> clientMock = null;
             if (service is null)
             {
                 (service, clientMock) = GetDefaultRazorSemanticTokenInfoService();
@@ -1113,17 +1131,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             }
         }
 
-        private static (RazorSemanticTokensInfoService, Mock<IClientLanguageServer>) GetDefaultRazorSemanticTokenInfoService(SemanticTokens cSharpTokens = null, (OmniSharpRange, OmniSharpRange)[] documentMappings = null)
+        private static (RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>) GetDefaultRazorSemanticTokenInfoService(SemanticTokens cSharpTokens = null, (OmniSharpRange, OmniSharpRange)[] documentMappings = null)
         {
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             responseRouterReturns
                 .Setup(l => l.Returning<SemanticTokens>(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(cSharpTokens));
 
-            var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequest(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, It.IsAny<SemanticTokensParams>()))
-                .Returns(responseRouterReturns.Object);
+                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, It.IsAny<SemanticTokensParams>()))
+                .Returns(Task.FromResult(responseRouterReturns.Object));
             var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
             if (documentMappings != null)
             {
