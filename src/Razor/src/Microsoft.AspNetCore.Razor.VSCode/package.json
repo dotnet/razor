@@ -1,7 +1,7 @@
 {
   "name": "microsoft.aspnetcore.razor.vscode",
   "private": true,
-  "version": "6.0.0-dev",
+  "version": "0.0.1",
   "defaults": {
     "razor": "0.0.1"
   },

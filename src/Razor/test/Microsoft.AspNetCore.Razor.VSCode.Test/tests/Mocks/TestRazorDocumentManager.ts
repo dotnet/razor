@@ -29,7 +29,7 @@ export class TestRazorDocumentManager implements IRazorDocumentManager {
         throw new Error('Not implemented');
     }
 
-    public initialize(): Promise<void> {
+    public initializeDocuments(): Promise<void> {
         throw new Error('Not implemented');
     }
 

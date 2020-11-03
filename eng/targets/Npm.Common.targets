@@ -17,6 +17,10 @@
       ResolveProjectReferences;
       _Build;
     </BuildDependsOn>
+    <BuildDependsOn Condition="'$(Lint)' == 'true'">
+      $(BuildDependsOn);
+      _Lint;
+    </BuildDependsOn>
     <NpmBuildArgs Condition="'$(NpmBuildArgs)' == ''">run build</NpmBuildArgs>
   </PropertyGroup>
 
@@ -82,6 +86,10 @@
     <WriteLinesToFile Overwrite="true" File="$(BaseIntermediateOutputPath)build-sentinel" />
   </Target>
 
+  <Target Name="_Lint">
+    <Yarn Command="build" StandardOutputImportance="High" StandardErrorImportance="High" IgnoreStandardErrorWarningFormat="true" />
+  </Target>
+
   <PropertyGroup>
     <PackDependsOn>
       $(PackDependsOn);
@@ -108,6 +116,8 @@
     <Exec Command="node $(MSBuildThisFileDirectory)..\scripts\update-packagejson-links.js $(PackageJson) $(PackageVersion)" />
     <Yarn Command="pack --filename $(PackageFileName)" />
 
+    <!-- Move will fail if the DestinationFolder already exists. -->
+    <Delete Files="$(PackageOutputPath)" />
     <Move SourceFiles="$(_PackageTargetPath)" DestinationFolder="$(PackageOutputPath)" />
     <Message Importance="High" Text="$(MSBuildProjectName) -> $(_PackageTargetPath)" />
 
