@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -26,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public AddUsingsCSharpCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
-            ClientNotifierServiceBase languageServer,
+            IClientLanguageServer languageServer,
             DocumentVersionCache documentVersionCache)
             : base(languageServer)
         {

@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -173,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private void CreateCodeActionResolver(
             out CSharpCodeActionParams codeActionParams,
             out AddUsingsCSharpCodeActionResolver addUsingResolver,
-            ClientNotifierServiceBase languageServer = null,
+            IClientLanguageServer languageServer = null,
             DocumentVersionCache documentVersionCache = null,
             RazorFormattingService razorFormattingService = null)
         {
@@ -205,17 +206,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return documentVersionCache;
         }
 
-        private ClientNotifierServiceBase CreateLanguageServer(CodeAction resolvedCodeAction = null)
+        private IClientLanguageServer CreateLanguageServer(CodeAction resolvedCodeAction = null)
         {
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             responseRouterReturns
                 .Setup(l => l.Returning<CodeAction>(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(resolvedCodeAction ?? DefaultResolvedCodeAction));
 
-            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            var languageServer = new Mock<IClientLanguageServer>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorResolveCodeActionsEndpoint, It.IsAny<CodeAction>()))
-                .Returns(Task.FromResult(responseRouterReturns.Object));
+                .Setup(l => l.SendRequest(LanguageServerConstants.RazorResolveCodeActionsEndpoint, It.IsAny<CodeAction>()))
+                .Returns(responseRouterReturns.Object);
 
             return languageServer.Object;
         }
