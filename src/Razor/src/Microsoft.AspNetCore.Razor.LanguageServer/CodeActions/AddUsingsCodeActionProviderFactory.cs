@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal static class AddUsingsCodeActionProviderFactory
     {
-        private static readonly Regex AddUsingVSCodeAction = new Regex("using (.+);", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+        internal static readonly Regex AddUsingVSCodeAction = new Regex("^using (.+);$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
         // Internal for testing
         internal static string GetNamespaceFromFQN(string fullyQualifiedName)
@@ -63,9 +63,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         /// Extracts the namespace from a C# add using statement provided by Visual Studio
         /// </summary>
         /// <param name="csharpAddUsing">Add using statement of the form `using System.X;`</param>
+        /// <param name="namespace">Extract namespace `System.X`</param>
         /// <returns></returns>
-        internal static string ExtractNamespaceFromVSCSharpAddUsing(string csharpAddUsing)
+        internal static bool TryExtractNamespace(string csharpAddUsing, out string @namespace)
         {
+            // We must remove any leading/trailing new lines from the add using edit
+            csharpAddUsing = csharpAddUsing.Trim();
             var regexMatchedTextEdit = AddUsingVSCodeAction.Match(csharpAddUsing);
             if (!regexMatchedTextEdit.Success ||
 
@@ -75,10 +78,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 regexMatchedTextEdit.Groups.Count != 2)
             {
                 // Text edit in an unexpected format
-                return string.Empty;
+                @namespace = string.Empty;
+                return false;
             }
 
-            return regexMatchedTextEdit.Groups[1].Value;
+            @namespace = regexMatchedTextEdit.Groups[1].Value;
+            return true;
         }
     }
 }

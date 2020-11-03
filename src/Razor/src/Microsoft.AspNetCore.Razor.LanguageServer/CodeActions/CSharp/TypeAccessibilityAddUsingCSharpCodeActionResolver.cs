@@ -13,6 +13,10 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
+    /// <summary>
+    /// Resolves the C# Add Using Code Action by requesting edits from Roslyn
+    /// and converting them to be Razor compatible.
+    /// </summary>
     internal class TypeAccessibilityAddUsingCSharpCodeActionResolver : CSharpCodeActionResolver
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
@@ -26,24 +30,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             DocumentVersionCache documentVersionCache)
             : base(languageServer)
         {
-            if (foregroundDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (documentVersionCache is null)
-            {
-                throw new ArgumentNullException(nameof(documentVersionCache));
-            }
-
-            _foregroundDispatcher = foregroundDispatcher;
-            _documentResolver = documentResolver;
-            _documentVersionCache = documentVersionCache;
+            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
         }
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
@@ -63,7 +52,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(codeAction));
             }
 
-            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(codeAction, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(codeAction, cancellationToken).ConfigureAwait(false);
             if (resolvedCodeAction.Edit?.DocumentChanges is null)
             {
                 // Unable to resolve code action with server, return original code action
@@ -76,16 +67,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
             var documentChanged = resolvedCodeAction.Edit.DocumentChanges.First();
             if (!documentChanged.IsTextDocumentEdit)
             {
                 // Only Text Document Edit changes are supported currently, return original code action
                 return codeAction;
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
 
             var addUsingTextEdit = documentChanged.TextDocumentEdit.Edits.FirstOrDefault();
             if (addUsingTextEdit is null)
@@ -94,14 +81,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var @namespace = AddUsingsCodeActionProviderFactory.ExtractNamespaceFromVSCSharpAddUsing(addUsingTextEdit.NewText);
-            if (string.IsNullOrEmpty(@namespace))
+            if (!AddUsingsCodeActionProviderFactory.TryExtractNamespace(addUsingTextEdit.NewText, out var @namespace))
             {
                 // Invalid text edit, missing namespace
                 return codeAction;
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
             
             var documentSnapshot = await Task.Factory.StartNew(() =>
             {
@@ -118,8 +102,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 return null;
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())

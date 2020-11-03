@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -29,8 +28,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // `The name 'identifier' does not exist in the current context`
             "IDE1007"
         };
-
-        private static readonly Regex AddUsingVSCodeAction = new Regex("^using .+;$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
         public override Task<IReadOnlyList<CodeAction>> ProvideAsync(
             RazorCodeActionContext context,
@@ -200,16 +197,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
             // For add using suggestions, the code action title is of the form:
             // `using System.Net;`
-            else if (AddUsingVSCodeAction.Match(codeAction.Title).Success)
+            else if (AddUsingsCodeActionProviderFactory.TryExtractNamespace(codeAction.Title, out var @namespace))
             {
-                var @namespace = AddUsingsCodeActionProviderFactory.ExtractNamespaceFromVSCSharpAddUsing(codeAction.Title);
-                if (string.IsNullOrEmpty(@namespace))
-                {
-                    // Invalid text edit, missing namespace
-                    typeAccessibilityCodeActions = Array.Empty<CodeAction>();
-                    return false;
-                }
-
                 codeAction.Title = $"@using {@namespace}";
                 processedCodeAction = codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing);
             }
