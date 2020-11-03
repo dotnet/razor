@@ -17,13 +17,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     /// Resolves the C# Add Using Code Action by requesting edits from Roslyn
     /// and converting them to be Razor compatible.
     /// </summary>
-    internal class TypeAccessibilityAddUsingCSharpCodeActionResolver : CSharpCodeActionResolver
+    internal class AddUsingsCSharpCodeActionResolver : CSharpCodeActionResolver
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
 
-        public TypeAccessibilityAddUsingCSharpCodeActionResolver(
+        public AddUsingsCSharpCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,

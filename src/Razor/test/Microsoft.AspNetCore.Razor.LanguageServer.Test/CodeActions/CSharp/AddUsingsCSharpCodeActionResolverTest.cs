@@ -21,7 +21,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    public class TypeAccessibilityAddUsingCSharpCodeActionResolverTest : LanguageServerTestBase
+    public class AddUsingsCSharpCodeActionResolverTest : LanguageServerTestBase
     {
         private static readonly CodeAction DefaultResolvedCodeAction = new CodeAction()
         {
@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private void CreateCodeActionResolver(
             out CSharpCodeActionParams codeActionParams,
-            out TypeAccessibilityAddUsingCSharpCodeActionResolver addUsingResolver,
+            out AddUsingsCSharpCodeActionResolver addUsingResolver,
             ClientNotifierServiceBase languageServer = null,
             DocumentVersionCache documentVersionCache = null,
             RazorFormattingService razorFormattingService = null)
@@ -191,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             languageServer ??= CreateLanguageServer();
             documentVersionCache ??= CreateDocumentVersionCache();
 
-            addUsingResolver = new TypeAccessibilityAddUsingCSharpCodeActionResolver(
+            addUsingResolver = new AddUsingsCSharpCodeActionResolver(
                 new DefaultForegroundDispatcher(),
                 CreateDocumentResolver(documentPath, codeDocument),
                 languageServer,
