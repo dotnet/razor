@@ -38,7 +38,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                             Edits = new TextEditContainer(
                                 new TextEdit()
                                 {
-                                    NewText = "Generated C# Based Edit"
+                                    NewText = "Some CodeAction Edit"
+                                }
+                            )
+                        }
+                    ))
+            }
+        };
+        private static readonly CodeAction ImproperlyResolvedCodeAction = new CodeAction()
+        {
+            Title = "ResolvedCodeAction",
+            Data = JToken.FromObject(new object()),
+            Edit = new WorkspaceEdit()
+            {
+                DocumentChanges = new Container<WorkspaceEditDocumentChange>(
+                    new WorkspaceEditDocumentChange(
+                        new TextDocumentEdit()
+                        {
+                            Edits = new TextEditContainer(
+                                new TextEdit()
+                                {
+                                    NewText = "me CodeAction Edit"
                                 }
                             )
                         }
@@ -50,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             new TextEdit()
             {
-                NewText = "Remapped & Formatted Edit"
+                NewText = $"\t     Some CodeAction Edit        {Environment.NewLine}"
             }
         };
 
@@ -63,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public async Task ResolveAsync_ReturnsResolvedCodeAction()
         {
             // Arrange
-            CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver);
+            CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, resolvedCodeAction: DefaultResolvedCodeAction);
 
             // Act
             var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, DefaultUnresolvedCodeAction, default);
@@ -75,6 +95,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             Assert.True(returnedEdits.IsTextDocumentEdit);
             var returnedTextDocumentEdit = Assert.Single(returnedEdits.TextDocumentEdit.Edits);
             Assert.Equal(DefaultFormattedEdits.First(), returnedTextDocumentEdit);
+        }
+
+        [Fact]
+        public async Task ResolveAsync_NonWhitespaceContentChangedByFormatting_ReturnsOriginalCodeAction()
+        {
+            // Arrange
+            CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, resolvedCodeAction: ImproperlyResolvedCodeAction);
+
+            // Act
+            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, DefaultUnresolvedCodeAction, default);
+
+            // Assert
+            Assert.Equal(DefaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
+            Assert.Null(returnedCodeAction.Edit);
         }
 
         [Fact]
@@ -100,6 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             Assert.Equal(DefaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
+            Assert.Null(returnedCodeAction.Edit);
         }
 
         [Fact]
@@ -147,6 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             Assert.Equal(DefaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
+            Assert.Null(returnedCodeAction.Edit);
         }
 
         [Fact]
@@ -178,6 +214,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             Assert.Equal(DefaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
+            Assert.Null(returnedCodeAction.Edit);
         }
 
         private void CreateCodeActionResolver(
@@ -185,7 +222,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             out DefaultCSharpCodeActionResolver csharpCodeActionResolver,
             ClientNotifierServiceBase languageServer = null,
             DocumentVersionCache documentVersionCache = null,
-            RazorFormattingService razorFormattingService = null)
+            RazorFormattingService razorFormattingService = null,
+            CodeAction resolvedCodeAction = null)
         {
             var documentPath = "c:/Test.razor";
             var documentUri = new Uri(documentPath);
@@ -198,7 +236,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 RazorFileUri = documentUri
             };
 
-            languageServer ??= CreateLanguageServer();
+            languageServer ??= CreateLanguageServer(resolvedCodeAction);
             documentVersionCache ??= CreateDocumentVersionCache();
             razorFormattingService ??= CreateRazorFormattingService(documentUri);
 

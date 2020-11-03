@@ -26,8 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             "Generate Equals and GetHashCode",
             "Add null check",
-            "Add null checks for all parameters",
-            "Add 'DebuggerDisplay' attribute"
+            "Add null checks for all parameters"
         };
 
         public override Task<IReadOnlyList<CodeAction>> ProvideAsync(

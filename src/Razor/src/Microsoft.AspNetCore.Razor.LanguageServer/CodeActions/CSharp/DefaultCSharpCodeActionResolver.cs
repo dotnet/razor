@@ -2,14 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -33,13 +36,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly DocumentResolver _documentResolver;
         private readonly RazorFormattingService _razorFormattingService;
         private readonly DocumentVersionCache _documentVersionCache;
+        private readonly RazorDocumentMappingService _documentMappingService;
 
         public DefaultCSharpCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
             RazorFormattingService razorFormattingService,
-            DocumentVersionCache documentVersionCache)
+            DocumentVersionCache documentVersionCache,
+            RazorDocumentMappingService documentMappingService)
             : base(languageServer)
         {
             if (foregroundDispatcher is null)
@@ -62,10 +67,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(documentVersionCache));
             }
 
+            if (documentMappingService is null)
+            {
+                throw new ArgumentNullException(nameof(documentMappingService));
+            }
+
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
             _razorFormattingService = razorFormattingService;
             _documentVersionCache = documentVersionCache;
+            _documentMappingService = documentMappingService;
         }
 
         public override string Action => LanguageServerConstants.CodeActions.Default;
@@ -122,7 +133,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var csharpTextEdits = documentChanged.TextDocumentEdit.Edits.ToArray();
 
-
             // Remaps the text edits from the generated C# to the razor file,
             // as well as applying appropriate formatting.
             var formattedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
@@ -136,7 +146,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (await DoesFormattingChangeNonWhitespaceContentAsync(documentSnapshot, csharpTextEdits, formattedEdits))
+            if (formattedEdits?.Length == 0 ||
+                await DoesFormattingChangeNonWhitespaceContentAsync(documentSnapshot, csharpTextEdits, formattedEdits))
             {
                 return codeAction;
             }
@@ -169,14 +180,74 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return resolvedCodeAction;
         }
 
-        private static async Task<bool> DoesFormattingChangeNonWhitespaceContentAsync(CodeAnalysis.Razor.ProjectSystem.DocumentSnapshot documentSnapshot, TextEdit[] csharpTextEdits, TextEdit[] formattedEdits)
+        private async Task<bool> DoesFormattingChangeNonWhitespaceContentAsync(DocumentSnapshot documentSnapshot, TextEdit[] csharpTextEdits, TextEdit[] formattedEdits)
         {
-            var expectedUnformattedSourceText = SourceText.From(csharpTextEdits.FirstOrDefault()?.NewText);
+            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
+
             var originalSourceText = await documentSnapshot.GetTextAsync();
+
+            var remappedCSharpTextEdits = RemapTextEdits(codeDocument, csharpTextEdits);
+            var unformattedChanges = remappedCSharpTextEdits.Select(e => e.AsTextChange(originalSourceText));
+            var expectedUnformattedSourceText = originalSourceText.WithChanges(unformattedChanges);
+
             var formattedChanges = formattedEdits.Select(e => e.AsTextChange(originalSourceText));
             var actualFormattedSourceText = originalSourceText.WithChanges(formattedChanges);
 
             return !expectedUnformattedSourceText.NonWhitespaceContentEquals(actualFormattedSourceText);
+
+            //var originalEditLength = GetNonWhitespaceLengthOfEdits(csharpTextEdits);
+            //var formattedEditLength = GetNonWhitespaceLengthOfEdits(formattedEdits);
+
+            //return originalEditLength != formattedEditLength;
+        }
+
+        //private static int GetNonWhitespaceLengthOfEdits(TextEdit[] edits)
+        //{
+        //    var length = 0;
+
+        //    foreach (var edit in edits)
+        //    {
+        //        foreach (var c in edit.NewText)
+        //        {
+        //            if (!char.IsWhiteSpace(c))
+        //            {
+        //                length++;
+        //            }
+        //        }
+        //    }
+
+        //    return length;
+        //}
+
+
+        protected TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits)
+        {
+            if (projectedTextEdits is null)
+            {
+                throw new ArgumentNullException(nameof(projectedTextEdits));
+            }
+
+            var edits = new List<TextEdit>();
+            for (var i = 0; i < projectedTextEdits.Length; i++)
+            {
+                var projectedRange = projectedTextEdits[i].Range;
+                if (codeDocument.IsUnsupported() ||
+                    !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
+                {
+                    // Can't map range. Discard this edit.
+                    continue;
+                }
+
+                var edit = new TextEdit()
+                {
+                    Range = originalRange,
+                    NewText = projectedTextEdits[i].NewText
+                };
+
+                edits.Add(edit);
+            }
+
+            return edits.ToArray();
         }
     }
 }
