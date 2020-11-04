@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly LSPProgressListener _lspProgressListener;
 
-        internal override TimeSpan WaitForProgressNotificationTimeout { get; set; } = TimeSpan.FromSeconds(10);
+        internal override TimeSpan WaitForProgressNotificationTimeout { get; set; } = TimeSpan.FromSeconds(2.5);
 
         [ImportingConstructor]
         public DocumentPullDiagnosticsHandler(
