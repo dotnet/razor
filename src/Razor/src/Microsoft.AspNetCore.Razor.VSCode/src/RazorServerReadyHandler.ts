@@ -1,7 +1,7 @@
-/* ---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- * --------------------------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------------------------
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ * -------------------------------------------------------------------------------------------- */
 
 import { RequestType } from 'vscode-languageclient';
 import { RazorLanguageServerClient } from './RazorLanguageServerClient';
@@ -13,11 +13,11 @@ export class RazorServerReadyHandler {
     constructor(private readonly serverClient: RazorLanguageServerClient) {
     }
 
-    public register() {
+    public register(): void {
         // tslint:disable-next-line: no-floating-promises
         this.serverClient.onRequestWithParams<void, void,  any, any>(
             this.razorServerReadyHandlerType,
-            async (request, token) => this.handleRazorServerReady());
+            (_request, _token) => this.handleRazorServerReady());
     }
 
     private handleRazorServerReady(): void {

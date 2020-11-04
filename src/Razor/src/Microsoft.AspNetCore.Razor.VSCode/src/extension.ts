@@ -70,7 +70,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
 
         let documentSynchronizer: RazorDocumentSynchronizer;
         languageServerClient.onStart(async () => {
-            vscodeType.commands.executeCommand<void>('omnisharp.registerLanguageMiddleware', razorLanguageMiddleware);
+            await vscodeType.commands.executeCommand<void>('omnisharp.registerLanguageMiddleware', razorLanguageMiddleware);
             documentSynchronizer = new RazorDocumentSynchronizer(documentManager, logger);
             const provisionalCompletionOrchestrator = new ProvisionalCompletionOrchestrator(
                 documentManager,

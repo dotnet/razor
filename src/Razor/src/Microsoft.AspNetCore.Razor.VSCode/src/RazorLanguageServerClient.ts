@@ -59,7 +59,7 @@ export class RazorLanguageServerClient implements vscode.Disposable {
         this.onStartedListeners.push(listener);
     }
 
-    public onStart(listener: () => Promise<any>) {
+    public onStart(listener: () => Promise<any>): void {
         this.onStartListeners.push(listener);
     }
 
