@@ -16,8 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [Shared]
     [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName)]
     internal class DocumentPullDiagnosticsHandler :
-        LSPProgressListenerHandlerBase<DocumentDiagnosticsParams, DiagnosticReport[]?>,
-        IRequestHandler<DocumentDiagnosticsParams, DiagnosticReport[]?>
+        LSPProgressListenerHandlerBase<DocumentDiagnosticsParams, DiagnosticReport[]>,
+        IRequestHandler<DocumentDiagnosticsParams, DiagnosticReport[]>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal async override Task<DiagnosticReport[]?> HandleRequestAsync(DocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
+        internal async override Task<DiagnosticReport[]> HandleRequestAsync(DocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableDocumentDiagnosticsParams, DiagnosticReport[]?>(
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableDocumentDiagnosticsParams, DiagnosticReport[]>(
                 MSLSPMethods.DocumentPullDiagnosticName,
                 RazorLSPConstants.CSharpContentTypeName,
                 referenceParams,
@@ -117,11 +117,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task ProcessDocumentDiagnosticsAsync(
             JToken value,
-            IProgress<DiagnosticReport[]?> progress,
+            IProgress<DiagnosticReport[]> progress,
             Uri razorDocumentUri,
             CancellationToken cancellationToken)
         {
-            var result = value.ToObject<DiagnosticReport[]?>();
+            var result = value.ToObject<DiagnosticReport[]>();
 
             if (result == null || result.Length == 0)
             {
@@ -133,8 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             progress.Report(remappedResults);
         }
 
-        private async Task<DiagnosticReport[]?> RemapDocumentDiagnosticsAsync(
-            DiagnosticReport[]? unmappedDiagnosticReports,
+        private async Task<DiagnosticReport[]> RemapDocumentDiagnosticsAsync(
+            DiagnosticReport[] unmappedDiagnosticReports,
             Uri razorDocumentUri,
             CancellationToken cancellationToken)
         {
