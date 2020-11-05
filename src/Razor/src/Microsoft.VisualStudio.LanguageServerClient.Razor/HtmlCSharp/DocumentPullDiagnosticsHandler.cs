@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,8 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
             var referenceParams = new SerializableDocumentDiagnosticsParams()
             {
                 TextDocument = new TextDocumentIdentifier()
@@ -94,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (!_lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: (value, ct) => ProcessDocumentDiagnosticsAsync(value, request.PartialResultToken, request.TextDocument.Uri, ct),
+                onProgressNotifyAsync: (value, ct) => ProcessDocumentDiagnosticsAsync(value, request.PartialResultToken, request.TextDocument.Uri, documentSnapshot, ct),
                 WaitForProgressNotificationTimeout,
                 cancellationToken,
                 out var onCompleted))
@@ -119,6 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             JToken value,
             IProgress<DiagnosticReport[]> progress,
             Uri razorDocumentUri,
+            LSPDocumentSnapshot documentSnapshot,
             CancellationToken cancellationToken)
         {
             var result = value.ToObject<DiagnosticReport[]>();
@@ -128,7 +128,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return;
             }
 
-            var remappedResults = await RemapDocumentDiagnosticsAsync(result, razorDocumentUri, cancellationToken).ConfigureAwait(false);
+            var remappedResults = await RemapDocumentDiagnosticsAsync(
+                result,
+                razorDocumentUri,
+                documentSnapshot,
+                cancellationToken).ConfigureAwait(false);
 
             progress.Report(remappedResults);
         }
@@ -136,6 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private async Task<DiagnosticReport[]> RemapDocumentDiagnosticsAsync(
             DiagnosticReport[] unmappedDiagnosticReports,
             Uri razorDocumentUri,
+            LSPDocumentSnapshot documentSnapshot,
             CancellationToken cancellationToken)
         {
             if (unmappedDiagnosticReports?.Length == 0)
@@ -156,25 +161,31 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 var unmappedDiagnostics = diagnosticReport.Diagnostics;
                 var mappedDiagnostics = new List<Diagnostic>(unmappedDiagnostics.Length);
 
-                foreach (var diagnostic in unmappedDiagnostics)
-                {
-                    var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
-                        RazorLanguageKind.CSharp,
-                        razorDocumentUri,
-                        new[] { diagnostic.Range },
-                        LanguageServerMappingBehavior.Inclusive,
-                        cancellationToken).ConfigureAwait(false);
+                var rangesToMap = unmappedDiagnostics.Select(r => r.Range).ToArray();
+                var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
+                    RazorLanguageKind.CSharp,
+                    razorDocumentUri,
+                    rangesToMap,
+                    LanguageServerMappingBehavior.Inclusive,
+                    cancellationToken).ConfigureAwait(false);
 
-                    if (mappingResult == null ||
-                        mappingResult.Ranges[0].IsUndefined() ||
-                        (_documentManager.TryGetDocument(razorDocumentUri, out var mappedDocumentSnapshot) &&
-                        mappingResult.HostDocumentVersion != mappedDocumentSnapshot.Version))
+                if (mappingResult == null || mappingResult.HostDocumentVersion != documentSnapshot.Version)
+                {
+                    // Couldn't remap the range or the document changed in the meantime. Discard this highlight.
+                    return Array.Empty<DiagnosticReport>();
+                }
+
+                for (var i = 0; i < unmappedDiagnostics.Length; i++)
+                {
+                    var diagnostic = unmappedDiagnostics[i];
+                    var range = mappingResult.Ranges[i];
+                    if (range.IsUndefined())
                     {
-                        // Couldn't remap the location or the document changed in the meantime. Discard this location.
+                        // Couldn't remap the range correctly. Discard this range.
                         continue;
                     }
 
-                    diagnostic.Range = mappingResult.Ranges[0];
+                    diagnostic.Range = range;
                     mappedDiagnostics.Add(diagnostic);
                 }
 
