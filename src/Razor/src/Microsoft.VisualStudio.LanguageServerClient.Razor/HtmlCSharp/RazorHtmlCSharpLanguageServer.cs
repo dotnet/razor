@@ -203,14 +203,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(MSLSPMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DiagnosticReport[]?> DocumentPullDiagnosticsAsync(DocumentDiagnosticsParams documentDiagnosticsParams, CancellationToken cancellationToken)
+        public Task<DiagnosticReport[]> DocumentPullDiagnosticsAsync(DocumentDiagnosticsParams documentDiagnosticsParams, CancellationToken cancellationToken)
         {
             if (documentDiagnosticsParams is null)
             {
                 throw new ArgumentNullException(nameof(documentDiagnosticsParams));
             }
 
-            return ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]?>(MSLSPMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, cancellationToken);
+            return ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(MSLSPMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, cancellationToken);
         }
 
         // Internal for testing
