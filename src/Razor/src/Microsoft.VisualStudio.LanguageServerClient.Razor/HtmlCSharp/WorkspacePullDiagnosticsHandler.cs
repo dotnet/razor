@@ -2,13 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
@@ -24,6 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly LSPProgressListener _lspProgressListener;
+        private readonly JoinableTaskFactory _joinableTaskFactory;
+        private readonly LSPProjectSnapshotManagerAccessor _lspProjectSnapshotManagerAccessor;
+
+        //private ProjectSnapshotManagerBase _projectSnapshotManager;
 
         [ImportingConstructor]
         public WorkspacePullDiagnosticsHandler(
@@ -31,7 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
-            LSPProgressListener lspProgressListener)
+            LSPProgressListener lspProgressListener,
+            JoinableTaskContext joinableTaskContext,
+            LSPProjectSnapshotManagerAccessor lspProjectSnapshotManagerAccessor)
         {
             if (requestInvoker is null)
             {
@@ -58,11 +67,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(lspProgressListener));
             }
 
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (lspProjectSnapshotManagerAccessor is null)
+            {
+                throw new ArgumentNullException(nameof(lspProjectSnapshotManagerAccessor));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
             _lspProgressListener = lspProgressListener;
+            _joinableTaskFactory = joinableTaskContext.Factory;
+            _lspProjectSnapshotManagerAccessor = lspProjectSnapshotManagerAccessor;
         }
 
         // Internal for testing
@@ -80,35 +101,138 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var referenceParams = new SerializableWorkspaceDocumentDiagnosticsParams()
+            cancellationToken = CancellationToken.None;
+
+            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var projects = _lspProjectSnapshotManagerAccessor.ProjectSnapshotManager.Projects;
+
+            //var tasks = new List<Task>();
+            //foreach (var project in projects)
+            //{
+            //    foreach (var path in project.DocumentFilePaths)
+            //    {
+            //        var docToken = Guid.NewGuid().ToString();
+            //        tasks.Add(GetDocumentDiagnosticsAsync(path, docToken, cancellationToken));
+            //    }
+            //}
+
+            //await Task.WhenAll(tasks.ToArray());
+            foreach (var project in projects)
             {
-                PreviousResults = request.PreviousResults,
+                foreach (var path in project.DocumentFilePaths)
+                {
+                    var docToken = Guid.NewGuid().ToString();
+                    await GetDocumentDiagnosticsAsync(path, docToken, cancellationToken);
+                }
+            }
+
+            results = new ConcurrentBag<(string, string)>();
+            return null;
+
+            //var previousResults = new List<DiagnosticParams>(request.PreviousResults?.Length ?? 0);
+            //for (var i = 0; i < request.PreviousResults?.Length; i++)
+            //{
+            //    if (!_documentManager.TryGetDocument(request.PreviousResults[i].TextDocument.Uri, out var documentSnapshot))
+            //    {
+            //        continue;
+            //    }
+
+            //    if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
+            //    {
+            //        continue;
+            //    }
+
+            //    var previousResult = request.PreviousResults[i];
+            //    previousResult.TextDocument.Uri = csharpDoc.Uri;
+            //    previousResults.Add(previousResult);
+            //}
+
+            //var referenceParams = new SerializableWorkspaceDocumentDiagnosticsParams()
+            //{
+            //    PreviousResults = previousResults.ToArray(),
+            //    PartialResultToken = token // request.PartialResultToken
+            //};
+
+            //if (!_lspProgressListener.TryListenForProgress(
+            //    token,
+            //    onProgressNotifyAsync: (value, ct) => ProcessWorkspaceDiagnosticsAsync(value, request.PartialResultToken, ct),
+            //    WaitForProgressNotificationTimeout,
+            //    cancellationToken,
+            //    out var onCompleted))
+            //{
+            //    return null;
+            //}
+
+            //var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableWorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]?>(
+            //    MSLSPMethods.WorkspacePullDiagnosticName,
+            //    RazorLSPConstants.CSharpContentTypeName,
+            //    referenceParams,
+            //    cancellationToken).ConfigureAwait(false);
+
+            //// We must not return till we have received the progress notifications
+            //// and reported the results via the PartialResultToken
+            //await onCompleted.ConfigureAwait(false);
+
+            //// Results returned through Progress notification
+            ////var remappedResults = await RemapWorkspaceDiagnosticsAsync(result, cancellationToken).ConfigureAwait(false);
+            ////return remappedResults;
+            //return null;
+        }
+
+        private async Task GetDocumentDiagnosticsAsync(string path, string token, CancellationToken cancellationToken)
+        {
+            var documentDiagnosticParams = new SerializableDocumentDiagnosticsParams()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = new Uri(path + ".g.cs")
+                },
+                // PreviousResultId = ,
                 PartialResultToken = token // request.PartialResultToken
             };
 
             if (!_lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: (value, ct) => ProcessWorkspaceDiagnosticsAsync(value, request.PartialResultToken, ct),
+                onProgressNotifyAsync: (value, ct) => ProcessDocumentDiagnosticsAsync(value, path, ct),
                 WaitForProgressNotificationTimeout,
                 cancellationToken,
                 out var onCompleted))
             {
-                return null;
+                return;
             }
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableWorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]?>(
-                MSLSPMethods.WorkspacePullDiagnosticName,
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableDocumentDiagnosticsParams, DiagnosticReport[]?>(
+                MSLSPMethods.DocumentPullDiagnosticName,
                 RazorLSPConstants.CSharpContentTypeName,
-                referenceParams,
+                documentDiagnosticParams,
                 cancellationToken).ConfigureAwait(false);
 
             // We must not return till we have received the progress notifications
             // and reported the results via the PartialResultToken
             await onCompleted.ConfigureAwait(false);
 
-            // Results returned through Progress notification
-            var remappedResults = await RemapWorkspaceDiagnosticsAsync(result, cancellationToken).ConfigureAwait(false);
-            return remappedResults;
+
+            // Get document and code document
+            //var documentSnapshot = project.GetDocument(path);
+
+            //// Rule out if not Razor component with correct name
+            //if (!IsPathCandidateForComponent(documentSnapshot, typeName))
+            //{
+            //    continue;
+            //}
+
+            //var razorCodeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            //if (razorCodeDocument is null)
+            //{
+            //    continue;
+            //}
+        }
+
+        ConcurrentBag<(string, string)> results = new ConcurrentBag<(string, string)>();
+        private async Task ProcessDocumentDiagnosticsAsync(JToken value, string path, CancellationToken ct)
+        {
+            results.Add((path, value.ToString()));
         }
 
         private async Task ProcessWorkspaceDiagnosticsAsync(
