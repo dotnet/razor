@@ -112,9 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // and reported the results via the PartialResultToken
             await onCompleted.ConfigureAwait(false);
 
-            // Results returned through Progress notification
-            //var remappedResults = await RemapDocumentDiagnosticsAsync(result, request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
-            // return remappedResults;
             return null;
         }
 
