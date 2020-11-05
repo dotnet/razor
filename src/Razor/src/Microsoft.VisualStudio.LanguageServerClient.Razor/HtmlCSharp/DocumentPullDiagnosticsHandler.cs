@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
 using System.Runtime.Serialization;
@@ -22,17 +21,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
-        private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly LSPProgressListener _lspProgressListener;
-
-        internal override TimeSpan WaitForProgressNotificationTimeout { get; set; } = TimeSpan.FromSeconds(2.5);
 
         [ImportingConstructor]
         public DocumentPullDiagnosticsHandler(
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
             LSPProgressListener lspProgressListener)
         {
@@ -44,11 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (documentManager is null)
             {
                 throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (projectionProvider is null)
-            {
-                throw new ArgumentNullException(nameof(projectionProvider));
             }
 
             if (documentMappingProvider is null)
@@ -63,7 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
-            _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
             _lspProgressListener = lspProgressListener;
         }
@@ -100,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Uri = csharpDoc.Uri
                 },
                 PreviousResultId = request.PreviousResultId,
-                PartialResultToken = token // request.PartialResultToken
+                PartialResultToken = token
             };
 
             if (!_lspProgressListener.TryListenForProgress(
@@ -199,15 +188,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return mappedDiagnosticReports.ToArray();
         }
 
-        // Temporary while the PartialResultToken serialization fix is in
         [DataContract]
         private class SerializableDocumentDiagnosticsParams : DiagnosticParams
         {
             [DataMember(Name = "partialResultToken")]
             public string PartialResultToken { get; set; }
-
-            //[DataMember(Name = "workDoneToken")]
-            //public string WorkDoneToken { get; set; }
         }
     }
 }
