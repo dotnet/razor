@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Razor
         internal readonly Dictionary<string, UpdateItem> _updates;
 
         private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SemaphoreSlim _semaphore;
         private ProjectSnapshotManagerBase _projectManager;
         private TagHelperResolver _tagHelperResolver;
         private bool _disposed;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             _foregroundDispatcher = foregroundDispatcher;
 
+            _semaphore = new SemaphoreSlim(initialCount: 1);
             _updates = new Dictionary<string, UpdateItem>(FilePathComparer.Instance);
         }
 
@@ -115,6 +117,19 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             try
             {
+                // Only allow a single TagHelper resolver request to process at a time in order to reduce Visual Studio memory pressure. Typically a TagHelper resolution result can be upwards of 10mb+.
+                // So if we now do multiple requests to resolve TagHelpers simultaneously it results in only a single one executing at a time so that we don't have N number of requests in flight with these
+                // 10mb payloads waiting to be processed.
+                await _semaphore.WaitAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+                // Object disposed or task cancelled exceptions should be swallowed/no-op'd
+                return;
+            }
+
+            try
+            {
                 _foregroundDispatcher.AssertBackgroundThread();
 
                 OnStartingBackgroundWork();
@@ -182,6 +197,10 @@ namespace Microsoft.CodeAnalysis.Razor
                     CancellationToken.None, // Don't allow errors to be cancelled
                     TaskCreationOptions.None,
                     _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }
+            finally
+            {
+                _semaphore.Release();
             }
 
             OnBackgroundWorkCompleted();
