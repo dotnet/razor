@@ -110,6 +110,8 @@ namespace Microsoft.CodeAnalysis.Razor
                 }
             }
 
+            _semaphore.Dispose();
+
             BlockBackgroundWorkStart?.Set();
         }
 
@@ -200,7 +202,14 @@ namespace Microsoft.CodeAnalysis.Razor
             }
             finally
             {
-                _semaphore.Release();
+                try
+                {
+                    _semaphore.Release();
+                }
+                catch
+                {
+                    // Swallow exceptions that happen from releasing the semaphore.
+                }
             }
 
             OnBackgroundWorkCompleted();
