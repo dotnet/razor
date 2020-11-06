@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -39,6 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            
             if(loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
@@ -47,15 +49,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
         }
 
-        public override Task<SemanticTokens> GetSemanticTokensAsync(DocumentSnapshot documentSnapshot, TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken)
+        public override Task<SemanticTokens> GetSemanticTokensAsync(
+            DocumentSnapshot documentSnapshot,
+            TextDocumentIdentifier textDocumentIdentifier,
+            long? documentVersion,
+            CancellationToken cancellationToken)
         {
-            return GetSemanticTokensAsync(documentSnapshot, textDocumentIdentifier, range: null, cancellationToken);
+            return GetSemanticTokensAsync(documentSnapshot, textDocumentIdentifier, range: null, documentVersion, cancellationToken);
         }
 
         public override async Task<SemanticTokens> GetSemanticTokensAsync(
             DocumentSnapshot documentSnapshot,
             TextDocumentIdentifier textDocumentIdentifier,
             Range range,
+            long? documentVersion,
             CancellationToken cancellationToken)
         {
             var codeDocument = await GetRazorCodeDocumentAsync(documentSnapshot);
@@ -65,14 +72,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            var documentVersion = await documentSnapshot.GetTextVersionAsync();
 
             cancellationToken.ThrowIfCancellationRequested();
             var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
             IReadOnlyList<SemanticRange> csharpSemanticRanges = null;
+
             try
             {
-                csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, cancellationToken);
+                csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, documentVersion, cancellationToken);
             }
             catch(Exception ex)
             {
@@ -81,7 +88,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
 
-            var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, documentVersion);
+            var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
+            var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, documentVersionStamp);
 
             return razorSemanticTokens;
         }
@@ -89,6 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public override async Task<SemanticTokensFullOrDelta> GetSemanticTokensEditsAsync(
             DocumentSnapshot documentSnapshot,
             TextDocumentIdentifier textDocumentIdentifier,
+            long? documentVersion,
             string previousResultId,
             CancellationToken cancellationToken)
         {
@@ -99,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            var documentVersion = await documentSnapshot.GetTextVersionAsync();
+            var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
             cancellationToken.ThrowIfCancellationRequested();
 
             VersionStamp? cachedVersionStamp = null;
@@ -112,14 +121,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 previousResults = tuple.Data;
             }
 
-            if (documentVersion == default || cachedVersionStamp != documentVersion)
+            if (documentVersionStamp == default || cachedVersionStamp != documentVersionStamp)
             {
                 var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument);
-                var csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range: null, cancellationToken);
+                var csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range: null, documentVersion, cancellationToken);
 
                 var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
 
-                var newTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, documentVersion);
+                var newTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, documentVersionStamp);
 
                 if (previousResults is null)
                 {
@@ -176,19 +185,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             RazorCodeDocument codeDocument,
             TextDocumentIdentifier textDocumentIdentifier,
             Range range,
+            long? documentVersion,
             CancellationToken cancellationToken)
         {
-            var parameter = new SemanticTokensParams
+            var parameter = new ProvideSemanticTokensParams
             {
                 TextDocument = textDocumentIdentifier,
+                HostDocumentIdentifier = documentVersion,
             };
 
             var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, parameter);
-            var csharpResponses = await request.Returning<SemanticTokens>(cancellationToken);
-            if (csharpResponses is null)
+            var csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);
+            if (csharpResponse is null || csharpResponse.HostDocumentSyncVersion != documentVersion)
             {
+                // No csharpResponse or response did not have matching HostDocumentSyncVersion
                 return null;
             }
+
+            var csharpResponses = csharpResponse.Result;
 
             SemanticRange previousSemanticRange = null;
             var razorRanges = new List<SemanticRange>();
@@ -251,9 +265,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             SemanticRange previousResult = null;
 
+            var complete = true;
             var data = new List<int>();
             foreach (var result in semanticRanges)
             {
+                if(result is null)
+                {
+                    complete = false;
+                }
+
                 var newData = GetData(result, previousResult, razorCodeDocument);
                 data.AddRange(newData);
 
@@ -268,7 +288,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 ResultId = resultId.ToString()
             };
 
-            _semanticTokensCache.Set(resultId.ToString(), (versionStamp, data));
+            if (complete)
+            {
+                _semanticTokensCache.Set(resultId.ToString(), (versionStamp, data));
+            }
 
             return tokensResult;
         }

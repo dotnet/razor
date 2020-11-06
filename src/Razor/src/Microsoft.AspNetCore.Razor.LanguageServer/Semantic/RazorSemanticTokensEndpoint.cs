@@ -24,11 +24,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly ILogger _logger;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
+        private readonly DocumentVersionCache _documentVersionCache;
         private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
 
         public RazorSemanticTokensEndpoint(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
+            DocumentVersionCache documentVersionCache,
             RazorSemanticTokensInfoService semanticTokensInfoService,
             ILoggerFactory loggerFactory)
         {
@@ -40,6 +42,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (documentResolver is null)
             {
                 throw new ArgumentNullException(nameof(documentResolver));
+            }
+
+            if (documentVersionCache is null)
+            {
+                throw new ArgumentNullException(nameof(documentVersionCache));
             }
 
             if (semanticTokensInfoService is null)
@@ -54,6 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
+            _documentVersionCache = documentVersionCache;
             _semanticTokensInfoService = semanticTokensInfoService;
             _logger = loggerFactory.CreateLogger<RazorSemanticTokensEndpoint>();
         }
@@ -85,13 +93,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentSnapshot = await TryGetCodeDocumentAsync(request.TextDocument.Uri.GetAbsolutePath(), cancellationToken);
-            if (documentSnapshot is null)
+            var (documentSnapshot, documentVersion) = await TryGetCodeDocumentAsync(request.TextDocument.Uri.GetAbsolutePath(), cancellationToken);
+            if (documentSnapshot is null || documentVersion is null)
             {
                 return null;
             }
 
-            var edits = await _semanticTokensInfoService.GetSemanticTokensEditsAsync(documentSnapshot, request.TextDocument, request.PreviousResultId, cancellationToken);
+            var edits = await _semanticTokensInfoService.GetSemanticTokensEditsAsync(documentSnapshot, request.TextDocument, documentVersion, request.PreviousResultId, cancellationToken);
 
             return edits;
         }
@@ -131,24 +139,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private async Task<SemanticTokens> HandleAsync(TextDocumentIdentifier textDocument, CancellationToken cancellationToken, Range range = null)
         {
             var absolutePath = textDocument.Uri.GetAbsolutePath();
-            var documentSnapshot = await TryGetCodeDocumentAsync(absolutePath, cancellationToken);
-            if (documentSnapshot is null)
+            var (documentSnapshot, documentVersion) = await TryGetCodeDocumentAsync(absolutePath, cancellationToken);
+            if (documentSnapshot is null || documentVersion is null)
             {
                 return null;
             }
 
-            var tokens = await _semanticTokensInfoService.GetSemanticTokensAsync(documentSnapshot, textDocument, range, cancellationToken);
+            var tokens = await _semanticTokensInfoService.GetSemanticTokensAsync(documentSnapshot, textDocument, range, documentVersion, cancellationToken);
 
             return tokens;
         }
 
-        private async Task<DocumentSnapshot> TryGetCodeDocumentAsync(string absolutePath, CancellationToken cancellationToken)
+        private async Task<(DocumentSnapshot Snapshot, int? Version)> TryGetCodeDocumentAsync(string absolutePath, CancellationToken cancellationToken)
         {
             var document = await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(absolutePath, out var documentSnapshot);
+                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
 
-                return documentSnapshot;
+                return (documentSnapshot, version);
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
             return document;

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -328,7 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
                 .Returns(false);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
-            var request = new SemanticTokensParams()
+            var request = new ProvideSemanticTokensParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -370,6 +371,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
+        [Obsolete]
         public async Task ProvideSemanticTokensAsync_ReturnsSemanticTokensAsync()
         {
             // Arrange
@@ -385,12 +387,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
 
-            var expectedResults = new SemanticTokens { };
+            var expectedResults = new ProvideSemanticTokensResponse(new OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens { }, 42);
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<ProvideSemanticTokensParams, ProvideSemanticTokensResponse>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 LanguageServerKind.CSharp.ToContentType(),
-                It.IsAny<SemanticTokensParams>(),
+                It.IsAny<ProvideSemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(expectedResults));
 
