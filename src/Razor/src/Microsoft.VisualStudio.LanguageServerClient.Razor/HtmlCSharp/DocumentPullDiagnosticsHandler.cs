@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -85,11 +86,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 PreviousResultId = request.PreviousResultId
             };
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(
+            var resultsFromAllLanguageServers = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(
                 MSLSPMethods.DocumentPullDiagnosticName,
                 RazorLSPConstants.CSharpContentTypeName,
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
+
+            var result = resultsFromAllLanguageServers.SelectMany(l => l).ToArray();
 
             var processedResults = await RemapDocumentDiagnosticsAsync(
                 result,
