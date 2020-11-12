@@ -80,7 +80,7 @@ async function terminateByProcessName(
   }
 
   const devserver = processes.find(
-    (process: psList.ProcessDescriptor) => !!(process && process.cmd && process.cmd.includes(targetProcess)));
+    (process: psList.ProcessDescriptor) => !!(process && process.cmd && process.cmd.match(targetProcess)));
   targetPid = devserver ? devserver.pid : undefined;
 
   killProcess(targetPid, logger);
