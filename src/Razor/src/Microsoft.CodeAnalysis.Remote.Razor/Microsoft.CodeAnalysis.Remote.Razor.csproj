@@ -12,7 +12,7 @@
 
       PrivateAssets keeps it from being viral.
     -->
-    <NoWarn>$(NoWarn);NU1608;NU1701</NoWarn>
+    <NoWarn>$(NoWarn);NU1608;NU1701;NU1702</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,8 +31,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(Tooling_MicrosoftCodeAnalysisCommonPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" Version="$(Tooling_MicrosoftCodeAnalysisRemoteRazorServiceHubPackageVersion)" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(VS_NewtonsoftJsonPackageVersion)" />
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcPackageVersion)" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" Version="$(Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
   </ItemGroup>
 
 </Project>

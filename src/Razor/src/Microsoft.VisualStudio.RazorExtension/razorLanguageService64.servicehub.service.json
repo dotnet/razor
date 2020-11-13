@@ -4,7 +4,7 @@
   "hostGroupAllowed": true,
   "entryPoint": {
     "assemblyPath": "Microsoft.CodeAnalysis.Remote.Razor.dll",
-    "fullClassName": "Microsoft.CodeAnalysis.Remote.Razor.RazorLanguageService",
+    "fullClassName": "Microsoft.CodeAnalysis.Remote.Razor.RemoteLanguageService+Factory",
     "appBasePath": "%VSAPPIDDIR%",
     "configPath": "%PkgDefApplicationConfigFile%"
   }
