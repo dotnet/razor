@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
@@ -27,6 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Message = "The name 'saflkjklj' does not exist in the current context"
         };
 
+        private static readonly Range ValidDiagnostic_UnknownName_MappedRange = new Range()
+        {
+            Start = new Position(49, 19),
+            End = new Position(49, 23)
+        };
+
         private static readonly Diagnostic ValidDiagnostic_InvalidExpression = new Diagnostic()
         {
             Range = new Range()
@@ -37,6 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Code = "CS1525",
             Source = "DocumentPullDiagnosticHandler",
             Message = "Invalid expression term 'bool'"
+        };
+
+        private static readonly Range ValidDiagnostic_InvalidExpression_MappedRange = new Range()
+        {
+            Start = new Position(50, 19),
+            End = new Position(50, 23)
         };
 
         private static readonly Diagnostic UnusedUsingsDiagnostic = new Diagnostic()
@@ -106,13 +120,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
-        public async Task HandleRequestAsync_ProjectionNotFound_ReturnsNull()
+        public async Task HandleRequestAsync_RemapsDiagnosticRange()
         {
             // Arrange
-            var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
-            var requestInvoker = Mock.Of<LSPRequestInvoker>();
-            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
+            var called = false;
+            var documentManager = CreateDocumentManager();
+
+            var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
+                RoslynDiagnosticResponse,
+                (method, serverContentType, diagnosticParams, ct) =>
+                {
+                    Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
+                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
+                    called = true;
+                });
+
+            var documentMappingProvider = GetDocumentMappingProvider(ValidDiagnostic_UnknownName_MappedRange, ValidDiagnostic_InvalidExpression_MappedRange);
+
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentMappingProvider);
             var diagnosticRequest = new DocumentDiagnosticsParams()
             {
@@ -124,193 +148,125 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Null(result);
+            Assert.True(called);
+            var diagnosticReport = Assert.Single(result);
+            Assert.Equal(RoslynDiagnosticResponse.First().ResultId, diagnosticReport.ResultId);
+            Assert.Collection(diagnosticReport.Diagnostics,
+                d =>
+                {
+                    Assert.Equal(ValidDiagnostic_UnknownName.Code, d.Code);
+                    Assert.Equal(ValidDiagnostic_UnknownName_MappedRange, d.Range);
+                },
+                d =>
+                {
+                    Assert.Equal(ValidDiagnostic_InvalidExpression.Code, d.Code);
+                    Assert.Equal(ValidDiagnostic_InvalidExpression_MappedRange, d.Range);
+                });
         }
 
-        // [Fact]
-        // public async Task HandleRequestAsync_CSharpProjection_RemapsDiagnosticRange()
-        // {
-        //     // Arrange
-        //     var called = false;
-        //     var documentManager = new TestDocumentManager();
-        //     documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 0));
+        [Fact]
+        public async Task HandleRequestAsync_VersionMismatch_DiscardsLocation()
+        {
+            // Arrange
+            var called = false;
+            var documentManager = CreateDocumentManager(hostDocumentVersion: 1);
 
-        //     var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
-        //         new[] { RoslynDiagnosticResponse },
-        //         (method, serverContentType, diagnosticParams, ct) =>
-        //         {
-        //             Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
-        //             Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
-        //             called = true;
-        //         });
+            var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
+                RoslynDiagnosticResponse,
+                (method, serverContentType, diagnosticParams, ct) =>
+                {
+                    Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
+                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
+                    called = true;
+                });
 
-        //     var documentMappingProvider = GetDocumentMappingProvider(expectedHighlight.Range, 0, RazorLanguageKind.CSharp);
+            // Note the HostDocumentVersion provided by the DocumentMappingProvider = 0,
+            // which is different from document version (1) from the DocumentManager
+            var documentMappingProvider = GetDocumentMappingProvider(ValidDiagnostic_UnknownName_MappedRange, ValidDiagnostic_InvalidExpression_MappedRange);
 
-        //     var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentMappingProvider);
-        //     var diagnosticRequest = new DocumentDiagnosticsParams()
-        //     {
-        //         TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-        //         PreviousResultId = "4"
-        //     };
+            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentMappingProvider);
+            var diagnosticRequest = new DocumentDiagnosticsParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                PreviousResultId = "4"
+            };
 
-        //     // Act
-        //     var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            // Act
+            var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
-        //     // Assert
-        //     Assert.True(called);
-        //     var actualDiagnostics = Assert.Single(result);
-        //     Assert.Equal(expectedHighlight.Range, actualDiagnostics.Range);
-        // }
+            // Assert
+            Assert.True(called);
+            Assert.Empty(result);
+        }
 
-        // [Fact]
-        // public async Task HandleRequestAsync_HtmlProjection_RemapsHighlightRange()
-        // {
-        //     // Arrange
-        //     var called = false;
-        //     var expectedHighlight = GetHighlight(5, 5, 5, 5);
-        //     var documentManager = new TestDocumentManager();
-        //     documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 0));
+        [Fact]
+        public async Task HandleRequestAsync_RemapFailure_DiscardsLocation()
+        {
+            // Arrange
+            var called = false;
+            var documentManager = CreateDocumentManager();
 
-        //     var htmlHighlight = GetHighlight(100, 100, 100, 100);
-        //     var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
-        //         new[] { htmlHighlight },
-        //         (method, serverContentType, diagnosticParams, ct) =>
-        //         {
-        //             Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
-        //             Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
-        //             called = true;
-        //         });
+            var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
+                RoslynDiagnosticResponse,
+                (method, serverContentType, diagnosticParams, ct) =>
+                {
+                    Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
+                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
+                    called = true;
+                });
 
-        //     var documentMappingProvider = GetDocumentMappingProvider(expectedHighlight.Range, 0, RazorLanguageKind.Html);
+            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
 
-        //     var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentMappingProvider);
-        //     var diagnosticRequest = new DocumentDiagnosticsParams()
-        //     {
-        //         TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-        //         PreviousResultId = "4"
-        //     };
+            var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentMappingProvider);
+            var diagnosticRequest = new DocumentDiagnosticsParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                PreviousResultId = "4"
+            };
 
-        //     // Act
-        //     var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            // Act
+            var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
-        //     // Assert
-        //     Assert.True(called);
-        //     var actualDiagnostics = Assert.Single(result);
-        //     Assert.Equal(expectedHighlight.Range, actualDiagnostics.Range);
-        // }
-
-        // [Fact]
-        // public async Task HandleRequestAsync_VersionMismatch_DiscardsLocation()
-        // {
-        //     // Arrange
-        //     var called = false;
-        //     var expectedHighlight = GetHighlight(5, 5, 5, 5);
-        //     var documentManager = new TestDocumentManager();
-        //     documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 1));
-
-        //     var csharpHighlight = GetHighlight(100, 100, 100, 100);
-        //     var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
-        //         new[] { csharpHighlight },
-        //         (method, serverContentType, diagnosticParams, ct) =>
-        //         {
-        //             Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
-        //             Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
-        //             called = true;
-        //         });
-
-        //     var documentMappingProvider = Mock.Of<TestLSPDocumentMappingProvider>();
-        //     documentMappingProvider.HostDocumentVersion = 0; // Different from document version (1)
-
-        //     var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentMappingProvider);
-        //     var diagnosticRequest = new DocumentDiagnosticsParams()
-        //     {
-        //         TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-        //         PreviousResultId = "4"
-        //     };
-
-        //     // Act
-        //     var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
-
-        //     // Assert
-        //     Assert.True(called);
-        //     Assert.Empty(result);
-        // }
-
-        // [Fact]
-        // public async Task HandleRequestAsync_RemapFailure_DiscardsLocation()
-        // {
-        //     // Arrange
-        //     var called = false;
-        //     var expectedHighlight = GetHighlight(5, 5, 5, 5);
-        //     var documentManager = new TestDocumentManager();
-        //     documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 0));
-
-        //     var csharpHighlight = GetHighlight(100, 100, 100, 100);
-        //     var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
-        //         new[] { csharpHighlight },
-        //         (method, serverContentType, diagnosticParams, ct) =>
-        //         {
-        //             Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
-        //             Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
-        //             called = true;
-        //         });
-
-        //     var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
-
-        //     var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentMappingProvider);
-        //     var diagnosticRequest = new DocumentDiagnosticsParams()
-        //     {
-        //         TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-        //         PreviousResultId = "4"
-        //     };
-
-        //     // Act
-        //     var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
-
-        //     // Assert
-        //     Assert.True(called);
-        //     Assert.Empty(result);
-        // }
+            // Assert
+            Assert.True(called);
+            Assert.Empty(result);
+        }
 
         private LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, TParams, CancellationToken> callback)
         {
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReinvokeRequestOnMultipleServersAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
                 .Callback(callback)
-                .Returns(Task.FromResult(expectedResponse));
+                .Returns(Task.FromResult(new List<TResult>() { expectedResponse } as IEnumerable<TResult>));
 
             return requestInvoker.Object;
         }
 
-        private abstract class TestLSPDocumentMappingProvider : LSPDocumentMappingProvider
+        private TrackingLSPDocumentManager CreateDocumentManager(int hostDocumentVersion = 0)
         {
-            public long HostDocumentVersion { get; set; }
+            var testVirtualDocUri = new Uri("C:/path/to/file.razor.g.cs");
+            var testVirtualDocument = new TestVirtualDocumentSnapshot(Uri, hostDocumentVersion);
+            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testVirtualDocUri, Mock.Of<ITextSnapshot>(), hostDocumentVersion);
+            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(Uri, hostDocumentVersion, testVirtualDocument, csharpVirtualDocument);
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
+                .Returns(true);
+            return documentManager.Object;
+        }
 
-            public override Task<RazorMapToDocumentRangesResponse> MapToDocumentRangesAsync(
-                RazorLanguageKind languageKind,
-                Uri razorDocumentUri,
-                Range[] projectedRanges,
-                LanguageServerMappingBehavior mappingBehavior,
-                CancellationToken cancellationToken)
+        private LSPDocumentMappingProvider GetDocumentMappingProvider(params Range[] expectedRanges)
+        {
+            var remappingResult = new RazorMapToDocumentRangesResponse()
             {
-                Assert.Equal(LanguageServerMappingBehavior.Inclusive, mappingBehavior);
-                Assert.Equal(RazorLanguageKind.CSharp, languageKind);
+                Ranges = expectedRanges,
+                HostDocumentVersion = 0
+            };
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
+            documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, Uri, It.IsAny<Range[]>(), LanguageServerMappingBehavior.Inclusive, It.IsAny<CancellationToken>())).
+                Returns(Task.FromResult(remappingResult));
 
-                var res = new RazorMapToDocumentRangesResponse()
-                {
-                    Ranges = projectedRanges.Select(r =>
-                        new Range()
-                        {
-                            Start = new Position(r.Start.Line - 100, r.Start.Character),
-                            End = new Position(r.End.Line - 100, r.End.Character)
-                        }
-                    ).ToArray(),
-                    HostDocumentVersion = HostDocumentVersion
-                };
-
-                return Task.FromResult(res);
-            }
+            return documentMappingProvider.Object;
         }
     }
 }
