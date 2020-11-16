@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
+using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -229,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [Obsolete]
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-        public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(ProvideSemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
+        public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
 #pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
         {
             if (semanticTokensParams is null)
@@ -237,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(semanticTokensParams));
             }
 
-            if (!_documentManager.TryGetDocument(semanticTokensParams.TextDocument.Uri.ToUri(), out var documentSnapshot))
+            if (!_documentManager.TryGetDocument(semanticTokensParams.TextDocument.Uri, out var documentSnapshot))
             {
                 return null;
             }
@@ -249,13 +250,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
 
-            var cSharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<ProvideSemanticTokensParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens>(
+            var cSharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 LanguageServerKind.CSharp.ToContentType(),
                 semanticTokensParams,
                 cancellationToken).ConfigureAwait(false);
 
             var result = new ProvideSemanticTokensResponse(cSharpResults, documentSnapshot.Version);
+
             return result;
         }
 

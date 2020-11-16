@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 .Returns(Task.FromResult(new[] { expectedEdit }));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
-  
+
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, JoinableTaskContext, requestInvoker.Object, uIContextManager.Object);
 
             var request = new RazorDocumentRangeFormattingParams()
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                TextDocument = new LanguageServer.Protocol.TextDocumentIdentifier()
                 {
                     Uri = new Uri("C:/path/to/file.razor")
                 }
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                TextDocument = new LanguageServer.Protocol.TextDocumentIdentifier()
                 {
                     Uri = new Uri("C:/path/to/file.razor")
                 }
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, JoinableTaskContext, requestInvoker.Object, uIContextManager.Object);
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                TextDocument = new LanguageServer.Protocol.TextDocumentIdentifier()
                 {
                     Uri = testDocUri
                 }
@@ -329,7 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
                 .Returns(false);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
-            var request = new ProvideSemanticTokensParams()
+            var request = new SemanticTokensParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -389,10 +389,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var expectedResults = new ProvideSemanticTokensResponse(new OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens { }, 42);
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<ProvideSemanticTokensParams, ProvideSemanticTokensResponse>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, ProvideSemanticTokensResponse>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 LanguageServerKind.CSharp.ToContentType(),
-                It.IsAny<ProvideSemanticTokensParams>(),
+                It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(expectedResults));
 

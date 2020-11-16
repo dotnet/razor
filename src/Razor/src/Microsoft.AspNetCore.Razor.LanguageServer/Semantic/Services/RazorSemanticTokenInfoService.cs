@@ -15,6 +15,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public abstract Task<SemanticTokens> GetSemanticTokensAsync(DocumentSnapshot codeDocument, TextDocumentIdentifier textDocumentIdentifier, Range range, long? documentVersion, CancellationToken cancellationToken);
 
-        public abstract Task<SemanticTokensFullOrDelta> GetSemanticTokensEditsAsync(DocumentSnapshot codeDocument, TextDocumentIdentifier textDocumentIdentifier, long? documentVersion, string previousId, CancellationToken cancellationToken);
+        public abstract Task<SemanticTokensFullOrDelta?> GetSemanticTokensEditsAsync(DocumentSnapshot codeDocument, TextDocumentIdentifier textDocumentIdentifier, long? documentVersion, string previousId, CancellationToken cancellationToken);
     }
 }
