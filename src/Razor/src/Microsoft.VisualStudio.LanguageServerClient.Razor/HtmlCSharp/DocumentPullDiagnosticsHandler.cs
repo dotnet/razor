@@ -68,12 +68,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                return null;
+                return CreateNoDiagnosticsChangeResponse(request);
             }
 
             if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
             {
-                return null;
+                return CreateNoDiagnosticsChangeResponse(request);
             }
 
             var referenceParams = new DocumentDiagnosticsParams()
@@ -100,6 +100,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
 
             return processedResults;
+        }
+
+        private static DiagnosticReport[] CreateNoDiagnosticsChangeResponse(DocumentDiagnosticsParams request)
+        {
+            return new DiagnosticReport[]
+            {
+                new DiagnosticReport()
+                {
+                    ResultId = request.PreviousResultId
+                }
+            };
         }
 
         private async Task<DiagnosticReport[]> RemapDocumentDiagnosticsAsync(
@@ -138,8 +149,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 if (mappingResult == null || mappingResult.HostDocumentVersion != documentSnapshot.Version)
                 {
-                    // Couldn't remap the range or the document changed in the meantime. Discard this highlight.
-                    return Array.Empty<DiagnosticReport>();
+                    // Couldn't remap the range or the document changed in the meantime.
+                    // Discard the diagnostics from this DiagnosticReport, and report that nothings changed.
+                    diagnosticReport.Diagnostics = null;
+                    mappedDiagnosticReports.Add(diagnosticReport);
+                    continue;
                 }
 
                 for (var i = 0; i < filteredDiagnostics.Count(); i++)
@@ -171,10 +185,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             return mappedDiagnosticReports.ToArray();
 
-            static bool CanDiagnosticBeFiltered(Diagnostic d)
-            {
-                return DiagnosticsToIgnore.Contains(d.Code) && d.Severity != DiagnosticSeverity.Error;
-            }
+            static bool CanDiagnosticBeFiltered(Diagnostic d) =>
+                DiagnosticsToIgnore.Contains(d.Code) && d.Severity != DiagnosticSeverity.Error;
         }
     }
 }

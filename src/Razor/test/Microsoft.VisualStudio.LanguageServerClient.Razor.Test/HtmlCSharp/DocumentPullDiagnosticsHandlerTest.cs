@@ -116,7 +116,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Null(result);
+            var returnedReport = Assert.Single(result);
+            Assert.Equal(returnedReport.ResultId, diagnosticRequest.PreviousResultId);
+            Assert.Null(returnedReport.Diagnostics);
         }
 
         [Fact]
@@ -268,7 +270,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.True(called);
-            Assert.Empty(result);
+            var returnedReport = Assert.Single(result);
+            Assert.Equal(returnedReport.ResultId, RoslynDiagnosticResponse.First().ResultId);
+            Assert.Null(returnedReport.Diagnostics);
         }
 
         [Fact]
@@ -301,7 +305,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.True(called);
-            Assert.Empty(result);
+            var returnedReport = Assert.Single(result);
+            Assert.Equal(returnedReport.ResultId, RoslynDiagnosticResponse.First().ResultId);
+            Assert.Null(returnedReport.Diagnostics);
         }
 
         private LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, TParams, CancellationToken> callback)
