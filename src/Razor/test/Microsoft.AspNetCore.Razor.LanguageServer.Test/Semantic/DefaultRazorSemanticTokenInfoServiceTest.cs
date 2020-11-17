@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                (new OmniSharpRange(new Position(50, 10), new Position(50, 35)), null)
             };
 
-            await AssertSemanticTokens(txt, expectedData: null, isRazor: false, cSharpTokens: cSharpResponse, documentMappings: mappings, documentVersion: 21);
+            await AssertSemanticTokens(txt, expectedData: null, isRazor: false, csharpTokens: cSharpResponse, documentMappings: mappings, documentVersion: 21);
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                (new OmniSharpRange(new Position(50, 10), new Position(50, 35)), null)
             };
 
-            await AssertSemanticTokens(txt, expectedData, isRazor: false, cSharpTokens: cSharpResponse, documentMappings: mappings);
+            await AssertSemanticTokens(txt, expectedData, isRazor: false, csharpTokens: cSharpResponse, documentMappings: mappings);
         }
 
         [Fact]
@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                (new OmniSharpRange(new Position(50, 10), new Position(50, 35)), null)
             };
 
-            await AssertSemanticTokens(txt, expectedData, isRazor: false, cSharpTokens: cSharpResponse, documentMappings: mappings);
+            await AssertSemanticTokens(txt, expectedData, isRazor: false, csharpTokens: cSharpResponse, documentMappings: mappings);
         }
 
         [Fact]
@@ -158,7 +158,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             };
 
             var isRazor = false;
-            var (previousResultId, service, mockClient, document) = await AssertSemanticTokens(txt, expectedData, isRazor, cSharpTokens: cSharpResponse, documentMappings: mappings);
+            var (previousResultId, service, mockClient, document) = await AssertSemanticTokens(txt, expectedData, isRazor, csharpTokens: cSharpResponse, documentMappings: mappings);
             var expectedDelta = new SemanticTokensFullOrDelta(new SemanticTokensDelta
             {
                 Edits = new Container<SemanticTokensEdit>(),
@@ -1081,21 +1081,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             bool isRazor,
             RazorSemanticTokensInfoService service = null,
             OmniSharpRange location = null,
-            ProvideSemanticTokensResponse cSharpTokens = null,
+            ProvideSemanticTokensResponse csharpTokens = null,
             (OmniSharpRange, OmniSharpRange)[] documentMappings = null,
             long? documentVersion = null)
         {
             // Arrange
-            if (cSharpTokens is null)
+            if (csharpTokens is null)
             {
                 var semanticTokens = new SemanticTokens { };
-                cSharpTokens = new ProvideSemanticTokensResponse(semanticTokens, documentVersion);
+                csharpTokens = new ProvideSemanticTokensResponse(semanticTokens, documentVersion);
             }
 
             Mock<ClientNotifierServiceBase> serviceMock = null;
             if (service is null)
             {
-                (service, serviceMock) = GetDefaultRazorSemanticTokenInfoService(cSharpTokens, documentMappings);
+                (service, serviceMock) = GetDefaultRazorSemanticTokenInfoService(csharpTokens, documentMappings);
             }
             var outService = service;
 
@@ -1103,7 +1103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             if (documentVersion is null)
             {
-                documentVersion = cSharpTokens?.HostDocumentSyncVersion;
+                documentVersion = csharpTokens?.HostDocumentSyncVersion;
             }
 
             // Act
@@ -1117,7 +1117,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
         private static bool ArrayEqual(IEnumerable<int> expectedData, IEnumerable<int> actualData)
         {
-            if(expectedData is null && actualData is null)
+            if (expectedData is null && actualData is null)
             {
                 return true;
             }

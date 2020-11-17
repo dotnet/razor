@@ -6,7 +6,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    public class ProvideSemanticTokensResponse
+    internal class ProvideSemanticTokensResponse
     {
         public SemanticTokens Result { get; }
 
@@ -18,19 +18,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             HostDocumentSyncVersion = hostDocumentSyncVersion;
         }
 
-        public override bool Equals(object obj)
-        {
-            if(obj is ProvideSemanticTokensResponse)
-            {
-                var other = obj as ProvideSemanticTokensResponse;
-
-                return other.HostDocumentSyncVersion.Equals(HostDocumentSyncVersion) && other.Result.Equals(Result);
-            }
-            else
-            {
-                return false;
-            }
-        }
+        public override bool Equals(object obj) =>
+            obj is ProvideSemanticTokensResponse other &&
+            other.HostDocumentSyncVersion.Equals(HostDocumentSyncVersion) && other.Result.Equals(Result);
 
         public override int GetHashCode()
         {

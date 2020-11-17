@@ -253,28 +253,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 TextDocument = textDocumentIdentifier,
             };
+            var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, parameter);
+            var csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);
 
-            ProvideSemanticTokensResponse csharpResponse;
-            for (var i = 0; i < 3; i++)
+            if (csharpResponse is null || csharpResponse.HostDocumentSyncVersion != documentVersion)
             {
-                var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, parameter);
-                csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);
-                if (csharpResponse is null || csharpResponse.HostDocumentSyncVersion > documentVersion)
-                {
-                    // No C# response or C# is ahead of us. Unrecoverable, return null to indicate no change. It will re-try in a bit.
-                    return null;
-                }
-
-                if (csharpResponse.HostDocumentSyncVersion == documentVersion)
-                {
-                    return csharpResponse.Result;
-                }
-
-                Thread.Sleep(10);
+                // No C# response or C# is out of sync with us. Unrecoverable, return null to indicate no change. It will retry in a bit.
+                return null;
             }
 
-            // Was not able to get matching requests after 3 attempts.
-            return null;
+            return csharpResponse.Result;
         }
 
         private SemanticRange DataToSemanticRange(int lineDelta, int charDelta, int length, int tokenType, int tokenModifiers, SemanticRange previousSemanticRange = null)

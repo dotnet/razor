@@ -144,8 +144,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return response;
             }
 
-            var serverContentType = default(string);
-            var projectedUri = default(Uri);
+            string serverContentType;
+            Uri projectedUri;
             if (request.Kind == RazorLanguageKind.CSharp &&
                 documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDocument))
             {
@@ -250,13 +250,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
 
-            var cSharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
+            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 LanguageServerKind.CSharp.ToContentType(),
                 semanticTokensParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var result = new ProvideSemanticTokensResponse(cSharpResults, documentSnapshot.Version);
+            var result = new ProvideSemanticTokensResponse(csharpResults, documentSnapshot.Version);
 
             return result;
         }
