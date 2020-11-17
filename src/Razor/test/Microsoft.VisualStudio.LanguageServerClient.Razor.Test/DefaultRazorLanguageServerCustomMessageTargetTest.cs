@@ -379,22 +379,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var testVirtualDocUri = new Uri("C:/path/to/file2.razor.g");
             var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
 
+            var documentVersion = 42;
             var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
             var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, Mock.Of<ITextSnapshot>(), 0);
-            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0, testVirtualDocument, csharpVirtualDocument);
+            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, documentVersion, testVirtualDocument, csharpVirtualDocument);
 
             var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
 
-            var expectedResults = new ProvideSemanticTokensResponse(new OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens { }, 42);
+            var expectedcSharpResults = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, ProvideSemanticTokensResponse>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 LanguageServerKind.CSharp.ToContentType(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult(expectedResults));
+            )).Returns(Task.FromResult(expectedcSharpResults));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
 
@@ -406,6 +407,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     Uri = testDocUri
                 }
             };
+            var expectedResults = new ProvideSemanticTokensResponse(expectedcSharpResults, documentVersion);
 
             // Act
             var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
