@@ -111,7 +111,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
-            var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, documentVersionStamp);
+            var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument);
+            _semanticTokensCache.Set(razorSemanticTokens.ResultId, (documentVersionStamp, razorSemanticTokens.Data));
 
             return razorSemanticTokens;
         }
@@ -163,7 +164,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     return null;
                 }
 
-                var newTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, documentVersionStamp);
+                var newTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument);
+                _semanticTokensCache.Set(newTokens.ResultId, (documentVersionStamp, newTokens.Data));
 
                 if (previousResults is null)
                 {
@@ -308,8 +310,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private SemanticTokens ConvertSemanticRangesToSemanticTokens(
             IReadOnlyList<SemanticRange> semanticRanges,
-            RazorCodeDocument razorCodeDocument,
-            VersionStamp versionStamp)
+            RazorCodeDocument razorCodeDocument)
         {
             if (semanticRanges is null)
             {
@@ -318,15 +319,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             SemanticRange previousResult = null;
 
-            var complete = true;
             var data = new List<int>();
             foreach (var result in semanticRanges)
             {
-                if (result is null)
-                {
-                    complete = false;
-                }
-
                 var newData = GetData(result, previousResult, razorCodeDocument);
                 data.AddRange(newData);
 
@@ -340,11 +335,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 Data = data.ToImmutableArray(),
                 ResultId = resultId.ToString()
             };
-
-            if (complete)
-            {
-                _semanticTokensCache.Set(resultId.ToString(), (versionStamp, data));
-            }
 
             return tokensResult;
         }
