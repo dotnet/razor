@@ -101,6 +101,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             return processedResults;
 
+            // | ---------------------------------------------------------------------------------- |
+            // |                       LSP Platform Expected Response Semantics                     |
+            // | ---------------------------------------------------------------------------------- |
+            // | DiagnosticReport.Diagnostics     | DiagnosticReport.ResultId | Meaning             |
+            // | -------------------------------- | ------------------------- | ------------------- |
+            // | `null`                           | `null`                    | document gone       |
+            // | `null`                           | valid                     | nothing changed     |
+            // | valid (non-null including empty) | valid                     | diagnostics changed |
+            // | ---------------------------------------------------------------------------------- |
         }
 
         private async Task<DiagnosticReport[]> RemapDocumentDiagnosticsAsync(
