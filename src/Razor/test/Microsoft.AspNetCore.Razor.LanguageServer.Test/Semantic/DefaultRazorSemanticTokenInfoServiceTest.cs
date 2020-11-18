@@ -747,7 +747,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             };
             var newTxt = $"@addTagHelper *, TestAssembly{Environment.NewLine}{Environment.NewLine}<p @minimized /> ";
 
-            var isRazor = false;
             var (previousResultId, service, _, _) = await AssertSemanticTokens(new string[] { txt, newTxt }, expectedData, new bool[] { false, true });
 
             var newExpectedData = new SemanticTokensDelta
