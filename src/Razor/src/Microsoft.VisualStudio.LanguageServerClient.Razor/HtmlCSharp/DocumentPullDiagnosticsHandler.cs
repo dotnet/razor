@@ -68,12 +68,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                return CreateNoDiagnosticsChangeResponse(request);
+                return null;
             }
 
             if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
             {
-                return CreateNoDiagnosticsChangeResponse(request);
+                return null;
             }
 
             var referenceParams = new DocumentDiagnosticsParams()
@@ -100,17 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
 
             return processedResults;
-        }
 
-        private static DiagnosticReport[] CreateNoDiagnosticsChangeResponse(DocumentDiagnosticsParams request)
-        {
-            return new DiagnosticReport[]
-            {
-                new DiagnosticReport()
-                {
-                    ResultId = request.PreviousResultId
-                }
-            };
         }
 
         private async Task<DiagnosticReport[]> RemapDocumentDiagnosticsAsync(

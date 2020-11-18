@@ -116,9 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            var returnedReport = Assert.Single(result);
-            Assert.Equal(returnedReport.ResultId, diagnosticRequest.PreviousResultId);
-            Assert.Null(returnedReport.Diagnostics);
+            Assert.Null(result);
         }
 
         [Fact]
@@ -271,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Assert
             Assert.True(called);
             var returnedReport = Assert.Single(result);
-            Assert.Equal(returnedReport.ResultId, RoslynDiagnosticResponse.First().ResultId);
+            Assert.Equal(RoslynDiagnosticResponse.First().ResultId, returnedReport.ResultId);
             Assert.Null(returnedReport.Diagnostics);
         }
 
@@ -306,7 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Assert
             Assert.True(called);
             var returnedReport = Assert.Single(result);
-            Assert.Equal(returnedReport.ResultId, RoslynDiagnosticResponse.First().ResultId);
+            Assert.Equal(RoslynDiagnosticResponse.First().ResultId, returnedReport.ResultId);
             Assert.Null(returnedReport.Diagnostics);
         }
 
