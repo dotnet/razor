@@ -99,7 +99,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 cancellationToken).ConfigureAwait(false);
 
-            return processedResults;
 
             // | ---------------------------------------------------------------------------------- |
             // |                       LSP Platform Expected Response Semantics                     |
@@ -110,6 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // | `null`                           | valid                     | nothing changed     |
             // | valid (non-null including empty) | valid                     | diagnostics changed |
             // | ---------------------------------------------------------------------------------- |
+            return processedResults;
         }
 
         private async Task<DiagnosticReport[]> RemapDocumentDiagnosticsAsync(
