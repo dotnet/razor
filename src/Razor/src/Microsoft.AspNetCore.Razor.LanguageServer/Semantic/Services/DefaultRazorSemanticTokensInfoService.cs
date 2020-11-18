@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -30,16 +31,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             new MemoryCache<string, (VersionStamp Version, IReadOnlyList<int> Data)>();
 
         private readonly ClientNotifierServiceBase _languageServer;
+        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly DocumentResolver _documentResolver;
+        private readonly DocumentVersionCache _documentVersionCache;
         private readonly ILogger _logger;
         private readonly RazorDocumentMappingService _documentMappingService;
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
             RazorDocumentMappingService documentMappingService,
+            ForegroundDispatcher foregroundDispatcher,
+            DocumentResolver documentResolver,
+            DocumentVersionCache documentVersionCache,
             ILoggerFactory loggerFactory)
         {
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
 
             if (loggerFactory is null)
             {
@@ -50,21 +60,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         public override Task<SemanticTokens> GetSemanticTokensAsync(
-            DocumentSnapshot documentSnapshot,
+            string documentPath,
             TextDocumentIdentifier textDocumentIdentifier,
-            long? documentVersion,
             CancellationToken cancellationToken)
         {
-            return GetSemanticTokensAsync(documentSnapshot, textDocumentIdentifier, range: null, documentVersion, cancellationToken);
+            return GetSemanticTokensAsync(documentPath, textDocumentIdentifier, range: null, cancellationToken);
         }
 
         public override async Task<SemanticTokens> GetSemanticTokensAsync(
-            DocumentSnapshot documentSnapshot,
+            string documentPath,
             TextDocumentIdentifier textDocumentIdentifier,
             Range range,
-            long? documentVersion,
             CancellationToken cancellationToken)
         {
+            var (documentSnapshot, documentVersion) = await TryGetDocumentInfoAsync(documentPath, cancellationToken);
+            if (documentSnapshot is null || documentVersion is null)
+            {
+                return null;
+            }
+
             var codeDocument = await GetRazorCodeDocumentAsync(documentSnapshot);
             if (codeDocument is null)
             {
@@ -103,12 +117,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         public override async Task<SemanticTokensFullOrDelta?> GetSemanticTokensEditsAsync(
-            DocumentSnapshot documentSnapshot,
+            string documentPath,
             TextDocumentIdentifier textDocumentIdentifier,
-            long? documentVersion,
             string previousResultId,
             CancellationToken cancellationToken)
         {
+            var (documentSnapshot, documentVersion) = await TryGetDocumentInfoAsync(documentPath, cancellationToken);
+            if (documentSnapshot is null || documentVersion is null)
+            {
+                return null;
+            }
+
             var codeDocument = await GetRazorCodeDocumentAsync(documentSnapshot);
             if (codeDocument is null)
             {
@@ -372,6 +391,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // tokenModifiers
             // We don't currently have any need for tokenModifiers
             yield return currentRange.Modifier;
+        }
+
+        private async Task<(DocumentSnapshot Snapshot, int? Version)> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
+        {
+            var document = await Task.Factory.StartNew(() =>
+            {
+                _documentResolver.TryResolveDocument(absolutePath, out var documentSnapshot);
+                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
+
+                return (documentSnapshot, version);
+            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+
+            return document;
         }
     }
 }

@@ -379,7 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var testVirtualDocUri = new Uri("C:/path/to/file2.razor.g");
             var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
 
-            var documentVersion = 42;
+            var documentVersion = 0;
             var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
             var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, Mock.Of<ITextSnapshot>(), 0);
             LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, documentVersion, testVirtualDocument, csharpVirtualDocument);

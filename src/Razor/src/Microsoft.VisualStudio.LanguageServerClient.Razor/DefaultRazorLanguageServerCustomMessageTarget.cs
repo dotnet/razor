@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 semanticTokensParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var result = new ProvideSemanticTokensResponse(csharpResults, documentSnapshot.Version);
+            var result = new ProvideSemanticTokensResponse(csharpResults, csharpDoc.HostDocumentSyncVersion);
 
             return result;
         }

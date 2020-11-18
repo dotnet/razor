@@ -8,15 +8,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class ProvideSemanticTokensResponse
     {
-        public SemanticTokens Result { get; }
-
-        public long? HostDocumentSyncVersion { get; }
-
         public ProvideSemanticTokensResponse(SemanticTokens result, long? hostDocumentSyncVersion)
         {
             Result = result;
             HostDocumentSyncVersion = hostDocumentSyncVersion;
         }
+
+        public SemanticTokens Result { get; }
+
+        public long? HostDocumentSyncVersion { get; }
 
         public override bool Equals(object obj) =>
             obj is ProvideSemanticTokensResponse other &&
