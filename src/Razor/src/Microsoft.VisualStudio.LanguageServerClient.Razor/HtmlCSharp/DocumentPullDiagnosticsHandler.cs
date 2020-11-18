@@ -27,12 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
+        private readonly LSPDocumentSynchronizer _documentSynchronizer;
 
         [ImportingConstructor]
         public DocumentPullDiagnosticsHandler(
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
-            LSPDocumentMappingProvider documentMappingProvider)
+            LSPDocumentMappingProvider documentMappingProvider,
+            LSPDocumentSynchronizer documentSynchronizer)
         {
             if (requestInvoker is null)
             {
@@ -49,9 +51,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
+            if (documentSynchronizer is null)
+            {
+                throw new ArgumentNullException(nameof(documentSynchronizer));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _documentMappingProvider = documentMappingProvider;
+            _documentSynchronizer = documentSynchronizer;
         }
 
         // Internal for testing
@@ -78,6 +86,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
             {
                 return null;
+            }
+
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                documentSnapshot.Version,
+                csharpDoc,
+                cancellationToken).ConfigureAwait(false);
+            if (!synchronized)
+            {
+                // Could not synchronize, report nothing changed
+                return new DiagnosticReport[]
+                {
+                    new DiagnosticReport()
+                    {
+                        ResultId = request.PreviousResultId,
+                        Diagnostics = null
+                    }
+                };
             }
 
             var referenceParams = new DocumentDiagnosticsParams()
