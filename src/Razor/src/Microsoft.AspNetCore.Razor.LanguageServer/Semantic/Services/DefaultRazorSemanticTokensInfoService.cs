@@ -60,19 +60,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         public override Task<SemanticTokens> GetSemanticTokensAsync(
-            string documentPath,
             TextDocumentIdentifier textDocumentIdentifier,
             CancellationToken cancellationToken)
         {
-            return GetSemanticTokensAsync(documentPath, textDocumentIdentifier, range: null, cancellationToken);
+            return GetSemanticTokensAsync(textDocumentIdentifier, range: null, cancellationToken);
         }
 
         public override async Task<SemanticTokens> GetSemanticTokensAsync(
-            string documentPath,
             TextDocumentIdentifier textDocumentIdentifier,
             Range range,
             CancellationToken cancellationToken)
         {
+            var documentPath = textDocumentIdentifier.Uri.GetAbsolutePath();
+            if (documentPath is null)
+            {
+                return null;
+            }
+
             var (documentSnapshot, documentVersion) = await TryGetDocumentInfoAsync(documentPath, cancellationToken);
             if (documentSnapshot is null || documentVersion is null)
             {
@@ -118,11 +122,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         public override async Task<SemanticTokensFullOrDelta?> GetSemanticTokensEditsAsync(
-            string documentPath,
             TextDocumentIdentifier textDocumentIdentifier,
             string previousResultId,
             CancellationToken cancellationToken)
         {
+            var documentPath = textDocumentIdentifier.Uri.GetAbsolutePath();
+            if (documentPath is null)
+            {
+                return null;
+            }
+
             var (documentSnapshot, documentVersion) = await TryGetDocumentInfoAsync(documentPath, cancellationToken);
             if (documentSnapshot is null || documentVersion is null)
             {
@@ -385,7 +394,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private async Task<(DocumentSnapshot Snapshot, int? Version)> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
         {
-            var document = await Task.Factory.StartNew(() =>
+            var documentInfo = await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(absolutePath, out var documentSnapshot);
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
@@ -393,7 +402,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return (documentSnapshot, version);
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
-            return document;
+            return documentInfo;
         }
     }
 }

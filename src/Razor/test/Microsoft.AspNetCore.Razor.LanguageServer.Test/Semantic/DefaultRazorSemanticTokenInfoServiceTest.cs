@@ -1123,10 +1123,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var outService = service;
 
             var textDocumentIdentifier = textDocumentIdentifiers.Dequeue();
-            var absolutePath = textDocumentIdentifier.Uri.GetAbsolutePath();
 
             // Act
-            var tokens = await service.GetSemanticTokensAsync(absolutePath, textDocumentIdentifier, location, CancellationToken.None);
+            var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, location, CancellationToken.None);
 
             // Assert
             Assert.True(ArrayEqual(expectedData, tokens?.Data));
@@ -1179,10 +1178,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             }
 
             var textDocumentIdentifier = GetIdentifier(isRazor);
-            var absolutePath = textDocumentIdentifier.Uri.GetAbsolutePath();
 
             // Act
-            var edits = (await service.GetSemanticTokensEditsAsync(absolutePath, textDocumentIdentifier, previousResultId, CancellationToken.None)).Value;
+            var edits = (await service.GetSemanticTokensEditsAsync(textDocumentIdentifier, previousResultId, CancellationToken.None)).Value;
 
             // Assert
             if (expectedEdits.IsDelta)
@@ -1251,7 +1249,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
         private class TestDocumentResolver : DocumentResolver
         {
-            private Queue<DocumentSnapshot> _documentSnapshots;
+            private readonly Queue<DocumentSnapshot> _documentSnapshots;
 
             public TestDocumentResolver(Queue<DocumentSnapshot> documentSnapshots)
             {
@@ -1260,14 +1258,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             public override bool TryResolveDocument(string documentFilePath, out DocumentSnapshot document)
             {
-                if (_documentSnapshots.Count == 1)
-                {
-                    document = _documentSnapshots.Peek();
-                }
-                else
-                {
-                    document = _documentSnapshots.Dequeue();
-                }
+                document = _documentSnapshots.Count == 1 ? _documentSnapshots.Peek() : _documentSnapshots.Dequeue();
 
                 return true;
             }

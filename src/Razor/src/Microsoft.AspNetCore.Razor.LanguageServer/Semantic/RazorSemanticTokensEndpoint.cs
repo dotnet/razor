@@ -5,9 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document.Proposals;
@@ -58,7 +56,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return await HandleAsync(request.TextDocument, cancellationToken, request.Range);
+            var semanticTokens = await HandleAsync(request.TextDocument, cancellationToken, request.Range);
+            _logger.LogInformation($"Returned {semanticTokens.Data.Length / 5} semantic tokens for range {request.Range} in {request.TextDocument.Uri}.");
+
+            return semanticTokens;
         }
 
         public async Task<SemanticTokensFullOrDelta?> Handle(SemanticTokensDeltaParams request, CancellationToken cancellationToken)
@@ -68,13 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentPath = request.TextDocument.Uri.GetAbsolutePath();
-            if (documentPath is null)
-            {
-                return null;
-            }
-
-            var edits = await _semanticTokensInfoService.GetSemanticTokensEditsAsync(documentPath, request.TextDocument, request.PreviousResultId, cancellationToken);
+            var edits = await _semanticTokensInfoService.GetSemanticTokensEditsAsync(request.TextDocument, request.PreviousResultId, cancellationToken);
 
             return edits;
         }
@@ -113,13 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private async Task<SemanticTokens> HandleAsync(TextDocumentIdentifier textDocument, CancellationToken cancellationToken, Range range = null)
         {
-            var absolutePath = textDocument.Uri.GetAbsolutePath();
-            if (absolutePath is null)
-            {
-                return null;
-            }
-
-            var tokens = await _semanticTokensInfoService.GetSemanticTokensAsync(absolutePath, textDocument, range, cancellationToken);
+            var tokens = await _semanticTokensInfoService.GetSemanticTokensAsync(textDocument, range, cancellationToken);
 
             return tokens;
         }
