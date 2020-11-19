@@ -65,9 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // Internal for testing
         public async Task<DiagnosticReport[]> HandleRequestAsync(DocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
@@ -114,10 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 PreviousResultId = request.PreviousResultId
             };
 
-            var time_init = stopwatch.ElapsedMilliseconds;
-
-
-            /// Request Multiple
             // End goal is to transition this from ReinvokeRequestOnMultipleServersAsync -> ReinvokeRequestOnServerAsync
             // We can't do this right now as we don't have the ability to specify the language client name we'd like to make the call out to
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1246135
@@ -127,42 +120,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var time_roslyn = stopwatch.ElapsedMilliseconds;
-
             var result = resultsFromAllLanguageServers.SelectMany(l => l).ToArray();
-
-
-            /// Request Single
-            //var result = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(
-            //    MSLSPMethods.DocumentPullDiagnosticName,
-            //    RazorLSPConstants.CSharpContentTypeName,
-            //    referenceParams,
-            //    cancellationToken).ConfigureAwait(false);
-
-            //var time_roslyn = stopwatch.ElapsedMilliseconds;
-
-
-
-
-
-
-
-            var time_flatten = stopwatch.ElapsedMilliseconds;
 
             var processedResults = await RemapDocumentDiagnosticsAsync(
                 result,
                 request.TextDocument.Uri,
                 documentSnapshot,
                 cancellationToken).ConfigureAwait(false);
-
-
-            var time_postProcess = stopwatch.ElapsedMilliseconds;
-            stopwatch.Stop();
-
-            var perfMessage = $"Found {processedResults?.FirstOrDefault()?.Diagnostics?.Length ?? -1} diagnostics, (Init {time_init}; Roslyn: {time_roslyn - time_init}; Flatten: {time_flatten - time_roslyn}; Post Process {time_postProcess - time_flatten})";
-
-            // Debug.Assert(false, perfMessage);
-            Debug.WriteLine(perfMessage);
 
             // | ---------------------------------------------------------------------------------- |
             // |                       LSP Platform Expected Response Semantics                     |
