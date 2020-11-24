@@ -109,21 +109,48 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var remappedEdit = await _documentMappingProvider.RemapFormattedTextEditsAsync(
+            var containsSnippet = response.TextEditFormat == InsertTextFormat.Snippet;
+
+            var edit = response.TextEdit;
+            if (containsSnippet && projectionResult.LanguageKind == RazorLanguageKind.CSharp)
+            {
+                // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
+                // So, let's avoid the error by wrapping the cursor marker in a comment.
+                var newText = edit.NewText?.Replace("$0", "/*$0*/");
+                edit = new TextEdit()
+                {
+                    NewText = newText,
+                    Range = edit.Range
+                };
+            }
+
+            var remappedEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(
                 projectionResult.Uri,
-                new[] { response.TextEdit },
+                new[] { edit },
                 request.Options,
-                containsSnippet: true,
+                containsSnippet,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!remappedEdit.Any())
+            if (!remappedEdits.Any())
             {
                 return null;
             }
 
+            var remappedEdit = remappedEdits.Single();
+            if (containsSnippet && projectionResult.LanguageKind == RazorLanguageKind.CSharp)
+            {
+                // Unwrap the cursor marker.
+                var newText = remappedEdit.NewText?.Replace("/*$0*/", "$0");
+                remappedEdit = new TextEdit()
+                {
+                    NewText = newText,
+                    Range = remappedEdit.Range
+                };
+            }
+
             var remappedResponse = new DocumentOnAutoInsertResponseItem()
             {
-                TextEdit = remappedEdit.Single(),
+                TextEdit = remappedEdit,
                 TextEditFormat = response.TextEditFormat,
             };
 
