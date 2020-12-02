@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
-                RazorLanguageKind.Html,
+                projectionResult.LanguageKind,
                 request.TextDocument.Uri,
                 response.Ranges,
                 cancellationToken).ConfigureAwait(false);

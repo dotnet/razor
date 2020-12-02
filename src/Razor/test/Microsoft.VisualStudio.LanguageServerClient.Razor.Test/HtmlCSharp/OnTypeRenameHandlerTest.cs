@@ -14,12 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     public class OnTypeRenameHandlerTest
     {
-        public OnTypeRenameHandlerTest()
-        {
-            Uri = new Uri("C:/path/to/file.razor");
-        }
-
-        private Uri Uri { get; }
+        private static readonly Uri Uri = new Uri("C:/path/to/file.razor");
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -99,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task HandleRequestAsync_HtmlProjection_RemapsHighlightRange()
         {
             // Arrange
-            var called = false;
+            var invokerCalled = false;
             var expectedResponse = GetMatchingHTMLBracketRange(5);
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 0));
@@ -111,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 {
                     Assert.Equal(MSLSPMethods.OnTypeRenameName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
-                    called = true;
+                    invokerCalled = true;
                 });
 
             var projectionResult = new ProjectionResult()
@@ -133,17 +128,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await onTypeRenameHandler.HandleRequestAsync(onTypeRenameRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
+            Assert.True(invokerCalled);
+            Assert.NotNull(result);
             Assert.Collection(result.Ranges,
                 r => Assert.Equal(expectedResponse.Ranges[0], r),
                 r => Assert.Equal(expectedResponse.Ranges[1], r));
         }
 
         [Fact]
-        public async Task HandleRequestAsync_VersionMismatch_DiscardsLocation()
+        public async Task HandleRequestAsync_VersionMismatch_ReturnsNull()
         {
             // Arrange
-            var called = false;
+            var invokerCalled = false;
             var expectedResponse = GetMatchingHTMLBracketRange(5);
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 1));
@@ -155,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 {
                     Assert.Equal(MSLSPMethods.OnTypeRenameName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
-                    called = true;
+                    invokerCalled = true;
                 });
 
             var projectionResult = new ProjectionResult()
@@ -177,15 +173,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await onTypeRenameHandler.HandleRequestAsync(onTypeRenameRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
+            Assert.True(invokerCalled);
             Assert.Null(result);
         }
 
         [Fact]
-        public async Task HandleRequestAsync_RemapFailure_DiscardsLocation()
+        public async Task HandleRequestAsync_RemapFailure_ReturnsNull()
         {
             // Arrange
-            var called = false;
+            var invokerCalled = false;
             var expectedResponse = GetMatchingHTMLBracketRange(5);
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 0));
@@ -197,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 {
                     Assert.Equal(MSLSPMethods.OnTypeRenameName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
-                    called = true;
+                    invokerCalled = true;
                 });
 
             var projectionResult = new ProjectionResult()
@@ -219,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await onTypeRenameHandler.HandleRequestAsync(onTypeRenameRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.True(called);
+            Assert.True(invokerCalled);
             Assert.Null(result);
         }
 
