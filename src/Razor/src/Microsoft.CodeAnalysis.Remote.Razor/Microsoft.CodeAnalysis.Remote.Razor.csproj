@@ -32,7 +32,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" Version="$(Tooling_MicrosoftCodeAnalysisRemoteRazorServiceHubPackageVersion)" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(Tooling_MicrosoftCodeAnalysisWorkspacesCommonPackageVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(VS_NewtonsoftJsonPackageVersion)" />
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcPackageVersion)" />
   </ItemGroup>
 
 </Project>

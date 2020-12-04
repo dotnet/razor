@@ -102,6 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             // This will change in the future to an easier to consume API but for VS RTM this is what we have.
             try
             {
+#pragma warning disable CS0612 // Type or member is obsolete
                 var remoteClient = await RazorRemoteHostClient.CreateAsync(_workspace, CancellationToken.None);
 
                 var args = new object[]
@@ -115,6 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                     workspaceProject.Solution,
                     args,
                     CancellationToken.None).ConfigureAwait(false);
+#pragma warning restore CS0612 // Type or member is obsolete
 
                 return result.HasValue ? result.Value : null;
             }
