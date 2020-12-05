@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         public abstract Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default);
 
-        protected virtual async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, RazorProjectEngine engine)
+        protected virtual async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, RazorProjectEngine engine, CancellationToken cancellationToken)
         {
             if (workspaceProject == null)
             {
@@ -53,5 +53,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             return new TagHelperResolutionResult(results, Array.Empty<RazorDiagnostic>());
         }
+
+        protected virtual Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, RazorProjectEngine engine) => GetTagHelpersAsync(workspaceProject, engine, CancellationToken.None);
     }
 }

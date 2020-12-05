@@ -6,6 +6,7 @@
     <EnableApiCheck>false</EnableApiCheck>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <NoWarn>$(NoWarn);NU1702;NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
