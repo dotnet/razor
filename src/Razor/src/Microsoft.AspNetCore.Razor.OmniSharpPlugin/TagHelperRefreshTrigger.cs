@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
             // Project file was modified or impacted in a significant way.
 
-            Task.Factory.StartNew(
+            _ = Task.Factory.StartNew(
                 () => EnqueueUpdate(args.ProjectInstance.ProjectFileLocation.File),
                 CancellationToken.None,
                 TaskCreationOptions.None,
@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
             // Razor document changed
 
-            Task.Factory.StartNew(
+            _ = Task.Factory.StartNew(
                 () =>
                 {
                     if (IsComponentFile(args.FilePath, args.UnevaluatedProjectInstance.ProjectFileLocation.File))
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
             // Razor build occurred
 
-            Task.Factory.StartNew(
+            _ = Task.Factory.StartNew(
                 () => EnqueueUpdate(args.UnevaluatedProjectInstance.ProjectFileLocation.File),
                 CancellationToken.None,
                 TaskCreationOptions.None,
