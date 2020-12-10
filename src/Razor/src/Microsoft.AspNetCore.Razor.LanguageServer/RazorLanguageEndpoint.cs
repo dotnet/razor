@@ -156,7 +156,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
-                if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
+                if (documentSnapshot is null ||
+                    !_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
                 {
                     documentVersion = null;
                 }
@@ -170,6 +171,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Ranges = request.ProjectedRanges,
                     HostDocumentVersion = documentVersion,
                 };
+            }
+
+            if (documentSnapshot is null)
+            {
+                return null;
             }
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
