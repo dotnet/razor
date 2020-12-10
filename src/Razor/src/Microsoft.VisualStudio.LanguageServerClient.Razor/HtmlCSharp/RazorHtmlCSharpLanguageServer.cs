@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(outputStream));
             }
 
-            _jsonRpc = CreateJsonRpc(inputStream, outputStream, target: this);
+            _jsonRpc = CreateJsonRpc(outputStream, inputStream, target: this);
             _jsonRpc.StartListening();
         }
 
@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return handler.HandleRequestAsync(request, clientCapabilities, cancellationToken);
         }
 
-        private static JsonRpc CreateJsonRpc(Stream inputStream, Stream outputStream, object target)
+        private static JsonRpc CreateJsonRpc(Stream outputStream, Stream inputStream, object target)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var messageFormatter = new JsonMessageFormatter();
