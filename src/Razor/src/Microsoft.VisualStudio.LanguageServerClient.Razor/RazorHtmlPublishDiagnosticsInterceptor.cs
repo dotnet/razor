@@ -22,14 +22,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
-        private readonly LSPDocumentSynchronizer _documentSynchronizer;
 
         [ImportingConstructor]
         public RazorHtmlPublishDiagnosticsInterceptor(
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
-            LSPDocumentMappingProvider documentMappingProvider,
-            LSPDocumentSynchronizer documentSynchronizer)
+            LSPDocumentMappingProvider documentMappingProvider)
         {
             if (requestInvoker is null)
             {
@@ -46,15 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
-            if (documentSynchronizer is null)
-            {
-                throw new ArgumentNullException(nameof(documentSynchronizer));
-            }
-
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _documentMappingProvider = documentMappingProvider;
-            _documentSynchronizer = documentSynchronizer;
         }
 
         public override async Task<InterceptionResult> ApplyChangesAsync(JToken token, string containedLanguageName, CancellationToken cancellationToken)
@@ -92,12 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             if (!razorDocumentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocumentSnapshot))
-            {
-                return CreateEmptyDiagnosticsResponse(diagnosticParams);
-            }
-
-            // Ensure we're working with the virtual document specified in the diagnostic params
-            if (!htmlDocumentSnapshot.Uri.Equals(diagnosticParams.Uri))
             {
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
@@ -179,9 +165,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return new InterceptionResult(newToken, changedDocumentUri: true);
             }
 
-            static bool CanDiagnosticBeFiltered(Diagnostic d) => false;
-            // TODO:
-            // DiagnosticsToIgnore.Contains(d.Code) && d.Severity != DiagnosticSeverity.Error; 
+            static bool CanDiagnosticBeFiltered(Diagnostic d) =>
+                string.IsNullOrEmpty(d.Code) && d.Severity != DiagnosticSeverity.Error; 
         }
     }
 }
