@@ -165,8 +165,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return new InterceptionResult(newToken, changedDocumentUri: true);
             }
 
-            static bool CanDiagnosticBeFiltered(Diagnostic d) =>
-                string.IsNullOrEmpty(d.Code) && d.Severity != DiagnosticSeverity.Error; 
+            static bool CanDiagnosticBeFiltered(Diagnostic d) => false;
+            // TODO; blocked on https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401
+            // string.IsNullOrEmpty(d.Code) && d.Severity != DiagnosticSeverity.Error; 
         }
     }
 }
