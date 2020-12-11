@@ -80,27 +80,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(diagnosticParams.Uri);
 
-            if (!_documentManager.TryGetDocument(razorDocumentUri, out var razorDocumentSnapshot))
-            {
-                return CreateDefaultResponse(token);
-            }
-
-            if (!razorDocumentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocumentSnapshot))
-            {
-                return CreateDefaultResponse(token);
-            }
-
-            // Ensure we're working with the virtual document specified in the diagnostic params
-            if (!htmlDocumentSnapshot.Uri.Equals(diagnosticParams.Uri))
-            {
-                return CreateDefaultResponse(token);
-            }
-
             // Note; this is an `interceptor` & not a handler, hence 
             // it's possible another interceptor mutates this request 
             // later in the toolchain. Such an interceptor would likely 
             // expect a `__virtual.html` suffix instead of `.razor`.
             diagnosticParams.Uri = razorDocumentUri;
+
+            if (!_documentManager.TryGetDocument(razorDocumentUri, out var razorDocumentSnapshot))
+            {
+                return CreateEmptyDiagnosticsResponse(diagnosticParams);
+            }
+
+            if (!razorDocumentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocumentSnapshot))
+            {
+                return CreateEmptyDiagnosticsResponse(diagnosticParams);
+            }
+
+            // Ensure we're working with the virtual document specified in the diagnostic params
+            if (!htmlDocumentSnapshot.Uri.Equals(diagnosticParams.Uri))
+            {
+                return CreateEmptyDiagnosticsResponse(diagnosticParams);
+            }
 
             // Return early if there aren't any diagnostics to process
             if (diagnosticParams.Diagnostics?.Any() != true)
@@ -108,23 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return CreateResponse(diagnosticParams);
             }
 
-            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
-                razorDocumentSnapshot.Version,
-                htmlDocumentSnapshot,
-                cancellationToken).ConfigureAwait(false);
-            if (!synchronized)
-            {
-                // Could not synchronize, we'll clear out the diagnostics as we don't
-                // know whether or not they're still valid in the current state of the
-                // document.
-                return CreateResponse(diagnosticParams, clearDiagnostics: true);
-            }
-
             var unmappedDiagnostics = diagnosticParams.Diagnostics;
             var filteredDiagnostics = unmappedDiagnostics.Where(d => !CanDiagnosticBeFiltered(d));
             if (!filteredDiagnostics.Any())
             {
-                return CreateResponse(diagnosticParams, clearDiagnostics: true);
+                return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
             var rangesToMap = filteredDiagnostics.Select(r => r.Range).ToArray();
@@ -137,7 +125,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (mappingResult == null || mappingResult.HostDocumentVersion != razorDocumentSnapshot.Version)
             {
-                return CreateResponse(diagnosticParams, clearDiagnostics: true);
+                // Note in the case of `mappingResult.HostDocumentVersion != razorDocumentSnapshot.Version`, 
+                // we're choosing to clear out the diagnostics. This scanario has a relatively good chance  
+                // of happening and may cause flickering. An alternative would be to remove this check
+                // and in turn allow out-of-sync diagnostics (aka. lingering diagnostics).
+                //
+                // This'll need to be revisited based on preferences with flickering vs lingering.
+                return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
             var mappedDiagnostics = new List<Diagnostic>(filteredDiagnostics.Count());
@@ -173,18 +167,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             static InterceptionResult CreateDefaultResponse(JToken token) =>
                 new InterceptionResult(token, changedDocumentUri: false);
 
-            static InterceptionResult CreateResponse(
-                VSPublishDiagnosticParams diagnosticParams,
-                bool clearDiagnostics = false,
-                bool changedDocumentUri = true)
+            static InterceptionResult CreateEmptyDiagnosticsResponse(VSPublishDiagnosticParams diagnosticParams)
             {
-                if (clearDiagnostics)
-                {
-                    diagnosticParams.Diagnostics = Array.Empty<Diagnostic>();
-                }
+                diagnosticParams.Diagnostics = Array.Empty<Diagnostic>();
+                return CreateResponse(diagnosticParams);
+            }
 
+            static InterceptionResult CreateResponse(VSPublishDiagnosticParams diagnosticParams)
+            {
                 var newToken = JToken.FromObject(diagnosticParams);
-                return new InterceptionResult(newToken, changedDocumentUri);
+                return new InterceptionResult(newToken, changedDocumentUri: true);
             }
 
             static bool CanDiagnosticBeFiltered(Diagnostic d) => false;
