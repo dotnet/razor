@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -156,6 +157,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
+
+                Debug.Assert(documentSnapshot != null, "Failed to get the document snapshot, could not map to document ranges.");
+
                 if (documentSnapshot is null ||
                     !_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
                 {
