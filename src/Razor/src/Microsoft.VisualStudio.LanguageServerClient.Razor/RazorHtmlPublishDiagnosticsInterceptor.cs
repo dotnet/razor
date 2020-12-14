@@ -2,16 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
-using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
