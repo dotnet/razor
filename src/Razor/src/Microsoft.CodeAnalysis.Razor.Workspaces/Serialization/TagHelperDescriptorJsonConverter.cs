@@ -2,24 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.Razor.Serialization
 {
-    internal class TagHelperDescriptorJsonConverter : JsonConverter
+    internal partial class TagHelperDescriptorJsonConverter : JsonConverter
     {
         public static readonly TagHelperDescriptorJsonConverter Instance = new TagHelperDescriptorJsonConverter();
 
-        private static readonly WeakReferenceTable weakReferenceTable = WeakReferenceTable.Instance;
-
         public static bool DisableCachingForTesting { private get; set; } = false;
-
-        internal TagHelperDescriptorJsonConverter()
-        {
-        }
 
         public override bool CanConvert(Type objectType)
         {
@@ -59,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return default;
             }
 
-            // We Intern all our stings here to prevent them from balooning memory in our Descriptors.
-            var builder = TagHelperDescriptorBuilder.Create(Intern(descriptorKind), Intern(typeName), Intern(assemblyName));
+            var builder = TagHelperDescriptorBuilder.Create(Cached(descriptorKind), Cached(typeName), Cached(assemblyName));
 
             reader.ReadProperties(propertyName =>
             {
@@ -70,14 +62,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         if (reader.Read())
                         {
                             var documentation = (string)reader.Value;
-                            builder.Documentation = Intern(documentation);
+                            builder.Documentation = Cached(documentation);
                         }
                         break;
                     case nameof(TagHelperDescriptor.TagOutputHint):
                         if (reader.Read())
                         {
                             var tagOutputHint = (string)reader.Value;
-                            builder.TagOutputHint = Intern(tagOutputHint);
+                            builder.TagOutputHint = Cached(tagOutputHint);
                         }
                         break;
                     case nameof(TagHelperDescriptor.CaseSensitive):
@@ -428,21 +420,21 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var name = (string)reader.Value;
-                                attribute.Name = Intern(name);
+                                attribute.Name = Cached(name);
                             }
                             break;
                         case nameof(BoundAttributeDescriptor.TypeName):
                             if (reader.Read())
                             {
                                 var typeName = (string)reader.Value;
-                                attribute.TypeName = Intern(typeName);
+                                attribute.TypeName = Cached(typeName);
                             }
                             break;
                         case nameof(BoundAttributeDescriptor.Documentation):
                             if (reader.Read())
                             {
                                 var documentation = (string)reader.Value;
-                                attribute.Documentation = Intern(documentation);
+                                attribute.Documentation = Cached(documentation);
                             }
                             break;
                         case nameof(BoundAttributeDescriptor.IndexerNamePrefix):
@@ -452,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                                 if (indexerNamePrefix != null)
                                 {
                                     attribute.IsDictionary = true;
-                                    attribute.IndexerAttributeNamePrefix = Intern(indexerNamePrefix);
+                                    attribute.IndexerAttributeNamePrefix = Cached(indexerNamePrefix);
                                 }
                             }
                             break;
@@ -463,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                                 if (indexerTypeName != null)
                                 {
                                     attribute.IsDictionary = true;
-                                    attribute.IndexerValueTypeName = Intern(indexerTypeName);
+                                    attribute.IndexerValueTypeName = Cached(indexerTypeName);
                                 }
                             }
                             break;
@@ -528,14 +520,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var name = (string)reader.Value;
-                                parameter.Name = Intern(name);
+                                parameter.Name = Cached(name);
                             }
                             break;
                         case nameof(BoundAttributeParameterDescriptor.TypeName):
                             if (reader.Read())
                             {
                                 var typeName = (string)reader.Value;
-                                parameter.TypeName = Intern(typeName);
+                                parameter.TypeName = Cached(typeName);
                             }
                             break;
                         case nameof(BoundAttributeParameterDescriptor.IsEnum):
@@ -549,7 +541,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var documentation = (string)reader.Value;
-                                parameter.Documentation = Intern(documentation);
+                                parameter.Documentation = Cached(documentation);
                             }
                             break;
                         case nameof(BoundAttributeParameterDescriptor.Metadata):
@@ -603,14 +595,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var tagName = (string)reader.Value;
-                                rule.TagName = Intern(tagName);
+                                rule.TagName = Cached(tagName);
                             }
                             break;
                         case nameof(TagMatchingRuleDescriptor.ParentTag):
                             if (reader.Read())
                             {
                                 var parentTag = (string)reader.Value;
-                                rule.ParentTag = Intern(parentTag);
+                                rule.ParentTag = Cached(parentTag);
                             }
                             break;
                         case nameof(TagMatchingRuleDescriptor.TagStructure):
@@ -667,7 +659,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var name = (string)reader.Value;
-                                attribute.Name = Intern(name);
+                                attribute.Name = Cached(name);
                             }
                             break;
                         case nameof(RequiredAttributeDescriptor.NameComparison):
@@ -678,7 +670,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var value = (string)reader.Value;
-                                attribute.Value = Intern(value);
+                                attribute.Value = Cached(value);
                             }
                             break;
                         case nameof(RequiredAttributeDescriptor.ValueComparison):
@@ -736,14 +728,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var name = (string)reader.Value;
-                                childTag.Name = Intern(name);
+                                childTag.Name = Cached(name);
                             }
                             break;
                         case nameof(AllowedChildTagDescriptor.DisplayName):
                             if (reader.Read())
                             {
                                 var displayName = (string)reader.Value;
-                                childTag.DisplayName = Intern(displayName);
+                                childTag.DisplayName = Cached(displayName);
                             }
                             break;
                         case nameof(AllowedChildTagDescriptor.Diagnostics):
@@ -771,7 +763,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 if (reader.Read())
                 {
                     var value = (string)reader.Value;
-                    metadata[Intern(propertyName)] = Intern(value);
+                    metadata[Cached(propertyName)] = Cached(value);
                 }
             });
         }
@@ -836,7 +828,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 }
             });
 
-            var descriptor = new RazorDiagnosticDescriptor(Intern(id), () => Intern(message), (RazorDiagnosticSeverity)severity);
+            var descriptor = new RazorDiagnosticDescriptor(Cached(id), () => Cached(message), (RazorDiagnosticSeverity)severity);
 
             var diagnostic = RazorDiagnostic.Create(descriptor, sourceSpan);
             diagnostics.Add(diagnostic);
@@ -915,7 +907,9 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             throw new JsonSerializationException($"Could not read till end of object, end of stream. Got '{reader.TokenType}'.");
         }
 
-        private static string Intern(string str)
+        // ConditionalWeakTable won't work for us because it only compares keys to Object.ReferenceEquals
+        // (which won't be true because our values are loaded from JSON, not a constant).
+        private static string Cached(string str)
         {
             if (str is null)
             {
@@ -927,128 +921,8 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             {
                 return interned;
             }
-
-            return weakReferenceTable.Intern(str);
-        }
-
-        /// <summary>
-        /// The purpose of this class is to avoid permanently storing duplicate strings which were read in from JSON.
-        /// </summary>
-        private class WeakReferenceTable
-        {
-            public static readonly WeakReferenceTable Instance = new WeakReferenceTable();
-
-            private WeakReferenceTable()
-            {
-            }
-
-            private readonly WeakValueDictionary<string, string> _table = new WeakValueDictionary<string, string>();
-
-            public string Intern(string str)
-            {
-                if (_table.TryGetValue(str, out var value))
-                {
-                    return value;
-                }
-                else
-                {
-                    _table.Add(str, str);
-                    return str;
-                }
-            }
-
-            // ConditionalWeakTable won't work for us because it only compares to Object.ReferenceEquals.
-            private class WeakValueDictionary<TKey, TValue> where TValue : class
-            {
-                // Your basic project.razor.json using our template have ~800 entries,
-                // so lets start the dictionary out large
-                private int _capacity = 400;
-
-                // This might not acctually need to be concurrent?
-                private readonly ConcurrentDictionary<TKey, WeakReference> _dict = new ConcurrentDictionary<TKey, WeakReference>();
-
-                public bool TryGetValue(TKey key, out TValue value)
-                {
-                    if (key is null)
-                    {
-                        throw new ArgumentNullException(nameof(key));
-                    }
-
-                    if (_dict.TryGetValue(key, out var weak))
-                    {
-                        value = weak.Target as TValue;
-
-                        if (value is null)
-                        {
-                            // This means we lost all references to the value, time to remove the entry.
-                            _dict.TryRemove(key, out _);
-                            return false;
-                        }
-
-                        return true;
-                    }
-
-                    // We didn't find the value
-                    value = null;
-                    return false;
-                }
-
-                public void Add(TKey key, TValue value)
-                {
-                    if (key is null)
-                    {
-                        throw new ArgumentNullException(nameof(key));
-                    }
-
-                    if (value is null)
-                    {
-                        throw new ArgumentNullException(nameof(value));
-                    }
-
-                    if (_dict.Count == _capacity)
-                    {
-                        Cleanup();
-
-                        if (_dict.Count == _capacity)
-                        {
-                            _capacity = _dict.Count * 2;
-                        }
-                    }
-
-                    var weak = new WeakReference(value);
-                    _dict.TryAdd(key, weak);
-                }
-
-                private void Cleanup()
-                {
-                    IList<TKey> remove = null;
-                    foreach (var kvp in _dict)
-                    {
-                        if (kvp.Value is null)
-                        {
-                            // Entry exists but has null value (should never happen)
-                            continue;
-                        }
-
-
-                        if (!(kvp.Value.Target is TValue target))
-                        {
-                            // No references remain for this, remove it from the list entirely
-                            remove ??= new List<TKey>();
-
-                            remove.Add(kvp.Key);
-                        }
-                    }
-
-                    if (remove != null)
-                    {
-                        foreach (var key in remove)
-                        {
-                            _dict.TryRemove(key, out _);
-                        }
-                    }
-                }
-            }
+            // We cache all our stings here to prevent them from balooning memory in our Descriptors.
+            return StringCache.Instance.GetOrAdd(str);
         }
     }
 }
