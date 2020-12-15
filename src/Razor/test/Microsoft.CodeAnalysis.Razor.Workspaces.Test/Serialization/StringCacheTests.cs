@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Razor.Serialization;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -21,6 +21,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.False(ReferenceEquals(str1, str2));
 
             // Act
+            // Force a colleciton
+            GC.Collect();
             _ = cache.GetOrAdd(str1);
             var result = cache.GetOrAdd(str2);
 
@@ -46,6 +48,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             // Act
             StringArea();
+
+            // Force a collection
+            GC.Collect();
             var str1 = $"{1}";
             var result = cache.GetOrAdd(str1);
 
@@ -56,6 +61,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 cache.GetOrAdd($"{1}");
                 cache.GetOrAdd($"{2}");
+                cache.GetOrAdd($"{3}");
+                cache.GetOrAdd($"{4}");
+                cache.GetOrAdd($"{5}");
+                cache.GetOrAdd($"{6}");
+                cache.GetOrAdd($"{7}");
+                cache.GetOrAdd($"{8}");
+                cache.GetOrAdd($"{9}");
+                cache.GetOrAdd($"{10}");
             }
         }
     }

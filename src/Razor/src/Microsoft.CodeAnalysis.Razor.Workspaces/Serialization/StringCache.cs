@@ -2,10 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Serialization;
 #nullable enable
 
-namespace Microsoft.CodeAnalysis.Razor.Serialization
+namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     /// <summary>
     /// The purpose of this class is to avoid permanently storing duplicate strings which were read in from JSON.
@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
         // so lets start the dictionary out large
         private const int _defaultCapacity = 800;
 
-        private readonly ConditionalWeakTable<string, string> _table;
+        private readonly ConditionalWeakHashSet<string, string> _table;
         private readonly object _lock = new object();
 
         public StringCache(int capacity = _defaultCapacity)
         {
-            _table = new ConditionalWeakTable<string, string>();
+            _table = new ConditionalWeakHashSet<string, string>();
         }
 
         public string? GetOrAdd(string str)

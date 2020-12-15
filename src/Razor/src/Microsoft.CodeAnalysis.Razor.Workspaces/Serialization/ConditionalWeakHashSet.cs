@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.Serialization
 {
-    public sealed class ConditionalWeakTable<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
+    public sealed class ConditionalWeakHashSet<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
         where TKey : class
         where TValue : class?
     {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
         private volatile Container _container;  // The actual storage for the table; swapped out as the table grows.
         private int _activeEnumeratorRefCount;  // The number of outstanding enumerators on the table
 
-        public ConditionalWeakTable()
+        public ConditionalWeakHashSet()
         {
             _lock = new object();
             _container = new Container(this);
@@ -232,12 +232,12 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             // This, however, would cause the enumerator's understanding of indices to break.  So, as long as
             // there is any outstanding enumerator, no compaction is performed.
 
-            private ConditionalWeakTable<TKey, TValue>? _table; // parent table, set to null when disposed
+            private ConditionalWeakHashSet<TKey, TValue>? _table; // parent table, set to null when disposed
             private readonly int _maxIndexInclusive;            // last index in the container that should be enumerated
             private int _currentIndex;                          // the current index into the container
             private KeyValuePair<TKey, TValue> _current;        // the current entry set by MoveNext and returned from Current
 
-            public Enumerator(ConditionalWeakTable<TKey, TValue> table)
+            public Enumerator(ConditionalWeakHashSet<TKey, TValue> table)
             {
                 Debug.Assert(table != null, "Must provide a valid table");
                 Debug.Assert(Monitor.IsEntered(table._lock), "Must hold the _lock lock to construct the enumerator");
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             {
                 // Use an interlocked operation to ensure that only one thread can get access to
                 // the _table for disposal and thus only decrement the ref count once.
-                ConditionalWeakTable<TKey, TValue>? table = Interlocked.Exchange(ref _table, null);
+                ConditionalWeakHashSet<TKey, TValue>? table = Interlocked.Exchange(ref _table, null);
                 if (table != null)
                 {
                     // Ensure we don't keep the last current alive unnecessarily
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             public bool MoveNext()
             {
                 // Start by getting the current table.  If it's already been disposed, it will be null.
-                ConditionalWeakTable<TKey, TValue>? table = _table;
+                ConditionalWeakHashSet<TKey, TValue>? table = _table;
                 if (table != null)
                 {
                     // Once have the table, we need to lock to synchronize with other operations on
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
         /// </summary>
         private sealed class Container
         {
-            private readonly ConditionalWeakTable<TKey, TValue> _parent;  // the ConditionalWeakTable with which this container is associated
+            private readonly ConditionalWeakHashSet<TKey, TValue> _parent;  // the ConditionalWeakTable with which this container is associated
             private int[] _buckets;                // _buckets[hashcode & (_buckets.Length - 1)] contains index of the first entry in bucket (-1 if empty)
             private Entry[] _entries;              // the table entries containing the stored dependency handles
             private int _firstFreeEntry;           // _firstFreeEntry < _entries.Length => table has capacity,  entries grow from the bottom of the table.
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             private bool _finalized;               // set to true when initially finalized
             private volatile object? _oldKeepAlive; // used to ensure the next allocated container isn't finalized until this one is GC'd
 
-            internal Container(ConditionalWeakTable<TKey, TValue> parent)
+            internal Container(ConditionalWeakHashSet<TKey, TValue> parent)
             {
                 Debug.Assert(parent != null);
                 Debug.Assert(IsPowerOfTwo(InitialCapacity));
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 _parent = parent;
             }
 
-            private Container(ConditionalWeakTable<TKey, TValue> parent, int[] buckets, Entry[] entries, int firstFreeEntry)
+            private Container(ConditionalWeakHashSet<TKey, TValue> parent, int[] buckets, Entry[] entries, int firstFreeEntry)
             {
                 Debug.Assert(parent != null);
                 Debug.Assert(buckets != null);
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 VerifyIntegrity();
                 _invalid = true;
 
-                int hashCode = RuntimeHelpers.GetHashCode(key) & int.MaxValue;
+                int hashCode = key.GetHashCode() & int.MaxValue;
                 int newEntry = _firstFreeEntry++;
 
                 _entries[newEntry].HashCode = hashCode;
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             {
                 Debug.Assert(key != null); // Key already validated as non-null
 
-                int entryIndex = FindEntry(key, out value);
+                var entryIndex = FindEntry(key, out value);
                 return entryIndex != -1;
             }
 
@@ -486,11 +486,11 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             {
                 Debug.Assert(key != null); // Key already validated as non-null.
 
-                int hashCode = RuntimeHelpers.GetHashCode(key) & int.MaxValue;
-                int bucket = hashCode & (_buckets.Length - 1);
-                for (int entriesIndex = Volatile.Read(ref _buckets[bucket]); entriesIndex != -1; entriesIndex = _entries[entriesIndex].Next)
+                var hashCode = key.GetHashCode() & int.MaxValue;
+                var bucket = hashCode & (_buckets.Length - 1);
+                for (var entriesIndex = Volatile.Read(ref _buckets[bucket]); entriesIndex != -1; entriesIndex = _entries[entriesIndex].Next)
                 {
-                    if (_entries[entriesIndex].HashCode == hashCode && _entries[entriesIndex].depHnd.TryGetTarget(out var locKey) && locKey == key)
+                    if (_entries[entriesIndex].HashCode == hashCode && _entries[entriesIndex].depHnd.TryGetTarget(out var locKey) && locKey.Equals(key))
                     {
                         GC.KeepAlive(this); // ensure we don't get finalized while accessing DependentHandles.
                         keyValue = locKey;
