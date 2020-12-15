@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     public class StringCacheTests
     {
         [Fact]
-        public void GetOrAdd_RetrievesFirstReference()
+        public void GetOrAdd_EquivilentStrings_RetrievesFirstReference()
         {
             // Arrange
             var cache = new StringCache();
@@ -22,8 +22,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             // Act
             // Force a colleciton
-            GC.Collect();
             _ = cache.GetOrAdd(str1);
+            GC.Collect();
             var result = cache.GetOrAdd(str2);
 
             // Assert
