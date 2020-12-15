@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.Razor.Serialization
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
     {
         public static readonly TagHelperDescriptorJsonConverter Instance = new TagHelperDescriptorJsonConverter();
 
-        private static readonly StringCache _stringCache = new StringCache();
+        private static readonly ConditionalWeakHashSet<string> _stringCache = new ConditionalWeakHashSet<string>();
 
         public static bool DisableCachingForTesting { private get; set; } = false;
 
@@ -919,13 +918,16 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return null;
             }
 
+            // Some of the string using in a basic project.razor.json are interned by other processes,
+            // so we should avoid duplicating those.
             var interned = string.IsInterned(str);
             if (interned != null)
             {
                 return interned;
             }
+
             // We cache all our stings here to prevent them from balooning memory in our Descriptors.
-            return _stringCache.GetOrAdd(str);
+            return _stringCache.GetOrAddValue(str);
         }
     }
 }

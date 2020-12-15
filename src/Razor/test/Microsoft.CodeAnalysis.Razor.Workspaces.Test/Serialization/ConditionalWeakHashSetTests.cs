@@ -2,18 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Serialization;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class StringCacheTests
+    public class ConditionalWeakHashSetTests
     {
         [Fact]
         public void GetOrAdd_EquivilentStrings_RetrievesFirstReference()
         {
             // Arrange
-            var cache = new StringCache();
+            var cache = new ConditionalWeakHashSet<string>();
             // String format to prevent them from being RefEqual
             var str1 = $"stuff {1}";
             var str2 = $"stuff {1}";
@@ -22,9 +22,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             // Act
             // Force a colleciton
-            _ = cache.GetOrAdd(str1);
+            _ = cache.GetOrAddValue(str1);
             GC.Collect();
-            var result = cache.GetOrAdd(str2);
+            var result = cache.GetOrAddValue(str2);
 
             // Assert
             Assert.Same(result, str1);
@@ -32,19 +32,20 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         [Fact]
-        public void GetOrAdd_NullReturnsNull(){
+        public void GetOrAdd_NullReturnsNull()
+        {
             // Arrange
-            var cache = new StringCache();
+            var cache = new ConditionalWeakHashSet<string>();
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => cache.GetOrAdd(null));
+            Assert.Throws<ArgumentNullException>(() => cache.GetOrAddValue(null));
         }
 
         [Fact]
         public void GetOrAdd_DisposesReleasedReferencesOnExpand()
         {
             // Arrange
-            var cache = new StringCache(1);
+            var cache = new ConditionalWeakHashSet<string>();
 
             // Act
             StringArea();
@@ -52,23 +53,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Force a collection
             GC.Collect();
             var str1 = $"{1}";
-            var result = cache.GetOrAdd(str1);
+            var result = cache.GetOrAddValue(str1);
 
             // Assert
             Assert.Same(result, str1);
 
             void StringArea()
             {
-                cache.GetOrAdd($"{1}");
-                cache.GetOrAdd($"{2}");
-                cache.GetOrAdd($"{3}");
-                cache.GetOrAdd($"{4}");
-                cache.GetOrAdd($"{5}");
-                cache.GetOrAdd($"{6}");
-                cache.GetOrAdd($"{7}");
-                cache.GetOrAdd($"{8}");
-                cache.GetOrAdd($"{9}");
-                cache.GetOrAdd($"{10}");
+                var first = $"{1}";
+                var test = cache.GetOrAddValue(first);
+                Assert.Same(first, test);
+                cache.GetOrAddValue($"{2}");
             }
         }
     }
