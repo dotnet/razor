@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
     {
         public static readonly TagHelperDescriptorJsonConverter Instance = new TagHelperDescriptorJsonConverter();
 
+        private static readonly StringCache _stringCache = new StringCache();
+
         public static bool DisableCachingForTesting { private get; set; } = false;
 
         public override bool CanConvert(Type objectType)
@@ -922,7 +924,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return interned;
             }
             // We cache all our stings here to prevent them from balooning memory in our Descriptors.
-            return StringCache.Instance.GetOrAdd(str);
+            return _stringCache.GetOrAdd(str);
         }
     }
 }

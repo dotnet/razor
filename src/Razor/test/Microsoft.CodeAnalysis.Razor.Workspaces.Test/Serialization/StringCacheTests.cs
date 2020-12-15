@@ -1,6 +1,10 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using Microsoft.CodeAnalysis.Razor.Serialization;
+using Xunit;
+
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class StringCacheTests
@@ -14,15 +18,15 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var str1 = $"stuff {1}";
             var str2 = $"stuff {1}";
             // Sanity check that these aren't already equal
-            Assert.False(Object.ReferenceEquals(str1, str2));
+            Assert.False(ReferenceEquals(str1, str2));
 
             // Act
-            _ = cache.GetorAdd(str1);
+            _ = cache.GetOrAdd(str1);
             var result = cache.GetOrAdd(str2);
 
             // Assert
-            Assert.True(Object.ReferenceEquals(result, str1), "Result should have been RefEq to str1");
-            Assert.False(Object.ReferenceEquals(result, str2));
+            Assert.Same(result, str1);
+            Assert.False(ReferenceEquals(result, str2));
         }
 
         [Fact]
@@ -38,17 +42,21 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void GetOrAdd_DisposesReleasedReferencesOnExpand()
         {
             // Arrange
-            var cache = new StringCache();
+            var cache = new StringCache(1);
 
             // Act
-            var str1 = "1"
-
-            cache.GetOrAdd(str1);
-            cache.GetOrAdd("2");
+            StringArea();
+            var str1 = $"{1}";
+            var result = cache.GetOrAdd(str1);
 
             // Assert
+            Assert.Same(result, str1);
 
-            throw new NotImplementedExceptions();
+            void StringArea()
+            {
+                cache.GetOrAdd($"{1}");
+                cache.GetOrAdd($"{2}");
+            }
         }
     }
 }
