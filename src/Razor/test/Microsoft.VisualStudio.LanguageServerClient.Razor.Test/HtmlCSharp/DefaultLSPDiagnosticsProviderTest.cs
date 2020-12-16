@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class DefaultLSPDiagnosticsTest
+    public class DefaultLSPDiagnosticsProviderTest
     {
         [Fact]
         public async Task ProcessDiagnosticsAsync_ReturnsResponse()
