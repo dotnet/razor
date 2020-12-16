@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void GetOrAdd_DisposesReleasedReferencesOnExpand()
         {
             // Arrange
-            var cache = new StringCache();
+            var cache = new StringCache(2);
 
             // Act
             StringArea();
@@ -56,6 +56,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var result = cache.GetOrAddValue(str1);
 
             // Assert
+            Assert.Equal(1, cache.ApproximateSize);
             Assert.Same(result, str1);
 
             void StringArea()
@@ -63,7 +64,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 var first = $"{1}";
                 var test = cache.GetOrAddValue(first);
                 Assert.Same(first, test);
-                cache.GetOrAddValue($"{2}");
+                Assert.Equal(1, cache.ApproximateSize);
+                GC.KeepAlive(first);
             }
         }
     }

@@ -9,14 +9,18 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
     internal class StringCache
     {
         private readonly ExfiltratingEqualityComparer _comparer;
-        private readonly HashSet<WeakReference<string>> _hashSet;
+        private readonly HashSet<Entry> _hashSet;
         private readonly object _lock = new object();
+        private int _capacity;
 
-        public StringCache()
+        public StringCache(int capacity = 1024)
         {
+            _capacity = capacity;
             _comparer = new ExfiltratingEqualityComparer();
-            _hashSet = new HashSet<WeakReference<string>>(_comparer);
+            _hashSet = new HashSet<Entry>(_comparer);
         }
+
+        public int ApproximateSize => _hashSet.Count;
 
         public string GetOrAddValue(string key)
         {
@@ -27,29 +31,50 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
                     throw new ArgumentNullException(nameof(key));
                 }
 
-                if (TryGetValue(_hashSet, key, out var result))
+                if (TryGetValue(key, out var result))
                 {
                     return result!;
                 }
                 else
                 {
-                    var weakRef = new WeakReference<string>(key);
+                    var weakRef = new Entry(key);
                     _hashSet.Add(weakRef);
+
+                    // Whenever we expand lets clean up dead references
+                    if (_capacity <= _hashSet.Count)
+                    {
+                        Cleanup();
+                        _capacity *= 2;
+                    }
+
                     return key;
                 }
             }
         }
 
-        private static bool TryGetValue(HashSet<WeakReference<string>> hashSet, string key, out string? value)
+        private void Cleanup()
         {
-            if (hashSet.Contains(new WeakReference<string>(key)))
+            _hashSet.RemoveWhere((weakRef) =>
             {
-                var exfiltrator = (ExfiltratingEqualityComparer)hashSet.Comparer;
+                return !weakRef.IsAlive;
+            });
+        }
+
+        private bool TryGetValue(string key, out string? value)
+        {
+            if (_hashSet.Contains(new Entry(key)))
+            {
+                var exfiltrator = (ExfiltratingEqualityComparer)_hashSet.Comparer;
                 var val = exfiltrator.LastEqualValue!;
                 if (val.TryGetTarget(out var target))
                 {
                     value = target!;
                     return true;
+                }
+                else
+                {
+                    // If one of our strings is out of scope probably tons of them are.
+                    Cleanup();
                 }
             }
 
@@ -65,21 +90,13 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
         /// This is fragile on the ordering of the values passed to the EqualityComparer by HashSet.
         /// If that ever switches we have to react, if it becomes indeterminate we have to abandon this strategy.
         /// </remarks>
-        private class ExfiltratingEqualityComparer : IEqualityComparer<WeakReference<string>>
+        private class ExfiltratingEqualityComparer : IEqualityComparer<Entry>
         {
-            public WeakReference<string>? LastEqualValue { get; private set; }
+            public Entry? LastEqualValue { get; private set; }
 
-            public bool Equals(WeakReference<string> x, WeakReference<string> y)
+            public bool Equals(Entry x, Entry y)
             {
-                x.TryGetTarget(out var x1);
-                y.TryGetTarget(out var y1);
-
-                if (x1 is null || y1 is null)
-                {
-                    return false;
-                }
-
-                if (x1.Equals(y1, StringComparison.Ordinal))
+                if (x.Equals(y))
                 {
                     LastEqualValue = x;
                     return true;
@@ -91,14 +108,50 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
                 }
             }
 
-            public int GetHashCode(WeakReference<string> obj)
+            public int GetHashCode(Entry obj)
             {
-                if (obj.TryGetTarget(out var val))
+                return obj.TargetHashCode;
+            }
+        }
+
+        private class Entry
+        {
+            public readonly int TargetHashCode;
+
+            private WeakReference<string> _weakRef;
+
+            public Entry(string target)
+            {
+                _weakRef = new WeakReference<string>(target);
+                TargetHashCode = target.GetHashCode();
+            }
+
+            public bool IsAlive => _weakRef.TryGetTarget(out _);
+
+            public bool TryGetTarget(out string target)
+            {
+                return _weakRef.TryGetTarget(out target);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is Entry entry))
                 {
-                    return val.GetHashCode();
+                    return false;
                 }
 
-                return obj.GetHashCode();
+                if (TryGetTarget(out var thisTarget) && entry.TryGetTarget(out var entryTarget))
+                {
+                    return thisTarget!.Equals(entryTarget, StringComparison.Ordinal);
+                }
+
+                // If we lost one of the references just compare the HashCodes and hope we don't have any collisions
+                return TargetHashCode == entry.TargetHashCode;
+            }
+
+            public override int GetHashCode()
+            {
+                return TargetHashCode;
             }
         }
     }
