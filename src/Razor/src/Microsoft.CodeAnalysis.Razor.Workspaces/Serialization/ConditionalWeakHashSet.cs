@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 #nullable enable
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -18,9 +16,11 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
     /// This class was created to serve as a kind of non-permanent string.Intern,
     /// preventing memory bloat from duplicate non-constant strings without
     /// permanently adding them to the programs static memory like string.Intern would.
+    ///
+    /// This implementation is based on WeakReferenceTable.
     /// </remarks>
     /// <typeparam name="TKey">The type to be stored in this HashSet</typeparam>
-    public sealed class ConditionalWeakHashSet<TKey> : IEnumerable<TKey>
+    public sealed class ConditionalWeakHashSet<TKey>
         where TKey : class
     {
         // Lifetimes of keys:
@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
         private const int InitialCapacity = 1024;  // Initial length of the set. Must be a power of two.
         private readonly object _lock;          // This lock protects all mutation of data in the set.  Readers do not take this lock.
         private volatile Container _container;  // The actual storage for the set; swapped out as the set grows.
-        private int _activeEnumeratorRefCount;  // The number of outstanding enumerators on the set
 
         public ConditionalWeakHashSet()
         {
@@ -112,148 +111,6 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
                 CreateEntry(key);
             }
-        }
-
-        /// <summary>Gets an enumerator for the set.</summary>
-        /// <remarks>
-        /// The returned enumerator will not extend the lifetime of
-        /// any object pairs in the set, other than the one that's Current.  It will not return entries
-        /// that have already been collected, nor will it return entries added after the enumerator was
-        /// retrieved.  It may not return all entries that were present when the enumerat was retrieved,
-        /// however, such as not returning entries that were collected or removed after the enumerator
-        /// was retrieved but before they were enumerated.
-        /// </remarks>
-        IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
-        {
-            lock (_lock)
-            {
-                var c = _container;
-                return c is null || c.FirstFreeEntry == 0 ?
-                    ((IEnumerable<TKey>)Array.Empty<TKey>()).GetEnumerator() :
-                    new Enumerator(this);
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<TKey>)this).GetEnumerator();
-
-        /// <summary>Provides an enumerator for the set.</summary>
-        private sealed class Enumerator : IEnumerator<TKey>
-        {
-            // The enumerator would ideally hold a reference to the Container and the end index within that
-            // container.  However, the safety of the CWT depends on the only reference to the Container being
-            // from the CWT itself; the Container then employs a two-phase finalization scheme, where the first
-            // phase nulls out that parent CWT's reference, guaranteeing that the second time it's finalized there
-            // can be no other existing references to it in use that would allow for concurrent usage of the
-            // native handles with finalization.  We would break that if we allowed this Enumerator to hold a
-            // reference to the Container.  Instead, the Enumerator holds a reference to the CWT rather than to
-            // the Container, and it maintains the CWT._activeEnumeratorRefCount field to track whether there
-            // are outstanding enumerators that have yet to be disposed/finalized.  If there aren't any, the CWT
-            // behaves as it normally does.  If there are, certain operations are affected, in particular resizes.
-            // Normally when the CWT is resized, it enumerates the contents of the set looking for indices that
-            // contain entries which have been collected or removed, and it frees those up, effectively moving
-            // down all subsequent entries in the container (not in the existing container, but in a replacement).
-            // This, however, would cause the enumerator's understanding of indices to break.  So, as long as
-            // there is any outstanding enumerator, no compaction is performed.
-
-            private ConditionalWeakHashSet<TKey>? _set; // parent set, set to null when disposed
-            private readonly int _maxIndexInclusive;            // last index in the container that should be enumerated
-            private int _currentIndex;                          // the current index into the container
-            private TKey? _current;        // the current entry set by MoveNext and returned from Current
-
-            public Enumerator(ConditionalWeakHashSet<TKey> set)
-            {
-                Debug.Assert(Monitor.IsEntered(set._lock), "Must hold the _lock lock to construct the enumerator");
-                Debug.Assert(set._container.FirstFreeEntry > 0, "Should have returned an empty enumerator instead");
-
-                // Store a reference to the parent set and increase its active enumerator count.
-                _set = set;
-                Debug.Assert(set._activeEnumeratorRefCount >= 0, "Should never have a negative ref count before incrementing");
-                set._activeEnumeratorRefCount++;
-
-                // Store the max index to be enumerated.
-                _maxIndexInclusive = set._container.FirstFreeEntry - 1;
-                _currentIndex = -1;
-            }
-
-            ~Enumerator()
-            {
-                Dispose();
-            }
-
-            public void Dispose()
-            {
-                // Use an interlocked operation to ensure that only one thread can get access to
-                // the _set for disposal and thus only decrement the ref count once.
-                var set = Interlocked.Exchange(ref _set, null);
-                if (set != null)
-                {
-                    // Ensure we don't keep the last current alive unnecessarily
-                    _current = default;
-
-                    // Decrement the ref count that was incremented when constructed
-                    lock (set._lock)
-                    {
-                        set._activeEnumeratorRefCount--;
-                        Debug.Assert(set._activeEnumeratorRefCount >= 0, "Should never have a negative ref count after decrementing");
-                    }
-
-                    // Finalization is purely to decrement the ref count.  We can suppress it now.
-                    GC.SuppressFinalize(this);
-                }
-            }
-
-            public bool MoveNext()
-            {
-                // Start by getting the current set.  If it's already been disposed, it will be null.
-                var set = _set;
-                if (set != null)
-                {
-                    // Once have the set, we need to lock to synchronize with other operations on
-                    // the set, like adding.
-                    lock (set._lock)
-                    {
-                        // From the set, we have to get the current container.  This could have changed
-                        // since we grabbed the enumerator, but the index-to-pair mapping should not have
-                        // due to there being at least one active enumerator.  If the set (or rather its
-                        // container at the time) has already been finalized, this will be null.
-                        var c = set._container;
-                        if (c != null)
-                        {
-                            // We have the container.  Find the next entry to return, if there is one.
-                            // We need to loop as we may try to get an entry that's already been removed
-                            // or collected, in which case we try again.
-                            while (_currentIndex < _maxIndexInclusive)
-                            {
-                                _currentIndex++;
-                                if (c.TryGetEntry(_currentIndex, out var key))
-                                {
-                                    _current = key;
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Nothing more to enumerate.
-                return false;
-            }
-
-            public TKey Current
-            {
-                get
-                {
-                    if (_currentIndex < 0)
-                    {
-                        throw new InvalidOperationException("Enum Operation can't happen");
-                    }
-                    return _current!;
-                }
-            }
-
-            object? IEnumerator.Current => Current;
-
-            public void Reset() { }
         }
 
         /// <summary>Worker for adding a new key/value pair. Will resize the container if it is full.</summary>
@@ -441,28 +298,25 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 var hasExpiredEntries = false;
                 var newSize = _buckets.Length;
 
-                if (_parent is null || _parent._activeEnumeratorRefCount == 0)
+                // If any expired or removed keys exist, we won't resize.
+                // If there any active enumerators, though, we don't want
+                // to compact and thus have no expired entries.
+                for (var entriesIndex = 0; entriesIndex < _entries.Length; entriesIndex++)
                 {
-                    // If any expired or removed keys exist, we won't resize.
-                    // If there any active enumerators, though, we don't want
-                    // to compact and thus have no expired entries.
-                    for (var entriesIndex = 0; entriesIndex < _entries.Length; entriesIndex++)
+                    ref var entry = ref _entries[entriesIndex];
+
+                    if (entry.HashCode == -1)
                     {
-                        ref var entry = ref _entries[entriesIndex];
+                        // the entry was removed
+                        hasExpiredEntries = true;
+                        break;
+                    }
 
-                        if (entry.HashCode == -1)
-                        {
-                            // the entry was removed
-                            hasExpiredEntries = true;
-                            break;
-                        }
-
-                        if (entry.depHnd.TryGetTarget(out var key) && key is null)
-                        {
-                            // the entry has expired
-                            hasExpiredEntries = true;
-                            break;
-                        }
+                    if (entry.depHnd.TryGetTarget(out var key) && key is null)
+                    {
+                        // the entry has expired
+                        hasExpiredEntries = true;
+                        break;
                     }
                 }
 
@@ -489,57 +343,33 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 }
                 var newEntries = new Entry[newSize];
                 var newEntriesIndex = 0;
-                var activeEnumerators = _parent != null && _parent._activeEnumeratorRefCount > 0;
-
-                // Migrate existing entries to the new set.
-                if (activeEnumerators)
+                
+                // There are no active enumerators, which means we want to compact by
+                // removing expired/removed entries.
+                for (var entriesIndex = 0; entriesIndex < _entries.Length; entriesIndex++)
                 {
-                    // There's at least one active enumerator, which means we don't want to
-                    // remove any expired/removed entries, in order to not affect existing
-                    // entries indices.  Copy over the entries while rebuilding the buckets list,
-                    // as the buckets are dependent on the buckets list length, which is changing.
-                    for (; newEntriesIndex < _entries.Length; newEntriesIndex++)
+                    ref var oldEntry = ref _entries[entriesIndex];
+                    var hashCode = oldEntry.HashCode;
+                    var depHnd = oldEntry.depHnd;
+                    if (hashCode != -1 && depHnd.TryGetTarget(out var key))
                     {
-                        ref var oldEntry = ref _entries[newEntriesIndex];
-                        ref var newEntry = ref newEntries[newEntriesIndex];
-                        var hashCode = oldEntry.HashCode;
-
-                        newEntry.HashCode = hashCode;
-                        newEntry.depHnd = oldEntry.depHnd;
-                        var bucket = hashCode & (newBuckets.Length - 1);
-                        newEntry.Next = newBuckets[bucket];
-                        newBuckets[bucket] = newEntriesIndex;
-                    }
-                }
-                else
-                {
-                    // There are no active enumerators, which means we want to compact by
-                    // removing expired/removed entries.
-                    for (var entriesIndex = 0; entriesIndex < _entries.Length; entriesIndex++)
-                    {
-                        ref var oldEntry = ref _entries[entriesIndex];
-                        var hashCode = oldEntry.HashCode;
-                        var depHnd = oldEntry.depHnd;
-                        if (hashCode != -1 && depHnd.TryGetTarget(out var key))
+                        if (key != null)
                         {
-                            if (key != null)
-                            {
-                                ref var newEntry = ref newEntries[newEntriesIndex];
+                            ref var newEntry = ref newEntries[newEntriesIndex];
 
-                                // Entry is used and has not expired. Link it into the appropriate bucket list.
-                                newEntry.HashCode = hashCode;
-                                newEntry.depHnd = depHnd;
-                                var bucket = hashCode & (newBuckets.Length - 1);
-                                newEntry.Next = newBuckets[bucket];
-                                newBuckets[bucket] = newEntriesIndex;
-                                newEntriesIndex++;
-                            }
-                            else
-                            {
-                                // Pretend the item was removed, so that this container's finalizer
-                                // will clean up this dependent handle.
-                                Volatile.Write(ref oldEntry.HashCode, -1);
-                            }
+                            // Entry is used and has not expired. Link it into the appropriate bucket list.
+                            newEntry.HashCode = hashCode;
+                            newEntry.depHnd = depHnd;
+                            var bucket = hashCode & (newBuckets.Length - 1);
+                            newEntry.Next = newBuckets[bucket];
+                            newBuckets[bucket] = newEntriesIndex;
+                            newEntriesIndex++;
+                        }
+                        else
+                        {
+                            // Pretend the item was removed, so that this container's finalizer
+                            // will clean up this dependent handle.
+                            Volatile.Write(ref oldEntry.HashCode, -1);
                         }
                     }
                 }
@@ -549,14 +379,6 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 // while the old container may still be in use.  As such, we store a reference from the old container
                 // to the new one, which will keep the new container alive as long as the old one is.
                 var newContainer = new Container(_parent!, newBuckets, newEntries, newEntriesIndex);
-                if (activeEnumerators)
-                {
-                    // If there are active enumerators, both the old container and the new container may be storing
-                    // the same entries with -1 hash codes, which the finalizer will clean up even if the container
-                    // is not the active container for the set.  To prevent that, we want to stop the old container
-                    // from being finalized, as it no longer has any responsibility for any cleanup.
-                    GC.SuppressFinalize(this);
-                }
 
                 GC.KeepAlive(this); // ensure we don't get finalized while accessing DependentHandles.
 
