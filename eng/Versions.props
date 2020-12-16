@@ -105,6 +105,7 @@
     <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>16.9.121</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
     <MicrosoftVisualStudioPackageLanguageService150PackageVersion>16.7.30204.53-pre</MicrosoftVisualStudioPackageLanguageService150PackageVersion>
     <MicrosoftVisualStudioLiveSharePackageVersion>0.3.1074</MicrosoftVisualStudioLiveSharePackageVersion>
+    <MicrosoftVisualStudioLogHubPackageVersion>16.9.1041</MicrosoftVisualStudioLogHubPackageVersion>
     <MicrosoftVisualStudioOLEInteropPackageVersion>7.10.6071</MicrosoftVisualStudioOLEInteropPackageVersion>
     <MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>3.0.0-beta1-63607-01</MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>
     <MicrosoftVisualStudioProjectSystemSDKPackageVersion>16.0.201-pre-g7d366164d0</MicrosoftVisualStudioProjectSystemSDKPackageVersion>
