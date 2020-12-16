@@ -73,8 +73,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
                 }
                 else
                 {
-                    // If one of our strings is out of scope probably tons of them are.
-                    Cleanup();
+                    throw new InvalidOperationException("HashSet contained entry but we were unable to get the value from it. This should be impossible");
                 }
             }
 
@@ -145,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
                     return thisTarget!.Equals(entryTarget, StringComparison.Ordinal);
                 }
 
-                // If we lost one of the references just compare the HashCodes and hope we don't have any collisions
-                return TargetHashCode == entry.TargetHashCode;
+                // We lost the reference, but we need to check RefEquals to ensure that HashSet can successfully Remove items.
+                return ReferenceEquals(this, obj);
             }
 
             public override int GetHashCode()
