@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
 {
     internal class StringCache
     {
-        private readonly ExfiltratingEqualityComparer _comparer;
         private readonly HashSet<Entry> _hashSet;
         private readonly object _lock = new object();
         private int _capacity;
@@ -16,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
         public StringCache(int capacity = 1024)
         {
             _capacity = capacity;
-            _comparer = new ExfiltratingEqualityComparer();
-            _hashSet = new HashSet<Entry>(_comparer);
+            _hashSet = new HashSet<Entry>(new ExfiltratingEqualityComparer());
         }
 
         public int ApproximateSize => _hashSet.Count;
