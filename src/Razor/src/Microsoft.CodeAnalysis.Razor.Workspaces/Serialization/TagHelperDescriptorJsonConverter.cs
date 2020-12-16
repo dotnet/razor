@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         if (reader.Read())
                         {
                             var tagOutputHint = (string)reader.Value;
+                            // TODO: Needed?
                             builder.TagOutputHint = Cached(tagOutputHint);
                         }
                         break;
@@ -446,6 +447,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                                 if (indexerNamePrefix != null)
                                 {
                                     attribute.IsDictionary = true;
+                                    // TODO: Needed?
                                     attribute.IndexerAttributeNamePrefix = Cached(indexerNamePrefix);
                                 }
                             }
@@ -457,6 +459,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                                 if (indexerTypeName != null)
                                 {
                                     attribute.IsDictionary = true;
+                                    // TODO: Needed?
                                     attribute.IndexerValueTypeName = Cached(indexerTypeName);
                                 }
                             }
@@ -830,6 +833,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 }
             });
 
+            // TODO: Needed?
             var descriptor = new RazorDiagnosticDescriptor(Cached(id), () => Cached(message), (RazorDiagnosticSeverity)severity);
 
             var diagnostic = RazorDiagnostic.Create(descriptor, sourceSpan);

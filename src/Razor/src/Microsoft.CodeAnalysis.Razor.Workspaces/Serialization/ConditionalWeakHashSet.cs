@@ -29,20 +29,20 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
         // the entry.
         //
         // Thread safety guarantees:
-        // ConditionalWeakTable is fully thread-safe and requires no
+        // <typeref name="ConditionalWeakHashSet" /> is fully thread-safe and requires no
         // additional locking to be done by callers.
         //
         // OOM guarantees:
-        // Will not corrupt unmanaged handle table on OOM. No guarantees
-        // about managed weak table consistency. Native handles reclamation
+        // Will not corrupt unmanaged handle set on OOM. No guarantees
+        // about managed weak set consistency. Native handles reclamation
         // may be delayed until appdomain shutdown.
 
         // Your basic project.razor.json using our template have ~800 entries,
         // so lets start the dictionary out large
-        private const int InitialCapacity = 1024;  // Initial length of the table. Must be a power of two.
-        private readonly object _lock;          // This lock protects all mutation of data in the table.  Readers do not take this lock.
-        private volatile Container _container;  // The actual storage for the table; swapped out as the table grows.
-        private int _activeEnumeratorRefCount;  // The number of outstanding enumerators on the table
+        private const int InitialCapacity = 1024;  // Initial length of the set. Must be a power of two.
+        private readonly object _lock;          // This lock protects all mutation of data in the set.  Readers do not take this lock.
+        private volatile Container _container;  // The actual storage for the set; swapped out as the set grows.
+        private int _activeEnumeratorRefCount;  // The number of outstanding enumerators on the set
 
         public ConditionalWeakHashSet()
         {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             }
         }
 
-        /// <summary>Adds a key to the table.</summary>
+        /// <summary>Adds a key to the set.</summary>
         /// <param name="key">key to add. May not be null.</param>
         /// <remarks>
         /// If the key is already entered into the dictionary, this method throws an exception.
@@ -114,10 +114,10 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             }
         }
 
-        /// <summary>Gets an enumerator for the table.</summary>
+        /// <summary>Gets an enumerator for the set.</summary>
         /// <remarks>
         /// The returned enumerator will not extend the lifetime of
-        /// any object pairs in the table, other than the one that's Current.  It will not return entries
+        /// any object pairs in the set, other than the one that's Current.  It will not return entries
         /// that have already been collected, nor will it return entries added after the enumerator was
         /// retrieved.  It may not return all entries that were present when the enumerat was retrieved,
         /// however, such as not returning entries that were collected or removed after the enumerator
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<TKey>)this).GetEnumerator();
 
-        /// <summary>Provides an enumerator for the table.</summary>
+        /// <summary>Provides an enumerator for the set.</summary>
         private sealed class Enumerator : IEnumerator<TKey>
         {
             // The enumerator would ideally hold a reference to the Container and the end index within that
@@ -149,29 +149,29 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             // the Container, and it maintains the CWT._activeEnumeratorRefCount field to track whether there
             // are outstanding enumerators that have yet to be disposed/finalized.  If there aren't any, the CWT
             // behaves as it normally does.  If there are, certain operations are affected, in particular resizes.
-            // Normally when the CWT is resized, it enumerates the contents of the table looking for indices that
+            // Normally when the CWT is resized, it enumerates the contents of the set looking for indices that
             // contain entries which have been collected or removed, and it frees those up, effectively moving
             // down all subsequent entries in the container (not in the existing container, but in a replacement).
             // This, however, would cause the enumerator's understanding of indices to break.  So, as long as
             // there is any outstanding enumerator, no compaction is performed.
 
-            private ConditionalWeakHashSet<TKey>? _table; // parent table, set to null when disposed
+            private ConditionalWeakHashSet<TKey>? _set; // parent set, set to null when disposed
             private readonly int _maxIndexInclusive;            // last index in the container that should be enumerated
             private int _currentIndex;                          // the current index into the container
             private TKey? _current;        // the current entry set by MoveNext and returned from Current
 
-            public Enumerator(ConditionalWeakHashSet<TKey> table)
+            public Enumerator(ConditionalWeakHashSet<TKey> set)
             {
-                Debug.Assert(Monitor.IsEntered(table._lock), "Must hold the _lock lock to construct the enumerator");
-                Debug.Assert(table._container.FirstFreeEntry > 0, "Should have returned an empty enumerator instead");
+                Debug.Assert(Monitor.IsEntered(set._lock), "Must hold the _lock lock to construct the enumerator");
+                Debug.Assert(set._container.FirstFreeEntry > 0, "Should have returned an empty enumerator instead");
 
-                // Store a reference to the parent table and increase its active enumerator count.
-                _table = table;
-                Debug.Assert(table._activeEnumeratorRefCount >= 0, "Should never have a negative ref count before incrementing");
-                table._activeEnumeratorRefCount++;
+                // Store a reference to the parent set and increase its active enumerator count.
+                _set = set;
+                Debug.Assert(set._activeEnumeratorRefCount >= 0, "Should never have a negative ref count before incrementing");
+                set._activeEnumeratorRefCount++;
 
                 // Store the max index to be enumerated.
-                _maxIndexInclusive = table._container.FirstFreeEntry - 1;
+                _maxIndexInclusive = set._container.FirstFreeEntry - 1;
                 _currentIndex = -1;
             }
 
@@ -183,18 +183,18 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             public void Dispose()
             {
                 // Use an interlocked operation to ensure that only one thread can get access to
-                // the _table for disposal and thus only decrement the ref count once.
-                var table = Interlocked.Exchange(ref _table, null);
-                if (table != null)
+                // the _set for disposal and thus only decrement the ref count once.
+                var set = Interlocked.Exchange(ref _set, null);
+                if (set != null)
                 {
                     // Ensure we don't keep the last current alive unnecessarily
                     _current = default;
 
                     // Decrement the ref count that was incremented when constructed
-                    lock (table._lock)
+                    lock (set._lock)
                     {
-                        table._activeEnumeratorRefCount--;
-                        Debug.Assert(table._activeEnumeratorRefCount >= 0, "Should never have a negative ref count after decrementing");
+                        set._activeEnumeratorRefCount--;
+                        Debug.Assert(set._activeEnumeratorRefCount >= 0, "Should never have a negative ref count after decrementing");
                     }
 
                     // Finalization is purely to decrement the ref count.  We can suppress it now.
@@ -204,19 +204,19 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
             public bool MoveNext()
             {
-                // Start by getting the current table.  If it's already been disposed, it will be null.
-                var table = _table;
-                if (table != null)
+                // Start by getting the current set.  If it's already been disposed, it will be null.
+                var set = _set;
+                if (set != null)
                 {
-                    // Once have the table, we need to lock to synchronize with other operations on
-                    // the table, like adding.
-                    lock (table._lock)
+                    // Once have the set, we need to lock to synchronize with other operations on
+                    // the set, like adding.
+                    lock (set._lock)
                     {
-                        // From the table, we have to get the current container.  This could have changed
+                        // From the set, we have to get the current container.  This could have changed
                         // since we grabbed the enumerator, but the index-to-pair mapping should not have
-                        // due to there being at least one active enumerator.  If the table (or rather its
+                        // due to there being at least one active enumerator.  If the set (or rather its
                         // container at the time) has already been finalized, this will be null.
-                        var c = table._container;
+                        var c = set._container;
                         if (c != null)
                         {
                             // We have the container.  Find the next entry to return, if there is one.
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
         //         hashCode == <notcare>
         //         next links to next Entry in bucket.
         //
-        //    - Has been removed from the table (by a call to Remove)
+        //    - Has been removed from the set (by a call to Remove)
         //         depHnd.IsAllocated == true, depHnd.GetPrimary() == <notcare>
         //         hashCode == -1
         //         next links to next Entry in bucket.
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
         // happens asynchronously as a result of normal garbage collection. The dictionary itself
         // receives no notification when this happens.
         //
-        // When the dictionary grows the _entries table, it scours it for expired keys and does not
+        // When the dictionary grows the _entries set, it scours it for expired keys and does not
         // add those to the new container.
         //--------------------------------------------------------------------------------------------
         private struct Entry
@@ -312,16 +312,16 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
         }
 
         /// <summary>
-        /// Container holds the actual data for the table.  A given instance of Container always has the same capacity.  When we need
+        /// Container holds the actual data for the set.  A given instance of Container always has the same capacity.  When we need
         /// more capacity, we create a new Container, copy the old one into the new one, and discard the old one.  This helps enable lock-free
-        /// reads from the table, as readers never need to deal with motion of entries due to rehashing.
+        /// reads from the set, as readers never need to deal with motion of entries due to rehashing.
         /// </summary>
         private sealed class Container
         {
-            private readonly ConditionalWeakHashSet<TKey> _parent;  // the ConditionalWeakTable with which this container is associated
+            private readonly ConditionalWeakHashSet<TKey> _parent;  // the ConditionalWeakHashSet with which this container is associated
             private readonly int[] _buckets;                // _buckets[hashcode & (_buckets.Length - 1)] contains index of the first entry in bucket (-1 if empty)
-            private readonly Entry[] _entries;              // the table entries containing the stored dependency handles
-            private int _firstFreeEntry;           // _firstFreeEntry < _entries.Length => table has capacity,  entries grow from the bottom of the table.
+            private readonly Entry[] _entries;              // the set entries containing the stored dependency handles
+            private int _firstFreeEntry;           // _firstFreeEntry < _entries.Length => set has capacity,  entries grow from the bottom of the set.
             private bool _invalid;                 // flag detects if OOM or other background exception threw us out of the lock.
 
             internal Container(ConditionalWeakHashSet<TKey> parent)
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
 
             /// <summary>Resize, and scrub expired keys off bucket lists. Must hold _lock.</summary>
             /// <remarks>
-            /// _firstEntry is less than _entries.Length on exit, that is, the table has at least one free entry.
+            /// _firstEntry is less than _entries.Length on exit, that is, the set has at least one free entry.
             /// </remarks>
             internal Container Resize()
             {
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 var newEntriesIndex = 0;
                 var activeEnumerators = _parent != null && _parent._activeEnumeratorRefCount > 0;
 
-                // Migrate existing entries to the new table.
+                // Migrate existing entries to the new set.
                 if (activeEnumerators)
                 {
                     // There's at least one active enumerator, which means we don't want to
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 {
                     // If there are active enumerators, both the old container and the new container may be storing
                     // the same entries with -1 hash codes, which the finalizer will clean up even if the container
-                    // is not the active container for the table.  To prevent that, we want to stop the old container
+                    // is not the active container for the set.  To prevent that, we want to stop the old container
                     // from being finalized, as it no longer has any responsibility for any cleanup.
                     GC.SuppressFinalize(this);
                 }
