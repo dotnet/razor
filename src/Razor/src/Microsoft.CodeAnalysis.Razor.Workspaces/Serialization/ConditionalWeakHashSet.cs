@@ -60,13 +60,8 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
         /// The key may get garbaged collected during the TryGetValue operation. If so, TryGetValue
         /// may at its discretion, return "false" and set "value" to the default (as if the key was not present.)
         /// </remarks>
-        public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TKey value)
+        public bool TryGetValue(TKey key, out TKey? value)
         {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
             return _container.TryGetValueWorker(key, out value);
         }
 
@@ -81,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             {
                 if (TryGetValue(key, out var value))
                 {
-                    return value;
+                    return value!;
                 }
                 else
                 {
@@ -239,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             }
 
             /// <summary>Worker for finding a key/value pair. Must hold _lock.</summary>
-            internal bool TryGetValueWorker(TKey key, [MaybeNullWhen(false)] out TKey value)
+            internal bool TryGetValueWorker(TKey key, out TKey? value)
             {
                 var entryIndex = FindEntry(key, out value);
                 return entryIndex != -1;
