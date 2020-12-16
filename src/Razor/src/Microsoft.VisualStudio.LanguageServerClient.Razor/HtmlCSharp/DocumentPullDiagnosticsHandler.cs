@@ -118,7 +118,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var processedResults = await RemapDocumentDiagnosticsAsync(
                 result,
                 request.TextDocument.Uri,
-                documentSnapshot,
                 cancellationToken).ConfigureAwait(false);
 
             // | ---------------------------------------------------------------------------------- |
@@ -136,7 +135,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private async Task<DiagnosticReport[]> RemapDocumentDiagnosticsAsync(
             DiagnosticReport[] unmappedDiagnosticReports,
             Uri razorDocumentUri,
-            LSPDocumentSnapshot documentSnapshot,
             CancellationToken cancellationToken)
         {
             if (unmappedDiagnosticReports?.Any() != true)
@@ -159,10 +157,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     RazorLanguageKind.CSharp,
                     razorDocumentUri,
                     diagnosticReport.Diagnostics,
-                    LanguageServerMappingBehavior.Inclusive,
-                    documentSnapshot.Version,
                     cancellationToken
                 ).ConfigureAwait(false);
+
+                if (!_documentManager.TryGetDocument(razorDocumentUri, out var documentSnapshot) ||
+                    documentSnapshot.Version != processedDiagnostics.HostDocumentVersion)
+                {
+                    // We choose to discard diagnostics in this case & report nothing changed.
+                    diagnosticReport.Diagnostics = null;
+                    mappedDiagnosticReports.Add(diagnosticReport);
+                    continue;
+                }
 
                 diagnosticReport.Diagnostics = processedDiagnostics.Diagnostics;
 

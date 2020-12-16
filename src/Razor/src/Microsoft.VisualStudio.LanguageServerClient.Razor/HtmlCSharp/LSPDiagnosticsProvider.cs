@@ -14,8 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             RazorLanguageKind languageKind,
             Uri razorDocumentUri,
             Diagnostic[] diagnostics,
-            LanguageServerMappingBehavior mappingBehavior,
-            int HostDocumentVersion,
             CancellationToken cancellationToken);
     }
 }

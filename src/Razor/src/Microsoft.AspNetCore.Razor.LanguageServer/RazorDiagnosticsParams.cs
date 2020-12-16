@@ -15,9 +15,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public Uri RazorDocumentUri { get; set; }
 
         public Diagnostic[] Diagnostics { get; set; }
-
-        public MappingBehavior MappingBehavior { get; set; }
-
-        public int HostDocumentVersion { get; set; }
     }
 }

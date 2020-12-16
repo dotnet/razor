@@ -13,9 +13,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         public Diagnostic[] Diagnostics { get; set; }
 
+        public int? HostDocumentVersion { get; set; }
+
         public bool Equals(RazorDiagnosticsResponse other)
         {
-            return Enumerable.SequenceEqual(Diagnostics, other.Diagnostics);
+            return Enumerable.SequenceEqual(Diagnostics, other.Diagnostics) &&
+                HostDocumentVersion == other.HostDocumentVersion;
         }
 
         public override bool Equals(object obj)
@@ -27,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             var hash = new HashCodeCombiner();
             hash.Add(Diagnostics);
+            hash.Add(HostDocumentVersion);
             return hash;
         }
     }

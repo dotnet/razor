@@ -9,5 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class RazorDiagnosticsResponse
     {
         public Diagnostic[] Diagnostics { get; set; }
+
+        public int? HostDocumentVersion { get; set; }
     }
 }

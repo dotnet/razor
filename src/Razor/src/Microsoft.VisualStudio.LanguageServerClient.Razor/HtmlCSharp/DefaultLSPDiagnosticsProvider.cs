@@ -32,8 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             RazorLanguageKind languageKind,
             Uri razorDocumentUri,
             Diagnostic[] diagnostics,
-            LanguageServerMappingBehavior mappingBehavior,
-            int hostDocumentVersion,
             CancellationToken cancellationToken)
         {
             if (razorDocumentUri is null)
@@ -50,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 Kind = languageKind,
                 RazorDocumentUri = razorDocumentUri,
-                Diagnostics = diagnostics,
-                MappingBehavior = mappingBehavior,
-                HostDocumentVersion = hostDocumentVersion
+                Diagnostics = diagnostics
             };
 
             var diagnosticResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, RazorDiagnosticsResponse>(

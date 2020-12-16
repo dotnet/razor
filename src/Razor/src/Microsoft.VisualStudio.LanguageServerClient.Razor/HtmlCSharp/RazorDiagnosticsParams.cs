@@ -17,19 +17,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public Diagnostic[] Diagnostics { get; set; }
 
-        public LanguageServerMappingBehavior MappingBehavior { get; set; }
-
-        public int HostDocumentVersion { get; set; }
-
         public bool Equals(RazorDiagnosticsParams other)
         {
             return
                 other != null &&
                 Kind == other.Kind &&
                 RazorDocumentUri == other.RazorDocumentUri &&
-                MappingBehavior == other.MappingBehavior &&
-                Enumerable.SequenceEqual(Diagnostics, other.Diagnostics) &&
-                HostDocumentVersion == other.HostDocumentVersion;
+                Enumerable.SequenceEqual(Diagnostics, other.Diagnostics);
         }
 
         public override bool Equals(object obj)
@@ -43,8 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             hash.Add(Kind);
             hash.Add(RazorDocumentUri);
             hash.Add(Diagnostics);
-            hash.Add(MappingBehavior);
-            hash.Add(HostDocumentVersion);
             return hash;
         }
     }

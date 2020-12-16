@@ -18,32 +18,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [InterceptMethod(Methods.TextDocumentPublishDiagnosticsName)]
     internal class RazorHtmlPublishDiagnosticsInterceptor : MessageInterceptor
     {
-        private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
-        private readonly LSPDocumentMappingProvider _documentMappingProvider;
-
         private readonly LSPDiagnosticsProvider _diagnosticsProvider;
 
         [ImportingConstructor]
         public RazorHtmlPublishDiagnosticsInterceptor(
-            LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
-            LSPDocumentMappingProvider documentMappingProvider,
             LSPDiagnosticsProvider diagnosticsProvider)
         {
-            if (requestInvoker is null)
-            {
-                throw new ArgumentNullException(nameof(requestInvoker));
-            }
-
             if (documentManager is null)
             {
                 throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            if (documentMappingProvider is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
             if (diagnosticsProvider is null)
@@ -51,9 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(diagnosticsProvider));
             }
 
-            _requestInvoker = requestInvoker;
             _documentManager = documentManager;
-            _documentMappingProvider = documentMappingProvider;
             _diagnosticsProvider = diagnosticsProvider;
         }
 
@@ -108,10 +91,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 RazorLanguageKind.Html,
                 razorDocumentUri,
                 diagnosticParams.Diagnostics,
-                LanguageServerMappingBehavior.Inclusive,
-                razorDocumentSnapshot.Version,
                 cancellationToken
             ).ConfigureAwait(false);
+
+            // Note it's possible the document version changed between when the diagnostics were created
+            // and when we finished remapping the diagnostics. This could result in lingering / misaligned diagnostics.
+            // We're choosing to do this over clearing out the diagnostics as that would lead to flickering.
+            //
+            // This'll need to be revisited based on preferences with flickering vs lingering.
 
             diagnosticParams.Diagnostics = processedDiagnostics.Diagnostics;
 
