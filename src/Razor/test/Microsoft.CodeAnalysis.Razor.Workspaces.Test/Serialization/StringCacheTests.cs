@@ -2,18 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Razor.Serialization;
+using Microsoft.CodeAnalysis.Razor.Serialization.Internal;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class ConditionalWeakHashSetTests
+    public class StringCacheTests
     {
         [Fact]
         public void GetOrAdd_EquivilentStrings_RetrievesFirstReference()
         {
             // Arrange
-            var cache = new ConditionalWeakHashSet<string>();
+            var cache = new StringCache();
             // String format to prevent them from being RefEqual
             var str1 = $"stuff {1}";
             var str2 = $"stuff {1}";
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void GetOrAdd_NullReturnsNull()
         {
             // Arrange
-            var cache = new ConditionalWeakHashSet<string>();
+            var cache = new StringCache();
 
             // Act & Assert
             Assert.Throws<ArgumentNullException>(() => cache.GetOrAddValue(null));
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void GetOrAdd_DisposesReleasedReferencesOnExpand()
         {
             // Arrange
-            var cache = new ConditionalWeakHashSet<string>();
+            var cache = new StringCache();
 
             // Act
             StringArea();

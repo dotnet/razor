@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Serialization.Internal;
 using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.Razor.Serialization
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
     {
         public static readonly TagHelperDescriptorJsonConverter Instance = new TagHelperDescriptorJsonConverter();
 
-        private static readonly ConditionalWeakHashSet<string> _stringCache = new ConditionalWeakHashSet<string>();
+        private static readonly StringCache _stringCache = new StringCache();
 
         public static bool DisableCachingForTesting { private get; set; } = false;
 
