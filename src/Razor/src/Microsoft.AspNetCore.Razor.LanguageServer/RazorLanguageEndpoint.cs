@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -18,13 +19,12 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorLanguageEndpoint : IRazorLanguageQueryHandler, IRazorMapToDocumentRangesHandler, IRazorMapToDocumentEditsHandler
+    internal class RazorLanguageEndpoint :
+        IRazorLanguageQueryHandler,
+        IRazorMapToDocumentRangesHandler,
+        IRazorMapToDocumentEditsHandler,
+        IRazorDiagnosticsHandler
     {
-        // Internal for testing
-        internal static readonly Range UndefinedRange = new Range(
-            start: new Position(-1, -1),
-            end: new Position(-1, -1));
-
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DocumentResolver documentResolver,
             DocumentVersionCache documentVersionCache,
             RazorDocumentMappingService documentMappingService,
-            RazorFormattingService razorFormattingService, 
+            RazorFormattingService razorFormattingService,
             ILoggerFactory loggerFactory)
         {
             if (foregroundDispatcher == null)
@@ -191,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, request.MappingBehavior, out var originalRange))
                 {
                     // All language queries on unsupported documents return Html. This is equivalent to what pre-VSCode Razor was capable of.
-                    ranges[i] = UndefinedRange;
+                    ranges[i] = RangeExtensions.UndefinedRange;
                     continue;
                 }
 
@@ -298,5 +298,96 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 HostDocumentVersion = documentVersion,
             };
         }
+
+        public async Task<RazorDiagnosticsResponse> Handle(RazorDiagnosticsParams request, CancellationToken cancellationToken)
+        {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            var unmappedDiagnostics = request.Diagnostics;
+            var filteredDiagnostics = unmappedDiagnostics.Where(d => !CanDiagnosticBeFiltered(d));
+            if (!filteredDiagnostics.Any())
+            {
+                // No diagnostics left after filtering.
+                return new RazorDiagnosticsResponse()
+                {
+                    Diagnostics = Array.Empty<Diagnostic>()
+                };
+            }
+
+            var rangesToMap = filteredDiagnostics.Select(r => r.Range).ToArray();
+            var mappingParams = new RazorMapToDocumentRangesParams()
+            {
+                Kind = request.Kind,
+                RazorDocumentUri = request.RazorDocumentUri,
+                ProjectedRanges = rangesToMap,
+                MappingBehavior = request.MappingBehavior
+            };
+            var mappingResult = await Handle(mappingParams, cancellationToken).ConfigureAwait(false);
+
+            if (mappingResult == null || mappingResult.HostDocumentVersion != request.HostDocumentVersion)
+            {
+                // Couldn't remap the range or the document changed in the meantime.
+
+                return new RazorDiagnosticsResponse()
+                {
+                    // Note in the case of HTML `mappingResult.HostDocumentVersion != razorDocumentSnapshot.Version`,
+                    // we're choosing to keep the diagnostics. This scanario has a relatively good chance
+                    // of happening and may cause lingering. An alternative would be to return an empty
+                    // diagnostics array which would result in flickering diagnostics.
+                    //
+                    // This'll need to be revisited based on preferences with flickering vs lingering.
+
+                    // HTML: Return diagnostics for HTML (allow diagnostic lingering)
+                    // C#: Return null (report nothing changed)
+                    Diagnostics = request.Kind == RazorLanguageKind.Html ?
+                        filteredDiagnostics.ToArray() :
+                        null
+                };
+            }
+
+            var mappedDiagnostics = new List<Diagnostic>();
+
+            for (var i = 0; i < filteredDiagnostics.Count(); i++)
+            {
+                var diagnostic = filteredDiagnostics.ElementAt(i);
+                var range = mappingResult.Ranges[i];
+
+                if (range.IsUndefined())
+                {
+                    // Couldn't remap the range correctly.
+                    // If this isn't an `Error` Severity Diagnostic we can discard it.
+                    if (diagnostic.Severity != DiagnosticSeverity.Error)
+                    {
+                        continue;
+                    }
+
+                    // For `Error` Severity diagnostics we still show the diagnostics to
+                    // the user, however we set the range to an undefined range to ensure
+                    // clicking on the diagnostic doesn't cause errors.
+                }
+
+                diagnostic.Range = range;
+                mappedDiagnostics.Add(diagnostic);
+            }
+
+            return new RazorDiagnosticsResponse()
+            {
+                Diagnostics = mappedDiagnostics.ToArray()
+            };
+
+            // TODO; HTML filtering blocked on https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401
+            static bool CanDiagnosticBeFiltered(Diagnostic d) =>
+                (DiagnosticsToIgnore.Contains(d.Code?.String) &&
+                 d.Severity != DiagnosticSeverity.Error);
+        }
+
+        private static readonly IReadOnlyCollection<string> DiagnosticsToIgnore = new HashSet<string>()
+        {
+            "RemoveUnnecessaryImportsFixable",
+            "IDE0005_gen", // Using directive is unnecessary
+        };
     }
 }

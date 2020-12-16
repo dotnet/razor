@@ -17,23 +17,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     internal class DocumentPullDiagnosticsHandler :
         IRequestHandler<DocumentDiagnosticsParams, DiagnosticReport[]>
     {
-        private static readonly IReadOnlyCollection<string> DiagnosticsToIgnore = new HashSet<string>()
-        {
-            "RemoveUnnecessaryImportsFixable",
-            "IDE0005_gen", // Using directive is unnecessary
-        };
-
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
-        private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly LSPDocumentSynchronizer _documentSynchronizer;
+        private readonly LSPDiagnosticsProvider _diagnosticsProvider;
 
         [ImportingConstructor]
         public DocumentPullDiagnosticsHandler(
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
-            LSPDocumentMappingProvider documentMappingProvider,
-            LSPDocumentSynchronizer documentSynchronizer)
+            LSPDocumentSynchronizer documentSynchronizer,
+            LSPDiagnosticsProvider diagnosticsProvider)
         {
             if (requestInvoker is null)
             {
@@ -45,20 +39,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentManager));
             }
 
-            if (documentMappingProvider is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingProvider));
-            }
-
             if (documentSynchronizer is null)
             {
                 throw new ArgumentNullException(nameof(documentSynchronizer));
             }
 
+            if (diagnosticsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(diagnosticsProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
-            _documentMappingProvider = documentMappingProvider;
             _documentSynchronizer = documentSynchronizer;
+            _diagnosticsProvider = diagnosticsProvider;
         }
 
         // Internal for testing
@@ -161,71 +155,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                var unmappedDiagnostics = diagnosticReport.Diagnostics;
-                var filteredDiagnostics = unmappedDiagnostics.Where(d => !CanDiagnosticBeFiltered(d));
-                if (!filteredDiagnostics.Any())
-                {
-                    // No diagnostics left after filtering.
-                    // Discard the diagnostics from this DiagnosticReport,
-                    // and report there aren't any document diagnostics.
-                    diagnosticReport.Diagnostics = Array.Empty<Diagnostic>();
-                    mappedDiagnosticReports.Add(diagnosticReport);
-                    continue;
-                }
-
-                var mappedDiagnostics = new List<Diagnostic>(filteredDiagnostics.Count());
-
-                var rangesToMap = filteredDiagnostics.Select(r => r.Range).ToArray();
-                var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
+                var processedDiagnostics = await _diagnosticsProvider.ProcessDiagnosticsAsync(
                     RazorLanguageKind.CSharp,
                     razorDocumentUri,
-                    rangesToMap,
+                    diagnosticReport.Diagnostics,
                     LanguageServerMappingBehavior.Inclusive,
-                    cancellationToken).ConfigureAwait(false);
+                    documentSnapshot.Version,
+                    cancellationToken
+                ).ConfigureAwait(false);
 
-                if (mappingResult == null || mappingResult.HostDocumentVersion != documentSnapshot.Version)
-                {
-                    // Couldn't remap the range or the document changed in the meantime.
-                    // Discard the diagnostics from this DiagnosticReport, and report that nothings changed.
-                    diagnosticReport.Diagnostics = null;
-                    mappedDiagnosticReports.Add(diagnosticReport);
-                    continue;
-                }
+                diagnosticReport.Diagnostics = processedDiagnostics.Diagnostics;
 
-                for (var i = 0; i < filteredDiagnostics.Count(); i++)
-                {
-                    var diagnostic = filteredDiagnostics.ElementAt(i);
-                    var range = mappingResult.Ranges[i];
-
-                    if (range.IsUndefined())
-                    {
-                        // Couldn't remap the range correctly.
-                        // If this isn't an `Error` Severity Diagnostic we can discard it.
-                        if (diagnostic.Severity != DiagnosticSeverity.Error)
-                        {
-                            continue;
-                        }
-
-                        // For `Error` Severity diagnostics we still show the diagnostics to
-                        // the user, however we set the range to an undefined range to ensure
-                        // clicking on the diagnostic doesn't cause errors.
-                    }
-
-                    diagnostic.Range = range;
-                    mappedDiagnostics.Add(diagnostic);
-                }
-
-                // Note; it's possible all ranges were undefined, and thus we
-                // have an empty `mappedDiagnostics`. By returning an empty Diagnostics array
-                // we're indicating to the platform there are no diagnostics for this document.
-                diagnosticReport.Diagnostics = mappedDiagnostics.ToArray();
                 mappedDiagnosticReports.Add(diagnosticReport);
             }
 
             return mappedDiagnosticReports.ToArray();
-
-            static bool CanDiagnosticBeFiltered(Diagnostic d) =>
-                DiagnosticsToIgnore.Contains(d.Code) && d.Severity != DiagnosticSeverity.Error;
         }
     }
 }
