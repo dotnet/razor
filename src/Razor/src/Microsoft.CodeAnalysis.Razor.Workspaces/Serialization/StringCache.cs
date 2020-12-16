@@ -115,9 +115,11 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
 
         private class Entry
         {
+            // In order to use HashSet we need a stable HashCode, so we have to cache it as soon as it comes in.
+            // If the HashCode is unstable then entries in the HashSet become unreachable/unremovable.
             public readonly int TargetHashCode;
 
-            private WeakReference<string> _weakRef;
+            private readonly WeakReference<string> _weakRef;
 
             public Entry(string target)
             {
