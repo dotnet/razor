@@ -833,7 +833,8 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             });
 
             // TODO: Needed?
-            var descriptor = new RazorDiagnosticDescriptor(Cached(id), () => Cached(message), (RazorDiagnosticSeverity)severity);
+            var cachedMsg = Cached(message);
+            var descriptor = new RazorDiagnosticDescriptor(Cached(id), () => cachedMsg, (RazorDiagnosticSeverity)severity);
 
             var diagnostic = RazorDiagnostic.Create(descriptor, sourceSpan);
             diagnostics.Add(diagnostic);
