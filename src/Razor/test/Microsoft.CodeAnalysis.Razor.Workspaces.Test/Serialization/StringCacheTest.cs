@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class StringCacheTests
+    public class StringCacheTest
     {
         [Fact]
         public void GetOrAdd_EquivilentStrings_RetrievesFirstReference()

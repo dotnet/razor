@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.Razor.Serialization
 {
-    internal partial class TagHelperDescriptorJsonConverter : JsonConverter
+    internal class TagHelperDescriptorJsonConverter : JsonConverter
     {
         public static readonly TagHelperDescriptorJsonConverter Instance = new TagHelperDescriptorJsonConverter();
 
@@ -448,7 +448,6 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                                 if (indexerNamePrefix != null)
                                 {
                                     attribute.IsDictionary = true;
-                                    // TODO: Needed?
                                     attribute.IndexerAttributeNamePrefix = Cached(indexerNamePrefix);
                                 }
                             }
@@ -460,7 +459,6 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                                 if (indexerTypeName != null)
                                 {
                                     attribute.IsDictionary = true;
-                                    // TODO: Needed?
                                     attribute.IndexerValueTypeName = Cached(indexerTypeName);
                                 }
                             }
@@ -914,8 +912,6 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             throw new JsonSerializationException($"Could not read till end of object, end of stream. Got '{reader.TokenType}'.");
         }
 
-        // ConditionalWeakTable won't work for us because it only compares keys to Object.ReferenceEquals
-        // (which won't be true because our values are loaded from JSON, not a constant).
         private static string Cached(string str)
         {
             if (str is null)
