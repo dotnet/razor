@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Razor
             context.ExcludeHidden = true;
             context.IncludeDocumentation = true;
 
-            var compilation = await workspaceProject.GetCompilationAsync().ConfigureAwait(false);
+            var compilation = await workspaceProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             if (CompilationTagHelperFeature.IsValidCompilation(compilation))
             {
                 context.SetCompilation(compilation);

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             // when it's disconnected (user stops the process).
             //
             // This will change in the future to an easier to consume API but for VS RTM this is what we have.
-            var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(_workspace.Services, RazorServiceDescriptors.TagHelperProviderServiceDescriptors, RazorRemoteServiceCallbackDispatcherRegistry.Empty, CancellationToken.None);
+            var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(_workspace.Services, RazorServiceDescriptors.TagHelperProviderServiceDescriptors, RazorRemoteServiceCallbackDispatcherRegistry.Empty, cancellationToken);
 
             if (remoteClient == null)
             {
