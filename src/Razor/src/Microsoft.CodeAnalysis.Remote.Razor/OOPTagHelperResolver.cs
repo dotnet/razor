@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             var projectHandle = new ProjectSnapshotHandle(projectSnapshot.FilePath, projectSnapshot.Configuration, projectSnapshot.RootNamespace);
             var result = await remoteClient.TryInvokeAsync<IRemoteTagHelperProviderService, TagHelperResolutionResult>(
                 workspaceProject.Solution,
-                (service, solutionInfo, cancellationToken) => service.GetTagHelpersAsync(solutionInfo, projectHandle, factory?.GetType().AssemblyQualifiedName, cancellationToken),
+                (service, solutionInfo, innerCancellationToken) => service.GetTagHelpersAsync(solutionInfo, projectHandle, factory?.GetType().AssemblyQualifiedName, innerCancellationToken),
                 cancellationToken
             );
 
