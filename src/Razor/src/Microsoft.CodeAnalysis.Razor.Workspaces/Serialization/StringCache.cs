@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
 
         /// <summary>
         /// This is a gross hack to do a sneaky and get the value inside the HashSet out given the lack of any Get operations in netstandard2.0.
-        /// If we ever upgrade to 2.1 delete this and just use the built in.
+        /// If we ever upgrade to 2.1 delete this and just use the built in TryGetValue method.
         /// </summary>
         /// <remarks>
         /// This is fragile on the ordering of the values passed to the EqualityComparer by HashSet.
