@@ -18,7 +18,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class RazorDiagnosticsEndpoint :
         IRazorDiagnosticsHandler
     {
-        private static readonly IReadOnlyCollection<string> DiagnosticsToIgnore = new HashSet<string>()
+        // Internal for testing
+        internal static readonly IReadOnlyCollection<string> DiagnosticsToIgnore = new HashSet<string>()
         {
             "RemoveUnnecessaryImportsFixable",
             "IDE0005_gen", // Using directive is unnecessary

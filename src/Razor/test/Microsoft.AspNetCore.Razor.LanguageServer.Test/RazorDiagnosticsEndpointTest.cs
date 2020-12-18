@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private RazorDocumentMappingService MappingService { get; }
 
         [Fact]
-        public async Task Handle_DocumentResolveFailed()
+        public async Task Handle_DocumentResolveFailed_ThrowsDebugFail()
         {
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
@@ -55,6 +55,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Act & Assert
             await Assert.ThrowsAnyAsync<Exception>(async () => await Task.Run(() => diagnosticsEndpoint.Handle(request, default)));
+        }
+
+        [Fact]
+        public async Task Handle_DocumentVersionFailed_ReturnsNullDiagnostics()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<p>@DateTime.Now</p>",
+                "var __o = DateTime.Now",
+                new[] {
+                    new SourceMapping(
+                        new SourceSpan(4, 12),
+                        new SourceSpan(10, 12))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var documentVersionCache = new Mock<DocumentVersionCache>();
+            int? version = default;
+            documentVersionCache.Setup(cache => cache.TryGetDocumentVersion(It.IsAny<DocumentSnapshot>(), out version))
+                .Returns(false);
+
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, documentVersionCache.Object, MappingService);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+                Diagnostics = new[] { new Diagnostic() { Range = new Range(new Position(0, 10), new Position(0, 22)) } },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+            var expectedRange = new Range(new Position(0, 4), new Position(0, 16));
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Equal(expectedRange, response.Diagnostics[0].Range);
+            Assert.Null(response.HostDocumentVersion);
         }
 
         [Fact]
@@ -76,6 +112,80 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 Kind = RazorLanguageKind.CSharp,
                 Diagnostics = new[] { new Diagnostic() { Range = new Range(new Position(0, 10), new Position(0, 22)) } },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+            var expectedRange = new Range(new Position(0, 4), new Position(0, 16));
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Equal(expectedRange, response.Diagnostics[0].Range);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
+        public async Task Handle_FilterDiagnostics_CSharpWarning()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<p>@DateTime.Now</p>",
+                "var __o = DateTime.Now",
+                new[] {
+                    new SourceMapping(
+                        new SourceSpan(4, 12),
+                        new SourceSpan(10, 12))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+                Diagnostics = new[] {
+                    new Diagnostic() {
+                        Range = new Range(new Position(0, 10), new Position(0, 22)),
+                        Code = RazorDiagnosticsEndpoint.DiagnosticsToIgnore.First(),
+                        Severity = DiagnosticSeverity.Warning
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+            var expectedRange = new Range(new Position(0, 4), new Position(0, 16));
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(response.Diagnostics);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
+        public async Task Handle_DoNotFilterErrorDiagnostics_CSharpError()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<p>@DateTime.Now</p>",
+                "var __o = DateTime.Now",
+                new[] {
+                    new SourceMapping(
+                        new SourceSpan(4, 12),
+                        new SourceSpan(10, 12))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+                Diagnostics = new[] {
+                    new Diagnostic() {
+                        Range = new Range(new Position(0, 10), new Position(0, 22)),
+                        Code = RazorDiagnosticsEndpoint.DiagnosticsToIgnore.First(),
+                        Severity = DiagnosticSeverity.Error
+                    }
+                },
                 RazorDocumentUri = new Uri(documentPath),
             };
             var expectedRange = new Range(new Position(0, 4), new Position(0, 16));
