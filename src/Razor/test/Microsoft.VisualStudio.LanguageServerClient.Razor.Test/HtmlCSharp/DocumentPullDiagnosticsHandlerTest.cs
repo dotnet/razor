@@ -476,8 +476,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         });
                     }
 
-                    var rangesToMap = filteredDiagnostics.Select(r => r.Range).ToArray();
-
                     var mappedDiagnostics = new List<Diagnostic>();
 
                     for (var i = 0; i < filteredDiagnostics.Count(); i++)

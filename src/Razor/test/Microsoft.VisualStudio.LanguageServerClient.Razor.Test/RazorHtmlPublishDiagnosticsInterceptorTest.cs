@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private static readonly Uri RazorUri = new Uri("C:/path/to/file.razor");
         private static readonly Uri CshtmlUri = new Uri("C:/path/to/file.cshtml");
         private static readonly Uri RazorVirtualHtmlUri = new Uri("C:/path/to/file.razor__virtual.html");
+        private static readonly Uri RazorVirtualCssUri = new Uri("C:/path/to/file.razor__virtual.css");
 
         private static readonly Diagnostic ValidDiagnostic_HTML = new Diagnostic()
         {
@@ -50,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         };
 
         [Fact]
-        public async Task ApplyChangesAsync_InvalidParams()
+        public async Task ApplyChangesAsync_InvalidParams_ThrowsException()
         {
             // Arrange
             var documentManager = new TestDocumentManager();
@@ -71,6 +72,236 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                         JToken.FromObject(diagnosticRequest),
                         containedLanguageName: string.Empty,
                         cancellationToken: default).ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task ApplyChangesAsync_RazorUriNotSupported_ReturnsDefaultResponse()
+        {
+            // Arrange
+            var documentManager = new TestDocumentManager();
+            var diagnosticsProvider = Mock.Of<LSPDiagnosticsProvider>();
+
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider);
+            var diagnosticRequest = new VSPublishDiagnosticParams()
+            {
+                Diagnostics = Diagnostics,
+                Mode = null,
+                Uri = RazorUri
+            };
+            var token = JToken.FromObject(diagnosticRequest);
+
+            // Act
+            var result = await htmlDiagnosticsInterceptor.ApplyChangesAsync(token, containedLanguageName: string.Empty, cancellationToken: default).ConfigureAwait(false);
+
+            // Assert
+            Assert.Same(token, result.UpdatedToken);
+            Assert.False(result.ChangedDocumentUri);
+        }
+
+        [Fact]
+        public async Task ApplyChangesAsync_CshtmlUriNotSupported_ReturnsDefaultResponse()
+        {
+            // Arrange
+            var documentManager = new TestDocumentManager();
+            var diagnosticsProvider = Mock.Of<LSPDiagnosticsProvider>();
+
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider);
+            var diagnosticRequest = new VSPublishDiagnosticParams()
+            {
+                Diagnostics = Diagnostics,
+                Mode = null,
+                Uri = CshtmlUri
+            };
+            var token = JToken.FromObject(diagnosticRequest);
+
+            // Act
+            var result = await htmlDiagnosticsInterceptor.ApplyChangesAsync(token, containedLanguageName: string.Empty, cancellationToken: default).ConfigureAwait(false);
+
+            // Assert
+            Assert.Same(token, result.UpdatedToken);
+            Assert.False(result.ChangedDocumentUri);
+        }
+
+        [Fact]
+        public async Task ApplyChangesAsync_CssUriNotSupported_ReturnsDefaultResponse()
+        {
+            // Arrange
+            var documentManager = new TestDocumentManager();
+            var diagnosticsProvider = Mock.Of<LSPDiagnosticsProvider>();
+
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider);
+            var diagnosticRequest = new VSPublishDiagnosticParams()
+            {
+                Diagnostics = Diagnostics,
+                Mode = null,
+                Uri = RazorVirtualCssUri
+            };
+            var token = JToken.FromObject(diagnosticRequest);
+
+            // Act
+            var result = await htmlDiagnosticsInterceptor.ApplyChangesAsync(token, containedLanguageName: string.Empty, cancellationToken: default).ConfigureAwait(false);
+
+            // Assert
+            Assert.Same(token, result.UpdatedToken);
+            Assert.False(result.ChangedDocumentUri);
+        }
+
+        [Fact]
+        public async Task ApplyChangesAsync_RazorDocumentNotFound_ReturnsEmptyDiagnosticResponse()
+        {
+            // Arrange
+            var documentManager = new TestDocumentManager();
+            var diagnosticsProvider = Mock.Of<LSPDiagnosticsProvider>();
+
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider);
+            var diagnosticRequest = new VSPublishDiagnosticParams()
+            {
+                Diagnostics = Diagnostics,
+                Mode = null,
+                Uri = RazorVirtualHtmlUri
+            };
+
+            // Act
+            var result = await htmlDiagnosticsInterceptor.ApplyChangesAsync(JToken.FromObject(diagnosticRequest), string.Empty, cancellationToken: default).ConfigureAwait(false);
+
+            // Assert
+            var updatedParams = result.UpdatedToken.ToObject<VSPublishDiagnosticParams>();
+            Assert.Empty(updatedParams.Diagnostics);
+            Assert.Equal(RazorUri, updatedParams.Uri);
+            Assert.True(result.ChangedDocumentUri);
+        }
+
+        [Fact]
+        public async Task ApplyChangesAsync_VirtualHtmlDocumentNotFound_ReturnsEmptyDiagnosticResponse()
+        {
+            // Arrange
+            var diagnosticsProvider = Mock.Of<LSPDiagnosticsProvider>();
+
+            var testVirtualDocument = new TestVirtualDocumentSnapshot(RazorUri, hostDocumentVersion: 0);
+            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(RazorUri, version: 0, testVirtualDocument);
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
+                .Returns(true);
+
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager.Object, diagnosticsProvider);
+            var diagnosticRequest = new VSPublishDiagnosticParams()
+            {
+                Diagnostics = Diagnostics,
+                Mode = null,
+                Uri = RazorVirtualHtmlUri
+            };
+
+            // Act
+            var result = await htmlDiagnosticsInterceptor.ApplyChangesAsync(JToken.FromObject(diagnosticRequest), string.Empty, cancellationToken: default).ConfigureAwait(false);
+
+            // Assert
+            var updatedParams = result.UpdatedToken.ToObject<VSPublishDiagnosticParams>();
+            Assert.Empty(updatedParams.Diagnostics);
+            Assert.Equal(RazorUri, updatedParams.Uri);
+            Assert.True(result.ChangedDocumentUri);
+        }
+
+        [Fact]
+        public async Task ApplyChangesAsync_EmptyDiagnostics_ReturnsEmptyDiagnosticResponse()
+        {
+            // Arrange
+            var documentManager = CreateDocumentManager();
+            var diagnosticsProvider = Mock.Of<LSPDiagnosticsProvider>();
+
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider);
+            var diagnosticRequest = new VSPublishDiagnosticParams()
+            {
+                Diagnostics = Array.Empty<Diagnostic>(),
+                Mode = null,
+                Uri = RazorVirtualHtmlUri
+            };
+
+            // Act
+            var result = await htmlDiagnosticsInterceptor.ApplyChangesAsync(JToken.FromObject(diagnosticRequest), string.Empty, cancellationToken: default).ConfigureAwait(false);
+
+            // Assert
+            var updatedParams = result.UpdatedToken.ToObject<VSPublishDiagnosticParams>();
+            Assert.Empty(updatedParams.Diagnostics);
+            Assert.Equal(RazorUri, updatedParams.Uri);
+            Assert.True(result.ChangedDocumentUri);
+        }
+
+        [Fact]
+        public async Task ApplyChangesAsync_ProcessesDiagnostics_ReturnsDiagnosticResponse()
+        {
+            // Arrange
+            var documentManager = CreateDocumentManager();
+            var diagnosticsProvider = GetDiagnosticsProvider();
+
+            var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider);
+            var diagnosticRequest = new VSPublishDiagnosticParams()
+            {
+                Diagnostics = Diagnostics,
+                Mode = null,
+                Uri = RazorVirtualHtmlUri
+            };
+
+            // Act
+            var result = await htmlDiagnosticsInterceptor.ApplyChangesAsync(JToken.FromObject(diagnosticRequest), string.Empty, cancellationToken: default).ConfigureAwait(false);
+
+            // Assert
+            var updatedParams = result.UpdatedToken.ToObject<VSPublishDiagnosticParams>();
+            Assert.Equal(Diagnostics, updatedParams.Diagnostics);
+            Assert.Equal(RazorUri, updatedParams.Uri);
+            Assert.True(result.ChangedDocumentUri);
+        }
+
+        private TrackingLSPDocumentManager CreateDocumentManager(int hostDocumentVersion = 0)
+        {
+            var testVirtualDocUri = RazorVirtualHtmlUri;
+            var testVirtualDocument = new TestVirtualDocumentSnapshot(RazorUri, hostDocumentVersion);
+            var htmlVirtualDocument = new HtmlVirtualDocumentSnapshot(testVirtualDocUri, Mock.Of<ITextSnapshot>(), hostDocumentVersion);
+            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(RazorUri, hostDocumentVersion, testVirtualDocument, htmlVirtualDocument);
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
+                .Returns(true);
+            return documentManager.Object;
+        }
+
+        private LSPDiagnosticsProvider GetDiagnosticsProvider()
+        {
+            var diagnosticsToIgnore = new HashSet<string>()
+            {
+                // N/A For HTML Diagnostics for now
+                // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401
+            };
+
+            var diagnosticsProvider = new Mock<LSPDiagnosticsProvider>(MockBehavior.Strict);
+            diagnosticsProvider.Setup(d =>
+                d.ProcessDiagnosticsAsync(
+                    RazorLanguageKind.Html,
+                    RazorUri,
+                    It.IsAny<Diagnostic[]>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((RazorLanguageKind lang, Uri uri, Diagnostic[] diagnostics, CancellationToken ct) =>
+                {
+                    var filteredDiagnostics = diagnostics.Where(d => !CanDiagnosticBeFiltered(d));
+                    if (!filteredDiagnostics.Any())
+                    {
+                        return Task.FromResult(new RazorDiagnosticsResponse()
+                        {
+                            Diagnostics = Array.Empty<Diagnostic>(),
+                            HostDocumentVersion = 0
+                        });
+                    }
+
+                    return Task.FromResult(new RazorDiagnosticsResponse()
+                    {
+                        Diagnostics = filteredDiagnostics.ToArray(),
+                        HostDocumentVersion = 0
+                    });
+
+                    bool CanDiagnosticBeFiltered(Diagnostic d) =>
+                        (diagnosticsToIgnore.Contains(d.Code) &&
+                         d.Severity != DiagnosticSeverity.Error);
+                });
+
+            return diagnosticsProvider.Object;
         }
     }
 }
