@@ -447,8 +447,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 "IDE0005_gen", // Using directive is unnecessary
             };
 
-            var documentMappingProvider = new Mock<LSPDiagnosticsProvider>(MockBehavior.Strict);
-            documentMappingProvider.Setup(d =>
+            var diagnosticsProvider = new Mock<LSPDiagnosticsProvider>(MockBehavior.Strict);
+            diagnosticsProvider.Setup(d =>
                 d.ProcessDiagnosticsAsync(
                     RazorLanguageKind.CSharp,
                     Uri,
@@ -508,7 +508,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                          d.Severity != DiagnosticSeverity.Error);
                 });
 
-            return documentMappingProvider.Object;
+            return diagnosticsProvider.Object;
         }
 
         private static LSPDocumentSynchronizer CreateDocumentSynchronizer()
