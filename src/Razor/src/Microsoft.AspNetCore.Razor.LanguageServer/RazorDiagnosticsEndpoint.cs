@@ -68,27 +68,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var unmappedDiagnostics = request.Diagnostics;
-            var filteredDiagnostics = unmappedDiagnostics.Where(d => !CanDiagnosticBeFiltered(d)).ToArray();
-            if (!filteredDiagnostics.Any())
-            {
-                // No diagnostics left after filtering.
-                return new RazorDiagnosticsResponse()
-                {
-                    Diagnostics = Array.Empty<Diagnostic>()
-                };
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
-            return await MapDiagnosticsAsync(request, filteredDiagnostics, cancellationToken).ConfigureAwait(false);
-
-            // TODO; HTML filtering blocked on https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401
-            static bool CanDiagnosticBeFiltered(Diagnostic d) =>
-                (DiagnosticsToIgnore.Contains(d.Code?.String) &&
-                 d.Severity != DiagnosticSeverity.Error);
-        }
-
-        private async Task<RazorDiagnosticsResponse> MapDiagnosticsAsync(RazorDiagnosticsParams request, Diagnostic[] filteredDiagnostics, CancellationToken cancellationToken)
-        {
             int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
             await Task.Factory.StartNew(() =>
@@ -102,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     documentVersion = null;
                 }
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
 
             if (documentSnapshot is null)
             {
@@ -113,6 +94,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
             }
 
+            var unmappedDiagnostics = request.Diagnostics;
+            var filteredDiagnostics = unmappedDiagnostics.Where(d => !CanDiagnosticBeFiltered(d)).ToArray();
+            if (!filteredDiagnostics.Any())
+            {
+                // No diagnostics left after filtering.
+                return new RazorDiagnosticsResponse()
+                {
+                    Diagnostics = Array.Empty<Diagnostic>(),
+                    HostDocumentVersion = documentVersion
+                };
+            }
+
+            return await MapDiagnosticsAsync(
+                request,
+                filteredDiagnostics,
+                documentVersion,
+                documentSnapshot).ConfigureAwait(false);
+
+            // TODO; HTML filtering blocked on https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401
+            static bool CanDiagnosticBeFiltered(Diagnostic d) =>
+                (DiagnosticsToIgnore.Contains(d.Code?.String) &&
+                 d.Severity != DiagnosticSeverity.Error);
+        }
+
+        private async Task<RazorDiagnosticsResponse> MapDiagnosticsAsync(
+            RazorDiagnosticsParams request,
+            Diagnostic[] filteredDiagnostics,
+            int? documentVersion,
+            DocumentSnapshot documentSnapshot)
+        {
             if (request.Kind != RazorLanguageKind.CSharp)
             {
                 // All other non-C# requests map directly to where they are in the document.
@@ -123,7 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
             }
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
+            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             var mappedDiagnostics = new List<Diagnostic>();
 
             for (var i = 0; i < filteredDiagnostics.Length; i++)
@@ -132,7 +143,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var projectedRange = diagnostic.Range;
 
                 if (codeDocument.IsUnsupported() ||
-                    !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Inclusive, out var originalRange))
+                    !_documentMappingService.TryMapFromProjectedDocumentRange(
+                        codeDocument, projectedRange,
+                        MappingBehavior.Inclusive,
+                        out var originalRange))
                 {
                     // Couldn't remap the range correctly.
                     // If this isn't an `Error` Severity Diagnostic we can discard it.
