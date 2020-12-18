@@ -195,6 +195,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
         #region HTML
         [Fact]
+        public async Task GetSemanticTokens_HTMLCommentWithCSharp()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<!-- @DateTime.Now -->";
+            var expectedData = new List<int>
+            {
+                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
+                0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
+                1, 0, 4, RazorSemanticTokensLegend.MarkupCommentPunctuation, 0,
+                0, 4, 1, RazorSemanticTokensLegend.MarkupComment, 0,
+                0, 2, 8, 1, 0, // CSharpType
+                0, 8, 1, 21, 0, // operator
+                0, 1, 3, 9, 0, // property
+                0, 3, 1, RazorSemanticTokensLegend.MarkupComment, 0,
+                0, 1, 3, RazorSemanticTokensLegend.MarkupCommentPunctuation, 0,
+            };
+
+            var cSharpTokens = new SemanticTokens
+            {
+                Data = new int[] {
+                    14, 12, 8, 1, 0, // CSharpType
+                    0, 8, 1, 21, 0, // operator
+                    0, 1, 3, 9, 0, // property
+                }.ToImmutableArray(),
+                ResultId = "35",
+            };
+
+            var mappings = new (OmniSharpRange, OmniSharpRange)[] {
+                (new OmniSharpRange(new Position(14, 12), new Position(14, 20)), new OmniSharpRange(new Position(1, 6), new Position(1, 14))),
+                (new OmniSharpRange(new Position(14, 20), new Position(14, 21)), new OmniSharpRange(new Position(1, 14), new Position(1, 15))),
+                (new OmniSharpRange(new Position(14, 21),  new Position(14, 24)), new OmniSharpRange(new Position(1, 15), new Position(1, 18))),
+            };
+
+            await AssertSemanticTokens(txt, expectedData, isRazor: true, cSharpTokens: cSharpTokens, documentMappings: mappings);
+        }
+
+        [Fact]
         public async Task GetSemanticTokens_IncompleteTag()
         {
             var txt = "<str";

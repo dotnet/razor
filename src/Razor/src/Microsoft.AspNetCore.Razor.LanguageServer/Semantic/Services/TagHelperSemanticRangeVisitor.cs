@@ -78,10 +78,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
         {
-            Debug.Assert(node.Children.Count == 3, $"There should be 3 nodes but were {node.Children.Count}");
             AddSemanticRange(node.Children[0], RazorSemanticTokensLegend.MarkupCommentPunctuation);
-            AddSemanticRange(node.Children[1], RazorSemanticTokensLegend.MarkupComment);
-            AddSemanticRange(node.Children[2], RazorSemanticTokensLegend.MarkupCommentPunctuation);
+
+            for(var i = 1; i < node.Children.Count - 1; i++)
+            {
+                var commentNode = node.Children[i];
+                switch(commentNode.Kind)
+                {
+                    case SyntaxKind.MarkupTextLiteral:
+                        AddSemanticRange(commentNode, RazorSemanticTokensLegend.MarkupComment);
+                        break;
+                    case SyntaxKind.CSharpCodeBlock:
+                        // This will be handled by the CSharp LSP
+                        break;
+                    default:
+                        Debug.Fail("We encountered an unexpected SyntaxKind in an HTML comment.");
+                        break;
+                }
+            }
+
+            AddSemanticRange(node.Children[node.Children.Count - 1], RazorSemanticTokensLegend.MarkupCommentPunctuation);
             base.VisitMarkupCommentBlock(node);
         }
 
