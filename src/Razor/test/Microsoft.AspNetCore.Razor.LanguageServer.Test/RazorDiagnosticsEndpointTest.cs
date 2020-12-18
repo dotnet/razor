@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private RazorDocumentMappingService MappingService { get; }
 
-        [Fact]
+        [Fact(Skip = "Debug.Fail doesn't work in CI")]
         public async Task Handle_DocumentResolveFailed_ThrowsDebugFail()
         {
             // Arrange
