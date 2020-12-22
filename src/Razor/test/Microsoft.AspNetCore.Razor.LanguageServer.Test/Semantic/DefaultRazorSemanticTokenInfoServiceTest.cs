@@ -220,14 +220,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 }.ToImmutableArray(),
                 ResultId = "35",
             };
+            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
 
-            var mappings = new (OmniSharpRange, OmniSharpRange)[] {
+            var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
                 (new OmniSharpRange(new Position(14, 12), new Position(14, 20)), new OmniSharpRange(new Position(1, 6), new Position(1, 14))),
                 (new OmniSharpRange(new Position(14, 20), new Position(14, 21)), new OmniSharpRange(new Position(1, 14), new Position(1, 15))),
                 (new OmniSharpRange(new Position(14, 21),  new Position(14, 24)), new OmniSharpRange(new Position(1, 15), new Position(1, 18))),
             };
 
-            await AssertSemanticTokens(txt, expectedData, isRazor: true, cSharpTokens: cSharpTokens, documentMappings: mappings);
+            await AssertSemanticTokens(txt, expectedData, isRazor: true, csharpTokens: cSharpResponse, documentMappings: mappings);
         }
 
         [Fact]
