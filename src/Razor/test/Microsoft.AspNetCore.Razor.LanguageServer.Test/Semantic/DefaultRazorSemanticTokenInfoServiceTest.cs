@@ -30,15 +30,80 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     {
         #region CSharp
         [Fact]
+        public async Task GetSemanticTokens_CSharp_Nested_HTML()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<!--" +
+                $"@{{" +
+                $"var d = \"string\";" +
+                $"@<a></a>" +
+                $"}}" +
+                $"-->";
+            var expectedData = new List<int> {
+                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
+                0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
+                1, 0, 4, RazorSemanticTokensLegend.MarkupCommentPunctuation, 0,
+                0, 4, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
+                0, 4, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
+                0, 2, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                0, 1, 1, RazorSemanticTokensLegend.CSharpPunctuation, 0,
+                0, 1, 6, RazorSemanticTokensLegend.CSharpString, 0,
+                0, 6, 1, RazorSemanticTokensLegend.CSharpPunctuation, 0,
+                0, 1, 1, RazorSemanticTokensLegend.CSharpPunctuation, 0,
+                0, 3, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 3, RazorSemanticTokensLegend.MarkupCommentPunctuation, 0
+            };
+
+            var cSharpTokens = new SemanticTokens
+            {
+                Data = new int[] {
+                    14, 0, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpPunctuation, 0,
+                    1, 0, 6, RazorSemanticTokensLegend.CSharpString, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpPunctuation, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpPunctuation, 0,
+                }.ToImmutableArray(),
+                ResultId = null,
+            };
+            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+
+            var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
+                (new OmniSharpRange(new Position(14, 0), new Position(14, 3)), new OmniSharpRange(new Position(1, 6), new Position(1, 9))),
+                (new OmniSharpRange(new Position(15, 0), new Position(15, 1)), new OmniSharpRange(new Position(1, 10), new Position(1, 11))),
+                (new OmniSharpRange(new Position(16, 0), new Position(16, 1)), new OmniSharpRange(new Position(1, 12), new Position(1, 13))),
+                (new OmniSharpRange(new Position(17, 0), new Position(17, 1)), new OmniSharpRange(new Position(1, 13), new Position(1, 14))),
+                (new OmniSharpRange(new Position(18, 0), new Position(18, 6)), new OmniSharpRange(new Position(1, 14), new Position(1, 20))),
+                (new OmniSharpRange(new Position(19, 0), new Position(19, 1)), new OmniSharpRange(new Position(1, 20), new Position(1, 21))),
+                (new OmniSharpRange(new Position(20, 0), new Position(20, 1)), new OmniSharpRange(new Position(1, 21), new Position(1, 22))),
+            };
+
+            await AssertSemanticTokens(txt, expectedData, isRazor: false, csharpTokens: cSharpResponse, documentMappings: mappings);
+        }
+
+        [Fact]
         public async Task GetSemanticTokens_CSharp_VSCodeWorks()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
+                1, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 10, 1, RazorSemanticTokensLegend.RazorTransition, 0,
             };
 
-            var cSharpTokens = new SemanticTokens {
+            var cSharpTokens = new SemanticTokens
+            {
                 Data = ImmutableArray<int>.Empty,
                 ResultId = null,
             };
@@ -48,6 +113,60 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var mappings = Array.Empty<(OmniSharpRange, OmniSharpRange?)>();
 
             await AssertSemanticTokens(txt, expectedData, isRazor: false, csharpTokens: cSharpResponse, documentMappings: mappings, documentVersion: 1);
+        }
+
+        [Fact(Skip = "Not yet implemented")]
+        public async Task GetSemanticTokens_CSharp_Implicit()
+        {
+
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = \"txt\";}}{Environment.NewLine}" +
+                $"@d";
+            var expectedData = new List<int> {
+                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
+                0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
+                1, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 2, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
+                0, 4, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
+                0, 2, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                0, 2, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                0, 1, 3, RazorSemanticTokensLegend.CSharpString, 0,
+                0, 3, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                0, 1, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                1, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
+            };
+
+            var cSharpTokens = new SemanticTokens
+            {
+                Data = new int[] {
+                    14, 0, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                    1, 0, 3, RazorSemanticTokensLegend.CSharpString, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                    1, 0, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
+                }.ToImmutableArray(),
+                ResultId = "35",
+            };
+
+            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+
+            var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
+                 (new OmniSharpRange(new Position(14, 0), new Position(14, 3)), new OmniSharpRange(new Position(1, 3), new Position(1, 6))),
+                (new OmniSharpRange(new Position(15, 0), new Position(15, 1)), new OmniSharpRange(new Position(1, 7), new Position(1, 8))),
+                (new OmniSharpRange(new Position(16, 0), new Position(16, 1)), new OmniSharpRange(new Position(1, 9), new Position(1, 10))),
+                (new OmniSharpRange(new Position(17, 0), new Position(17, 1)), new OmniSharpRange(new Position(1, 11), new Position(1, 12))),
+                (new OmniSharpRange(new Position(18, 0), new Position(18, 3)), new OmniSharpRange(new Position(1, 12), new Position(1, 15))),
+                (new OmniSharpRange(new Position(19, 0), new Position(19, 1)), new OmniSharpRange(new Position(1, 15), new Position(1, 16))),
+                (new OmniSharpRange(new Position(20, 0), new Position(20, 1)), new OmniSharpRange(new Position(1, 16), new Position(1, 17))),
+                (new OmniSharpRange(new Position(21, 0), new Position(21, 1)), new OmniSharpRange(new Position(2, 1), new Position(2, 2))),
+            };
+
+            await AssertSemanticTokens(txt, expectedData, isRazor: false, csharpTokens: cSharpResponse, documentMappings: mappings);
         }
 
         [Fact]
@@ -85,9 +204,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 3, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
+                1, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 2, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
                 0, 4, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
                 0, 2, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                0, 2, 1, RazorSemanticTokensLegend.RazorTransition, 0,
             };
 
             var cSharpTokens = new SemanticTokens
@@ -120,9 +242,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 3, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
+                1, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 2, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
                 0, 4, 1, RazorSemanticTokensLegend.CSharpVariable, 1,
                 0, 2, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                0, 2, 1, RazorSemanticTokensLegend.RazorTransition, 0,
             };
 
             var cSharpTokens = new SemanticTokens
@@ -155,9 +280,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
-                1, 3, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
+                1, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 2, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
                 0, 4, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
                 0, 2, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                0, 2, 1, RazorSemanticTokensLegend.RazorTransition, 0,
             };
 
             var cSharpTokens = new SemanticTokens
@@ -204,6 +332,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
                 1, 0, 4, RazorSemanticTokensLegend.MarkupCommentPunctuation, 0,
                 0, 4, 1, RazorSemanticTokensLegend.MarkupComment, 0,
+                // 0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0, // Shows up once we have implicit handling
                 0, 2, 8, 1, 0, // CSharpType
                 0, 8, 1, 21, 0, // operator
                 0, 1, 3, 9, 0, // property
@@ -1069,7 +1198,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 $"<test1 bool-val=\"true\" />{Environment.NewLine}";
 
             var isRazor = false;
-            var (previousResultId, service, _, _) = await AssertSemanticTokens(new string[] { txt, newTxt }, expectedData, new bool[]{isRazor, isRazor });
+            var (previousResultId, service, _, _) = await AssertSemanticTokens(new string[] { txt, newTxt }, expectedData, new bool[] { isRazor, isRazor });
 
             var newExpectedData = new SemanticTokensDelta
             {
@@ -1112,7 +1241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             };
 
             var isRazor = false;
-            var (previousResultId, service, _, _) = await AssertSemanticTokens(new string[] { txt, newTxt }, expectedData, new bool[] {isRazor, isRazor });
+            var (previousResultId, service, _, _) = await AssertSemanticTokens(new string[] { txt, newTxt }, expectedData, new bool[] { isRazor, isRazor });
 
             var newExpectedData = new SemanticTokensDelta
             {

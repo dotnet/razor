@@ -80,25 +80,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             AddSemanticRange(node.Children[0], RazorSemanticTokensLegend.MarkupCommentPunctuation);
 
-            for(var i = 1; i < node.Children.Count - 1; i++)
+            for (var i = 1; i < node.Children.Count - 1; i++)
             {
                 var commentNode = node.Children[i];
-                switch(commentNode.Kind)
+                switch (commentNode.Kind)
                 {
                     case SyntaxKind.MarkupTextLiteral:
                         AddSemanticRange(commentNode, RazorSemanticTokensLegend.MarkupComment);
                         break;
-                    case SyntaxKind.CSharpCodeBlock:
-                        // This will be handled by the CSharp LSP
-                        break;
                     default:
-                        Debug.Fail("We encountered an unexpected SyntaxKind in an HTML comment.");
+                        Visit(commentNode);
                         break;
                 }
             }
 
             AddSemanticRange(node.Children[node.Children.Count - 1], RazorSemanticTokensLegend.MarkupCommentPunctuation);
-            base.VisitMarkupCommentBlock(node);
         }
 
         public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
@@ -107,6 +103,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             base.VisitMarkupMinimizedAttributeBlock(node);
         }
         #endregion HTML
+
+        #region C#
+        public override void VisitCSharpStatement(CSharpStatementSyntax node)
+        {
+            AddSemanticRange(node.Transition, RazorSemanticTokensLegend.RazorTransition);
+            switch (node.Body)
+            {
+                case CSharpStatementBodySyntax bodySyntax:
+                    VisitCSharpStatementBody(bodySyntax);
+                    break;
+                default:
+                    // We don't handle this type yet.
+                    break;
+            }
+        }
+
+        public override void VisitCSharpStatementBody(CSharpStatementBodySyntax node)
+        {
+            AddSemanticRange(node.OpenBrace, RazorSemanticTokensLegend.RazorTransition);
+            base.VisitCSharpCodeBlock(node.CSharpCode);
+            AddSemanticRange(node.CloseBrace, RazorSemanticTokensLegend.RazorTransition);
+        }
+        #endregion C#
 
         #region Razor
         public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
