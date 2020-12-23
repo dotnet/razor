@@ -20,14 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPDocumentSynchronizer _documentSynchronizer;
-        private readonly LSPDiagnosticsProvider _diagnosticsProvider;
+        private readonly LSPDiagnosticsTranslator _diagnosticsProvider;
 
         [ImportingConstructor]
         public DocumentPullDiagnosticsHandler(
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
             LSPDocumentSynchronizer documentSynchronizer,
-            LSPDiagnosticsProvider diagnosticsProvider)
+            LSPDiagnosticsTranslator diagnosticsProvider)
         {
             if (requestInvoker is null)
             {
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     continue;
                 }
 
-                var processedDiagnostics = await _diagnosticsProvider.ProcessDiagnosticsAsync(
+                var processedDiagnostics = await _diagnosticsProvider.TranslateAsync(
                     RazorLanguageKind.CSharp,
                     razorDocumentUri,
                     diagnosticReport.Diagnostics,

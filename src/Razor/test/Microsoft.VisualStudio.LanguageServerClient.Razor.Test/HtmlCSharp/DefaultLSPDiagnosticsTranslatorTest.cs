@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class DefaultLSPDiagnosticsProviderTest
+    public class DefaultLSPDiagnosticsTranslatorTest
     {
         [Fact]
         public async Task ProcessDiagnosticsAsync_ReturnsResponse()
@@ -25,16 +25,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(ri => ri.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, RazorDiagnosticsResponse>(
-                    LanguageServerConstants.RazorDiagnosticsEndpoint,
+                    LanguageServerConstants.RazorTranslateDiagnosticsEndpoint,
                     RazorLSPConstants.RazorLSPContentTypeName,
                     It.IsAny<RazorDiagnosticsParams>(),
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(response));
 
-            var diagnosticsProvider = new DefaultLSPDiagnosticsProvider(requestInvoker.Object);
+            var diagnosticsProvider = new DefaultLSPDiagnosticsTranslator(requestInvoker.Object);
 
             // Act
-            var diagnosticsResponse = await diagnosticsProvider.ProcessDiagnosticsAsync(
+            var diagnosticsResponse = await diagnosticsProvider.TranslateAsync(
                 RazorLanguageKind.CSharp,
                 new Uri("file://C:/path/to/file"),
                 Array.Empty<Diagnostic>(),

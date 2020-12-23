@@ -107,11 +107,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
             }
 
-            return await MapDiagnosticsAsync(
+            var mappedDiagnostics = await MapDiagnosticsAsync(
                 request,
                 filteredDiagnostics,
-                documentVersion,
                 documentSnapshot).ConfigureAwait(false);
+
+            return new RazorDiagnosticsResponse()
+            {
+                Diagnostics = mappedDiagnostics.ToArray(),
+                HostDocumentVersion = documentVersion,
+            };
 
             // TODO; HTML filtering blocked on https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401
             static bool CanDiagnosticBeFiltered(Diagnostic d) =>
@@ -119,33 +124,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                  d.Severity != DiagnosticSeverity.Error);
         }
 
-        private async Task<RazorDiagnosticsResponse> MapDiagnosticsAsync(
+        private async Task<IReadOnlyList<Diagnostic>> MapDiagnosticsAsync(
             RazorDiagnosticsParams request,
-            Diagnostic[] filteredDiagnostics,
-            int? documentVersion,
+            IReadOnlyList<Diagnostic> filteredDiagnostics,
             DocumentSnapshot documentSnapshot)
         {
             if (request.Kind != RazorLanguageKind.CSharp)
             {
                 // All other non-C# requests map directly to where they are in the document.
-                return new RazorDiagnosticsResponse()
-                {
-                    Diagnostics = filteredDiagnostics,
-                    HostDocumentVersion = documentVersion,
-                };
+                return filteredDiagnostics;
             }
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            if (codeDocument?.IsUnsupported() != false)
+            {
+                return Array.Empty<Diagnostic>();
+            }
+
             var mappedDiagnostics = new List<Diagnostic>();
 
-            for (var i = 0; i < filteredDiagnostics.Length; i++)
+            for (var i = 0; i < filteredDiagnostics.Count; i++)
             {
-                var diagnostic = filteredDiagnostics.ElementAt(i);
+                var diagnostic = filteredDiagnostics[i];
                 var projectedRange = diagnostic.Range;
 
-                if (codeDocument.IsUnsupported() ||
-                    !_documentMappingService.TryMapFromProjectedDocumentRange(
-                        codeDocument, projectedRange,
+                if (!_documentMappingService.TryMapFromProjectedDocumentRange(
+                        codeDocument,
+                        projectedRange,
                         MappingBehavior.Inclusive,
                         out var originalRange))
                 {
@@ -166,11 +171,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 mappedDiagnostics.Add(diagnostic);
             }
 
-            return new RazorDiagnosticsResponse()
-            {
-                Diagnostics = mappedDiagnostics.ToArray(),
-                HostDocumentVersion = documentVersion,
-            };
+            return mappedDiagnostics;
         }
     }
 }

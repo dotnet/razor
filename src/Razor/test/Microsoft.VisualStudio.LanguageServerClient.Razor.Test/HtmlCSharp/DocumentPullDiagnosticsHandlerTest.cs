@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var documentManager = new TestDocumentManager();
             var requestInvoker = Mock.Of<LSPRequestInvoker>();
-            var diagnosticsProvider = Mock.Of<LSPDiagnosticsProvider>();
+            var diagnosticsProvider = Mock.Of<LSPDiagnosticsTranslator>();
             var documentSynchronizer = Mock.Of<LSPDocumentSynchronizer>();
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider);
             var diagnosticRequest = new DocumentDiagnosticsParams()
@@ -439,7 +439,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return documentManager.Object;
         }
 
-        private LSPDiagnosticsProvider GetDiagnosticsProvider(params Range[] expectedRanges)
+        private LSPDiagnosticsTranslator GetDiagnosticsProvider(params Range[] expectedRanges)
         {
             var diagnosticsToIgnore = new HashSet<string>()
             {
@@ -447,9 +447,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 "IDE0005_gen", // Using directive is unnecessary
             };
 
-            var diagnosticsProvider = new Mock<LSPDiagnosticsProvider>(MockBehavior.Strict);
+            var diagnosticsProvider = new Mock<LSPDiagnosticsTranslator>(MockBehavior.Strict);
             diagnosticsProvider.Setup(d =>
-                d.ProcessDiagnosticsAsync(
+                d.TranslateAsync(
                     RazorLanguageKind.CSharp,
                     Uri,
                     It.IsAny<Diagnostic[]>(),

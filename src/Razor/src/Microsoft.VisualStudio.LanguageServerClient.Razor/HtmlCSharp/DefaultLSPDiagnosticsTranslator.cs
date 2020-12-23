@@ -12,13 +12,13 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
-    [Export(typeof(LSPDiagnosticsProvider))]
-    internal class DefaultLSPDiagnosticsProvider : LSPDiagnosticsProvider
+    [Export(typeof(LSPDiagnosticsTranslator))]
+    internal class DefaultLSPDiagnosticsTranslator : LSPDiagnosticsTranslator
     {
         private readonly LSPRequestInvoker _requestInvoker;
 
         [ImportingConstructor]
-        public DefaultLSPDiagnosticsProvider(LSPRequestInvoker requestInvoker)
+        public DefaultLSPDiagnosticsTranslator(LSPRequestInvoker requestInvoker)
         {
             if (requestInvoker is null)
             {
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _requestInvoker = requestInvoker;
         }
 
-        public override async Task<RazorDiagnosticsResponse> ProcessDiagnosticsAsync(
+        public override async Task<RazorDiagnosticsResponse> TranslateAsync(
             RazorLanguageKind languageKind,
             Uri razorDocumentUri,
             Diagnostic[] diagnostics,
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             var diagnosticResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, RazorDiagnosticsResponse>(
-                LanguageServerConstants.RazorDiagnosticsEndpoint,
+                LanguageServerConstants.RazorTranslateDiagnosticsEndpoint,
                 RazorLSPConstants.RazorLSPContentTypeName,
                 diagnosticsParams,
                 cancellationToken).ConfigureAwait(false);

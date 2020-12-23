@@ -8,9 +8,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    internal abstract class LSPDiagnosticsProvider
+    internal abstract class LSPDiagnosticsTranslator
     {
-        public abstract Task<RazorDiagnosticsResponse> ProcessDiagnosticsAsync(
+        public abstract Task<RazorDiagnosticsResponse> TranslateAsync(
             RazorLanguageKind languageKind,
             Uri razorDocumentUri,
             Diagnostic[] diagnostics,

@@ -19,12 +19,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class RazorHtmlPublishDiagnosticsInterceptor : MessageInterceptor
     {
         private readonly LSPDocumentManager _documentManager;
-        private readonly LSPDiagnosticsProvider _diagnosticsProvider;
+        private readonly LSPDiagnosticsTranslator _diagnosticsProvider;
 
         [ImportingConstructor]
         public RazorHtmlPublishDiagnosticsInterceptor(
             LSPDocumentManager documentManager,
-            LSPDiagnosticsProvider diagnosticsProvider)
+            LSPDiagnosticsTranslator diagnosticsProvider)
         {
             if (documentManager is null)
             {
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return CreateResponse(diagnosticParams);
             }
 
-            var processedDiagnostics = await _diagnosticsProvider.ProcessDiagnosticsAsync(
+            var processedDiagnostics = await _diagnosticsProvider.TranslateAsync(
                 RazorLanguageKind.Html,
                 razorDocumentUri,
                 diagnosticParams.Diagnostics,

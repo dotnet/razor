@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorMapToDocumentRangesEndpoint = "razor/mapToDocumentRanges";
 
-        public const string RazorDiagnosticsEndpoint = "razor/diagnostics";
+        public const string RazorTranslateDiagnosticsEndpoint = "razor/translateDiagnostics";
 
         public const string RazorMapToDocumentEditsEndpoint = "razor/mapToDocumentEdits";
 
