@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Serialization.Internal;
 using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.Razor.Serialization
@@ -11,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
     internal class TagHelperDescriptorJsonConverter : JsonConverter
     {
         public static readonly TagHelperDescriptorJsonConverter Instance = new TagHelperDescriptorJsonConverter();
+
+        private static readonly StringCache _stringCache = new StringCache();
 
         public static bool DisableCachingForTesting { private get; set; } = false;
 
@@ -52,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 return default;
             }
 
-            var builder = TagHelperDescriptorBuilder.Create(descriptorKind, typeName, assemblyName);
+            var builder = TagHelperDescriptorBuilder.Create(Cached(descriptorKind), Cached(typeName), Cached(assemblyName));
 
             reader.ReadProperties(propertyName =>
             {
@@ -62,14 +65,15 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         if (reader.Read())
                         {
                             var documentation = (string)reader.Value;
-                            builder.Documentation = documentation;
+                            builder.Documentation = Cached(documentation);
                         }
                         break;
                     case nameof(TagHelperDescriptor.TagOutputHint):
                         if (reader.Read())
                         {
                             var tagOutputHint = (string)reader.Value;
-                            builder.TagOutputHint = tagOutputHint;
+                            // TODO: Needed?
+                            builder.TagOutputHint = Cached(tagOutputHint);
                         }
                         break;
                     case nameof(TagHelperDescriptor.CaseSensitive):
@@ -420,21 +424,21 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var name = (string)reader.Value;
-                                attribute.Name = name;
+                                attribute.Name = Cached(name);
                             }
                             break;
                         case nameof(BoundAttributeDescriptor.TypeName):
                             if (reader.Read())
                             {
                                 var typeName = (string)reader.Value;
-                                attribute.TypeName = typeName;
+                                attribute.TypeName = Cached(typeName);
                             }
                             break;
                         case nameof(BoundAttributeDescriptor.Documentation):
                             if (reader.Read())
                             {
                                 var documentation = (string)reader.Value;
-                                attribute.Documentation = documentation;
+                                attribute.Documentation = Cached(documentation);
                             }
                             break;
                         case nameof(BoundAttributeDescriptor.IndexerNamePrefix):
@@ -444,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                                 if (indexerNamePrefix != null)
                                 {
                                     attribute.IsDictionary = true;
-                                    attribute.IndexerAttributeNamePrefix = indexerNamePrefix;
+                                    attribute.IndexerAttributeNamePrefix = Cached(indexerNamePrefix);
                                 }
                             }
                             break;
@@ -455,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                                 if (indexerTypeName != null)
                                 {
                                     attribute.IsDictionary = true;
-                                    attribute.IndexerValueTypeName = indexerTypeName;
+                                    attribute.IndexerValueTypeName = Cached(indexerTypeName);
                                 }
                             }
                             break;
@@ -520,14 +524,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var name = (string)reader.Value;
-                                parameter.Name = name;
+                                parameter.Name = Cached(name);
                             }
                             break;
                         case nameof(BoundAttributeParameterDescriptor.TypeName):
                             if (reader.Read())
                             {
                                 var typeName = (string)reader.Value;
-                                parameter.TypeName = typeName;
+                                parameter.TypeName = Cached(typeName);
                             }
                             break;
                         case nameof(BoundAttributeParameterDescriptor.IsEnum):
@@ -541,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var documentation = (string)reader.Value;
-                                parameter.Documentation = documentation;
+                                parameter.Documentation = Cached(documentation);
                             }
                             break;
                         case nameof(BoundAttributeParameterDescriptor.Metadata):
@@ -595,14 +599,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var tagName = (string)reader.Value;
-                                rule.TagName = tagName;
+                                rule.TagName = Cached(tagName);
                             }
                             break;
                         case nameof(TagMatchingRuleDescriptor.ParentTag):
                             if (reader.Read())
                             {
                                 var parentTag = (string)reader.Value;
-                                rule.ParentTag = parentTag;
+                                rule.ParentTag = Cached(parentTag);
                             }
                             break;
                         case nameof(TagMatchingRuleDescriptor.TagStructure):
@@ -659,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var name = (string)reader.Value;
-                                attribute.Name = name;
+                                attribute.Name = Cached(name);
                             }
                             break;
                         case nameof(RequiredAttributeDescriptor.NameComparison):
@@ -670,7 +674,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var value = (string)reader.Value;
-                                attribute.Value = value;
+                                attribute.Value = Cached(value);
                             }
                             break;
                         case nameof(RequiredAttributeDescriptor.ValueComparison):
@@ -728,14 +732,14 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                             if (reader.Read())
                             {
                                 var name = (string)reader.Value;
-                                childTag.Name = name;
+                                childTag.Name = Cached(name);
                             }
                             break;
                         case nameof(AllowedChildTagDescriptor.DisplayName):
                             if (reader.Read())
                             {
                                 var displayName = (string)reader.Value;
-                                childTag.DisplayName = displayName;
+                                childTag.DisplayName = Cached(displayName);
                             }
                             break;
                         case nameof(AllowedChildTagDescriptor.Diagnostics):
@@ -763,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 if (reader.Read())
                 {
                     var value = (string)reader.Value;
-                    metadata[propertyName] = value;
+                    metadata[Cached(propertyName)] = Cached(value);
                 }
             });
         }
@@ -828,11 +832,55 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 }
             });
 
-            var descriptor = new RazorDiagnosticDescriptor(id, () => message, (RazorDiagnosticSeverity)severity);
-
+            var cachedMsg = Cached(message);
+            var cachedId = Cached(id);
+            var descriptor = CreateDiagnosticDescriptor(cachedId, cachedMsg, (RazorDiagnosticSeverity)severity);
             var diagnostic = RazorDiagnostic.Create(descriptor, sourceSpan);
             diagnostics.Add(diagnostic);
+
+            static RazorDiagnosticDescriptor CreateDiagnosticDescriptor(string id, string message, RazorDiagnosticSeverity severity)
+            {
+                // Do NOT inline this descriptor factory method into the call site above.
+                //
+                // Reasoning:
+                //  Because "message" is referenced in not only the below "() => message" but also the above switch statement containing lambda without this separate static method the
+                //  compiler would generate a fake display class that looks something like:
+                //  private sealed class <>c__DisplayClass26_0
+                //  {
+                //      public JsonReader reader;
+                //      public string id;
+                //      public int severity;
+                //      public string message;
+                //      public SourceSpan sourceSpan;
+                //
+                //       internal void <ReadDiagnostic>b__0(string propertyName)
+                //       {
+                //           switch (propertyName)
+                //           {
+                //              ....
+                //               case "Message":
+                //                   if (reader.Read())
+                //                   {
+                //                       message = (string)reader.Value;
+                //                   }
+                //              ...
+                //           }
+                //       }
+                //
+                //       internal string <ReadDiagnostic>b__1()
+                //       {
+                //           return message;
+                //       }
+                //  }
+                //
+                // And then uses that display class's "b_1" method as the lambda parameter for the diagnostic descriptor. Its reasoning is to maintain correctness
+                // in the case that the above lambda mutates the value of "message". The problem with this is then the lambda has a reference to the higher level
+                // display class which has the entire JsonReader payload pinned. This bloats memory in scenarios where a user has TagHelper diagnostics. Each
+                // diagnostic ends up having a refernce back to the original JSON payload that created it which in our case is huge!
+                return new RazorDiagnosticDescriptor(id, () => message, severity);
+            }
         }
+
 
         private static SourceSpan ReadSourceSpan(JsonReader reader)
         {
@@ -905,6 +953,25 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             }
 
             throw new JsonSerializationException($"Could not read till end of object, end of stream. Got '{reader.TokenType}'.");
+        }
+
+        private static string Cached(string str)
+        {
+            if (str is null)
+            {
+                return null;
+            }
+
+            // Some of the string using in a basic project.razor.json are interned by other processes,
+            // so we should avoid duplicating those.
+            var interned = string.IsInterned(str);
+            if (interned != null)
+            {
+                return interned;
+            }
+
+            // We cache all our stings here to prevent them from balooning memory in our Descriptors.
+            return _stringCache.GetOrAddValue(str);
         }
     }
 }
