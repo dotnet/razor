@@ -108,15 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public override void VisitCSharpStatement(CSharpStatementSyntax node)
         {
             AddSemanticRange(node.Transition, RazorSemanticTokensLegend.RazorTransition);
-            switch (node.Body)
-            {
-                case CSharpStatementBodySyntax bodySyntax:
-                    VisitCSharpStatementBody(bodySyntax);
-                    break;
-                default:
-                    // We don't handle this type yet.
-                    break;
-            }
+            Visit(node.Body);
         }
 
         public override void VisitCSharpStatementBody(CSharpStatementBodySyntax node)
@@ -135,14 +127,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             AddSemanticRange(node.Comment, RazorSemanticTokensLegend.RazorComment);
             AddSemanticRange(node.EndCommentStar, RazorSemanticTokensLegend.RazorCommentStar);
             AddSemanticRange(node.EndCommentTransition, RazorSemanticTokensLegend.RazorCommentTransition);
-
-            base.VisitRazorCommentBlock(node);
         }
 
         public override void VisitRazorDirective(RazorDirectiveSyntax node)
         {
             AddSemanticRange(node.Transition, RazorSemanticTokensLegend.RazorTransition);
-            base.VisitRazorDirective(node);
+            Visit(node.Body);
         }
 
         public override void VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
