@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -116,6 +115,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             AddSemanticRange(node.OpenBrace, RazorSemanticTokensLegend.RazorTransition);
             base.VisitCSharpCodeBlock(node.CSharpCode);
             AddSemanticRange(node.CloseBrace, RazorSemanticTokensLegend.RazorTransition);
+        }
+
+        public override void VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
+        {
+            AddSemanticRange(node.Transition, RazorSemanticTokensLegend.RazorTransition);
+            Visit(node.Body);
+        }
+
+        public override void VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
+        {
+            AddSemanticRange(node.Transition, RazorSemanticTokensLegend.RazorTransition);
+            Visit(node.Body);
+        }
+
+        public override void VisitCSharpExplicitExpressionBody(CSharpExplicitExpressionBodySyntax node)
+        {
+            AddSemanticRange(node.OpenParen, RazorSemanticTokensLegend.CSharpPunctuation);
+            Visit(node.CSharpCode);
+            AddSemanticRange(node.CloseParen, RazorSemanticTokensLegend.CSharpPunctuation);
         }
         #endregion C#
 
