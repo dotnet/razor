@@ -10,12 +10,12 @@ import { RazorLogger } from '../RazorLogger';
 
 import { JS_DEBUG_NAME, SERVER_APP_NAME } from './Constants';
 
-const isValidEvent = (name: string) => {
-  const VALID_EVENT_NAMES = [SERVER_APP_NAME, JS_DEBUG_NAME];
-  if (!VALID_EVENT_NAMES.includes(name)) {
-    return false;
-  }
-  return true;
+const isValidEvent = (name: string): boolean => {
+    const VALID_EVENT_NAMES = [SERVER_APP_NAME, JS_DEBUG_NAME];
+    if (!VALID_EVENT_NAMES.includes(name)) {
+        return false;
+    }
+    return true;
 };
 
 const killProcess = (targetPid: number | undefined, logger: RazorLogger): void => {
@@ -78,9 +78,9 @@ async function terminateByProcessName(
         logger.logError('Error retrieving processes to clean-up: ', error);
     }
 
-  const devserver = processes.find(
-    (process: psList.ProcessDescriptor) => !!(process && process.cmd && process.cmd.match(targetProcess)));
-  targetPid = devserver ? devserver.pid : undefined;
+    const devserver = processes.find(
+        (process: psList.ProcessDescriptor) => !!(process && process.cmd && process.cmd.includes(targetProcess)));
+    const targetPid = devserver ? devserver.pid : undefined;
 
     killProcess(targetPid, logger);
 }

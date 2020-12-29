@@ -39,7 +39,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
         return undefined;
     }
 
-    private async launchHostedApp(folder: vscode.WorkspaceFolder | undefined, configuration: vscode.DebugConfiguration): void {
+    private async launchApp(folder: vscode.WorkspaceFolder | undefined, configuration: vscode.DebugConfiguration): Promise<void> {
         const program = configuration.hosted ? configuration.program : 'dotnet';
         const cwd = configuration.cwd || '${workspaceFolder}';
         const args = configuration.hosted ? [] : ['run'];
@@ -78,7 +78,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
         }
     }
 
-    private async launchBrowser(folder: vscode.WorkspaceFolder | undefined, configuration: vscode.DebugConfiguration, parentSession?: vscode.DebugSession) {
+    private async launchBrowser(folder: vscode.WorkspaceFolder | undefined, configuration: vscode.DebugConfiguration, parentSession?: vscode.DebugSession): Promise<void> {
         const browser = {
             name: JS_DEBUG_NAME,
             type: configuration.browser === 'edge' ? 'pwa-msedge' : 'pwa-chrome',

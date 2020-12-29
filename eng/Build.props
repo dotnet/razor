@@ -12,8 +12,13 @@
     <!-- Exclude VSIX projects on non-Windows -->
     <ProjectToBuild Condition="'$(OS)'!='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\src\Razor\Razor.Slim.sln" />
 
-    <NodeJsProjects Include="$(RepoRoot)src\Razor\src\**\*.npmproj" Exclude="$(RepoRoot)src\**\node_modules\**" RestoreInParallel="false"/>
-    <NodeJsProjects Include="$(RepoRoot)src\Razor\test\**\*.npmproj" Exclude="$(RepoRoot)src\**\node_modules\**" RestoreInParallel="false" />
+    <NodeJsProjects Include="$(RepoRoot)src\Razor\src\Microsoft.AspNetCore.Razor.VSCode.Extension\Microsoft.AspNetCore.Razor.VSCode.Extension.npmproj" RestoreInParallel="false"/>
+    <NodeJsProjects Include="$(RepoRoot)src\Razor\src\Microsoft.AspNetCore.Razor.VSCode\Microsoft.AspNetCore.Razor.VSCode.npmproj" RestoreInParallel="false"/>
+
+    <NodeJsProjects Include="$(RepoRoot)src\Razor\test\Microsoft.AspNetCore.Razor.VSCode.Grammar.Test\Microsoft.AspNetCore.Razor.VSCode.Grammar.Test.npmproj" RestoreInParallel="false" />
+    <NodeJsProjects Include="$(RepoRoot)src\Razor\test\Microsoft.AspNetCore.Razor.VSCode.Test\Microsoft.AspNetCore.Razor.VSCode.Test.npmproj"  RestoreInParallel="false" />
+    <NodeJsProjects Include="$(RepoRoot)src\Razor\test\VSCode.FunctionalTest\Microsoft.AspNetCore.Razor.VSCode.FunctionalTest.npmproj" RestoreInParallel="false" />
+
     <NodeJsProjects Include="$(RepoRoot)src\Razor\eslint-config-razor-tooling\eslint-config-razor-tooling.npmproj" RestoreInParallel="false" />
 
     <ProjectToBuild Include="@(NodeJsProjects)" Condition="'$(BuildNodeJs)' == 'true'" />
