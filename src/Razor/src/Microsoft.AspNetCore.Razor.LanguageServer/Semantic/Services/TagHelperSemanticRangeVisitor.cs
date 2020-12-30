@@ -175,6 +175,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 AddSemanticRange(node.Keyword, RazorSemanticTokensLegend.RazorDirective);
             }
+            else
+            {
+                Visit(node.Keyword);
+            }
+
+            Visit(node.CSharpCode);
         }
 
         public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
