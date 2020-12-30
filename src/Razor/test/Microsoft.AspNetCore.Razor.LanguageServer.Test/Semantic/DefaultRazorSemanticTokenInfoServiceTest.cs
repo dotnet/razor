@@ -798,7 +798,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"{Environment.NewLine}<p @test='Function'></p> ";
             var expectedData = new List<int> {
-                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,  //line, character pos, length, tokenType, modifier
                 0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
                 0, 2, 1, RazorSemanticTokensLegend.RazorTransition, 0,
                 0, 1, 4, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
@@ -818,7 +818,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelpers *, TestAssembly{Environment.NewLine}<p></p> ";
             var expectedData = new List<int> {
-                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
@@ -862,8 +862,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var txt = $"@code {{}}";
             var expectedData = new List<int>
             {
-                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 4, RazorSemanticTokensLegend.RazorDirective, 0
+            }.ToImmutableArray();
+
+            await AssertSemanticTokens(txt, expectedData, isRazor: true);
+        }
+
+        [Fact]
+        public async Task GetSemanticTokens_Razor_CodeDirectiveBodyAsync()
+        {
+            var txt = @$"@code {{
+    public void SomeMethod()
+    {{
+@DateTime.Now
+    }}
+}}";
+            var expectedData = new List<int>
+            {
+                0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
+                0, 1, 4, RazorSemanticTokensLegend.RazorDirective, 0,
+                3, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
             }.ToImmutableArray();
 
             await AssertSemanticTokens(txt, expectedData, isRazor: true);
