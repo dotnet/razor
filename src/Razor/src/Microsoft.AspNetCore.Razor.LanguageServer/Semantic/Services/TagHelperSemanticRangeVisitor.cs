@@ -5,10 +5,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
-using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -170,14 +168,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitRazorMetaCode(RazorMetaCodeSyntax node)
         {
-            switch (node.Kind)
+            if(node.Kind == SyntaxKind.RazorMetaCode)
             {
-                // These are Braces for things like "@code {}" and "@functions {}".
-                // Hypothetically the braces are the only metacode which should ever reach this,
-                // but I added the switch statement just in case.
-                case SyntaxKind.RazorMetaCode:
                     AddSemanticRange(node, RazorSemanticTokensLegend.RazorTransition);
-                    break;
+            }
+            else
+            {
+                throw new NotSupportedException("Attempted to visit a RazorMetaCode other than '{' or '}'.");
             }
         }
 
