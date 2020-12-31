@@ -703,7 +703,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
                 1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
-                0, 1, 11, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
+                0, 1, 11, RazorSemanticTokensLegend.MarkupElement, 0,
                 0, 12, 1, RazorSemanticTokensLegend.RazorTransition, 0,
                 0, 1, 9, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
                 0, 9, 1, RazorSemanticTokensLegend.RazorDirectiveColon, 0,
@@ -718,13 +718,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         [Fact]
         public async Task GetSemanticTokens_Razor_DirectiveAttributesParametersAsync()
         {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 @test:something='Function'></test1> ";
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<Component1 @test:something='Function'></Component1> ";
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
                 1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
-                0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 6, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 10, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
+                0, 11, 1, RazorSemanticTokensLegend.RazorTransition, 0,
                 0, 1, 4, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
                 0, 4, 1, RazorSemanticTokensLegend.RazorDirectiveColon, 0,
                 0, 1, 9, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
@@ -732,8 +732,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 11, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
-                0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 10, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
+                0, 10, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             await AssertSemanticTokens(txt, expectedData, isRazor: true);
@@ -763,20 +763,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         [Fact]
         public async Task GetSemanticTokens_Razor_DirectivesAsync()
         {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 @test='Function'></test1> ";
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<Component1 @test='Function'></Component1> ";
             var expectedData = new List<int> {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 12, RazorSemanticTokensLegend.RazorDirective, 0,
                 1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
-                0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 6, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 10, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
+                0, 11, 1, RazorSemanticTokensLegend.RazorTransition, 0,
                 0, 1, 4, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
                 0, 4, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
                 0, 11, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
-                0, 1, 5, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
-                0, 5, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 10, RazorSemanticTokensLegend.RazorTagHelperElement, 0,
+                0, 10, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             await AssertSemanticTokens(txt, expectedData, isRazor: true);
@@ -793,6 +793,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokens(txt, expectedData, isRazor: true);
         }
 
+        [Fact]
+        public async Task GetSemanticTokens_Razor_DoNotColorNonHTMLElementsAsync()
+        {
+            var txt = $"{Environment.NewLine}<p1 @test='Function'></p> ";
+            var expectedData = new List<int> {
+                1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,  //line, character pos, length, tokenType, modifier
+                0, 1, 2, RazorSemanticTokensLegend.MarkupElement, 0,
+                0, 3, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 4, RazorSemanticTokensLegend.RazorDirectiveAttribute, 0,
+                0, 4, 1, RazorSemanticTokensLegend.MarkupOperator, 0,
+                0, 11, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
+                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+            };
+
+            await AssertSemanticTokens(txt, expectedData, isRazor: true);
+        }
         [Fact]
         public async Task GetSemanticTokens_Razor_DoNotColorNonTagHelpersAsync()
         {

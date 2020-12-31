@@ -331,35 +331,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(node));
             }
 
+            var isElement = false;
             if (node.StartTag != null && node.StartTag.Name != null)
             {
-                var name = node.StartTag.Name.Content;
-
-                if (!HtmlFactsService.IsHtmlTagName(name))
-                {
-                    // We always classify non-HTML tag names as TagHelpers if they're within a MarkupTagHelperElementSyntax
-                    return true;
-                }
-
-                // This must be a well-known HTML tag name like 'input', 'br'.
-
                 var binding = node.TagHelperInfo.BindingResult;
                 foreach (var descriptor in binding.Descriptors)
                 {
-                    if (!descriptor.IsComponentTagHelper())
+                    if (!IsAttributeRules(descriptor.TagMatchingRules))
                     {
-                        return false;
+                        isElement = true;
                     }
                 }
 
-                if (name.Length > 0 && char.IsUpper(name[0]))
-                {
-                    // pascal cased Component TagHelper tag name such as <Input>
-                    return true;
-                }
+                // Don't colorize if we're only a taghelper due to attributes
+                return isElement;
             }
 
             return false;
+        }
+
+        private bool IsAttributeRules(IEnumerable<TagMatchingRuleDescriptor> tagMatchingRules)
+        {
+            foreach(var rule in tagMatchingRules)
+            {
+                if (rule.TagName != "*")
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void AddSemanticRange(SyntaxNode node, int semanticKind)
