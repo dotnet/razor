@@ -863,7 +863,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int>
             {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
-                0, 1, 4, RazorSemanticTokensLegend.RazorDirective, 0
+                0, 1, 4, RazorSemanticTokensLegend.RazorDirective, 0,
+                0, 5, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0,
             }.ToImmutableArray();
 
             await AssertSemanticTokens(txt, expectedData, isRazor: true);
@@ -882,7 +884,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, //line, character pos, length, tokenType, modifier
                 0, 1, 4, RazorSemanticTokensLegend.RazorDirective, 0,
+                0, 5, 1, RazorSemanticTokensLegend.RazorTransition, 0, // left bracket
                 3, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                2, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0, // right bracket
             }.ToImmutableArray();
 
             await AssertSemanticTokens(txt, expectedData, isRazor: true);
@@ -907,7 +911,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var expectedData = new List<int>
             {
                 0, 0, 1, RazorSemanticTokensLegend.RazorTransition, 0,
-                0, 1, 9, RazorSemanticTokensLegend.RazorDirective, 0
+                0, 1, 9, RazorSemanticTokensLegend.RazorDirective, 0,
+                0, 10, 1, RazorSemanticTokensLegend.RazorTransition, 0,
+                0, 1, 1, RazorSemanticTokensLegend.RazorTransition, 0,
             }.ToImmutableArray();
 
             await AssertSemanticTokens(txt, expectedData, isRazor: true);

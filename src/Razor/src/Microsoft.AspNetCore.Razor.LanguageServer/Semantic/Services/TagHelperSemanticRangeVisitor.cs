@@ -168,6 +168,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Visit(node.Body);
         }
 
+        public override void VisitRazorMetaCode(RazorMetaCodeSyntax node)
+        {
+            switch (node.Kind)
+            {
+                // These are Braces for things like "@code {}" and "@functions {}".
+                // Hypothetically the braces are the only metacode which should ever reach this,
+                // but I added the switch statement just in case.
+                case SyntaxKind.RazorMetaCode:
+                    AddSemanticRange(node, RazorSemanticTokensLegend.RazorTransition);
+                    break;
+            }
+        }
+
         public override void VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
         {
             // We can't provide colors for CSharp because if we both provided them then they would overlap, which violates the LSP spec.
