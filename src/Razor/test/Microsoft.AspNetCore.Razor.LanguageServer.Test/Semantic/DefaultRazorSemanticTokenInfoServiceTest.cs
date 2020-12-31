@@ -796,7 +796,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         [Fact]
         public async Task GetSemanticTokens_Razor_DoNotColorNonHTMLElementsAsync()
         {
-            var txt = $"{Environment.NewLine}<p1 @test='Function'></p> ";
+            var txt = $"{Environment.NewLine}<p1 @test='Function'></p1> ";
             var expectedData = new List<int> {
                 1, 0, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,  //line, character pos, length, tokenType, modifier
                 0, 1, 2, RazorSemanticTokensLegend.MarkupElement, 0,
@@ -806,8 +806,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 0, 11, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
                 0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
-                0, 1, 1, RazorSemanticTokensLegend.MarkupElement, 0,
-                0, 1, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
+                0, 1, 2, RazorSemanticTokensLegend.MarkupElement, 0,
+                0, 2, 1, RazorSemanticTokensLegend.MarkupTagDelimiter, 0,
             };
 
             await AssertSemanticTokens(txt, expectedData, isRazor: true);
