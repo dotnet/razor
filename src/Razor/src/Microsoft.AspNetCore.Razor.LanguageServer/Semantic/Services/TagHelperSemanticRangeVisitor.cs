@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -168,9 +170,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitRazorMetaCode(RazorMetaCodeSyntax node)
         {
-            if(node.Kind == SyntaxKind.RazorMetaCode)
+            if (node.Kind == SyntaxKind.RazorMetaCode)
             {
-                    AddSemanticRange(node, RazorSemanticTokensLegend.RazorTransition);
+                AddSemanticRange(node, RazorSemanticTokensLegend.RazorTransition);
             }
             else
             {
@@ -328,36 +330,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new ArgumentNullException(nameof(node));
             }
 
-            var isElement = false;
             if (node.StartTag != null && node.StartTag.Name != null)
             {
+                var name = node.StartTag.Name.Content;
+
+                if (!HtmlFactsService.IsHtmlTagName(name))
+                {
+                    // We always classify non-HTML tag names as TagHelpers if they're within a MarkupTagHelperElementSyntax
+                    return true;
+                }
+
+                // This must be a well-known HTML tag name like 'input', 'br'.
+
                 var binding = node.TagHelperInfo.BindingResult;
                 foreach (var descriptor in binding.Descriptors)
                 {
-                    if (!IsAttributeRules(descriptor.TagMatchingRules))
+                    if (!descriptor.IsComponentTagHelper())
                     {
-                        isElement = true;
+                        return false;
                     }
                 }
 
-                // Don't colorize if we're only a taghelper due to attributes
-                return isElement;
-            }
-
-            return false;
-        }
-
-        private bool IsAttributeRules(IEnumerable<TagMatchingRuleDescriptor> tagMatchingRules)
-        {
-            foreach(var rule in tagMatchingRules)
-            {
-                if (rule.TagName != "*")
+                if (name.Length > 0 && char.IsUpper(name[0]))
                 {
-                    return false;
+                    // pascal cased Component TagHelper tag name such as <Input>
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
 
         private void AddSemanticRange(SyntaxNode node, int semanticKind)
