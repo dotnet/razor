@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
 
         private void Cleanup()
         {
-            _hashSet.RemoveWhere((weakRef) => !weakRef.IsAlive);
+            _hashSet.RemoveWhere(weakRef => !weakRef.IsAlive);
         }
 
         private bool TryGetValue(string key, out string? value)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
             {
                 var exfiltrator = (ExfiltratingEqualityComparer)_hashSet.Comparer;
                 var val = exfiltrator.LastEqualValue!;
-                if (val.TryGetTarget(out var target))
+                if (val.Value.TryGetTarget(out var target))
                 {
                     value = target!;
                     return true;
@@ -107,25 +107,21 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
                 }
             }
 
-            public int GetHashCode(Entry obj)
-            {
-                return obj.GetHashCode();
-            }
+            public int GetHashCode(Entry obj) => obj.GetHashCode();
         }
 
-        // This can't be a struct because then Value Boxing would cause us to fail the ReferenceEquals check inside Equals.
-        private class Entry
+        private struct Entry
         {
             // In order to use HashSet we need a stable HashCode, so we have to cache it as soon as it comes in.
             // If the HashCode is unstable then entries in the HashSet become unreachable/unremovable.
-            private readonly int TargetHashCode;
+            private readonly int _targetHashCode;
 
             private readonly WeakReference<string> _weakRef;
 
             public Entry(string target)
             {
                 _weakRef = new WeakReference<string>(target);
-                TargetHashCode = target.GetHashCode();
+                _targetHashCode = target.GetHashCode();
             }
 
             public bool IsAlive => _weakRef.TryGetTarget(out _);
@@ -148,12 +144,13 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
                 }
 
                 // We lost the reference, but we need to check RefEquals to ensure that HashSet can successfully Remove items.
-                return ReferenceEquals(this, obj);
+                // We can't compare the Entries themselves because as structs they would get Value-Boxed an RefEquals would always be false.
+                return ReferenceEquals(_weakRef, entry._weakRef);
             }
 
             public override int GetHashCode()
             {
-                return TargetHashCode;
+                return _targetHashCode;
             }
         }
     }
