@@ -96,7 +96,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             var unmappedDiagnostics = request.Diagnostics;
-            var filteredDiagnostics = unmappedDiagnostics.Where(d => !CanDiagnosticBeFiltered(d)).ToArray();
+            var filteredDiagnostics = unmappedDiagnostics.Where(d => !CanDiagnosticBeFiltered(request.Kind, d)).ToArray();
             if (!filteredDiagnostics.Any())
             {
                 // No diagnostics left after filtering.
@@ -114,17 +114,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return new RazorDiagnosticsResponse()
             {
-                Diagnostics = mappedDiagnostics.ToArray(),
+                Diagnostics = mappedDiagnostics,
                 HostDocumentVersion = documentVersion,
             };
 
             // TODO; HTML filtering blocked on https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401
-            static bool CanDiagnosticBeFiltered(Diagnostic d) =>
+            static bool CanDiagnosticBeFiltered(RazorLanguageKind kind, Diagnostic d)
+            {
+                return kind == RazorLanguageKind.CSharp ?
+                    CanCSharpDiagnosticBeFiltered(d) :
+                    CanHTMLDiagnosticBeFiltered(d);
+            }
+
+            static bool CanCSharpDiagnosticBeFiltered(Diagnostic d) =>
                 (DiagnosticsToIgnore.Contains(d.Code?.String) &&
                  d.Severity != DiagnosticSeverity.Error);
+
+            static bool CanHTMLDiagnosticBeFiltered(Diagnostic d) => false;
         }
 
-        private async Task<IReadOnlyList<Diagnostic>> MapDiagnosticsAsync(
+        private async Task<Diagnostic[]> MapDiagnosticsAsync(
             RazorDiagnosticsParams request,
             IReadOnlyList<Diagnostic> filteredDiagnostics,
             DocumentSnapshot documentSnapshot)
@@ -132,7 +141,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (request.Kind != RazorLanguageKind.CSharp)
             {
                 // All other non-C# requests map directly to where they are in the document.
-                return filteredDiagnostics;
+                return filteredDiagnostics.ToArray();
             }
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
@@ -171,7 +180,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 mappedDiagnostics.Add(diagnostic);
             }
 
-            return mappedDiagnostics;
+            return mappedDiagnostics.ToArray();
         }
     }
 }
