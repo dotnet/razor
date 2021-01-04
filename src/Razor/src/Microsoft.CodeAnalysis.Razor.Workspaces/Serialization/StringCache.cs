@@ -57,10 +57,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
 
         private void Cleanup()
         {
-            _hashSet.RemoveWhere((weakRef) =>
-            {
-                return !weakRef.IsAlive;
-            });
+            _hashSet.RemoveWhere((weakRef) => !weakRef.IsAlive);
         }
 
         private bool TryGetValue(string key, out string? value)
@@ -112,15 +109,16 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
 
             public int GetHashCode(Entry obj)
             {
-                return obj.TargetHashCode;
+                return obj.GetHashCode();
             }
         }
 
+        // This can't be a struct because then Value Boxing would cause us to fail the ReferenceEquals check inside Equals.
         private class Entry
         {
             // In order to use HashSet we need a stable HashCode, so we have to cache it as soon as it comes in.
             // If the HashCode is unstable then entries in the HashSet become unreachable/unremovable.
-            public readonly int TargetHashCode;
+            private readonly int TargetHashCode;
 
             private readonly WeakReference<string> _weakRef;
 
