@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal
 
                 if (TryGetTarget(out var thisTarget) && entry.TryGetTarget(out var entryTarget))
                 {
-                    return thisTarget!.Equals(entryTarget, StringComparison.Ordinal);
+                    return thisTarget!.GetHashCode().Equals(entryTarget.GetHashCode()) && thisTarget!.Equals(entryTarget, StringComparison.Ordinal);
                 }
 
                 // We lost the reference, but we need to check RefEquals to ensure that HashSet can successfully Remove items.
