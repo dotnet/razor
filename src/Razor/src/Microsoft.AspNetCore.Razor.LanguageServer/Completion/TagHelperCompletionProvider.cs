@@ -8,30 +8,31 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using RazorTagHelperCompletionService = Microsoft.VisualStudio.Editor.Razor.TagHelperCompletionService;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
-    internal class DefaultTagHelperCompletionService : TagHelperCompletionService
+    internal class TagHelperCompletionProvider : RazorCompletionItemProvider
     {
-        private static readonly Container<string> NoCommitCharacters = new Container<string>();
-        private static readonly Container<string> AttributeCommitCharacters = new Container<string>("=", " ");
-        private static readonly Container<string> MinimizedAttributeCommitCharacters = new Container<string>("=");
-        private static readonly Container<string> ElementCommitCharacters = new Container<string>(" ", ">");
+        // Internal for testing
+        internal static readonly IReadOnlyCollection<string> MinimizedAttributeCommitCharacters = new List<string> { "=", " " };
+        internal static readonly IReadOnlyCollection<string> AttributeCommitCharacters = new List<string> { "=" };
+
+        private static readonly IReadOnlyCollection<string> ElementCommitCharacters = new List<string> { " ", ">" };
+        private static readonly IReadOnlyCollection<string> NoCommitCharacters = new List<string>();
         private readonly HtmlFactsService _htmlFactsService;
-        private readonly RazorTagHelperCompletionService _razorTagHelperCompletionService;
+        private readonly TagHelperCompletionService _tagHelperCompletionService;
         private readonly TagHelperFactsService _tagHelperFactsService;
 
-        public DefaultTagHelperCompletionService(
-            RazorTagHelperCompletionService razorCompletionService,
+        public TagHelperCompletionProvider(
+            TagHelperCompletionService tagHelperCompletionService,
             HtmlFactsService htmlFactsService,
             TagHelperFactsService tagHelperFactsService)
         {
-            if (razorCompletionService is null)
+            if (tagHelperCompletionService is null)
             {
-                throw new ArgumentNullException(nameof(razorCompletionService));
+                throw new ArgumentNullException(nameof(tagHelperCompletionService));
             }
 
             if (htmlFactsService is null)
@@ -44,26 +45,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(tagHelperFactsService));
             }
 
-            _razorTagHelperCompletionService = razorCompletionService;
+            _tagHelperCompletionService = tagHelperCompletionService;
             _htmlFactsService = htmlFactsService;
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override IReadOnlyList<CompletionItem> GetCompletionsAt(SourceSpan location, RazorCodeDocument codeDocument)
+
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
         {
-            if (codeDocument == null)
+            if (syntaxTree == null)
             {
-                throw new ArgumentNullException(nameof(codeDocument));
+                throw new ArgumentNullException(nameof(syntaxTree));
             }
 
-            var syntaxTree = codeDocument.GetSyntaxTree();
+            if (tagHelperDocumentContext is null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperDocumentContext));
+            }
+
             var change = new SourceChange(location, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
             {
                 Debug.Fail("Owner should never be null.");
-                return Array.Empty<CompletionItem>();
+                return Array.Empty<RazorCompletionItem>();
             }
 
             var parent = owner.Parent;
@@ -71,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
             {
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
-                var elementCompletions = GetElementCompletions(parent, containingTagNameToken.Content, stringifiedAttributes, codeDocument);
+                var elementCompletions = GetElementCompletions(parent, containingTagNameToken.Content, stringifiedAttributes, tagHelperDocumentContext);
                 return elementCompletions;
             }
 
@@ -87,23 +93,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 (prefixLocation?.IntersectsWith(location.AbsoluteIndex) ?? false)))
             {
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
-                var attributeCompletions = GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, codeDocument);
+                var attributeCompletions = GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, tagHelperDocumentContext);
                 return attributeCompletions;
             }
 
             // Invalid location for TagHelper completions.
-            return Array.Empty<CompletionItem>();
+            return Array.Empty<RazorCompletionItem>();
         }
 
-        private IReadOnlyList<CompletionItem> GetAttributeCompletions(
+        private IReadOnlyList<RazorCompletionItem> GetAttributeCompletions(
             SyntaxNode containingAttribute,
             string containingTagName,
             string selectedAttributeName,
             IEnumerable<KeyValuePair<string, string>> attributes,
-            RazorCodeDocument codeDocument)
+            TagHelperDocumentContext tagHelperDocumentContext)
         {
             var ancestors = containingAttribute.Parent.Ancestors();
-            var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var nonDirectiveAttributeTagHelpers = tagHelperDocumentContext.TagHelpers.Where(tagHelper => !tagHelper.BoundAttributes.Any(attribute => attribute.IsDirectiveAttribute()));
             var filteredContext = TagHelperDocumentContext.Create(tagHelperDocumentContext.Prefix, nonDirectiveAttributeTagHelpers);
             var (ancestorTagName, ancestorIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
@@ -117,8 +122,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 ancestorIsTagHelper,
                 HtmlFactsService.IsHtmlTagName);
 
-            var completionItems = new List<CompletionItem>();
-            var completionResult = _razorTagHelperCompletionService.GetAttributeCompletions(attributeCompletionContext);
+            var completionItems = new List<RazorCompletionItem>();
+            var completionResult = _tagHelperCompletionService.GetAttributeCompletions(attributeCompletionContext);
             foreach (var completion in completionResult.Completions)
             {
                 var filterText = completion.Key;
@@ -137,16 +142,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                 var attributeCommitCharacters = ResolveAttributeCommitCharacters(completion.Value, indexerCompletion);
 
-                var razorCompletionItem = new CompletionItem()
-                {
-                    Label = completion.Key,
-                    InsertText = filterText,
-                    InsertTextFormat = InsertTextFormat.PlainText,
-                    FilterText = filterText,
-                    SortText = filterText,
-                    Kind = CompletionItemKind.TypeParameter,
-                    CommitCharacters = attributeCommitCharacters,
-                };
+                var razorCompletionItem = new RazorCompletionItem(
+                    displayText: completion.Key,
+                    insertText: filterText,
+                    RazorCompletionItemKind.TagHelperAttribute,
+                    attributeCommitCharacters);
 
                 var attributeDescriptions = completion.Value.Select(boundAttribute => new TagHelperAttributeDescriptionInfo(
                     boundAttribute.DisplayName,
@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     indexerCompletion ? boundAttribute.IndexerTypeName : boundAttribute.TypeName,
                     boundAttribute.Documentation));
                 var attributeDescriptionInfo = new AttributeDescriptionInfo(attributeDescriptions.ToList());
-                razorCompletionItem.SetDescriptionInfo(attributeDescriptionInfo);
+                razorCompletionItem.SetTagHelperAttributeDescriptionInfo(attributeDescriptionInfo);
 
                 completionItems.Add(razorCompletionItem);
             }
@@ -162,14 +162,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return completionItems;
         }
 
-        private IReadOnlyList<CompletionItem> GetElementCompletions(
+        private IReadOnlyList<RazorCompletionItem> GetElementCompletions(
             SyntaxNode containingTag,
             string containingTagName,
             IEnumerable<KeyValuePair<string, string>> attributes,
-            RazorCodeDocument codeDocument)
+            TagHelperDocumentContext tagHelperDocumentContext)
         {
             var ancestors = containingTag.Ancestors();
-            var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var (ancestorTagName, ancestorIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
             var elementCompletionContext = new ElementCompletionContext(
                 tagHelperDocumentContext,
@@ -180,23 +179,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 ancestorIsTagHelper,
                 HtmlFactsService.IsHtmlTagName);
 
-            var completionItems = new List<CompletionItem>();
-            var completionResult = _razorTagHelperCompletionService.GetElementCompletions(elementCompletionContext);
+            var completionItems = new List<RazorCompletionItem>();
+            var completionResult = _tagHelperCompletionService.GetElementCompletions(elementCompletionContext);
             foreach (var completion in completionResult.Completions)
             {
-                var razorCompletionItem = new CompletionItem()
-                {
-                    Label = completion.Key,
-                    InsertText = completion.Key,
-                    FilterText = completion.Key,
-                    SortText = completion.Key,
-                    Kind = CompletionItemKind.TypeParameter,
-                    CommitCharacters = ElementCommitCharacters,
-                };
+                var razorCompletionItem = new RazorCompletionItem(
+                    displayText: completion.Key,
+                    insertText: completion.Key,
+                    RazorCompletionItemKind.TagHelperElement,
+                    ElementCommitCharacters);
 
                 var tagHelperDescriptions = completion.Value.Select(tagHelper => new TagHelperDescriptionInfo(tagHelper.GetTypeName(), tagHelper.Documentation));
                 var elementDescription = new ElementDescriptionInfo(tagHelperDescriptions.ToList());
-                razorCompletionItem.SetDescriptionInfo(elementDescription);
+                razorCompletionItem.SetTagHelperElementDescriptionInfo(elementDescription);
 
                 completionItems.Add(razorCompletionItem);
             }
@@ -204,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return completionItems;
         }
 
-        private Container<string> ResolveAttributeCommitCharacters(IEnumerable<BoundAttributeDescriptor> boundAttributes, bool indexerCompletion)
+        private IReadOnlyCollection<string> ResolveAttributeCommitCharacters(IEnumerable<BoundAttributeDescriptor> boundAttributes, bool indexerCompletion)
         {
             if (indexerCompletion)
             {
@@ -213,10 +208,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             else if (boundAttributes.Any(b => b.TypeName == "System.Boolean"))
             {
                 // Have to use string type because IsBooleanProperty isn't set
-                return AttributeCommitCharacters;
+                return MinimizedAttributeCommitCharacters;
             }
 
-            return MinimizedAttributeCommitCharacters;
+            return AttributeCommitCharacters;
         }
     }
 }
