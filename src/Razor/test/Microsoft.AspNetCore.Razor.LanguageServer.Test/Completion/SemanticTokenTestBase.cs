@@ -23,6 +23,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private static readonly AsyncLocal<string?> _fileName = new AsyncLocal<string?>();
 
+        private static readonly string _projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
+
         // Used by the test framework to set the 'base' name for test files.
         public static string? FileName
         {
@@ -141,7 +143,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 throw new NotImplementedException();
             }
 
-            var semanticBaselineEditPath = Path.Combine(ProjectPath, baselineFileName);
+            var semanticBaselineEditPath = Path.Combine(_projectPath, baselineFileName);
             File.WriteAllText(semanticBaselineEditPath, builder.ToString());
         }
 
@@ -165,7 +167,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            var semanticBaselinePath = Path.Combine(ProjectPath, baselineFileName);
+            var semanticBaselinePath = Path.Combine(_projectPath, baselineFileName);
             File.WriteAllText(semanticBaselinePath, builder.ToString());
         }
 

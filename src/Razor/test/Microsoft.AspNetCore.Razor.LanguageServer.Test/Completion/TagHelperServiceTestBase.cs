@@ -19,8 +19,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     public abstract class TagHelperServiceTestBase : LanguageServerTestBase
     {
-        protected static readonly string ProjectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
-
         protected const string CSHtmlFile = "test.cshtml";
         protected const string RazorFile = "test.razor";
 
