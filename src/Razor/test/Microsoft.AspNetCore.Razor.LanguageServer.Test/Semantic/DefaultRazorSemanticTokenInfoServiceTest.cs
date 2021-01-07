@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
@@ -29,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     // Finds the test method name using reflection, and uses
     // that to find the expected input/output test files as Embedded resources.
     [IntializeTestFile]
-    public class DefaultRazorSemanticTokenInfoServiceTest : DefaultTagHelperServiceTestBase
+    public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     {
         #region CSharp
         [Fact]

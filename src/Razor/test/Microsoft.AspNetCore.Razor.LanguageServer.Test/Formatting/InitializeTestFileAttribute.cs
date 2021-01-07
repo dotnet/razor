@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Reflection;
-using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -16,9 +16,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 FormattingTestBase.FileName = $"Formatting/TestFiles/{typeName}/{methodUnderTest.Name}";
             }
-            else if (typeof(DefaultTagHelperServiceTestBase).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
+            else if (typeof(SemanticTokenTestBase).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
             {
-                DefaultTagHelperServiceTestBase.FileName = $"Semantic\\TestFiles\\{typeName}\\{methodUnderTest.Name}";
+                SemanticTokenTestBase.FileName = $"Semantic\\TestFiles\\{typeName}\\{methodUnderTest.Name}";
             }
         }
 
@@ -28,9 +28,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 FormattingTestBase.FileName = null;
             }
-            else if (typeof(DefaultTagHelperServiceTestBase).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
+            else if (typeof(SemanticTokenTestBase).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
             {
-                DefaultTagHelperServiceTestBase.FileName = null;
+                SemanticTokenTestBase.FileName = null;
             }
         }
     }
