@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 #if GENERATE_BASELINES
         protected bool GenerateBaselines { get; set; } = true;
 #else
-        protected bool GenerateBaselines { get; set; } = true;
+        protected bool GenerateBaselines { get; set; } = false;
 #endif
 
         protected int BaselineTestCount { get; set; }
