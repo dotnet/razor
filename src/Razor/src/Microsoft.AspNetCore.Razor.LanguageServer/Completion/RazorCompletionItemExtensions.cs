@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -13,15 +15,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public static void SetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem, ElementDescriptionInfo elementDescriptionInfo)
         {
-            if (completionItem is null)
-            {
-                throw new ArgumentNullException(nameof(completionItem));
-            }
-
             completionItem.Items[TagHelperElementCompletionDescriptionKey] = elementDescriptionInfo;
         }
 
-        public static ElementDescriptionInfo GetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem)
+        public static ElementDescriptionInfo? GetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem)
         {
             if (completionItem is null)
             {
@@ -42,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             completionItem.Items[TagHelperAttributeCompletionDescriptionKey] = attributeDescriptionInfo;
         }
 
-        public static AttributeDescriptionInfo GetTagHelperAttributeDescriptionInfo(this RazorCompletionItem completionItem)
+        public static AttributeDescriptionInfo? GetTagHelperAttributeDescriptionInfo(this RazorCompletionItem completionItem)
         {
             if (completionItem is null)
             {

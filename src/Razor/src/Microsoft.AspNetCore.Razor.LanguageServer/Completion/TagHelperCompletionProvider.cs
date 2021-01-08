@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -53,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
         {
-            if (syntaxTree == null)
+            if (syntaxTree is null)
             {
                 throw new ArgumentNullException(nameof(syntaxTree));
             }
@@ -89,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     out var selectedAttributeNameLocation,
                     out attributes) &&
                 (selectedAttributeName == null ||
-                selectedAttributeNameLocation.Value.IntersectsWith(location.AbsoluteIndex) ||
+                selectedAttributeNameLocation?.IntersectsWith(location.AbsoluteIndex) == true ||
                 (prefixLocation?.IntersectsWith(location.AbsoluteIndex) ?? false)))
             {
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
@@ -104,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private IReadOnlyList<RazorCompletionItem> GetAttributeCompletions(
             SyntaxNode containingAttribute,
             string containingTagName,
-            string selectedAttributeName,
+            string? selectedAttributeName,
             IEnumerable<KeyValuePair<string, string>> attributes,
             TagHelperDocumentContext tagHelperDocumentContext)
         {

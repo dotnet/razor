@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -348,6 +347,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             FilterText = razorCompletionItem.InsertText,
                             SortText = razorCompletionItem.InsertText,
                             Kind = CompletionItemKind.TypeParameter,
+                            Icon = VSLspCompletionItemIcons.TagHelper,
                         };
 
                         if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)

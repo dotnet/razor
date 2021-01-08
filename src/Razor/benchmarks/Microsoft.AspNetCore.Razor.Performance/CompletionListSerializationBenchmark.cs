@@ -81,8 +81,7 @@ namespace Microsoft.AspNetCore.Razor.Performance
 
             var completionQueryLocation = new SourceSpan(queryIndex, length: 0);
             var razorCompletionItems = componentCompletionProvider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, completionQueryLocation);
-            var lspCompletionItems = RazorCompletionEndpoint.ConvertToLSPCompletionItems(razorCompletionItems);
-            var completionList = RazorCompletionEndpoint.CreateLSPCompletionList(lspCompletionItems);
+            var completionList = RazorCompletionEndpoint.CreateLSPCompletionList(razorCompletionItems);
             return completionList;
         }
 
