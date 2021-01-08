@@ -67,6 +67,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var semanticIntStr = semanticFile.ReadAllText();
             var semanticArray = ParseSemanticBaseline(semanticIntStr);
 
+            if (semanticArray is null && actual is null)
+            {
+                return;
+            }
+            else if (semanticArray is null || actual is null)
+            {
+                Assert.False(true, $"Expected: {semanticArray}; Actual: {actual}");
+            }
+
+            for (var i = 0; i < Math.Min(semanticArray!.Length, actual!.Length); i += 5)
+            {
+                var end = i + 5;
+                var actualTokens = actual[i..end];
+                var expectedTokens = semanticArray[i..end];
+                Assert.True(Enumerable.SequenceEqual(expectedTokens, actualTokens), $"Expected: {string.Join(',', expectedTokens)} Actual: {string.Join(',', actualTokens)} index: {i}");
+            }
             Assert.Equal(semanticArray, actual);
         }
 
@@ -129,7 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     {
                         builder.Append(i).Append(' ');
                     }
-                    builder.AppendLine("] ");
+                    builder.AppendLine("]");
                 }
                 builder.Append(edits.Delta.ResultId);
             }
@@ -171,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             File.WriteAllText(semanticBaselinePath, builder.ToString());
         }
 
-        private static IEnumerable<int>? ParseSemanticBaseline(string semanticIntStr)
+        private static int[]? ParseSemanticBaseline(string semanticIntStr)
         {
             if (string.IsNullOrEmpty(semanticIntStr))
             {
@@ -191,7 +207,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 results.Add(intResult);
             }
 
-            return results;
+            return results.ToArray();
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete
