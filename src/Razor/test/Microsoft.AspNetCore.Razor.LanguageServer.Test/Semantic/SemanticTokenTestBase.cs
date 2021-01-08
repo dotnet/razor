@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var expectedTokens = semanticArray[i..end];
                 Assert.True(Enumerable.SequenceEqual(expectedTokens, actualTokens), $"Expected: {string.Join(',', expectedTokens)} Actual: {string.Join(',', actualTokens)} index: {i}");
             }
-            Assert.Equal(semanticArray, actual);
+            Assert.True(semanticArray.Length == actual.Length, $"Expected length: {semanticArray.Length}, Actual length: {actual.Length}");
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete
