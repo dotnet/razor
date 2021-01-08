@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 #if GENERATE_BASELINES
         protected bool GenerateBaselines { get; set; } = true;
 #else
-        protected bool GenerateBaselines { get; set; } = false;
+        protected bool GenerateBaselines { get; set; } = true;
 #endif
 
         protected int BaselineTestCount { get; set; }
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var builder = new StringBuilder();
             if (edits.IsDelta)
             {
-                builder.AppendLine("Delta ");
+                builder.AppendLine("Delta");
                 foreach (var edit in edits.Delta!.Edits)
                 {
                     builder.Append(edit.Start).Append(' ');
@@ -147,7 +147,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     }
                     builder.AppendLine("]");
                 }
-                builder.Append(edits.Delta.ResultId);
             }
             else
             {
@@ -155,8 +154,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 {
                     builder.Append(d).Append(' ');
                 }
-                builder.Append(edits.Full!.ResultId);
-                throw new NotImplementedException();
             }
 
             var semanticBaselineEditPath = Path.Combine(_projectPath, baselineFileName);
@@ -253,7 +250,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     edits.Add(edit);
                 }
                 delta.Edits = edits;
-                delta.ResultId = strArray.Last();
 
                 return new SemanticTokensFullOrDelta(delta);
             }
