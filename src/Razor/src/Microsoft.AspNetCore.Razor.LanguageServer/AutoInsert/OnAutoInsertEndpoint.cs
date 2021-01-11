@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -111,7 +110,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 {
                     if (applicableProviders[i].TryResolveInsertion(position, formattingContext, out var textEdit, out var format))
                     {
-                        Debugger.Launch();
                         return new OnAutoInsertResponse()
                         {
                             TextEdit = textEdit,
