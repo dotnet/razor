@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>$(DefaultNetCoreTargetFramework);net461</TargetFrameworks>
     <PreserveCompilationContext>true</PreserveCompilationContext>
+    <NoWarn>$(NoWarn);CA1822;CA1018</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
