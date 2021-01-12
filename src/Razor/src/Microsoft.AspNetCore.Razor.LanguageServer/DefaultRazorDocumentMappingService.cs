@@ -244,7 +244,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // of the document.
             if (classifiedSpans.Count != 0 && absoluteIndex == documentLength)
             {
-                return GetLanguageFromClassifiedSpan(classifiedSpans.Last());
+                var lastClassifiedSpan = classifiedSpans.Last();
+                return GetLanguageFromClassifiedSpan(lastClassifiedSpan);
             }
 
             // Default to Razor
