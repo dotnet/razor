@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             //
             // This'll need to be revisited based on preferences with flickering vs lingering.
 
-            _logger.LogInformation($"Processed {processedDiagnostics.Diagnostics.Length} diagnostics.");
+            _logger.LogInformation($"Returning {processedDiagnostics.Diagnostics.Length} diagnostics.");
             diagnosticParams.Diagnostics = processedDiagnostics.Diagnostics;
 
             return CreateResponse(diagnosticParams);

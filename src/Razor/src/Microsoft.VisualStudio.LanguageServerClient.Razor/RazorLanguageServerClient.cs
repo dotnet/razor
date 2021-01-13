@@ -30,6 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
     {
+        private static readonly string LogFileIdentifier = "RazorLanguageServer";
+
         private readonly RazorLanguageServerCustomMessageTarget _customMessageTarget;
         private readonly ILanguageClientMiddleLayer _middleLayer;
         private readonly LSPRequestInvoker _requestInvoker;
@@ -143,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             services.AddLogging(logging =>
             {
                 logging.AddFilter<FeedbackFileLoggerProvider>(level => true);
-                var loggerProvider = (FeedbackFileLoggerProvider)_feedbackFileLoggerProviderFactory.GetOrCreate();
+                var loggerProvider = (FeedbackFileLoggerProvider)_feedbackFileLoggerProviderFactory.GetOrCreate(LogFileIdentifier);
                 logging.AddProvider(loggerProvider);
             });
             services.AddSingleton<LanguageServerFeatureOptions>(_vsLanguageServerFeatureOptions);

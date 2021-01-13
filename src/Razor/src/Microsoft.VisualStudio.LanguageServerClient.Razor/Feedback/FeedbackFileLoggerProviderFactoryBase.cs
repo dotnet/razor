@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
             _creationLock = new object();
         }
 
-        public override object GetOrCreate()
+        public override object GetOrCreate(string logFileIdentifier)
         {
             lock (_creationLock)
             {
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
                     _currentFileLogWriter.Dispose();
                 }
 
-                _currentFileLogWriter = new DefaultFeedbackFileLogWriter(_feedbackLogDirectoryProvider);
+                _currentFileLogWriter = new DefaultFeedbackFileLogWriter(_feedbackLogDirectoryProvider, logFileIdentifier);
                 var provider = new FeedbackFileLoggerProvider(_currentFileLogWriter);
 
                 return provider;

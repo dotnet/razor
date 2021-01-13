@@ -11,6 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
     [Export(typeof(HTMLCSharpLanguageServerFeedbackFileLoggerProvider))]
     internal class HTMLCSharpLanguageServerFeedbackFileLoggerProvider : ILoggerProvider
     {
+        private static readonly string LogFileIdentifier = "HTMLCSharpLanguageServer";
+
         private readonly FeedbackFileLoggerProvider _loggerProvider;
 
         [ImportingConstructor]
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _loggerProvider = (FeedbackFileLoggerProvider)loggerFactory.GetOrCreate();
+            _loggerProvider = (FeedbackFileLoggerProvider)loggerFactory.GetOrCreate(LogFileIdentifier);
         }
 
         public ILogger CreateLogger(string categoryName) => _loggerProvider.CreateLogger(categoryName);
