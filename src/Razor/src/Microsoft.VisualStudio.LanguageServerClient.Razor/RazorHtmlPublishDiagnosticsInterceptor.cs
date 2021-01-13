@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public RazorHtmlPublishDiagnosticsInterceptor(
             LSPDocumentManager documentManager,
             LSPDiagnosticsTranslator diagnosticsProvider,
-            FeedbackFileLoggerProviderFactory loggerFactory)
+            HTMLCSharpLanguageServerFeedbackFileLoggerProvider loggerProvider)
         {
             if (documentManager is null)
             {
@@ -40,15 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(diagnosticsProvider));
             }
 
-            if (loggerFactory == null)
+            if (loggerProvider == null)
             {
-                throw new ArgumentNullException(nameof(loggerFactory));
+                throw new ArgumentNullException(nameof(loggerProvider));
             }
 
             _documentManager = documentManager;
             _diagnosticsProvider = diagnosticsProvider;
 
-            var loggerProvider = (FeedbackFileLoggerProvider)loggerFactory.GetOrCreate();
             _logger = loggerProvider.CreateLogger(nameof(RazorHtmlPublishDiagnosticsInterceptor));
         }
 
@@ -62,12 +61,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             cancellationToken.ThrowIfCancellationRequested();
             var diagnosticParams = token.ToObject<VSPublishDiagnosticParams>();
 
-            _logger.LogInformation($"Received HTML Publish diagnostic request for {diagnosticParams.Uri} with {diagnosticParams.Diagnostics.Length} diagnostics.");
-
             if (diagnosticParams is null)
             {
                 throw new ArgumentException("Conversion of token failed.");
             }
+
+            _logger.LogInformation($"Received HTML Publish diagnostic request for {diagnosticParams.Uri} with {diagnosticParams.Diagnostics.Length} diagnostics.");
 
             // We only support interception of Virtual HTML Files
             if (!RazorLSPConventions.IsVirtualHtmlFile(diagnosticParams.Uri))

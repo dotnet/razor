@@ -7,15 +7,13 @@ using System.Composition;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
 {
     [Shared]
-    [Export(typeof(FeedbackFileLoggerProviderFactory))]
-    internal class DefaultFeedbackFileLoggerProviderFactory : FeedbackFileLoggerProviderFactory
+    internal abstract class FeedbackFileLoggerProviderFactoryBase : FeedbackFileLoggerProviderFactory
     {
         private readonly object _creationLock;
         private readonly FeedbackLogDirectoryProvider _feedbackLogDirectoryProvider;
         private DefaultFeedbackFileLogWriter _currentFileLogWriter;
 
-        [ImportingConstructor]
-        public DefaultFeedbackFileLoggerProviderFactory(FeedbackLogDirectoryProvider feedbackLogDirectoryProvider)
+        public FeedbackFileLoggerProviderFactoryBase(FeedbackLogDirectoryProvider feedbackLogDirectoryProvider)
         {
             if (feedbackLogDirectoryProvider is null)
             {
@@ -30,7 +28,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
         {
             lock (_creationLock)
             {
-                _currentFileLogWriter ??= new DefaultFeedbackFileLogWriter(_feedbackLogDirectoryProvider);
+                if (_currentFileLogWriter != null)
+                {
+                    // Dispose last log writer so we can start a new session. Technically only one should only ever be active at a time.
+                    _currentFileLogWriter.Dispose();
+                }
+
+                _currentFileLogWriter = new DefaultFeedbackFileLogWriter(_feedbackLogDirectoryProvider);
                 var provider = new FeedbackFileLoggerProvider(_currentFileLogWriter);
 
                 return provider;

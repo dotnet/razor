@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LSPDocumentManager documentManager,
             LSPDocumentSynchronizer documentSynchronizer,
             LSPDiagnosticsTranslator diagnosticsProvider,
-            FeedbackFileLoggerProviderFactory loggerFactory)
+            HTMLCSharpLanguageServerFeedbackFileLoggerProvider loggerProvider)
         {
             if (requestInvoker is null)
             {
@@ -53,9 +53,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(diagnosticsProvider));
             }
 
-            if (loggerFactory == null)
+            if (loggerProvider == null)
             {
-                throw new ArgumentNullException(nameof(loggerFactory));
+                throw new ArgumentNullException(nameof(loggerProvider));
             }
 
             _requestInvoker = requestInvoker;
@@ -63,7 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _documentSynchronizer = documentSynchronizer;
             _diagnosticsProvider = diagnosticsProvider;
 
-            var loggerProvider = (FeedbackFileLoggerProvider)loggerFactory.GetOrCreate();
             _logger = loggerProvider.CreateLogger(nameof(DocumentPullDiagnosticsHandler));
         }
 

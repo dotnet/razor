@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly ILanguageClientMiddleLayer _middleLayer;
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-        private readonly FeedbackFileLoggerProviderFactory _feedbackFileLoggerProviderFactory;
+        private readonly RazorLanguageServerFeedbackFileLoggerProviderFactory _feedbackFileLoggerProviderFactory;
         private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
 
         private object _shutdownLock;
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             RazorLanguageClientMiddleLayer middleLayer,
             LSPRequestInvoker requestInvoker,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            FeedbackFileLoggerProviderFactory feedbackFileLoggerProviderFactory,
+            RazorLanguageServerFeedbackFileLoggerProviderFactory feedbackFileLoggerProviderFactory,
             VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions)
         {
             if (customTarget is null)
