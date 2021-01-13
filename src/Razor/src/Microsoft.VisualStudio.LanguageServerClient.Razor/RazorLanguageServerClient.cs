@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             while (_server != null && ++attempts < WaitForShutdownAttempts)
             {
                 // Server failed to shutdown, lets wait a little bit and check again.
-                await Task.Delay(100, token);
+                await Task.Delay(100, token).ConfigureAwait(false);
             }
 
             lock (_shutdownLock)

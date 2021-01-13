@@ -30,13 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
         {
             lock (_creationLock)
             {
-                if (_currentFileLogWriter != null)
-                {
-                    // Dispose last log writer so we can start a new session. Technically only one should only ever be active at a time.
-                    _currentFileLogWriter.Dispose();
-                }
-
-                _currentFileLogWriter = new DefaultFeedbackFileLogWriter(_feedbackLogDirectoryProvider);
+                _currentFileLogWriter ??= new DefaultFeedbackFileLogWriter(_feedbackLogDirectoryProvider);
                 var provider = new FeedbackFileLoggerProvider(_currentFileLogWriter);
 
                 return provider;

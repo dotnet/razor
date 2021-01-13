@@ -2,15 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
 {
+    [Export(typeof(ILoggerProvider))]
     internal class FeedbackFileLoggerProvider : ILoggerProvider
     {
         // Internal for testing
         internal const string OmniSharpFrameworkCategoryPrefix = "OmniSharp.Extensions.LanguageServer.Server";
         private const string RazorLanguageServerPrefix = "Microsoft.AspNetCore.Razor.LanguageServer";
+        private const string VSLanguageServerClientPrefix = "Microsoft.VisualStudio.LanguageServerClient.Razor";
         private readonly FeedbackFileLogWriter _feedbackFileLogWriter;
         private readonly ILogger _noopLogger;
 
@@ -43,6 +46,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
                 // Reduce the size of the Razor language server categories. We assume nearly all logs here are going to be from the server and thus limiting
                 // the amount of noise they emit will be valuable for readability and will ultimately reduce the size of the log on the users box.
                 categoryName = categoryName.Substring(RazorLanguageServerPrefix.Length + 1 /* . */);
+            }
+
+            if (categoryName.StartsWith(VSLanguageServerClientPrefix, StringComparison.Ordinal))
+            {
+                categoryName = categoryName.Substring(VSLanguageServerClientPrefix.Length + 1 /* . */);
             }
 
             return new FeedbackFileLogger(categoryName, _feedbackFileLogWriter);
