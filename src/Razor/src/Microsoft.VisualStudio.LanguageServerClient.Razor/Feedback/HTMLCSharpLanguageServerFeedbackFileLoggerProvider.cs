@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
         private readonly FeedbackFileLoggerProvider _loggerProvider;
 
         // Internal for testing
-        public HTMLCSharpLanguageServerFeedbackFileLoggerProvider()
+        internal HTMLCSharpLanguageServerFeedbackFileLoggerProvider()
         {
         }
 
