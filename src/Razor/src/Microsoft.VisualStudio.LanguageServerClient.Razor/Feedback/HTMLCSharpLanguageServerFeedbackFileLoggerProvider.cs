@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
             _loggerProvider = (FeedbackFileLoggerProvider)loggerFactory.GetOrCreate(LogFileIdentifier);
         }
 
+        // Virtual for testing
         public virtual ILogger CreateLogger(string categoryName) => _loggerProvider.CreateLogger(categoryName);
 
         public void Dispose()
