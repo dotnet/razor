@@ -15,6 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
 
         private readonly FeedbackFileLoggerProvider _loggerProvider;
 
+        // Internal for testing
+        public HTMLCSharpLanguageServerFeedbackFileLoggerProvider()
+        {
+        }
+
         [ImportingConstructor]
         public HTMLCSharpLanguageServerFeedbackFileLoggerProvider(
             HTMLCSharpLanguageServerFeedbackFileLoggerProviderFactory loggerFactory)
@@ -27,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
             _loggerProvider = (FeedbackFileLoggerProvider)loggerFactory.GetOrCreate(LogFileIdentifier);
         }
 
-        public ILogger CreateLogger(string categoryName) => _loggerProvider.CreateLogger(categoryName);
+        public virtual ILogger CreateLogger(string categoryName) => _loggerProvider.CreateLogger(categoryName);
 
         public void Dispose()
         {
