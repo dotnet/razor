@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             cancellationToken.ThrowIfCancellationRequested();
             var diagnosticParams = token.ToObject<VSPublishDiagnosticParams>();
 
-            if (diagnosticParams is null)
+            if (diagnosticParams?.Uri is null)
             {
                 throw new ArgumentException("Conversion of token failed.");
             }
