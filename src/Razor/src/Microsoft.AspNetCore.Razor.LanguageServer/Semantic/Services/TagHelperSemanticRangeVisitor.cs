@@ -46,7 +46,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         #region HTML
         public override void VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
         {
-            AddSemanticRange(node, RazorSemanticTokensLegend.MarkupTextLiteral);
+            // We have to iterate over the individual LiteralTokens because this node might consist of multiple lines
+            // ie: "/r/ntext/r/n" would be parsed as one node containing three elements (newline, "text", newline).
+            foreach (var token in node.LiteralTokens)
+            {
+                // We skip whitespace to avoid "multiline" ranges for "/r/n", where the /n is interpreted as being on a new line.
+                // This also stops us from returning data for " ", which seems like a nice side-effect as it's not likly to have any colorization anyway.
+                if (!token.ContainsOnlyWhitespace())
+                {
+                    AddSemanticRange(token, RazorSemanticTokensLegend.MarkupTextLiteral);
+                }
+            }
         }
 
         public override void VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
@@ -386,7 +396,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var source = _razorCodeDocument.Source;
+
             var range = node.GetRange(source);
+
+            if (range.Start.Line != range.End.Line)
+            {
+                throw new NotImplementedException("Cannot produce a multi-line range");
+            }
 
             var semanticRange = new SemanticRange(semanticKind, range, modifier: 0);
 
