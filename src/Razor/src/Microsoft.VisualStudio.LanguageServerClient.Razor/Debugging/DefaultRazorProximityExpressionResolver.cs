@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var virtualDocument))
             {
-                Debug.Fail($"Some how there's no C# document associated with the host Razor document {documentUri.OriginalString} when retrieving proximity expressions.");
+                Debug.Fail($"Somehow there's no C# document associated with the host Razor document {documentUri.OriginalString} when retrieving proximity expressions.");
                 return null;
             }
 
