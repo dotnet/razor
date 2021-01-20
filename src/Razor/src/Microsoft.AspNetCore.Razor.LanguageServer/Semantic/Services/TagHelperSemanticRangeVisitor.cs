@@ -288,13 +288,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitMarkupTagHelperAttributeValue(MarkupTagHelperAttributeValueSyntax node)
         {
-            if(node.Children.First().Kind == SyntaxKind.MarkupTextLiteral)
+            foreach (var child in node.Children)
             {
-                AddSemanticRange(node, RazorSemanticTokensLegend.MarkupAttributeQuote);
-            }
-            else
-            {
-                Visit(node.Children);
+                if(child.Kind == SyntaxKind.MarkupTextLiteral)
+                {
+                    AddSemanticRange(child, RazorSemanticTokensLegend.MarkupAttributeQuote);
+                }
+                else
+                {
+                    Visit(child);
+                }
             }
         }
 
@@ -390,7 +393,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (node is null)
             {
-                throw new ArgumentNullException(nameof(node));
+                // There are some race conditions under which the nodes might be null as someone types `="literal stuff` being one observed example.
+                return;
             }
 
             if (node.Width == 0)
