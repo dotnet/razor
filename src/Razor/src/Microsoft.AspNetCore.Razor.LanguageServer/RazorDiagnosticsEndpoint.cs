@@ -169,12 +169,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Where(d =>
                     // TODO: undesired HTML Diagnostic codes
                     // (https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401) ||
-                    !InAttributeContainingCSharp(d, sourceText, syntaxTree))
+                    !InAttributeContainingCSharp(d, sourceText, syntaxTree, classifiedSpans, processedAttributes))
                 .ToArray();
 
             return filteredDiagnostics;
 
-            bool InAttributeContainingCSharp(Diagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            static bool InAttributeContainingCSharp(
+                Diagnostic d,
+                SourceText sourceText,
+                RazorSyntaxTree syntaxTree,
+                IReadOnlyList<ClassifiedSpanInternal> classifiedSpans,
+                Dictionary<TextSpan, bool> processedAttributes)
             {
                 // Examine the _end_ of the diagnostic to see if we're at the
                 // start of an (im/ex)plicit expression. Looking at the start
@@ -183,40 +188,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var change = new SourceChange(absoluteIndex, 0, string.Empty);
                 var owner = syntaxTree.Root.LocateOwner(change);
 
-                while (owner != null)
+                var ancestor = owner.FirstAncestorOrSelf<MarkupAttributeBlockSyntax>();
+
+                if (ancestor != null &&
+                    ancestor is MarkupAttributeBlockSyntax markupAttributeNode)
                 {
-                    if (owner is MarkupAttributeBlockSyntax markupAttributeNode)
+                    if (processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainsCSharp))
                     {
-                        if (processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainsCSharp))
-                        {
-                            return doesAttributeContainsCSharp;
-                        }
-
-                        doesAttributeContainsCSharp = CheckIfAttributeContainsCSharp(markupAttributeNode.FullSpan, classifiedSpans);
-                        processedAttributes.Add(markupAttributeNode.FullSpan, doesAttributeContainsCSharp);
-
                         return doesAttributeContainsCSharp;
                     }
 
-                    owner = owner.Parent;
+                    doesAttributeContainsCSharp = CheckIfAttributeContainsCSharp(markupAttributeNode.FullSpan, classifiedSpans);
+                    processedAttributes.Add(markupAttributeNode.FullSpan, doesAttributeContainsCSharp);
+
+                    return doesAttributeContainsCSharp;
                 }
 
                 return false;
             }
-        }
 
-        private static bool CheckIfAttributeContainsCSharp(
-            TextSpan attributeSpan,
-            IReadOnlyList<ClassifiedSpanInternal> classifiedSpans)
-        {
-            return classifiedSpans.Any(classifiedSpan =>
+            static bool CheckIfAttributeContainsCSharp(
+                TextSpan attributeSpan,
+                IReadOnlyList<ClassifiedSpanInternal> classifiedSpans)
             {
-                var span = classifiedSpan.Span;
+                return classifiedSpans.Any(classifiedSpan =>
+                {
+                    var span = classifiedSpan.Span;
 
-                return classifiedSpan.SpanKind == SpanKindInternal.Code &&
-                    span.AbsoluteIndex >= attributeSpan.Start &&
-                    (span.AbsoluteIndex + span.Length) <= attributeSpan.End;
-            });
+                    return classifiedSpan.SpanKind == SpanKindInternal.Code &&
+                        span.AbsoluteIndex >= attributeSpan.Start &&
+                        (span.AbsoluteIndex + span.Length) <= attributeSpan.End;
+                });
+            }
         }
 
         private Diagnostic[] FilterCSharpDiagnostics(Diagnostic[] unmappedDiagnostics)
