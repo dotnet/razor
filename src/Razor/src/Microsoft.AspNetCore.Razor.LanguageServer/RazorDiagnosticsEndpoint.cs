@@ -188,18 +188,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var change = new SourceChange(absoluteIndex, 0, string.Empty);
                 var owner = syntaxTree.Root.LocateOwner(change);
 
-                var ancestor = owner.FirstAncestorOrSelf<MarkupAttributeBlockSyntax>();
+                var markupAttributeNode = owner.FirstAncestorOrSelf<MarkupAttributeBlockSyntax>();
 
-                if (ancestor != null &&
-                    ancestor is MarkupAttributeBlockSyntax markupAttributeNode)
+                if (markupAttributeNode != null)
                 {
-                    if (processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainsCSharp))
+                    if (!processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainsCSharp))
                     {
-                        return doesAttributeContainsCSharp;
+                        doesAttributeContainsCSharp = CheckIfAttributeContainsCSharp(markupAttributeNode);
+                        processedAttributes.Add(markupAttributeNode.FullSpan, doesAttributeContainsCSharp);
                     }
-
-                    doesAttributeContainsCSharp = CheckIfAttributeContainsCSharp(markupAttributeNode.FullSpan, classifiedSpans);
-                    processedAttributes.Add(markupAttributeNode.FullSpan, doesAttributeContainsCSharp);
 
                     return doesAttributeContainsCSharp;
                 }
@@ -207,18 +204,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            static bool CheckIfAttributeContainsCSharp(
-                TextSpan attributeSpan,
-                IReadOnlyList<ClassifiedSpanInternal> classifiedSpans)
+            static bool CheckIfAttributeContainsCSharp(MarkupAttributeBlockSyntax attributeNode)
             {
-                return classifiedSpans.Any(classifiedSpan =>
-                {
-                    var span = classifiedSpan.Span;
-
-                    return classifiedSpan.SpanKind == SpanKindInternal.Code &&
-                        span.AbsoluteIndex >= attributeSpan.Start &&
-                        (span.AbsoluteIndex + span.Length) <= attributeSpan.End;
-                });
+                var containsNonHTMLNodes = attributeNode.DescendantNodes()
+                    .Any(n =>
+                        n is CSharpCodeBlockSyntax ||
+                        n is CSharpSyntaxNode ||
+                        (n is SyntaxNode sn && sn.Kind == SyntaxKind.RazorCommentTransition));
+                return containsNonHTMLNodes;
             }
         }
 
