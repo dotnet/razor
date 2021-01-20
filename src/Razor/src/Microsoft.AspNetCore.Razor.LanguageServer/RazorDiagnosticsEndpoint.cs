@@ -160,18 +160,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DocumentSnapshot documentSnapshot)
         {
             var sourceText = await documentSnapshot.GetTextAsync();
-
             var syntaxTree = codeDocument.GetSyntaxTree();
+            var classifiedSpans = syntaxTree.GetClassifiedSpans();
 
-            var csharpContainingAttributes = new HashSet<TextSpan>();
+            var processedAttributes = new Dictionary<TextSpan, bool>();
 
             var filteredDiagnostics = unmappedDiagnostics
-                // Sorting done to enable sequential filtering.
-                // Ex. If we encounter C# within an attribute,
-                // we filter out all subsequent diagnostics from
-                // that attribute.
-                .OrderBy(d => d.Range.Start)
-
                 .Where(d =>
                     // TODO: undesired HTML Diagnostic codes
                     // (https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401) ||
@@ -189,23 +183,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var change = new SourceChange(absoluteIndex, 0, string.Empty);
                 var owner = syntaxTree.Root.LocateOwner(change);
 
-                var containsCSharp = false;
-
                 while (owner != null)
                 {
-                    if (owner is CSharpSyntaxNode)
+                    if (owner is MarkupAttributeBlockSyntax markupAttributeNode)
                     {
-                        containsCSharp = true;
-                    }
-                    else if (owner is MarkupAttributeBlockSyntax markupAttributeNode)
-                    {
-                        if (containsCSharp)
+                        if (processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainsCSharp))
                         {
-                            csharpContainingAttributes.Add(markupAttributeNode.FullSpan);
-                            return true;
+                            return doesAttributeContainsCSharp;
                         }
 
-                        return csharpContainingAttributes.Contains(markupAttributeNode.FullSpan);
+                        doesAttributeContainsCSharp = CheckIfAttributeContainsCSharp(markupAttributeNode.FullSpan, classifiedSpans);
+                        processedAttributes.Add(markupAttributeNode.FullSpan, doesAttributeContainsCSharp);
+
+                        return doesAttributeContainsCSharp;
                     }
 
                     owner = owner.Parent;
@@ -213,6 +203,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 return false;
             }
+        }
+
+        private static bool CheckIfAttributeContainsCSharp(
+            TextSpan attributeSpan,
+            IReadOnlyList<ClassifiedSpanInternal> classifiedSpans)
+        {
+            return classifiedSpans.Any(classifiedSpan =>
+            {
+                var span = classifiedSpan.Span;
+
+                return classifiedSpan.SpanKind == SpanKindInternal.Code &&
+                    span.AbsoluteIndex >= attributeSpan.Start &&
+                    (span.AbsoluteIndex + span.Length) <= attributeSpan.End;
+            });
         }
 
         private Diagnostic[] FilterCSharpDiagnostics(Diagnostic[] unmappedDiagnostics)
