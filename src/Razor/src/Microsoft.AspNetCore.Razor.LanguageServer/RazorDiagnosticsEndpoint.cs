@@ -188,30 +188,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var change = new SourceChange(absoluteIndex, 0, string.Empty);
                 var owner = syntaxTree.Root.LocateOwner(change);
 
-                var markupAttributeNode = owner.FirstAncestorOrSelf<MarkupAttributeBlockSyntax>();
+                var markupAttributeNode = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n =>
+                    n is MarkupAttributeBlockSyntax ||
+                    n is MarkupTagHelperAttributeValueSyntax);
 
                 if (markupAttributeNode != null)
                 {
-                    if (!processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainsCSharp))
+                    if (!processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainNonMarkup))
                     {
-                        doesAttributeContainsCSharp = CheckIfAttributeContainsCSharp(markupAttributeNode);
-                        processedAttributes.Add(markupAttributeNode.FullSpan, doesAttributeContainsCSharp);
+                        doesAttributeContainNonMarkup = CheckIfAttributeContainsNonMarkupNodes(markupAttributeNode);
+                        processedAttributes.Add(markupAttributeNode.FullSpan, doesAttributeContainNonMarkup);
                     }
 
-                    return doesAttributeContainsCSharp;
+                    return doesAttributeContainNonMarkup;
                 }
 
                 return false;
             }
 
-            static bool CheckIfAttributeContainsCSharp(MarkupAttributeBlockSyntax attributeNode)
+            static bool CheckIfAttributeContainsNonMarkupNodes(RazorSyntaxNode attributeNode)
             {
-                var containsNonHTMLNodes = attributeNode.DescendantNodes()
-                    .Any(n =>
-                        n is CSharpCodeBlockSyntax ||
-                        n is CSharpSyntaxNode ||
-                        (n is SyntaxNode sn && sn.Kind == SyntaxKind.RazorCommentTransition));
-                return containsNonHTMLNodes;
+                // Only allow markup, generic & (non-razor comment) token nodes
+                var containsNonMarkupNodes = attributeNode.DescendantNodes()
+                    .Any(n => !(n is MarkupBlockSyntax ||
+                        n is MarkupSyntaxNode ||
+                        n is GenericBlockSyntax ||
+                        (n is SyntaxNode sn && sn.IsToken && sn.Kind != SyntaxKind.RazorCommentTransition)));
+                return containsNonMarkupNodes;
             }
         }
 
