@@ -290,7 +290,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             foreach (var child in node.Children)
             {
-                if(child.Kind == SyntaxKind.MarkupTextLiteral)
+                if (child.Kind == SyntaxKind.MarkupTextLiteral)
                 {
                     AddSemanticRange(child, RazorSemanticTokensLegend.MarkupAttributeQuote);
                 }
@@ -393,8 +393,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (node is null)
             {
-                // There are some race conditions under which the nodes might be null as someone types `="literal stuff` being one observed example.
-                return;
+                throw new ArgumentNullException(nameof(node));
             }
 
             if (node.Width == 0)
