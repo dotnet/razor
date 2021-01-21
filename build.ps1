@@ -1,7 +1,7 @@
 # Check dotnet-format is installed or not
 $dotnetFormat = Get-Command dotnet-format -ErrorAction Ignore -CommandType Application
 
-if($dotnetFormat)
+if ($dotnetFormat)
 {
     Write-Host -f Magenta "dotnet format tool is already installed."
 }
