@@ -161,7 +161,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             var sourceText = await documentSnapshot.GetTextAsync();
             var syntaxTree = codeDocument.GetSyntaxTree();
-            var classifiedSpans = syntaxTree.GetClassifiedSpans();
 
             var processedAttributes = new Dictionary<TextSpan, bool>();
 
@@ -169,7 +168,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Where(d =>
                     // TODO: undesired HTML Diagnostic codes
                     // (https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401) ||
-                    !InAttributeContainingCSharp(d, sourceText, syntaxTree, classifiedSpans, processedAttributes))
+                    !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes))
                 .ToArray();
 
             return filteredDiagnostics;
@@ -178,7 +177,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Diagnostic d,
                 SourceText sourceText,
                 RazorSyntaxTree syntaxTree,
-                IReadOnlyList<ClassifiedSpanInternal> classifiedSpans,
                 Dictionary<TextSpan, bool> processedAttributes)
             {
                 // Examine the _end_ of the diagnostic to see if we're at the
