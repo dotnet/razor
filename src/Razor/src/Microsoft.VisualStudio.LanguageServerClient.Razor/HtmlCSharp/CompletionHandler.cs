@@ -229,9 +229,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return false;
         }
 
-        // C# design time helpers are not applicable in Razor and can be excluded from the completion list. If the current identifier being targeted
-        // does not start with a double underscore, we trim out all items starting with "__" from the completion list. If the current identifier does
-        // start with a double underscore (e.g. "__ab[||]"), we only trim out common design time helpers from the completion list.
+        // We should remove Razor design time helpers from C#'s completion list. If the current identifier being targeted does not start with a double
+        // underscore, we trim out all items starting with "__" from the completion list. If the current identifier does start with a double underscore
+        // (e.g. "__ab[||]"), we only trim out common design time helpers from the completion list.
         private SumType<CompletionItem[], CompletionList>? RemoveInvalidCompletionItems(
             SumType<CompletionItem[], CompletionList> completionResult,
             LSPDocumentSnapshot documentSnapshot,
