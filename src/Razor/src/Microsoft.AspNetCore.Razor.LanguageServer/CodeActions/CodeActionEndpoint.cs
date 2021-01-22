@@ -147,6 +147,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 request.Range = request.Context.SelectionRange;
             }
 
+            // Can occur with certain race conditions when the request and
+            // current source text differ. We can return early.
+            if (request.Range.Start.Line >= sourceText.Lines.Count)
+            {
+                return null;
+            }
+
             // We hide `CodeActionParams.CodeActionContext` in order to capture
             // `RazorCodeActionParams.ExtendedCodeActionContext`, we must
             // restore this context to access diagnostics.
