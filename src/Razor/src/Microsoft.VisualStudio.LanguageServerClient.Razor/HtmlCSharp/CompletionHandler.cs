@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     result = IncludeCSharpKeywords(result.Value);
                 }
 
-                result = RemoveInvalidCompletionItems(result.Value, documentSnapshot, wordExtent, serverKind);
+                result = RemoveDesignTimeItems(result.Value, documentSnapshot, wordExtent, serverKind);
             }
 
             return result;
@@ -232,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // We should remove Razor design time helpers from C#'s completion list. If the current identifier being targeted does not start with a double
         // underscore, we trim out all items starting with "__" from the completion list. If the current identifier does start with a double underscore
         // (e.g. "__ab[||]"), we only trim out common design time helpers from the completion list.
-        private SumType<CompletionItem[], CompletionList>? RemoveInvalidCompletionItems(
+        private SumType<CompletionItem[], CompletionList>? RemoveDesignTimeItems(
             SumType<CompletionItem[], CompletionList> completionResult,
             LSPDocumentSnapshot documentSnapshot,
             TextExtent? wordExtent,
@@ -244,12 +244,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var result = completionResult.Match<SumType<CompletionItem[], CompletionList>?>(
-                items => RemoveInvalidCompletionItemsHelper(items, documentSnapshot, wordExtent),
-                list => RemoveInvalidCompletionItemsHelper(list.Items, documentSnapshot, wordExtent));
+                items => RemoveDesignTimeItems(items, documentSnapshot, wordExtent),
+                list => RemoveDesignTimeItems(list.Items, documentSnapshot, wordExtent));
 
             return result;
 
-            static CompletionItem[] RemoveInvalidCompletionItemsHelper(CompletionItem[] items, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
+            static CompletionItem[] RemoveDesignTimeItems(CompletionItem[] items, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
             {
                 var designTimeHelpersCompletionItems = GenerateCompletionItems(DesignTimeHelpers);
                 if (wordExtent.HasValue)
