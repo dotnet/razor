@@ -722,7 +722,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
-        public async Task HandleRequestAsync_CSharpProjection_RemoveDesignTimeHelpers()
+        public async Task HandleRequestAsync_CSharpProjection_RemoveAllDesignTimeHelpers()
         {
             // Arrange
             var called = false;
