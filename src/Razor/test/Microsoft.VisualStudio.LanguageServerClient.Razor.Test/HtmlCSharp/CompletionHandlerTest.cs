@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var called = false;
-            var expectedItem = new CompletionItem() { InsertText = "DateTime"};
+            var expectedItem = new CompletionItem() { InsertText = "DateTime", Label = "DateTime" };
             var completionRequest = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var called = false;
-            var expectedItem = new CompletionItem() { InsertText = "__builder", Label = "__builder", Preselect = true };
+            var expectedItem = new CompletionItem() { InsertText = "AccessViolationException", Label = "AccessViolationException", Preselect = true };
             var completionRequest = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -284,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Collection(list.Items,
                         item =>
                         {
-                            Assert.Equal("__builder", item.Label);
+                            Assert.Equal("AccessViolationException", item.Label);
                             Assert.False(item.Preselect, "Preselect should have been disabled.");
                         },
                         item => { }, item => { }, item => { }, item => { }, item => { }, item => { }, item => { }, item => { }, item => { }, item => { });
@@ -633,7 +633,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var called = false;
-            var expectedItem = new CompletionItem() { InsertText = "DateTime" };
+            var expectedItem = new CompletionItem() { InsertText = "DateTime", Label = "DateTime" };
             var completionRequest = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -679,7 +679,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var called = false;
-            var expectedItem = new CompletionItem() { InsertText = "DateTime" };
+            var expectedItem = new CompletionItem() { InsertText = "DateTime", Label = "DateTime" };
             var completionRequest = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
