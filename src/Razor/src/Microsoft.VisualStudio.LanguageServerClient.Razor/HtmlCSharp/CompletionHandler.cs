@@ -35,8 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static readonly IReadOnlyCollection<string> DesignTimeHelpers = new string[]
         {
-            "__builder", "__o", "__RazorDirectiveTokenHelpers__",
-            "__tagHelperExecutionContext", "__tagHelperRunner", "__typeHelper",
+            "__builder",
+            "__o",
+            "__RazorDirectiveTokenHelpers__",
+            "__tagHelperExecutionContext",
+            "__tagHelperRunner",
+            "__typeHelper",
             "BuildRenderTree"
         };
 
@@ -154,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 if (serverKind == LanguageServerKind.CSharp)
                 {
-                    result = MassageCSharpCompletions(request, documentSnapshot, result);
+                    result = MassageCSharpCompletions(request, documentSnapshot, result.Value);
                 }
             }
 
@@ -164,25 +168,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private SumType<CompletionItem[], CompletionList>? MassageCSharpCompletions(
             CompletionParams request,
             LSPDocumentSnapshot documentSnapshot,
-            SumType<CompletionItem[], CompletionList>? result)
+            SumType<CompletionItem[], CompletionList> result)
         {
             var updatedResult = result;
 
             var wordExtent = documentSnapshot.Snapshot.GetWordExtent(request.Position.Line, request.Position.Character, _textStructureNavigator);
-            if (IsSimpleImplicitExpression(documentSnapshot, request, wordExtent))
+            if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {
-                updatedResult = DoNotPreselect(updatedResult.Value);
-                updatedResult = IncludeCSharpKeywords(updatedResult.Value);
+                updatedResult = DoNotPreselect(updatedResult);
+                updatedResult = IncludeCSharpKeywords(updatedResult);
             }
 
-            updatedResult = RemoveDesignTimeItems(updatedResult.Value, documentSnapshot, wordExtent);
+            updatedResult = RemoveDesignTimeItems(documentSnapshot, wordExtent, updatedResult);
             return updatedResult;
         }
 
         private static IReadOnlyCollection<CompletionItem> GenerateCompletionItems(IReadOnlyCollection<string> completionItems)
             => completionItems.Select(item => new CompletionItem { Label = item }).ToArray();
 
-        private bool IsSimpleImplicitExpression(LSPDocumentSnapshot documentSnapshot, CompletionParams request, TextExtent? wordExtent)
+        private bool IsSimpleImplicitExpression(CompletionParams request, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
         {
             if (string.Equals(request.Context.TriggerCharacter, "@", StringComparison.Ordinal))
             {
@@ -216,26 +220,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // We should remove Razor design time helpers from C#'s completion list. If the current identifier being targeted does not start with a double
         // underscore, we trim out all items starting with "__" from the completion list. If the current identifier does start with a double underscore
         // (e.g. "__ab[||]"), we only trim out common design time helpers from the completion list.
-        private SumType<CompletionItem[], CompletionList>? RemoveDesignTimeItems(
-            SumType<CompletionItem[], CompletionList> completionResult,
+        private SumType<CompletionItem[], CompletionList> RemoveDesignTimeItems(
             LSPDocumentSnapshot documentSnapshot,
-            TextExtent? wordExtent)
+            TextExtent? wordExtent,
+            SumType<CompletionItem[], CompletionList> completionResult)
         {
-            var result = completionResult.Match<SumType<CompletionItem[], CompletionList>?>(
+            var result = completionResult.Match<SumType<CompletionItem[], CompletionList>>(
                 items =>
                 {
-                    items = RemoveDesignTimeItems(items, documentSnapshot, wordExtent);
+                    items = RemoveDesignTimeItems(documentSnapshot, wordExtent, items);
                     return items;
                 },
                 list =>
                 {
-                    list.Items = RemoveDesignTimeItems(list.Items, documentSnapshot, wordExtent);
+                    list.Items = RemoveDesignTimeItems(documentSnapshot, wordExtent, list.Items);
                     return list;
                 });
 
             return result;
 
-            static CompletionItem[] RemoveDesignTimeItems(CompletionItem[] items, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
+            static CompletionItem[] RemoveDesignTimeItems(LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent, CompletionItem[] items)
             {
                 var filteredItems = items.Except(DesignTimeHelpersCompletionItems, CompletionItemComparer.Instance).ToArray();
 
@@ -262,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     }
 
                     var snapshot = documentSnapshot.Snapshot;
-                    var startIndex = wordExtent.Value.Span.Start.Position;
+                    var startIndex = wordSpan.Start.Position;
 
                     if (snapshot[startIndex] == '_' && snapshot[startIndex + 1] == '_')
                     {
@@ -367,9 +371,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // In cases like "@{" preselection can lead to unexpected behavior, so let's exclude it.
-        private SumType<CompletionItem[], CompletionList>? DoNotPreselect(SumType<CompletionItem[], CompletionList> completionResult)
+        private SumType<CompletionItem[], CompletionList> DoNotPreselect(SumType<CompletionItem[], CompletionList> completionResult)
         {
-            var result = completionResult.Match<SumType<CompletionItem[], CompletionList>?>(
+            var result = completionResult.Match<SumType<CompletionItem[], CompletionList>>(
                 items =>
                 {
                     foreach (var i in items)
@@ -395,9 +399,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // C# keywords were previously provided by snippets, but as of now C# LSP doesn't provide snippets. 
         // We're providing these for now to improve the user experience (not having to ESC out of completions to finish),
         // but once C# starts providing them their completion will be offered instead, at which point we should be able to remove this step.
-        private SumType<CompletionItem[], CompletionList>? IncludeCSharpKeywords(SumType<CompletionItem[], CompletionList> completionResult)
+        private SumType<CompletionItem[], CompletionList> IncludeCSharpKeywords(SumType<CompletionItem[], CompletionList> completionResult)
         {
-            var result = completionResult.Match<SumType<CompletionItem[], CompletionList>?>(
+            var result = completionResult.Match<SumType<CompletionItem[], CompletionList>>(
                 items =>
                 {
                     var newList = items.Union(KeywordCompletionItems, CompletionItemComparer.Instance);

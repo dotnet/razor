@@ -25,9 +25,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public static TextExtent? GetWordExtent(
             this ITextSnapshot snapshot,
-            int line, int character,
+            int line,
+            int character,
             ITextStructureNavigatorSelectorService textStructureNavigatorService)
         {
+            if (snapshot == null || textStructureNavigatorService == null)
+            {
+                return null;
+            }
+
             var navigator = textStructureNavigatorService.GetTextStructureNavigator(snapshot.TextBuffer);
             var textSnapshotLine = snapshot.GetLineFromLineNumber(line);
             var absoluteIndex = textSnapshotLine.Start + character;
