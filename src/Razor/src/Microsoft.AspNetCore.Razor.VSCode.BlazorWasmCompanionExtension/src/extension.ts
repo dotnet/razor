@@ -3,7 +3,6 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-
 import * as vscode from 'vscode';
 import { LocalDebugProxyManager } from './LocalDebugProxyManager';
 import { spawn } from 'child_process';
@@ -46,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
 
             for await (const error of spawnedProxy.stderr) {
-                outputChannel.appendLine(error);
+                outputChannel.appendLine(`ERROR: ${error}`);
             }
 
             return;
