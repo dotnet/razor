@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     launchDebugProxy = vscode.commands.registerCommand('ms-blazorwasm-companion.launchDebugProxy', async (version = "5.0.0") => {
         try {
-            outputChannel.appendLine(`Launching proxy version Blazor WASM ${version}...`);
+            outputChannel.appendLine(`Launching proxy version Blazor WASM proxy version ${version}...`);
             const localDebugProxyManager = new LocalDebugProxyManager();
 
             const debuggingPort = await LocalDebugProxyManager.getAvailablePort(9222);
@@ -25,12 +25,15 @@ export function activate(context: vscode.ExtensionContext) {
             const debugProxyLocalDirectory = await localDebugProxyManager.getDebugProxyLocalNugetPath(version);
             const debugProxyLocalPath = `${debugProxyLocalDirectory}/tools/BlazorDebugProxy/BrowserDebugHost.dll`;
             outputChannel.appendLine(`Launching debugging proxy from ${debugProxyLocalPath}`);
-            const spawnedProxy = spawn('/usr/local/share/dotnet/dotnet',
+            const spawnedProxy = spawn('dotnet',
                 [debugProxyLocalPath , '--DevToolsUrl', debuggingHost],
                 { detached: process.platform !== 'win32' });
 
             for await (const output of spawnedProxy.stdout) {
                 outputChannel.appendLine(output);
+                // The debug proxy server outputs the port it is listening on in the
+                // standard output of the launched application. We need to pass this URL
+                // back to the debugger so we extract the URL from stdout using a regex.
                 const matchExpr = "Now listening on: (?<url>.*)";
                 const found = `${output}`.match(matchExpr);
                 const url = found?.groups?.url;

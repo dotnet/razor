@@ -87,7 +87,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
         }
     }
 
-    private async launchBrowser(folder: vscode.WorkspaceFolder | undefined, configuration: vscode.DebugConfiguration, wsAddress?: string, debuggingPort?: number, localPath?: string) {
+    private async launchBrowser(folder: vscode.WorkspaceFolder | undefined, configuration: vscode.DebugConfiguration, wsAddress?: string, debuggingPort?: number) {
         const inspectUri = `${wsAddress}{browserInspectUriPath}`;
         const browser = {
             name: JS_DEBUG_NAME,

@@ -25,9 +25,8 @@ export class LocalDebugProxyManager {
 
     public async getDebugProxyLocalNugetPath(version: string) {
         const extractTarget = `${this.localPath}/extracted/${this.packageName}.${version}`;
-        if (fs.existsSync(extractTarget)) {
-            return extractTarget;
-        }
+
+        fs.accessSync(extractTarget, fs.constants.F_OK | fs.constants.R_OK | fs.constants.W_OK);
 
         const versionedPackageName = `${this.packageName}.${version}.nupkg`;
         const downloadUrl = `${this.nugetUrl}/${this.packageName}/${version}/${versionedPackageName}`;
@@ -54,6 +53,7 @@ export class LocalDebugProxyManager {
                 server.close();
             });
             server.on('error', () => {
+                if (currentPort <= 65535 /* total number of ports available */)
                 getNextAvailablePort(++currentPort, cb);
             });
         }
