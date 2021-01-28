@@ -78,11 +78,6 @@
                     "description": "The URL of the application",
                     "default": "https://localhost:5001"
                   },
-                  "debugProxyVersion": {
-                    "type": "string",
-                    "description": "The package version of the debugging proxy to use",
-                    "default": "5.0.0"
-                  },
                   "browser": {
                     "type": "string",
                     "description": "The debugging browser to launch (Edge or Chrome)",

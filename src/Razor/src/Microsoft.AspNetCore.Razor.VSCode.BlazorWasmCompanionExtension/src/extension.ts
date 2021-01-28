@@ -35,7 +35,13 @@ export function activate(context: vscode.ExtensionContext) {
                 [debugProxyLocalPath , '--DevToolsUrl', debuggingHost],
                 { detached: process.platform !== 'win32' });
 
+            let chunksProcessed = 0;
             for await (const output of spawnedProxy.stdout) {
+                // If we haven't found the URL in the first ten chunks processed
+                // then bail out.
+                if (chunksProcessed++ > 10) {
+                    return;
+                }
                 outputChannel.appendLine(output);
                 // The debug proxy server outputs the port it is listening on in the
                 // standard output of the launched application. We need to pass this URL
