@@ -25,6 +25,12 @@
       }
     ]
   },
+  "extensionDependencies": [
+    "ms-dotnettools.vscode-dotnet-runtime"
+  ],
+  "files": [
+    "BlazorDebugProxy/"
+  ],
   "scripts": {
     "vscode:prepublish": "yarn run compile",
     "compile": "tsc -p ./",
@@ -44,9 +50,5 @@
     "mocha": "^8.1.3",
     "typescript": "^4.1.2",
     "vscode-test": "^1.4.1"
-  },
-  "dependencies": {
-    "extract-zip": "^2.0.1",
-    "node-fetch": "^2.6.1"
   }
 }

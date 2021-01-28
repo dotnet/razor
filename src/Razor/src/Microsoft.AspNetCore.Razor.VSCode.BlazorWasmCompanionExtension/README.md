@@ -20,4 +20,8 @@ To that end, we need a way to launch the debugging proxy on the user's host mach
 
 In order to publish the extension, you will need to have access to the `ms.dotnet-tools` publisher account on the VS Code marketplace. If you don't already have this access, reach out to @captainsafia for info.
 
-This extension is published from a developer CLI on an as-needed basis, since we expect this code to have low churn.
+This extension bundles the debugging proxy assets that are needed inside the `BlazorDebugProxy` directory. These assets are not committed to repository so they will need to be included as part of the publish process.
+
+1. Download the desired version of the [Microsoft.AspNetCore.Components.WebAssembly.DevServer](https://www.nuget.org/packages/Microsoft.AspNetCore.Components.WebAssembly.DevServer/) package.
+2. Copy the contents of `tools/BlazorDebugProxy` into `BlazorDebugProxy/` in this directory.
+3. Package and publish the extension.

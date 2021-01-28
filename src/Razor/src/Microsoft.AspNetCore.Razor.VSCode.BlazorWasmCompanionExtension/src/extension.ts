@@ -4,8 +4,9 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
-import { LocalDebugProxyManager } from './LocalDebugProxyManager';
 import { spawn } from 'child_process';
+import { acquireDotnetInstall } from './acquireDotnetInstall';
+import { getAvailablePort } from "./getAvailablePort";
 
 let launchDebugProxy: vscode.Disposable;
 let killDebugProxy: vscode.Disposable;
@@ -14,18 +15,23 @@ export function activate(context: vscode.ExtensionContext) {
     const outputChannel = vscode.window.createOutputChannel("Blazor WASM Debug Proxy");
     const pidsByUrl = new Map<string, number>();
 
-    launchDebugProxy = vscode.commands.registerCommand('ms-blazorwasm-companion.launchDebugProxy', async (version = "5.0.0") => {
+    launchDebugProxy = vscode.commands.registerCommand('ms-blazorwasm-companion.launchDebugProxy', async () => {
         try {
-            outputChannel.appendLine(`Launching proxy version Blazor WASM proxy version ${version}...`);
-            const localDebugProxyManager = new LocalDebugProxyManager();
-
-            const debuggingPort = await LocalDebugProxyManager.getAvailablePort(9222);
+            const debuggingPort = await getAvailablePort(9222);
             const debuggingHost = `http://localhost:${debuggingPort}`;
 
-            const debugProxyLocalDirectory = await localDebugProxyManager.getDebugProxyLocalNugetPath(version);
-            const debugProxyLocalPath = `${debugProxyLocalDirectory}/tools/BlazorDebugProxy/BrowserDebugHost.dll`;
+            let dotnet = "dotnet";
+            // The vscode.env.remoteName property is set when connected to
+            // any kind of remote workspace. See
+            // https://code.visualstudio.com/api/advanced-topics/remote-extensions#varying-behaviors-when-running-remotely-or-in-the-codespaces-browser-editor
+            const isRemote = vscode.env.remoteName !== 'undefined';
+            if (isRemote) {
+                dotnet = await acquireDotnetInstall(outputChannel);
+            }
+
+            const debugProxyLocalPath = `${context.extensionPath}/BlazorDebugProxy/BrowserDebugHost.dll`;
             outputChannel.appendLine(`Launching debugging proxy from ${debugProxyLocalPath}`);
-            const spawnedProxy = spawn('dotnet',
+            const spawnedProxy = spawn(dotnet,
                 [debugProxyLocalPath , '--DevToolsUrl', debuggingHost],
                 { detached: process.platform !== 'win32' });
 
@@ -53,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             return;
         } catch (error) {
-            outputChannel.appendLine(error);
+            outputChannel.appendLine(`ERROR: ${error}`);
         }
     });
 
