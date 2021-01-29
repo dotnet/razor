@@ -20,15 +20,8 @@ export function activate(context: vscode.ExtensionContext) {
             const debugProxyLocalPath = `${context.extensionPath}/BlazorDebugProxy/BrowserDebugHost.dll`;
             const spawnedProxyArgs = [debugProxyLocalPath , '--DevToolsUrl', debuggingHost];
 
-            let dotnet = "dotnet";
-            // The vscode.env.remoteName property is set when connected to
-            // any kind of remote workspace. See
-            // https://code.visualstudio.com/api/advanced-topics/remote-extensions#varying-behaviors-when-running-remotely-or-in-the-codespaces-browser-editor
-            const isRemote = vscode.env.remoteName !== 'undefined';
-            if (isRemote) {
-                dotnet = await acquireDotnetInstall(outputChannel);
-                await vscode.commands.executeCommand('dotnet.ensureDotnetDependencies', { command: dotnet, arguments: spawnedProxyArgs });
-            }
+            const dotnet = await acquireDotnetInstall(outputChannel);
+            await vscode.commands.executeCommand('dotnet.ensureDotnetDependencies', { command: dotnet, arguments: spawnedProxyArgs });
 
             outputChannel.appendLine(`Launching debugging proxy from ${debugProxyLocalPath}`);
             const spawnedProxy = spawn(dotnet, spawnedProxyArgs);
