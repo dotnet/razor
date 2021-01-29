@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
             const spawnedProxyArgs = [debugProxyLocalPath , '--DevToolsUrl', debuggingHost];
 
             const dotnet = await acquireDotnetInstall(outputChannel);
-            await vscode.commands.executeCommand('dotnet.ensureDotnetDependencies', { command: dotnet, arguments: spawnedProxyArgs });
+            await vscode.commands.executeCommand('dotnet.ensureDotnetDependencies', { command: dotnet, arguments: "--info" });
 
             outputChannel.appendLine(`Launching debugging proxy from ${debugProxyLocalPath}`);
             const spawnedProxy = spawn(dotnet, spawnedProxyArgs);
