@@ -20,7 +20,8 @@
   ],
   "main": "./dist/extension.js",
   "extensionDependencies": [
-    "ms-dotnettools.vscode-dotnet-runtime"
+    "ms-dotnettools.vscode-dotnet-runtime",
+    "ms-dotnettools.csharp"
   ],
   "files": [
     "BlazorDebugProxy/"
