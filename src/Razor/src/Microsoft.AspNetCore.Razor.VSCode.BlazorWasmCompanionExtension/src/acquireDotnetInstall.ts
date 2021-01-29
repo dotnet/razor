@@ -10,7 +10,8 @@ interface IDotnetAcquireResult {
 }
 
 export async function acquireDotnetInstall(outputChannel: vscode.OutputChannel): Promise<string> {
-    const version = "5.0";
+    const extension = vscode.extensions.getExtension("ms-dotnettools.blazorwasm-companion");
+    const version = extension && extension.packageJSON ? extension.packageJSON.dotnetRuntimeVersion : "5.0";
     const requestingExtensionId = "blazorwasm-companion";
 
     try {
