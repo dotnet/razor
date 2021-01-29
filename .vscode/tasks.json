@@ -38,11 +38,11 @@
               "reveal": "silent"
           },
           "dependsOn": [
-              "ActiveDotNet"
+              "ActivateDotnet"
           ]
       },
       {
-          "label": "ActiveDotNet",
+          "label": "ActivateDotnet",
           "type": "shell",
           "command": "source",
           "args": [

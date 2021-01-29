@@ -1,5 +1,7 @@
 # Microsoft.AspNetCore.Razor.VSCode.BlazorWasmCompanionExtension
 
+**Warning:** This extension is indeed for use alongside the C# extension.
+
 This directory contains the code for the Blazor WASM companion extension. This extension is designed to support remote debugging scenarios for Blazor WebAssembly.
 
 Blazor WebAssembly runs in the browser via a .NET runtime running on WebAssembly. As a result, the traditional infrastructure that is used to debug .NET applications cannot be used for Blazor WASM. Instead, Blazor WASM leverages a debugging proxy that communicates with a web browser and IDE over the Chrome DevTools Protocol.

@@ -1,7 +1,7 @@
 {
-  "name": "ms-blazorwasm-companion",
+  "name": "blazorwasm-companion",
   "displayName": "Microsoft.AspNetCore.Razor.VSCode.BlazorWasmCompanionExtension",
-  "description": "Companion extension for debugging Blazor WebAssembly",
+  "description": "Companion extension for debugging Blazor WebAssembly remotely",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.52.0"
@@ -14,23 +14,17 @@
   ],
   "publisher": "ms-dotnettools",
   "activationEvents": [
-    "onCommand:ms-blazorwasm-companion.launchDebugProxy"
+    "onCommand:blazorwasm-companion.launchDebugProxy",
+    "onCommand:blazorwasm-companion.killDebugProxy"
   ],
   "main": "./dist/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "ms-blazorwasm-companion.launchDebugProxy",
-        "title": "Launch Blazor WebAssembly Debugging Proxy"
-      }
-    ]
-  },
   "extensionDependencies": [
     "ms-dotnettools.vscode-dotnet-runtime"
   ],
   "files": [
     "BlazorDebugProxy/"
   ],
+  "contributes": {},
   "scripts": {
     "vscode:prepublish": "yarn run compile",
     "compile": "tsc -p ./",

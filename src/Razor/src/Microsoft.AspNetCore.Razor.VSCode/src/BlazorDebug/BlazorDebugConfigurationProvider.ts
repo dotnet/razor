@@ -26,14 +26,14 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
         const result = await vscode.commands.executeCommand<{
             url: string,
             debuggingPort: number,
-        } | undefined>('ms-blazorwasm-companion.launchDebugProxy');
+        } | undefined>('blazorwasm-companion.launchDebugProxy');
         if (result) {
             await this.launchBrowser(folder, configuration, result.url, result.debuggingPort);
         }
 
         const terminateDebugProxy = this.vscodeType.debug.onDidTerminateDebugSession(async event => {
             if (event.name === JS_DEBUG_NAME || event.name === SERVER_APP_NAME) {
-                await vscode.commands.executeCommand('ms-blazorwasm-companion.killDebugProxy', result ? result.url : null);
+                await vscode.commands.executeCommand('blazorwasm-companion.killDebugProxy', result ? result.url : null);
                 terminateDebugProxy.dispose();
             }
         });
