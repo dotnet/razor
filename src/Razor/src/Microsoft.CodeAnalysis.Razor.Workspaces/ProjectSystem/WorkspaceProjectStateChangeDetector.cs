@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            if (args.Kind == ProjectChangeKind.ProjectAdded)
+            if (args.Kind == ProjectChangeKind.ProjectAdded || args.Kind == ProjectChangeKind.DocumentRemoved)
             {
                 var associatedWorkspaceProject = _projectManager
                     .Workspace
