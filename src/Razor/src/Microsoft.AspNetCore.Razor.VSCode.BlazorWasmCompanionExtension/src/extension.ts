@@ -21,7 +21,6 @@ export function activate(context: vscode.ExtensionContext) {
             const spawnedProxyArgs = [debugProxyLocalPath , '--DevToolsUrl', debuggingHost];
 
             const dotnet = await acquireDotnetInstall(outputChannel);
-            await vscode.commands.executeCommand('dotnet.ensureDotnetDependencies', { command: dotnet, arguments: "--info" });
 
             outputChannel.appendLine(`Launching debugging proxy from ${debugProxyLocalPath}`);
             const spawnedProxy = spawn(dotnet, spawnedProxyArgs);
@@ -64,10 +63,15 @@ export function activate(context: vscode.ExtensionContext) {
 
     const killDebugProxy = vscode.commands.registerCommand('blazorwasm-companion.killDebugProxy', (url: string) => {
         const pid = pidsByUrl.get(url);
-        if (pid) {
-            outputChannel.appendLine(`Terminating debug proxy server running at ${url} with PID ${pid}`);
-            process.kill(pid);
+
+        if (!pid) {
+            outputChannel.appendLine(`Unable to find PID for server running at ${url}...`);
+            return;
         }
+
+        outputChannel.appendLine(`Terminating debug proxy server running at ${url} with PID ${pid}`);
+        process.kill(pid);
+
     });
 
     context.subscriptions.push(launchDebugProxy, killDebugProxy);
