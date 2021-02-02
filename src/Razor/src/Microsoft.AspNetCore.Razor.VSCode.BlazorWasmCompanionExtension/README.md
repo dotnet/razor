@@ -24,6 +24,7 @@ In order to publish the extension, you will need to have access to the `ms.dotne
 
 This extension bundles the debugging proxy assets that are needed inside the `BlazorDebugProxy` directory. These assets are not committed to repository so they will need to be included as part of the publish process.
 
-1. Download the desired version of the [Microsoft.AspNetCore.Components.WebAssembly.DevServer](https://www.nuget.org/packages/Microsoft.AspNetCore.Components.WebAssembly.DevServer/) package.
-2. Copy the contents of `tools/BlazorDebugProxy` into `BlazorDebugProxy/` in this directory.
-3. Package and publish the extension.
+1. Generate a personal access token per the instructions in [the VS Code publishing guide](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page).
+2. Store the token from #1 in the `VSCODE_MARKETPLACE_TOKEN` environment variable.
+3. Increment the `patch` version of the package in the `package.json` file.
+4. Run `node scripts/manageVsix.js publish 5.0.2` where `5.0.2` is the version of the DebugProxy you wish to bundle with the extension.
