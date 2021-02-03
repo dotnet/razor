@@ -20,11 +20,15 @@ async function downloadProxyPackage(version) {
     var nugetUrl = 'https://api.nuget.org/v3-flatcontainer';
     var packageName = 'Microsoft.AspNetCore.Components.WebAssembly.DevServer';
 
-    const extractTarget = path.join(os.tmpdir(), 'blazorwasm-companion-tmp', 'extracted', `${packageName}.${version}`);
+    const tmpDirectory = path.join(os.tmpdir(), 'blazorwasm-companion-tmp');
+    if (!fs.existsSync(tmpDirectory)){
+        fs.mkdirSync(tmpDirectory);
+    }
+    const extractTarget = path.join(tmpDirectory, `extracted-${packageName}.${version}`);
 
     const versionedPackageName = `${packageName}.${version}.nupkg`;
     const downloadUrl = `${nugetUrl}/${packageName}/${version}/${versionedPackageName}`;
-    const downloadPath = path.join(os.tmpdir(), 'blazorwasm-companion-tmp', versionedPackageName);
+    const downloadPath = path.join(tmpDirectory, versionedPackageName);
 
     // Download and save nupkg to disk
     log(`Fetching package from ${downloadUrl}...`)
@@ -43,7 +47,7 @@ async function copyDebugProxyAssets(version) {
     var extracted = await downloadProxyPackage(version);
     var srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
     log(`Looking for installed BlazorDebugProxy in ${srcDirectory}...`);
-    var targetDirectory = path.join(__dirname, 'BlazorDebugProxy');
+    var targetDirectory = path.join(__dirname, '..', 'BlazorDebugProxy');
     log(`Using ${targetDirectory} as targetDirectory...`);
     var exists = fs.existsSync(srcDirectory);
     if (exists) {
@@ -55,43 +59,5 @@ async function copyDebugProxyAssets(version) {
     }
 }
 
-async function packageVsix(debugProxyVersion, outputPath) {
-    await copyDebugProxyAssets(debugProxyVersion);
-
-    const package = spawn("vsce", ["package", "-o", outputPath]);
-    for await (const output of package.stdout) {
-        log(output);
-    }
-
-    for await (const error of package.stderr) {
-        log(error);
-    }
-}
-
-async function publishVsix(debugProxyVersion, outputPath) {
-    // Package the extension then publish the computed vsix
-    if (!process.env.VSCODE_MARKETPLACE_TOKEN) {
-        log('VSCODE_MARKETPLACE_TOKEN variable not found in environment! Aborting publish...');
-    }
-
-    await packageVsix(debugProxyVersion, outputPath);
-    const package = spawn("vsce", ["publish", "--packagePath", vsixPath, "-p", process.env.VSCODE_MARKETPLACE_TOKEN]);
-
-    for await (const output of package.stdout) {
-        log(output);
-    }
-
-    for await (const error of package.stderr) {
-        log(error);
-    }
-}
-
-const task = process.argv[2];
-const outputPath = process.argv[3];
 const debugProxyVersion = require('../package.json').debugProxyVersion;
-
-if (task === 'publish') {
-    publishVsix(debugProxyVersion, outputPath);
-} else {
-    packageVsix(debugProxyVersion, outputPath);
-}
+copyDebugProxyAssets(debugProxyVersion);

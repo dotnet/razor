@@ -205,6 +205,24 @@ stages:
           displayName: Finish background dump collection
           continueOnError: true
           condition: always()
+        - powershell: |
+            if ("$(_BuildConfig)" -eq "Release") {
+              $version = node -p "require('./package.json').version" | Out-String
+            } else {
+              $versionNum = node -p "require('./package.json').version" | Out-String
+              $version = "$versionNum-alpha-$(Build.BuildId)"
+            }
+            Write-Host "##vso[task.setvariable variable=version;isOutput=true]$version"
+          workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmCompanionExtension
+          name: GetBlazorWasmCompanionExtensionVersion
+          displayName: 'Get Blazor WASM Companion Version'
+        - powershell: |
+            yarn
+            node ./scripts/retrieveDebugProxy.js
+            md $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)/ -ea 0
+            npx vsce package -o $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)/blazorwasm-companion-$(GetBlazorWasmCompanionExtensionVersion.version).vsix
+          displayName: Package Blazor WASM Companion Extension
+          workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmCompanionExtension
 
         - task: PublishBuildArtifacts@1
           displayName: Upload Test Results
@@ -247,6 +265,15 @@ stages:
             ArtifactName: Packages_$(Agent.Os)_$(_BuildConfig)
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+        - task: PublishBuildArtifacts@1
+          displayName: Publish VS Code extension artifacts
+          inputs:
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)
+            PublishLocation: Container
+            ArtifactName: BlazorWasmCompanionExtension
+          continueOnError: true
+          # condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+          condition: succeeded()
 
       - job: macOS
         pool:
