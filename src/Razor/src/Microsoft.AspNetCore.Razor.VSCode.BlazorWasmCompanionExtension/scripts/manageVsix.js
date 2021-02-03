@@ -39,12 +39,11 @@ async function downloadProxyPackage(version) {
     return extractTarget;
 }
 
-async function copyDebugProxyAssets() {
-    const version = process.argv[3];
+async function copyDebugProxyAssets(version) {
     var extracted = await downloadProxyPackage(version);
     var srcDirectory = path.join(extracted, 'tools', 'BlazorDebugProxy');
     log(`Looking for installed BlazorDebugProxy in ${srcDirectory}...`);
-    var targetDirectory = path.join(process.cwd(), 'BlazorDebugProxy');
+    var targetDirectory = path.join(__dirname, 'BlazorDebugProxy');
     log(`Using ${targetDirectory} as targetDirectory...`);
     var exists = fs.existsSync(srcDirectory);
     if (exists) {
@@ -56,44 +55,43 @@ async function copyDebugProxyAssets() {
     }
 }
 
-async function packageVsix() {
-    await copyDebugProxyAssets();
+async function packageVsix(debugProxyVersion, outputPath) {
+    await copyDebugProxyAssets(debugProxyVersion);
 
-    // Make sure that vsce is installed
-    const install = spawn("npm", ["install", "-g", "vsce"]);
-    for await (const output of install.stdout) {
-        log(output);
-    }
-
-    for await (const error of install.stderr) {
-        log(error);
-    }
-
-    // Package the extension
-    const extensionVersion = require('../package.json').version;
-    const path = `blazorwasm-companion-${extensionVersion}.vsix`;
-
-    const package = spawn("vsce", ["package", "-o", path]);
-        for await (const output of package.stdout) {
+    const package = spawn("vsce", ["package", "-o", outputPath]);
+    for await (const output of package.stdout) {
         log(output);
     }
 
     for await (const error of package.stderr) {
         log(error);
     }
-    return path;
 }
 
-async function publishVsix() {
+async function publishVsix(debugProxyVersion, outputPath) {
     // Package the extension then publish the computed vsix
-    const vsixPath = packageVsix();
+    if (!process.env.VSCODE_MARKETPLACE_TOKEN) {
+        log('VSCODE_MARKETPLACE_TOKEN variable not found in environment! Aborting publish...');
+    }
+
+    await packageVsix(debugProxyVersion, outputPath);
     const package = spawn("vsce", ["publish", "--packagePath", vsixPath, "-p", process.env.VSCODE_MARKETPLACE_TOKEN]);
+
+    for await (const output of package.stdout) {
+        log(output);
+    }
+
+    for await (const error of package.stderr) {
+        log(error);
+    }
 }
 
 const task = process.argv[2];
+const outputPath = process.argv[3];
+const debugProxyVersion = require('../package.json').debugProxyVersion;
 
 if (task === 'publish') {
-    publishVsix();
+    publishVsix(debugProxyVersion, outputPath);
 } else {
-    packageVsix();
+    packageVsix(debugProxyVersion, outputPath);
 }

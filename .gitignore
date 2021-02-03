@@ -156,3 +156,4 @@ yarn-*.log
 # Bundled extension assets
 src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmCompanionExtension/BlazorDebugProxy/*.dll
 src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmCompanionExtension/BlazorDebugProxy/*.json
+*.vsix

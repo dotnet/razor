@@ -1,7 +1,7 @@
 {
   "name": "blazorwasm-companion",
   "displayName": "Microsoft.AspNetCore.Razor.VSCode.BlazorWasmCompanionExtension",
-  "description": "A companion extnesion for debugging Blazor WebAssembly applications in VS Code. Must be installed alongside the C# extension.",
+  "description": "A companion extension for debugging Blazor WebAssembly applications in VS Code. Must be installed alongside the C# extension.",
   "version": "0.0.1",
   "repository": {
     "type" : "git",
@@ -13,6 +13,7 @@
   },
   "icon": "images/blazorIcon.png",
   "dotnetRuntimeVersion": "5.0",
+  "debugProxyVersion": "5.0.2",
   "categories": [
     "Other"
   ],
