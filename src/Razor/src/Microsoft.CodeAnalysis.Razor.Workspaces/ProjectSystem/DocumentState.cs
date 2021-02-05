@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                 result = _loaderTask.Result.Version;
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+                _version = result;
                 return true;
             }
 
