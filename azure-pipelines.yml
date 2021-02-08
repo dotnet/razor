@@ -213,8 +213,8 @@ stages:
               $version = "$versionNum-alpha-$(Build.BuildId)"
             }
             Write-Host "##vso[task.setvariable variable=version;isOutput=true]$version"
-          workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmCompanionExtension
-          name: GetBlazorWasmCompanionExtensionVersion
+          workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
+          name: GetBlazorWasmDebuggingExtensionVersion
           displayName: 'Get Blazor WASM Companion Version'
         - powershell: |
             yarn
@@ -270,7 +270,7 @@ stages:
           inputs:
             PathtoPublish: $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)
             PublishLocation: Container
-            ArtifactName: BlazorWasmCompanionExtension
+            ArtifactName: BlazorWasmDebuggingExtension
           continueOnError: true
           # condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
           condition: succeeded()
