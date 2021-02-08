@@ -1,4 +1,4 @@
-# Microsoft.AspNetCore.Razor.VSCode.BlazorWasmCompanionExtension
+# Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
 
 **Warning:** This extension is indeed for use alongside the C# extension.
 
