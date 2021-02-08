@@ -105,7 +105,7 @@
     <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>16.9.150</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
     <MicrosoftVisualStudioPackageLanguageService150PackageVersion>16.7.30204.53-pre</MicrosoftVisualStudioPackageLanguageService150PackageVersion>
     <MicrosoftVisualStudioLiveSharePackageVersion>0.3.1074</MicrosoftVisualStudioLiveSharePackageVersion>
-    <MicrosoftVisualStudioLogHubPackageVersion>16.9.1041</MicrosoftVisualStudioLogHubPackageVersion>
+    <MicrosoftVisualStudioLogHubPackageVersion>16.9.1043</MicrosoftVisualStudioLogHubPackageVersion>
     <MicrosoftVisualStudioOLEInteropPackageVersion>7.10.6071</MicrosoftVisualStudioOLEInteropPackageVersion>
     <MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>3.0.0-beta1-63607-01</MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>
     <MicrosoftVisualStudioProjectSystemSDKPackageVersion>16.0.201-pre-g7d366164d0</MicrosoftVisualStudioProjectSystemSDKPackageVersion>
@@ -119,8 +119,9 @@
     <MonoAddinsPackageVersion>1.3.8</MonoAddinsPackageVersion>
     <MonoDevelopSdkPackageVersion>1.0.15</MonoDevelopSdkPackageVersion>
     <MoqPackageVersion>4.10.0</MoqPackageVersion>
-    <!-- STOP!!! We need to reference the version of JSON that our HOSTS supprt. -->
+    <!-- STOP!!! We need to reference the version of JSON that our HOSTS support. -->
     <NewtonsoftJsonPackageVersion>12.0.2</NewtonsoftJsonPackageVersion>
+    <StreamJsonRpcPackageVersion>2.7.62-alpha</StreamJsonRpcPackageVersion>
     <OmniSharpExtensionsLanguageServerPackageVersion>0.18.1</OmniSharpExtensionsLanguageServerPackageVersion>
     <OmniSharpMSBuildPackageVersion>1.33.0</OmniSharpMSBuildPackageVersion>
     <SystemPrivateUriPackageVersion>4.3.2</SystemPrivateUriPackageVersion>
