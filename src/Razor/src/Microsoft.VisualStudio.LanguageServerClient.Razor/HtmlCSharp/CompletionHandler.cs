@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -157,10 +158,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 // Set some context on the CompletionItem so the CompletionResolveHandler can handle it accordingly.
                 result = SetResolveData(result.Value, serverKind);
 
+                var wordExtent = documentSnapshot.Snapshot.GetWordExtent(request.Position.Line, request.Position.Character, _textStructureNavigator);
+
                 if (serverKind == LanguageServerKind.CSharp)
                 {
-                    result = MassageCSharpCompletions(request, documentSnapshot, result.Value);
+                    result = MassageCSharpCompletions(request, documentSnapshot, wordExtent, result.Value);
                 }
+
+                result = TranslateTextEdits(request.Position, projectionResult.Position, wordExtent, result.Value);
             }
 
             return result;
@@ -169,11 +174,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private SumType<CompletionItem[], CompletionList>? MassageCSharpCompletions(
             CompletionParams request,
             LSPDocumentSnapshot documentSnapshot,
+            TextExtent? wordExtent,
             SumType<CompletionItem[], CompletionList> result)
         {
             var updatedResult = result;
 
-            var wordExtent = documentSnapshot.Snapshot.GetWordExtent(request.Position.Line, request.Position.Character, _textStructureNavigator);
             if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {
                 updatedResult = DoNotPreselect(updatedResult);
@@ -181,6 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             updatedResult = RemoveDesignTimeItems(documentSnapshot, wordExtent, updatedResult);
+
             return updatedResult;
         }
 
@@ -417,6 +423,71 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 });
 
             return result;
+        }
+
+        internal SumType<CompletionItem[], CompletionList> TranslateTextEdits(
+            Position hostDocumentPosition,
+            Position projectedPosition,
+            TextExtent? wordExtent,
+            SumType<CompletionItem[], CompletionList> completionResult)
+        {
+            var wordRange = wordExtent == null ? null : wordExtent.Value.Span.AsRange();
+            var result = completionResult.Match<SumType<CompletionItem[], CompletionList>>(
+                items =>
+                {
+                    var newItems = items.Select(item => TranslateTextEdits(hostDocumentPosition, projectedPosition, wordRange, item)).ToArray();
+                    return newItems;
+                },
+                list =>
+                {
+                    var newItems = list.Items.Select(item => TranslateTextEdits(hostDocumentPosition, projectedPosition, wordRange, item)).ToArray();
+                    list.Items = newItems;
+                    return list;
+                });
+
+            return result;
+
+            static CompletionItem TranslateTextEdits(Position hostDocumentPosition, Position projectedPosition, Range wordRange, CompletionItem item)
+            {
+                var offset = projectedPosition.Character - hostDocumentPosition.Character;
+
+                if (item.TextEdit != null)
+                {
+                    var editStartPosition = item.TextEdit.Range.Start;
+                    var translatedStartPosition = TranslatePosition(offset, hostDocumentPosition, editStartPosition);
+                    var editEndPosition = item.TextEdit.Range.End;
+                    var translatedEndPosition = TranslatePosition(offset, hostDocumentPosition, editEndPosition);
+                    var translatedRange = new Range()
+                    {
+                        Start = translatedStartPosition,
+                        End = translatedEndPosition,
+                    };
+
+                    // Reduce the range down to the wordRange if needed. This means if an edit is attempting to replace tons of extra content in the projected document we'll 
+                    var scopedTranslatedRange = wordRange?.Overlap(translatedRange) ?? translatedRange;
+
+                    var translatedText = item.TextEdit.NewText;
+                    item.TextEdit = new TextEdit()
+                    {
+                        Range = scopedTranslatedRange,
+                        NewText = translatedText,
+                    };
+                }
+                else if (item.AdditionalTextEdits != null)
+                {
+                    // Additional text edits should typically only be provided at resolve time. We don't support them in the normal completion flow.
+                    item.AdditionalTextEdits = null;
+                }
+
+                return item;
+
+                static Position TranslatePosition(int offset, Position hostDocumentPosition, Position editPosition)
+                {
+                    var translatedCharacter = editPosition.Character - offset;
+                    var translatedPosition = new Position(hostDocumentPosition.Line, translatedCharacter);
+                    return translatedPosition;
+                }
+            }
         }
 
         // Internal for testing
