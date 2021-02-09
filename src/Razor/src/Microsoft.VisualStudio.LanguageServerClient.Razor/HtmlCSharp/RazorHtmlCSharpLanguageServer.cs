@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
@@ -23,7 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public RazorHtmlCSharpLanguageServer(
             Stream inputStream,
             Stream outputStream,
-            IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : this(requestHandlers)
+            IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider) : this(requestHandlers)
         {
             if (inputStream is null)
             {
@@ -35,7 +37,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(outputStream));
             }
 
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _jsonRpc = CreateJsonRpc(outputStream, inputStream, target: this);
+
+            // Facilitates activity based tracing for structured logging within LogHub
+            _jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy
+            {
+                TraceSource = loggerProvider.GetTraceSource()
+            };
+
             _jsonRpc.StartListening();
         }
 
