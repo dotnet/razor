@@ -206,23 +206,15 @@ stages:
           continueOnError: true
           condition: always()
         - powershell: |
-            if ("$(_BuildConfig)" -eq "Release") {
-              $version = node -p "require('./package.json').version" | Out-String
-            } else {
-              $versionNum = node -p "require('./package.json').version" | Out-String
-              $version = "$versionNum-alpha-$(Build.BuildId)"
-            }
-            Write-Host "##vso[task.setvariable variable=version;isOutput=true]$version"
-          workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
-          name: GetBlazorWasmDebuggingExtensionVersion
-          displayName: 'Get Blazor WASM Debugging Extension Version'
-        - powershell: |
+            $version = node -p "require('./package.json').version" | Out-String
             yarn
             node ./scripts/retrieveDebugProxy.js
             md $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)/ -ea 0
-            npx vsce package -o $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)/blazorwasm-companion-$(GetBlazorWasmDebuggingExtensionVersion.version).vsix
+            npx vsce package -o $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)/blazorwasm-companion-$version.vsix
           displayName: Produce Blazor WASM Debugging Extension VSIX
           workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
+          # condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+          condition: succeeded()
         - task: PublishBuildArtifacts@1
           displayName: Upload Test Results
           condition: always()
@@ -271,7 +263,8 @@ stages:
             PublishLocation: Container
             ArtifactName: BlazorWasmDebuggingExtension
           continueOnError: true
-          condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+          # condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+          condition: succeeded()
 
       - job: macOS
         pool:
