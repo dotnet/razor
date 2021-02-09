@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly TrackingLSPDocumentManager _documentManager;
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPRequestInvoker _requestInvoker;
-        private readonly RazorUIContextManager _uiContextManager;
+        private readonly RazorUIContextManager _uIContextManager;
         private readonly IDisposable _razorReadyListener;
 
         private const string RazorReadyFeature = "Razor-Initialization";
@@ -46,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
         }
 
+        // Testing constructor
         internal DefaultRazorLanguageServerCustomMessageTarget(
             LSPDocumentManager documentManager,
             JoinableTaskContext joinableTaskContext,
@@ -89,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _joinableTaskFactory = joinableTaskContext.Factory;
             _requestInvoker = requestInvoker;
-            _uiContextManager = uIContextManager;
+            _uIContextManager = uIContextManager;
             _razorReadyListener = razorReadyListener;
         }
 
@@ -290,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public override async Task RazorServerReadyAsync(CancellationToken cancellationToken)
         {
             // Doing both UIContext and BrokeredService while integrating
-            await _uiContextManager.SetUIContextAsync(RazorLSPConstants.RazorActiveUIContextGuid, isActive: true, cancellationToken);
+            await _uIContextManager.SetUIContextAsync(RazorLSPConstants.RazorActiveUIContextGuid, isActive: true, cancellationToken);
             _razorReadyListener.Dispose();
         }
 
