@@ -11,14 +11,13 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.OperationProgress;
-using Microsoft.VisualStudio.Shell.Interop;
 using Moq;
 using Xunit;
 using Xunit.Sdk;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 {
-    public class TestServiceProvider: IServiceProvider
+    public class TestServiceProvider : IServiceProvider
     {
         public TestServiceProvider()
         {
@@ -50,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
     public class DefaultRazorProjectChangePublisherTest : LanguageServerTestBase
     {
-        private readonly RazorLogger RazorLogger = Mock.Of<RazorLogger>();
+        private readonly RazorLogger RazorLogger = Mock.Of<RazorLogger>(MockBehavior.Strict);
 
         public DefaultRazorProjectChangePublisherTest()
         {
@@ -469,7 +468,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
         private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher
         {
-            private static readonly Mock<LSPEditorFeatureDetector> _lspEditorFeatureDetector = new Mock<LSPEditorFeatureDetector>();
+            private static readonly Mock<LSPEditorFeatureDetector> _lspEditorFeatureDetector = new Mock<LSPEditorFeatureDetector>(MockBehavior.Strict);
 
             private readonly Action<ProjectSnapshot, string> _onSerializeToFile;
 
@@ -478,7 +477,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             static TestDefaultRazorProjectChangePublisher()
             {
                 _lspEditorFeatureDetector
-                    .Setup(t => t.IsLSPEditorAvailable(It.IsAny<string>(), It.IsAny<IVsHierarchy>()))
+                    .Setup(t => t.IsLSPEditorFeatureEnabled())
                     .Returns(true);
             }
 

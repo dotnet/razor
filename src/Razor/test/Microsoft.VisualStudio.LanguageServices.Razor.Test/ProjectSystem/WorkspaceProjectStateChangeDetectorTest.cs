@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 p => Assert.Equal(ProjectNumberTwo.Id, p.workspaceProject.Id));
         }
 
-        [ForegroundTheory]
+        [ForegroundTheory(Skip = "https://github.com/dotnet/aspnetcore/issues/29994")]
         [InlineData(WorkspaceChangeKind.ProjectChanged)]
         [InlineData(WorkspaceChangeKind.ProjectReloaded)]
         public async Task WorkspaceChanged_ProjectChangeEvents_UpdatesProjectState_AfterDelay(WorkspaceChangeKind kind)
@@ -607,8 +607,15 @@ namespace Microsoft.AspNetCore.Components
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
             public TestProjectSnapshotManager(IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
-                : base(Mock.Of<ForegroundDispatcher>(), Mock.Of<ErrorReporter>(), triggers, workspace)
+                : base(CreateForegroundDispatcher(), Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
             {
+            }
+
+            private static ForegroundDispatcher CreateForegroundDispatcher()
+            {
+                var dispatcher = new Mock<ForegroundDispatcher>(MockBehavior.Strict);
+                dispatcher.Setup(d => d.AssertForegroundThread(It.IsAny<string>())).Verifiable();
+                return dispatcher.Object;
             }
         }
     }
