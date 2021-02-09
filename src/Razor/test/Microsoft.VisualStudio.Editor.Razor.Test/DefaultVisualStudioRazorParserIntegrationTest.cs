@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using SystemDebugger = System.Diagnostics.Debugger;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +16,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Xunit;
+using SystemDebugger = System.Diagnostics.Debugger;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
