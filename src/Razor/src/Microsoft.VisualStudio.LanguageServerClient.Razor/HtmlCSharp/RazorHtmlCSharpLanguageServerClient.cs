@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Wait for logging infrastructure to initialize. This must be completed
             // before we can start listening via Json RPC (as we must link the log hub
             // trace source with Json RPC to facilitate structured logging / activity tracing).
-            await _loggerProvider.InitializationTask.ConfigureAwait(false);
+            await _loggerProvider.InitializeLoggerAsync().ConfigureAwait(false);
 
             _languageServer = new RazorHtmlCSharpLanguageServer(serverStream, serverStream, _requestHandlers, _loggerProvider);
 

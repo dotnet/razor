@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         private LogHubLoggerProvider _loggerProvider;
 
-        public readonly Task InitializationTask;
+        private readonly HTMLCSharpLanguageServerLogHubLoggerProviderFactory _loggerFactory;
 
         // Internal for testing
         internal HTMLCSharpLanguageServerLogHubLoggerProvider()
@@ -33,18 +33,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            InitializationTask = Task.Run(async () =>
+            _loggerFactory = loggerFactory;
+        }
+
+        public async Task InitializeLoggerAsync()
+        {
+            if (_loggerProvider is null)
             {
-                _loggerProvider = (LogHubLoggerProvider)await loggerFactory.GetOrCreateAsync(LogFileIdentifier).ConfigureAwait(false);
-            });
+                _loggerProvider = (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier).ConfigureAwait(false);
+            }
         }
 
         // Virtual for testing
         public virtual ILogger CreateLogger(string categoryName) =>
-            _loggerProvider.CreateLogger(categoryName);
+            _loggerProvider?.CreateLogger(categoryName);
 
         public TraceSource GetTraceSource() =>
-            _loggerProvider.GetTraceSource();
+            _loggerProvider?.GetTraceSource();
 
         public void Dispose()
         {
