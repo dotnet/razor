@@ -153,6 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentRangeFormattingParams>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new[] { expectedEdit }));
+
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
 
@@ -423,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
-        public async Task RazorServerReady_SetsUIContextAsync()
+        public async Task RazorServerReadyAsync_ReportsReadyAsync()
         {
             // Arrange
             var testDocUri = new Uri("C:/path/to/file.razor");
