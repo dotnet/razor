@@ -10,8 +10,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public RazorHtmlPublishDiagnosticsInterceptor(
             LSPDocumentManager documentManager,
             LSPDiagnosticsTranslator diagnosticsProvider,
-            HTMLCSharpLanguageServerFeedbackFileLoggerProvider loggerProvider)
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (documentManager is null)
             {

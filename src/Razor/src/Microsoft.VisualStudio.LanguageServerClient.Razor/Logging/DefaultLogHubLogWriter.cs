@@ -12,11 +12,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         public DefaultLogHubLogWriter(TraceSource traceSource)
         {
+            if (traceSource is null)
+            {
+                throw new ArgumentNullException(nameof(traceSource));
+            }
+
             _traceSource = traceSource;
         }
 
         public override void Write(string message) =>
-            _traceSource?.TraceInformation(message);
+            _traceSource.TraceInformation(message);
 
         public void Dispose()
         {
@@ -25,6 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             _traceSource = null;
         }
 
-        internal override TraceSource GetTraceSource() => _traceSource;
+        public override TraceSource GetTraceSource() => _traceSource;
     }
 }

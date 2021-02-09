@@ -45,11 +45,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         }
 
         // Virtual for testing
-        public virtual ILogger CreateLogger(string categoryName) =>
-            _loggerProvider?.CreateLogger(categoryName);
+        public virtual ILogger CreateLogger(string categoryName)
+        {
+            Debug.Assert(!(_loggerProvider is null));
+            return _loggerProvider?.CreateLogger(categoryName);
+        }
 
-        public TraceSource GetTraceSource() =>
-            _loggerProvider?.GetTraceSource();
+        public TraceSource GetTraceSource()
+        {
+            Debug.Assert(!(_loggerProvider is null));
+            return _loggerProvider?.GetTraceSource();
+        }
 
         public void Dispose()
         {

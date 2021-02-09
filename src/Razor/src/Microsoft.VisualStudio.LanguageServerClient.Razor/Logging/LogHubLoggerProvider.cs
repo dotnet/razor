@@ -11,8 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     {
         // Internal for testing
         internal const string OmniSharpFrameworkCategoryPrefix = "OmniSharp.Extensions.LanguageServer.Server";
-        private const string RazorLanguageServerPrefix = "Microsoft.AspNetCore.Razor.LanguageServer";
-        private const string VSLanguageServerClientPrefix = "Microsoft.VisualStudio.LanguageServerClient.Razor";
 
         private readonly LogHubLogWriter _logWriter;
         private readonly ILogger _noopLogger;
@@ -37,20 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
             if (categoryName.StartsWith(OmniSharpFrameworkCategoryPrefix, StringComparison.Ordinal))
             {
-                // Loggers created for O# framework pieces should be ignored for feedback. They emit too much noise.
+                // Loggers created for O# framework pieces should be ignored. They emit too much noise.
                 return _noopLogger;
-            }
-
-            if (categoryName.StartsWith(RazorLanguageServerPrefix, StringComparison.Ordinal))
-            {
-                // Reduce the size of the Razor language server categories. We assume nearly all logs here are going to be from the server and thus limiting
-                // the amount of noise they emit will be valuable for readability and will ultimately reduce the size of the log on the users box.
-                categoryName = categoryName.Substring(RazorLanguageServerPrefix.Length + 1 /* . */);
-            }
-
-            if (categoryName.StartsWith(VSLanguageServerClientPrefix, StringComparison.Ordinal))
-            {
-                categoryName = categoryName.Substring(VSLanguageServerClientPrefix.Length + 1 /* . */);
             }
 
             return new LogHubLogger(categoryName, _logWriter);

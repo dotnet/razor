@@ -8,6 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     internal abstract class LogHubLogWriter
     {
         public abstract void Write(string message);
-        internal abstract TraceSource GetTraceSource();
+        public abstract TraceSource GetTraceSource();
     }
 }
