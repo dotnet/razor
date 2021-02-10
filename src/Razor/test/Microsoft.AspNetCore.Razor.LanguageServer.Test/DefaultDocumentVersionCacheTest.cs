@@ -164,8 +164,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Act - 2
             projectSnapshotManager.DocumentClosed(document.ProjectInternal.HostProject.FilePath, document.State.HostDocument.FilePath, textLoader);
-            int? version;
-            result = documentVersionCache.TryGetDocumentVersion(document, out version);
+            result = documentVersionCache.TryGetDocumentVersion(document, out var version);
 
             // Assert - 2
             Assert.False(result);
