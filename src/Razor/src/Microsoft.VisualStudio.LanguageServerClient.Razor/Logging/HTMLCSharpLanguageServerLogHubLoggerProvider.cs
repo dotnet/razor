@@ -6,6 +6,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 {
@@ -26,14 +27,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         [ImportingConstructor]
         public HTMLCSharpLanguageServerLogHubLoggerProvider(
-            HTMLCSharpLanguageServerLogHubLoggerProviderFactory loggerFactory)
+            HTMLCSharpLanguageServerLogHubLoggerProviderFactory loggerFactory,
+            HTMLCSharpLanguageServerFeedbackFileLoggerProvider feedbackLoggerProvider)
         {
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
+            if (feedbackLoggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(feedbackLoggerProvider));
+            }
+
             _loggerFactory = loggerFactory;
+
+            CreateMarkerFeedbackLoggerFile(feedbackLoggerProvider);
         }
 
         public async Task InitializeLoggerAsync()
@@ -59,6 +68,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         public void Dispose()
         {
+        }
+
+        // We instantiate and create a basic log message through the Feedback logging system to ensure we still create
+        // a RazorLogs*.zip file. This zip file is used to quickly identify whether or not we're using the new LSP powered Razor.
+        private static void CreateMarkerFeedbackLoggerFile(HTMLCSharpLanguageServerFeedbackFileLoggerProvider feedbackLoggerProvider)
+        {
+            var feedbackLogger = feedbackLoggerProvider.CreateLogger(nameof(HTMLCSharpLanguageServerFeedbackFileLoggerProvider));
+            feedbackLogger.LogInformation("Please take a look at the LogHub zip file for the full set of Razor logs.");
         }
     }
 }
