@@ -21,11 +21,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
         private VSClientCapabilities _clientCapabilities;
 
-        public RazorHtmlCSharpLanguageServer(
+        private RazorHtmlCSharpLanguageServer(
             Stream inputStream,
             Stream outputStream,
             IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider) : this(requestHandlers)
+        {
+            _jsonRpc = CreateJsonRpc(outputStream, inputStream, target: this);
+
+            // Facilitates activity based tracing for structured logging within LogHub
+            _jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy
+            {
+                TraceSource = loggerProvider.GetTraceSource()
+            };
+
+            _jsonRpc.StartListening();
+        }
+
+        public static async Task<RazorHtmlCSharpLanguageServer> CreateAsync(
+            Stream inputStream,
+            Stream outputStream,
+            IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (inputStream is null)
             {
@@ -42,15 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(loggerProvider));
             }
 
-            _jsonRpc = CreateJsonRpc(outputStream, inputStream, target: this);
+            // Wait for logging infrastructure to initialize. This must be completed
+            // before we can start listening via Json RPC (as we must link the log hub
+            // trace source with Json RPC to facilitate structured logging / activity tracing).
+            await loggerProvider.InitializeLoggerAsync().ConfigureAwait(false);
 
-            // Facilitates activity based tracing for structured logging within LogHub
-            _jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy
-            {
-                TraceSource = loggerProvider.GetTraceSource()
-            };
-
-            _jsonRpc.StartListening();
+            return new RazorHtmlCSharpLanguageServer(inputStream, outputStream, requestHandlers, loggerProvider);
         }
 
         // Test constructor

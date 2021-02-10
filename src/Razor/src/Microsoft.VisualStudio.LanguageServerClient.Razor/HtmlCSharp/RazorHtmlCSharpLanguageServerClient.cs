@@ -61,12 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            // Wait for logging infrastructure to initialize. This must be completed
-            // before we can start listening via Json RPC (as we must link the log hub
-            // trace source with Json RPC to facilitate structured logging / activity tracing).
-            await _loggerProvider.InitializeLoggerAsync().ConfigureAwait(false);
-
-            _languageServer = new RazorHtmlCSharpLanguageServer(serverStream, serverStream, _requestHandlers, _loggerProvider);
+            _languageServer = await RazorHtmlCSharpLanguageServer.CreateAsync(serverStream, serverStream, _requestHandlers, _loggerProvider);
 
             var connection = new Connection(clientStream, clientStream);
             return connection;

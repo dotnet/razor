@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.True(result.ChangedDocumentUri);
         }
 
-        private TrackingLSPDocumentManager CreateDocumentManager(int hostDocumentVersion = 0)
+        private static TrackingLSPDocumentManager CreateDocumentManager(int hostDocumentVersion = 0)
         {
             var testVirtualDocUri = RazorVirtualHtmlUri;
             var testVirtualDocument = new TestVirtualDocumentSnapshot(RazorUri, hostDocumentVersion);

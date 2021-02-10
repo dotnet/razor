@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
         }
 
-        private async Task<Diagnostic[]> FilterHTMLDiagnosticsAsync(
+        private static async Task<Diagnostic[]> FilterHTMLDiagnosticsAsync(
             Diagnostic[] unmappedDiagnostics,
             RazorCodeDocument codeDocument,
             DocumentSnapshot documentSnapshot)
@@ -217,7 +217,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private Diagnostic[] FilterCSharpDiagnostics(Diagnostic[] unmappedDiagnostics)
+        private static Diagnostic[] FilterCSharpDiagnostics(Diagnostic[] unmappedDiagnostics)
         {
             return unmappedDiagnostics.Where(d =>
                 !(DiagnosticsToIgnore.Contains(d.Code?.String) &&
