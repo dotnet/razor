@@ -36,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             var formattedResult = formatter(state, exception);
-            var logContent = $"[{_categoryName}] {formattedResult}";
-            _logWriter.Write(logContent);
+            _logWriter.Write("[{0}] {1}", _categoryName, formattedResult);
         }
 
         private class Scope : IDisposable

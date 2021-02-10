@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+#nullable enable
 
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 {
-    [Shared]
     internal abstract class LogHubLoggerProviderFactoryBase : LogHubLoggerProviderFactory
     {
         // Unique, monotomically increasing ID to identify loghub session to persist
@@ -16,18 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         private readonly RazorLogHubTraceProvider _traceProvider;
         private readonly SemaphoreSlim _initializationSemaphore;
-        private DefaultLogHubLogWriter _currentLogWriter;
+        private DefaultLogHubLogWriter? _currentLogWriter;
 
         public LogHubLoggerProviderFactoryBase(RazorLogHubTraceProvider traceProvider)
         {
-            if (traceProvider is null)
-            {
-                throw new System.ArgumentNullException(nameof(traceProvider));
-            }
-
             _traceProvider = traceProvider;
 
-            _initializationSemaphore = new SemaphoreSlim(1, 1);
+            _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         }
 
         public async override Task<object> GetOrCreateAsync(string logIdentifier)

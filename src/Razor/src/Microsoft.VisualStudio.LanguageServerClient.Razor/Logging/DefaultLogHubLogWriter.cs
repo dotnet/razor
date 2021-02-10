@@ -23,6 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         public override void Write(string message) =>
             _traceSource.TraceInformation(message);
 
+        public override void Write(string format, params object[] args) =>
+            _traceSource.TraceInformation(format, args);
+
         public void Dispose()
         {
             _traceSource?.Flush();

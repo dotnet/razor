@@ -16,15 +16,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     internal class RazorLogHubTraceProvider
     {
         private static readonly LoggerOptions _logOptions = new LoggerOptions(
-            privacySetting: PrivacyFlags.CanContainPersonallyIdentifibleInformation | PrivacyFlags.CanContainPrivateInformation,
-            systemTags: new string[] { "Debug", "Build" });
+            privacySetting: PrivacyFlags.CanContainPersonallyIdentifibleInformation | PrivacyFlags.CanContainPrivateInformation);
 
         private readonly SemaphoreSlim _initializationSemaphore = null;
         private IServiceBroker _serviceBroker = null;
 
         public RazorLogHubTraceProvider()
         {
-            _initializationSemaphore = new SemaphoreSlim(1, 1);
+            _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         }
 
         public async Task<TraceSource> InitializeTraceAsync(string logIdentifier, int logHubSessionId)
