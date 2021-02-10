@@ -1,7 +1,6 @@
-is_global = true
-
 # API-related warnings do not make sense in API shim files
 
+[*.cs]
 # CA1816: Call GC.SuppressFinalize correctly
 dotnet_diagnostic.CA1816.severity = none
 

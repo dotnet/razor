@@ -568,7 +568,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Force init
             _ = original.TagHelpers;
-            VersionStamp originalProjectWorkspaceStateVersion;
             _ = original.ConfigurationVersion;
 
             TagHelperResolver.TagHelpers = SomeTagHelpers;
