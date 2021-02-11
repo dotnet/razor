@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private static IReadOnlyCollection<CompletionItem> GenerateCompletionItems(IReadOnlyCollection<string> completionItems)
             => completionItems.Select(item => new CompletionItem { Label = item }).ToArray();
 
-        private bool IsSimpleImplicitExpression(CompletionParams request, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
+        private static bool IsSimpleImplicitExpression(CompletionParams request, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
         {
             if (string.Equals(request.Context.TriggerCharacter, "@", StringComparison.Ordinal))
             {
@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // We should remove Razor design time helpers from C#'s completion list. If the current identifier being targeted does not start with a double
         // underscore, we trim out all items starting with "__" from the completion list. If the current identifier does start with a double underscore
         // (e.g. "__ab[||]"), we only trim out common design time helpers from the completion list.
-        private SumType<CompletionItem[], CompletionList> RemoveDesignTimeItems(
+        private static SumType<CompletionItem[], CompletionList> RemoveDesignTimeItems(
             LSPDocumentSnapshot documentSnapshot,
             TextExtent? wordExtent,
             SumType<CompletionItem[], CompletionList> completionResult)
@@ -279,7 +279,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         }
 
-        private CompletionContext RewriteContext(CompletionContext context, RazorLanguageKind languageKind)
+        private static CompletionContext RewriteContext(CompletionContext context, RazorLanguageKind languageKind)
         {
             if (context.TriggerKind != CompletionTriggerKind.TriggerCharacter)
             {
@@ -314,7 +314,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return rewrittenContext;
         }
 
-        internal async Task<(bool, SumType<CompletionItem[], CompletionList>?)> TryGetProvisionalCompletionsAsync(CompletionParams request, LSPDocumentSnapshot documentSnapshot, ProjectionResult projection, CancellationToken cancellationToken)
+        internal async Task<(bool, SumType<CompletionItem[], CompletionList>?)> TryGetProvisionalCompletionsAsync(
+            CompletionParams request,
+            LSPDocumentSnapshot documentSnapshot,
+            ProjectionResult projection,
+            CancellationToken cancellationToken)
         {
             SumType<CompletionItem[], CompletionList>? result = null;
             if (projection.LanguageKind != RazorLanguageKind.Html ||
@@ -332,7 +336,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var previousCharacterPosition = new Position(projection.Position.Line, projection.Position.Character - 1);
             var previousCharacterProjection = await _projectionProvider.GetProjectionAsync(documentSnapshot, previousCharacterPosition, cancellationToken).ConfigureAwait(false);
-            if (previousCharacterProjection == null || previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp || previousCharacterProjection.HostDocumentVersion is null)
+            if (previousCharacterProjection == null ||
+                previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp ||
+                previousCharacterProjection.HostDocumentVersion is null)
             {
                 return (false, result);
             }
@@ -467,7 +473,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal bool TriggerAppliesToProjection(CompletionContext context, RazorLanguageKind languageKind)
+        internal static bool TriggerAppliesToProjection(CompletionContext context, RazorLanguageKind languageKind)
         {
             if (languageKind == RazorLanguageKind.Razor)
             {
