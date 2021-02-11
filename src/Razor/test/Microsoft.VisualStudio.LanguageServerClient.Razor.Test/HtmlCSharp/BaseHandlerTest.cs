@@ -17,6 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LoggerProvider = Mock.Of<HTMLCSharpLanguageServerLogHubLoggerProvider>(l => l.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
         }
 
-        public virtual HTMLCSharpLanguageServerLogHubLoggerProvider LoggerProvider { get; }
+        internal HTMLCSharpLanguageServerLogHubLoggerProvider LoggerProvider { get; }
     }
 }

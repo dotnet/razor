@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private Uri Uri { get; }
 
-
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
         {
