@@ -140,11 +140,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var codeDocument = await GetRazorCodeDocumentAsync(documentSnapshot);
-            cancellationToken.ThrowIfCancellationRequested();
             if (codeDocument is null)
             {
                 throw new ArgumentNullException(nameof(codeDocument));
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
+            cancellationToken.ThrowIfCancellationRequested();
 
             VersionStamp? cachedSemanticVersion = null;
             IReadOnlyList<int>? previousResults = null;
@@ -156,7 +159,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 cachedSemanticVersion = tuple.SemanticVersion;
             }
 
-            var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
             var semanticVersion = documentVersionStamp.GetNewerVersion(documentSnapshot.Project.Version);
 
             // SemanticVersion is different if there's been any text edits to the razor file or ProjectVersion has changed.
