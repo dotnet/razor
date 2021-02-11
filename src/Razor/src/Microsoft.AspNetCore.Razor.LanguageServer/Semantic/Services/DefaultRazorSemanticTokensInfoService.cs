@@ -113,8 +113,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
-            var semanticVersion = documentVersionStamp.GetNewerVersion(documentSnapshot.Project.Version);
+            var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot);
 
             var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument);
             _semanticTokensCache.Set(razorSemanticTokens.ResultId!, (semanticVersion, razorSemanticTokens.Data));
@@ -144,9 +143,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 throw new ArgumentNullException(nameof(codeDocument));
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
-            var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
             cancellationToken.ThrowIfCancellationRequested();
 
             VersionStamp? cachedSemanticVersion = null;
@@ -159,7 +155,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 cachedSemanticVersion = tuple.SemanticVersion;
             }
 
-            var semanticVersion = documentVersionStamp.GetNewerVersion(documentSnapshot.Project.Version);
+            var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot);
+            cancellationToken.ThrowIfCancellationRequested();
 
             // SemanticVersion is different if there's been any text edits to the razor file or ProjectVersion has changed.
             if (semanticVersion == default || cachedSemanticVersion != semanticVersion)
@@ -346,6 +343,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             };
 
             return tokensResult;
+        }
+
+        private static async Task<VersionStamp> GetDocumentSemanticVersionAsync(DocumentSnapshot documentSnapshot)
+        {
+            var documentVersionStamp = await documentSnapshot.GetTextVersionAsync();
+            var semanticVersion = documentVersionStamp.GetNewerVersion(documentSnapshot.Project.Version);
+
+            return semanticVersion;
         }
 
         /**
