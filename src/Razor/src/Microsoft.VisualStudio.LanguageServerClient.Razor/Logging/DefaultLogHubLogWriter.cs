@@ -20,11 +20,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             _traceSource = traceSource;
         }
 
-        public override void Write(string message) =>
-            _traceSource.TraceInformation(message);
+        public override TraceSource GetTraceSource() => _traceSource;
 
-        public override void Write(string format, params object[] args) =>
+        public override void TraceInformation(string format, params object[] args)
+        {
             _traceSource.TraceInformation(format, args);
+        }
+
+        public override void TraceWarning(string format, params object[] args)
+        {
+            _traceSource.TraceEvent(TraceEventType.Warning, id: 0, format, args);
+        }
+
+        public override void TraceException(string format, params object[] args)
+        {
+            _traceSource.TraceEvent(TraceEventType.Error, id: 0, format, args);
+        }
 
         public void Dispose()
         {
@@ -32,7 +43,5 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             _traceSource?.Close();
             _traceSource = null;
         }
-
-        public override TraceSource GetTraceSource() => _traceSource;
     }
 }

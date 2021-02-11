@@ -1217,7 +1217,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var context = new CompletionContext();
 
             // Act
-            var result = completionHandler.TriggerAppliesToProjection(context, RazorLanguageKind.Razor);
+            var result = CompletionHandler.TriggerAppliesToProjection(context, RazorLanguageKind.Razor);
 
             // Assert
             Assert.False(result);
@@ -1250,7 +1250,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             // Act
-            var result = completionHandler.TriggerAppliesToProjection(context, RazorLanguageKind.Html);
+            var result = CompletionHandler.TriggerAppliesToProjection(context, RazorLanguageKind.Html);
 
             // Assert
             Assert.Equal(expected, result);
@@ -1274,7 +1274,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             // Act
-            var result = completionHandler.TriggerAppliesToProjection(context, RazorLanguageKind.CSharp);
+            var result = CompletionHandler.TriggerAppliesToProjection(context, RazorLanguageKind.CSharp);
 
             // Assert
             Assert.Equal(expected, result);
