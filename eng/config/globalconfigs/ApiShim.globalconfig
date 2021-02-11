@@ -2,9 +2,6 @@ is_global = true
 
 # API-related warnings do not make sense in API shim files
 
-# CA1707: Remove the underscores from member name 'name'
-dotnet_diagnostic.CA1707.severity = none
-
 # CA1816: Call GC.SuppressFinalize correctly
 dotnet_diagnostic.CA1816.severity = none
 
@@ -31,21 +28,3 @@ dotnet_diagnostic.RS0027.severity = none
 
 # RS0037: Enable tracking of nullability of reference types in the declared API
 dotnet_diagnostic.RS0037.severity = none
-
-# RS0043: Do not call 'GetTestAccessor()'
-dotnet_diagnostic.RS0043.severity = none
-
-# VSTHRD002: Synchronously waiting on tasks or awaiters may cause deadlocks
-dotnet_diagnostic.VSTHRD002.severity = suggestion
-
-# VSTHRD003: Avoid awaiting or returning a Task representing work that was not started within your context as that can lead to deadlocks
-dotnet_diagnostic.VSTHRD003.severity = suggestion
-
-# VSTHRD012: Provide an instance of JoinableTaskFactory in this call (or another overload) to avoid deadlocks with the main thread
-dotnet_diagnostic.VSTHRD012.severity = suggestion
-
-# VSTHRD103: 'member' synchronously blocks
-dotnet_diagnostic.VSTHRD103.severity = suggestion
-
-# VSSDK005: Use the ThreadHelper.JoinableTaskContext singleton rather than instantiating your own to avoid deadlocks
-dotnet_diagnostic.VSSDK005.severity = suggestion
