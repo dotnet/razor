@@ -931,7 +931,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var completionHandler = new CompletionHandler(JoinableTaskContext, requestInvoker, documentManager, projectionProvider, TextStructureNavigatorSelectorService, CompletionRequestContextCache, LoggerProvider);
 
             // Act
-            completionHandler.SetResolveData(123, completionList);
+            CompletionHandler.SetResolveData(123, completionList);
 
             // Assert
             var item = Assert.Single(completionList.Items);
