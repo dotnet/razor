@@ -7,8 +7,10 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
 
@@ -53,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly ITextStructureNavigatorSelectorService _textStructureNavigator;
+        private readonly ILogger _logger;
 
         [ImportingConstructor]
         public CompletionHandler(
@@ -60,7 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
-            ITextStructureNavigatorSelectorService textStructureNavigator)
+            ITextStructureNavigatorSelectorService textStructureNavigator,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (joinableTaskContext is null)
             {
@@ -87,11 +91,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(textStructureNavigator));
             }
 
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _joinableTaskFactory = joinableTaskContext.Factory;
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
             _textStructureNavigator = textStructureNavigator;
+
+            _logger = loggerProvider.CreateLogger(nameof(DocumentPullDiagnosticsHandler));
         }
 
         public async Task<SumType<CompletionItem[], CompletionList>?> HandleRequestAsync(CompletionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
@@ -108,12 +119,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
+                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
                 return null;
             }
 
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
             if (projectionResult == null)
             {
+                _logger.LogInformation($"Failed to find projection for {request.Position} in {request.TextDocument.Uri}.");
                 return null;
             }
 
@@ -125,6 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 // This means the user has just typed a dot after some identifier such as (cursor is pipe): "DateTime.| "
                 // In this case Razor interprets after the dot as Html and before it as C#.
                 // We use this criteria to provide a better completion experience for what we call provisional changes.
+                _logger.LogInformation("Triggering provisional completion.");
             }
             else if (!TriggerAppliesToProjection(request.Context, projectionResult.LanguageKind))
             {

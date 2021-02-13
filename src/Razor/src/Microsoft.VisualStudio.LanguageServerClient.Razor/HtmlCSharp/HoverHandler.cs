@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
-            _logger.LogInformation($"Starting request for {request.TextDocument.Uri} at {request.Position}.");
+            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
@@ -83,10 +83,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
+            var projectionResult = await _projectionProvider.GetProjectionAsync(
+                documentSnapshot,
+                request.Position,
+                cancellationToken).ConfigureAwait(false);
             if (projectionResult == null)
             {
-                _logger.LogInformation($"Failed to find projection for {request.Position} in {request.TextDocument.Uri}.");
+                _logger.LogInformation($"Failed to find projection in {request.TextDocument.Uri}.");
                 return null;
             }
 
@@ -103,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            _logger.LogInformation($"Requesting hovers for {projectionResult.Uri} with projected position of {projectionResult.Position}.");
+            _logger.LogInformation($"Requesting hovers for {projectionResult.Uri}.");
 
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(
                 Methods.TextDocumentHoverName,
@@ -117,7 +120,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(projectionResult.LanguageKind, request.TextDocument.Uri, new[] { result.Range }, cancellationToken).ConfigureAwait(false);
+            _logger.LogInformation("Received result, remapping.");
+
+            var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
+                projectionResult.LanguageKind,
+                request.TextDocument.Uri,
+                new[] { result.Range },
+                cancellationToken).ConfigureAwait(false);
             if (mappingResult == null || mappingResult.Ranges[0].IsUndefined())
             {
                 // Couldn't remap the edits properly. Returning hover at initial request position.
@@ -134,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            _logger.LogInformation($"Returning hover at {mappingResult.Ranges[0]}");
+            _logger.LogInformation("Returning hover result.");
             return CreateHover(result, mappingResult.Ranges[0]);
         }
 
