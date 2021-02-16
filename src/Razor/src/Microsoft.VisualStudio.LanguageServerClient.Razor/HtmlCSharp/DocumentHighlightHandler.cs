@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            _logger.LogInformation($"Requesting highlights for {projectionResult.Uri} at ({projectionResult.Position.Line}, {projectionResult.Position.Character}).");
+            _logger.LogInformation($"Requesting highlights for {projectionResult.Uri} at ({projectionResult.Position?.Line}, {projectionResult.Position?.Character}).");
 
             var highlights = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentHighlightParams, DocumentHighlight[]>(
                 Methods.TextDocumentDocumentHighlightName,
