@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class OnTypeFormattingHandlerTest : BaseHandlerTest
+    public class OnTypeFormattingHandlerTest : HandlerTestBase
     {
         public OnTypeFormattingHandlerTest()
         {

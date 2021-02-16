@@ -94,8 +94,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return request;
             }
 
-            _logger.LogInformation($"Requesting completion resolution.");
-
             var serverContentType = requestContext.LanguageServerKind.ToContentType();
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(
                 Methods.TextDocumentCompletionResolveName,
@@ -103,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 request,
                 cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation($"Received result, post-processing.");
+            _logger.LogInformation("Received result, post-processing.");
 
             result = await PostProcessCompletionItemAsync(request, result, requestContext, cancellationToken).ConfigureAwait(false);
             _logger.LogInformation("Returning resolved completion.");

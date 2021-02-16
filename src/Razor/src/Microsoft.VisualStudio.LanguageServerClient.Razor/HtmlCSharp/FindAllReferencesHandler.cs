@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            _logger.LogInformation($"Requesting FAR for {projectionResult.Uri}.");
+            _logger.LogInformation($"Requesting references for {projectionResult.Uri}.");
 
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
@@ -198,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Received {result.Length} references, remapping.");
             var remappedResults = await RemapReferenceItemsAsync(result, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation($"Reporting {remappedResults} results.");
+            _logger.LogInformation($"Reporting {remappedResults.Length} results.");
             progress.Report(remappedResults);
         }
 

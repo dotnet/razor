@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class CompletionResolveHandlerTest : BaseHandlerTest
+    public class CompletionResolveHandlerTest : HandlerTestBase
     {
         private TestDocumentMappingProvider DocumentMappingProvider { get; } = new TestDocumentMappingProvider();
 

@@ -13,7 +13,7 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class GoToDefinitionHandlerTest : BaseHandlerTest
+    public class GoToDefinitionHandlerTest : HandlerTestBase
     {
         public GoToDefinitionHandlerTest()
         {

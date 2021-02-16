@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class CompletionHandlerTest : BaseHandlerTest
+    public class CompletionHandlerTest : HandlerTestBase
     {
         public CompletionHandlerTest()
         {

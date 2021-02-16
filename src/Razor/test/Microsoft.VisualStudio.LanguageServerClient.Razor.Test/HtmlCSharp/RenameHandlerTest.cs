@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class RenameHandlerTest : BaseHandlerTest
+    public class RenameHandlerTest : HandlerTestBase
     {
         public RenameHandlerTest()
         {

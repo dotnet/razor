@@ -12,7 +12,7 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class OnTypeRenameHandlerTest : BaseHandlerTest
+    public class OnTypeRenameHandlerTest : HandlerTestBase
     {
         private static readonly Uri Uri = new Uri("C:/path/to/file.razor");
 

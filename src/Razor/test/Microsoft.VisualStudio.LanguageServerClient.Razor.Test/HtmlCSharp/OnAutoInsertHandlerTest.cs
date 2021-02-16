@@ -15,7 +15,7 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class OnAutoInsertHandlerTest : BaseHandlerTest
+    public class OnAutoInsertHandlerTest : HandlerTestBase
     {
         public OnAutoInsertHandlerTest()
         {

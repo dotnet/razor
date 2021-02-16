@@ -99,7 +99,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation($"Returning {(signatureHelp is null ? "no " : string.Empty)}result.");
+            if (signatureHelp is null)
+            {
+                _logger.LogInformation("Returning no result.");
+            }
+            else
+            {
+                _logger.LogInformation("Returning result.");
+            }
+
             return signatureHelp;
         }
     }

@@ -105,13 +105,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             else if (projectionResult.LanguageKind == RazorLanguageKind.Html &&
                 !HTMLAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
             {
-                _logger.LogInformation("Invalid HTML trigger char.");
+                _logger.LogInformation("Inapplicable HTML trigger char.");
                 return null;
             }
             else if (projectionResult.LanguageKind == RazorLanguageKind.CSharp &&
                 !CSharpAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
             {
-                _logger.LogInformation("Invalid C# trigger char.");
+                _logger.LogInformation("Inapplicable C# trigger char.");
                 return null;
             }
 

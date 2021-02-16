@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     completionParams,
                     cancellationToken).ConfigureAwait(false);
 
-                _logger.LogInformation("Returning non-provisional completion");
+                _logger.LogInformation("Found non-provisional completion");
             }
 
             if (TryConvertToCompletionList(result, out var completionList))
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 SetResolveData(resultId, completionList);
             }
 
-            _logger.LogInformation("Returning final completion list.");
+            _logger.LogInformation("Returning completion list.");
             return completionList;
 
             static bool TryConvertToCompletionList(SumType<CompletionItem[], CompletionList>? original, out CompletionList completionList)
@@ -359,8 +359,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             ProjectionResult projection,
             CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Searching for provisional completions.");
-
             SumType<CompletionItem[], CompletionList>? result = null;
             if (projection.LanguageKind != RazorLanguageKind.Html ||
                 request.Context.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
@@ -402,6 +400,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             await _joinableTaskFactory.SwitchToMainThreadAsync();
 
+            _logger.LogInformation("Adding provisional dot.");
             trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 documentSnapshot.Uri,
                 new[] { addProvisionalDot },
@@ -430,12 +429,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // We have now obtained the necessary completion items. We no longer need the provisional change. Revert.
             var removeProvisionalDot = new VisualStudioTextChange(previousCharacterProjection.PositionIndex, 1, string.Empty);
 
+            _logger.LogInformation("Removing provisional dot.");
             trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 documentSnapshot.Uri,
                 new[] { removeProvisionalDot },
                 previousCharacterProjection.HostDocumentVersion.Value);
 
-            _logger.LogInformation("Returning provisional completion");
+            _logger.LogInformation("Found provisional completion.");
             return (true, result);
         }
 

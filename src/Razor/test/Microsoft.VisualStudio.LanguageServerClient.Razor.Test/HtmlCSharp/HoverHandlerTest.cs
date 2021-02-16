@@ -13,7 +13,7 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class HoverHandlerTest : BaseHandlerTest
+    public class HoverHandlerTest : HandlerTestBase
     {
         public HoverHandlerTest()
         {

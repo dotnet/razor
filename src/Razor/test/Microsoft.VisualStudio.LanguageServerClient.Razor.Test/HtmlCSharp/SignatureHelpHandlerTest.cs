@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class SignatureHelpHandlerTest : BaseHandlerTest
+    public class SignatureHelpHandlerTest : HandlerTestBase
     {
         public SignatureHelpHandlerTest()
         {

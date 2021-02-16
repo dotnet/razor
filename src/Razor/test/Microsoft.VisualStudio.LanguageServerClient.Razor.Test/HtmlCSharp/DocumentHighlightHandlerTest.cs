@@ -12,7 +12,7 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class DocumentHighlightHandlerTest : BaseHandlerTest
+    public class DocumentHighlightHandlerTest : HandlerTestBase
     {
         public DocumentHighlightHandlerTest()
         {
