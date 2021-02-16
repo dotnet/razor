@@ -413,6 +413,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return;
             }
 
+            if (sourceMappingSpan.Length > 3
+                && text.GetSubTextString(new TextSpan(sourceMappingSpan.Start, 2)) == "@{"
+                && text.GetSubTextString(new TextSpan(sourceMappingSpan.End - 1, 1)) == "}")
+            {
+                // No need to clean up the start and end if the @{...} span is entirely on one line
+                return;
+            }
+
             if (sourceMappingRange.Start.Character == 0)
             {
                 // It already starts on a fresh new line which doesn't need cleanup.

@@ -206,6 +206,17 @@ expected: @"
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+        public async Task Semicolon_SingleLineBlock()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"@{ Debugger.Launch()$$;}
+",
+expected: @"@{ Debugger.Launch(); }
+");
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/27135")]
         public async Task Semicolon_Fluent_Call()
         {
