@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             if (request?.Data == null)
             {
-                _logger.LogInformation("Received no data, returning.");
+                _logger.LogInformation("Received no completion resolve data.");
                 return request;
             }
 
