@@ -435,7 +435,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // }
             // We want to return the length of the range marked by |...|
             //
-            var whitespaceLength = text.GetFirstNonWhitespaceOffset(sourceMappingSpan);
+            var whitespaceLength = text.GetFirstNonWhitespaceOffset(sourceMappingSpan, out var newLineCount);
             if (whitespaceLength == null)
             {
                 // There was no content after the start of this mapping. Meaning it already is clean.
@@ -456,6 +456,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // At this point, `contentIndentLevel` should contain the correct indentation level for `}` in the above example.
             var replacement = context.NewLineString + context.GetIndentationLevelString(contentIndentLevel);
+            for (var i = 0; i < newLineCount - 1; i++)
+            {
+                // Make sure to preserve the same number of blank lines as the original string had
+                replacement = context.NewLineString + replacement;
+            }
 
             // After the below change the above example should look like,
             // @{
