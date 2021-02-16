@@ -40,8 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             using var traceConfig = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker).ConfigureAwait(false);
             var traceSource = await traceConfig.RegisterLogSourceAsync(_logId, _logOptions).ConfigureAwait(false);
 
-            // Workaround: Loghub gives us a trace source with the default listener which logs to the debug output window.
-            // This causes a huge amount of spam to the debug output window, so we remove it here.
+            // Trace source(s) have the debug output in VS as a default listener causing excessive noise.
             traceSource.Listeners.Remove("Default");
 
             traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
