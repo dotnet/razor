@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var shouldRemapTextEdits = preResolveCompletionItem.InsertText == null && preResolveCompletionItem.TextEdit == null;
             if (!shouldRemapTextEdits)
             {
-                _logger.LogInformation("No need to remap, return early.");
+                _logger.LogInformation("No TextEdit remap required.");
                 return resolvedCompletionItem;
             }
 
