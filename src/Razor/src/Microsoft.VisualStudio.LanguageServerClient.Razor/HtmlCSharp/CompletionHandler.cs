@@ -328,7 +328,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 rewrittenContext.InvokeKind = invokeKind.Value;
             }
 
-            if (RazorTriggerCharacters.Contains(context.TriggerCharacter))
+            if (languageKind == RazorLanguageKind.CSharp && RazorTriggerCharacters.Contains(context.TriggerCharacter))
             {
                 // The C# language server will not return any completions for the '@' character unless we
                 // send the completion request explicitly.
