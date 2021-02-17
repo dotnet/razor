@@ -76,7 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
             if (projectionResult == null)
             {
-                _logger.LogInformation($"Failed to find projection in {request.TextDocument.Uri}.");
                 return null;
             }
 

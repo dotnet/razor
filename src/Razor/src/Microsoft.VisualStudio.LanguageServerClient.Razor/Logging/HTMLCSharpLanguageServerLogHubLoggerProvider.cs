@@ -56,13 +56,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         // Virtual for testing
         public virtual ILogger CreateLogger(string categoryName)
         {
-            Debug.Assert(!(_loggerProvider is null));
+            Debug.Assert(_loggerProvider is not null);
             return _loggerProvider?.CreateLogger(categoryName);
         }
 
         public TraceSource GetTraceSource()
         {
-            Debug.Assert(!(_loggerProvider is null));
+            Debug.Assert(_loggerProvider is not null);
             return _loggerProvider?.GetTraceSource();
         }
 
