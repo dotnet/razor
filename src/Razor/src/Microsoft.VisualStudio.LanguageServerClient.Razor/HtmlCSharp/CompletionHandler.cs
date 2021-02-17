@@ -295,7 +295,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         }
 
-        private CompletionContext RewriteContext(CompletionContext context, RazorLanguageKind languageKind)
+        // Internal for testing only
+        internal static CompletionContext RewriteContext(CompletionContext context, RazorLanguageKind languageKind)
         {
             if (context.TriggerKind != CompletionTriggerKind.TriggerCharacter)
             {
@@ -324,11 +325,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var invokeKind = (context as VSCompletionContext)?.InvokeKind;
             if (invokeKind.HasValue)
             {
+                rewrittenContext.InvokeKind = invokeKind.Value;
+            }
+
+            if (RazorTriggerCharacters.Contains(context.TriggerCharacter))
+            {
                 // The C# language server will not return any completions for the '@' character unless we
                 // send the completion request explicitly.
-                rewrittenContext.InvokeKind = languageKind == RazorLanguageKind.CSharp && context.TriggerCharacter == "@"
-                    ? VSCompletionInvokeKind.Explicit
-                    : invokeKind.Value;
+                rewrittenContext.InvokeKind = VSCompletionInvokeKind.Explicit;
             }
 
             return rewrittenContext;
