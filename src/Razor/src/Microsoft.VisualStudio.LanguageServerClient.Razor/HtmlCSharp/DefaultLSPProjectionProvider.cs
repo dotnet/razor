@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(position));
             }
 
-            InitializeLogHubLogger();
+            await InitializeLogHubLoggerAsync().ConfigureAwait(false);
 
             var languageQueryParams = new RazorLanguageQueryParams()
             {
@@ -136,10 +136,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return result;
         }
 
-        private void InitializeLogHubLogger()
+        private async Task InitializeLogHubLoggerAsync()
         {
             if (_logHubLogger is null)
             {
+                await _loggerProvider.InitializeLoggerAsync().ConfigureAwait(false);
                 _logHubLogger = _loggerProvider.CreateLogger(nameof(DefaultLSPProjectionProvider));
             }
         }

@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback;
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         private LogHubLoggerProvider _loggerProvider;
 
         private readonly HTMLCSharpLanguageServerLogHubLoggerProviderFactory _loggerFactory;
+        private readonly SemaphoreSlim _initializationSemaphore;
 
         // Internal for testing
         internal HTMLCSharpLanguageServerLogHubLoggerProvider()
@@ -42,14 +44,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
             _loggerFactory = loggerFactory;
 
+            _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+
             CreateMarkerFeedbackLoggerFile(feedbackLoggerProvider);
         }
 
         public async Task InitializeLoggerAsync()
         {
-            if (_loggerProvider is null)
+            await _initializationSemaphore.WaitAsync().ConfigureAwait(false);
+
+            try
             {
-                _loggerProvider = (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier).ConfigureAwait(false);
+                if (_loggerProvider is null)
+                {
+                    _loggerProvider = (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                _initializationSemaphore.Release();
             }
         }
 
