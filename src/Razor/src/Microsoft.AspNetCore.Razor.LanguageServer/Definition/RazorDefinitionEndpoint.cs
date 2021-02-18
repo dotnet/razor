@@ -81,7 +81,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 return null;
             }
 
-            var originTagDescriptor = originTagHelperBinding.Descriptors.FirstOrDefault();
+            // We use EndsWith as the Descriptor.Name is fully qualified but the TagName doesn't have to be
+            var originTagDescriptor = originTagHelperBinding.Descriptors.FirstOrDefault(d => d.Name.EndsWith(originTagHelperBinding.TagName));
             if (originTagDescriptor is null)
             {
                 return null;
@@ -115,7 +116,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             _capability = capability;
         }
 
-        private static async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, Position position)
+        private static async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(
+            DocumentSnapshot documentSnapshot,
+            RazorCodeDocument codeDocument,
+            Position position)
         {
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
             var linePosition = new LinePosition(position.Line, position.Character);
