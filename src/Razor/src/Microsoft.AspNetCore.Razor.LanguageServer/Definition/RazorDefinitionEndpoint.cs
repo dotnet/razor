@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 return null;
             }
 
-            var originTagDescriptor = originTagHelperBinding.Descriptors.SingleOrDefault();
+            var originTagDescriptor = originTagHelperBinding.Descriptors.FirstOrDefault();
             if (originTagDescriptor is null)
             {
                 return null;
