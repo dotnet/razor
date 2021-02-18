@@ -115,12 +115,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             _capability = capability;
         }
 
-        private async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, Position position)
+        private static async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, Position position)
         {
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            var linePosition = new LinePosition((int)position.Line, (int)position.Character);
+            var linePosition = new LinePosition(position.Line, position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceLocation(hostDocumentIndex, (int)position.Line, (int)position.Character);
+            var location = new SourceLocation(hostDocumentIndex, position.Line, position.Character);
 
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: string.Empty);
             var syntaxTree = codeDocument.GetSyntaxTree();
