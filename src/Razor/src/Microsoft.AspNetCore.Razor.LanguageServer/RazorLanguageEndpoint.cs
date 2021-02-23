@@ -110,7 +110,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Position = responsePosition,
                     PositionIndex = hostDocumentIndex,
                     HostDocumentVersion = documentVersion,
-                    ContainingRange = null,
                 };
             }
 

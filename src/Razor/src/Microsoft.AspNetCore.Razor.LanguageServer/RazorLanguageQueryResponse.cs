@@ -14,7 +14,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public Position Position { get; set; }
 
         public int? HostDocumentVersion { get; set; }
-
-        public Range ContainingRange { get; set; }
     }
 }

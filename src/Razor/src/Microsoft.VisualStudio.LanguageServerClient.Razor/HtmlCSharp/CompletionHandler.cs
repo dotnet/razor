@@ -435,13 +435,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return completionList;
         }
 
-        internal CompletionList TranslateTextEdits(
+        // The TextEdit positions returned to us from the C#/HTML language servers are positions correlating to the virtual document.
+        // We need to translate these positions to apply to the Razor document instead. Performance is a big concern here, so we want to
+        // make the logic as simple as possible, i.e. no asynchronous calls.
+        // The current logic takes the approach of assuming the original request's position (Razor doc) correlates directly to the positions
+        // returned by the C#/HTML language servers. We use this assumption (+ math) to map from the virtual (projected) doc positions ->
+        // Razor doc positions.
+        internal static CompletionList TranslateTextEdits(
             Position hostDocumentPosition,
             Position projectedPosition,
             TextExtent? wordExtent,
             CompletionList completionList)
         {
-            var wordRange = wordExtent == null ? null : wordExtent.Value.Span.AsRange();
+            var wordRange = wordExtent.HasValue && wordExtent.Value.IsSignificant ? wordExtent?.Span.AsRange() : null;
             var newItems = completionList.Items.Select(item => TranslateTextEdits(hostDocumentPosition, projectedPosition, wordRange, item)).ToArray();
             completionList.Items = newItems;
 
@@ -463,7 +469,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         End = translatedEndPosition,
                     };
 
-                    // Reduce the range down to the wordRange if needed. This means if an edit is attempting to replace tons of extra content in the projected document we'll 
+                    // Reduce the range down to the wordRange if needed. This means if we have a C# text edit that goes beyond
+                    // the original word, then we need to ensure that the edit is scoped to the word, otherwise it may remove
+                    // portions of the Razor document. This may not happen in practice, but we want to be fail-safe.
+                    //
+                    // For example, if we had the following code in the C# virtual doc: 
+                    //     SomeMethod(|1|, 2);
+                    // Which corresponded to the following in a Razor file (notice '2' is not present here):
+                    //     <MyTagHelper SomeAttribute="|1|"/>
+                    // If there was a completion item that replaced '|1|, 2' with something like 'MyVariable', then without the
+                    // logic below, the TextEdit may be applied to the Razor file as:
+                    //     <MyTagHelper SomeAttribute="MyVariable>
                     var scopedTranslatedRange = wordRange?.Overlap(translatedRange) ?? translatedRange;
 
                     var translatedText = item.TextEdit.NewText;
@@ -484,6 +500,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 static Position TranslatePosition(int offset, Position hostDocumentPosition, Position editPosition)
                 {
                     var translatedCharacter = editPosition.Character - offset;
+
+                    // Note: If this completion handler ever expands to deal with multi-line TextEdits, this logic will likely need to change since
+                    // it assumes we're only dealing with single-line TextEdits.
                     var translatedPosition = new Position(hostDocumentPosition.Line, translatedCharacter);
                     return translatedPosition;
                 }
