@@ -61,6 +61,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            // The diagnostics interceptor isn't a part of the HTMLCSharpLanguageServer stack as it's lifecycle is a bit different.
+            // It initializes before the actual language server, as we export it to be used directly with WTE.
+            // Consequently, if we don't initialize the logger here, then the logger will be unavailable for logging.
             await InitializeLogHubLoggerAsync().ConfigureAwait(false);
 
             var diagnosticParams = token.ToObject<VSPublishDiagnosticParams>();

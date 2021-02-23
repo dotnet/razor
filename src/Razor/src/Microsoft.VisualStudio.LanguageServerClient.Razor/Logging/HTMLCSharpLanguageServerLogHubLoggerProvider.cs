@@ -51,6 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         public async Task InitializeLoggerAsync()
         {
+            if (_loggerProvider is not null)
+            {
+                return;
+            }
+
             await _initializationSemaphore.WaitAsync().ConfigureAwait(false);
 
             try
