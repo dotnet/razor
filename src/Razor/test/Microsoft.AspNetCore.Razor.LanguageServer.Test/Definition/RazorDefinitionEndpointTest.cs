@@ -4,14 +4,13 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
     public class RazorDefinitionEndpointTest : TagHelperServiceTestBase
     {
