@@ -1322,7 +1322,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 }");
 
             // Word 'M'
-            var wordSnapshotSpan = new SnapshotSpan(documentSnapshot.Snapshot, new Span(30, 1));
+            var wordSnapshotSpan = new SnapshotSpan(documentSnapshot.Snapshot, new Span(39, 1));
             var wordRange = new TextExtent(wordSnapshotSpan, isSignificant: true);
 
             var completionList = new VSCompletionList
