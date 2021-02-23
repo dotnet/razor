@@ -1310,14 +1310,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         [Fact]
         public void TranslateTextEdits()
         {
-            // Razor doc text:
-            // @code
-            // {
-            //     void M()
-            //     {
-            //         M[Completion requested here]
-            //     }
-            // }
             var razorDocPosition = new Position(line: 4, character: 9);
             var cSharpDocPosition = new Position(line: 99, character: 5);
 
