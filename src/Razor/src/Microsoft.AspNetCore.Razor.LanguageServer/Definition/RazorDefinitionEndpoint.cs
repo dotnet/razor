@@ -81,8 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 return null;
             }
 
-            // We use EndsWith as the Descriptor.Name is fully qualified but the TagName doesn't have to be
-            var originTagDescriptor = originTagHelperBinding.Descriptors.FirstOrDefault(d => !IsAttributeDescriptor(d));
+            var originTagDescriptor = originTagHelperBinding.Descriptors.FirstOrDefault(d => !d.IsAttributeDescriptor());
             if (originTagDescriptor is null)
             {
                 return null;
@@ -109,12 +108,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                     Range = new Range(new Position(0, 0), new Position(0, 0)),
                 }),
             });
-
-            static bool IsAttributeDescriptor(TagHelperDescriptor d)
-            {
-                return d.Metadata.TryGetValue(TagHelperMetadata.Common.ClassifyAttributesOnly, out var value) ||
-                    string.Equals(value, bool.TrueString, StringComparison.OrdinalIgnoreCase);
-            }
         }
 
         public void SetCapability(DefinitionCapability capability)
