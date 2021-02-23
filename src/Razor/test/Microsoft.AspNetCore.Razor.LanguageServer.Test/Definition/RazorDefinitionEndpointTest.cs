@@ -42,11 +42,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
         }
 
         [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_Attribute()
+        public async Task GetOriginTagHelperBindingAsync_TagHelper_StartTag_WithAttribute()
         {
             // Arrange
             SetupDocument(out var codeDocument, out var documentSnapshot);
             var position = new Position(1, 2);
+
+            // Act
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+
+            // Assert
+            Assert.Equal("Component1", binding.TagName);
+            Assert.Collection(binding.Descriptors,
+                d => Assert.Equal("Component1TagHelper", d.Name),
+                d => Assert.Equal("TestDirectiveAttribute", d.Name));
+        }
+
+        [Fact]
+        public async Task GetOriginTagHelperBindingAsync_TagHelper_EndTag_WithAttribute()
+        {
+            // Arrange
+            SetupDocument(out var codeDocument, out var documentSnapshot);
+            var position = new Position(1, 35);
 
             // Act
             var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
