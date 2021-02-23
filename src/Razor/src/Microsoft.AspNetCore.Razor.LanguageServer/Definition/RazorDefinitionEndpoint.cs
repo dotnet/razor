@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             _capability = capability;
         }
 
-        private static async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(
+        internal static async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(
             DocumentSnapshot documentSnapshot,
             RazorCodeDocument codeDocument,
             Position position)
