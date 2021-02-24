@@ -188,9 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             static bool IsInvalidNestingWarningWithinComponent(Diagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
             {
-                var absoluteIndex = d.Range.Start.GetAbsoluteIndex(sourceText);
-                var change = new SourceChange(absoluteIndex, 0, string.Empty);
-                var owner = syntaxTree.Root.LocateOwner(change);
+                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
 
                 var taghelperNode = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(n =>
                     n is MarkupTagHelperElementSyntax);
@@ -208,9 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Examine the _end_ of the diagnostic to see if we're at the
             // start of an (im/ex)plicit expression. Looking at the start
             // of the diagnostic isn't sufficient.
-            var absoluteIndex = d.Range.End.GetAbsoluteIndex(sourceText);
-            var change = new SourceChange(absoluteIndex, 0, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = syntaxTree.GetOwner(sourceText, d.Range.End);
 
             var markupAttributeNode = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n =>
                 n is MarkupAttributeBlockSyntax ||
