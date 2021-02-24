@@ -236,6 +236,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
+        public void HandleRequestAsync_CSharpProjection_RewriteCompletionContext()
+        {
+            var completionRequest = new CompletionParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = Uri },
+                Context = new CompletionContext()
+                {
+                    TriggerKind = CompletionTriggerKind.TriggerCharacter,
+                    TriggerCharacter = "@",
+                },
+                Position = new Position(0, 1),
+            };
+
+            var rewrittenContext = CompletionHandler.RewriteContext(completionRequest.Context, RazorLanguageKind.CSharp);
+            Assert.True(rewrittenContext.TriggerKind == CompletionTriggerKind.Invoked);
+            Assert.True(((VSCompletionContext)rewrittenContext).InvokeKind == VSCompletionInvokeKind.Explicit);
+        }
+
+        [Fact]
         public async Task HandleRequestAsync_CSharpProjection_DoNotPreselectAfterAt()
         {
             // Arrange
@@ -1286,6 +1305,70 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void TranslateTextEdits()
+        {
+            var razorDocPosition = new Position(line: 4, character: 9);
+            var cSharpDocPosition = new Position(line: 99, character: 5);
+
+            var documentSnapshot = new TestLSPDocumentSnapshot(new Uri("C:/path/file.razor"), 0, snapshotContent: @"@code
+{
+    void M()
+    {
+        M
+    }
+}");
+
+            // Word 'M'
+            var wordSnapshotSpan = new SnapshotSpan(documentSnapshot.Snapshot, new Span(39, 1));
+            var wordRange = new TextExtent(wordSnapshotSpan, isSignificant: true);
+
+            var completionList = new VSCompletionList
+            {
+                Items = new CompletionItem[]
+                {
+                    new CompletionItem
+                    {
+                        TextEdit = new TextEdit
+                        {
+                            NewText = "M",
+                            Range = new LanguageServer.Protocol.Range
+                            {
+                                Start = new Position
+                                {
+                                    Line = 99,
+                                    Character = 4
+                                },
+                                End = new Position
+                                {
+                                    Line = 99,
+                                    Character = 5
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var expectedRange = new LanguageServer.Protocol.Range
+            {
+                Start = new Position
+                {
+                    Line = 4,
+                    Character = 8
+                },
+                End = new Position
+                {
+                    Line = 4,
+                    Character = 9
+                }
+            };
+
+            var result = CompletionHandler.TranslateTextEdits(razorDocPosition, cSharpDocPosition, wordRange, completionList);
+            var actualRange = result.Items.First().TextEdit.Range;
+            Assert.Equal(expectedRange, actualRange);
         }
 
         private static ITextStructureNavigatorSelectorService BuildNavigatorSelector(TextExtent wordRange)

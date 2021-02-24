@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -163,10 +162,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (TryConvertToCompletionList(result, out var completionList))
             {
+                var wordExtent = documentSnapshot.Snapshot.GetWordExtent(request.Position.Line, request.Position.Character, _textStructureNavigator);
+
                 if (serverKind == LanguageServerKind.CSharp)
                 {
-                    MassageCSharpCompletions(request, documentSnapshot, completionList);
+                    completionList = PostProcessCSharpCompletionList(request, documentSnapshot, wordExtent, completionList);
                 }
+
+                completionList = TranslateTextEdits(request.Position, projectionResult.Position, wordExtent, completionList);
 
                 var requestContext = new CompletionRequestContext(documentSnapshot.Uri, projectionResult.Uri, serverKind);
                 var resultId = _completionRequestContextCache.Set(requestContext);
@@ -193,28 +196,41 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
                 else if (!original.Value.TryGetSecond(out completionList))
                 {
-                    Debug.Fail("This should be impossible, the completion result should be either a completion list or a set of completion items.");
-                    completionList = null;
-                    return false;
+                    throw new InvalidOperationException("Could not convert Razor completion set to a completion list. This should be impossible, the completion result should be either a completion list, a set of completion items or `null`.");
                 }
 
                 return true;
             }
         }
 
-        private void MassageCSharpCompletions(
+        // For C# scenarios we want to do a few post-processing steps to the completion list.
+        //
+        // 1. Do not pre-select any C# items. Razor is complex and just because C# may think something should be "pre-selected" doesn't mean it makes sense based off of the top-level Razor view.
+        // 2. Incorporate C# keywords. Prevoiusly C# keywords like if, using, for etc. were added via VS' "Snippet" support in Razor scenarios. VS' LSP implementation doesn't currently support snippets
+        //    so those keywords will be missing from the completion list if we don't forcefully add them in Razor scenarios.
+        //
+        //    Razor is unique here because when you type @fo| it generates something like:
+        //
+        //    __o = fo|;
+        //
+        //    This isn't an applicable scenario for C# to provide the "for" keyword; however, Razor still wants that to be applicable because if you type out the full @for keyword it will generate the
+        //    appropriate C# code.
+        // 3. Remove Razor intrinsic design time items. Razor adds all sorts of C# helpers like __o, __builder etc. to aid in C# compilation/understanding; however, these aren't useful in regards to C# completion.
+        private CompletionList PostProcessCSharpCompletionList(
             CompletionParams request,
             LSPDocumentSnapshot documentSnapshot,
+            TextExtent? wordExtent,
             CompletionList completionList)
         {
-            var wordExtent = documentSnapshot.Snapshot.GetWordExtent(request.Position.Line, request.Position.Character, _textStructureNavigator);
             if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {
-                DoNotPreselect(completionList);
-                IncludeCSharpKeywords(completionList);
+                completionList = RemovePreselection(completionList);
+                completionList = IncludeCSharpKeywords(completionList);
             }
 
-            RemoveDesignTimeItems(documentSnapshot, wordExtent, completionList);
+            completionList = RemoveDesignTimeItems(documentSnapshot, wordExtent, completionList);
+
+            return completionList;
         }
 
         private static IReadOnlyCollection<CompletionItem> GenerateCompletionItems(IReadOnlyCollection<string> completionItems)
@@ -254,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // We should remove Razor design time helpers from C#'s completion list. If the current identifier being targeted does not start with a double
         // underscore, we trim out all items starting with "__" from the completion list. If the current identifier does start with a double underscore
         // (e.g. "__ab[||]"), we only trim out common design time helpers from the completion list.
-        private void RemoveDesignTimeItems(
+        private CompletionList RemoveDesignTimeItems(
             LSPDocumentSnapshot documentSnapshot,
             TextExtent? wordExtent,
             CompletionList completionList)
@@ -263,14 +279,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // If the current identifier starts with "__", only trim out common design time helpers from the list.
             // In all other cases, trim out both common design time helpers and all completion items starting with "__".
-            if (RemoveAllDesignTimeItems(documentSnapshot, wordExtent))
+            if (ShouldRemoveAllDesignTimeItems(documentSnapshot, wordExtent))
             {
                 filteredItems = filteredItems.Where(item => item.Label != null && !item.Label.StartsWith("__", StringComparison.Ordinal)).ToArray();
             }
 
             completionList.Items = filteredItems;
 
-            static bool RemoveAllDesignTimeItems(LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
+            return completionList;
+
+            static bool ShouldRemoveAllDesignTimeItems(LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
             {
                 if (!wordExtent.HasValue)
                 {
@@ -295,7 +313,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         }
 
-        private static CompletionContext RewriteContext(CompletionContext context, RazorLanguageKind languageKind)
+        // Internal for testing only
+        internal static CompletionContext RewriteContext(CompletionContext context, RazorLanguageKind languageKind)
         {
             if (context.TriggerKind != CompletionTriggerKind.TriggerCharacter)
             {
@@ -325,6 +344,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (invokeKind.HasValue)
             {
                 rewrittenContext.InvokeKind = invokeKind.Value;
+            }
+
+            if (languageKind == RazorLanguageKind.CSharp && RazorTriggerCharacters.Contains(context.TriggerCharacter))
+            {
+                // The C# language server will not return any completions for the '@' character unless we
+                // send the completion request explicitly.
+                rewrittenContext.InvokeKind = VSCompletionInvokeKind.Explicit;
             }
 
             return rewrittenContext;
@@ -394,21 +420,99 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // In cases like "@{" preselection can lead to unexpected behavior, so let's exclude it.
-        private void DoNotPreselect(CompletionList completionList)
+        private CompletionList RemovePreselection(CompletionList completionList)
         {
             foreach (var item in completionList.Items)
             {
                 item.Preselect = false;
             }
+
+            return completionList;
         }
 
-        // C# keywords were previously provided by snippets, but as of now C# LSP doesn't provide snippets. 
+        // C# keywords were previously provided by snippets, but as of now C# LSP doesn't provide snippets.
         // We're providing these for now to improve the user experience (not having to ESC out of completions to finish),
         // but once C# starts providing them their completion will be offered instead, at which point we should be able to remove this step.
-        private void IncludeCSharpKeywords(CompletionList completionList)
+        private CompletionList IncludeCSharpKeywords(CompletionList completionList)
         {
             var newList = completionList.Items.Union(KeywordCompletionItems, CompletionItemComparer.Instance);
             completionList.Items = newList.ToArray();
+
+            return completionList;
+        }
+
+        // The TextEdit positions returned to us from the C#/HTML language servers are positions correlating to the virtual document.
+        // We need to translate these positions to apply to the Razor document instead. Performance is a big concern here, so we want to
+        // make the logic as simple as possible, i.e. no asynchronous calls.
+        // The current logic takes the approach of assuming the original request's position (Razor doc) correlates directly to the positions
+        // returned by the C#/HTML language servers. We use this assumption (+ math) to map from the virtual (projected) doc positions ->
+        // Razor doc positions.
+        internal static CompletionList TranslateTextEdits(
+            Position hostDocumentPosition,
+            Position projectedPosition,
+            TextExtent? wordExtent,
+            CompletionList completionList)
+        {
+            var wordRange = wordExtent.HasValue && wordExtent.Value.IsSignificant ? wordExtent?.Span.AsRange() : null;
+            var newItems = completionList.Items.Select(item => TranslateTextEdits(hostDocumentPosition, projectedPosition, wordRange, item)).ToArray();
+            completionList.Items = newItems;
+
+            return completionList;
+
+            static CompletionItem TranslateTextEdits(Position hostDocumentPosition, Position projectedPosition, Range wordRange, CompletionItem item)
+            {
+                if (item.TextEdit != null)
+                {
+                    var offset = projectedPosition.Character - hostDocumentPosition.Character;
+
+                    var editStartPosition = item.TextEdit.Range.Start;
+                    var translatedStartPosition = TranslatePosition(offset, hostDocumentPosition, editStartPosition);
+                    var editEndPosition = item.TextEdit.Range.End;
+                    var translatedEndPosition = TranslatePosition(offset, hostDocumentPosition, editEndPosition);
+                    var translatedRange = new Range()
+                    {
+                        Start = translatedStartPosition,
+                        End = translatedEndPosition,
+                    };
+
+                    // Reduce the range down to the wordRange if needed. This means if we have a C# text edit that goes beyond
+                    // the original word, then we need to ensure that the edit is scoped to the word, otherwise it may remove
+                    // portions of the Razor document. This may not happen in practice, but we want to be fail-safe.
+                    //
+                    // For example, if we had the following code in the C# virtual doc:
+                    //     SomeMethod(|1|, 2);
+                    // Which corresponded to the following in a Razor file (notice '2' is not present here):
+                    //     <MyTagHelper SomeAttribute="|1|"/>
+                    // If there was a completion item that replaced '|1|, 2' with something like 'MyVariable', then without the
+                    // logic below, the TextEdit may be applied to the Razor file as:
+                    //     <MyTagHelper SomeAttribute="MyVariable>
+                    var scopedTranslatedRange = wordRange?.Overlap(translatedRange) ?? translatedRange;
+
+                    var translatedText = item.TextEdit.NewText;
+                    item.TextEdit = new TextEdit()
+                    {
+                        Range = scopedTranslatedRange,
+                        NewText = translatedText,
+                    };
+                }
+                else if (item.AdditionalTextEdits != null)
+                {
+                    // Additional text edits should typically only be provided at resolve time. We don't support them in the normal completion flow.
+                    item.AdditionalTextEdits = null;
+                }
+
+                return item;
+
+                static Position TranslatePosition(int offset, Position hostDocumentPosition, Position editPosition)
+                {
+                    var translatedCharacter = editPosition.Character - offset;
+
+                    // Note: If this completion handler ever expands to deal with multi-line TextEdits, this logic will likely need to change since
+                    // it assumes we're only dealing with single-line TextEdits.
+                    var translatedPosition = new Position(hostDocumentPosition.Line, translatedCharacter);
+                    return translatedPosition;
+                }
+            }
         }
 
         internal void SetResolveData(long resultId, CompletionList completionList)
