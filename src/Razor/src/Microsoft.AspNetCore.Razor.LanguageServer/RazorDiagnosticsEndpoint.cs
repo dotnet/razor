@@ -166,44 +166,69 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var filteredDiagnostics = unmappedDiagnostics
                 .Where(d =>
-                    // TODO: undesired HTML Diagnostic codes
-                    // (https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1257401) ||
-                    !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes))
+                    !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes) &&
+                    !FilterDiagnosticBasedOnErrorCode(d, sourceText, syntaxTree))
                 .ToArray();
 
             return filteredDiagnostics;
+        }
 
-            static bool InAttributeContainingCSharp(
+        private static bool FilterDiagnosticBasedOnErrorCode(Diagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+        {
+            if (!d.Code.HasValue)
+            {
+                return false;
+            }
+
+            return d.Code.Value.String switch
+            {
+                "HTML0204" => IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree),
+                _ => false,
+            };
+
+            static bool IsInvalidNestingWarningWithinComponent(Diagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            {
+                var absoluteIndex = d.Range.Start.GetAbsoluteIndex(sourceText);
+                var change = new SourceChange(absoluteIndex, 0, string.Empty);
+                var owner = syntaxTree.Root.LocateOwner(change);
+
+                var taghelperNode = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(n =>
+                    n is MarkupTagHelperElementSyntax);
+
+                return !(taghelperNode is null);
+            }
+        }
+
+        private static bool InAttributeContainingCSharp(
                 Diagnostic d,
                 SourceText sourceText,
                 RazorSyntaxTree syntaxTree,
                 Dictionary<TextSpan, bool> processedAttributes)
+        {
+            // Examine the _end_ of the diagnostic to see if we're at the
+            // start of an (im/ex)plicit expression. Looking at the start
+            // of the diagnostic isn't sufficient.
+            var absoluteIndex = d.Range.End.GetAbsoluteIndex(sourceText);
+            var change = new SourceChange(absoluteIndex, 0, string.Empty);
+            var owner = syntaxTree.Root.LocateOwner(change);
+
+            var markupAttributeNode = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n =>
+                n is MarkupAttributeBlockSyntax ||
+                n is MarkupTagHelperAttributeSyntax ||
+                n is MarkupMiscAttributeContentSyntax);
+
+            if (markupAttributeNode != null)
             {
-                // Examine the _end_ of the diagnostic to see if we're at the
-                // start of an (im/ex)plicit expression. Looking at the start
-                // of the diagnostic isn't sufficient.
-                var absoluteIndex = d.Range.End.GetAbsoluteIndex(sourceText);
-                var change = new SourceChange(absoluteIndex, 0, string.Empty);
-                var owner = syntaxTree.Root.LocateOwner(change);
-
-                var markupAttributeNode = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n =>
-                    n is MarkupAttributeBlockSyntax ||
-                    n is MarkupTagHelperAttributeSyntax ||
-                    n is MarkupMiscAttributeContentSyntax);
-
-                if (markupAttributeNode != null)
+                if (!processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainNonMarkup))
                 {
-                    if (!processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainNonMarkup))
-                    {
-                        doesAttributeContainNonMarkup = CheckIfAttributeContainsNonMarkupNodes(markupAttributeNode);
-                        processedAttributes.Add(markupAttributeNode.FullSpan, doesAttributeContainNonMarkup);
-                    }
-
-                    return doesAttributeContainNonMarkup;
+                    doesAttributeContainNonMarkup = CheckIfAttributeContainsNonMarkupNodes(markupAttributeNode);
+                    processedAttributes.Add(markupAttributeNode.FullSpan, doesAttributeContainNonMarkup);
                 }
 
-                return false;
+                return doesAttributeContainNonMarkup;
             }
+
+            return false;
 
             static bool CheckIfAttributeContainsNonMarkupNodes(RazorSyntaxNode attributeNode)
             {
