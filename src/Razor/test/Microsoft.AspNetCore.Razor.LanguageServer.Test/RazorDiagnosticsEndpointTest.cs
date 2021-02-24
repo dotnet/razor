@@ -493,12 +493,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     new Diagnostic()
                     {
-                        Code = new DiagnosticCode("HTML0204"),
+                        Code = new DiagnosticCode(HTMLErrorCodes.InvalidNestingErrorCode),
                         Range = new Range(new Position(4, 8), new Position(4, 17))
                     },
                     new Diagnostic()
                     {
-                        Code = new DiagnosticCode("HTML0204"),
+                        Code = new DiagnosticCode(HTMLErrorCodes.InvalidNestingErrorCode),
                         Range = new Range(new Position(10, 4), new Position(10, 13))
                     }
                 },
@@ -510,7 +510,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             var d = Assert.Single(response.Diagnostics);
-            Assert.Equal("HTML0204", d.Code);
+            Assert.Equal(HTMLErrorCodes.InvalidNestingErrorCode, d.Code);
             Assert.Equal(10, d.Range.Start.Line);
         }
 

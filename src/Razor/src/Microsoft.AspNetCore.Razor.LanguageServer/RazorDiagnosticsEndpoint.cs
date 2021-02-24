@@ -182,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return d.Code.Value.String switch
             {
-                "HTML0204" => IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree),
+                HTMLErrorCodes.InvalidNestingErrorCode => IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree),
                 _ => false,
             };
 
