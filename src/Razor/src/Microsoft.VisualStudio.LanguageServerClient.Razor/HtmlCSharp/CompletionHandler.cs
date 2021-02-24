@@ -8,8 +8,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
 
@@ -55,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly ITextStructureNavigatorSelectorService _textStructureNavigator;
         private readonly CompletionRequestContextCache _completionRequestContextCache;
+        private readonly ILogger _logger;
 
         [ImportingConstructor]
         public CompletionHandler(
@@ -63,7 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
             ITextStructureNavigatorSelectorService textStructureNavigator,
-            CompletionRequestContextCache completionRequestContextCache)
+            CompletionRequestContextCache completionRequestContextCache,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (joinableTaskContext is null)
             {
@@ -95,12 +99,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(completionRequestContextCache));
             }
 
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _joinableTaskFactory = joinableTaskContext.Factory;
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
             _textStructureNavigator = textStructureNavigator;
             _completionRequestContextCache = completionRequestContextCache;
+
+            _logger = loggerProvider.CreateLogger(nameof(CompletionHandler));
         }
 
         public async Task<SumType<CompletionItem[], CompletionList>?> HandleRequestAsync(CompletionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
@@ -115,12 +126,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
+            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
+                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
                 return null;
             }
 
-            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
+            var projectionResult = await _projectionProvider.GetProjectionAsync(
+                documentSnapshot,
+                request.Position,
+                cancellationToken).ConfigureAwait(false);
             if (projectionResult == null)
             {
                 return null;
@@ -137,13 +154,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
             else if (!TriggerAppliesToProjection(request.Context, projectionResult.LanguageKind))
             {
+                _logger.LogInformation("Trigger does not apply to projection.");
                 return null;
             }
             else
             {
+                // This is a valid non-provisional completion request.
+                _logger.LogInformation("Searching for non-provisional completions, rewriting context.");
+
                 var completionContext = RewriteContext(request.Context, projectionResult.LanguageKind);
 
-                // This is a valid non-provisional completion request.
                 var completionParams = new CompletionParams()
                 {
                     Context = completionContext,
@@ -154,11 +174,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     }
                 };
 
+                _logger.LogInformation($"Requesting non-provisional completions for {projectionResult.Uri}.");
+
                 result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                     Methods.TextDocumentCompletionName,
                     serverKind.ToContentType(),
                     completionParams,
                     cancellationToken).ConfigureAwait(false);
+
+                _logger.LogInformation("Found non-provisional completion");
             }
 
             if (TryConvertToCompletionList(result, out var completionList))
@@ -173,6 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 SetResolveData(resultId, completionList);
             }
 
+            _logger.LogInformation("Returning completion list.");
             return completionList;
 
             static bool TryConvertToCompletionList(SumType<CompletionItem[], CompletionList>? original, out CompletionList completionList)
@@ -254,7 +279,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // We should remove Razor design time helpers from C#'s completion list. If the current identifier being targeted does not start with a double
         // underscore, we trim out all items starting with "__" from the completion list. If the current identifier does start with a double underscore
         // (e.g. "__ab[||]"), we only trim out common design time helpers from the completion list.
-        private void RemoveDesignTimeItems(
+        private static void RemoveDesignTimeItems(
             LSPDocumentSnapshot documentSnapshot,
             TextExtent? wordExtent,
             CompletionList completionList)
@@ -341,26 +366,33 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 request.Context.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
                 request.Context.TriggerCharacter != ".")
             {
+                _logger.LogInformation("Invalid provisional completion context.");
                 return (false, result);
             }
 
             if (projection.Position.Character == 0)
             {
                 // We're at the start of line. Can't have provisional completions here.
+                _logger.LogInformation("Start of line, invalid completion location.");
                 return (false, result);
             }
 
             var previousCharacterPosition = new Position(projection.Position.Line, projection.Position.Character - 1);
-            var previousCharacterProjection = await _projectionProvider.GetProjectionAsync(documentSnapshot, previousCharacterPosition, cancellationToken).ConfigureAwait(false);
+            var previousCharacterProjection = await _projectionProvider.GetProjectionAsync(
+                documentSnapshot,
+                previousCharacterPosition,
+                cancellationToken).ConfigureAwait(false);
             if (previousCharacterProjection == null ||
                 previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp ||
                 previousCharacterProjection.HostDocumentVersion is null)
             {
+                _logger.LogInformation($"Failed to find previous char projection in {previousCharacterProjection?.LanguageKind:G} at version {previousCharacterProjection?.HostDocumentVersion}.");
                 return (false, result);
             }
 
-            if (!(_documentManager is TrackingLSPDocumentManager trackingDocumentManager))
+            if (_documentManager is not TrackingLSPDocumentManager trackingDocumentManager)
             {
+                _logger.LogInformation("Not a tracking document manager.");
                 return (false, result);
             }
 
@@ -370,14 +402,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             await _joinableTaskFactory.SwitchToMainThreadAsync();
 
-            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(documentSnapshot.Uri, new[] { addProvisionalDot }, previousCharacterProjection.HostDocumentVersion.Value);
+            _logger.LogInformation("Adding provisional dot.");
+            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
+                documentSnapshot.Uri,
+                new[] { addProvisionalDot },
+                previousCharacterProjection.HostDocumentVersion.Value);
 
             var provisionalCompletionParams = new CompletionParams()
             {
                 Context = request.Context,
-                Position = new Position(previousCharacterProjection.Position.Line, previousCharacterProjection.Position.Character + 1),
-                TextDocument = new TextDocumentIdentifier() { Uri = previousCharacterProjection.Uri }
+                Position = new Position(
+                    previousCharacterProjection.Position.Line,
+                    previousCharacterProjection.Position.Character + 1),
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = previousCharacterProjection.Uri
+                }
             };
+
+            _logger.LogInformation($"Requesting provisional completion for {previousCharacterProjection.Uri}.");
 
             result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                 Methods.TextDocumentCompletionName,
@@ -388,13 +431,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // We have now obtained the necessary completion items. We no longer need the provisional change. Revert.
             var removeProvisionalDot = new VisualStudioTextChange(previousCharacterProjection.PositionIndex, 1, string.Empty);
 
-            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(documentSnapshot.Uri, new[] { removeProvisionalDot }, previousCharacterProjection.HostDocumentVersion.Value);
+            _logger.LogInformation("Removing provisional dot.");
+            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
+                documentSnapshot.Uri,
+                new[] { removeProvisionalDot },
+                previousCharacterProjection.HostDocumentVersion.Value);
 
+            _logger.LogInformation("Found provisional completion.");
             return (true, result);
         }
 
         // In cases like "@{" preselection can lead to unexpected behavior, so let's exclude it.
-        private void DoNotPreselect(CompletionList completionList)
+        private static void DoNotPreselect(CompletionList completionList)
         {
             foreach (var item in completionList.Items)
             {
@@ -402,16 +450,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         }
 
-        // C# keywords were previously provided by snippets, but as of now C# LSP doesn't provide snippets. 
+        // C# keywords were previously provided by snippets, but as of now C# LSP doesn't provide snippets.
         // We're providing these for now to improve the user experience (not having to ESC out of completions to finish),
         // but once C# starts providing them their completion will be offered instead, at which point we should be able to remove this step.
-        private void IncludeCSharpKeywords(CompletionList completionList)
+        private static void IncludeCSharpKeywords(CompletionList completionList)
         {
             var newList = completionList.Items.Union(KeywordCompletionItems, CompletionItemComparer.Instance);
             completionList.Items = newList.ToArray();
         }
 
-        internal void SetResolveData(long resultId, CompletionList completionList)
+        internal static void SetResolveData(long resultId, CompletionList completionList)
         {
             for (var i = 0; i < completionList.Items.Length; i++)
             {

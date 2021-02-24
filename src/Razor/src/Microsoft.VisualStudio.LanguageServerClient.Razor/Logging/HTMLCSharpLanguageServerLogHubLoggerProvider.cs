@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback;
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         private LogHubLoggerProvider _loggerProvider;
 
         private readonly HTMLCSharpLanguageServerLogHubLoggerProviderFactory _loggerFactory;
+        private readonly SemaphoreSlim _initializationSemaphore;
 
         // Internal for testing
         internal HTMLCSharpLanguageServerLogHubLoggerProvider()
@@ -42,27 +44,43 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
             _loggerFactory = loggerFactory;
 
+            _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+
             CreateMarkerFeedbackLoggerFile(feedbackLoggerProvider);
         }
 
         public async Task InitializeLoggerAsync()
         {
-            if (_loggerProvider is null)
+            if (_loggerProvider is not null)
             {
-                _loggerProvider = (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier).ConfigureAwait(false);
+                return;
+            }
+
+            await _initializationSemaphore.WaitAsync().ConfigureAwait(false);
+
+            try
+            {
+                if (_loggerProvider is null)
+                {
+                    _loggerProvider = (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                _initializationSemaphore.Release();
             }
         }
 
         // Virtual for testing
         public virtual ILogger CreateLogger(string categoryName)
         {
-            Debug.Assert(!(_loggerProvider is null));
+            Debug.Assert(_loggerProvider is not null);
             return _loggerProvider?.CreateLogger(categoryName);
         }
 
         public TraceSource GetTraceSource()
         {
-            Debug.Assert(!(_loggerProvider is null));
+            Debug.Assert(_loggerProvider is not null);
             return _loggerProvider?.GetTraceSource();
         }
 
