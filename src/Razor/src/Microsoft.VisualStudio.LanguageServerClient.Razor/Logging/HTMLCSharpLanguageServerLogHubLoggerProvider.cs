@@ -30,7 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         [ImportingConstructor]
         public HTMLCSharpLanguageServerLogHubLoggerProvider(
             HTMLCSharpLanguageServerLogHubLoggerProviderFactory loggerFactory,
-            HTMLCSharpLanguageServerFeedbackFileLoggerProvider feedbackLoggerProvider)
+#pragma warning disable CS0618 // Type or member is obsolete
+            // We're purposely using the legacy feedback file logger here to create a marker
+            // file. This marker file is used to identify bug reports using the new experimental
+            // Razor editor.
+            LegacyHTMLCSharpLanguageServerFeedbackFileLoggerProvider feedbackLoggerProvider)
+#pragma warning restore CS0618 // Type or member is obsolete
         {
             if (loggerFactory == null)
             {
@@ -49,20 +54,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             CreateMarkerFeedbackLoggerFile(feedbackLoggerProvider);
         }
 
-        public async Task InitializeLoggerAsync()
+        // Virtual for testing
+        public virtual async Task InitializeLoggerAsync(CancellationToken cancellationToken)
         {
             if (_loggerProvider is not null)
             {
                 return;
             }
 
-            await _initializationSemaphore.WaitAsync().ConfigureAwait(false);
+            await _initializationSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
                 if (_loggerProvider is null)
                 {
-                    _loggerProvider = (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier).ConfigureAwait(false);
+                    _loggerProvider = (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier, cancellationToken).ConfigureAwait(false);
                 }
             }
             finally
@@ -90,9 +96,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         // We instantiate and create a basic log message through the Feedback logging system to ensure we still create
         // a RazorLogs*.zip file. This zip file is used to quickly identify whether or not we're using the new LSP powered Razor.
-        private static void CreateMarkerFeedbackLoggerFile(HTMLCSharpLanguageServerFeedbackFileLoggerProvider feedbackLoggerProvider)
+#pragma warning disable CS0618 // Type or member is obsolete
+        private static void CreateMarkerFeedbackLoggerFile(LegacyHTMLCSharpLanguageServerFeedbackFileLoggerProvider feedbackLoggerProvider)
         {
-            var feedbackLogger = feedbackLoggerProvider.CreateLogger(nameof(HTMLCSharpLanguageServerFeedbackFileLoggerProvider));
+            var feedbackLogger = feedbackLoggerProvider.CreateLogger(nameof(LegacyHTMLCSharpLanguageServerFeedbackFileLoggerProvider));
+#pragma warning restore CS0618 // Type or member is obsolete
             feedbackLogger.LogInformation("Please take a look at the LogHub zip file for the full set of Razor logs.");
         }
     }

@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     [Export(typeof(RazorLogHubTraceProvider))]
     internal class RazorLogHubTraceProvider
     {
-        private static readonly LoggerOptions _logOptions = new LoggerOptions(
+        private static readonly LoggerOptions _logOptions = new(
             privacySetting: PrivacyFlags.CanContainPersonallyIdentifibleInformation | PrivacyFlags.CanContainPrivateInformation);
 
         private readonly SemaphoreSlim _initializationSemaphore = null;
@@ -26,9 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         }
 
-        public async Task<TraceSource> InitializeTraceAsync(string logIdentifier, int logHubSessionId)
+        public async Task<TraceSource> InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
         {
-            if (!await TryInitializeServiceBrokerAsync().ConfigureAwait(false))
+            if (!await TryInitializeServiceBrokerAsync(cancellationToken).ConfigureAwait(false))
             {
                 return null;
             }
@@ -37,8 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 logName: $"{logIdentifier}.{logHubSessionId}",
                 serviceId: new ServiceMoniker($"Razor.{logIdentifier}"));
 
-            using var traceConfig = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker).ConfigureAwait(false);
-            var traceSource = await traceConfig.RegisterLogSourceAsync(_logId, _logOptions).ConfigureAwait(false);
+            using var traceConfig = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker, cancellationToken).ConfigureAwait(false);
+            var traceSource = await traceConfig.RegisterLogSourceAsync(_logId, _logOptions, cancellationToken).ConfigureAwait(false);
 
             // Trace source(s) have the debug output in VS as a default listener causing excessive noise.
             traceSource.Listeners.Remove("Default");
@@ -48,9 +48,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             return traceSource;
         }
 
-        public async Task<bool> TryInitializeServiceBrokerAsync()
+        public async Task<bool> TryInitializeServiceBrokerAsync(CancellationToken cancellationToken)
         {
-            await _initializationSemaphore.WaitAsync().ConfigureAwait(false);
+            await _initializationSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 // Check if the service broker has already been initialized

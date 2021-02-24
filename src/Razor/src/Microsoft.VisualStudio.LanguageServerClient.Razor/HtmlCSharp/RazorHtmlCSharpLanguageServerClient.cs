@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _languageServer = await RazorHtmlCSharpLanguageServer.CreateAsync(serverStream, serverStream, _requestHandlers, _loggerProvider);
+            _languageServer = await RazorHtmlCSharpLanguageServer.CreateAsync(serverStream, serverStream, _requestHandlers, _loggerProvider, token);
 
             var connection = new Connection(clientStream, clientStream);
             return connection;

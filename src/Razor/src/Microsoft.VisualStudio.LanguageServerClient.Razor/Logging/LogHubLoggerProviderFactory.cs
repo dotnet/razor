@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
@@ -15,7 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
         /// assembly which was Microsoft.Extensions.Logging.Abstractions. This wasn't great because it required MEF to then load that assembly in order
         /// to understand this type. Returning <c>object</c> works around requiring the logging assembly.</remarks>
         /// <param name="logIdentifier">An identifier to prefix the log hub file name with.</param>
+        /// <param name="token">Cancellation token</param>
         /// <returns>A created <c>Task</c> <see cref="LogHubLoggerProvider"/>.</returns>
-        public abstract Task<object> GetOrCreateAsync(string logIdentifier);
+        public abstract Task<object> GetOrCreateAsync(string logIdentifier, CancellationToken token);
     }
 }

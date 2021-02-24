@@ -42,7 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Stream inputStream,
             Stream outputStream,
             IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers,
-            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider,
+            CancellationToken cancellationToken)
         {
             if (inputStream is null)
             {
@@ -62,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Wait for logging infrastructure to initialize. This must be completed
             // before we can start listening via Json RPC (as we must link the log hub
             // trace source with Json RPC to facilitate structured logging / activity tracing).
-            await loggerProvider.InitializeLoggerAsync().ConfigureAwait(false);
+            await loggerProvider.InitializeLoggerAsync(cancellationToken).ConfigureAwait(false);
 
             return new RazorHtmlCSharpLanguageServer(inputStream, outputStream, requestHandlers, loggerProvider);
         }

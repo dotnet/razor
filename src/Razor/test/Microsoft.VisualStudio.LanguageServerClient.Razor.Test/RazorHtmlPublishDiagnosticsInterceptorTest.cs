@@ -56,7 +56,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
             Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>())).Verifiable();
-            LoggerProvider = Mock.Of<HTMLCSharpLanguageServerLogHubLoggerProvider>(l => l.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
+            LoggerProvider = Mock.Of<HTMLCSharpLanguageServerLogHubLoggerProvider>(l =>
+                l.CreateLogger(It.IsAny<string>()) == logger &&
+                l.InitializeLoggerAsync(It.IsAny<CancellationToken>()) == Task.CompletedTask,
+                MockBehavior.Strict);
         }
 
         private HTMLCSharpLanguageServerLogHubLoggerProvider LoggerProvider { get; }
