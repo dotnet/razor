@@ -39,6 +39,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
             using var traceConfig = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker).ConfigureAwait(false);
             var traceSource = await traceConfig.RegisterLogSourceAsync(_logId, _logOptions).ConfigureAwait(false);
+
+            // Trace source(s) have the debug output in VS as a default listener causing excessive noise.
+            traceSource.Listeners.Remove("Default");
+
             traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
 
             return traceSource;

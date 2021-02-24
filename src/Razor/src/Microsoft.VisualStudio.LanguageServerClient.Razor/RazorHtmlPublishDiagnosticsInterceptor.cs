@@ -22,7 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPDiagnosticsTranslator _diagnosticsProvider;
-        private readonly ILogger _logger;
+        private readonly HTMLCSharpLanguageServerLogHubLoggerProvider _loggerProvider;
+
+        private ILogger _logger;
 
         [ImportingConstructor]
         public RazorHtmlPublishDiagnosticsInterceptor(
@@ -47,8 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _documentManager = documentManager;
             _diagnosticsProvider = diagnosticsProvider;
-
-            _logger = loggerProvider.CreateLogger(nameof(RazorHtmlPublishDiagnosticsInterceptor));
+            _loggerProvider = loggerProvider;
         }
 
         public override async Task<InterceptionResult> ApplyChangesAsync(JToken token, string containedLanguageName, CancellationToken cancellationToken)
@@ -59,14 +60,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             cancellationToken.ThrowIfCancellationRequested();
+
+            // The diagnostics interceptor isn't a part of the HTMLCSharpLanguageServer stack as it's lifecycle is a bit different.
+            // It initializes before the actual language server, as we export it to be used directly with WTE.
+            // Consequently, if we don't initialize the logger here, then the logger will be unavailable for logging.
+            await InitializeLogHubLoggerAsync().ConfigureAwait(false);
+
             var diagnosticParams = token.ToObject<VSPublishDiagnosticParams>();
 
             if (diagnosticParams?.Uri is null)
             {
-                throw new ArgumentException("Conversion of token failed.");
+                var exception = new ArgumentException("Conversion of token failed.");
+
+                _logger?.LogError(exception, $"Not a {nameof(VSPublishDiagnosticParams)}");
+
+                throw exception;
             }
 
-            _logger.LogInformation($"Received HTML Publish diagnostic request for {diagnosticParams.Uri} with {diagnosticParams.Diagnostics.Length} diagnostics.");
+            _logger?.LogInformation($"Received HTML Publish diagnostic request for {diagnosticParams.Uri} with {diagnosticParams.Diagnostics.Length} diagnostics.");
 
             // We only support interception of Virtual HTML Files
             if (!RazorLSPConventions.IsVirtualHtmlFile(diagnosticParams.Uri))
@@ -85,21 +96,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (!_documentManager.TryGetDocument(razorDocumentUri, out var razorDocumentSnapshot))
             {
-                _logger.LogInformation($"Failed to find document {razorDocumentUri}.");
+                _logger?.LogInformation($"Failed to find document {razorDocumentUri}.");
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
             if (!razorDocumentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocumentSnapshot) ||
                 !htmlDocumentSnapshot.Uri.Equals(htmlDocumentUri))
             {
-                _logger.LogInformation($"Failed to find virtual HTML document {htmlDocumentUri}.");
+                _logger?.LogInformation($"Failed to find virtual HTML document {htmlDocumentUri}.");
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
             // Return early if there aren't any diagnostics to process
             if (diagnosticParams.Diagnostics?.Any() != true)
             {
-                _logger.LogInformation("No diagnostics to process.");
+                _logger?.LogInformation("No diagnostics to process.");
                 return CreateResponse(diagnosticParams);
             }
 
@@ -116,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             //
             // This'll need to be revisited based on preferences with flickering vs lingering.
 
-            _logger.LogInformation($"Returning {processedDiagnostics.Diagnostics.Length} diagnostics.");
+            _logger?.LogInformation($"Returning {processedDiagnostics.Diagnostics.Length} diagnostics.");
             diagnosticParams.Diagnostics = processedDiagnostics.Diagnostics;
 
             return CreateResponse(diagnosticParams);
@@ -135,6 +146,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 var newToken = JToken.FromObject(diagnosticParams);
                 return new InterceptionResult(newToken, changedDocumentUri: true);
+            }
+        }
+
+        private async Task InitializeLogHubLoggerAsync()
+        {
+            if (_logger is null)
+            {
+                await _loggerProvider.InitializeLoggerAsync().ConfigureAwait(false);
+                _logger = _loggerProvider.CreateLogger(nameof(RazorHtmlPublishDiagnosticsInterceptor));
             }
         }
     }
