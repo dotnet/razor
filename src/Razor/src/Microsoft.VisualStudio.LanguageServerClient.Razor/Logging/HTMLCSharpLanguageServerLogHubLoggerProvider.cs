@@ -54,7 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             CreateMarkerFeedbackLoggerFile(feedbackLoggerProvider);
         }
 
-        public async Task InitializeLoggerAsync(CancellationToken cancellationToken)
+        // Virtual for testing
+        public virtual async Task InitializeLoggerAsync(CancellationToken cancellationToken)
         {
             if (_loggerProvider is not null)
             {
