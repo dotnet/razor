@@ -19,14 +19,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         public LogHubLoggerProviderFactoryBase(RazorLogHubTraceProvider traceProvider)
         {
+            if (traceProvider is null)
+            {
+                throw new System.ArgumentNullException(nameof(traceProvider));
+            }
+
             _traceProvider = traceProvider;
 
             _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         }
 
-        public async override Task<object> GetOrCreateAsync(string logIdentifier)
+        public async override Task<object> GetOrCreateAsync(string logIdentifier, CancellationToken cancellationToken)
         {
-            await _initializationSemaphore.WaitAsync().ConfigureAwait(false);
+            await _initializationSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 if (_currentLogWriter != null)
@@ -36,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 }
 
                 var logInstanceNumber = Interlocked.Increment(ref _logHubSessionId);
-                var traceSource = await _traceProvider.InitializeTraceAsync(logIdentifier, logInstanceNumber).ConfigureAwait(false);
+                var traceSource = await _traceProvider.InitializeTraceAsync(logIdentifier, logInstanceNumber, cancellationToken).ConfigureAwait(false);
 
                 _currentLogWriter = new DefaultLogHubLogWriter(traceSource);
                 var provider = new LogHubLoggerProvider(_currentLogWriter);

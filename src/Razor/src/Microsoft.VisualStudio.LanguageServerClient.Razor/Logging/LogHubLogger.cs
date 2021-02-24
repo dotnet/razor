@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                     break;
                 case LogLevel.Error:
                 case LogLevel.Critical:
-                    _logWriter.TraceException("[{0}] {1} {2}", _categoryName, formattedResult, exception);
+                    _logWriter.TraceError("[{0}] {1} {2}", _categoryName, formattedResult, exception);
                     break;
             }
         }

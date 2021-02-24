@@ -14,6 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         public abstract void TraceWarning(string format, params object[] args);
 
-        public abstract void TraceException(string format, params object[] args);
+        public abstract void TraceError(string format, params object[] args);
     }
 }

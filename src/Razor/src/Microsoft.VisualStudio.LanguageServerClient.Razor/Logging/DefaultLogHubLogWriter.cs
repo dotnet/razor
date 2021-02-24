@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             _traceSource.TraceEvent(TraceEventType.Warning, id: 0, format, args);
         }
 
-        public override void TraceException(string format, params object[] args)
+        public override void TraceError(string format, params object[] args)
         {
             _traceSource.TraceEvent(TraceEventType.Error, id: 0, format, args);
         }

@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // The diagnostics interceptor isn't a part of the HTMLCSharpLanguageServer stack as it's lifecycle is a bit different.
             // It initializes before the actual language server, as we export it to be used directly with WTE.
             // Consequently, if we don't initialize the logger here, then the logger will be unavailable for logging.
-            await InitializeLogHubLoggerAsync().ConfigureAwait(false);
+            await InitializeLogHubLoggerAsync(cancellationToken).ConfigureAwait(false);
 
             var diagnosticParams = token.ToObject<VSPublishDiagnosticParams>();
 
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
 
             static InterceptionResult CreateDefaultResponse(JToken token) =>
-                new InterceptionResult(token, changedDocumentUri: false);
+                new(token, changedDocumentUri: false);
 
             static InterceptionResult CreateEmptyDiagnosticsResponse(VSPublishDiagnosticParams diagnosticParams)
             {
@@ -145,15 +145,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             static InterceptionResult CreateResponse(VSPublishDiagnosticParams diagnosticParams)
             {
                 var newToken = JToken.FromObject(diagnosticParams);
-                return new InterceptionResult(newToken, changedDocumentUri: true);
+                var interceptionResult = new InterceptionResult(newToken, changedDocumentUri: true);
+                return interceptionResult;
             }
         }
 
-        private async Task InitializeLogHubLoggerAsync()
+        private async Task InitializeLogHubLoggerAsync(CancellationToken cancellationToken)
         {
             if (_logger is null)
             {
-                await _loggerProvider.InitializeLoggerAsync().ConfigureAwait(false);
+                await _loggerProvider.InitializeLoggerAsync(cancellationToken).ConfigureAwait(false);
                 _logger = _loggerProvider.CreateLogger(nameof(RazorHtmlPublishDiagnosticsInterceptor));
             }
         }
