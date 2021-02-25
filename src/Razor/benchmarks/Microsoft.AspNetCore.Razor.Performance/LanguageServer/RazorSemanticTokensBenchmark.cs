@@ -66,13 +66,13 @@ namespace Microsoft.AspNetCore.Razor.Performance.LanguageServer
             var cancellationToken = CancellationToken.None;
             var firstVersion = 1;
 
-            await UpdateDocumentAsync(firstVersion, DocumentSnapshot);
-            var fullResult = await RazorSemanticTokenService.GetSemanticTokensAsync(textDocumentIdentifier, DocumentSnapshot, firstVersion, range: null, cancellationToken);
+            await UpdateDocumentAsync(firstVersion, DocumentSnapshot).ConfigureAwait(false);
+            var fullResult = await RazorSemanticTokenService.GetSemanticTokensAsync(textDocumentIdentifier, DocumentSnapshot, firstVersion, range: null, cancellationToken).ConfigureAwait(false);
 
             var secondVersion = 2;
-            await UpdateDocumentAsync(secondVersion, UpdatedDocumentSnapshot);
+            await UpdateDocumentAsync(secondVersion, UpdatedDocumentSnapshot).ConfigureAwait(false);
 
-            var editResult = await RazorSemanticTokenService.GetSemanticTokensEditsAsync(UpdatedDocumentSnapshot, secondVersion, textDocumentIdentifier, fullResult.ResultId, cancellationToken);
+            var editResult = await RazorSemanticTokenService.GetSemanticTokensEditsAsync(UpdatedDocumentSnapshot, secondVersion, textDocumentIdentifier, fullResult.ResultId, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot)
@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.Performance.LanguageServer
                 return;
             }
 
-            RazorLanguageServer = await RazorLanguageServerTask;
+            RazorLanguageServer = await RazorLanguageServerTask.ConfigureAwait(false);
             var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
             RazorSemanticTokenService = languageServer.GetService(typeof(RazorSemanticTokensInfoService)) as TestRazorSemanticTokensInfoService;
             VersionCache = languageServer.GetService(typeof(DocumentVersionCache)) as DocumentVersionCache;
