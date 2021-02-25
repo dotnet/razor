@@ -6,10 +6,8 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -19,14 +17,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentSynchronizer _documentSynchronizer;
-        private readonly ILogger _logger;
+        private readonly RazorLogger _logger;
         private Func<RazorLanguageQueryParams, CancellationToken, Task<RazorLanguageQueryResponse>> _inProcLanguageQueryMethod;
 
         [ImportingConstructor]
         public DefaultLSPProjectionProvider(
             LSPRequestInvoker requestInvoker,
             LSPDocumentSynchronizer documentSynchronizer,
-            HTMLCSharpLanguageServerFeedbackFileLoggerProvider logger)
+            RazorLogger logger)
         {
             if (requestInvoker is null)
             {
@@ -45,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _requestInvoker = requestInvoker;
             _documentSynchronizer = documentSynchronizer;
-            _logger = logger.CreateLogger(nameof(DefaultLSPProjectionProvider));
+            _logger = logger;
         }
 
         public void UseInProcLanguageQueries(Func<RazorLanguageQueryParams, CancellationToken, Task<RazorLanguageQueryResponse>> inProcLanguageQueryMethod)
@@ -116,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 // There should always be a document version attached to an open document.
                 // Log it and move on as if it was synchronized.
-                _logger.LogTrace($"Could not find a document version associated with the document '{documentSnapshot.Uri}'");
+                _logger.LogVerbose($"Could not find a document version associated with the document '{documentSnapshot.Uri}'");
             }
             else
             {
