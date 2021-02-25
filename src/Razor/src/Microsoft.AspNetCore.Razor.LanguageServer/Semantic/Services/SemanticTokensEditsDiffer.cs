@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
         {
             public int Start { get; set; }
             public int DeleteCount { get; set; }
-            public IList<int>? Data { get; set; } = new List<int>();
+            public IList<int>? Data { get; set; }
 
             // Since we need to add to the Data object during ProcessEdits but return an "ImmutableArray" in the end lets wait until the end to convert.
             public SemanticTokensEdit ToSemanticTokensEdit()
