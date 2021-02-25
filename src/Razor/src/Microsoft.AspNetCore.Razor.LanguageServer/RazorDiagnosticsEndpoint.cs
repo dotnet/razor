@@ -172,17 +172,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return filteredDiagnostics;
         }
 
-        private static bool FilterDiagnosticBasedOnErrorCode(Diagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+        private static bool FilterDiagnosticBasedOnErrorCode(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
         {
-            if (!d.Code.HasValue)
+            if (!diagnostic.Code.HasValue)
             {
                 return false;
             }
 
-            return d.Code.Value.String switch
+            return diagnostic.Code.Value.String switch
             {
-                HtmlErrorCodes.InvalidNestingErrorCode => IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree),
                 HtmlErrorCodes.MissingEndTagErrorCode => true, // Redundant with RZ9980
+                HtmlErrorCodes.InvalidNestingErrorCode => IsInvalidNestingWarningWithinComponent(diagnostic, sourceText, syntaxTree),
                 _ => false,
             };
 
