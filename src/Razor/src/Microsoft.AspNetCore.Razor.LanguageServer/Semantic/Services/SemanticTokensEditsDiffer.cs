@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                     case DiffEdit.Type.Insert:
                         if (current != null &&
                             current.Data != null &&
-                            current.Data.Any() &&
+                            current.Data.Count > 0 &&
                             current.Start == diff.Position)
                         {
                             current.Data.Add(NewArray[diff.NewTextPosition!.Value]);
@@ -87,7 +87,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                             var semanticTokensEdit = new RazorSemanticTokensEdit
                             {
                                 Start = diff.Position,
-                                Data = new List<int>{
+                                Data = new List<int>
+                                {
                                     NewArray[diff.NewTextPosition!.Value],
                                 },
                                 DeleteCount = 0,
