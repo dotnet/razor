@@ -515,11 +515,41 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public async Task Handle_ProcessDiagnostics_Html_IgnoreMissingEndTagDiagnostic()
+        public async Task Handle_ProcessDiagnostics_Html_CSHTML_DoNotIgnoreMissingEndTagDiagnostic()
         {
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
             var codeDocument = CreateCodeDocument("<p>@DateTime.Now");
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[]
+                {
+                    new Diagnostic()
+                    {
+                        Code = new DiagnosticCode(HtmlErrorCodes.MissingEndTagErrorCode),
+                        Range = new Range(new Position(0, 0), new Position(0, 3))
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            var returnedDiagnostic = Assert.Single(response.Diagnostics);
+            Assert.Equal(HtmlErrorCodes.MissingEndTagErrorCode, returnedDiagnostic.Code.Value.String);
+        }
+
+        [Fact]
+        public async Task Handle_ProcessDiagnostics_Html_Razor_IgnoreMissingEndTagDiagnostic()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.razor";
+            var codeDocument = CreateCodeDocument("<p>@DateTime.Now", kind: FileKinds.Component);
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
@@ -570,12 +600,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return documentResolver.Object;
         }
 
-        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null, string kind = null)
         {
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);
             var projectEngine = RazorProjectEngine.Create(builder => { });
-            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Legacy, Array.Empty<RazorSourceDocument>(), tagHelpers);
+            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, kind ?? FileKinds.Legacy, Array.Empty<RazorSourceDocument>(), tagHelpers);
             return codeDocument;
         }
 
