@@ -7,9 +7,9 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {

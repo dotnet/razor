@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -182,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return d.Code.Value.String switch
             {
-                HTMLErrorCodes.InvalidNestingErrorCode => IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree),
+                HtmlErrorCodes.InvalidNestingErrorCode => IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree),
                 _ => false,
             };
 

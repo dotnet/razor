@@ -4,7 +4,7 @@
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     // Note: This type should be kept in sync with WTE's ErrorCodes.cs
-    internal static class HTMLErrorCodes
+    internal static class HtmlErrorCodes
     {
         // 00xx syntax errors (i.e. cannot parse)
         public const string MissingClosingBracket = "HTML0001";
