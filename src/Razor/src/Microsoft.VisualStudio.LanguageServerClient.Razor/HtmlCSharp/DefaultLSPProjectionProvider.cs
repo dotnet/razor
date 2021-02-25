@@ -6,8 +6,10 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -17,17 +19,43 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentSynchronizer _documentSynchronizer;
-        private readonly RazorLogger _logger;
+        private readonly ILogger _logger;
+        private Func<RazorLanguageQueryParams, CancellationToken, Task<RazorLanguageQueryResponse>> _inProcLanguageQueryMethod;
 
         [ImportingConstructor]
         public DefaultLSPProjectionProvider(
             LSPRequestInvoker requestInvoker,
             LSPDocumentSynchronizer documentSynchronizer,
-            RazorLogger logger)
+            HTMLCSharpLanguageServerFeedbackFileLoggerProvider logger)
         {
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentSynchronizer is null)
+            {
+                throw new ArgumentNullException(nameof(documentSynchronizer));
+            }
+
+            if (logger is null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             _requestInvoker = requestInvoker;
             _documentSynchronizer = documentSynchronizer;
-            _logger = logger;
+            _logger = logger.CreateLogger(nameof(DefaultLSPProjectionProvider));
+        }
+
+        public void UseInProcLanguageQueries(Func<RazorLanguageQueryParams, CancellationToken, Task<RazorLanguageQueryResponse>> inProcLanguageQueryMethod)
+        {
+            if (inProcLanguageQueryMethod is null)
+            {
+                throw new ArgumentNullException(nameof(inProcLanguageQueryMethod));
+            }
+
+            _inProcLanguageQueryMethod = inProcLanguageQueryMethod;
         }
 
         public override async Task<ProjectionResult> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
@@ -45,14 +73,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageQueryParams = new RazorLanguageQueryParams()
             {
                 Position = position,
-                Uri = documentSnapshot.Uri
+                Uri = documentSnapshot.Uri,
             };
 
-            var languageResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
-                LanguageServerConstants.RazorLanguageQueryEndpoint,
-                RazorLSPConstants.RazorLSPContentTypeName,
-                languageQueryParams,
-                cancellationToken).ConfigureAwait(false);
+            RazorLanguageQueryResponse languageResponse = null;
+            if (_inProcLanguageQueryMethod != null)
+            {
+                languageResponse = await _inProcLanguageQueryMethod.Invoke(languageQueryParams, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                languageResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
+                    LanguageServerConstants.RazorLanguageQueryEndpoint,
+                    RazorLSPConstants.RazorLSPContentTypeName,
+                    languageQueryParams,
+                    cancellationToken).ConfigureAwait(false);
+            }
 
             if (languageResponse == null)
             {
@@ -80,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 // There should always be a document version attached to an open document.
                 // Log it and move on as if it was synchronized.
-                _logger.LogVerbose($"Could not find a document version associated with the document '{documentSnapshot.Uri}'");
+                _logger.LogTrace($"Could not find a document version associated with the document '{documentSnapshot.Uri}'");
             }
             else
             {
