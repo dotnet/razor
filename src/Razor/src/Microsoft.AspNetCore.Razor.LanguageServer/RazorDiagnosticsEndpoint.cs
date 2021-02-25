@@ -181,8 +181,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return diagnostic.Code.Value.String switch
             {
-                HtmlErrorCodes.MissingEndTagErrorCode => true, // Redundant with RZ9980
                 HtmlErrorCodes.InvalidNestingErrorCode => IsInvalidNestingWarningWithinComponent(diagnostic, sourceText, syntaxTree),
+                HtmlErrorCodes.MissingEndTagErrorCode => FileKinds.IsComponent(syntaxTree.Options.FileKind), // Redundant with RZ9980 in Components
                 _ => false,
             };
 
