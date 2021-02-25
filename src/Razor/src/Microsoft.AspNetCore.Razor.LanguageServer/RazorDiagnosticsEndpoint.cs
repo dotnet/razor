@@ -153,7 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
         }
 
-        private async Task<Diagnostic[]> FilterHTMLDiagnosticsAsync(
+        private static async Task<Diagnostic[]> FilterHTMLDiagnosticsAsync(
             Diagnostic[] unmappedDiagnostics,
             RazorCodeDocument codeDocument,
             DocumentSnapshot documentSnapshot)
@@ -182,6 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return d.Code.Value.String switch
             {
                 HtmlErrorCodes.InvalidNestingErrorCode => IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree),
+                HtmlErrorCodes.MissingEndTagErrorCode => true, // Redundant with RZ9980
                 _ => false,
             };
 
