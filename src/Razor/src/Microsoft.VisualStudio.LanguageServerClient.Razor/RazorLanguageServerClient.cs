@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly RazorLanguageServerFeedbackFileLoggerProviderFactory _feedbackFileLoggerProviderFactory;
         private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
         private readonly InProcLanguageServerAdapter _inProcLanguageServerAdapter;
+        
         private object _shutdownLock;
         private RazorLanguageServer _server;
         private IDisposable _serverShutdownDisposable;
