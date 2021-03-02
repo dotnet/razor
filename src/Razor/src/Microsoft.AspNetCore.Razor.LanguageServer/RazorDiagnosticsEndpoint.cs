@@ -253,15 +253,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return diagnostic.Code.Value.String switch
             {
-                "CS1525" => IsInEmptyAttribute(diagnostic, codeDocument),
+                "CS1525" => ShouldIgnoreCS1525(diagnostic, codeDocument),
                 _ => CSharpDiagnosticsToIgnore.Contains(diagnostic.Code.Value.String) &&
                         diagnostic.Severity != DiagnosticSeverity.Error,
             };
 
-            bool IsInEmptyAttribute(Diagnostic diagnostic, RazorCodeDocument codeDocument)
+            bool ShouldIgnoreCS1525(Diagnostic diagnostic, RazorCodeDocument codeDocument)
             {
                 if (TryGetOriginalDiagnosticRange(diagnostic.Range, diagnostic.Severity, codeDocument, out var originalRange) &&
-                    originalRange.IsUndefined())
+                    originalRange.IsUndefined() &&
+                    CheckIfDocumentHasRazorDiagnostic(codeDocument, "RZ2008"))
                 {
                     // Empty attribute values will take the following form in the generated C# document:
                     // __o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.ProgressEventArgs>(this, );
@@ -274,6 +275,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 return false;
             }
+        }
+
+        // Internal & virtual for testing
+        internal virtual bool CheckIfDocumentHasRazorDiagnostic(RazorCodeDocument codeDocument, string razorDiagnosticCode)
+        {
+            return codeDocument.GetSyntaxTree().Diagnostics.Any(d => d.Id.Equals(razorDiagnosticCode, StringComparison.Ordinal));
         }
 
         private Diagnostic[] MapDiagnostics(

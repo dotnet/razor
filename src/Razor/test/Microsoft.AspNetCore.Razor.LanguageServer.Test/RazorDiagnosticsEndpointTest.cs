@@ -10,8 +10,10 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
@@ -269,7 +271,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public async Task Handle_ProcessDiagnostics_CSharpError_CS1525_InAttribute_ReturnsNoDiagnostics()
+        public async Task Handle_ProcessDiagnostics_CSharpError_CS1525_InAttribute_NoRazorDiagnostic_ReturnsDiagnostic()
         {
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
@@ -278,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 "__o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.ProgressEventArgs>(this, );",
                 sourceMappings: Array.Empty<SourceMapping>());
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
-            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithoutRazorDiagnostic(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.CSharp,
@@ -287,6 +289,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         Code = new DiagnosticCode("CS1525"),
                         Severity = DiagnosticSeverity.Error,
                         Range = new Range(new Position(0, 0), new Position(0, 3))
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Equal(RangeExtensions.UndefinedRange, response.Diagnostics[0].Range);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
+        public async Task Handle_ProcessDiagnostics_CSharpError_CS1525_InAttribute_WithRazorDiagnostic_ReturnsNoDiagnostics()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.razor";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<p @onabort=\"\"></p>",
+                "__o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.ProgressEventArgs>(this, );",
+                sourceMappings: Array.Empty<SourceMapping>());
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithRazorDiagnostic(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+                Diagnostics = new[] {
+                    new Diagnostic() {
+                        Code = new DiagnosticCode("CS1525"),
+                        Severity = DiagnosticSeverity.Error,
+                        Range = new Range(new Position(0, 128), new Position(0, 128))
                     }
                 },
                 RazorDocumentUri = new Uri(documentPath),
@@ -693,6 +727,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Enumerable.Empty<LinePragma>());
             codeDocument.SetCSharpDocument(csharpDocument);
             return codeDocument;
+        }
+
+        class TestRazorDiagnosticsEndpointWithRazorDiagnostic : RazorDiagnosticsEndpoint
+        {
+            public TestRazorDiagnosticsEndpointWithRazorDiagnostic(
+                ForegroundDispatcher foregroundDispatcher,
+                DocumentResolver documentResolver,
+                DocumentVersionCache documentVersionCache,
+                RazorDocumentMappingService documentMappingService,
+                ILoggerFactory loggerFactory) :
+                base(foregroundDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+            {
+            }
+
+            internal override bool CheckIfDocumentHasRazorDiagnostic(RazorCodeDocument codeDocument, string razorDiagnosticCode)
+            {
+                return true;
+            }
+        }
+
+        class TestRazorDiagnosticsEndpointWithoutRazorDiagnostic : RazorDiagnosticsEndpoint
+        {
+            public TestRazorDiagnosticsEndpointWithoutRazorDiagnostic(
+                ForegroundDispatcher foregroundDispatcher,
+                DocumentResolver documentResolver,
+                DocumentVersionCache documentVersionCache,
+                RazorDocumentMappingService documentMappingService,
+                ILoggerFactory loggerFactory) :
+                base(foregroundDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+            {
+            }
+
+            internal override bool CheckIfDocumentHasRazorDiagnostic(RazorCodeDocument codeDocument, string razorDiagnosticCode)
+            {
+                return false;
+            }
         }
     }
 }
