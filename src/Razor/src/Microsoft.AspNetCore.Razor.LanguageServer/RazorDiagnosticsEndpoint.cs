@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SourceText = Microsoft.CodeAnalysis.Text.SourceText;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -260,9 +261,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             bool ShouldIgnoreCS1525(Diagnostic diagnostic, RazorCodeDocument codeDocument)
             {
-                if (TryGetOriginalDiagnosticRange(diagnostic.Range, diagnostic.Severity, codeDocument, out var originalRange) &&
-                    originalRange.IsUndefined() &&
-                    CheckIfDocumentHasRazorDiagnostic(codeDocument, "RZ2008"))
+                if (CheckIfDocumentHasRazorDiagnostic(codeDocument, RazorDiagnosticFactory.TagHelper_EmptyBoundAttribute.Id) &&
+                    TryGetOriginalDiagnosticRange(diagnostic.Range, diagnostic.Severity, codeDocument, out var originalRange) &&
+                    originalRange.IsUndefined())
                 {
                     // Empty attribute values will take the following form in the generated C# document:
                     // __o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.ProgressEventArgs>(this, );
@@ -315,10 +316,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private bool TryGetOriginalDiagnosticRange(Range projectedRange, DiagnosticSeverity? severity, RazorCodeDocument codeDocument, out Range originalRange)
         {
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(
-                           codeDocument,
-                           projectedRange,
-                           MappingBehavior.Inclusive,
-                           out originalRange))
+                    codeDocument,
+                    projectedRange,
+                    MappingBehavior.Inclusive,
+                    out originalRange))
             {
                 // Couldn't remap the range correctly.
                 // If this isn't an `Error` Severity Diagnostic we can discard it.
