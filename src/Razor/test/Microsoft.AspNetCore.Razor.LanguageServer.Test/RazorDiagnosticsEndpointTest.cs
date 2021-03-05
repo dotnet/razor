@@ -10,8 +10,10 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
@@ -145,7 +147,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Diagnostics = new[] {
                     new Diagnostic() {
                         Range = new Range(new Position(0, 10), new Position(0, 22)),
-                        Code = RazorDiagnosticsEndpoint.DiagnosticsToIgnore.First(),
+                        Code = RazorDiagnosticsEndpoint.CSharpDiagnosticsToIgnore.First(),
                         Severity = DiagnosticSeverity.Warning
                     }
                 },
@@ -182,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Diagnostics = new[] {
                     new Diagnostic() {
                         Range = new Range(new Position(0, 10), new Position(0, 22)),
-                        Code = RazorDiagnosticsEndpoint.DiagnosticsToIgnore.First(),
+                        Code = RazorDiagnosticsEndpoint.CSharpDiagnosticsToIgnore.First(),
                         Severity = DiagnosticSeverity.Error
                     }
                 },
@@ -269,6 +271,107 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
+        public async Task Handle_ProcessDiagnostics_CSharpError_CS1525_InAttribute_NoRazorDiagnostic_ReturnsDiagnostic()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<p @onabort=\"\"></p>",
+                "__o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.ProgressEventArgs>(this, );",
+                sourceMappings: Array.Empty<SourceMapping>());
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithoutRazorDiagnostic(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+                Diagnostics = new[] {
+                    new Diagnostic() {
+                        Code = new DiagnosticCode("CS1525"),
+                        Severity = DiagnosticSeverity.Error,
+                        Range = new Range(new Position(0, 0), new Position(0, 3))
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Equal(RangeExtensions.UndefinedRange, response.Diagnostics[0].Range);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
+        public async Task Handle_ProcessDiagnostics_CSharpError_CS1525_InAttribute_WithRazorDiagnostic_ReturnsNoDiagnostics()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.razor";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<p @onabort=\"\"></p>",
+                "__o = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.ProgressEventArgs>(this, );",
+                sourceMappings: Array.Empty<SourceMapping>());
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new TestRazorDiagnosticsEndpointWithRazorDiagnostic(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+                Diagnostics = new[] {
+                    new Diagnostic() {
+                        Code = new DiagnosticCode("CS1525"),
+                        Severity = DiagnosticSeverity.Error,
+                        Range = new Range(new Position(0, 128), new Position(0, 128))
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(response.Diagnostics);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
+        public async Task Handle_ProcessDiagnostics_CSharpError_CS1525_NotInAttribute_ReturnsDiagnostics()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<p>@DateTime.Now)</p>",
+                "var __o = DateTime.Now)",
+                new[] {
+                    new SourceMapping(
+                        new SourceSpan(4, 13),
+                        new SourceSpan(10, 13))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+                Diagnostics = new[] {
+                    new Diagnostic() {
+                        Code = new DiagnosticCode("CS1525"),
+                        Severity = DiagnosticSeverity.Error,
+                        Range = new Range(new Position(0, 12), new Position(0, 13))
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+            var expectedRange = new Range(new Position(0, 6), new Position(0, 7));
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Equal(expectedRange, response.Diagnostics[0].Range);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
         public async Task Handle_ProcessDiagnostics_Html()
         {
             // Arrange
@@ -346,7 +449,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public async Task Handle_ProcessDiagnostics_HTML_WithCSharpInAttribute_SingleDiagnostic()
+        public async Task Handle_ProcessDiagnostics_Html_WithCSharpInAttribute_SingleDiagnostic()
         {
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
@@ -376,7 +479,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public async Task Handle_ProcessDiagnostics_HTML_WithCSharpInAttribute_MultipleDiagnostics()
+        public async Task Handle_ProcessDiagnostics_Html_WithCSharpInAttribute_MultipleDiagnostics()
         {
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
@@ -415,19 +518,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
-        public async Task Handle_ProcessDiagnostics_HTML_WithCSharpInTagHelperAttribute_MultipleDiagnostics()
+        public async Task Handle_ProcessDiagnostics_Html_WithCSharpInTagHelperAttribute_MultipleDiagnostics()
         {
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
 
-            var descriptor = TagHelperDescriptorBuilder.Create("ButtonTagHelper", "TestAssembly");
-            descriptor.SetTypeName("TestNamespace.ButtonTagHelper");
-            descriptor.TagMatchingRule(builder => builder.RequireTagName("button"));
-            descriptor.BindAttribute(builder =>
-                builder
-                    .Name("onactivate")
-                    .PropertyName("onactivate")
-                    .TypeName(typeof(string).FullName));
+            var descriptor = GetButtonTagHelperDescriptor();
 
             var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
             var codeDocument = CreateCodeDocumentWithCSharpProjection(
@@ -466,6 +562,133 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Equal(1337, response.HostDocumentVersion);
         }
 
+        [Fact]
+        public async Task Handle_ProcessDiagnostics_Html_DisableInvalidNestingWarningInTagHelper()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var descriptor = GetButtonTagHelperDescriptor();
+
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                $@"@addTagHelper *, TestAssembly
+<button>
+    @* Should NOT show warning *@
+    <div>
+        <option></option>
+    </div>
+</button>
+
+@* Should show warning *@
+<div>
+    <option></option>
+</div>",
+                projectedCSharpSource: string.Empty,
+                sourceMappings: Array.Empty<SourceMapping>(),
+                new[] {
+                    descriptor.Build()
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[]
+                {
+                    new Diagnostic()
+                    {
+                        Code = new DiagnosticCode(HtmlErrorCodes.InvalidNestingErrorCode),
+                        Range = new Range(new Position(4, 8), new Position(4, 17))
+                    },
+                    new Diagnostic()
+                    {
+                        Code = new DiagnosticCode(HtmlErrorCodes.InvalidNestingErrorCode),
+                        Range = new Range(new Position(10, 4), new Position(10, 13))
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            var d = Assert.Single(response.Diagnostics);
+            Assert.Equal(HtmlErrorCodes.InvalidNestingErrorCode, d.Code);
+            Assert.Equal(10, d.Range.Start.Line);
+        }
+
+        [Fact]
+        public async Task Handle_ProcessDiagnostics_Html_CSHTML_DoNotIgnoreMissingEndTagDiagnostic()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocument("<p>@DateTime.Now");
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[]
+                {
+                    new Diagnostic()
+                    {
+                        Code = new DiagnosticCode(HtmlErrorCodes.MissingEndTagErrorCode),
+                        Range = new Range(new Position(0, 0), new Position(0, 3))
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            var returnedDiagnostic = Assert.Single(response.Diagnostics);
+            Assert.Equal(HtmlErrorCodes.MissingEndTagErrorCode, returnedDiagnostic.Code.Value.String);
+        }
+
+        [Fact]
+        public async Task Handle_ProcessDiagnostics_Html_Razor_IgnoreMissingEndTagDiagnostic()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.razor";
+            var codeDocument = CreateCodeDocument("<p>@DateTime.Now", kind: FileKinds.Component);
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[]
+                {
+                    new Diagnostic()
+                    {
+                        Code = new DiagnosticCode(HtmlErrorCodes.MissingEndTagErrorCode),
+                        Range = new Range(new Position(0, 0), new Position(0, 3))
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(response.Diagnostics);
+        }
+
+        private static TagHelperDescriptorBuilder GetButtonTagHelperDescriptor()
+        {
+            var descriptor = TagHelperDescriptorBuilder.Create("ButtonTagHelper", "TestAssembly");
+            descriptor.SetTypeName("TestNamespace.ButtonTagHelper");
+            descriptor.TagMatchingRule(builder => builder.RequireTagName("button"));
+            descriptor.BindAttribute(builder =>
+                builder
+                    .Name("onactivate")
+                    .PropertyName("onactivate")
+                    .TypeName(typeof(string).FullName));
+            return descriptor;
+        }
+
         private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
         {
             var sourceTextChars = new char[codeDocument.Source.Length];
@@ -480,12 +703,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return documentResolver.Object;
         }
 
-        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null)
+        private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor> tagHelpers = null, string kind = null)
         {
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);
             var projectEngine = RazorProjectEngine.Create(builder => { });
-            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Legacy, Array.Empty<RazorSourceDocument>(), tagHelpers);
+            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, kind ?? FileKinds.Legacy, Array.Empty<RazorSourceDocument>(), tagHelpers);
             return codeDocument;
         }
 
@@ -504,6 +727,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Enumerable.Empty<LinePragma>());
             codeDocument.SetCSharpDocument(csharpDocument);
             return codeDocument;
+        }
+
+        class TestRazorDiagnosticsEndpointWithRazorDiagnostic : RazorDiagnosticsEndpoint
+        {
+            public TestRazorDiagnosticsEndpointWithRazorDiagnostic(
+                ForegroundDispatcher foregroundDispatcher,
+                DocumentResolver documentResolver,
+                DocumentVersionCache documentVersionCache,
+                RazorDocumentMappingService documentMappingService,
+                ILoggerFactory loggerFactory) :
+                base(foregroundDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+            {
+            }
+
+            internal override bool CheckIfDocumentHasRazorDiagnostic(RazorCodeDocument codeDocument, string razorDiagnosticCode)
+            {
+                return true;
+            }
+        }
+
+        class TestRazorDiagnosticsEndpointWithoutRazorDiagnostic : RazorDiagnosticsEndpoint
+        {
+            public TestRazorDiagnosticsEndpointWithoutRazorDiagnostic(
+                ForegroundDispatcher foregroundDispatcher,
+                DocumentResolver documentResolver,
+                DocumentVersionCache documentVersionCache,
+                RazorDocumentMappingService documentMappingService,
+                ILoggerFactory loggerFactory) :
+                base(foregroundDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+            {
+            }
+
+            internal override bool CheckIfDocumentHasRazorDiagnostic(RazorCodeDocument codeDocument, string razorDiagnosticCode)
+            {
+                return false;
+            }
         }
     }
 }

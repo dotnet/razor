@@ -8,11 +8,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
+using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
@@ -23,7 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
-        private readonly CSharpBreakpointResolver _csharpBreakpointResolver;
+        private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
+        private readonly MemoryCache<CacheKey, Range> _cache;
 
         [ImportingConstructor]
         public DefaultRazorBreakpointResolver(
@@ -31,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
-            CSharpBreakpointResolver csharpBreakpointResolver)
+            VisualStudioWorkspaceAccessor workspaceAccessor)
         {
             if (fileUriProvider is null)
             {
@@ -53,16 +57,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
-            if (csharpBreakpointResolver is null)
+            if (workspaceAccessor is null)
             {
-                throw new ArgumentNullException(nameof(csharpBreakpointResolver));
+                throw new ArgumentNullException(nameof(workspaceAccessor));
             }
 
             _fileUriProvider = fileUriProvider;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
-            _csharpBreakpointResolver = csharpBreakpointResolver;
+            _workspaceAccessor = workspaceAccessor;
+
+            // 4 is a magic number that was determined based on the functionality of VisualStudio. Currently when you set or edit a breakpoint
+            // we get called with two different locations for the same breakpoint. Because of this 2 time call our size must be at least 2,
+            // we grow it to 4 just to be safe for lesser known scenarios.
+            _cache = new MemoryCache<CacheKey, Range>(sizeLimit: 4);
         }
 
         public override async Task<Range> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
@@ -82,6 +91,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             {
                 // No associated Razor document. Do not allow a breakpoint here. In practice this shouldn't happen, just being defensive.
                 return null;
+            }
+
+            var cacheKey = new CacheKey(documentSnapshot.Uri, documentSnapshot.Version, lineIndex, characterIndex);
+            if (_cache.TryGetValue(cacheKey, out var cachedRange))
+            {
+                // We've seen this request before, no need to go async.
+                return cachedRange;
             }
 
             var lspPosition = new Position(lineIndex, characterIndex);
@@ -106,9 +122,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 return null;
             }
 
-            var sourceText = virtualDocument.Snapshot.AsText();
-            var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, cancellationToken: cancellationToken);
-            if (!_csharpBreakpointResolver.TryGetBreakpointSpan(syntaxTree, projectionResult.PositionIndex, cancellationToken, out var csharpBreakpointSpan))
+            _workspaceAccessor.TryGetWorkspace(textBuffer, out var workspace);
+
+            var syntaxTree = await virtualDocument.GetCSharpSyntaxTreeAsync(workspace, cancellationToken).ConfigureAwait(false);
+            if (!RazorBreakpointSpans.TryGetBreakpointSpan(syntaxTree, projectionResult.PositionIndex, cancellationToken, out var csharpBreakpointSpan))
             {
                 return null;
             }
@@ -133,7 +150,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             cancellationToken.ThrowIfCancellationRequested();
 
             var hostDocumentRange = hostDocumentMapping.Ranges.FirstOrDefault();
+
+            // Cache range so if we're asked again for this document/line/character we don't have to go async.
+            _cache.Set(cacheKey, hostDocumentRange);
+
             return hostDocumentRange;
         }
+
+        private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);
     }
 }
