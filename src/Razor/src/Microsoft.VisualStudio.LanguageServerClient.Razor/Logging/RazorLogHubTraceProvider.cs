@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.LogHub;
+using Microsoft.VisualStudio.RpcContracts.Logging;
 using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     internal class RazorLogHubTraceProvider
     {
         private static readonly LoggerOptions _logOptions = new(
-            privacySetting: PrivacyFlags.CanContainPersonallyIdentifibleInformation | PrivacyFlags.CanContainPrivateInformation);
+            privacySetting: PrivacyFlags.MayContainPersonallyIdentifibleInformation | PrivacyFlags.MayContainPrivateInformation);
 
         private readonly SemaphoreSlim _initializationSemaphore = null;
         private IServiceBroker _serviceBroker = null;
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 logName: $"{logIdentifier}.{logHubSessionId}",
                 serviceId: new ServiceMoniker($"Razor.{logIdentifier}"));
 
-            using var traceConfig = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker, cancellationToken).ConfigureAwait(false);
+            using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker, cancellationToken).ConfigureAwait(false);
             var traceSource = await traceConfig.RegisterLogSourceAsync(_logId, _logOptions, cancellationToken).ConfigureAwait(false);
 
             // Trace source(s) have the debug output in VS as a default listener causing excessive noise.

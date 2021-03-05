@@ -102,24 +102,24 @@
     <MicrosoftCodeAnalysisAnalyzerTestingPackageVersion>$(Tooling_MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisAnalyzerTestingPackageVersion>
     <MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion>$(Tooling_MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>3.9.0-2.20573.10</MicrosoftNetCompilersToolsetPackageVersion>
-    <MicrosoftServiceHubFrameworkPackageVersion>2.7.339</MicrosoftServiceHubFrameworkPackageVersion>
+    <MicrosoftServiceHubFrameworkPackageVersion>2.7.451</MicrosoftServiceHubFrameworkPackageVersion>
     <MicrosoftVisualStudioCoreUtilityPackageVersion>16.10.8</MicrosoftVisualStudioCoreUtilityPackageVersion>
-    <MicrosoftVisualStudioComponentModelHostPackageVersion>16.6.255</MicrosoftVisualStudioComponentModelHostPackageVersion>
-    <MicrosoftVisualStudioImageCatalogPackageVersion>16.9.30701-preview-2-30710-200</MicrosoftVisualStudioImageCatalogPackageVersion>
-    <MicrosoftVisualStudioEditorPackageVersion>16.8.272</MicrosoftVisualStudioEditorPackageVersion>
+    <MicrosoftVisualStudioComponentModelHostPackageVersion>16.9.214</MicrosoftVisualStudioComponentModelHostPackageVersion>
+    <MicrosoftVisualStudioImageCatalogPackageVersion>16.9.30927.25</MicrosoftVisualStudioImageCatalogPackageVersion>
+    <MicrosoftVisualStudioEditorPackageVersion>16.9.214</MicrosoftVisualStudioEditorPackageVersion>
     <MicrosoftVisualStudioLanguagePackageVersion>16.10.8</MicrosoftVisualStudioLanguagePackageVersion>
     <MicrosoftVisualStudioLanguageIntellisensePackageVersion>16.10.8</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
-    <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>16.9.150</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
+    <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>16.10.96</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
     <MicrosoftVisualStudioPackageLanguageService150PackageVersion>16.7.30204.53-pre</MicrosoftVisualStudioPackageLanguageService150PackageVersion>
     <MicrosoftVisualStudioLiveSharePackageVersion>0.3.1074</MicrosoftVisualStudioLiveSharePackageVersion>
-    <MicrosoftVisualStudioLogHubPackageVersion>16.9.1043</MicrosoftVisualStudioLogHubPackageVersion>
+    <MicrosoftVisualStudioUtilitiesPackageVersion>16.10.0-preview-2-31104-269</MicrosoftVisualStudioUtilitiesPackageVersion>
     <MicrosoftVisualStudioOLEInteropPackageVersion>7.10.6071</MicrosoftVisualStudioOLEInteropPackageVersion>
     <MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>16.8.1-beta1-10222-04</MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>
     <MicrosoftVisualStudioProjectSystemSDKPackageVersion>16.10.81-pre</MicrosoftVisualStudioProjectSystemSDKPackageVersion>
-    <MicrosoftVisualStudioSDKAnalyzersVersion>16.7.8</MicrosoftVisualStudioSDKAnalyzersVersion>
-    <MicrosoftVisualStudioShellInterop163DesignTimePackageVersion>16.3.29316.127</MicrosoftVisualStudioShellInterop163DesignTimePackageVersion>
-    <MicrosoftVisualStudioShell150PackageVersion>16.8.30406.155-pre</MicrosoftVisualStudioShell150PackageVersion>
-    <MicrosoftVisualStudioShellInteropPackageVersion>16.8.30406.65</MicrosoftVisualStudioShellInteropPackageVersion>
+    <MicrosoftVisualStudioSDKAnalyzersVersion>16.7.9</MicrosoftVisualStudioSDKAnalyzersVersion>
+    <MicrosoftVisualStudioShellInterop163DesignTimePackageVersion>16.9.30927.25</MicrosoftVisualStudioShellInterop163DesignTimePackageVersion>
+    <MicrosoftVisualStudioShell150PackageVersion>16.9.30927.25</MicrosoftVisualStudioShell150PackageVersion>
+    <MicrosoftVisualStudioShellInteropPackageVersion>16.9.30927.25</MicrosoftVisualStudioShellInteropPackageVersion>
     <MicrosoftVisualStudioTextDataPackageVersion>16.10.8</MicrosoftVisualStudioTextDataPackageVersion>
     <MicrosoftVisualStudioTextImplementationPackageVersion>16.10.8</MicrosoftVisualStudioTextImplementationPackageVersion>
     <MicrosoftVisualStudioTextLogicPackageVersion>16.10.8</MicrosoftVisualStudioTextLogicPackageVersion>
