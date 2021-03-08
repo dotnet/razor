@@ -147,7 +147,7 @@
     <VS_NewtonsoftJsonPackageVersion>12.0.2</VS_NewtonsoftJsonPackageVersion>
     <VSMAC_NewtonsoftJsonPackageVersion>12.0.2</VSMAC_NewtonsoftJsonPackageVersion>
     <Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.3.2</Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>
-    <Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion>5.0.3</Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion>6.0.0-preview3.21158.1</Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion>
     <Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>3.10.0-2.21121.14</Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
     <Tooling_MicrosoftCodeAnalysisPackageVersion>3.10.0-2.21121.14</Tooling_MicrosoftCodeAnalysisPackageVersion>
     <Tooling_MicrosoftCodeAnalysisCommonPackageVersion>3.10.0-2.21121.14</Tooling_MicrosoftCodeAnalysisCommonPackageVersion>
