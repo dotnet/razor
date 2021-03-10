@@ -103,11 +103,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            // Initialize the buffer with editor options.
-            // Temporary: Ideally in remote scenarios, we should be using host's settings.
-            // But we need this until that support is built.
-            InitializeOptions(textBuffer);
-
             if (!_lspEditorFeatureDetector.IsRemoteClient())
             {
                 // Renames on open files don't dispose buffer state so we need to separately monitor the buffer for document renames to ensure
@@ -176,26 +171,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             textDocument.FileActionOccurred -= TextDocument_FileActionOccurred;
-        }
-
-        private void InitializeOptions(ITextBuffer textBuffer)
-        {
-            // Ideally we would initialize options based on Razor specific options in the context menu.
-            // But since we don't have support for that yet, we will temporarily use the settings from Html.
-
-            var textManager = _serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
-            Assumes.Present(textManager);
-
-            var langPrefs2 = new LANGPREFERENCES2[] { new LANGPREFERENCES2() { guidLang = HtmlLanguageServiceGuid } };
-            if (VSConstants.S_OK == textManager.GetUserPreferences2(null, null, langPrefs2, null))
-            {
-                var insertSpaces = langPrefs2[0].fInsertTabs == 0;
-                var tabSize = langPrefs2[0].uTabSize;
-
-                var razorOptions = _editorOptionsFactory.GetOptions(textBuffer);
-                razorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
-                razorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, (int)tabSize);
-            }
         }
     }
 }
