@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.AspNetCore.Razor.Performance
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 {
     public class CodeGenerationBenchmark
     {
@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.Performance
 
             var root = current;
             var fileSystem = RazorProjectFileSystem.Create(root.FullName);
-            
+
             ProjectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem, b => RazorExtensions.Register(b)); ;
 
             MSN = fileSystem.GetItem(Path.Combine(root.FullName, "MSN.cshtml"), FileKinds.Legacy);

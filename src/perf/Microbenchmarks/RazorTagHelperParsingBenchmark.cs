@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
 using static Microsoft.AspNetCore.Razor.Language.DefaultRazorTagHelperBinderPhase;
 
-namespace Microsoft.AspNetCore.Razor.Performance
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 {
     public class RazorTagHelperParsingBenchmark
     {
