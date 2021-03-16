@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void PublishCSharp_FirstTime_PublishesEntireSourceText()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             var content = "// C# content";
             var sourceText = SourceText.From(content);
 
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void PublishHtml_FirstTime_PublishesEntireSourceText()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             var content = "HTML content";
             var sourceText = SourceText.From(content);
 
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void PublishCSharp_SecondTime_PublishesSourceTextDifferences()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             var initialSourceText = SourceText.From("// Initial content\n");
             generatedDocumentPublisher.PublishCSharp("/path/to/file.razor", initialSourceText, 123);
             var change = new TextChange(
@@ -111,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void PublishHtml_SecondTime_PublishesSourceTextDifferences()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             var initialSourceText = SourceText.From("HTML content\n");
             generatedDocumentPublisher.PublishHtml("/path/to/file.razor", initialSourceText, 123);
             var change = new TextChange(
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void PublishCSharp_SecondTime_IdenticalContent_NoTextChanges()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             var sourceTextContent = "// The content";
             var initialSourceText = SourceText.From(sourceTextContent);
             generatedDocumentPublisher.PublishCSharp("/path/to/file.razor", initialSourceText, 123);
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void PublishHtml_SecondTime_IdenticalContent_NoTextChanges()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             var sourceTextContent = "HTMl content";
             var initialSourceText = SourceText.From(sourceTextContent);
             generatedDocumentPublisher.PublishHtml("/path/to/file.razor", initialSourceText, 123);
@@ -177,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void PublishCSharp_DifferentFileSameContent_PublishesEverything()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             var sourceTextContent = "// The content";
             var initialSourceText = SourceText.From(sourceTextContent);
             generatedDocumentPublisher.PublishCSharp("/path/to/file1.razor", initialSourceText, 123);
@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void PublishHtml_DifferentFileSameContent_PublishesEverything()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             var sourceTextContent = "HTML content";
             var initialSourceText = SourceText.From(sourceTextContent);
             generatedDocumentPublisher.PublishHtml("/path/to/file1.razor", initialSourceText, 123);
@@ -221,7 +221,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectSnapshotManager_DocumentChanged_OpenDocument_PublishesEmptyTextChanges_CSharp()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             generatedDocumentPublisher.Initialize(ProjectManager);
             var sourceTextContent = "// The content";
             var initialSourceText = SourceText.From(sourceTextContent);
@@ -243,7 +243,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectSnapshotManager_DocumentChanged_OpenDocument_VersionEquivalent_Noops_CSharp()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             generatedDocumentPublisher.Initialize(ProjectManager);
             var sourceTextContent = "// The content";
             var initialSourceText = SourceText.From(sourceTextContent);
@@ -263,7 +263,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectSnapshotManager_DocumentChanged_OpenDocument_PublishesEmptyTextChanges_Html()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             generatedDocumentPublisher.Initialize(ProjectManager);
             var sourceTextContent = "<!-- The content -->";
             var initialSourceText = SourceText.From(sourceTextContent);
@@ -285,7 +285,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectSnapshotManager_DocumentChanged_OpenDocument_VersionEquivalent_Noops_Html()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             generatedDocumentPublisher.Initialize(ProjectManager);
             var sourceTextContent = "<!-- The content -->";
             var initialSourceText = SourceText.From(sourceTextContent);
@@ -305,7 +305,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectSnapshotManager_DocumentChanged_ClosedDocument_RepublishesTextChanges()
         {
             // Arrange
-            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server));
+            var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(Dispatcher, new Lazy<ILanguageServer>(() => Server), LoggerFactory);
             generatedDocumentPublisher.Initialize(ProjectManager);
             var sourceTextContent = "// The content";
             var initialSourceText = SourceText.From(sourceTextContent);
