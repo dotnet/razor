@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
@@ -38,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
         private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
+        private readonly SVsServiceProvider _serviceProvider;
 
         private object _shutdownLock;
         private RazorLanguageServer _server;
@@ -53,7 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
-            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions)
+            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions,
+            SVsServiceProvider serviceProvider)
         {
             if (customTarget is null)
             {
@@ -85,12 +88,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(vsLanguageServerFeatureOptions));
             }
 
+            if (serviceProvider is null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
             _customMessageTarget = customTarget;
             _middleLayer = middleLayer;
             _requestInvoker = requestInvoker;
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
             _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
             _vsLanguageServerFeatureOptions = vsLanguageServerFeatureOptions;
+            _serviceProvider = serviceProvider;
 
             _shutdownLock = new object();
         }
@@ -128,15 +137,37 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var traceLevel = GetVerbosity();
 
             // Initialize Logging Infrastructure
-            _loggerProvider = (LogHubLoggerProvider) await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
+            _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
-            _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, ConfigureLanguageServer).ConfigureAwait(false);
+            var (insertSpaces, tabSize) = GetInitialOptions(_serviceProvider);
+
+            _server = await RazorLanguageServer.CreateAsync(
+                serverStream, serverStream, traceLevel, insertSpaces, tabSize, ConfigureLanguageServer).ConfigureAwait(false);
 
             // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
             _server.InitializedAsync(token).FileAndForget("RazorLanguageServerClient_ActivateAsync");
 
             var connection = new Connection(clientStream, clientStream);
             return connection;
+        }
+
+        private static (bool insertSpaces, int tabSize) GetInitialOptions(SVsServiceProvider serviceProvider)
+        {
+            var textManager = serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
+            Assumes.Present(textManager);
+
+            var langPrefs2 = new LANGPREFERENCES2[] { new LANGPREFERENCES2() { guidLang = RazorLSPConstants.RazorLanguageServiceGuid } };
+            var defaultOptions = RazorLSPOptions.Default;
+            var insertSpaces = defaultOptions.InsertSpaces;
+            var tabSize = defaultOptions.TabSize;
+
+            if (VSConstants.S_OK == textManager.GetUserPreferences2(null, null, langPrefs2, null))
+            {
+                insertSpaces = langPrefs2[0].fInsertTabs == 0;
+                tabSize = (int)langPrefs2[0].uTabSize;
+            }
+
+            return (insertSpaces, tabSize);
         }
 
         private void ConfigureLanguageServer(RazorLanguageServerBuilder builder)

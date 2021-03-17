@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -15,6 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal event Action<RazorLSPOptions, string> _onChange;
         private RazorLSPOptions _currentValue;
 
+        [ImportingConstructor]
         public RazorLSPOptionsMonitor(RazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache)
         {
             if (configurationService is null)
@@ -30,6 +32,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _configurationService = configurationService;
             _cache = cache;
             _currentValue = RazorLSPOptions.Default;
+        }
+
+        public void SetInitialOptions(RazorLSPOptions initialOptions)
+        {
+            Assumes.Present(initialOptions);
+            _currentValue = initialOptions;
+            InvokeChanged();
         }
 
         public RazorLSPOptions CurrentValue => Get(Options.DefaultName);

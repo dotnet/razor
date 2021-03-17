@@ -44,6 +44,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     {
                         new ConfigurationItem()
                         {
+                            Section = "editor"
+                        },
+                        new ConfigurationItem()
+                        {
                             Section = "razor"
                         },
                         new ConfigurationItem()
@@ -55,7 +59,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var response = await _server.SendRequestAsync("workspace/configuration", request);
                 var result = await response.Returning<JObject[]>(cancellationToken);
-                if (result == null || result.Length < 2 || result[0] == null)
+
+                // TO-DO fix comment: Spec indicates result should be the same length as the number of ConfigurationItems we pass in.
+                if (result == null || result.Length < 3 || result[0] == null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");
                     return null;
@@ -65,8 +71,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var configObject = new JObject
                 {
-                    { "razor", result[0] },
-                    { "html", result[1] }
+                    { "editor", result[0] },
+                    { "razor", result[1] },
+                    { "html", result[2] }
                 };
                 var configJsonString = configObject.ToString();
                 using var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configJsonString));
@@ -102,7 +109,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 autoClosingTags = parsedAutoClosingTags;
             }
 
-            return new RazorLSPOptions(trace, enableFormatting, autoClosingTags);
+            var tabSize = instance.TabSize;
+            if (int.TryParse(config["tabSize"], out var parsedTabSize))
+            {
+                tabSize = parsedTabSize;
+            }
+
+            var insertSpaces = instance.InsertSpaces;
+            if (bool.TryParse(config["insertSpaces"], out var parsedInsertSpaces))
+            {
+                insertSpaces = parsedInsertSpaces;
+            }
+
+            return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, insertSpaces, tabSize);
         }
     }
 }

@@ -59,7 +59,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public Task InitializedAsync(CancellationToken token) => _innerServer.Initialize(token);
 
-        public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, Action<RazorLanguageServerBuilder> configure = null)
+        public static Task<RazorLanguageServer> CreateAsync(
+            Stream input,
+            Stream output,
+            Trace trace,
+            bool insertSpaces,
+            int tabSize,
+            Action<RazorLanguageServerBuilder> configure = null)
         {
             Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
 
@@ -105,6 +111,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         {
                             // Initialize our options for the first time.
                             var optionsMonitor = languageServer.Services.GetRequiredService<RazorLSPOptionsMonitor>();
+                            optionsMonitor.SetInitialOptions(new RazorLSPOptions(
+                                optionsMonitor.CurrentValue.Trace,
+                                optionsMonitor.CurrentValue.EnableFormatting,
+                                optionsMonitor.CurrentValue.AutoClosingTags,
+                                insertSpaces,
+                                tabSize));
 
                             // Explicitly not passing in the same CancellationToken as that might get cancelled before the update happens.
                             _ = Task.Delay(TimeSpan.FromSeconds(3))
