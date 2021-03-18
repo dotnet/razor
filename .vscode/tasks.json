@@ -38,7 +38,32 @@
             "problemMatcher": "$tsc-watch",
             "presentation": {
                 "reveal": "silent"
-            }
+            },
+            "dependsOn": [
+                "ActivateDotnet"
+            ]
+        },
+        {
+            "label": "ActivateDotnet",
+            "type": "shell",
+            "windows": {
+                "command": "echo",
+                "args": [
+                    "Skipping activation on windows"
+                ]
+            },
+            "linux": {
+                "command": "source",
+                "args": [
+                    "activate.sh"
+                ],
+                "options": {
+                    "cwd": "${workspaceFolder}"
+                },
+                "presentation": {
+                    "reveal": "silent"
+                }
+            },
         },
         {
             "label": "WatchLibraryAndCompileExtension",
