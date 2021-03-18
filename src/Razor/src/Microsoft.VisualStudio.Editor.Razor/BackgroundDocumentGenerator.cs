@@ -327,7 +327,6 @@ namespace Microsoft.CodeAnalysis.Razor
                     }
 
                 case ProjectChangeKind.DocumentAdded:
-                case ProjectChangeKind.DocumentChanged:
                     {
                         var project = e.Newer;
                         var document = project.GetDocument(e.DocumentFilePath);
@@ -360,9 +359,6 @@ namespace Microsoft.CodeAnalysis.Razor
                         // ignore
                         break;
                     }
-
-                default:
-                    throw new InvalidOperationException($"Unknown ProjectChangeKind {e.Kind}");
             }
         }
     }
