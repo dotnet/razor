@@ -139,35 +139,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Initialize Logging Infrastructure
             _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
-            var (insertSpaces, tabSize) = GetInitialOptions(_serviceProvider);
-
-            _server = await RazorLanguageServer.CreateAsync(
-                serverStream, serverStream, traceLevel, insertSpaces, tabSize, ConfigureLanguageServer).ConfigureAwait(false);
+            _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, ConfigureLanguageServer).ConfigureAwait(false);
 
             // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
             _server.InitializedAsync(token).FileAndForget("RazorLanguageServerClient_ActivateAsync");
 
             var connection = new Connection(clientStream, clientStream);
             return connection;
-        }
-
-        private static (bool insertSpaces, int tabSize) GetInitialOptions(SVsServiceProvider serviceProvider)
-        {
-            var textManager = serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
-            Assumes.Present(textManager);
-
-            var langPrefs2 = new LANGPREFERENCES2[] { new LANGPREFERENCES2() { guidLang = RazorLSPConstants.RazorLanguageServiceGuid } };
-            var defaultOptions = RazorLSPOptions.Default;
-            var insertSpaces = defaultOptions.InsertSpaces;
-            var tabSize = defaultOptions.TabSize;
-
-            if (VSConstants.S_OK == textManager.GetUserPreferences2(null, null, langPrefs2, null))
-            {
-                insertSpaces = langPrefs2[0].fInsertTabs == 0;
-                tabSize = (int)langPrefs2[0].uTabSize;
-            }
-
-            return (insertSpaces, tabSize);
         }
 
         private void ConfigureLanguageServer(RazorLanguageServerBuilder builder)
