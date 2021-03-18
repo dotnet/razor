@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
         private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
-        private readonly SVsServiceProvider _serviceProvider;
+        //private readonly RazorLSPOptionsMonitor _optionsMonitor;
 
         private object _shutdownLock;
         private RazorLanguageServer _server;
@@ -55,8 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
-            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions,
-            SVsServiceProvider serviceProvider)
+            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions
+            /*RazorLSPOptionsMonitor optionsMonitor*/)
         {
             if (customTarget is null)
             {
@@ -88,10 +88,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(vsLanguageServerFeatureOptions));
             }
 
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
+            //if (optionsMonitor is null)
+            //{
+            //   throw new ArgumentNullException(nameof(optionsMonitor));
+            //}
 
             _customMessageTarget = customTarget;
             _middleLayer = middleLayer;
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
             _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
             _vsLanguageServerFeatureOptions = vsLanguageServerFeatureOptions;
-            _serviceProvider = serviceProvider;
+            //_optionsMonitor = optionsMonitor;
 
             _shutdownLock = new object();
         }
@@ -143,6 +143,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
             _server.InitializedAsync(token).FileAndForget("RazorLanguageServerClient_ActivateAsync");
+
+            // Populate options monitor with initial settings
+            //await _optionsMonitor.UpdateAsync(token).ConfigureAwait(false);
 
             var connection = new Connection(clientStream, clientStream);
             return connection;

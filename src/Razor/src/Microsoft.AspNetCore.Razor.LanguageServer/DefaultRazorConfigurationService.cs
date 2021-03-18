@@ -44,15 +44,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     {
                         new ConfigurationItem()
                         {
-                            Section = "editor"
-                        },
-                        new ConfigurationItem()
-                        {
                             Section = "razor"
                         },
                         new ConfigurationItem()
                         {
                             Section = "html"
+                        },
+                        new ConfigurationItem()
+                        {
+                            Section = "editor"
                         },
                     }
                 };
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var response = await _server.SendRequestAsync("workspace/configuration", request);
                 var result = await response.Returning<JObject[]>(cancellationToken);
 
-                // TO-DO fix comment: Spec indicates result should be the same length as the number of ConfigurationItems we pass in.
+                // Spec indicates result should be the same length as the number of ConfigurationItems we pass in.
                 if (result == null || result.Length < 3 || result[0] == null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");
@@ -71,9 +71,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var configObject = new JObject
                 {
-                    { "editor", result[0] },
-                    { "razor", result[1] },
-                    { "html", result[2] }
+                    { "razor", result[0] },
+                    { "html", result[1] },
+                    { "editor", result[2] }
                 };
                 var configJsonString = configObject.ToString();
                 using var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configJsonString));
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private RazorLSPOptions BuildOptions(IConfiguration config)
+        private static RazorLSPOptions BuildOptions(IConfiguration config)
         {
             var instance = RazorLSPOptions.Default;
 
@@ -109,16 +109,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 autoClosingTags = parsedAutoClosingTags;
             }
 
-            var tabSize = instance.TabSize;
-            if (int.TryParse(config["tabSize"], out var parsedTabSize))
-            {
-                tabSize = parsedTabSize;
-            }
-
             var insertSpaces = instance.InsertSpaces;
-            if (bool.TryParse(config["insertSpaces"], out var parsedInsertSpaces))
+            if (bool.TryParse(config["editor:insertSpaces"], out var parsedInsertSpaces))
             {
                 insertSpaces = parsedInsertSpaces;
+            }
+
+            var tabSize = instance.TabSize;
+            if (int.TryParse(config["editor:tabSize"], out var parsedTabSize))
+            {
+                tabSize = parsedTabSize;
             }
 
             return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, insertSpaces, tabSize);
