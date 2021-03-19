@@ -103,17 +103,16 @@
     <MicrosoftCodeAnalysisAnalyzerTestingPackageVersion>$(Tooling_MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisAnalyzerTestingPackageVersion>
     <MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion>$(Tooling_MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>3.9.0-2.20573.10</MicrosoftNetCompilersToolsetPackageVersion>
-    <MicrosoftServiceHubFrameworkPackageVersion>2.7.451</MicrosoftServiceHubFrameworkPackageVersion>
+    <MicrosoftServiceHubFrameworkPackageVersion>2.7.454</MicrosoftServiceHubFrameworkPackageVersion>
     <MicrosoftVisualStudioCoreUtilityPackageVersion>16.10.8</MicrosoftVisualStudioCoreUtilityPackageVersion>
     <MicrosoftVisualStudioComponentModelHostPackageVersion>16.9.214</MicrosoftVisualStudioComponentModelHostPackageVersion>
     <MicrosoftVisualStudioImageCatalogPackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImageCatalogPackageVersion>
     <MicrosoftVisualStudioEditorPackageVersion>16.9.214</MicrosoftVisualStudioEditorPackageVersion>
     <MicrosoftVisualStudioLanguagePackageVersion>16.10.8</MicrosoftVisualStudioLanguagePackageVersion>
     <MicrosoftVisualStudioLanguageIntellisensePackageVersion>16.10.8</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
-    <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>16.10.96</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
+    <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>16.10.138</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
     <MicrosoftVisualStudioPackageLanguageService150PackageVersion>16.7.30204.53-pre</MicrosoftVisualStudioPackageLanguageService150PackageVersion>
     <MicrosoftVisualStudioLiveSharePackageVersion>0.3.1074</MicrosoftVisualStudioLiveSharePackageVersion>
-    <MicrosoftVisualStudioUtilitiesPackageVersion>16.10.0-preview-2-31104-269</MicrosoftVisualStudioUtilitiesPackageVersion>
     <MicrosoftVisualStudioOLEInteropPackageVersion>7.10.6071</MicrosoftVisualStudioOLEInteropPackageVersion>
     <MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>16.8.1-beta1-10222-04</MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>
     <MicrosoftVisualStudioProjectSystemSDKPackageVersion>16.10.81-pre</MicrosoftVisualStudioProjectSystemSDKPackageVersion>
