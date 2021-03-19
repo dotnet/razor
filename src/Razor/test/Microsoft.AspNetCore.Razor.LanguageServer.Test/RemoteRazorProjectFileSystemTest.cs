@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -45,12 +46,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Equal(documentFilePath, item.PhysicalPath);
         }
 
-        [Fact]
+        [ConditionalFact]
+        [OSSkipCondition(OperatingSystems.Linux)]
         public void GetItem_RootedFilePath_DoesNotBelongToProject()
         {
             // Arrange
-            var fileSystem = new RemoteRazorProjectFileSystem("C:/path/to", FilePathNormalizer);
-            var documentFilePath = "C:/otherpath/to/file.cshtml";
+            var fileSystem = new RemoteRazorProjectFileSystem("/C:/path/to", FilePathNormalizer);
+            var documentFilePath = "/C:/otherpath/to/file.cshtml";
 
             // Act
             var item = fileSystem.GetItem(documentFilePath, fileKind: null);

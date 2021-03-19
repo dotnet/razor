@@ -149,21 +149,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             Assert.Equal("/", normalized);
         }
 
-        [ConditionalFact]
-        [OSSkipCondition(OperatingSystems.Windows, SkipReason = "Test only valid on non-Windows boxes")]
-        public void Normalize_NonWindows_AddsLeadingForwardSlash()
-        {
-            // Arrange
-            var filePathNormalizer = new FilePathNormalizer();
-            var filePath = "path/to/document.cshtml";
-
-            // Act
-            var normalized = filePathNormalizer.Normalize(filePath);
-
-            // Assert
-            Assert.Equal("/path/to/document.cshtml", normalized);
-        }
-
         [Fact]
         public void Normalize_UrlDecodesFilePath()
         {
