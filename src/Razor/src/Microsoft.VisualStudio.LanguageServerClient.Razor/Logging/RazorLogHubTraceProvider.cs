@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     internal class RazorLogHubTraceProvider
     {
         private static readonly LoggerOptions _logOptions = new(
+            requestedLoggingLevel: new LoggingLevelSettings(SourceLevels.Information | SourceLevels.ActivityTracing),
             privacySetting: PrivacyFlags.MayContainPersonallyIdentifibleInformation | PrivacyFlags.MayContainPrivateInformation);
 
         private readonly SemaphoreSlim _initializationSemaphore = null;
@@ -39,12 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
             using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker, cancellationToken).ConfigureAwait(false);
             var traceSource = await traceConfig.RegisterLogSourceAsync(_logId, _logOptions, cancellationToken).ConfigureAwait(false);
-
-            // Trace source(s) have the debug output in VS as a default listener causing excessive noise.
-            traceSource.Listeners.Remove("Default");
-
-            traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
-
+            
             return traceSource;
         }
 
