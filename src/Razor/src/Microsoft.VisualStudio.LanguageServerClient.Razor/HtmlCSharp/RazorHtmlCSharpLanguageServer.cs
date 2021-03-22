@@ -254,6 +254,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(MSLSPMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, cancellationToken);
         }
 
+        [JsonRpcMethod(MSLSPMethods.WorkspacePullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public static Task<WorkspaceDiagnosticReport> WorkspacePullDiagnosticsAsync(WorkspaceDocumentDiagnosticsParams workspaceDiagnosticsParams, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<WorkspaceDiagnosticReport>(null);
+        }
+
         // Internal for testing
         internal Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,
