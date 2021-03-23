@@ -4,13 +4,21 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading;
+using MediatR;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Newtonsoft.Json.Linq;
+using DidChangeConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.DidChangeConfigurationParams;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -25,11 +33,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly LSPEditorFeatureDetector _editorFeatureDetector;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
+        private readonly IVsTextManager2 _textManager;
+        private readonly LSPRequestInvoker _requestInvoker;
+
+        private IEditorOptions _razorEditorOptions;
 
         [ImportingConstructor]
         public RazorLSPTextViewConnectionListener(
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
-            LSPEditorFeatureDetector editorFeatureDetector)
+            LSPEditorFeatureDetector editorFeatureDetector,
+            IEditorOptionsFactoryService editorOptionsFactory,
+            LSPRequestInvoker requestInvoker,
+            SVsServiceProvider serviceProvider)
         {
             if (editorAdaptersFactory is null)
             {
@@ -41,8 +57,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(editorFeatureDetector));
             }
 
+            if (editorOptionsFactory is null)
+            {
+                throw new ArgumentNullException(nameof(editorOptionsFactory));
+            }
+
+            if (requestInvoker is null)
+            {
+                throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (serviceProvider is null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
             _editorAdaptersFactory = editorAdaptersFactory;
             _editorFeatureDetector = editorFeatureDetector;
+            _editorOptionsFactory = editorOptionsFactory;
+            _requestInvoker = requestInvoker;
+            _textManager = serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
+
+            Assumes.Present(_textManager);
         }
 
         public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
@@ -63,11 +99,46 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             RazorLSPTextViewFilter.CreateAndRegister(vsTextView);
+
+            _razorEditorOptions = _editorOptionsFactory.GetOptions(textView);
+            Assumes.Present(_razorEditorOptions);
+            _razorEditorOptions.OptionChanged += RazorOptions_OptionChanged;
         }
 
         public void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             // When the TextView goes away so does the filter.  No need to do anything more.
+        }
+
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void RazorOptions_OptionChanged(object sender, EditorOptionChangedEventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
+        {
+            var (insertSpaces, tabSize) = GetRazorEditorOptions(_textManager);
+
+            _razorEditorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
+            _razorEditorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize);
+
+            await _requestInvoker.ReinvokeRequestOnServerAsync<DidChangeConfigurationParams, Unit>(
+                Methods.WorkspaceDidChangeConfigurationName,
+                RazorLSPConstants.RazorLSPContentTypeName,
+                new DidChangeConfigurationParams { Settings = JToken.FromObject(new Tuple<bool, int>(insertSpaces, tabSize)) },
+                CancellationToken.None);
+        }
+
+        internal static (bool insertSpaces, int tabSize) GetRazorEditorOptions(IVsTextManager2 textManager)
+        {
+            var insertSpaces = RazorLSPOptions.Default.InsertSpaces;
+            var tabSize = RazorLSPOptions.Default.TabSize;
+
+            var langPrefs2 = new LANGPREFERENCES2[] { new LANGPREFERENCES2() { guidLang = RazorLSPConstants.RazorLanguageServiceGuid } };
+            if (VSConstants.S_OK == textManager.GetUserPreferences2(null, null, langPrefs2, null))
+            {
+                insertSpaces = langPrefs2[0].fInsertTabs == 0;
+                tabSize = (int)langPrefs2[0].uTabSize;
+            }
+
+            return (insertSpaces, tabSize);
         }
 
         private class RazorLSPTextViewFilter : IOleCommandTarget, IVsTextViewFilter

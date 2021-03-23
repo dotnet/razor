@@ -10,14 +10,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
-using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json.Linq;
 using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens;
 using Task = System.Threading.Tasks.Task;
@@ -32,8 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly RazorUIContextManager _uIContextManager;
         private readonly IDisposable _razorReadyListener;
+        private readonly IVsTextManager2 _textManager;
         private readonly SVsServiceProvider _serviceProvider;
-        private readonly EditorSettingsManager _editorSettingsManager;
 
         private const string RazorReadyFeature = "Razor-Initialization";
 
@@ -44,16 +42,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             RazorUIContextManager uIContextManager,
             IRazorAsynchronousOperationListenerProviderAccessor asyncOpListenerProvider,
-            SVsServiceProvider serviceProvider,
-            EditorSettingsManager editorSettingsManager) :
+            SVsServiceProvider serviceProvider) :
                 this(
                     documentManager,
                     joinableTaskContext,
                     requestInvoker,
                     uIContextManager,
                     asyncOpListenerProvider.GetListener(RazorReadyFeature).BeginAsyncOperation(RazorReadyFeature),
-                    serviceProvider,
-                    editorSettingsManager)
+                    serviceProvider)
         {
         }
 
@@ -64,8 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             RazorUIContextManager uIContextManager,
             IDisposable razorReadyListener,
-            SVsServiceProvider serviceProvider,
-            EditorSettingsManager editorSettingsManager)
+            SVsServiceProvider serviceProvider)
         {
             if (documentManager is null)
             {
@@ -92,6 +87,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(razorReadyListener));
             }
 
+            if (serviceProvider is null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
             _documentManager = documentManager as TrackingLSPDocumentManager;
 
             if (_documentManager is null)
@@ -105,8 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _requestInvoker = requestInvoker;
             _uIContextManager = uIContextManager;
             _razorReadyListener = razorReadyListener;
+            _textManager = serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
             _serviceProvider = serviceProvider;
-            _editorSettingsManager = editorSettingsManager;
+            Assumes.Present(_textManager);
         }
 
         // Testing constructor
@@ -321,40 +322,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var resolvesCodeActions = serverCapabilities?.CodeActionsResolveProvider == true;
 
             return providesCodeActions && resolvesCodeActions;
-        }
-
-        public override Task<JObject[]> UpdateConfigurationAsync(
-            OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams configParams,
-            CancellationToken cancellationToken)
-        {
-            var textManager = _serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
-            Assumes.Present(textManager);
-
-            var langPrefs2 = new LANGPREFERENCES2[] { new LANGPREFERENCES2() { guidLang = RazorLSPConstants.RazorLanguageServiceGuid } };
-            var itemCount = configParams.Items.Count();
-
-            if (VSConstants.S_OK == textManager.GetUserPreferences2(null, null, langPrefs2, null))
-            {
-                var insertSpaces = langPrefs2[0].fInsertTabs == 0;
-                var tabSize = langPrefs2[0].uTabSize;
-
-                _editorSettingsManager.Update(new CodeAnalysis.Razor.Editor.EditorSettings(indentWithTabs: !insertSpaces, (int)tabSize));
-
-                var result = ArrayBuilder<JObject>.GetInstance(itemCount);
-                foreach (var item in configParams.Items)
-                {
-                    if (item.Section == "editor")
-                    {
-                        result.Add(new JObject(new JProperty("editor", new JArray(new JProperty("insertSpaces", insertSpaces), new JProperty("tabSize", tabSize)))));
-                    }
-                    else
-                    {
-                        result.Add(new JObject());
-                    }
-                }
-            }
-
-            return Task.FromResult(new JObject[itemCount]);
         }
     }
 }

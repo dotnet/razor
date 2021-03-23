@@ -46,7 +46,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             _logger.LogTrace("Settings changed. Updating the server.");
 
-            await _optionsMonitor.UpdateAsync(cancellationToken);
+            var editorSettings = request.Settings.ToObject<Tuple<bool, int>>();
+            _optionsMonitor.Update(editorSettings.Item1, editorSettings.Item2);
+            //await _optionsMonitor.UpdateAsync(cancellationToken);
 
             return new Unit();
         }

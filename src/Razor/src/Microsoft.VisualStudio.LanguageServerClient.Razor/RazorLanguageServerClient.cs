@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Nerdbank.Streams;
@@ -39,7 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
         private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
-        private readonly RazorLSPOptionsMonitor _optionsMonitor;
 
         private object _shutdownLock;
         private RazorLanguageServer _server;
@@ -55,8 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
-            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions,
-            RazorLSPOptionsMonitor optionsMonitor)
+            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions)
         {
             if (customTarget is null)
             {
@@ -88,18 +85,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(vsLanguageServerFeatureOptions));
             }
 
-            if (optionsMonitor is null)
-            {
-               throw new ArgumentNullException(nameof(optionsMonitor));
-            }
-
             _customMessageTarget = customTarget;
             _middleLayer = middleLayer;
             _requestInvoker = requestInvoker;
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
             _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
             _vsLanguageServerFeatureOptions = vsLanguageServerFeatureOptions;
-            _optionsMonitor = optionsMonitor;
 
             _shutdownLock = new object();
         }

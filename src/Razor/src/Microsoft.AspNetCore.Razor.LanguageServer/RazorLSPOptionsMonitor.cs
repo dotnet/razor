@@ -47,6 +47,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return disposable;
         }
 
+        public void Update(bool insertSpaces, int tabSize)
+        {
+            var latestOptions = new RazorLSPOptions(
+                CurrentValue.Trace, CurrentValue.EnableFormatting, CurrentValue.AutoClosingTags, insertSpaces, tabSize);
+            if (latestOptions != null)
+            {
+                _currentValue = latestOptions;
+                InvokeChanged();
+            }
+        }
+
         public virtual async Task UpdateAsync(CancellationToken cancellationToken = default)
         {
             var latestOptions = await _configurationService.GetLatestOptionsAsync(cancellationToken);
