@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 TraceSource = loggerProvider.GetTraceSource()
             };
+            _jsonRpc.TraceSource = loggerProvider.GetTraceSource();
 
             _jsonRpc.StartListening();
         }
