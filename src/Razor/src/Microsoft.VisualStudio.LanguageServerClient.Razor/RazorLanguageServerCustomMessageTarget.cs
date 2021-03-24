@@ -13,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     internal abstract class RazorLanguageServerCustomMessageTarget
     {
+        // Called by the Razor Language Server to retrieve the user's latest settings.
         [JsonRpcMethod("workspace/configuration", UseSingleObjectParameterDeserialization = true)]
         public abstract Task<JObject[]> UpdateConfigurationAsync(OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams configParams, CancellationToken cancellationToken);
 

@@ -2,11 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -60,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var response = await _server.SendRequestAsync("workspace/configuration", request);
                 var result = await response.Returning<JObject[]>(cancellationToken);
 
-                // Spec indicates result should be the same length as the number of ConfigurationItems we pass in.
+                // LSP spec indicates result should be the same length as the number of ConfigurationItems we pass in.
                 if (result == null || result.Length < 3 || result[0] == null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");

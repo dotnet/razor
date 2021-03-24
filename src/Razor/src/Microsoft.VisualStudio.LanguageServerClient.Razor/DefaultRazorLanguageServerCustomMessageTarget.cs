@@ -14,7 +14,6 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens;
 using Task = System.Threading.Tasks.Task;
@@ -331,6 +330,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var index = 0;
             foreach (var item in configParams.Items)
             {
+                // Right now in VS we only care about editor settings, but we should update this logic later if
+                // we want to support Razor and HTML settings as well.
                 result[index] = item.Section == "editor"
                     ? JObject.FromObject(new JsonEditorSettings { InsertSpaces = insertSpaces, TabSize = tabSize })
                     : new JObject();
