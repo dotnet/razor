@@ -5,6 +5,10 @@ using System.ComponentModel.Composition;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
+    /// <summary>
+    /// Keeps track of accurate settings on the client side so we can easily retrieve the
+    /// options later when the server sends us a workspace/configuration request.
+    /// </summary>
     [Export(typeof(RazorLSPClientOptionsMonitor))]
     internal class RazorLSPClientOptionsMonitor
     {

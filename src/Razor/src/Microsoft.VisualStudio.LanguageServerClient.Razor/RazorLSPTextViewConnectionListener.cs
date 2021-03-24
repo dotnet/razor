@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _razorEditorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
             _razorEditorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize);
 
-            // Keep track of accurate settings on the client side. This is so we can easily retrieve the
+            // Keep track of accurate settings on the client side so we can easily retrieve the
             // options later when the server sends us a workspace/configuration request.
             _clientOptionsMonitor.UpdateOptions(insertSpaces, tabSize);
 
