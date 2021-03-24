@@ -13,9 +13,8 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens;
 using Task = System.Threading.Tasks.Task;
@@ -30,8 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly RazorUIContextManager _uIContextManager;
         private readonly IDisposable _razorReadyListener;
-        private readonly IVsTextManager2 _textManager;
-        private readonly SVsServiceProvider _serviceProvider;
+        private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
 
         private const string RazorReadyFeature = "Razor-Initialization";
 
@@ -42,14 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             RazorUIContextManager uIContextManager,
             IRazorAsynchronousOperationListenerProviderAccessor asyncOpListenerProvider,
-            SVsServiceProvider serviceProvider) :
+            RazorLSPClientOptionsMonitor clientOptionsMonitor) :
                 this(
                     documentManager,
                     joinableTaskContext,
                     requestInvoker,
                     uIContextManager,
                     asyncOpListenerProvider.GetListener(RazorReadyFeature).BeginAsyncOperation(RazorReadyFeature),
-                    serviceProvider)
+                    clientOptionsMonitor)
         {
         }
 
@@ -60,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             RazorUIContextManager uIContextManager,
             IDisposable razorReadyListener,
-            SVsServiceProvider serviceProvider)
+            RazorLSPClientOptionsMonitor clientOptionsMonitor)
         {
             if (documentManager is null)
             {
@@ -87,9 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(razorReadyListener));
             }
 
-            if (serviceProvider is null)
+            if (clientOptionsMonitor is null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(clientOptionsMonitor));
             }
 
             _documentManager = documentManager as TrackingLSPDocumentManager;
@@ -105,9 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _requestInvoker = requestInvoker;
             _uIContextManager = uIContextManager;
             _razorReadyListener = razorReadyListener;
-            _textManager = serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
-            _serviceProvider = serviceProvider;
-            Assumes.Present(_textManager);
+            _clientOptionsMonitor = clientOptionsMonitor;
         }
 
         // Testing constructor
@@ -322,6 +318,34 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var resolvesCodeActions = serverCapabilities?.CodeActionsResolveProvider == true;
 
             return providesCodeActions && resolvesCodeActions;
+        }
+
+        public override Task<JObject[]> UpdateConfigurationAsync(
+            OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams configParams,
+            CancellationToken cancellationToken)
+        {
+            var insertSpaces = _clientOptionsMonitor.InsertSpaces;
+            var tabSize = _clientOptionsMonitor.TabSize;
+
+            var result = new JObject[configParams.Items.Count()];
+            var index = 0;
+            foreach (var item in configParams.Items)
+            {
+                result[index] = item.Section == "editor"
+                    ? JObject.FromObject(new JsonEditorSettings { InsertSpaces = insertSpaces, TabSize = tabSize })
+                    : new JObject();
+
+                index++;
+            }
+
+            return Task.FromResult(result);
+        }
+
+        private struct JsonEditorSettings
+        {
+            public bool InsertSpaces { get; set; }
+
+            public int TabSize { get; set; }
         }
     }
 }

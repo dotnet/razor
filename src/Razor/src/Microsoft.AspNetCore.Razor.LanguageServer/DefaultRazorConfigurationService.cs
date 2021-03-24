@@ -67,21 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     return null;
                 }
 
-                var builder = new ConfigurationBuilder();
-
-                var configObject = new JObject
-                {
-                    { "razor", result[0] },
-                    { "html", result[1] },
-                    { "editor", result[2] }
-                };
-                var configJsonString = configObject.ToString();
-                using var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configJsonString));
-                builder.AddJsonStream(configStream);
-
-                var config = builder.Build();
-
-                var instance = BuildOptions(config);
+                var instance = BuildOptions(result);
                 return instance;
             }
             catch (Exception ex)
@@ -91,34 +77,45 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private static RazorLSPOptions BuildOptions(IConfiguration config)
+        private static RazorLSPOptions BuildOptions(JObject[] result)
         {
             var instance = RazorLSPOptions.Default;
 
-            Enum.TryParse(config["razor:trace"], out Trace trace);
+            var razor = result[0];
+            var html = result[1];
+            var editor = result[2];
+
+            var trace = instance.Trace;
+            if (razor.TryGetValue("trace", out var parsedTrace))
+            {
+                trace = parsedTrace.ToObject<Trace>();
+            }
 
             var enableFormatting = instance.EnableFormatting;
-            if (bool.TryParse(config["razor:format:enable"], out var parsedEnableFormatting))
+            if (razor.TryGetValue("format", out var parsedFormat))
             {
-                enableFormatting = parsedEnableFormatting;
+                if (((JObject)parsedFormat).TryGetValue("enable", out var parsedEnableFormatting))
+                {
+                    enableFormatting = parsedEnableFormatting.ToObject<bool>();
+                }
             }
 
             var autoClosingTags = instance.AutoClosingTags;
-            if (bool.TryParse(config["html:autoClosingTags"], out var parsedAutoClosingTags))
+            if (html.TryGetValue("autoClosingTags", out var parsedAutoClosingTags))
             {
-                autoClosingTags = parsedAutoClosingTags;
+                autoClosingTags = parsedAutoClosingTags.ToObject<bool>();
             }
 
             var insertSpaces = instance.InsertSpaces;
-            if (bool.TryParse(config["editor:insertSpaces"], out var parsedInsertSpaces))
+            if (editor.TryGetValue("InsertSpaces", out var parsedInsertSpaces))
             {
-                insertSpaces = parsedInsertSpaces;
+                insertSpaces = parsedInsertSpaces.ToObject<bool>();
             }
 
             var tabSize = instance.TabSize;
-            if (int.TryParse(config["editor:tabSize"], out var parsedTabSize))
+            if (editor.TryGetValue("TabSize", out var parsedTabSize))
             {
-                tabSize = parsedTabSize;
+                tabSize = parsedTabSize.ToObject<int>();
             }
 
             return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, insertSpaces, tabSize);

@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Newtonsoft.Json.Linq;
 using DidChangeConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.DidChangeConfigurationParams;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -34,8 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly LSPEditorFeatureDetector _editorFeatureDetector;
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-        private readonly IVsTextManager2 _textManager;
         private readonly LSPRequestInvoker _requestInvoker;
+        private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
+        private readonly IVsTextManager2 _textManager;
 
         private IEditorOptions _razorEditorOptions;
 
@@ -45,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPEditorFeatureDetector editorFeatureDetector,
             IEditorOptionsFactoryService editorOptionsFactory,
             LSPRequestInvoker requestInvoker,
+            RazorLSPClientOptionsMonitor clientOptionsMonitor,
             SVsServiceProvider serviceProvider)
         {
             if (editorAdaptersFactory is null)
@@ -76,6 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _editorFeatureDetector = editorFeatureDetector;
             _editorOptionsFactory = editorOptionsFactory;
             _requestInvoker = requestInvoker;
+            _clientOptionsMonitor = clientOptionsMonitor;
             _textManager = serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
 
             Assumes.Present(_textManager);
@@ -102,6 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             _razorEditorOptions = _editorOptionsFactory.GetOptions(textView);
             Assumes.Present(_razorEditorOptions);
+            RazorOptions_OptionChanged(null, null);
             _razorEditorOptions.OptionChanged += RazorOptions_OptionChanged;
         }
 
@@ -119,10 +122,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _razorEditorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
             _razorEditorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize);
 
+            _clientOptionsMonitor.UpdateOptions(insertSpaces, tabSize);
+
             await _requestInvoker.ReinvokeRequestOnServerAsync<DidChangeConfigurationParams, Unit>(
                 Methods.WorkspaceDidChangeConfigurationName,
                 RazorLSPConstants.RazorLSPContentTypeName,
-                new DidChangeConfigurationParams { Settings = JToken.FromObject(new Tuple<bool, int>(insertSpaces, tabSize)) },
+                new DidChangeConfigurationParams(),
                 CancellationToken.None);
         }
 
