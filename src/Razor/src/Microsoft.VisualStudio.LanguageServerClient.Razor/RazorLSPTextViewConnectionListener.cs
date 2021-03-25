@@ -155,8 +155,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // workspace/didChangeConfiguration request. This notifies the server that the user's
             // settings have changed. The server will then query the client's options monitor (already
             // updated via the line above) by sending a workspace/configuration request.
-            // NOTE: This flow uses polyfilling and is used because VS doesn't yet support workspace
-            // configuration updates. Once they do, we can get rid of this extra logic.
+            // NOTE: This flow uses polyfilling because VS doesn't yet support workspace configuration
+            // updates. Once they do, we can get rid of this extra logic.
             await _requestInvoker.ReinvokeRequestOnServerAsync<DidChangeConfigurationParams, Unit>(
                 Methods.WorkspaceDidChangeConfigurationName,
                 RazorLSPConstants.RazorLSPContentTypeName,
