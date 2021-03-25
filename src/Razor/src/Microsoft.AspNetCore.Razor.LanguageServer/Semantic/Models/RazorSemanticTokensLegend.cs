@@ -16,6 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         private const string RazorDirectiveAttributeString = "razorDirectiveAttribute";
         private const string RazorDirectiveColonString = "razorDirectiveColon";
         private const string RazorDirectiveString = "razorDirective";
+        private const string RazorCodeBackgroundString = "razorCodeBackground";
         private const string RazorCommentString = "razorComment";
         private const string RazorCommentTransitionString = "razorCommentTransition";
         private const string RazorCommentStarString = "razorCommentStar";
@@ -30,6 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         private const string MarkupCommentPunctuationString = "markupCommentPunctuation";
         private const string MarkupCommentString = "markupComment";
 
+        public static int RazorCodeBackground => TokenTypesLegend[RazorCodeBackgroundString];
         public static int RazorCommentTransition => TokenTypesLegend[RazorCommentTransitionString];
         public static int RazorCommentStar => TokenTypesLegend[RazorCommentStarString];
         public static int RazorComment => TokenTypesLegend[RazorCommentString];
@@ -142,10 +144,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             MarkupOperatorString,
             MarkupAttributeString,
             MarkupAttributeQuoteString,
-            MarkupTextLiteralString,
+            MarkupTextLiteralString, // 85
             MarkupCommentPunctuationString,
             MarkupCommentString,
             MarkupAttributeValueString,
+            RazorCodeBackgroundString,
         };
 
         private static readonly string[] _tokenModifiers = new string[] {

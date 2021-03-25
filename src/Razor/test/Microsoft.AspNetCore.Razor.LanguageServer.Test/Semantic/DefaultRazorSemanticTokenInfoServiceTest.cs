@@ -153,6 +153,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
+        public async Task GetSemanticTokens_CSharp_MultiLine()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{{Environment.NewLine}" +
+                $" var d = \"txt\";{Environment.NewLine}" +
+                $" var x = \"txt\";{Environment.NewLine}" +
+                $"}}{Environment.NewLine}" +
+                $"@d";
+
+            await AssertSemanticTokensAsync(txt, isRazor: false, csharpTokens: null, documentMappings: null);
+        }
+
+        [Fact]
         public async Task GetSemanticTokens_CSharp_Implicit()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = \"txt\";}}{Environment.NewLine}" +

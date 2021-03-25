@@ -139,6 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public override void VisitCSharpStatementBody(CSharpStatementBodySyntax node)
         {
             AddSemanticRange(node.OpenBrace, RazorSemanticTokensLegend.RazorTransition);
+            AddSemanticRange(node.CSharpCode, RazorSemanticTokensLegend.RazorCodeBackground);
             Visit(node.CSharpCode);
             AddSemanticRange(node.CloseBrace, RazorSemanticTokensLegend.RazorTransition);
         }
@@ -147,6 +148,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             AddSemanticRange(node.Transition, RazorSemanticTokensLegend.RazorTransition);
             Visit(node.Body);
+        }
+
+        public override void VisitCSharpImplicitExpressionBody(CSharpImplicitExpressionBodySyntax node)
+        {
+            AddSemanticRange(node.CSharpCode, RazorSemanticTokensLegend.RazorCodeBackground);
+            Visit(node.CSharpCode);
         }
 
         public override void VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
@@ -158,6 +165,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public override void VisitCSharpExplicitExpressionBody(CSharpExplicitExpressionBodySyntax node)
         {
             AddSemanticRange(node.OpenParen, RazorSemanticTokensLegend.CSharpPunctuation);
+            AddSemanticRange(node.CSharpCode, RazorSemanticTokensLegend.RazorCodeBackground);
             Visit(node.CSharpCode);
             AddSemanticRange(node.CloseParen, RazorSemanticTokensLegend.CSharpPunctuation);
         }
@@ -389,16 +397,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 // We have to iterate over the individual nodes because this node might consist of multiple lines
                 // ie: "/r/ntext/r/n" would be parsed as one node containing three elements (newline, "text", newline).
-                foreach (var token in node.ChildNodes())
+                var childNodes = node.ChildNodes();
+                foreach (var token in childNodes)
                 {
                     // We skip whitespace to avoid "multiline" ranges for "/r/n", where the /n is interpreted as being on a new line.
                     // This also stops us from returning data for " ", which seems like a nice side-effect as it's not likly to have any colorization anyway.
                     if (!token.ContainsOnlyWhitespace())
                     {
                         var tokenRange = token.GetRange(source);
-
-                        var semantic = new SemanticRange(semanticKind, tokenRange, modifier: 0);
-                        AddRange(semantic);
+                        // A single token spans multiple lines we have to split it ourselves
+                        var startCharacter = tokenRange.Start.Character;
+                        for (var i = tokenRange.Start.Line; i <= tokenRange.End.Line; i++)
+                        {
+                            var start = new Position(i, startCharacter);
+                            var end = new Position(i, i == tokenRange.End.Line ? tokenRange.End.Character : source.Lines.GetLineLength(i));
+                            var lineRange = new Range(start, end);
+                            var semantic = new SemanticRange(semanticKind, lineRange, modifier: 0);
+                            if (lineRange.Start != lineRange.End)
+                            {
+                                AddRange(semantic);
+                            }
+                            startCharacter = 0;
+                        }
                     }
                 }
             }
