@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -15,6 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
+using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
 using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens;
 using Task = System.Threading.Tasks.Task;
 
@@ -319,34 +321,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return providesCodeActions && resolvesCodeActions;
         }
 
-        public override Task<JObject[]> UpdateConfigurationAsync(
-            OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams configParams,
+        // NOTE: This method is a polyfill for VS. We only intend to do it this way until VS formally
+        // supports sending workspace configuration requests.
+        public override Task<object[]> WorkspaceConfigurationAsync(
+            OmniSharpConfigurationParams configParams,
             CancellationToken cancellationToken)
         {
-            var insertSpaces = _clientOptionsMonitor.InsertSpaces;
-            var tabSize = _clientOptionsMonitor.TabSize;
+            if (configParams is null)
+            {
+                throw new ArgumentNullException(nameof(configParams));
+            }
 
-            var result = new JObject[configParams.Items.Count()];
+            var result = new List<object>();
             var index = 0;
             foreach (var item in configParams.Items)
             {
                 // Right now in VS we only care about editor settings, but we should update this logic later if
                 // we want to support Razor and HTML settings as well.
-                result[index] = item.Section == "editor"
-                    ? JObject.FromObject(new JsonEditorSettings { InsertSpaces = insertSpaces, TabSize = tabSize })
-                    : new JObject();
+                var setting = item.Section == "vs.editor.razor"
+                    ? _clientOptionsMonitor.EditorSettings
+                    : new object();
+                result.Add(setting);
 
                 index++;
             }
 
-            return Task.FromResult(result);
-        }
-
-        private struct JsonEditorSettings
-        {
-            public bool InsertSpaces { get; set; }
-
-            public int TabSize { get; set; }
+            return Task.FromResult(result.ToArray());
         }
     }
 }

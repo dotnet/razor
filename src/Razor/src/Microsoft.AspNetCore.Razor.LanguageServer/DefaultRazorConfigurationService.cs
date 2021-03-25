@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -35,24 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             try
             {
-                var request = new ConfigurationParams()
-                {
-                    Items = new[]
-                    {
-                        new ConfigurationItem()
-                        {
-                            Section = "razor"
-                        },
-                        new ConfigurationItem()
-                        {
-                            Section = "html"
-                        },
-                        new ConfigurationItem()
-                        {
-                            Section = "editor"
-                        },
-                    }
-                };
+                var request = GenerateConfigParams();
 
                 var response = await _server.SendRequestAsync("workspace/configuration", request);
                 var result = await response.Returning<JObject[]>(cancellationToken);
@@ -74,48 +58,107 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private static RazorLSPOptions BuildOptions(JObject[] result)
+        private static ConfigurationParams GenerateConfigParams()
         {
-            var instance = RazorLSPOptions.Default;
+            // NOTE: Do not change the ordering of sections without updating
+            // the code in the BuildOptions method below.
+            return new ConfigurationParams()
+            {
+                Items = new[]
+                {
+                        new ConfigurationItem()
+                        {
+                            Section = "razor"
+                        },
+                        new ConfigurationItem()
+                        {
+                            Section = "html"
+                        },
+                        new ConfigurationItem()
+                        {
+                            Section = "vs.editor.razor"
+                        },
+                    }
+            };
+        }
 
+        // Internal for testing
+        internal static RazorLSPOptions BuildOptions(JObject[] result)
+        {
+            var defaultOptions = RazorLSPOptions.Default;
+
+            UpdateVSCodeOptions(defaultOptions, result, out var trace, out var enableFormatting, out var autoClosingTags);
+            UpdateVSOptions(defaultOptions, result, out var insertSpaces, out var tabSize);
+
+            return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, insertSpaces, tabSize);
+        }
+
+        private static void UpdateVSCodeOptions(
+            RazorLSPOptions defaultOptions,
+            JObject[] result,
+            out Trace trace,
+            out bool enableFormatting,
+            out bool autoClosingTags)
+        {
             var razor = result[0];
             var html = result[1];
-            var editor = result[2];
 
-            var trace = instance.Trace;
+            trace = defaultOptions.Trace;
             if (razor.TryGetValue("trace", out var parsedTrace))
             {
-                trace = parsedTrace.ToObject<Trace>();
+                trace = JTokenToObject(parsedTrace, trace);
             }
 
-            var enableFormatting = instance.EnableFormatting;
+            enableFormatting = defaultOptions.EnableFormatting;
             if (razor.TryGetValue("format", out var parsedFormat))
             {
-                if (((JObject)parsedFormat).TryGetValue("enable", out var parsedEnableFormatting))
+                if (parsedFormat is JObject jObject &&
+                    jObject.TryGetValue("enable", out var parsedEnableFormatting))
                 {
-                    enableFormatting = parsedEnableFormatting.ToObject<bool>();
+                    enableFormatting = JTokenToObject(parsedEnableFormatting, enableFormatting);
                 }
             }
 
-            var autoClosingTags = instance.AutoClosingTags;
+            autoClosingTags = defaultOptions.AutoClosingTags;
             if (html.TryGetValue("autoClosingTags", out var parsedAutoClosingTags))
             {
-                autoClosingTags = parsedAutoClosingTags.ToObject<bool>();
+                autoClosingTags = JTokenToObject(parsedAutoClosingTags, autoClosingTags);
             }
+        }
 
-            var insertSpaces = instance.InsertSpaces;
-            if (editor.TryGetValue("InsertSpaces", out var parsedInsertSpaces))
+        private static void UpdateVSOptions(
+            RazorLSPOptions defaultOptions,
+            JObject[] result,
+            out bool insertSpaces,
+            out int tabSize)
+        {
+            var vsEditor = result[2];
+
+            insertSpaces = defaultOptions.InsertSpaces;
+            if (vsEditor.TryGetValue(nameof(EditorSettings.IndentWithTabs), out var parsedInsertTabs))
             {
-                insertSpaces = parsedInsertSpaces.ToObject<bool>();
+                insertSpaces = !JTokenToObject(parsedInsertTabs, insertSpaces);
             }
 
-            var tabSize = instance.TabSize;
-            if (editor.TryGetValue("TabSize", out var parsedTabSize))
+            tabSize = defaultOptions.TabSize;
+            if (vsEditor.TryGetValue(nameof(EditorSettings.IndentSize), out var parsedTabSize))
             {
-                tabSize = parsedTabSize.ToObject<int>();
+                tabSize = JTokenToObject(parsedTabSize, tabSize);
             }
+        }
 
-            return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, insertSpaces, tabSize);
+        private static T JTokenToObject<T>(JToken token, T defaultValue)
+        {
+            try
+            {
+                // JToken.ToObject could potentially throw here if the user provides malformed options.
+                // If this occurs, catch the exception and return the default value.
+                return token.ToObject<T>();
+            }
+            catch
+            {
+                return defaultValue;
+            }
         }
     }
 }

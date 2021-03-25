@@ -50,7 +50,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 other != null &&
                 Trace == other.Trace &&
                 EnableFormatting == other.EnableFormatting &&
-                AutoClosingTags == other.AutoClosingTags;
+                AutoClosingTags == other.AutoClosingTags &&
+                InsertSpaces == other.InsertSpaces &&
+                TabSize == other.TabSize;
         }
 
         public override bool Equals(object obj)

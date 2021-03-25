@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -14,8 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal abstract class RazorLanguageServerCustomMessageTarget
     {
         // Called by the Razor Language Server to retrieve the user's latest settings.
+        // NOTE: This method is a polyfill for VS. We only intend to do it this way until VS formally
+        // supports sending workspace configuration requests.
         [JsonRpcMethod("workspace/configuration", UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<JObject[]> UpdateConfigurationAsync(OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams configParams, CancellationToken cancellationToken);
+        public abstract Task<object[]> WorkspaceConfigurationAsync(OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams configParams, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to update the contents of the virtual CSharp buffer.
         [JsonRpcMethod(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, UseSingleObjectParameterDeserialization = true)]

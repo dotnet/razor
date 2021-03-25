@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -108,36 +109,54 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             RazorLSPTextViewFilter.CreateAndRegister(vsTextView);
 
             // Initialize the user's options and start listening for changes.
-            _razorEditorOptions = _editorOptionsFactory.GetOptions(textView);
-            Assumes.Present(_razorEditorOptions);
-            RazorOptions_OptionChanged(null, null);
-            _razorEditorOptions.OptionChanged += RazorOptions_OptionChanged;
+            // We only want to attach the option changed event once so we don't receive multiple
+            // notifications if there is more than one TextView active.
+            if (_razorEditorOptions == null && textView.TextBuffer.IsRazorLSPBuffer())
+            {
+                _razorEditorOptions = _editorOptionsFactory.GetOptions(textView);
+                Assumes.Present(_razorEditorOptions);
+                RazorOptions_OptionChanged(null, null);
+                _razorEditorOptions.OptionChanged += RazorOptions_OptionChanged;
+            }
         }
 
         public void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             // When the TextView goes away so does the filter.  No need to do anything more.
+            // However, we do need to detach from listening for option changes to avoid leaking.
+            if (_razorEditorOptions != null)
+            {
+                _razorEditorOptions.OptionChanged -= RazorOptions_OptionChanged;
+                _razorEditorOptions = null;
+            }
         }
 
 #pragma warning disable VSTHRD100 // Avoid async void methods
         private async void RazorOptions_OptionChanged(object sender, EditorOptionChangedEventArgs e)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
+            if (_razorEditorOptions == null)
+            {
+                return;
+            }
+
             // Retrieve current space/tabs settings from from Tools->Options.
-            var (insertSpaces, tabSize) = GetRazorEditorOptions(_textManager);
+            var settings = GetRazorEditorOptions(_textManager);
 
             // Update settings in the actual editor.
-            _razorEditorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
-            _razorEditorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize);
+            _razorEditorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !settings.IndentWithTabs);
+            _razorEditorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, settings.IndentSize);
 
             // Keep track of accurate settings on the client side so we can easily retrieve the
             // options later when the server sends us a workspace/configuration request.
-            _clientOptionsMonitor.UpdateOptions(insertSpaces, tabSize);
+            _clientOptionsMonitor.UpdateOptions(settings);
 
             // Make sure the server updates the settings on their side by sending a
             // workspace/didChangeConfiguration request. This notifies the server that the user's
             // settings have changed. The server will then query the client's options monitor (already
-            // updated via the line above) by sending a workspace/configuration request. 
+            // updated via the line above) by sending a workspace/configuration request.
+            // NOTE: This flow uses polyfilling and is used because VS doesn't yet support workspace
+            // configuration updates. Once they do, we can get rid of this extra logic.
             await _requestInvoker.ReinvokeRequestOnServerAsync<DidChangeConfigurationParams, Unit>(
                 Methods.WorkspaceDidChangeConfigurationName,
                 RazorLSPConstants.RazorLSPContentTypeName,
@@ -145,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 CancellationToken.None);
         }
 
-        private static (bool insertSpaces, int tabSize) GetRazorEditorOptions(IVsTextManager2 textManager)
+        private static EditorSettings GetRazorEditorOptions(IVsTextManager2 textManager)
         {
             var insertSpaces = RazorLSPOptions.Default.InsertSpaces;
             var tabSize = RazorLSPOptions.Default.TabSize;
@@ -157,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 tabSize = (int)langPrefs2[0].uTabSize;
             }
 
-            return (insertSpaces, tabSize);
+            return new EditorSettings(indentWithTabs: !insertSpaces, tabSize);
         }
 
         private class RazorLSPTextViewFilter : IOleCommandTarget, IVsTextViewFilter

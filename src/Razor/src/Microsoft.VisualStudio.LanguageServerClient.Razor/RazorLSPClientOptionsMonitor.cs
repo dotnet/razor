@@ -1,7 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.ComponentModel.Composition;
+using System.Composition;
+using Microsoft.CodeAnalysis.Razor.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -9,17 +10,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     /// Keeps track of accurate settings on the client side so we can easily retrieve the
     /// options later when the server sends us a workspace/configuration request.
     /// </summary>
+    [Shared]
     [Export(typeof(RazorLSPClientOptionsMonitor))]
     internal class RazorLSPClientOptionsMonitor
     {
-        public bool InsertSpaces { get; private set; }
+        public EditorSettings EditorSettings { get; private set; }
 
-        public int TabSize { get; private set; }
-
-        public void UpdateOptions(bool insertSpaces, int tabSize)
+        public void UpdateOptions(EditorSettings editorSettings)
         {
-            InsertSpaces = insertSpaces;
-            TabSize = tabSize;
+            EditorSettings = editorSettings;
         }
     }
 }
