@@ -66,6 +66,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             hash.Add(Trace);
             hash.Add(EnableFormatting);
             hash.Add(AutoClosingTags);
+            hash.Add(InsertSpaces);
+            hash.Add(TabSize);
             return hash;
         }
     }

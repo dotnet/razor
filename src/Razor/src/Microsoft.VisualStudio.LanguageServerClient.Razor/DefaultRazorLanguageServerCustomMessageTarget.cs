@@ -333,7 +333,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             var result = new List<object>();
-            var index = 0;
             foreach (var item in configParams.Items)
             {
                 // Right now in VS we only care about editor settings, but we should update this logic later if
@@ -342,8 +341,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     ? _clientOptionsMonitor.EditorSettings
                     : new object();
                 result.Add(setting);
-
-                index++;
             }
 
             return Task.FromResult(result.ToArray());

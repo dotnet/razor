@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public RemoteProjectSnapshotProjectEngineFactory(FilePathNormalizer filePathNormalizer, IOptionsMonitor<RazorLSPOptions> optionsMonitor) : 
             base(FallbackProjectEngineFactory, ProjectEngineFactories.Factories)
         {
-            if (filePathNormalizer == null)
+            if (filePathNormalizer is null)
             {
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }

@@ -109,7 +109,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Act
             var result = new JObject[] { JObject.Parse(razorJsonString), JObject.Parse(htmlJsonString), JObject.Parse(vsEditorJsonString) };
-            var options = DefaultRazorConfigurationService.BuildOptions(result);
+            var languageServer = GetLanguageServer(new ResponseRouterReturns(result));
+            var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
+            var options = configurationService.BuildOptions(result);
 
             // Assert
             Assert.Equal(expectedOptions, options);
@@ -147,7 +149,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Act
             var result = new JObject[] { JObject.Parse(razorJsonString), JObject.Parse(htmlJsonString), JObject.Parse(vsEditorJsonString) };
-            var options = DefaultRazorConfigurationService.BuildOptions(result);
+            var languageServer = GetLanguageServer(new ResponseRouterReturns(result));
+            var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
+            var options = configurationService.BuildOptions(result);
 
             // Assert
             Assert.Equal(expectedOptions, options);

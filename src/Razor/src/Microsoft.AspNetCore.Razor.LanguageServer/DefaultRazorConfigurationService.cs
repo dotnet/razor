@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Editor;
@@ -42,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var result = await response.Returning<JObject[]>(cancellationToken);
 
                 // LSP spec indicates result should be the same length as the number of ConfigurationItems we pass in.
-                if (result == null || result.Length < 3 || result[0] == null)
+                if (result == null || result.Length != request.Items.Count() || result[0] == null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");
                     return null;
@@ -66,35 +67,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 Items = new[]
                 {
-                        new ConfigurationItem()
-                        {
-                            Section = "razor"
-                        },
-                        new ConfigurationItem()
-                        {
-                            Section = "html"
-                        },
-                        new ConfigurationItem()
-                        {
-                            Section = "vs.editor.razor"
-                        },
-                    }
+                    new ConfigurationItem()
+                    {
+                        Section = "razor"
+                    },
+                    new ConfigurationItem()
+                    {
+                        Section = "html"
+                    },
+                    new ConfigurationItem()
+                    {
+                        Section = "vs.editor.razor"
+                    },
+                }
             };
         }
 
         // Internal for testing
-        internal static RazorLSPOptions BuildOptions(JObject[] result)
+        internal RazorLSPOptions BuildOptions(JObject[] result)
         {
-            var defaultOptions = RazorLSPOptions.Default;
-
-            UpdateVSCodeOptions(defaultOptions, result, out var trace, out var enableFormatting, out var autoClosingTags);
-            UpdateVSOptions(defaultOptions, result, out var insertSpaces, out var tabSize);
+            ExtractVSCodeOptions(result, out var trace, out var enableFormatting, out var autoClosingTags);
+            ExtractVSOptions(result, out var insertSpaces, out var tabSize);
 
             return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, insertSpaces, tabSize);
         }
 
-        private static void UpdateVSCodeOptions(
-            RazorLSPOptions defaultOptions,
+        private void ExtractVSCodeOptions(
             JObject[] result,
             out Trace trace,
             out bool enableFormatting,
@@ -103,60 +101,60 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var razor = result[0];
             var html = result[1];
 
-            trace = defaultOptions.Trace;
+            trace = RazorLSPOptions.Default.Trace;
             if (razor.TryGetValue("trace", out var parsedTrace))
             {
-                trace = JTokenToObject(parsedTrace, trace);
+                trace = GetObjectOrDefault(parsedTrace, trace);
             }
 
-            enableFormatting = defaultOptions.EnableFormatting;
+            enableFormatting = RazorLSPOptions.Default.EnableFormatting;
             if (razor.TryGetValue("format", out var parsedFormat))
             {
                 if (parsedFormat is JObject jObject &&
                     jObject.TryGetValue("enable", out var parsedEnableFormatting))
                 {
-                    enableFormatting = JTokenToObject(parsedEnableFormatting, enableFormatting);
+                    enableFormatting = GetObjectOrDefault(parsedEnableFormatting, enableFormatting);
                 }
             }
 
-            autoClosingTags = defaultOptions.AutoClosingTags;
+            autoClosingTags = RazorLSPOptions.Default.AutoClosingTags;
             if (html.TryGetValue("autoClosingTags", out var parsedAutoClosingTags))
             {
-                autoClosingTags = JTokenToObject(parsedAutoClosingTags, autoClosingTags);
+                autoClosingTags = GetObjectOrDefault(parsedAutoClosingTags, autoClosingTags);
             }
         }
 
-        private static void UpdateVSOptions(
-            RazorLSPOptions defaultOptions,
+        private void ExtractVSOptions(
             JObject[] result,
             out bool insertSpaces,
             out int tabSize)
         {
             var vsEditor = result[2];
 
-            insertSpaces = defaultOptions.InsertSpaces;
+            insertSpaces = RazorLSPOptions.Default.InsertSpaces;
             if (vsEditor.TryGetValue(nameof(EditorSettings.IndentWithTabs), out var parsedInsertTabs))
             {
-                insertSpaces = !JTokenToObject(parsedInsertTabs, insertSpaces);
+                insertSpaces = !GetObjectOrDefault(parsedInsertTabs, insertSpaces);
             }
 
-            tabSize = defaultOptions.TabSize;
+            tabSize = RazorLSPOptions.Default.TabSize;
             if (vsEditor.TryGetValue(nameof(EditorSettings.IndentSize), out var parsedTabSize))
             {
-                tabSize = JTokenToObject(parsedTabSize, tabSize);
+                tabSize = GetObjectOrDefault(parsedTabSize, tabSize);
             }
         }
 
-        private static T JTokenToObject<T>(JToken token, T defaultValue)
+        private T GetObjectOrDefault<T>(JToken token, T defaultValue)
         {
             try
             {
                 // JToken.ToObject could potentially throw here if the user provides malformed options.
                 // If this occurs, catch the exception and return the default value.
-                return token.ToObject<T>();
+                return token.ToObject<T>() ?? defaultValue;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, $"Malformed option: Token {token} cannot be converted to type {typeof(T)}.");
                 return defaultValue;
             }
         }

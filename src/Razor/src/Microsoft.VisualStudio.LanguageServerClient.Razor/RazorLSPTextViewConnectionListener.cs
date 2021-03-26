@@ -31,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
     {
+        private const string RazorEditorOptions = "RazorEditorOptions";
+
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly LSPEditorFeatureDetector _editorFeatureDetector;
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
@@ -38,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
         private readonly IVsTextManager2 _textManager;
 
-        private IEditorOptions _razorEditorOptions;
+        private ITextBuffer _textBuffer;
 
         [ImportingConstructor]
         public RazorLSPTextViewConnectionListener(
@@ -111,12 +113,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Initialize the user's options and start listening for changes.
             // We only want to attach the option changed event once so we don't receive multiple
             // notifications if there is more than one TextView active.
-            if (_razorEditorOptions == null && textView.TextBuffer.IsRazorLSPBuffer())
+            if (!textView.TextBuffer.Properties.ContainsProperty(RazorEditorOptions) &&
+                textView.TextBuffer.IsRazorLSPBuffer())
             {
-                _razorEditorOptions = _editorOptionsFactory.GetOptions(textView);
-                Assumes.Present(_razorEditorOptions);
+                var razorEditorOptions = _editorOptionsFactory.GetOptions(textView);
+                Assumes.Present(razorEditorOptions);
+                textView.TextBuffer.Properties[RazorEditorOptions] = razorEditorOptions;
+                _textBuffer = textView.TextBuffer;
+
                 RazorOptions_OptionChanged(null, null);
-                _razorEditorOptions.OptionChanged += RazorOptions_OptionChanged;
+                razorEditorOptions.OptionChanged += RazorOptions_OptionChanged;
             }
         }
 
@@ -124,10 +130,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // When the TextView goes away so does the filter.  No need to do anything more.
             // However, we do need to detach from listening for option changes to avoid leaking.
-            if (_razorEditorOptions != null)
+            if (_textBuffer != null && _textBuffer.Properties.TryGetProperty(RazorEditorOptions, out IEditorOptions editorOptions))
             {
-                _razorEditorOptions.OptionChanged -= RazorOptions_OptionChanged;
-                _razorEditorOptions = null;
+                editorOptions.OptionChanged -= RazorOptions_OptionChanged;
+                _textBuffer.Properties.RemoveProperty(RazorEditorOptions);
             }
         }
 
@@ -135,7 +141,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private async void RazorOptions_OptionChanged(object sender, EditorOptionChangedEventArgs e)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            if (_razorEditorOptions == null)
+            if (_textBuffer == null ||
+                !_textBuffer.Properties.TryGetProperty(RazorEditorOptions, out IEditorOptions razorEditorOptions))
             {
                 return;
             }
@@ -144,8 +151,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var settings = GetRazorEditorOptions(_textManager);
 
             // Update settings in the actual editor.
-            _razorEditorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !settings.IndentWithTabs);
-            _razorEditorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, settings.IndentSize);
+            razorEditorOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !settings.IndentWithTabs);
+            razorEditorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, settings.IndentSize);
 
             // Keep track of accurate settings on the client side so we can easily retrieve the
             // options later when the server sends us a workspace/configuration request.
