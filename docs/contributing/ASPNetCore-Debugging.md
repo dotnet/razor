@@ -12,7 +12,7 @@ Sometimes it may be necessary to make changes in [`dotnet/aspnetcore`](https://g
 - `<add key="ASPNETCORE_NONSHIPPING" value="<PATH_TO_ASPNET_CORE_REPO>\artifacts\packages\Debug\NonShipping\" />`
 
 7. Open `aspnetcore-tooling/eng/Versions.props` and note the version for `MicrosoftCodeAnalysisRazorPackageVersion`. Ex. `5.0.0-rc.1.20380.7`.
-8. Do a find in `Versions.props` for the version in step 7 and replace with `x.0.0-dev.nupkg`.
+8. Do a find in `Versions.props` for the version in step 7 and replace with `x.0.0-dev`.
 
 ## Notes:
 - ⚠️ Ensure you do not commit the changes to `aspnetcore-tooling/NuGet.config` & `aspnetcore-tooling/eng/Versions.props`!
