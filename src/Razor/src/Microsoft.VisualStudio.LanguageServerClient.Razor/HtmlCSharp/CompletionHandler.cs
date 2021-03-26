@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<CompletionParams, SumType<CompletionItem[], CompletionList>?>
+    internal class CompletionHandler : IRequestHandler<CompletionParams, SumType<CompletionItem[], VSCompletionList>?>
     {
         private static readonly IReadOnlyList<string> RazorTriggerCharacters = new[] { "@" };
         private static readonly IReadOnlyList<string> CSharpTriggerCharacters = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", ">", "~" };
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(CompletionHandler));
         }
 
-        public async Task<SumType<CompletionItem[], CompletionList>?> HandleRequestAsync(CompletionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<SumType<CompletionItem[], VSCompletionList>?> HandleRequestAsync(CompletionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
