@@ -41,10 +41,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
         private readonly IVsTextManager2 _textManager;
-        private readonly List<ITextView> _activeTextViews = new();
+
+        /// <summary>
+        /// Protects concurrent modifications to _activeTextViews and _textBuffer's
+        /// property bag.
+        /// </summary>
         private readonly object _lock = new();
 
+        #region protected by _lock
+        private readonly List<ITextView> _activeTextViews = new();
+
         private ITextBuffer _textBuffer;
+        #endregion
 
         [ImportingConstructor]
         public RazorLSPTextViewConnectionListener(
@@ -132,11 +140,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     _textBuffer.Properties[RazorEditorBufferOptions] = bufferOptions;
 
                     // All TextViews share the same options, so we only need to listen to changes for one.
-                    textView.TextBuffer.Properties[RazorEditorTrackedView] = textView;
+                    _textBuffer.Properties[RazorEditorTrackedView] = textView;
 
                     var razorEditorTextViewOptions = _editorOptionsFactory.GetOptions(textView);
                     Assumes.Present(razorEditorTextViewOptions);
-                    textView.TextBuffer.Properties[RazorEditorViewOptions] = razorEditorTextViewOptions;
+                    _textBuffer.Properties[RazorEditorViewOptions] = razorEditorTextViewOptions;
 
                     RazorOptions_OptionChanged(null, null);
                     razorEditorTextViewOptions.OptionChanged += RazorOptions_OptionChanged;
