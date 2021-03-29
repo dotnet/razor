@@ -298,8 +298,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             public int GetPairExtents(int iLine, int iIndex, TextSpan[] pSpan) => VSConstants.E_NOTIMPL;
         }
 
-        private record RazorEditorOptionsTracker(ITextView TrackedView, IEditorOptions ViewOptions, IEditorOptions BufferOptions)
-        {
-        }
+        private record RazorEditorOptionsTracker(ITextView TrackedView, IEditorOptions ViewOptions, IEditorOptions BufferOptions);
     }
 }
