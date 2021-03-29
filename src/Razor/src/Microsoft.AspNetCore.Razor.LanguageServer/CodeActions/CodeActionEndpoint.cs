@@ -181,11 +181,49 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            var filteredCSharpCodeActions = await FilterCSharpCodeActionsAsync(context, csharpCodeActions, cancellationToken);
+            var csharpCodeActionsWithNames = ExtractCSharpCodeActionNamesFromData(csharpCodeActions);
+            var filteredCSharpCodeActions = await FilterCSharpCodeActionsAsync(context, csharpCodeActionsWithNames, cancellationToken);
             return filteredCSharpCodeActions;
         }
 
-        private async Task<IEnumerable<CodeAction>> FilterCSharpCodeActionsAsync(RazorCodeActionContext context, IEnumerable<CodeAction> csharpCodeActions, CancellationToken cancellationToken)
+        private static Dictionary<string, List<CodeAction>> ExtractCSharpCodeActionNamesFromData(IEnumerable<CodeAction> codeActions)
+        {
+            var codeActionsWithNames = new Dictionary<string, List<CodeAction>>();
+
+            foreach (var codeAction in codeActions)
+            {
+                // Note; we may see a perf benefit from using a JsonConverter
+                var tags = codeAction.Data["CustomTags"].ToObject<string[]>(); ;
+                if (tags is null)
+                {
+                    continue;
+                }
+
+                // CustomTags may include the CodeAction name alongside other attributes
+                // As of March 2021 CustomTags only has the CodeAction name so we create a dict of
+                // tags <> CodeAction. In the future should CustomTags contain many tags, we can
+                // double check the tag against a list of all known code actions names before adding
+                // to the dict.
+                foreach (var tag in tags)
+                {
+                    if (codeActionsWithNames.TryGetValue(tag, out var taggedCodeActions))
+                    {
+                        taggedCodeActions.Add(codeAction);
+                    }
+                    else
+                    {
+                        codeActionsWithNames.Add(tag, new List<CodeAction> { codeAction });
+                    }
+                }
+            }
+
+            return codeActionsWithNames;
+        }
+
+        private async Task<IEnumerable<CodeAction>> FilterCSharpCodeActionsAsync(
+            RazorCodeActionContext context,
+            Dictionary<string, List<CodeAction>> codeActionsWithNames,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -193,7 +231,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             foreach (var provider in _csharpCodeActionProviders)
             {
-                var result = provider.ProvideAsync(context, csharpCodeActions, cancellationToken);
+                var result = provider.ProvideAsync(context, codeActionsWithNames, cancellationToken);
                 if (result != null)
                 {
                     tasks.Add(result);
@@ -242,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return await ConsolidateCodeActionsFromProvidersAsync(tasks, cancellationToken);
         }
 
-        private async Task<IEnumerable<CodeAction>> ConsolidateCodeActionsFromProvidersAsync(
+        private static async Task<IEnumerable<CodeAction>> ConsolidateCodeActionsFromProvidersAsync(
             List<Task<IReadOnlyList<CodeAction>>> tasks,
             CancellationToken cancellationToken)
         {

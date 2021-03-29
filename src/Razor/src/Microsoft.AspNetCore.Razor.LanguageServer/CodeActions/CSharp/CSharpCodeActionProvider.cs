@@ -22,10 +22,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public abstract Task<IReadOnlyList<CodeAction>> ProvideAsync(
             RazorCodeActionContext context,
-            IEnumerable<CodeAction> codeActions,
+            Dictionary<string, List<CodeAction>> codeActionsWithNames,
             CancellationToken cancellationToken);
 
-        protected bool InFunctionsBlock(RazorCodeActionContext context)
+        protected static bool InFunctionsBlock(RazorCodeActionContext context)
         {
             var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();

@@ -4,35 +4,32 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
     {
-        private static readonly HashSet<Regex> RegexMatchCodeActions = new HashSet<Regex>()
+        private static readonly HashSet<string> SupportedDefaultCodeActionNames = new HashSet<string>()
         {
-            // Supports generating the empty constructor `ClassName()`, as well as constructor with args `ClassName(int)`
-            new Regex(@"^Generate constructor '.+\(.*\)'$", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1)),
-
-            new Regex("^Create and assign (property|field) '.+'$", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1))
-        };
-
-        private static readonly HashSet<string> StringMatchCodeActions = new HashSet<string>()
-        {
+            // impl interface, abstract class,
+            // RazorPredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly,
+            // Generate constructor '.+\(.*\)'
+            // Create and assign (property|field)
             "Generate Equals and GetHashCode",
             "Add null check",
             "Add null checks for all parameters",
             "Add 'DebuggerDisplay' attribute"
+
         };
 
         public override Task<IReadOnlyList<CodeAction>> ProvideAsync(
             RazorCodeActionContext context,
-            IEnumerable<CodeAction> codeActions,
+            Dictionary<string, List<CodeAction>> codeActionsWithNames,
             CancellationToken cancellationToken)
         {
             if (context is null)
@@ -40,9 +37,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (codeActions is null)
+            if (codeActionsWithNames is null)
             {
-                throw new ArgumentNullException(nameof(codeActions));
+                throw new ArgumentNullException(nameof(codeActionsWithNames));
             }
 
             // Used to identify if this is VSCode which doesn't support
@@ -59,10 +56,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return EmptyResult;
             }
 
-            var results = codeActions.Where(codeAction =>
-                StringMatchCodeActions.Contains(codeAction.Title) ||
-                RegexMatchCodeActions.Any(pattern => pattern.Match(codeAction.Title).Success)
-            );
+
+            var results = new List<CodeAction>();
+
+            foreach (var name in SupportedDefaultCodeActionNames)
+            {
+                if (codeActionsWithNames.TryGetValue(name, out var codeActions))
+                {
+                    results.AddRange(codeActions);
+                }
+            }
 
             var wrappedResults = results.Select(c => c.WrapResolvableCSharpCodeAction(context)).ToList();
             return Task.FromResult(wrappedResults as IReadOnlyList<CodeAction>);

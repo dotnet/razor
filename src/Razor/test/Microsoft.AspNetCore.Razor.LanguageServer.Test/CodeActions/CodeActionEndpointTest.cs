@@ -715,7 +715,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions
 
         private class MockCSharpCodeActionProvider : CSharpCodeActionProvider
         {
-            public override Task<IReadOnlyList<CodeAction>> ProvideAsync(RazorCodeActionContext context, IEnumerable<CodeAction> codeActions, CancellationToken cancellationToken)
+            public override Task<IReadOnlyList<CodeAction>> ProvideAsync(RazorCodeActionContext context, Dictionary<string, List<CodeAction>> codeActionsWithNames, CancellationToken cancellationToken)
             {
                 return Task.FromResult(new List<CodeAction>() { new CodeAction() } as IReadOnlyList<CodeAction>);
             }
