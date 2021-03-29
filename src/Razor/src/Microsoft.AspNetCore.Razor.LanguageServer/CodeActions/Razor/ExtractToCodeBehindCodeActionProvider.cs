@@ -23,9 +23,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     {
         private static readonly string Title = "Extract block to code behind";
 
-        private static readonly Task<IReadOnlyList<CodeAction>> EmptyResult = Task.FromResult<IReadOnlyList<CodeAction>>(null);
+        private static readonly Task<IReadOnlyList<RazorCodeAction>> EmptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
 
-        public override Task<IReadOnlyList<CodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             if (context is null)
             {
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var codeActions = new List<CodeAction> { codeAction };
 
-            return Task.FromResult(codeActions as IReadOnlyList<CodeAction>);
+            return Task.FromResult(codeActions as IReadOnlyList<RazorCodeAction>);
         }
 
         private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
