@@ -37,9 +37,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
 
-        public async override Task<CodeAction> ResolveAsync(
+        public async override Task<RazorCodeAction> ResolveAsync(
             CSharpCodeActionParams csharpParams,
-            CodeAction codeAction,
+            RazorCodeAction codeAction,
             CancellationToken cancellationToken)
         {
             if (csharpParams is null)

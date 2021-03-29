@@ -29,9 +29,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             "IDE1007"
         };
 
-        public override Task<IReadOnlyList<CodeAction>> ProvideAsync(
+        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
             RazorCodeActionContext context,
-            IEnumerable<CodeAction> codeActions,
+            IEnumerable<RazorCodeAction> codeActions,
             CancellationToken cancellationToken)
         {
             if (context is null)
@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             results.Sort((a, b) => string.Compare(a.Title, b.Title, StringComparison.Ordinal));
-            return Task.FromResult(results as IReadOnlyList<CodeAction>);
+            return Task.FromResult(results as IReadOnlyList<RazorCodeAction>);
         }
 
         private static bool TryProcessCodeAction(

@@ -17,19 +17,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static readonly HashSet<string> SupportedDefaultCodeActionNames = new HashSet<string>()
         {
             // impl interface, abstract class,
-            // RazorPredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly,
             // Generate constructor '.+\(.*\)'
+            // "Generate Equals and GetHashCode",
+            // "Add 'DebuggerDisplay' attribute"
+            //RazorPredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly,
+            //RazorPredefinedCodeRefactoringProviderNames.ImplementInterfaceImplicitly,
+            RazorPredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers,
+            RazorPredefinedCodeRefactoringProviderNames.AddAwait,
+            RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay,
+            RazorPredefinedCodeFixProviderNames.ImplementAbstractClass,
+            RazorPredefinedCodeFixProviderNames.ImplementInterface,
+            RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            RazorPredefinedCodeFixProviderNames.SpellCheck,
+            RazorPredefinedCodeFixProviderNames.UseIsNullCheck,
             // Create and assign (property|field)
-            "Generate Equals and GetHashCode",
-            "Add null check",
-            "Add null checks for all parameters",
-            "Add 'DebuggerDisplay' attribute"
+            // "Add null check",
+            // "Add null checks for all parameters",
 
         };
 
-        public override Task<IReadOnlyList<CodeAction>> ProvideAsync(
+        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
             RazorCodeActionContext context,
-            Dictionary<string, List<CodeAction>> codeActionsWithNames,
+            IEnumerable<RazorCodeAction> codeActions,
             CancellationToken cancellationToken)
         {
             if (context is null)
@@ -37,9 +46,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (codeActionsWithNames is null)
+            if (codeActions is null)
             {
-                throw new ArgumentNullException(nameof(codeActionsWithNames));
+                throw new ArgumentNullException(nameof(codeActions));
             }
 
             // Used to identify if this is VSCode which doesn't support
@@ -59,16 +68,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var results = new List<CodeAction>();
 
-            foreach (var name in SupportedDefaultCodeActionNames)
+            foreach (var codeAction in codeActions)
             {
-                if (codeActionsWithNames.TryGetValue(name, out var codeActions))
+                if (SupportedDefaultCodeActionNames.Contains(codeAction.Name))
                 {
-                    results.AddRange(codeActions);
+                    results.Add(codeAction);
                 }
             }
 
             var wrappedResults = results.Select(c => c.WrapResolvableCSharpCodeAction(context)).ToList();
-            return Task.FromResult(wrappedResults as IReadOnlyList<CodeAction>);
+            return Task.FromResult(wrappedResults as IReadOnlyList<RazorCodeAction>);
         }
     }
 }
