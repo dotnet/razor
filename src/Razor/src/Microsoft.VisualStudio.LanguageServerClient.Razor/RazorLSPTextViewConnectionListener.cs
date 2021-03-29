@@ -31,10 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
     {
-        private const string RazorEditorTrackedView = "RazorEditorTrackedView";
-        private const string RazorEditorViewOptions = "RazorEditorViewOptions";
-        private const string RazorEditorBufferOptions = "RazorEditorBufferOptions";
-
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly LSPEditorFeatureDetector _editorFeatureDetector;
         private readonly IEditorOptionsFactoryService _editorOptionsFactory;
@@ -122,34 +118,45 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             RazorLSPTextViewFilter.CreateAndRegister(vsTextView);
 
-            lock (_lock)
+            if (textView.TextBuffer.IsRazorLSPBuffer())
             {
-                _activeTextViews.Add(textView);
-
-                // Initialize the user's options and start listening for changes.
-                // We only want to attach the option changed event once so we don't receive multiple
-                // notifications if there is more than one TextView active.
-                if (!textView.TextBuffer.Properties.ContainsProperty(RazorEditorTrackedView) &&
-                    textView.TextBuffer.IsRazorLSPBuffer())
+                lock (_lock)
                 {
-                    // We assume there is ever only one TextBuffer at a time and thus all active
-                    // TextViews have the same TextBuffer.
-                    _textBuffer = textView.TextBuffer;
+                    _activeTextViews.Add(textView);
 
-                    var bufferOptions = _editorOptionsFactory.GetOptions(_textBuffer);
-                    _textBuffer.Properties[RazorEditorBufferOptions] = bufferOptions;
+                    // Initialize the user's options and start listening for changes.
+                    // We only want to attach the option changed event once so we don't receive multiple
+                    // notifications if there is more than one TextView active.
+                    if (!textView.TextBuffer.Properties.ContainsProperty(typeof(RazorEditorOptionsTracker)))
+                    {
+                        // We assume there is ever only one TextBuffer at a time and thus all active
+                        // TextViews have the same TextBuffer.
+                        _textBuffer = textView.TextBuffer;
 
-                    // All TextViews share the same options, so we only need to listen to changes for one.
-                    _textBuffer.Properties[RazorEditorTrackedView] = textView;
+                        var bufferOptions = _editorOptionsFactory.GetOptions(_textBuffer);
+                        var viewOptions = _editorOptionsFactory.GetOptions(textView);
 
-                    var razorEditorTextViewOptions = _editorOptionsFactory.GetOptions(textView);
-                    Assumes.Present(razorEditorTextViewOptions);
-                    _textBuffer.Properties[RazorEditorViewOptions] = razorEditorTextViewOptions;
+                        Assumes.Present(bufferOptions);
+                        Assumes.Present(viewOptions);
 
-                    RazorOptions_OptionChanged(null, null);
-                    razorEditorTextViewOptions.OptionChanged += RazorOptions_OptionChanged;
+                        // All TextViews share the same options, so we only need to listen to changes for one.
+                        // We need to keep track of and update both the TextView and TextBuffer options. Updating
+                        // the TextView's options is necessary so 'SPC'/'TABS' in the bottom right corner of the
+                        // view displays the right setting. Updating the TextBuffer is necessary since it's where
+                        // LSP pulls settings from when sending us requests.
+                        var optionsTracker = new RazorEditorOptionsTracker(TrackedView: textView, viewOptions, bufferOptions);
+                        _textBuffer.Properties[typeof(RazorEditorOptionsTracker)] = optionsTracker;
+
+                        // A change in Tools->Options settings only kicks off an options changed event in the view
+                        // and not the buffer, i.e. even if we listened for TextBuffer option changes, we would never
+                        // be notified. As a workaround, we listen purely for TextView changes, and update the
+                        // TextBuffer options in the TextView listener as well.
+                        RazorOptions_OptionChanged(null, null);
+                        viewOptions.OptionChanged += RazorOptions_OptionChanged;
+                    }
                 }
             }
+
         }
 
         public void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
@@ -160,35 +167,40 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // to is disconnected.
             Assumes.NotNull(_textBuffer);
 
-            lock (_lock)
+            if (textView.TextBuffer.IsRazorLSPBuffer())
             {
-                _activeTextViews.Remove(textView);
-
-                // Is the tracked TextView where we listen for option changes the one being disconnected?
-                // If so, see if another view is available.
-                if (_textBuffer.Properties.TryGetProperty(RazorEditorTrackedView, out ITextView trackedTextView) &&
-                    trackedTextView == textView)
+                lock (_lock)
                 {
-                    Assumes.True(_textBuffer.Properties.TryGetProperty(RazorEditorViewOptions, out IEditorOptions textViewOptions));
+                    _activeTextViews.Remove(textView);
 
-                    // If there's another text view we can use to listen for options, start tracking it.
-                    _textBuffer.Properties.RemoveProperty(RazorEditorTrackedView);
-                    _textBuffer.Properties.RemoveProperty(RazorEditorViewOptions);
-                    textViewOptions.OptionChanged -= RazorOptions_OptionChanged;
-
-                    if (_activeTextViews.Count != 0)
+                    // Is the tracked TextView where we listen for option changes the one being disconnected?
+                    // If so, see if another view is available.
+                    if (_textBuffer.Properties.TryGetProperty(
+                        typeof(RazorEditorOptionsTracker), out RazorEditorOptionsTracker optionsTracker) &&
+                        optionsTracker.TrackedView == textView)
                     {
-                        var updatedTextView = _activeTextViews[0];
-                        _textBuffer.Properties[RazorEditorTrackedView] = updatedTextView;
+                        _textBuffer.Properties.RemoveProperty(typeof(RazorEditorOptionsTracker));
+                        optionsTracker.ViewOptions.OptionChanged -= RazorOptions_OptionChanged;
 
-                        var updatedRazorEditorTextViewOptions = _editorOptionsFactory.GetOptions(updatedTextView);
-                        Assumes.Present(updatedRazorEditorTextViewOptions);
-                        _textBuffer.Properties[RazorEditorViewOptions] = updatedRazorEditorTextViewOptions;
+                        // If there's another text view we can use to listen for options, start tracking it.
+                        if (_activeTextViews.Count != 0)
+                        {
+                            var newTrackedView = _activeTextViews[0];
+                            var newViewOptions = _editorOptionsFactory.GetOptions(newTrackedView);
+                            Assumes.Present(newViewOptions);
 
-                        updatedRazorEditorTextViewOptions.OptionChanged += RazorOptions_OptionChanged;
+                            // We assume the TextViews all have the same TextBuffer, so we can reuse the
+                            // buffer options from the old TextView.
+                            var newOptionsTracker = new RazorEditorOptionsTracker(
+                                newTrackedView, newViewOptions, optionsTracker.BufferOptions);
+                            _textBuffer.Properties[typeof(RazorEditorOptionsTracker)] = newOptionsTracker;
+
+                            newViewOptions.OptionChanged += RazorOptions_OptionChanged;
+                        }
                     }
                 }
             }
+
         }
 
 #pragma warning disable VSTHRD100 // Avoid async void methods
@@ -197,8 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             Assumes.NotNull(_textBuffer);
 
-            if (!_textBuffer.Properties.TryGetProperty(RazorEditorViewOptions, out IEditorOptions razorEditorTextViewOptions) ||
-                !_textBuffer.Properties.TryGetProperty(RazorEditorBufferOptions, out IEditorOptions razorEditorTextBufferOptions))
+            if (!_textBuffer.Properties.TryGetProperty(typeof(RazorEditorOptionsTracker), out RazorEditorOptionsTracker optionsTracker))
             {
                 return;
             }
@@ -210,11 +221,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // We need to update both the TextView and TextBuffer options. Updating the TextView is necessary
             // so 'SPC'/'TABS' in the bottom right corner of the view displays the right setting. Updating the
             // TextBuffer is necessary since it's where LSP pulls settings from when sending us requests.
-            razorEditorTextViewOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !settings.IndentWithTabs);
-            razorEditorTextViewOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, settings.IndentSize);
+            optionsTracker.ViewOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !settings.IndentWithTabs);
+            optionsTracker.ViewOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, settings.IndentSize);
 
-            razorEditorTextBufferOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !settings.IndentWithTabs);
-            razorEditorTextBufferOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, settings.IndentSize);
+            optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !settings.IndentWithTabs);
+            optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, settings.IndentSize);
 
             // Keep track of accurate settings on the client side so we can easily retrieve the
             // options later when the server sends us a workspace/configuration request.
@@ -285,6 +296,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             public int GetPairExtents(int iLine, int iIndex, TextSpan[] pSpan) => VSConstants.E_NOTIMPL;
+        }
+
+        private record RazorEditorOptionsTracker(ITextView TrackedView, IEditorOptions ViewOptions, IEditorOptions BufferOptions)
+        {
         }
     }
 }
