@@ -16,24 +16,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private static readonly HashSet<string> SupportedDefaultCodeActionNames = new HashSet<string>()
         {
-            // impl interface, abstract class,
-            // Generate constructor '.+\(.*\)'
-            // "Generate Equals and GetHashCode",
-            // "Add 'DebuggerDisplay' attribute"
-            //RazorPredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly,
-            //RazorPredefinedCodeRefactoringProviderNames.ImplementInterfaceImplicitly,
             RazorPredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers,
             RazorPredefinedCodeRefactoringProviderNames.AddAwait,
             RazorPredefinedCodeRefactoringProviderNames.AddDebuggerDisplay,
+            RazorPredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter, // Create and assign (property|field)
+            RazorPredefinedCodeRefactoringProviderNames.AddParameterCheck, // Add Null checks
+            RazorPredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers,
+            RazorPredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors,
+            RazorPredefinedCodeRefactoringProviderNames.UseExpressionBody,
             RazorPredefinedCodeFixProviderNames.ImplementAbstractClass,
             RazorPredefinedCodeFixProviderNames.ImplementInterface,
-            RazorPredefinedCodeFixProviderNames.GenerateConstructor,
             RazorPredefinedCodeFixProviderNames.SpellCheck,
-            RazorPredefinedCodeFixProviderNames.UseIsNullCheck,
-            // Create and assign (property|field)
-            // "Add null check",
-            // "Add null checks for all parameters",
-
+            RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
         };
 
         public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
@@ -64,7 +58,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 return EmptyResult;
             }
-
 
             var results = new List<RazorCodeAction>();
 
