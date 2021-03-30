@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -108,13 +107,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Data = actionParams,
             };
 
-            var codeAction = new CodeAction()
+            var codeAction = new RazorCodeAction()
             {
                 Title = Title,
                 Data = JToken.FromObject(resolutionParams)
             };
 
-            var codeActions = new List<CodeAction> { codeAction };
+            var codeActions = new List<RazorCodeAction> { codeAction };
 
             return Task.FromResult(codeActions as IReadOnlyList<RazorCodeAction>);
         }

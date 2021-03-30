@@ -6,11 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
     {
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
 
-            var results = new List<CodeAction>();
+            var results = new List<RazorCodeAction>();
 
             foreach (var codeAction in codeActions)
             {

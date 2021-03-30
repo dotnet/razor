@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 {
     internal static class CodeActionExtensions
     {
-        public static CommandOrCodeAction AsVSCodeCommandOrCodeAction(this CodeAction razorCodeAction)
+        public static CommandOrCodeAction AsVSCodeCommandOrCodeAction(this RazorCodeAction razorCodeAction)
         {
             if (razorCodeAction.Data is null)
             {
@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
                     Data = razorCodeAction.Edit ?? new WorkspaceEdit()
                 };
 
-                razorCodeAction = new CodeAction()
+                razorCodeAction = new RazorCodeAction()
                 {
                     Title = razorCodeAction.Title,
                     Data = JToken.FromObject(resolutionParams)
@@ -41,8 +41,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             });
         }
 
-        public static CodeAction WrapResolvableCSharpCodeAction(
-            this CodeAction razorCodeAction,
+        public static RazorCodeAction WrapResolvableCSharpCodeAction(
+            this RazorCodeAction razorCodeAction,
             RazorCodeActionContext context,
             string action = LanguageServerConstants.CodeActions.Default)
         {

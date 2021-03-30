@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
     {
@@ -64,38 +66,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return EmptyResult;
             }
 
-            var results = new List<CodeAction>();
+            var results = new List<RazorCodeAction>();
 
             foreach (var diagnostic in diagnostics)
             {
-                // Corner case handling for diagnostics which (momentarily) linger after
-                // @code block is cleared out
-                if (diagnostic.Range.End.Line > context.SourceText.Lines.Count ||
-                    diagnostic.Range.End.Character > context.SourceText.Lines[diagnostic.Range.End.Line].End)
-                {
-                    continue;
-                }
-
-                var diagnosticSpan = diagnostic.Range.AsTextSpan(context.SourceText);
-
-                // Based on how we compute `Range.AsTextSpan` it's possible to have a span
-                // which goes beyond the end of the source text. Something likely changed
-                // between the capturing of the diagnostic (by the platform) and the retrieval of the 
-                // document snapshot / source text. In such a case, we skip processing of the diagnostic.
-                if (diagnosticSpan.End > context.SourceText.Length)
-                {
-                    continue;
-                }
-
-                var associatedValue = context.SourceText.GetSubTextString(diagnosticSpan);
-
                 foreach (var codeAction in codeActions)
                 {
                     if (TryProcessCodeAction(
                             context,
                             codeAction,
                             diagnostic,
-                            associatedValue,
                             out var typeAccessibilityCodeActions))
                     {
                         results.AddRange(typeAccessibilityCodeActions);
@@ -109,25 +89,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private static bool TryProcessCodeAction(
             RazorCodeActionContext context,
-            CodeAction codeAction,
+            RazorCodeAction codeAction,
             Diagnostic diagnostic,
-            string associatedValue,
-            out ICollection<CodeAction> typeAccessibilityCodeActions)
+            out ICollection<RazorCodeAction> typeAccessibilityCodeActions)
         {
             // VS & VSCode provide type accessibility code actions in different formats
             // We must handle them seperately.
             return context.SupportsCodeActionResolve ?
-                TryProcessCodeActionVS(context, codeAction, diagnostic, associatedValue, out typeAccessibilityCodeActions) :
-                TryProcessCodeActionVSCode(context, codeAction, diagnostic, associatedValue, out typeAccessibilityCodeActions);
+                TryProcessCodeActionVS(context, codeAction, diagnostic, out typeAccessibilityCodeActions) :
+                TryProcessCodeActionVSCode(context, codeAction, diagnostic, out typeAccessibilityCodeActions);
         }
 
         private static bool TryProcessCodeActionVSCode(
             RazorCodeActionContext context,
-            CodeAction codeAction,
+            RazorCodeAction codeAction,
             Diagnostic diagnostic,
-            string associatedValue,
-            out ICollection<CodeAction> typeAccessibilityCodeActions)
+            out ICollection<RazorCodeAction> typeAccessibilityCodeActions)
         {
+            // Corner case handling for diagnostics which (momentarily) linger after
+            // @code block is cleared out
+            if (diagnostic.Range.End.Line > context.SourceText.Lines.Count ||
+                diagnostic.Range.End.Character > context.SourceText.Lines[diagnostic.Range.End.Line].End)
+            {
+                typeAccessibilityCodeActions = default;
+                return false;
+            }
+
+            var diagnosticSpan = diagnostic.Range.AsTextSpan(context.SourceText);
+
+            // Based on how we compute `Range.AsTextSpan` it's possible to have a span
+            // which goes beyond the end of the source text. Something likely changed
+            // between the capturing of the diagnostic (by the platform) and the retrieval of the 
+            // document snapshot / source text. In such a case, we skip processing of the diagnostic.
+            if (diagnosticSpan.End > context.SourceText.Length)
+            {
+                typeAccessibilityCodeActions = default;
+                return false;
+            }
+
+            var associatedValue = context.SourceText.GetSubTextString(diagnosticSpan);
+
             var fqn = string.Empty;
 
             // When there's only one FQN suggestion, code action title is of the form:
@@ -154,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return false;
             }
 
-            typeAccessibilityCodeActions = new List<CodeAction>();
+            typeAccessibilityCodeActions = new List<RazorCodeAction>();
 
             var fqnCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
             typeAccessibilityCodeActions.Add(fqnCodeAction);
@@ -170,34 +171,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private static bool TryProcessCodeActionVS(
             RazorCodeActionContext context,
-            CodeAction codeAction,
+            RazorCodeAction codeAction,
             Diagnostic diagnostic,
-            string associatedValue,
-            out ICollection<CodeAction> typeAccessibilityCodeActions)
+            out ICollection<RazorCodeAction> typeAccessibilityCodeActions)
         {
-            CodeAction processedCodeAction = null;
+            RazorCodeAction processedCodeAction;
 
             // When there's only one FQN suggestion, code action title is of the form:
             // `System.Net.Dns`
-            if (!codeAction.Title.Any(c => char.IsWhiteSpace(c)) &&
-                codeAction.Title.EndsWith(associatedValue, StringComparison.OrdinalIgnoreCase))
+            // When there are multiple FQN suggestions, the code action title is of the form:
+            // `Fully qualify 'Dns'`
+            if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal) &&
+                codeAction.Children is null)
             {
                 var fqn = codeAction.Title;
                 processedCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
             }
-            // When there are multiple FQN suggestions, the code action title is of the form:
-            // `Fully qualify 'Dns'`
-            else if (codeAction.Title.Equals($"Fully qualify '{associatedValue}'", StringComparison.OrdinalIgnoreCase))
-            {
-                // Not currently supported as we need O# CodeAction to support the CodeAction.Children field.
-                // processedCodeAction = codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.FullyQualifyType);
-
-                typeAccessibilityCodeActions = Array.Empty<CodeAction>();
-                return false;
-            }
             // For add using suggestions, the code action title is of the form:
             // `using System.Net;`
-            else if (AddUsingsCodeActionProviderFactory.TryExtractNamespace(codeAction.Title, out var @namespace))
+            else if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal) &&
+                AddUsingsCodeActionProviderFactory.TryExtractNamespace(codeAction.Title, out var @namespace))
             {
                 codeAction.Title = $"@using {@namespace}";
                 processedCodeAction = codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing);
@@ -205,7 +198,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Not a type accessibility code action
             else
             {
-                typeAccessibilityCodeActions = Array.Empty<CodeAction>();
+                typeAccessibilityCodeActions = Array.Empty<RazorCodeAction>();
                 return false;
             }
 
@@ -213,10 +206,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return true;
         }
 
-        private static CodeAction CreateFQNCodeAction(
+        private static RazorCodeAction CreateFQNCodeAction(
             RazorCodeActionContext context,
             Diagnostic fqnDiagnostic,
-            CodeAction codeAction,
+            RazorCodeAction codeAction,
             string fullyQualifiedName)
         {
             var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
@@ -238,7 +231,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 DocumentChanges = new[] { fqnWorkspaceEditDocumentChange }
             };
 
-            return new CodeAction()
+            return new RazorCodeAction()
             {
                 Title = codeAction.Title,
                 Edit = fqnWorkspaceEdit
