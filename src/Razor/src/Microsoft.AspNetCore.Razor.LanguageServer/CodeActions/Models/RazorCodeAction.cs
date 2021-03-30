@@ -9,7 +9,6 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 {
-
     [JsonObject]
     [DebuggerDisplay("{Title,nq}")]
     internal class RazorCodeAction : CodeAction, IRequest<RazorCodeAction>, IBaseRequest

@@ -23,6 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             RazorPredefinedCodeRefactoringProviderNames.AddParameterCheck, // Add Null checks
             RazorPredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers,
             RazorPredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors,
+            RazorPredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
             RazorPredefinedCodeRefactoringProviderNames.UseExpressionBody,
             RazorPredefinedCodeFixProviderNames.ImplementAbstractClass,
             RazorPredefinedCodeFixProviderNames.ImplementInterface,
