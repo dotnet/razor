@@ -106,6 +106,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Diagnostic diagnostic,
             out ICollection<RazorCodeAction> typeAccessibilityCodeActions)
         {
+            if (!codeAction.Name.Equals("CodeActionFromVSCode", StringComparison.Ordinal))
+            {
+                typeAccessibilityCodeActions = default;
+                return false;
+            }
+
             // Corner case handling for diagnostics which (momentarily) linger after
             // @code block is cleared out
             if (diagnostic.Range.End.Line > context.SourceText.Lines.Count ||
@@ -119,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Based on how we compute `Range.AsTextSpan` it's possible to have a span
             // which goes beyond the end of the source text. Something likely changed
-            // between the capturing of the diagnostic (by the platform) and the retrieval of the 
+            // between the capturing of the diagnostic (by the platform) and the retrieval of the
             // document snapshot / source text. In such a case, we skip processing of the diagnostic.
             if (diagnosticSpan.End > context.SourceText.Length)
             {
