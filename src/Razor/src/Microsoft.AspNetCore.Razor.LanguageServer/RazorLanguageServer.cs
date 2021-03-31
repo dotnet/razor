@@ -222,7 +222,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<CSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
                         services.AddSingleton<CSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
                         services.AddSingleton<CSharpCodeActionResolver, AddUsingsCSharpCodeActionResolver>();
-                        services.AddSingleton<CSharpCodeActionResolver, FullyQualifyCSharpCodeActionResolver>();
+                        services.AddSingleton<CSharpCodeActionResolver, RemappingCSharpCodeActionResolver>();
 
                         // Other
                         services.AddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();

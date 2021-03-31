@@ -162,8 +162,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
                 {
+                    // The formatting pass of our Default code action resolver rejects
+                    // implicit/explicit expressions. So if we're in an implicit/explicit expression, 
+                    // we run the remapping resolver responsible for simply remapping 
+                    // (without formatting) the resolved code action.
                     var action = IsImplicitOrExplicitExpression() ?
-                        LanguageServerConstants.CodeActions.FullyQualify :
+                        LanguageServerConstants.CodeActions.Remap :
                         LanguageServerConstants.CodeActions.Default;
                     typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, action));
                 }

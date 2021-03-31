@@ -13,14 +13,17 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal class FullyQualifyCSharpCodeActionResolver : CSharpCodeActionResolver
+    /// <summary>
+    /// Resolves and remaps the code action, without running formatting passes.
+    /// </summary>
+    internal class RemappingCSharpCodeActionResolver : CSharpCodeActionResolver
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly RazorDocumentMappingService _documentMappingService;
 
-        public FullyQualifyCSharpCodeActionResolver(
+        public RemappingCSharpCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
@@ -34,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
 
-        public override string Action => LanguageServerConstants.CodeActions.FullyQualify;
+        public override string Action => LanguageServerConstants.CodeActions.Remap;
 
         public async override Task<CodeAction> ResolveAsync(
             CSharpCodeActionParams csharpParams,
@@ -73,8 +76,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var fullyQualifyTextEdit = documentChanged.TextDocumentEdit.Edits.FirstOrDefault();
-            if (fullyQualifyTextEdit is null)
+            var textEdit = documentChanged.TextDocumentEdit.Edits.FirstOrDefault();
+            if (textEdit is null)
             {
                 // No text edit available
                 return codeAction;
@@ -99,14 +102,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(
                     codeDocument,
-                    fullyQualifyTextEdit.Range,
-                    out var projectedRange))
+                    textEdit.Range,
+                    out var originalRange))
             {
                 // Text edit failed to map
                 return codeAction;
             }
 
-            fullyQualifyTextEdit.Range = projectedRange;
+            textEdit.Range = originalRange;
 
             var documentVersion = await Task.Factory.StartNew(() =>
             {
@@ -127,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         new TextDocumentEdit()
                         {
                             TextDocument = codeDocumentIdentifier,
-                            Edits = new[] { fullyQualifyTextEdit },
+                            Edits = new[] { textEdit },
                         }
                     )
                 }
