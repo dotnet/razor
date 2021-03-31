@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -66,12 +65,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 if (SupportedDefaultCodeActionNames.Contains(codeAction.Name))
                 {
-                    results.Add(codeAction);
+                    results.Add(codeAction.WrapResolvableCSharpCodeAction(context));
                 }
             }
 
-            var wrappedResults = results.Select(c => c.WrapResolvableCSharpCodeAction(context)).ToList();
-            return Task.FromResult(wrappedResults as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult(results as IReadOnlyList<RazorCodeAction>);
         }
     }
 }
