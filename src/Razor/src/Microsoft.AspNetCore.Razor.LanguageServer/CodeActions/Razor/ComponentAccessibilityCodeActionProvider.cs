@@ -222,7 +222,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
         }
 
-        private bool IsTagUnknown(MarkupStartTagSyntax startTag, RazorCodeActionContext context)
+        private static bool IsTagUnknown(MarkupStartTagSyntax startTag, RazorCodeActionContext context)
         {
             foreach (var diagnostic in context.CodeDocument.GetCSharpDocument().Diagnostics)
             {

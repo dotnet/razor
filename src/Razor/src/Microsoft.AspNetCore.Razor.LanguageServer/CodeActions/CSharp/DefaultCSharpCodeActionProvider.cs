@@ -6,15 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
     {
-        private static readonly HashSet<string> SupportedDefaultCodeActionNames = new HashSet<string>()
+        // Internal for testing
+        internal static readonly HashSet<string> SupportedDefaultCodeActionNames = new HashSet<string>()
         {
             RazorPredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers,
             RazorPredefinedCodeRefactoringProviderNames.AddAwait,

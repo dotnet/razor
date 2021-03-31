@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
     {
@@ -181,25 +180,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Diagnostic diagnostic,
             out ICollection<RazorCodeAction> typeAccessibilityCodeActions)
         {
-            RazorCodeAction processedCodeAction;
+            typeAccessibilityCodeActions = new List<RazorCodeAction>(1);
 
-            // When there's only one FQN suggestion, code action title is of the form:
-            // `System.Net.Dns`
-            // When there are multiple FQN suggestions, the code action title is of the form:
-            // `Fully qualify 'Dns'`
-            if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal) &&
-                codeAction.Children is null)
+            if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
             {
-                var fqn = codeAction.Title;
-                processedCodeAction = CreateFQNCodeAction(context, diagnostic, codeAction, fqn);
+                if (codeAction.Children?.Length == 0)
+                {
+                    // When there's only one FQN suggestion, code action title is of the form:
+                    // `System.Net.Dns`
+                    var fqn = codeAction.Title;
+                    typeAccessibilityCodeActions.Add(CreateFQNCodeAction(context, diagnostic, codeAction, fqn));
+                }
+                else
+                {
+                    // When there are multiple FQN suggestions, the code action title is of the form:
+                    // `Fully qualify 'Dns'`
+                    foreach (var childCodeAction in codeAction.Children)
+                    {
+                        var fqn = childCodeAction.Title;
+                        typeAccessibilityCodeActions.Add(CreateFQNCodeAction(context, diagnostic, childCodeAction, fqn));
+                    }
+                }
             }
             // For add using suggestions, the code action title is of the form:
             // `using System.Net;`
-            else if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal) &&
+            else if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
                 AddUsingsCodeActionProviderFactory.TryExtractNamespace(codeAction.Title, out var @namespace))
             {
                 codeAction.Title = $"@using {@namespace}";
-                processedCodeAction = codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing);
+                typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
             }
             // Not a type accessibility code action
             else
@@ -208,7 +217,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            typeAccessibilityCodeActions = new[] { processedCodeAction };
             return true;
         }
 

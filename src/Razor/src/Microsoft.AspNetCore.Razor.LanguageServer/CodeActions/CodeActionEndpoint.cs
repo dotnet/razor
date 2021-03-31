@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -193,7 +192,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             foreach (var codeAction in codeActions)
             {
                 // Note; we may see a perf benefit from using a JsonConverter
-                var tags = (codeAction.Data as JToken)["CustomTags"]?.ToObject<string[]>(); ;
+                var tags = codeAction.Data["CustomTags"]?.ToObject<string[]>(); ;
                 if (tags is null || tags.Length == 0)
                 {
                     continue;

@@ -107,7 +107,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             var optionsMonitor = languageServer.Services.GetRequiredService<RazorLSPOptionsMonitor>();
 
                             // Explicitly not passing in the same CancellationToken as that might get cancelled before the update happens.
+#pragma warning disable CA2016 // Forward the 'CancellationToken' parameter to methods
                             _ = Task.Delay(TimeSpan.FromSeconds(3))
+#pragma warning restore CA2016 // Forward the 'CancellationToken' parameter to methods
                                 .ContinueWith(async (_) => await optionsMonitor.UpdateAsync(), TaskScheduler.Default);
                         }
                     })
