@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         internal bool _supportsCodeActionResolve = false;
 
-        private readonly HashSet<string> _allSupportedCodeActionNames;
+        private readonly IReadOnlyCollection<string> _allAvailableCodeActionNames;
 
         public CodeActionEndpoint(
             RazorDocumentMappingService documentMappingService,
@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
 
-            _allSupportedCodeActionNames = GetAllSupportedCodeActionNames();
+            _allAvailableCodeActionNames = GetAllAvailableCodeActionNames();
         }
 
         public CodeActionRegistrationOptions GetRegistrationOptions()
@@ -196,7 +196,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             foreach (var codeAction in codeActions)
             {
-                // Note; we may see a perf benefit from using a JsonConverter
+                // Note: we may see a perf benefit from using a JsonConverter
                 var tags = codeAction.Data["CustomTags"]?.ToObject<string[]>(); ;
                 if (tags is null || tags.Length == 0)
                 {
@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
                 foreach (var tag in tags)
                 {
-                    if (_allSupportedCodeActionNames.Contains(tag))
+                    if (_allAvailableCodeActionNames.Contains(tag))
                     {
                         codeAction.Name = tag;
                         break;
@@ -298,9 +298,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return codeActions;
         }
 
-        private static HashSet<string> GetAllSupportedCodeActionNames()
+        private static HashSet<string> GetAllAvailableCodeActionNames()
         {
-            var supportedCodeActionNames = new HashSet<string>();
+            var availableCodeActionNames = new HashSet<string>();
 
             var refactoringProviderNames = typeof(RazorPredefinedCodeRefactoringProviderNames)
                 .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
@@ -311,10 +311,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 .Where(property => property.PropertyType == typeof(string))
                 .Select(property => property.GetValue(null) as string);
 
-            supportedCodeActionNames.UnionWith(refactoringProviderNames);
-            supportedCodeActionNames.UnionWith(codeFixProviderNames);
+            availableCodeActionNames.UnionWith(refactoringProviderNames);
+            availableCodeActionNames.UnionWith(codeFixProviderNames);
 
-            return supportedCodeActionNames;
+            return availableCodeActionNames;
         }
     }
 }
