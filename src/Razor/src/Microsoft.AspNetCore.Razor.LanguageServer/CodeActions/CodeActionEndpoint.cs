@@ -3,14 +3,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -33,6 +34,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         internal bool _supportsCodeActionResolve = false;
 
+        private readonly HashSet<string> _allSupportedCodeActionNames;
+
         public CodeActionEndpoint(
             RazorDocumentMappingService documentMappingService,
             IEnumerable<RazorCodeActionProvider> razorCodeActionProviders,
@@ -49,6 +52,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+
+            _allSupportedCodeActionNames = GetAllSupportedCodeActionNames();
         }
 
         public CodeActionRegistrationOptions GetRegistrationOptions()
@@ -187,7 +192,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return filteredCSharpCodeActions;
         }
 
-        private static IEnumerable<RazorCodeAction> ExtractCSharpCodeActionNamesFromData(IEnumerable<RazorCodeAction> codeActions)
+        private IEnumerable<RazorCodeAction> ExtractCSharpCodeActionNamesFromData(IEnumerable<RazorCodeAction> codeActions)
         {
             foreach (var codeAction in codeActions)
             {
@@ -198,16 +203,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     continue;
                 }
 
-                // CustomTags may include the CodeAction name alongside other attributes
-                // As of March 2021 CustomTags only has the CodeAction name so we associate the first tag
-                // with the code action name.
-                if (tags.Length > 1)
+                foreach (var tag in tags)
                 {
-                    Debug.Fail($"Code action `${codeAction.Title}` contained more than 1 tag.");
-                    continue;
+                    if (_allSupportedCodeActionNames.Contains(tag))
+                    {
+                        codeAction.Name = tag;
+                        break;
+                    }
                 }
-
-                codeAction.Name = tags[0];
             }
 
             return codeActions;
@@ -293,6 +296,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             return codeActions;
+        }
+
+        private static HashSet<string> GetAllSupportedCodeActionNames()
+        {
+            var supportedCodeActionNames = new HashSet<string>();
+
+            var refactoringProviderNames = typeof(RazorPredefinedCodeRefactoringProviderNames)
+                .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
+                .Where(property => property.PropertyType == typeof(string))
+                .Select(property => property.GetValue(null) as string);
+            var codeFixProviderNames = typeof(RazorPredefinedCodeFixProviderNames)
+                .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
+                .Where(property => property.PropertyType == typeof(string))
+                .Select(property => property.GetValue(null) as string);
+
+            supportedCodeActionNames.UnionWith(refactoringProviderNames);
+            supportedCodeActionNames.UnionWith(codeFixProviderNames);
+
+            return supportedCodeActionNames;
         }
     }
 }
