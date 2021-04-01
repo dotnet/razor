@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, textEdit.Range, out var originalRange))
+            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, textEdit.Range, MappingBehavior.Inclusive, out var originalRange))
             {
                 // Text edit failed to map
                 return codeAction;
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocumentIdentifier = new VersionedTextDocumentIdentifier()
             {
                 Uri = csharpParams.RazorFileUri,
-                Version = documentVersion.Value
+                Version = documentVersion
             };
 
             resolvedCodeAction.Edit = new WorkspaceEdit()

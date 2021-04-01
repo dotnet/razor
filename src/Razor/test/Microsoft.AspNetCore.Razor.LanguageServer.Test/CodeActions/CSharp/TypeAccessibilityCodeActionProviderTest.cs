@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         [Fact]
-        public async Task Handle_InvalidDiagnostics_ReturnsEmpty()
+        public async Task Handle_InvalidDiagnostics_VSCode_ReturnsEmpty()
         {
             // Arrange
             var documentPath = "c:/Test.razor";
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var location = new SourceLocation(0, -1, -1);
-            var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 0));
+            var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 0), supportsCodeActionResolve: false);
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
             var provider = new TypeAccessibilityCodeActionProvider();
@@ -225,11 +225,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             );
         }
 
-        [Theory]
-        [InlineData("CS0246")]
-        [InlineData("CS0103")]
-        [InlineData("IDE1007")]
-        public async Task Handle_ValidDiagnostic_ValidCodeAction_VS_ReturnsCodeActions(string errorCode)
+        [Fact]
+        public async Task Handle_ValidCodeAction_VS_ReturnsCodeActions()
         {
             // Arrange
             var documentPath = "c:/Test.razor";
@@ -240,27 +237,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Range = new Range(),
                 Context = new CodeActionContext()
                 {
-                    Diagnostics = new Container<Diagnostic>(
-                        new Diagnostic()
-                        {
-                            Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0132")
-                        },
-                        new Diagnostic()
-                        {
-                            Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode(errorCode),
-                            Range = new Range(
-                                new Position(0, 8),
-                                new Position(0, 12)
-                            )
-                        },
-                        new Diagnostic()
-                        {
-                            Severity = DiagnosticSeverity.Error,
-                            Code = new DiagnosticCode("CS0183")
-                        }
-                    )
+                    Diagnostics = new Container<Diagnostic>()
                 }
             };
 
@@ -298,8 +275,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 r =>
                 {
                     Assert.Equal("System.IO.Path", r.Title);
-                    Assert.NotNull(r.Edit);
-                    Assert.Null(r.Data);
+                    Assert.Null(r.Edit);
+                    Assert.NotNull(r.Data);
                 }
             );
         }
