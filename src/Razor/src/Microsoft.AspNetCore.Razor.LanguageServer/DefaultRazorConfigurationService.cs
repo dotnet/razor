@@ -137,6 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             out int tabSize)
         {
             var vsEditor = result[2];
+
             insertSpaces = RazorLSPOptions.Default.InsertSpaces;
             tabSize = RazorLSPOptions.Default.TabSize;
 
