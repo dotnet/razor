@@ -63,8 +63,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 ProcessCodeActionsVS(context, codeActions) :
                 ProcessCodeActionsVSCode(context, codeActions);
 
-            results.ToList().Sort((a, b) => string.Compare(a.Title, b.Title, StringComparison.Ordinal));
-            return Task.FromResult(results as IReadOnlyList<RazorCodeAction>);
+            var orderedResults = results.OrderBy(codeAction => codeAction.Title).ToArray();
+            return Task.FromResult(orderedResults as IReadOnlyList<RazorCodeAction>);
         }
 
         private static IEnumerable<RazorCodeAction> ProcessCodeActionsVSCode(
@@ -162,13 +162,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.FullyQualify, StringComparison.Ordinal))
                 {
+                    var node = FindImplicitOrExplicitExpressionNode(context);
+                    string action;
+
                     // The formatting pass of our Default code action resolver rejects
-                    // implicit/explicit expressions. So if we're in an implicit/explicit expression, 
+                    // implicit/explicit expressions. So if we're in an implicit expression, 
                     // we run the remapping resolver responsible for simply remapping 
-                    // (without formatting) the resolved code action.
-                    var action = IsImplicitOrExplicitExpression(context) ?
-                        LanguageServerConstants.CodeActions.UnformattedRemap :
-                        LanguageServerConstants.CodeActions.Default;
+                    // (without formatting) the resolved code action. We do not support
+                    // explicit expressions due to issues with the remapping methodology
+                    // risking document corruption.
+                    if (node is null)
+                    {
+                        action = LanguageServerConstants.CodeActions.Default;
+                    }
+                    else if (node is CSharpImplicitExpressionSyntax)
+                    {
+                        action = LanguageServerConstants.CodeActions.UnformattedRemap;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
                     typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, action));
                 }
                 // For add using suggestions, the code action title is of the form:
@@ -188,20 +203,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return typeAccessibilityCodeActions;
 
-            static bool IsImplicitOrExplicitExpression(RazorCodeActionContext context)
+            static SyntaxNode FindImplicitOrExplicitExpressionNode(RazorCodeActionContext context)
             {
                 var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
                 var syntaxTree = context.CodeDocument.GetSyntaxTree();
                 if (syntaxTree?.Root is null)
                 {
-                    return false;
+                    return null;
                 }
 
                 var owner = syntaxTree.Root.LocateOwner(change);
                 if (owner == null)
                 {
                     Debug.Fail("Owner should never be null.");
-                    return false;
+                    return null;
                 }
 
                 // E.g, (| is position)
@@ -209,7 +224,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 // `@|foo` - true
                 // `@(|foo)` - true
                 //
-                return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax || n is CSharpExplicitExpressionSyntax);
+                return owner.AncestorsAndSelf().FirstOrDefault(n => n is CSharpImplicitExpressionSyntax || n is CSharpExplicitExpressionSyntax);
             }
         }
 
