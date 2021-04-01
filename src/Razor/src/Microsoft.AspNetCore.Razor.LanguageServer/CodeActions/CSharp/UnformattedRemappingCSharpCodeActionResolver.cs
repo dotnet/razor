@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,14 +17,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     /// <summary>
     /// Resolves and remaps the code action, without running formatting passes.
     /// </summary>
-    internal class RemappingCSharpCodeActionResolver : CSharpCodeActionResolver
+    internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionResolver
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly RazorDocumentMappingService _documentMappingService;
 
-        public RemappingCSharpCodeActionResolver(
+        public UnformattedRemappingCSharpCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
@@ -37,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
 
-        public override string Action => LanguageServerConstants.CodeActions.Remap;
+        public override string Action => LanguageServerConstants.CodeActions.UnformattedRemap;
 
         public async override Task<CodeAction> ResolveAsync(
             CSharpCodeActionParams csharpParams,
@@ -66,6 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             if (resolvedCodeAction.Edit.DocumentChanges.Count() != 1)
             {
                 // We don't yet support multi-document code actions, return original code action
+                Debug.Fail($"Encountered an unsupported multi-document code action edit with ${codeAction.Title}.");
                 return codeAction;
             }
 
@@ -83,10 +85,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var documentSnapshot = await Task.Factory.StartNew(() =>
+            var (documentSnapshot, documentVersion) = await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot);
-                return documentSnapshot;
+
+                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
+
+                return (documentSnapshot, version);
             }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
 
             if (documentSnapshot is null)
@@ -100,22 +105,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            if (!_documentMappingService.TryMapFromProjectedDocumentRange(
-                    codeDocument,
-                    textEdit.Range,
-                    out var originalRange))
+            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, textEdit.Range, out var originalRange))
             {
                 // Text edit failed to map
                 return codeAction;
             }
 
             textEdit.Range = originalRange;
-
-            var documentVersion = await Task.Factory.StartNew(() =>
-            {
-                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
-                return version;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
 
             var codeDocumentIdentifier = new VersionedTextDocumentIdentifier()
             {

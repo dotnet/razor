@@ -166,8 +166,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     // implicit/explicit expressions. So if we're in an implicit/explicit expression, 
                     // we run the remapping resolver responsible for simply remapping 
                     // (without formatting) the resolved code action.
-                    var action = IsImplicitOrExplicitExpression() ?
-                        LanguageServerConstants.CodeActions.Remap :
+                    var action = IsImplicitOrExplicitExpression(context) ?
+                        LanguageServerConstants.CodeActions.UnformattedRemap :
                         LanguageServerConstants.CodeActions.Default;
                     typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, action));
                 }
@@ -188,7 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return typeAccessibilityCodeActions;
 
-            bool IsImplicitOrExplicitExpression()
+            static bool IsImplicitOrExplicitExpression(RazorCodeActionContext context)
             {
                 var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
                 var syntaxTree = context.CodeDocument.GetSyntaxTree();

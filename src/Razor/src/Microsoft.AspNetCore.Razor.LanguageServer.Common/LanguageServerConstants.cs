@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             /// <summary>
             /// Remaps without formatting the resolved code action edit
             /// </summary>
-            public const string Remap = "Remap";
+            public const string UnformattedRemap = "UnformattedRemap";
 
             /// <summary>
             /// Remaps and formats the resolved code action edit
