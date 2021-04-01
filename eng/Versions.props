@@ -116,6 +116,7 @@
     <MicrosoftVisualStudioOLEInteropPackageVersion>7.10.6071</MicrosoftVisualStudioOLEInteropPackageVersion>
     <MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>16.8.1-beta1-10222-04</MicrosoftVisualStudioProjectSystemManagedVSPackageVersion>
     <MicrosoftVisualStudioProjectSystemSDKPackageVersion>16.10.81-pre</MicrosoftVisualStudioProjectSystemSDKPackageVersion>
+    <MicrosoftVisualStudioRpcContractsPackageVersion>16.10.14-alpha</MicrosoftVisualStudioRpcContractsPackageVersion>
     <MicrosoftVisualStudioSDKAnalyzersVersion>16.7.9</MicrosoftVisualStudioSDKAnalyzersVersion>
     <MicrosoftVisualStudioShellInterop163DesignTimePackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop163DesignTimePackageVersion>
     <MicrosoftVisualStudioShell150PackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShell150PackageVersion>
