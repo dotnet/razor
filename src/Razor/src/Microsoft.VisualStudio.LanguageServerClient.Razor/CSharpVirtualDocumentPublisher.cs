@@ -48,6 +48,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void DocumentManager_Changed(object sender, LSPDocumentChangeEventArgs args)
         {
+            // We need the below check to address a race condition between when a request is sent to the C# server
+            // and when the C# server receives a workspace/didOpen notification for the document. This race condition
+            // may occur when the Razor server finishes initializing before C# receives and processes the document open
+            // request.
+            // This workaround adds the Razor client name to the document so the C# server will recognize it, despite
+            // the document not being formally opened. Note this is meant to only be a temporary workaround until a
+            // longer-term solution is implemented in the future.
+            if (args.Kind == LSPDocumentChangeKind.Added)
+            {
+                var csharpContainer = new CSharpVirtualDocumentContainer(_lspDocumentMappingProvider, args.New, args.New.Snapshot);
+                _dynamicFileInfoProvider.UpdateLSPFileInfo(args.New.Uri, csharpContainer);
+            }
+
             if (args.Kind != LSPDocumentChangeKind.VirtualDocumentChanged)
             {
                 return;
