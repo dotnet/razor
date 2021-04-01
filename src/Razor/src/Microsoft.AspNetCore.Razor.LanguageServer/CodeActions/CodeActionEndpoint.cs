@@ -194,13 +194,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private IEnumerable<RazorCodeAction> ExtractCSharpCodeActionNamesFromData(IEnumerable<RazorCodeAction> codeActions)
         {
-            foreach (var codeAction in codeActions)
+            return codeActions.Where(codeAction =>
             {
                 // Note: we may see a perf benefit from using a JsonConverter
                 var tags = codeAction.Data["CustomTags"]?.ToObject<string[]>(); ;
                 if (tags is null || tags.Length == 0)
                 {
-                    continue;
+                    return false;
                 }
 
                 foreach (var tag in tags)
@@ -211,9 +211,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         break;
                     }
                 }
-            }
 
-            return codeActions;
+                if (string.IsNullOrEmpty(codeAction.Name))
+                {
+                    return false;
+                }
+
+                return true;
+            });
         }
 
         private async Task<IEnumerable<RazorCodeAction>> FilterCSharpCodeActionsAsync(
