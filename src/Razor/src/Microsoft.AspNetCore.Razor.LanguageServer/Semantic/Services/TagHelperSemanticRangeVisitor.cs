@@ -384,9 +384,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var range = node.GetRange(source);
 
             // LSP spec forbids multi-line tokens, so we need to split this up.
-            // Thankfully all instances of this have multiple component tokens.
             if (range.Start.Line != range.End.Line)
             {
+                var childNodes = node.ChildNodes();
+                if (childNodes.Count == 0)
+                {
+                    var content = node.GetContent();
+                    var lines = content.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                    var charPosition = range.Start.Character;
+                    for(var i = 0; i <= range.End.Line - range.Start.Line; i++)
+                    {
+                        var startPosition = new Position(range.Start.Line + i, charPosition);
+                        var endPosition = new Position(range.Start.Line + i, charPosition + lines[i].Length);
+                        var lineRange = new Range(startPosition, endPosition);
+                        var semantic = new SemanticRange(semanticKind, lineRange, modifier: 0);
+                        AddRange(semantic);
+                        charPosition = 0;
+                    }
+                }
+
                 // We have to iterate over the individual nodes because this node might consist of multiple lines
                 // ie: "/r/ntext/r/n" would be parsed as one node containing three elements (newline, "text", newline).
                 foreach (var token in node.ChildNodes())
