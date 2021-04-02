@@ -344,11 +344,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitMarkupTransition(MarkupTransitionSyntax node)
         {
-            if (node.TransitionTokens.Count != 1)
-            {
-                throw new NotImplementedException("Why would there be more than one transition?");
-            }
-
             AddSemanticRange(node, RazorSemanticTokensLegend.RazorTransition);
         }
         #endregion Razor
