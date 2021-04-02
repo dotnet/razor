@@ -390,9 +390,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 if (childNodes.Count == 0)
                 {
                     var content = node.GetContent();
-                    var lines = content.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                    var lines = content.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
                     var charPosition = range.Start.Character;
-                    for(var i = 0; i <= range.End.Line - range.Start.Line; i++)
+                    for (var i = 0; i < lines.Length; i++)
                     {
                         var startPosition = new Position(range.Start.Line + i, charPosition);
                         var endPosition = new Position(range.Start.Line + i, charPosition + lines[i].Length);
@@ -428,7 +428,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 if (_range is null || semanticRange.Range.OverlapsWith(_range))
                 {
-                    _semanticRanges.Add(semanticRange);
+                    if (semanticRange.Range.Start != semanticRange.Range.End)
+                    {
+                        _semanticRanges.Add(semanticRange);
+                    }
                 }
             }
         }
