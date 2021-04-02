@@ -574,6 +574,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
+        public async Task GetSemanticTokens_Razor_MultiLineCommentMidlineAsync()
+        {
+            var txt = $@"<a />@* kdl
+   skd
+slf*@";
+
+            await AssertSemanticTokensAsync(txt, isRazor: false);
+        }
+
+        [Fact]
         public async Task GetSemanticTokens_Razor_MultiLineCommentAsync()
         {
             var txt = $"@* {Environment.NewLine}" +
