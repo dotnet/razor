@@ -402,19 +402,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         charPosition = 0;
                     }
                 }
-
-                // We have to iterate over the individual nodes because this node might consist of multiple lines
-                // ie: "/r/ntext/r/n" would be parsed as one node containing three elements (newline, "text", newline).
-                foreach (var token in node.ChildNodes())
+                else
                 {
-                    // We skip whitespace to avoid "multiline" ranges for "/r/n", where the /n is interpreted as being on a new line.
-                    // This also stops us from returning data for " ", which seems like a nice side-effect as it's not likly to have any colorization anyway.
-                    if (!token.ContainsOnlyWhitespace())
+                    // We have to iterate over the individual nodes because this node might consist of multiple lines
+                    // ie: "/r/ntext/r/n" would be parsed as one node containing three elements (newline, "text", newline).
+                    foreach (var token in node.ChildNodes())
                     {
-                        var tokenRange = token.GetRange(source);
+                        // We skip whitespace to avoid "multiline" ranges for "/r/n", where the /n is interpreted as being on a new line.
+                        // This also stops us from returning data for " ", which seems like a nice side-effect as it's not likly to have any colorization anyway.
+                        if (!token.ContainsOnlyWhitespace())
+                        {
+                            var tokenRange = token.GetRange(source);
 
-                        var semantic = new SemanticRange(semanticKind, tokenRange, modifier: 0);
-                        AddRange(semantic);
+                            var semantic = new SemanticRange(semanticKind, tokenRange, modifier: 0);
+                            AddRange(semantic);
+                        }
                     }
                 }
             }
