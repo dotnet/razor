@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor
     // Given a DocumentSnapshot this class allows the retrieval of a TextLoader for the generated C#
     // and services to help map spans and excerpts to and from the top-level Razor document to behind
     // the scenes C#.
-    internal sealed class DefaultDynamicDocumentContainer : DynamicDocumentContainer
+    internal class DefaultDynamicDocumentContainer : DynamicDocumentContainer
     {
         private readonly DocumentSnapshot _documentSnapshot;
         private RazorDocumentExcerptService _excerptService;
