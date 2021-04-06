@@ -565,7 +565,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
-        public async Task GetSemanticTokens_Razor_NestedIfDirectives()
+        public async Task GetSemanticTokens_Razor_NestedTextDirectives()
         {
             var txt = @$"@functions {{
                 private void BidsByShipment(string generatedId, int bids)

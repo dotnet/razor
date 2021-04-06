@@ -11,14 +11,9 @@
 0 5 1 84 0 //markupAttributeQuote"
 0 1 1 80 0 //markupTagDelimiter>
 1 28 1 73 0 //razorTransition@
-2 32 1 80 0 //markupTagDelimiter<
-0 1 4 76 0 //razorDirectivetext
-0 4 1 80 0 //markupTagDelimiter>
-0 1 1 73 0 //razorTransition@
-0 13 1 80 0 //markupTagDelimiter<
-0 1 1 80 0 //markupTagDelimiter/
-0 1 4 76 0 //razorDirectivetext
-0 4 1 80 0 //markupTagDelimiter>
+2 32 6 76 0 //razorDirective<text>
+0 6 1 73 0 //razorTransition@
+0 13 7 76 0 //markupTagDelimiter</text>
 2 24 1 80 0 //markupTagDelimiter<
 0 1 1 80 0 //markupTagDelimiter/
 0 1 1 81 0 //markupElementa

@@ -69,51 +69,52 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitMarkupStartTag(MarkupStartTagSyntax node)
         {
-            AddSemanticRange(node.OpenAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
-            if (node.Bang != null)
-            {
-                AddSemanticRange(node.Bang, RazorSemanticTokensLegend.MarkupElement);
-            }
-
             if (node.IsMarkupTransition)
             {
-                AddSemanticRange(node.Name, RazorSemanticTokensLegend.RazorDirective);
+                AddSemanticRange(node, RazorSemanticTokensLegend.RazorDirective);
             }
             else
             {
-                AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupElement);
-            }
+                AddSemanticRange(node.OpenAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
+                if (node.Bang != null)
+                {
+                    AddSemanticRange(node.Bang, RazorSemanticTokensLegend.MarkupElement);
+                }
 
-            Visit(node.Attributes);
-            if (node.ForwardSlash != null)
-            {
-                AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
+                AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupElement);
+
+                Visit(node.Attributes);
+                if (node.ForwardSlash != null)
+                {
+                    AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
+                }
+                AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
             }
-            AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
         }
 
         public override void VisitMarkupEndTag(MarkupEndTagSyntax node)
         {
-            AddSemanticRange(node.OpenAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
-            if (node.Bang != null)
-            {
-                AddSemanticRange(node.Bang, RazorSemanticTokensLegend.MarkupElement);
-            }
-
-            if (node.ForwardSlash != null)
-            {
-                AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
-            }
-
             if (node.IsMarkupTransition)
             {
-                AddSemanticRange(node.Name, RazorSemanticTokensLegend.RazorDirective);
+                AddSemanticRange(node, RazorSemanticTokensLegend.RazorDirective);
             }
             else
             {
+                AddSemanticRange(node.OpenAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
+                if (node.Bang != null)
+                {
+                    AddSemanticRange(node.Bang, RazorSemanticTokensLegend.MarkupElement);
+                }
+
+                if (node.ForwardSlash != null)
+                {
+                    AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
+                }
+
                 AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupElement);
+
+                AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
             }
-            AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
         }
 
         public override void VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
