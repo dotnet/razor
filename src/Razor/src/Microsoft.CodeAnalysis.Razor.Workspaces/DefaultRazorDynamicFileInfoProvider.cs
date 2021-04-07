@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             var filename = associatedKey.FilePath + ".g.cs";
 
             // To promote the background document, we just need to add the passed in properties service to
-            // the dynamic file info. The properties service will contain the client name and will allow
-            // the C# server to recognize the document.
+            // the dynamic file info. The properties service contains the client name and allows the C#
+            // server to recognize the document.
             var documentServiceProvider = associatedEntry.Current.DocumentServiceProvider;
             var excerptService = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
             var mappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
