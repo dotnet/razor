@@ -42,7 +42,7 @@
 
   <Target Name="Restore">
     <Message Importance="High" Text="Running yarn install on $(MSBuildProjectFullPath)" />
-    <Yarn Command="install --verbose --mutex network $(InstallArgs)" StandardOutputImportance="High" StandardErrorImportance="High" />
+    <Yarn Command="install --mutex network $(InstallArgs)" StandardOutputImportance="High" StandardErrorImportance="High" />
   </Target>
 
   <Target Name="PrepareForBuild">
