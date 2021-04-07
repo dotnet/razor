@@ -9,7 +9,6 @@
     "clean": "rimraf dist",
     "build": "yarn run clean && yarn run lint && tsc -p ./",
     "lint": "tslint --project ./",
-    "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "jest",
     "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand --colors"
   },

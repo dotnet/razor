@@ -26,7 +26,6 @@
   "scripts": {
     "clean": "rimraf out && rimraf dist",
     "build": "yarn run clean && yarn run lint && tsc -p ./",
-    "prepare": "node ./node_modules/vscode/bin/install",
     "lint": "tslint ./src/**/*.ts",
     "watch": "tsc -watch -p ./"
   }

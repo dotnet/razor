@@ -161,8 +161,7 @@
         "clean": "rimraf dist",
         "build": "yarn run clean && yarn run lint && tsc -p ./",
         "lint": "tslint --project ./",
-        "watch": "yarn run clean && yarn run lint && tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install"
+        "watch": "yarn run clean && yarn run lint && tsc -watch -p ./"
     },
     "devDependencies": {
         "@types/node": "9.4.7",
