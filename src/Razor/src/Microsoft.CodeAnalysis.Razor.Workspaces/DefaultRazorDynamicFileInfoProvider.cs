@@ -117,6 +117,16 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         // document will allow it to be recognized by the C# server.
         public void PromoteBackgroundDocument(Uri documentUri, IRazorDocumentPropertiesService propertiesService)
         {
+            if (documentUri is null)
+            {
+                throw new ArgumentNullException(nameof(documentUri));
+            }
+
+            if (propertiesService is null)
+            {
+                throw new ArgumentNullException(nameof(propertiesService));
+            }
+
             var filePath = documentUri.GetAbsoluteOrUNCPath().Replace('/', '\\');
             if (!TryGetKeyAndEntry(filePath, out var associatedKvp))
             {
@@ -359,6 +369,24 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 IRazorSpanMappingService spanMappingService,
                 TextLoader textLoader)
             {
+                // It's valid for the excerpt service and span mapping service to be null in this class,
+                // so we purposefully don't null check them below.
+
+                if (documentUri is null)
+                {
+                    throw new ArgumentNullException(nameof(documentUri));
+                }
+
+                if (documentPropertiesService is null)
+                {
+                    throw new ArgumentNullException(nameof(documentPropertiesService));
+                }
+
+                if (textLoader is null)
+                {
+                    throw new ArgumentNullException(nameof(textLoader));
+                }
+
                 _documentUri = documentUri;
                 _documentPropertiesService = documentPropertiesService;
                 _documentExcerptService = documentExcerptService;
