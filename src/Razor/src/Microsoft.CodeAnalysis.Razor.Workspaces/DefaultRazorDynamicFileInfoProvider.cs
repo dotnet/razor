@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             var documentServiceProvider = associatedEntry.Current.DocumentServiceProvider;
             var excerptService = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
             var mappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
-            var emptyContainer = new AddedDynamicDocumentContainer(
+            var emptyContainer = new PromotedDynamicDocumentContainer(
                 documentUri, propertiesService, excerptService, mappingService, associatedEntry.Current.TextLoader);
 
             lock (associatedEntry.Lock)
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
         }
 
-        private class AddedDynamicDocumentContainer : DynamicDocumentContainer
+        private class PromotedDynamicDocumentContainer : DynamicDocumentContainer
         {
             private readonly Uri _documentUri;
             private readonly IRazorDocumentPropertiesService _documentPropertiesService;
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             private readonly IRazorSpanMappingService _spanMappingService;
             private readonly TextLoader _textLoader;
 
-            public AddedDynamicDocumentContainer(
+            public PromotedDynamicDocumentContainer(
                 Uri documentUri,
                 IRazorDocumentPropertiesService documentPropertiesService,
                 IRazorDocumentExcerptService documentExcerptService,
