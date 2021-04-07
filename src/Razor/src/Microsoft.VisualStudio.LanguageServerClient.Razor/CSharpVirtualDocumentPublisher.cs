@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using CodeAnalysisWorkspace = Microsoft.CodeAnalysis.Workspace;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -24,13 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private readonly RazorDynamicFileInfoProvider _dynamicFileInfoProvider;
         private readonly LSPDocumentMappingProvider _lspDocumentMappingProvider;
-        private readonly ProjectSnapshotManager _projectSnapshotManager;
 
         [ImportingConstructor]
-        public CSharpVirtualDocumentPublisher(
-            RazorDynamicFileInfoProvider dynamicFileInfoProvider,
-            LSPDocumentMappingProvider lspDocumentMappingProvider,
-            ProjectSnapshotManager projectSnapshotManager)
+        public CSharpVirtualDocumentPublisher(RazorDynamicFileInfoProvider dynamicFileInfoProvider, LSPDocumentMappingProvider lspDocumentMappingProvider)
         {
             if (dynamicFileInfoProvider is null)
             {
@@ -42,14 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(lspDocumentMappingProvider));
             }
 
-            if (projectSnapshotManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManager));
-            }
-
             _dynamicFileInfoProvider = dynamicFileInfoProvider;
             _lspDocumentMappingProvider = lspDocumentMappingProvider;
-            _projectSnapshotManager = projectSnapshotManager;
         }
 
         public override void Initialize(LSPDocumentManager documentManager)
@@ -65,13 +53,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void DocumentManager_Changed(object sender, LSPDocumentChangeEventArgs args)
         {
-            if (args.Kind == LSPDocumentChangeKind.Added)
+            // We need the below check to address a race condition between when a request is sent to the C# server
+            // for a generated document and when the C# server receives a document/didOpen notification. This race
+            // condition may occur when the Razor server finishes initializing before C# receives and processes the
+            // document open request.
+            // This workaround adds the Razor client name to the generated document so the C# server will recognize
+            // it, despite the document not being formally opened. Note this is meant to only be a temporary
+            // workaround until a longer-term solution is implemented in the future.
+            if (args.Kind == LSPDocumentChangeKind.Added && _dynamicFileInfoProvider is DefaultRazorDynamicFileInfoProvider defaultProvider)
             {
-                if (TryGetVirtualDocumentSnapshot(args.New.Uri, _projectSnapshotManager, out var documentSnapshot))
-                {
-                    var addedDocumentContainer = new CSharpAddedVirtualDocumentContainer(documentSnapshot);
-                    _dynamicFileInfoProvider.UpdateLSPFileInfo(args.New.Uri, addedDocumentContainer);
-                }
+                defaultProvider.PromoteBackgroundDocument(args.New.Uri, CSharpDocumentPropertiesService.Instance);
             }
 
             if (args.Kind != LSPDocumentChangeKind.VirtualDocumentChanged)
@@ -83,37 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 var csharpContainer = new CSharpVirtualDocumentContainer(_lspDocumentMappingProvider, args.New, args.VirtualNew.Snapshot);
                 _dynamicFileInfoProvider.UpdateLSPFileInfo(args.New.Uri, csharpContainer);
-            }
-
-            static bool TryGetVirtualDocumentSnapshot(
-                Uri documentUri,
-                ProjectSnapshotManager projectSnapshotManager,
-                out DocumentSnapshot documentSnapshot)
-            {
-                documentSnapshot = null;
-                foreach (var project in projectSnapshotManager.Projects)
-                {
-                    var filePath = CodeAnalysis.Razor.UriExtensions.GetAbsoluteOrUNCPath(documentUri).Replace('/', '\\');
-                    documentSnapshot ??= project.GetDocument(filePath);
-                    if (documentSnapshot != null)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        private class CSharpAddedVirtualDocumentContainer : DefaultDynamicDocumentContainer
-        {
-            public CSharpAddedVirtualDocumentContainer(DocumentSnapshot documentSnapshot) : base(documentSnapshot)
-            {
-            }
-
-            public override IRazorDocumentPropertiesService GetDocumentPropertiesService()
-            {
-                return CSharpDocumentPropertiesService.Instance;
             }
         }
 
