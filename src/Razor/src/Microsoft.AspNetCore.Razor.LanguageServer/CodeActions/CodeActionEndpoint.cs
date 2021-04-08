@@ -210,6 +210,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         codeAction.Name = tag;
                         break;
                     }
+                    else if (tag.Equals(LanguageServerConstants.CodeActions.CodeActionFromVSCode, StringComparison.Ordinal))
+                    {
+                        codeAction.Name = tag;
+                        break;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(codeAction.Name))
@@ -218,7 +223,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 }
 
                 return true;
-            });
+            }).ToArray();
         }
 
         private async Task<IEnumerable<RazorCodeAction>> FilterCSharpCodeActionsAsync(
