@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         insertText: "@",
                         kind: RazorCompletionItemKind.Directive,
 
-                        // We specify these two commit characters to work around a Visual Studio interaction where
+                        // We specify these three commit characters to work around a Visual Studio interaction where
                         // completion items that get "soft selected" will cause completion to re-trigger if a user
                         // types one of the soft-selected completion item's commit characters.
                         // In practice this happens in the `<button |` scenario where the "space" results in completions
