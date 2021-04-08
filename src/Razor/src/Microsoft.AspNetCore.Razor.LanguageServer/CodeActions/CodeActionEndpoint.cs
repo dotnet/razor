@@ -205,12 +205,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
                 foreach (var tag in tags)
                 {
-                    if (_allAvailableCodeActionNames.Contains(tag))
-                    {
-                        codeAction.Name = tag;
-                        break;
-                    }
-                    else if (tag.Equals(LanguageServerConstants.CodeActions.CodeActionFromVSCode, StringComparison.Ordinal))
+                    if (_allAvailableCodeActionNames.Contains(tag) ||
+                        tag.Equals(LanguageServerConstants.CodeActions.CodeActionFromVSCode, StringComparison.Ordinal))
                     {
                         codeAction.Name = tag;
                         break;
