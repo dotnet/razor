@@ -205,8 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
                 foreach (var tag in tags)
                 {
-                    if (_allAvailableCodeActionNames.Contains(tag) ||
-                        tag.Equals(LanguageServerConstants.CodeActions.CodeActionFromVSCode, StringComparison.Ordinal))
+                    if (_allAvailableCodeActionNames.Contains(tag))
                     {
                         codeAction.Name = tag;
                         break;
@@ -319,6 +318,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             availableCodeActionNames.UnionWith(refactoringProviderNames);
             availableCodeActionNames.UnionWith(codeFixProviderNames);
+            availableCodeActionNames.Add(LanguageServerConstants.CodeActions.CodeActionFromVSCode);
 
             return availableCodeActionNames;
         }
