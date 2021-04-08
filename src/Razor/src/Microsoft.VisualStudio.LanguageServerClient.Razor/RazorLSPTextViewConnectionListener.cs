@@ -254,7 +254,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 // initialized. Ideally, the platform should be queuing requests until the language server
                 // is ready. However, we should catch any exceptions here just in case since VS will crash
                 // if an exception is hit in this method.
-                Debug.Fail($"Error executing workspace/didChangeConfiguration request: {ex.Message}");
             }
         }
 
