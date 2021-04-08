@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     new DidChangeConfigurationParams(),
                     CancellationToken.None);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // This may happen if the TextView finishes attaching before the Razor language server is
                 // initialized. Ideally, the platform should be queuing requests until the language server
