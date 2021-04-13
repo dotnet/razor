@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -19,6 +20,7 @@ using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
 using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens;
 using SemanticTokensDelta = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokensDelta;
+using SemanticTokensEdit = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokensEdit;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -326,20 +328,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             semanticTokensEditsParams.TextDocument.Uri = csharpDoc.Uri;
 
-            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensEditsParams, SumType<SemanticTokens, SemanticTokensDelta>>(
+            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensEditsParams, SumType<LanguageServer.Protocol.SemanticTokens, SemanticTokensEdits>>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEditEndpoint,
                 LanguageServerKind.CSharp.ToContentType(),
                 semanticTokensEditsParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (csharpResults.Value is SemanticTokens tokens)
+            if (csharpResults.Value is LanguageServer.Protocol.SemanticTokens tokens)
             {
-                var result = new ProvideSemanticTokensResponse(tokens, editResult: null, csharpDoc.HostDocumentSyncVersion);
+                var convertedTokens = new SemanticTokens { ResultId = tokens.ResultId, Data = ImmutableArray.Create(tokens.Data) };
+                var result = new ProvideSemanticTokensResponse(convertedTokens, editResult: null, csharpDoc.HostDocumentSyncVersion);
                 return result;
             }
-            else if (csharpResults.Value is SemanticTokensDelta edits)
+            else if (csharpResults.Value is SemanticTokensEdits edits)
             {
-                var result = new ProvideSemanticTokensResponse(result: null, editResult: edits, csharpDoc.HostDocumentSyncVersion);
+                var convertedEdits = edits.Edits.Select(e => new SemanticTokensEdit { Start = e.Start, Data = ImmutableArray.Create(e.Data), DeleteCount = e.DeleteCount });
+                var container = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Container<SemanticTokensEdit>(convertedEdits);
+                var newEdits = new SemanticTokensDelta { ResultId = edits.ResultId, Edits = container };
+                var result = new ProvideSemanticTokensResponse(result: null, editResult: newEdits, csharpDoc.HostDocumentSyncVersion);
                 return result;
             }
             else
