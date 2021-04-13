@@ -400,7 +400,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         var startPosition = new Position(range.Start.Line + i, charPosition);
                         var endPosition = new Position(range.Start.Line + i, charPosition + lines[i].Length);
                         var lineRange = new Range(startPosition, endPosition);
-                        var semantic = new SemanticRange(semanticKind, lineRange, modifier: 0);
+                        var semantic = new SemanticRange(semanticKind, lineRange, modifier: 0, resultId: null);
                         AddRange(semantic);
                         charPosition = 0;
                     }
@@ -417,7 +417,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         {
                             var tokenRange = token.GetRange(source);
 
-                            var semantic = new SemanticRange(semanticKind, tokenRange, modifier: 0);
+                            var semantic = new SemanticRange(semanticKind, tokenRange, modifier: 0, resultId: null);
                             AddRange(semantic);
                         }
                     }
@@ -425,7 +425,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
             else
             {
-                var semanticRange = new SemanticRange(semanticKind, range, modifier: 0);
+                var semanticRange = new SemanticRange(semanticKind, range, modifier: 0, resultId: null);
                 AddRange(semanticRange);
             }
 

@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
 using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens;
+using SemanticTokensDelta = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokensDelta;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -296,9 +297,55 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 semanticTokensParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var result = new ProvideSemanticTokensResponse(csharpResults, csharpDoc.HostDocumentSyncVersion);
+            var result = new ProvideSemanticTokensResponse(csharpResults, editResult: null, csharpDoc.HostDocumentSyncVersion);
 
             return result;
+        }
+
+        [Obsolete]
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
+        public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensEditsAsync(
+#pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
+            SemanticTokensEditsParams semanticTokensEditsParams,
+            CancellationToken cancellationToken)
+        {
+            if (semanticTokensEditsParams is null)
+            {
+                throw new ArgumentNullException(nameof(semanticTokensEditsParams));
+            }
+
+            if (!_documentManager.TryGetDocument(semanticTokensEditsParams.TextDocument.Uri, out var documentSnapshot))
+            {
+                return null;
+            }
+
+            if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
+            {
+                return null;
+            }
+
+            semanticTokensEditsParams.TextDocument.Uri = csharpDoc.Uri;
+
+            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensEditsParams, SumType<SemanticTokens, SemanticTokensDelta>>(
+                LanguageServerConstants.LegacyRazorSemanticTokensEditEndpoint,
+                LanguageServerKind.CSharp.ToContentType(),
+                semanticTokensEditsParams,
+                cancellationToken).ConfigureAwait(false);
+
+            if (csharpResults.Value is SemanticTokens tokens)
+            {
+                var result = new ProvideSemanticTokensResponse(tokens, editResult: null, csharpDoc.HostDocumentSyncVersion);
+                return result;
+            }
+            else if (csharpResults.Value is SemanticTokensDelta edits)
+            {
+                var result = new ProvideSemanticTokensResponse(result: null, editResult: edits, csharpDoc.HostDocumentSyncVersion);
+                return result;
+            }
+            else
+            {
+                throw new ArgumentException("Returned tokens should be of type SemanticTokens or SemanticTokensEdits.");
+            }
         }
 
         public override async Task RazorServerReadyAsync(CancellationToken cancellationToken)
