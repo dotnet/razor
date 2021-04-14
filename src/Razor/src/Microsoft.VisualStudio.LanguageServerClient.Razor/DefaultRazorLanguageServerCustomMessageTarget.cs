@@ -334,6 +334,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 semanticTokensEditsParams,
                 cancellationToken).ConfigureAwait(false);
 
+            // Converting from LSP to O# types
             if (csharpResults.Value is LanguageServer.Protocol.SemanticTokens tokens)
             {
                 var convertedTokens = new SemanticTokens { ResultId = tokens.ResultId, Data = ImmutableArray.Create(tokens.Data) };
