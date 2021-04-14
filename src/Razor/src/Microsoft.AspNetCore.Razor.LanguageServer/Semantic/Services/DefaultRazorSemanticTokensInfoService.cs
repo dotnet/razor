@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.PooledObjects;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis;
@@ -387,11 +388,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             Assumes.NotNull(csharpResponse.EditResult);
 
-            var updatedTokens = previousCSharpTokens.ToList();
-            foreach (var edit in csharpResponse.EditResult.Edits)
+            if (!csharpResponse.EditResult.Edits.Any())
             {
-                updatedTokens.RemoveRange(edit.Start, edit.DeleteCount);
-                updatedTokens.InsertRange(edit.Start, edit.Data);
+                return new SemanticTokens { Data = previousCSharpTokens.ToImmutableArray(), ResultId = csharpResponse.EditResult.ResultId };
+            }
+
+            var edits = csharpResponse.EditResult.Edits.ToArray();
+            var currentEditIndex = 0;
+
+            using var _ = ArrayBuilder<int>.GetInstance(out var updatedTokens);
+            for (var i = 0; i < previousCSharpTokens.Count; i++)
+            {
+                if (edits.Length <= currentEditIndex || edits[currentEditIndex].Start != i)
+                {
+                    updatedTokens.Add(previousCSharpTokens[i]);
+                    continue;
+                }
+
+                var currentEdit = edits[currentEditIndex];
+
+                if (currentEdit.Data != null)
+                {
+                    updatedTokens.AddRange(currentEdit.Data);
+                }
+
+                i += currentEdit.DeleteCount - 1;
+                currentEditIndex++;
             }
 
             return new SemanticTokens { Data = updatedTokens.ToImmutableArray(), ResultId = csharpResponse.EditResult.ResultId };
