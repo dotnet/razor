@@ -130,7 +130,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot);
 
-            Assumes.NotNull(newResultId);
+            if (newResultId == null)
+            {
+                // If there's no C# in the Razor doc, we won't have a resultId returned to us.
+                // Just use a GUID in this case.
+                newResultId = Guid.NewGuid().ToString();
+            }
+
             var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, newResultId);
             _semanticTokensCache.Set(newResultId, (semanticVersion, razorSemanticTokens.Data));
 
@@ -304,12 +310,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return (null, null);
             }
 
+            var razorRanges = new List<SemanticRange>();
+            if (csharpResponses.ResultId is null)
+            {
+                // Indicates no C# code in Razor doc.
+                return (razorRanges, null);
+            }
+
             // Keep track of the tokens for the C# generated document so we can reference them
             // the next time we're called for edits.
-            _semanticTokensGeneratedCache.Set(csharpResponses.ResultId!, csharpResponses.Data);
+            _semanticTokensGeneratedCache.Set(csharpResponses.ResultId, csharpResponses.Data);
 
             SemanticRange? previousSemanticRange = null;
-            var razorRanges = new List<SemanticRange>();
             for (var i = 0; i < csharpResponses.Data.Length; i += 5)
             {
                 var lineDelta = csharpResponses.Data[i];
