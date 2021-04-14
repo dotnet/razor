@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     1, 0, 1, RazorSemanticTokensLegend.CSharpPunctuation, 0,
                     1, 0, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
                 }.ToImmutableArray(),
-                ResultId = null,
+                ResultId = 1.ToString(),
             };
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, editResult: null, hostDocumentSyncVersion: 0);
 
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var cSharpTokens = new SemanticTokens
             {
                 Data = ImmutableArray<int>.Empty,
-                ResultId = null,
+                ResultId = 1.ToString(),
             };
 
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, editResult: null, hostDocumentSyncVersion: null);

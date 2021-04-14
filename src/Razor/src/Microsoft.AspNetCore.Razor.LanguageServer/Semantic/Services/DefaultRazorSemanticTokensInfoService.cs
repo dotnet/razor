@@ -133,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (newResultId == null)
             {
                 // If there's no C# in the Razor doc, we won't have a resultId returned to us.
-                // Just use a GUID in this case.
+                // Just use a GUID instead.
                 newResultId = Guid.NewGuid().ToString();
             }
 
@@ -228,9 +228,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     return null;
                 }
 
-                Assumes.NotNull(newResultId);
+                if (newResultId == null)
+                {
+                    // If there's no C# in the Razor doc, we won't have a resultId returned to us.
+                    // Just use a GUID instead.
+                    newResultId = Guid.NewGuid().ToString();
+                }
+
                 var newTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, newResultId);
-                _semanticTokensCache.Set(newTokens.ResultId!, (semanticVersion, newTokens.Data));
+                _semanticTokensCache.Set(newResultId, (semanticVersion, newTokens.Data));
 
                 if (previousResults is null)
                 {
