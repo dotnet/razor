@@ -9,12 +9,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class SemanticRange : IComparable<SemanticRange>
     {
-        public SemanticRange(int kind, Range range, int modifier, string? resultId)
+        public SemanticRange(int kind, Range range, int modifier)
         {
             Kind = kind;
             Modifier = modifier;
             Range = range;
-            ResultId = resultId;
         }
 
         public Range Range { get; }
@@ -22,8 +21,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public int Kind { get; }
 
         public int Modifier { get; }
-
-        public string? ResultId { get; }
 
         public int CompareTo(SemanticRange other)
         {
@@ -38,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override string ToString()
         {
-            return $"[Kind: {Kind}, Range: {Range}, ResultId: {ResultId}]";
+            return $"[Kind: {Kind}, Range: {Range}]";
         }
     }
 }

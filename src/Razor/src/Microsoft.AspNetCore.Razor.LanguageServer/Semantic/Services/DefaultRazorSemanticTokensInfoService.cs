@@ -110,10 +110,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             cancellationToken.ThrowIfCancellationRequested();
             var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
             IReadOnlyList<SemanticRange>? csharpSemanticRanges = null;
+            string? newResultId = null;
 
             try
             {
-                csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, documentVersion, cancellationToken);
+                (csharpSemanticRanges, newResultId) = await GetCSharpSemanticRangesAsync(
+                    codeDocument, textDocumentIdentifier, range, documentVersion, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -132,8 +134,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot);
 
-            var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument);
-            _semanticTokensCache.Set(razorSemanticTokens.ResultId!, (semanticVersion, razorSemanticTokens.Data));
+            Assumes.NotNull(newResultId);
+            var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, newResultId);
+            _semanticTokensCache.Set(newResultId, (semanticVersion, razorSemanticTokens.Data));
 
             return razorSemanticTokens;
         }
@@ -202,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     _semanticTokensGeneratedCache.TryGetValue(previousResultId, out previousGeneratedResults);
                 }
 
-                var csharpSemanticRanges = await GetCSharpSemanticRangesAsync(
+                var (csharpSemanticRanges, newResultId) = await GetCSharpSemanticRangesAsync(
                     codeDocument,
                     textDocumentIdentifier,
                     range: null,
@@ -221,11 +224,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     return null;
                 }
 
-                var newTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument);
-                if (newTokens.ResultId != null)
-                {
-                    _semanticTokensCache.Set(newTokens.ResultId!, (semanticVersion, newTokens.Data));
-                }
+                Assumes.NotNull(newResultId);
+                var newTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, newResultId);
+                _semanticTokensCache.Set(newTokens.ResultId!, (semanticVersion, newTokens.Data));
 
                 if (previousResults is null)
                 {
@@ -285,7 +286,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         // Internal and virtual for testing only
-        internal virtual async Task<IReadOnlyList<SemanticRange>?> GetCSharpSemanticRangesAsync(
+        internal virtual async Task<(IReadOnlyList<SemanticRange>? semanticRanges, string? resultId)> GetCSharpSemanticRangesAsync(
             RazorCodeDocument codeDocument,
             TextDocumentIdentifier textDocumentIdentifier,
             Range? range,
@@ -302,7 +303,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (csharpResponses is null)
             {
-                return null;
+                return (null, null);
             }
 
             _semanticTokensGeneratedCache.Set(csharpResponses.ResultId!, csharpResponses.Data);
@@ -318,10 +319,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var tokenModifiers = csharpResponses.Data[i + 4];
 
                 var semanticRange = DataToSemanticRange(
-                    lineDelta, charDelta, length, tokenType, tokenModifiers, csharpResponses.ResultId, previousSemanticRange);
+                    lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
                 if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, semanticRange.Range, out var originalRange))
                 {
-                    var razorRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers, csharpResponses.ResultId);
+                    var razorRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers);
                     if (range is null || range.OverlapsWith(razorRange.Range))
                     {
                         razorRanges.Add(razorRange);
@@ -332,7 +333,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var result = razorRanges.ToImmutableList();
 
-            return result;
+            return (result, csharpResponses.ResultId);
         }
 
         private async Task<SemanticTokens?> GetMatchingCSharpResponseAsync(
@@ -425,12 +426,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             int length,
             int tokenType,
             int tokenModifiers,
-            string? resultId,
             SemanticRange? previousSemanticRange = null)
         {
             if (previousSemanticRange is null)
             {
-                previousSemanticRange = new SemanticRange(0, new Range(new Position(0, 0), new Position(0, 0)), modifier: 0, resultId);
+                previousSemanticRange = new SemanticRange(0, new Range(new Position(0, 0), new Position(0, 0)), modifier: 0);
             }
 
             var startLine = previousSemanticRange.Range.End.Line + lineDelta;
@@ -443,14 +443,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var end = new Position(endLine, endCharacter);
 
             var range = new Range(start, end);
-            var semanticRange = new SemanticRange(tokenType, range, tokenModifiers, resultId);
+            var semanticRange = new SemanticRange(tokenType, range, tokenModifiers);
 
             return semanticRange;
         }
 
         private SemanticTokens ConvertSemanticRangesToSemanticTokens(
             IReadOnlyList<SemanticRange> semanticRanges,
-            RazorCodeDocument razorCodeDocument)
+            RazorCodeDocument razorCodeDocument,
+            string? resultId)
         {
             SemanticRange? previousResult = null;
 
@@ -462,8 +463,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 previousResult = result;
             }
-
-            var resultId = semanticRanges.FirstOrDefault(r => r.ResultId != null)?.ResultId;
 
             var tokensResult = new SemanticTokens
             {
