@@ -432,7 +432,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     Uri = testDocUri
                 }
             };
-            var expectedResults = new ProvideSemanticTokensResponse(expectedcSharpResults, editResult: null, documentVersion);
+            var expectedResults = new ProvideSemanticTokensResponse(expectedcSharpResults, documentVersion);
 
             // Act
             var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);

@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         // Called by the Razor Language Server to provide semantic tokens edits from the platform.
         [JsonRpcMethod(LanguageServerConstants.RazorProvideSemanticTokensEditsEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<ProvideSemanticTokensResponse> ProvideSemanticTokensEditsAsync(SemanticTokensEditsParams semanticTokensParams, CancellationToken cancellationToken);
+        public abstract Task<ProvideSemanticTokensEditsResponse> ProvideSemanticTokensEditsAsync(SemanticTokensEditsParams semanticTokensParams, CancellationToken cancellationToken);
 
         [JsonRpcMethod(LanguageServerConstants.RazorServerReadyEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task RazorServerReadyAsync(CancellationToken cancellationToken);

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -11,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,8 +19,6 @@ using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
 using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens;
-using SemanticTokensDelta = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokensDelta;
-using SemanticTokensEdit = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokensEdit;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -299,14 +297,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 semanticTokensParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var result = new ProvideSemanticTokensResponse(csharpResults, editResult: null, csharpDoc.HostDocumentSyncVersion);
+            var result = new ProvideSemanticTokensResponse(csharpResults, csharpDoc.HostDocumentSyncVersion);
 
             return result;
         }
 
         [Obsolete]
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-        public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensEditsAsync(
+        public override async Task<ProvideSemanticTokensEditsResponse> ProvideSemanticTokensEditsAsync(
 #pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
             SemanticTokensEditsParams semanticTokensEditsParams,
             CancellationToken cancellationToken)
@@ -337,17 +335,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Converting from LSP to O# types
             if (csharpResults.Value is LanguageServer.Protocol.SemanticTokens tokens)
             {
-                var convertedTokens = new SemanticTokens { ResultId = tokens.ResultId, Data = ImmutableArray.Create(tokens.Data) };
-                var result = new ProvideSemanticTokensResponse(convertedTokens, editResult: null, csharpDoc.HostDocumentSyncVersion);
-                return result;
+                var response = new ProvideSemanticTokensEditsResponse(tokens.Data, edits: null, tokens.ResultId, csharpDoc.HostDocumentSyncVersion);
+                return response;
             }
             else if (csharpResults.Value is SemanticTokensEdits edits)
             {
-                var convertedEdits = edits.Edits.Select(e => new SemanticTokensEdit { Start = e.Start, Data = ImmutableArray.Create(e.Data), DeleteCount = e.DeleteCount });
-                var container = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Container<SemanticTokensEdit>(convertedEdits);
-                var newEdits = new SemanticTokensDelta { ResultId = edits.ResultId, Edits = container };
-                var result = new ProvideSemanticTokensResponse(result: null, editResult: newEdits, csharpDoc.HostDocumentSyncVersion);
-                return result;
+                var results = new RazorSemanticTokensEdit[edits.Edits.Length];
+                for (var i = 0; i < edits.Edits.Length; i++)
+                {
+                    var currentEdit = edits.Edits[i];
+                    results[i] = new RazorSemanticTokensEdit(currentEdit.Start, currentEdit.DeleteCount, currentEdit.Data);
+                }
+
+                var response = new ProvideSemanticTokensEditsResponse(tokens: null, results, edits.ResultId, csharpDoc.HostDocumentSyncVersion);
+                return response;
             }
             else
             {

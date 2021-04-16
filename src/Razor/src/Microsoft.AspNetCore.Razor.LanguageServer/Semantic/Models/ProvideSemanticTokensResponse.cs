@@ -9,38 +9,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class ProvideSemanticTokensResponse
     {
-        public ProvideSemanticTokensResponse(SemanticTokens? result, SemanticTokensDelta? editResult, long? hostDocumentSyncVersion)
+        public ProvideSemanticTokensResponse(SemanticTokens result, long? hostDocumentSyncVersion)
         {
             Result = result;
-            EditResult = editResult;
             HostDocumentSyncVersion = hostDocumentSyncVersion;
         }
 
-        public SemanticTokens? Result { get; }
-
-        public SemanticTokensDelta? EditResult { get; }
+        public SemanticTokens Result { get; }
 
         public long? HostDocumentSyncVersion { get; }
 
-        public override bool Equals(object obj)
-        {
-            if (!(obj is ProvideSemanticTokensResponse other) || !other.HostDocumentSyncVersion.Equals(HostDocumentSyncVersion))
-            {
-                return false;
-            }
-
-            if (Result != null && other.Result != null && other.Result.Equals(Result))
-            {
-                return true;
-            }
-
-            if (EditResult != null && other.EditResult != null && other.EditResult.Equals(EditResult))
-            {
-                return true;
-            }
-
-            return false;
-        }
+        public override bool Equals(object obj) =>
+            obj is ProvideSemanticTokensResponse other &&
+            other.HostDocumentSyncVersion.Equals(HostDocumentSyncVersion) && other.Result.Equals(Result);
 
         public override int GetHashCode()
         {
