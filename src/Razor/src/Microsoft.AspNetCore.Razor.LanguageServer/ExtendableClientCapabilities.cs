@@ -8,5 +8,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class ExtendableClientCapabilities : ClientCapabilities
     {
         public bool SupportsCodeActionResolve { get; set; } = false;
+
+        public bool SupportsVisualStudioExtensions { get; set; } = false;
     }
 }

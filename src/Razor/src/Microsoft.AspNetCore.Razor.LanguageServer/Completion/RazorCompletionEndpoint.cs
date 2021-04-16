@@ -29,6 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private readonly DocumentResolver _documentResolver;
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly TagHelperTooltipFactory _tagHelperTooltipFactory;
+        private readonly ClientNotifierServiceBase _languageServer;
         private readonly CompletionListCache _completionListCache;
         private static readonly Command RetriggerCompletionCommand = new Command()
         {
@@ -43,6 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             DocumentResolver documentResolver,
             RazorCompletionFactsService completionFactsService,
             TagHelperTooltipFactory tagHelperTooltipFactory,
+            ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
         {
             if (foregroundDispatcher == null)
@@ -65,6 +67,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(tagHelperTooltipFactory));
             }
 
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
@@ -74,6 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _documentResolver = documentResolver;
             _completionFactsService = completionFactsService;
             _tagHelperTooltipFactory = tagHelperTooltipFactory;
+            _languageServer = languageServer;
             _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
             _completionListCache = new CompletionListCache();
         }
@@ -194,6 +202,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             {
                 var documentation = new StringOrMarkupContent(tagHelperTooltip);
                 completionItem.Documentation = documentation;
+            }
+
+            if (_languageServer.ClientSettings.Capabilities is ExtendableClientCapabilities clientCapabilities &&
+                clientCapabilities.SupportsVisualStudioExtensions)
+            {
+                var vsCompletionItem = completionItem.ToRazorVSCompletionItem();
+                var test = new RazorClassifiedTextRun("class name", "TEST DESCRIPTION");
+                vsCompletionItem.Description = new RazorClassifiedTextElement(test);
+                return Task.FromResult<CompletionItem>(vsCompletionItem);
             }
 
             return Task.FromResult(completionItem);

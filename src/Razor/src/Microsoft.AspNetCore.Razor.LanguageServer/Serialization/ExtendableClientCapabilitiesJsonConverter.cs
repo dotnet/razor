@@ -60,6 +60,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
                     case "supportsCodeActionResolve":
                         capabilities.SupportsCodeActionResolve = reader.ReadAsBoolean().GetValueOrDefault();
                         break;
+                    case "supportsVisualStudioExtensions":
+                        capabilities.SupportsVisualStudioExtensions = reader.ReadAsBoolean().GetValueOrDefault();
+                        break;
                 }
             });
 

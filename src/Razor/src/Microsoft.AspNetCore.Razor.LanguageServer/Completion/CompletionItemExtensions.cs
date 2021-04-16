@@ -39,5 +39,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             resultId = default;
             return false;
         }
+
+        public static RazorVSCompletionItem ToRazorVSCompletionItem(this CompletionItem completion)
+        {
+            return new RazorVSCompletionItem
+            {
+                AdditionalTextEdits = completion.AdditionalTextEdits,
+                Command = completion.Command,
+                CommitCharacters = completion.CommitCharacters,
+                Data = completion.Data,
+                Deprecated = completion.Deprecated,
+                Detail = completion.Detail,
+                Documentation = completion.Documentation,
+                FilterText = completion.FilterText,
+                InsertText = completion.FilterText,
+                InsertTextFormat = completion.InsertTextFormat,
+                Kind = completion.Kind,
+                Label = completion.Label,
+                Preselect = completion.Preselect,
+                SortText = completion.SortText,
+                Tags = completion.Tags,
+                TextEdit = completion.TextEdit,
+            };
+        }
     }
 }
