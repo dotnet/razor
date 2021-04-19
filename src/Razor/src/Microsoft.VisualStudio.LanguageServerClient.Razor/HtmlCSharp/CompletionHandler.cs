@@ -212,6 +212,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 SetResolveData(resultId, completionList);
             }
 
+            completionList = completionList is VSCompletionList vsCompletionList
+                ? new OptimizedVSCompletionList(vsCompletionList)
+                : new OptimizedVSCompletionList(completionList);
+
             _logger.LogInformation("Returning completion list.");
             return completionList;
 
@@ -438,7 +442,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
             var addProvisionalDot = new VisualStudioTextChange(previousCharacterProjection.PositionIndex, 0, ".");
 
-            await _joinableTaskFactory.SwitchToMainThreadAsync();
+            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _logger.LogInformation("Adding provisional dot.");
             trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
@@ -643,7 +647,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private class CompletionItemComparer : IEqualityComparer<CompletionItem>
         {
-            public static CompletionItemComparer Instance = new CompletionItemComparer();
+            public static CompletionItemComparer Instance = new();
 
             public bool Equals(CompletionItem x, CompletionItem y)
             {
