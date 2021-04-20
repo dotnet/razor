@@ -6,5 +6,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     internal class VSCompletionListCapability
     {
         public bool CommitCharacters { get; set; }
+
+        public bool Data { get; set; }
     }
 }
