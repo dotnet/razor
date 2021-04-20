@@ -365,12 +365,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             public bool Equals(TagHelperDescriptor x, TagHelperDescriptor y)
             {
-                if (x == y)
+                if (object.ReferenceEquals(x, y))
                 {
                     return true;
                 }
 
-                if (x == null || y == null)
+                if (x is null || y is null)
                 {
                     return false;
                 }
