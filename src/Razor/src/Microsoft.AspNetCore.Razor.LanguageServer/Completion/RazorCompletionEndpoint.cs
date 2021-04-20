@@ -226,7 +226,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // We wrap the pre-existing completion list with an optimized completion list to better control serialization/deserialization
             CompletionList optimizedCompletionList = null;
 
-            if (completionCapability.VSCompletionList != null)
+            if (completionCapability?.VSCompletionList != null)
             {
                 // We're operating in VS, lets make a VS specific optimized completion list
 
