@@ -8,10 +8,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal class VSCompletionList : CompletionList
     {
-        public VSCompletionList()
-        {
-        }
-
         protected VSCompletionList(CompletionList innerCompletionList) : base (innerCompletionList.Items, innerCompletionList.IsIncomplete)
         {
         }
