@@ -304,36 +304,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 _csharpGeneratedSemanticTokensCache.TryGetValue(previousResultId, out previousCSharpTokens);
             }
 
-            var csharpResponses = previousResultId == null || previousCSharpTokens == null
+            var csharpResponse = previousResultId == null || previousCSharpTokens == null
                 ? await GetMatchingCSharpResponseAsync(
                     textDocumentIdentifier, documentVersion, cancellationToken)
                 : await GetMatchingCSharpEditsResponseAsync(
                     textDocumentIdentifier, documentVersion, previousResultId, previousCSharpTokens, cancellationToken);
 
-            if (csharpResponses is null)
+            if (csharpResponse is null)
             {
-                return new VersionedSemanticRange(null, null);
+                return VersionedSemanticRange.Default;
             }
 
             var razorRanges = new List<SemanticRange>();
-            if (csharpResponses.ResultId is null)
+            if (csharpResponse.ResultId is null)
             {
                 // Indicates no C# code in Razor doc.
                 return new VersionedSemanticRange(razorRanges, null);
             }
 
             // Keep track of the tokens for the C# generated document so we can reference them
-            // the next time we're called for edits.
-            _csharpGeneratedSemanticTokensCache.Set(csharpResponses.ResultId, csharpResponses.Data);
+            // the next time we're called for edits. We only need to insert into the cache if
+            // we receive new responses.
+            if (!_csharpGeneratedSemanticTokensCache.TryGetValue(csharpResponse.ResultId, out _))
+            {
+                _csharpGeneratedSemanticTokensCache.Set(csharpResponse.ResultId, csharpResponse.Data);
+            }
 
             SemanticRange? previousSemanticRange = null;
-            for (var i = 0; i < csharpResponses.Data.Length; i += 5)
+            for (var i = 0; i < csharpResponse.Data.Length; i += 5)
             {
-                var lineDelta = csharpResponses.Data[i];
-                var charDelta = csharpResponses.Data[i + 1];
-                var length = csharpResponses.Data[i + 2];
-                var tokenType = csharpResponses.Data[i + 3];
-                var tokenModifiers = csharpResponses.Data[i + 4];
+                var lineDelta = csharpResponse.Data[i];
+                var charDelta = csharpResponse.Data[i + 1];
+                var length = csharpResponse.Data[i + 2];
+                var tokenType = csharpResponse.Data[i + 3];
+                var tokenModifiers = csharpResponse.Data[i + 4];
 
                 var semanticRange = DataToSemanticRange(
                     lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
@@ -349,7 +353,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var result = razorRanges.ToImmutableList();
-            return new VersionedSemanticRange(result, csharpResponses.ResultId);
+            return new VersionedSemanticRange(result, csharpResponse.ResultId);
         }
 
         private async Task<SemanticTokens?> GetMatchingCSharpResponseAsync(
@@ -399,6 +403,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (csharpResponse.Edits == null)
             {
                 Assumes.NotNull(csharpResponse.Tokens);
+
                 // C#'s edit handler returned to us a full token set, so we don't need to do any additional work.
                 // This should ideally happen rarely as it indicates C# had trouble with cache retrieval.
                 return new SemanticTokens { ResultId = csharpResponse.ResultId, Data = csharpResponse.Tokens.ToImmutableArray() };
@@ -415,38 +420,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var updatedTokens = ApplyEditsToPreviousGeneratedDoc(previousCSharpTokens, csharpResponse);
 
             return new SemanticTokens { Data = updatedTokens, ResultId = csharpResponse.ResultId };
+        }
 
-           static ImmutableArray<int> ApplyEditsToPreviousGeneratedDoc(
-               IReadOnlyList<int> previousCSharpTokens,
-               ProvideSemanticTokensEditsResponse csharpResponse)
+        // Internal for testing
+        internal static ImmutableArray<int> ApplyEditsToPreviousGeneratedDoc(
+            IReadOnlyList<int> previousCSharpTokens,
+            ProvideSemanticTokensEditsResponse csharpResponse)
+        {
+            var edits = csharpResponse.Edits;
+            var currentEditIndex = 0;
+            var updatedTokens = new List<int>();
+
+            // We now apply the edits to the previous version of the generated document.
+            // For performance purposes, we only want to iterate over the tokens once.
+            for (var i = 0; i < previousCSharpTokens.Count; i++)
             {
-                var edits = csharpResponse.Edits;
-                var currentEditIndex = 0;
-                var updatedTokens = new List<int>();
-
-                // We now apply the edits to the previous version of the generated document.
-                // For performance purposes, we only want to iterate over the tokens once.
-                for (var i = 0; i < previousCSharpTokens.Count; i++)
+                if (edits!.Length <= currentEditIndex || edits[currentEditIndex].Start != i)
                 {
-                    if (edits!.Length <= currentEditIndex || edits[currentEditIndex].Start != i)
-                    {
-                        // Current token piece isn't part of an edit, add and move on.
-                        updatedTokens.Add(previousCSharpTokens[i]);
-                        continue;
-                    }
-
-                    var currentEdit = edits[currentEditIndex];
-                    if (currentEdit.Data != null)
-                    {
-                        updatedTokens.AddRange(currentEdit.Data);
-                    }
-
-                    i += currentEdit.DeleteCount - 1;
-                    currentEditIndex++;
+                    // Current token piece isn't part of an edit, add and move on.
+                    updatedTokens.Add(previousCSharpTokens[i]);
+                    continue;
                 }
 
-                return updatedTokens.ToImmutableArray();
+                var currentEdit = edits[currentEditIndex];
+                if (currentEdit.Data != null)
+                {
+                    updatedTokens.AddRange(currentEdit.Data);
+                }
+
+                i += currentEdit.DeleteCount - 1;
+                currentEditIndex++;
             }
+
+            return updatedTokens.ToImmutableArray();
         }
 
         private static SemanticRange DataToSemanticRange(
@@ -567,6 +573,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return documentInfo;
         }
 
-        internal record VersionedSemanticRange(IReadOnlyList<SemanticRange>? SemanticRanges, string? ResultId);
+        internal record VersionedSemanticRange(IReadOnlyList<SemanticRange>? SemanticRanges, string? ResultId)
+        {
+            public static VersionedSemanticRange Default => new(null, null);
+        }
     }
 }
