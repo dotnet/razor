@@ -7,14 +7,23 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
+    /// <summary>
+    /// A subclass of the LSP protocol <see cref="CompletionList"/> that contains extensions specific to Visual Studio.
+    /// </summary>
     internal class VSCompletionList : CompletionList
     {
         protected VSCompletionList(CompletionList innerCompletionList) : base (innerCompletionList.Items, innerCompletionList.IsIncomplete)
         {
         }
 
+        /// <summary>
+        /// Gets or sets the default <see cref="CompletionItem.CommitCharacters"/> used for completion items.
+        /// </summary>
         public Container<string> CommitCharacters { get; set; }
 
+        /// <summary>
+        /// Gets or sets the default <see cref="CompletionItem.Data"/> used for completion items.
+        /// </summary>
         public object Data { get; set; }
 
         public static VSCompletionList Convert(CompletionList completionList, VSCompletionListCapability vsCompletionListCapability)
@@ -75,7 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // This piece makes a massive assumption that all completion items will have a resultId associated with them and their
             // data properties will all be the same. Therefore, we can inspect the first item and empty out the rest.
             var commonDataItem = completionList.FirstOrDefault();
-            if (commonDataItem == null)
+            if (commonDataItem is null)
             {
                 // Empty list
                 return;
