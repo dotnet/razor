@@ -33,4 +33,16 @@
     <EmbeddedResource Include="Semantic\TestFiles\**\*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\ApplyEditsToPreviousCSharpDoc_EnsureAccurateDeletionEdits.semanticedit.txt" />
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\ApplyEditsToPreviousCSharpDoc_EnsureAccurateDeletionEdits.semanticexpected.txt" />
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\ApplyEditsToPreviousCSharpDoc_EnsureAccurateDeletionEdits.semanticoriginal.txt" />
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\ApplyEditsToPreviousCSharpDoc_EnsureAccurateInsertionDeletionEdits.semanticedit.txt" />
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\ApplyEditsToPreviousCSharpDoc_EnsureAccurateInsertionDeletionEdits.semanticexpected.txt" />
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\ApplyEditsToPreviousCSharpDoc_EnsureAccurateInsertionDeletionEdits.semanticoriginal.txt" />
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\ApplyEditsToPreviousCSharpDoc_EnsureAccurateInsertionEdits.semanticedit.txt" />
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\ApplyEditsToPreviousCSharpDoc_EnsureAccurateInsertionEdits.semanticexpected.txt" />
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\ApplyEditsToPreviousCSharpDoc_EnsureAccurateInsertionEdits.semanticoriginal.txt" />
+  </ItemGroup>
+
 </Project>

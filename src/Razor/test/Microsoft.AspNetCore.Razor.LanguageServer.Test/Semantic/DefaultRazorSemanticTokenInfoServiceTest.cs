@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -92,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     1, 0, 1, RazorSemanticTokensLegend.CSharpPunctuation, 0,
                     1, 0, 1, RazorSemanticTokensLegend.CSharpPunctuation, 0,
                 }.ToImmutableArray(),
-                ResultId = null,
+                ResultId = 1.ToString(),
             };
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
 
@@ -770,6 +771,93 @@ slf*@";
 
             var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor, previousResultId: previousResultId, service);
             Assert.NotEqual(previousResultId, newResultId);
+        }
+
+        [Fact]
+        public void ApplyEditsToPreviousCSharpDoc_EnsureAccurateInsertionEdits()
+        {
+            // C# text (original)
+            //     void M()
+            //     {
+            //         var x = 1;
+            //         x;
+            //     }
+
+            // C# text (after edit)
+            //     void M()
+            //     {
+            //         var x = 1;
+            //         x.ToString();
+            //     }
+
+            // Arrange
+            GetAllBaselineTokens(out var baselineOriginal, out var baselineExpected, out var baselineDelta);
+            var razorSemanticTokenEdits = GetRazorEdits(baselineDelta);
+
+            // Act
+            var csharpEditsResponse = new ProvideSemanticTokensEditsResponse(tokens: null, edits: razorSemanticTokenEdits, resultId: "2", hostDocumentSyncVersion: 2);
+            var actualUpdated = DefaultRazorSemanticTokensInfoService.ApplyEditsToPreviousCSharpDoc(baselineOriginal!, csharpEditsResponse);
+
+            // Assert
+            Assert.True(baselineExpected!.SequenceEqual(actualUpdated));
+        }
+
+        [Fact]
+        public void ApplyEditsToPreviousCSharpDoc_EnsureAccurateDeletionEdits()
+        {
+            // C# text (original)
+            //     void M()
+            //     {
+            //         var x = 1;
+            //         x;
+            //     }
+
+            // C# text (after edit)
+            //     void M()
+            //     {
+            //         var x = 1;
+            //         x
+            //     }
+
+            // Arrange
+            GetAllBaselineTokens(out var baselineOriginal, out var baselineExpected, out var baselineDelta);
+            var razorSemanticTokenEdits = GetRazorEdits(baselineDelta);
+
+            // Act
+            var csharpEditsResponse = new ProvideSemanticTokensEditsResponse(tokens: null, edits: razorSemanticTokenEdits, resultId: "2", hostDocumentSyncVersion: 2);
+            var actualUpdated = DefaultRazorSemanticTokensInfoService.ApplyEditsToPreviousCSharpDoc(baselineOriginal!, csharpEditsResponse);
+
+            // Assert
+            Assert.True(baselineExpected!.SequenceEqual(actualUpdated));
+        }
+
+        [Fact]
+        public void ApplyEditsToPreviousCSharpDoc_EnsureAccurateInsertionDeletionEdits()
+        {
+            // C# text (original)
+            //     void M()
+            //     {
+            //         var x = 1;
+            //         x;
+            //     }
+
+            // C# text (after edit)
+            //     void M()
+            //     {
+            //         var x = 1;
+            //         M();
+            //     }
+
+            // Arrange
+            GetAllBaselineTokens(out var baselineOriginal, out var baselineExpected, out var baselineDelta);
+            var razorSemanticTokenEdits = GetRazorEdits(baselineDelta);
+
+            // Act
+            var csharpEditsResponse = new ProvideSemanticTokensEditsResponse(tokens: null, edits: razorSemanticTokenEdits, resultId: "2", hostDocumentSyncVersion: 2);
+            var actualUpdated = DefaultRazorSemanticTokensInfoService.ApplyEditsToPreviousCSharpDoc(baselineOriginal!, csharpEditsResponse);
+
+            // Assert
+            Assert.True(baselineExpected!.SequenceEqual(actualUpdated));
         }
 
         private Task<(string?, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>, Queue<DocumentSnapshot>)> AssertSemanticTokensAsync(

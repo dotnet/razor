@@ -131,7 +131,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot);
 
-            if (newResultId == null)
+            if (newResultId is null)
             {
                 // If there's no C# in the Razor doc, we won't have a resultId returned to us.
                 // Just use a GUID instead.
@@ -221,7 +221,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     return null;
                 }
 
-                if (newResultId == null)
+                if (newResultId is null)
                 {
                     // If there's no C# in the Razor doc, we won't have a resultId returned to us.
                     // Just use a GUID instead.
@@ -417,39 +417,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return new SemanticTokens { Data = previousCSharpTokens.ToImmutableArray(), ResultId = csharpResponse.ResultId };
             }
 
-            var updatedTokens = ApplyEditsToPreviousGeneratedDoc(previousCSharpTokens, csharpResponse);
+            var updatedTokens = ApplyEditsToPreviousCSharpDoc(previousCSharpTokens, csharpResponse);
 
             return new SemanticTokens { Data = updatedTokens, ResultId = csharpResponse.ResultId };
         }
 
         // Internal for testing
-        internal static ImmutableArray<int> ApplyEditsToPreviousGeneratedDoc(
+        internal static ImmutableArray<int> ApplyEditsToPreviousCSharpDoc(
             IReadOnlyList<int> previousCSharpTokens,
             ProvideSemanticTokensEditsResponse csharpResponse)
         {
+            Assumes.NotNull(csharpResponse.Edits);
+            var updatedTokens = previousCSharpTokens.ToList();
             var edits = csharpResponse.Edits;
-            var currentEditIndex = 0;
-            var updatedTokens = new List<int>();
-
-            // We now apply the edits to the previous version of the generated document.
-            // For performance purposes, we only want to iterate over the tokens once.
-            for (var i = 0; i < previousCSharpTokens.Count; i++)
+            foreach (var edit in edits)
             {
-                if (edits!.Length <= currentEditIndex || edits[currentEditIndex].Start != i)
-                {
-                    // Current token piece isn't part of an edit, add and move on.
-                    updatedTokens.Add(previousCSharpTokens[i]);
-                    continue;
-                }
+                updatedTokens.RemoveRange(edit.Start, edit.DeleteCount);
 
-                var currentEdit = edits[currentEditIndex];
-                if (currentEdit.Data != null)
+                if (edit.Data != null)
                 {
-                    updatedTokens.AddRange(currentEdit.Data);
+                    updatedTokens.InsertRange(edit.Start, edit.Data);
                 }
-
-                i += currentEdit.DeleteCount - 1;
-                currentEditIndex++;
             }
 
             return updatedTokens.ToImmutableArray();
