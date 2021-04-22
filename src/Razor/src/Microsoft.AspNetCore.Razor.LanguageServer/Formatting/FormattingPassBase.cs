@@ -589,7 +589,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             if (IsInHtmlTag() ||
-                IsInSingleLineDirective() ||
+                (!allowImplicitStatements && IsInSingleLineDirective()) ||
                 IsImplicitOrExplicitExpression() ||
                 IsInSectionDirective() ||
                 (!allowImplicitStatements && IsImplicitStatementStart()))
@@ -656,6 +656,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 var directive = owner.FirstAncestorOrSelf<RazorDirectiveSyntax>();
                 if (directive != null &&
+                    directive.DirectiveDescriptor != null &&
                     directive.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
                 {
                     return true;
