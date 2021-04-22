@@ -193,5 +193,60 @@ expected: @"@functions {
 }
 ");
         }
+
+        [Fact]
+        public async Task Layout()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@layout    MyLayout
+",
+expected: @"@layout MyLayout
+");
+        }
+
+        [Fact]
+        public async Task Inherits()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@inherits    MyBaseClass
+",
+expected: @"@inherits MyBaseClass
+");
+        }
+
+        [Fact]
+        public async Task Inject()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@inject    MyClass     myClass
+",
+expected: @"@inject MyClass myClass
+");
+        }
+
+        [Fact]
+        public async Task Inject_TrailingWhitespace()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@inject    MyClass     myClass   
+",
+expected: @"@inject MyClass myClass
+");
+        }
+
+        [Fact]
+        public async Task Attribute()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@attribute     [Obsolete(   ""asdf""   , error:    false)]
+",
+expected: @"@attribute [Obsolete(""asdf"", error: false)]
+");
+        }
     }
 }
