@@ -96,25 +96,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // 4. The closing brace
                 if (node is CSharpCodeBlockSyntax code &&
                     node.Parent?.Parent is RazorDirectiveSyntax directive &&
-                    directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock &&
-                    code.Children.Count >= 3)
+                    directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock)
                 {
-                    if (code.Children[0] is UnclassifiedTextLiteralSyntax literal)
+                    var children = code.Children;
+                    if (children.Count == 4 && code.Children[0] is UnclassifiedTextLiteralSyntax literal)
                     {
                         // For whitespace we normalize it differently depending on if its multi-line or not
                         FormatWhitespaceBetweenDirectiveAndBrace(literal, directive, edits, source, context);
                     }
-                    else if (code.Children[0] is RazorMetaCodeSyntax metaCode &&
-                        metaCode.MetaCode.Count == 1 &&
-                        metaCode.MetaCode[0].Content.Equals("{"))
+                    else if (children.Count == 3 && children[0] is RazorMetaCodeSyntax metaCode)
                     {
-                        // If there is no whitespace at all we normalize to a single space
-                        var start = metaCode.GetRange(source).Start;
-                        edits.Add(new TextEdit
+                        var metas = metaCode.MetaCode;
+                        if (metas.Count == 1 &&
+                            metas[0].Content.Equals("{"))
                         {
-                            Range = new Range(start, start),
-                            NewText = " "
-                        });
+                            // If there is no whitespace at all we normalize to a single space
+                            var start = metaCode.GetRange(source).Start;
+                            edits.Add(new TextEdit
+                            {
+                                Range = new Range(start, start),
+                                NewText = " "
+                            });
+                        }
                     }
                 }
             }
