@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
@@ -227,7 +228,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
         }
 
-        private async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(DocumentSnapshot documentSnapshot)
+        private static async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(DocumentSnapshot documentSnapshot)
         {
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             if (codeDocument.IsUnsupported())
@@ -238,7 +239,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return codeDocument;
         }
 
-        private IReadOnlyList<SemanticRange>? CombineSemanticRanges(params IReadOnlyList<SemanticRange>?[] rangesArray)
+        private static IReadOnlyList<SemanticRange>? CombineSemanticRanges(params IReadOnlyList<SemanticRange>?[] rangesArray)
         {
             if (rangesArray.Any(a => a is null))
             {
@@ -327,7 +328,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpResponse.Result;
         }
 
-        private SemanticRange DataToSemanticRange(int lineDelta, int charDelta, int length, int tokenType, int tokenModifiers, SemanticRange? previousSemanticRange = null)
+        private static SemanticRange DataToSemanticRange(int lineDelta, int charDelta, int length, int tokenType, int tokenModifiers, SemanticRange? previousSemanticRange = null)
         {
             if (previousSemanticRange is null)
             {
@@ -349,7 +350,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticRange;
         }
 
-        private SemanticTokens ConvertSemanticRangesToSemanticTokens(
+        private static SemanticTokens ConvertSemanticRangesToSemanticTokens(
             IReadOnlyList<SemanticRange> semanticRanges,
             RazorCodeDocument razorCodeDocument)
         {
