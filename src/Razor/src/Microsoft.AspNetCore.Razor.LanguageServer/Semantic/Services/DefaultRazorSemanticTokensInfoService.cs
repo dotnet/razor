@@ -310,15 +310,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 : await GetMatchingCSharpEditsResponseAsync(
                     textDocumentIdentifier, documentVersion, previousResultId, previousCSharpTokens, cancellationToken);
 
+            // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
+            // Unrecoverable, return null to indicate no change. It will retry in a bit.
             if (csharpResponse is null)
             {
                 return VersionedSemanticRange.Default;
             }
 
             var razorRanges = new List<SemanticRange>();
+
+            // Indicates no C# code in Razor doc.
             if (csharpResponse.ResultId is null)
             {
-                // Indicates no C# code in Razor doc.
                 return new VersionedSemanticRange(razorRanges, null);
             }
 
@@ -417,7 +420,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return new SemanticTokens { Data = previousCSharpTokens.ToImmutableArray(), ResultId = csharpResponse.ResultId };
             }
 
-            var updatedTokens = ApplyEditsToPreviousCSharpDoc(previousCSharpTokens, csharpResponse);
+            var updatedTokens = ApplyEditsToPreviousCSharpDoc(previousCSharpTokens, csharpResponse.Edits);
 
             return new SemanticTokens { Data = updatedTokens, ResultId = csharpResponse.ResultId };
         }
@@ -425,11 +428,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         // Internal for testing
         internal static ImmutableArray<int> ApplyEditsToPreviousCSharpDoc(
             IReadOnlyList<int> previousCSharpTokens,
-            ProvideSemanticTokensEditsResponse csharpResponse)
+            Models.RazorSemanticTokensEdit[] edits)
         {
-            Assumes.NotNull(csharpResponse.Edits);
             var updatedTokens = previousCSharpTokens.ToList();
-            var edits = csharpResponse.Edits;
             foreach (var edit in edits)
             {
                 updatedTokens.RemoveRange(edit.Start, edit.DeleteCount);

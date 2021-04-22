@@ -795,11 +795,10 @@ slf*@";
             var razorSemanticTokenEdits = GetRazorEdits(baselineDelta);
 
             // Act
-            var csharpEditsResponse = new ProvideSemanticTokensEditsResponse(tokens: null, edits: razorSemanticTokenEdits, resultId: "2", hostDocumentSyncVersion: 2);
-            var actualUpdated = DefaultRazorSemanticTokensInfoService.ApplyEditsToPreviousCSharpDoc(baselineOriginal!, csharpEditsResponse);
+            var actual = DefaultRazorSemanticTokensInfoService.ApplyEditsToPreviousCSharpDoc(baselineOriginal!, razorSemanticTokenEdits);
 
             // Assert
-            Assert.True(baselineExpected!.SequenceEqual(actualUpdated));
+            Assert.Equal(baselineExpected, actual);
         }
 
         [Fact]
@@ -824,11 +823,10 @@ slf*@";
             var razorSemanticTokenEdits = GetRazorEdits(baselineDelta);
 
             // Act
-            var csharpEditsResponse = new ProvideSemanticTokensEditsResponse(tokens: null, edits: razorSemanticTokenEdits, resultId: "2", hostDocumentSyncVersion: 2);
-            var actualUpdated = DefaultRazorSemanticTokensInfoService.ApplyEditsToPreviousCSharpDoc(baselineOriginal!, csharpEditsResponse);
+            var actual = DefaultRazorSemanticTokensInfoService.ApplyEditsToPreviousCSharpDoc(baselineOriginal!, razorSemanticTokenEdits);
 
             // Assert
-            Assert.True(baselineExpected!.SequenceEqual(actualUpdated));
+            Assert.Equal(baselineExpected, actual);
         }
 
         [Fact]
@@ -853,11 +851,10 @@ slf*@";
             var razorSemanticTokenEdits = GetRazorEdits(baselineDelta);
 
             // Act
-            var csharpEditsResponse = new ProvideSemanticTokensEditsResponse(tokens: null, edits: razorSemanticTokenEdits, resultId: "2", hostDocumentSyncVersion: 2);
-            var actualUpdated = DefaultRazorSemanticTokensInfoService.ApplyEditsToPreviousCSharpDoc(baselineOriginal!, csharpEditsResponse);
+            var actual = DefaultRazorSemanticTokensInfoService.ApplyEditsToPreviousCSharpDoc(baselineOriginal!, razorSemanticTokenEdits);
 
             // Assert
-            Assert.True(baselineExpected!.SequenceEqual(actualUpdated));
+            Assert.Equal(baselineExpected, actual);
         }
 
         private Task<(string?, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>, Queue<DocumentSnapshot>)> AssertSemanticTokensAsync(
