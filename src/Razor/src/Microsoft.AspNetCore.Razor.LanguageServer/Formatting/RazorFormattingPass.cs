@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _logger = loggerFactory.CreateLogger<CSharpFormattingPass>();
+            _logger = loggerFactory.CreateLogger<RazorFormattingPass>();
         }
 
         // Run after the C# formatter pass.
@@ -55,9 +55,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var changes = result.Edits.Select(e => e.AsTextChange(originalText)).ToArray();
                 changedText = changedText.WithChanges(changes);
                 changedContext = await context.WithTextAsync(changedText);
-            }
 
-            cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
+            }
 
             // Format the razor bits of the file
             var syntaxTree = changedContext.CodeDocument.GetSyntaxTree();
@@ -108,15 +108,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     {
                         var metas = metaCode.MetaCode;
                         if (metas.Count == 1 &&
-                            metas[0].Content.Equals("{"))
+                            metas[0].Kind == SyntaxKind.LeftBrace)
                         {
                             // If there is no whitespace at all we normalize to a single space
                             var start = metaCode.GetRange(source).Start;
-                            edits.Add(new TextEdit
+                            var edit = new TextEdit
                             {
                                 Range = new Range(start, start),
                                 NewText = " "
-                            });
+                            };
+                            edits.Add(edit);
                         }
                     }
                 }
@@ -131,11 +132,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 // If there is a newline then we want to have just one newline after the directive
                 // and indent the { to match the @
-                edits.Add(new TextEdit
+                var edit = new TextEdit
                 {
                     Range = literal.GetRange(source),
                     NewText = context.NewLineString + context.GetIndentationString(directive.GetLinePositionSpan(source).Start.Character)
-                });
+                };
+                edits.Add(edit);
             }
             else if (literal.Width > 1 ||
                 literal.LiteralTokens[0].Content.Equals("\t"))
@@ -143,11 +145,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // If there is anything other than one single space then we replace with one space between directive and brace.
                 //
                 // ie, "@code     {" will become "@code {"
-                edits.Add(new TextEdit
+                var edit = new TextEdit
                 {
                     Range = literal.GetRange(source),
                     NewText = " "
-                });
+                };
+                edits.Add(edit);
             }
         }
     }

@@ -8,7 +8,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class RazorFormattingTest : FormattingTestBase
     {
-
         [Fact]
         public async Task CodeBlock_SpansMultipleLines()
         {
@@ -18,7 +17,7 @@ input: @"
         {
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -28,7 +27,7 @@ expected: @"@code
 {
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -46,7 +45,7 @@ input: @"
             {
         private int currentCount = 0;
 
-        private void IncrementCOunt()
+        private void IncrementCount()
         {
             currentCount++;
         }
@@ -59,7 +58,7 @@ expected: @"
     {
         private int currentCount = 0;
 
-        private void IncrementCOunt()
+        private void IncrementCount()
         {
             currentCount++;
         }
@@ -69,14 +68,14 @@ expected: @"
         }
 
         [Fact]
-        public async Task CodeBlock_TooMuchWhitspace()
+        public async Task CodeBlock_TooMuchWhitespace()
         {
             await RunFormattingTestAsync(
 input: @"
 @code        {
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -85,7 +84,7 @@ input: @"
 expected: @"@code {
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -101,7 +100,7 @@ input: @"
 @code	{
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -110,7 +109,7 @@ input: @"
 expected: @"@code {
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -126,7 +125,7 @@ input: @"
 @code{
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -135,7 +134,7 @@ input: @"
 expected: @"@code {
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -152,7 +151,7 @@ input: @"
         {
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -162,7 +161,7 @@ expected: @"@functions
 {
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -178,7 +177,7 @@ input: @"
 @functions        {
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
@@ -187,7 +186,7 @@ input: @"
 expected: @"@functions {
     private int currentCount = 0;
 
-    private void IncrementCOunt()
+    private void IncrementCount()
     {
         currentCount++;
     }
