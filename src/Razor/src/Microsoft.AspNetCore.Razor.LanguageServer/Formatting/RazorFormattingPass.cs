@@ -99,31 +99,50 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock)
                 {
                     var children = code.Children;
-                    if (children.Count == 4 && code.Children[0] is UnclassifiedTextLiteralSyntax literal)
+                    if (TryGetLeadingWhitespace(children, out var whitespace))
                     {
                         // For whitespace we normalize it differently depending on if its multi-line or not
-                        FormatWhitespaceBetweenDirectiveAndBrace(literal, directive, edits, source, context);
+                        FormatWhitespaceBetweenDirectiveAndBrace(whitespace, directive, edits, source, context);
                     }
-                    else if (children.Count == 3 && children[0] is RazorMetaCodeSyntax metaCode)
+                    else if (TryGetOpenBrace(children, out var brace))
                     {
-                        var metas = metaCode.MetaCode;
-                        if (metas.Count == 1 &&
-                            metas[0].Kind == SyntaxKind.LeftBrace)
+                        // If there is no whitespace at all we normalize to a single space
+                        var start = brace.GetRange(source).Start;
+                        var edit = new TextEdit
                         {
-                            // If there is no whitespace at all we normalize to a single space
-                            var start = metaCode.GetRange(source).Start;
-                            var edit = new TextEdit
-                            {
-                                Range = new Range(start, start),
-                                NewText = " "
-                            };
-                            edits.Add(edit);
-                        }
+                            Range = new Range(start, start),
+                            NewText = " "
+                        };
+                        edits.Add(edit);
                     }
                 }
             }
 
             return edits;
+
+            static bool TryGetLeadingWhitespace(SyntaxList<RazorSyntaxNode> children, out UnclassifiedTextLiteralSyntax whitespace)
+            {
+                // If there is whitespace between the directive and the brace, it will be in the first child
+                // of the 4 total children
+                whitespace = null;
+                if (children.Count == 4 && children[0] is UnclassifiedTextLiteralSyntax literal)
+                {
+                    whitespace = literal;
+                }
+                return whitespace != null;
+            }
+
+            static bool TryGetOpenBrace(SyntaxList<RazorSyntaxNode> children, out SyntaxToken brace)
+            {
+                // If there is no whitespace between the directive and the brace then there will only be
+                // three children and the brace should be the first child
+                brace = null;
+                if (children.Count == 3 && children[0] is RazorMetaCodeSyntax metaCode)
+                {
+                    brace = metaCode.MetaCode.SingleOrDefault(m => m.Kind == SyntaxKind.LeftBrace);
+                }
+                return brace != null;
+            }
         }
 
         private static void FormatWhitespaceBetweenDirectiveAndBrace(UnclassifiedTextLiteralSyntax literal, RazorDirectiveSyntax directive, List<TextEdit> edits, RazorSourceDocument source, FormattingContext context)
