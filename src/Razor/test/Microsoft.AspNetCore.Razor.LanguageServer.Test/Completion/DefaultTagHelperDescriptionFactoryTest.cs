@@ -413,7 +413,7 @@ World", cleanedSummary);
             var elementDescription = AggregateBoundElementDescription.Default;
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out MarkupContent markdown);
 
             // Assert
             Assert.False(result);
@@ -431,7 +431,7 @@ World", cleanedSummary);
             };
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out MarkupContent markdown);
 
             // Assert
             Assert.True(result);
@@ -455,7 +455,7 @@ Uses `List<System.String>`s", markdown.Value);
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out MarkupContent markdown);
 
             // Assert
             Assert.True(result, "TryCreateTooltip should have succeeded");
@@ -483,7 +483,7 @@ Uses `List<System.String>`s", markdown.Value);
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out MarkupContent markdown);
 
             // Assert
             Assert.True(result);
@@ -506,7 +506,7 @@ Uses `List<System.String>`s", markdown.Value);
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out MarkupContent markdown);
 
             // Assert
             Assert.True(result);
@@ -529,7 +529,7 @@ Uses `List<System.String>`s", markdown.Value);
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out MarkupContent markdown);
 
             // Assert
             Assert.True(result);
@@ -559,7 +559,7 @@ Also uses `List<System.String>`s", markdown.Value);
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out MarkupContent markdown);
 
             // Assert
             Assert.True(result);
@@ -590,7 +590,7 @@ Uses `List<System.String>`s", markdown.Value);
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out var markdown);
+            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out MarkupContent markdown);
 
             // Assert
             Assert.True(result);

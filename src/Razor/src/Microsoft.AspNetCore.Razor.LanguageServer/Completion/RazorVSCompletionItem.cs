@@ -6,6 +6,9 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
+    /// <summary>
+    /// VS-specific completion item based off of LSP's VSCompletionItem.
+    /// </summary>
     internal class RazorVSCompletionItem : CompletionItem
     {
         public RazorClassifiedTextElement Description { get; set; }

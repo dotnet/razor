@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             new string[] { "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",
                 "nint", "nuint", "long", "ulong", "short", "ushort", "object", "string", "dynamic" };
 
-        private static Dictionary<string, string> TypeNameToAlias = new()
+        private static readonly Dictionary<string, string> TypeNameToAlias = new()
         {
             { "Int32", "int" },
             { "Int64", "long" },
@@ -30,14 +30,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             { "Decimal", "decimal" },
             { "Boolean", "bool" },
             { "String", "string" },
-            { "System.Int32", "int" },
-            { "System.Int64", "long" },
-            { "System.Int16", "short" },
-            { "System.Single", "float" },
-            { "System.Double", "double" },
-            { "System.Decimal", "decimal" },
-            { "System.Boolean", "bool"},
-            { "System.String", "string" }
         };
 
         private static readonly RazorClassifiedTextRun SpaceLiteral = new(PredefinedClassificationNames.WhiteSpace, " ");
@@ -426,6 +418,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 if (runs.Count > 0)
                 {
                     runs.Add(NewLine);
+                    runs.Add(NewLine);
                 }
 
                 ClassifyTypeName(runs, descriptionInfo.TagHelperTypeName);
@@ -450,6 +443,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             {
                 if (runs.Count > 0)
                 {
+                    runs.Add(NewLine);
                     runs.Add(NewLine);
                 }
 
@@ -540,7 +534,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             }
             else
             {
-                runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Type, typeName));
+                var typeNameParts = typeName.Split('.');
+
+                var partIndex = 0;
+                foreach (var typeNamePart in typeNameParts)
+                {
+                    if (partIndex != 0)
+                    {
+                        runs.Add(DotLiteral);
+                    }
+
+                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Type, typeNamePart));
+
+                    partIndex++;
+                }
             }
         }
 
@@ -553,6 +560,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
             runs.Add(NewLine);
             var finalSummaryContent = CleanSummaryContent(summaryContent);
+
+            finalSummaryContent = finalSummaryContent.Replace("&lt;", "<");
+            finalSummaryContent = finalSummaryContent.Replace("&gt;", ">");
 
             var sections = finalSummaryContent.Split('`');
             var classifyNextSection = false;
