@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
@@ -50,16 +51,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             Tooltip = tooltip;
         }
 
+        [JsonProperty("ClassificationTypeName")]
         public string ClassificationTypeName { get; }
 
+        [JsonProperty("Text")]
         public string Text { get; }
 
+        [JsonProperty("MarkerTagType")]
         public string MarkerTagType { get; }
 
+        [JsonProperty("Style")]
         public RazorClassifiedTextRunStyle Style { get; }
 
+        [JsonProperty("Tooltip")]
         public string Tooltip { get; }
 
+        [JsonProperty("NavigationAction")]
         public Action NavigationAction { get; }
     }
 }

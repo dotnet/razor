@@ -147,8 +147,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public Task<CompletionItem> Handle(CompletionItem completionItem, CancellationToken cancellationToken)
         {
-            MarkupContent tagHelperTooltip = null;
-
             if (!completionItem.TryGetCompletionListResultId(out var resultId))
             {
                 // Couldn't resolve.
@@ -167,6 +165,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 Debug.Fail("Could not find an associated razor completion item. This should never happen since we were able to look up the cached completion list.");
                 return Task.FromResult(completionItem);
             }
+
+            var useDescriptionProperty = _languageServer.ClientSettings.Capabilities is PlatformAgnosticClientCapabilities clientCapabilities &&
+                clientCapabilities.SupportsVisualStudioExtensions;
+
+            MarkupContent tagHelperMarkupTooltip = null;
+            RazorClassifiedTextElement tagHelperClassifiedTextTooltip = null;
 
             switch (associatedRazorCompletion.Kind)
             {
@@ -187,29 +191,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 case RazorCompletionItemKind.TagHelperAttribute:
                     {
                         var descriptionInfo = associatedRazorCompletion.GetAttributeCompletionDescription();
-                        _tagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperTooltip);
+                        _tagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperMarkupTooltip);
+
+                        if (useDescriptionProperty)
+                        {
+                            _tagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
+                        }
+
                         break;
                     }
                 case RazorCompletionItemKind.TagHelperElement:
                     {
                         var descriptionInfo = associatedRazorCompletion.GetTagHelperElementDescriptionInfo();
-                        _tagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperTooltip);
+                        _tagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperMarkupTooltip);
+
+                        if (useDescriptionProperty)
+                        {
+                            _tagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
+                        }
+
                         break;
                     }
             }
 
-            if (tagHelperTooltip != null)
+            if (tagHelperMarkupTooltip != null)
             {
-                var documentation = new StringOrMarkupContent(tagHelperTooltip);
+                var documentation = new StringOrMarkupContent(tagHelperMarkupTooltip);
                 completionItem.Documentation = documentation;
             }
 
-            if (_languageServer.ClientSettings.Capabilities is PlatformAgnosticClientCapabilities clientCapabilities &&
-                clientCapabilities.SupportsVisualStudioExtensions)
+            if (tagHelperClassifiedTextTooltip != null)
             {
                 var vsCompletionItem = completionItem.ToRazorVSCompletionItem();
-                var test = new RazorClassifiedTextRun("class name", "TEST DESCRIPTION");
-                vsCompletionItem.Description = new RazorClassifiedTextElement(test);
+                vsCompletionItem.Description = tagHelperClassifiedTextTooltip;
                 return Task.FromResult<CompletionItem>(vsCompletionItem);
             }
 

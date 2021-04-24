@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
@@ -26,6 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             Runs = runs?.ToImmutableList() ?? throw new ArgumentNullException(nameof(runs));
         }
 
+        [JsonProperty("Runs")]
         public IEnumerable<RazorClassifiedTextRun> Runs { get; }
 
         public static RazorClassifiedTextElement CreateHyperlink(string text, string tooltip, Action navigationAction)

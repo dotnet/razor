@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -12,8 +13,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
     internal class DefaultTagHelperTooltipFactory : TagHelperTooltipFactory
     {
-        private static readonly Lazy<Regex> ExtractCrefRegex = new Lazy<Regex>(
+        private static readonly Lazy<Regex> ExtractCrefRegex = new(
             () => new Regex("<(see|seealso)[\\s]+cref=\"([^\">]+)\"[^>]*>", RegexOptions.Compiled, TimeSpan.FromSeconds(1)));
+
+        private static readonly string[] CSharpPrimitiveTypes =
+            new string[] { "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",
+                "nint", "nuint", "long", "ulong", "short", "ushort", "object", "string", "dynamic" };
+
+        private static Dictionary<string, string> TypeNameToAlias = new()
+        {
+            { "Int32", "int" },
+            { "Int64", "long" },
+            { "Int16", "short" },
+            { "Single", "float" },
+            { "Double", "double" },
+            { "Decimal", "decimal" },
+            { "Boolean", "bool" },
+            { "String", "string" },
+            { "System.Int32", "int" },
+            { "System.Int64", "long" },
+            { "System.Int16", "short" },
+            { "System.Single", "float" },
+            { "System.Double", "double" },
+            { "System.Decimal", "decimal" },
+            { "System.Boolean", "bool"},
+            { "System.String", "string" }
+        };
+
+        private static readonly RazorClassifiedTextRun SpaceLiteral = new(PredefinedClassificationNames.WhiteSpace, " ");
+        private static readonly RazorClassifiedTextRun DotLiteral = new(PredefinedClassificationNames.Literal, ".");
+        private static readonly RazorClassifiedTextRun NewLine = new(PredefinedClassificationNames.Text, Environment.NewLine);
 
         // Need to have a lazy server here because if we try to resolve the server it creates types which create a DefaultTagHelperDescriptionFactory, and we end up StackOverflowing.
         // This lazy can be avoided in the future by using an upcoming ILanguageServerSettings interface, but it doesn't exist/work yet.
@@ -176,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             return finalSummaryContent;
         }
 
-        private static readonly char[] NewLineChars = new char[]{'\n', '\r'};
+        private static readonly char[] NewLineChars = new char[] { '\n', '\r' };
 
         // Internal for testing
         internal static bool TryExtractSummary(string documentation, out string summary)
@@ -380,6 +409,188 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             {
                 return MarkupKind.PlainText;
             }
+        }
+
+        public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo, out RazorClassifiedTextElement tagHelperDescription)
+        {
+            var associatedTagHelperInfos = elementDescriptionInfo.AssociatedTagHelperDescriptions;
+            if (associatedTagHelperInfos.Count == 0)
+            {
+                tagHelperDescription = null;
+                return false;
+            }
+
+            var runs = new List<RazorClassifiedTextRun>();
+            foreach (var descriptionInfo in associatedTagHelperInfos)
+            {
+                if (runs.Count > 0)
+                {
+                    runs.Add(NewLine);
+                }
+
+                ClassifyTypeName(runs, descriptionInfo.TagHelperTypeName);
+                TryClassifySummary(runs, descriptionInfo.Documentation);
+            }
+
+            tagHelperDescription = new RazorClassifiedTextElement(runs.ToArray());
+            return true;
+        }
+
+        public override bool TryCreateTooltip(AggregateBoundAttributeDescription descriptionInfos, out RazorClassifiedTextElement tagHelperDescription)
+        {
+            var associatedAttributeInfos = descriptionInfos.DescriptionInfos;
+            if (associatedAttributeInfos.Count == 0)
+            {
+                tagHelperDescription = null;
+                return false;
+            }
+
+            var runs = new List<RazorClassifiedTextRun>();
+            foreach (var descriptionInfo in associatedAttributeInfos)
+            {
+                if (runs.Count > 0)
+                {
+                    runs.Add(NewLine);
+                }
+
+                if (!TypeNameStringResolver.TryGetSimpleName(descriptionInfo.ReturnTypeName, out var returnTypeName))
+                {
+                    returnTypeName = descriptionInfo.ReturnTypeName;
+                }
+
+                var reducedReturnTypeName = ReduceTypeName(returnTypeName);
+                ClassifyReducedTypeName(runs, reducedReturnTypeName);
+
+                runs.Add(SpaceLiteral);
+
+                ClassifyTypeName(runs, descriptionInfo.TypeName);
+                runs.Add(DotLiteral);
+
+                runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Identifier, descriptionInfo.PropertyName));
+
+                TryClassifySummary(runs, descriptionInfo.Documentation);
+            }
+
+            tagHelperDescription = new RazorClassifiedTextElement(runs.ToArray());
+            return true;
+        }
+
+        private static void ClassifyTypeName(List<RazorClassifiedTextRun> runs, string tagHelperTypeName)
+        {
+            var reducedTypeName = ReduceTypeName(tagHelperTypeName);
+            var typeNameParts = tagHelperTypeName.Split('.');
+
+            var partIndex = 0;
+            foreach (var typeNamePart in typeNameParts)
+            {
+                if (partIndex != 0)
+                {
+                    runs.Add(DotLiteral);
+                }
+
+                if (typeNamePart == reducedTypeName)
+                {
+                    ClassifyReducedTypeName(runs, typeNamePart);
+                }
+                else
+                {
+                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Literal, typeNamePart));
+                }
+
+                partIndex++;
+            }
+        }
+
+        private static void ClassifyReducedTypeName(List<RazorClassifiedTextRun> runs, string reducedTypeName)
+        {
+            var currentRunText = new StringBuilder();
+            foreach (var ch in reducedTypeName.ToCharArray())
+            {
+                if (ch == '<' || ch == '>' || ch == '[' || ch == ']' || ch == '.' || ch == ',')
+                {
+                    if (currentRunText.Length != 0)
+                    {
+                        ClassifyPotentialBuiltInType(runs, currentRunText.ToString());
+                        currentRunText.Clear();
+                    }
+
+                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Literal, ch.ToString()));
+                }
+                else
+                {
+                    currentRunText.Append(ch);
+                }
+            }
+
+            if (currentRunText.Length != 0)
+            {
+                ClassifyPotentialBuiltInType(runs, currentRunText.ToString());
+            }
+        }
+
+        private static void ClassifyPotentialBuiltInType(List<RazorClassifiedTextRun> runs, string typeName)
+        {
+            if (TypeNameToAlias.TryGetValue(typeName, out var aliasedTypeName))
+            {
+                runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Keyword, aliasedTypeName));
+            }
+            else if (CSharpPrimitiveTypes.Contains(typeName))
+            {
+                runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Keyword, typeName));
+            }
+            else
+            {
+                runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Type, typeName));
+            }
+        }
+
+        private static bool TryClassifySummary(List<RazorClassifiedTextRun> runs, string documentation)
+        {
+            if (!TryExtractSummary(documentation, out var summaryContent))
+            {
+                return false;
+            }
+
+            runs.Add(NewLine);
+            var finalSummaryContent = CleanSummaryContent(summaryContent);
+
+            var sections = finalSummaryContent.Split('`');
+            var classifyNextSection = false;
+            foreach (var section in sections)
+            {
+                if (section == "1")
+                {
+                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Literal, "<>"));
+                }
+                else if (!classifyNextSection)
+                {
+                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Literal, section));
+                    classifyNextSection = true;
+                }
+                else
+                {
+                    ClassifyPotentialBuiltInType(runs, section.ToString());
+                    classifyNextSection = false;
+                }
+            }
+
+            return true;
+        }
+
+        // Based on VS' PredefinedClassificationNames
+        private static class PredefinedClassificationNames
+        {
+            public const string Keyword = "keyword";
+
+            public const string WhiteSpace = "whitespace";
+
+            public const string Text = "text";
+
+            public const string Literal = "literal";
+
+            public const string Type = "Type";
+
+            public const string Identifier = "identifier";
         }
     }
 }

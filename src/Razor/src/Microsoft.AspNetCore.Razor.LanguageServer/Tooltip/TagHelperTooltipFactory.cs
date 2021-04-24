@@ -11,5 +11,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public abstract bool TryCreateTooltip(AggregateBoundElementDescription descriptionInfos, out MarkupContent markupContent);
 
         public abstract bool TryCreateTooltip(AggregateBoundAttributeDescription descriptionInfos, out MarkupContent markupContent);
+
+        public abstract bool TryCreateTooltip(AggregateBoundElementDescription descriptionInfos, out RazorClassifiedTextElement classifiedTextElement);
+
+        public abstract bool TryCreateTooltip(AggregateBoundAttributeDescription descriptionInfos, out RazorClassifiedTextElement classifiedTextElement);
     }
 }

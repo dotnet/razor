@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }).ToList().AsReadOnly();
             var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
 
-            if (!_tagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out var markupContent))
+            if (!_tagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out MarkupContent markupContent))
             {
                 return null;
             }
@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 .AsReadOnly();
             var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
 
-            if (!_tagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out var markupContent))
+            if (!_tagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out MarkupContent markupContent))
             {
                 return null;
             }
