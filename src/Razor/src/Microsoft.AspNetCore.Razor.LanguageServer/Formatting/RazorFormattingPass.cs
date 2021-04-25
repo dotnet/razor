@@ -96,9 +96,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // 4. The closing brace
                 if (node is CSharpCodeBlockSyntax code &&
                     node.Parent?.Parent is RazorDirectiveSyntax directive &&
+                    !directive.ContainsDiagnostics &&
                     directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock)
                 {
-                    var children = code.Children;
+                    etvar children = code.Children;
                     if (TryGetLeadingWhitespace(children, out var whitespace))
                     {
                         // For whitespace we normalize it differently depending on if its multi-line or not
