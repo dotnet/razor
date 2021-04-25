@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         private static readonly Lazy<Regex> ExtractCrefRegex = new(
             () => new Regex("<(see|seealso)[\\s]+cref=\"([^\">]+)\"[^>]*>", RegexOptions.Compiled, TimeSpan.FromSeconds(1)));
 
-        private static readonly string[] CSharpPrimitiveTypes =
+        private static readonly string[] CSharpBuiltInTypes =
             new string[] { "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",
                 "nint", "nuint", "long", "ulong", "short", "ushort", "object", "string", "dynamic" };
 
@@ -32,9 +32,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             { "String", "string" },
         };
 
-        private static readonly RazorClassifiedTextRun SpaceLiteral = new(PredefinedClassificationNames.WhiteSpace, " ");
-        private static readonly RazorClassifiedTextRun DotLiteral = new(PredefinedClassificationNames.Literal, ".");
-        private static readonly RazorClassifiedTextRun NewLine = new(PredefinedClassificationNames.Text, Environment.NewLine);
+        private static readonly RazorClassifiedTextRun Space = new(PredefinedClassificationNames.WhiteSpace, " ");
+        private static readonly RazorClassifiedTextRun Dot = new(PredefinedClassificationNames.PlainText, ".");
+        private static readonly RazorClassifiedTextRun NewLine = new(PredefinedClassificationNames.WhiteSpace, Environment.NewLine);
 
         // Need to have a lazy server here because if we try to resolve the server it creates types which create a DefaultTagHelperDescriptionFactory, and we end up StackOverflowing.
         // This lazy can be avoided in the future by using an upcoming ILanguageServerSettings interface, but it doesn't exist/work yet.
@@ -412,6 +412,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 return false;
             }
 
+            // Generates a ClassifiedTextElement that looks something like:
+            //     Namespace.TypeName
+            //     Summary description
+            // with the specific element parts classified appropriately.
+            // Additional entries are separated by two new lines.
+
             var runs = new List<RazorClassifiedTextRun>();
             foreach (var descriptionInfo in associatedTagHelperInfos)
             {
@@ -438,6 +444,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 return false;
             }
 
+            // Generates a ClassifiedTextElement that looks something like:
+            //     ReturnType Namespace.TypeName.Property
+            //     Summary description
+            // with the specific element parts classified appropriately.
+            // Additional entries are separated by two new lines.
+
             var runs = new List<RazorClassifiedTextRun>();
             foreach (var descriptionInfo in associatedAttributeInfos)
             {
@@ -454,14 +466,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
                 var reducedReturnTypeName = ReduceTypeName(returnTypeName);
                 ClassifyReducedTypeName(runs, reducedReturnTypeName);
-
-                runs.Add(SpaceLiteral);
-
+                runs.Add(Space);
                 ClassifyTypeName(runs, descriptionInfo.TypeName);
-                runs.Add(DotLiteral);
-
+                runs.Add(Dot);
                 runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Identifier, descriptionInfo.PropertyName));
-
                 TryClassifySummary(runs, descriptionInfo.Documentation);
             }
 
@@ -479,16 +487,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             {
                 if (partIndex != 0)
                 {
-                    runs.Add(DotLiteral);
+                    runs.Add(Dot);
                 }
 
+                // Only the reduced type name should be classified as non-plain text.
                 if (typeNamePart == reducedTypeName)
                 {
                     ClassifyReducedTypeName(runs, typeNamePart);
                 }
                 else
                 {
-                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Literal, typeNamePart));
+                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.PlainText, typeNamePart));
                 }
 
                 partIndex++;
@@ -500,15 +509,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             var currentRunText = new StringBuilder();
             foreach (var ch in reducedTypeName.ToCharArray())
             {
+                // There are certain characters that should be classified as plain text. For example,
+                // in 'TypeName<T, T2>', the characters '<', ',' and '>' should be classified as plain
+                // text while the rest should be classified as a keyword or type.
                 if (ch == '<' || ch == '>' || ch == '[' || ch == ']' || ch == '.' || ch == ',')
                 {
                     if (currentRunText.Length != 0)
                     {
-                        ClassifyPotentialBuiltInType(runs, currentRunText.ToString());
+                        ClassifySectionAsKeywordOrType(runs, currentRunText.ToString());
                         currentRunText.Clear();
                     }
 
-                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Literal, ch.ToString()));
+                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.PlainText, ch.ToString()));
                 }
                 else
                 {
@@ -518,20 +530,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
             if (currentRunText.Length != 0)
             {
-                ClassifyPotentialBuiltInType(runs, currentRunText.ToString());
+                ClassifySectionAsKeywordOrType(runs, currentRunText.ToString());
             }
         }
 
-        private static void ClassifyPotentialBuiltInType(List<RazorClassifiedTextRun> runs, string typeName)
+        private static void ClassifySectionAsKeywordOrType(List<RazorClassifiedTextRun> runs, string typeName)
         {
+            // Case 1: Type can be aliased as a C# built-in type (e.g. Boolean -> bool, Int32 -> int, etc.).
             if (TypeNameToAlias.TryGetValue(typeName, out var aliasedTypeName))
             {
                 runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Keyword, aliasedTypeName));
             }
-            else if (CSharpPrimitiveTypes.Contains(typeName))
+            // Case 2: Type is a C# built-in type (e.g. bool, int, etc.).
+            else if (CSharpBuiltInTypes.Contains(typeName))
             {
                 runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Keyword, typeName));
             }
+            // Case 3: All other types.
             else
             {
                 var typeNameParts = typeName.Split('.');
@@ -541,11 +556,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 {
                     if (partIndex != 0)
                     {
-                        runs.Add(DotLiteral);
+                        runs.Add(Dot);
                     }
 
                     runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Type, typeNamePart));
-
                     partIndex++;
                 }
             }
@@ -559,27 +573,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             }
 
             runs.Add(NewLine);
+
             var finalSummaryContent = CleanSummaryContent(summaryContent);
 
+            // There's a few edge cases we need to explicitly convert.
             finalSummaryContent = finalSummaryContent.Replace("&lt;", "<");
             finalSummaryContent = finalSummaryContent.Replace("&gt;", ">");
+            finalSummaryContent = finalSummaryContent.Replace("`1`", "`<>");
 
+            // Sections requiring additional logic to classify are between '`' characters.
             var sections = finalSummaryContent.Split('`');
             var classifyNextSection = false;
             foreach (var section in sections)
             {
-                if (section == "1")
+                if (!classifyNextSection)
                 {
-                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Literal, "<>"));
-                }
-                else if (!classifyNextSection)
-                {
-                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.Literal, section));
+                    runs.Add(new RazorClassifiedTextRun(PredefinedClassificationNames.PlainText, section));
                     classifyNextSection = true;
                 }
                 else
                 {
-                    ClassifyPotentialBuiltInType(runs, section.ToString());
+                    ClassifySectionAsKeywordOrType(runs, section.ToString());
                     classifyNextSection = false;
                 }
             }
@@ -587,20 +601,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             return true;
         }
 
-        // Based on VS' PredefinedClassificationNames
         private static class PredefinedClassificationNames
         {
             public const string Keyword = "keyword";
 
             public const string WhiteSpace = "whitespace";
 
-            public const string Text = "text";
-
-            public const string Literal = "literal";
-
             public const string Type = "Type";
 
             public const string Identifier = "identifier";
+
+            public const string PlainText = "Plain Text";
         }
     }
 }
