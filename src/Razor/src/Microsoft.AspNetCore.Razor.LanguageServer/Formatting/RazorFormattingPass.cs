@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     !directive.ContainsDiagnostics &&
                     directive.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock)
                 {
-                    etvar children = code.Children;
+                    var children = code.Children;
                     if (TryGetLeadingWhitespace(children, out var whitespace))
                     {
                         // For whitespace we normalize it differently depending on if its multi-line or not
