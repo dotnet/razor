@@ -33,8 +33,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         };
 
         private static readonly RazorClassifiedTextRun Space = new(RazorPredefinedClassificationNames.WhiteSpace, " ");
-        private static readonly RazorClassifiedTextRun Dot = new(RazorPredefinedClassificationNames.PlainText, ".");
+        private static readonly RazorClassifiedTextRun Dot = new(RazorPredefinedClassificationNames.Punctuation, ".");
         private static readonly RazorClassifiedTextRun NewLine = new(RazorPredefinedClassificationNames.WhiteSpace, Environment.NewLine);
+        private static readonly RazorClassifiedTextRun NullableType = new(RazorPredefinedClassificationNames.Punctuation, "?");
 
         // Need to have a lazy server here because if we try to resolve the server it creates types which create a DefaultTagHelperDescriptionFactory, and we end up StackOverflowing.
         // This lazy can be avoided in the future by using an upcoming ILanguageServerSettings interface, but it doesn't exist/work yet.
@@ -540,7 +541,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                         currentRunText.Clear();
                     }
 
-                    runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationNames.PlainText, ch.ToString()));
+                    runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationNames.Punctuation, ch.ToString()));
                 }
                 else
                 {
@@ -556,6 +557,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
         private static void ClassifyTextAsKeywordOrType(List<RazorClassifiedTextRun> runs, string typeName)
         {
+            var nullableType = typeName.EndsWith("?");
+            if (nullableType)
+            {
+                // Classify the '?' symbol separately from the rest of the type since it's considered punctuation.
+                typeName = typeName.Substring(0, typeName.Length - 1);
+            }
+
             // Case 1: Type can be aliased as a C# built-in type (e.g. Boolean -> bool, Int32 -> int, etc.).
             if (TypeNameToAlias.TryGetValue(typeName, out var aliasedTypeName))
             {
@@ -582,6 +590,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                     runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationNames.Type, typeNamePart));
                     partIndex++;
                 }
+            }
+
+            if (nullableType)
+            {
+                runs.Add(NullableType);
             }
         }
 
@@ -627,6 +640,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             public const string Keyword = "keyword";
 
             public const string WhiteSpace = "whitespace";
+
+            public const string Punctuation = "punctuation";
 
             public const string Type = "Type";
 
