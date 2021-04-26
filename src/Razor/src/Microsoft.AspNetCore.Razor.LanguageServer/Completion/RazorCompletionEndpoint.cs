@@ -166,6 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return Task.FromResult(completionItem);
             }
 
+            // If the client is VS, also fill in the Description property.
             var useDescriptionProperty = _languageServer.ClientSettings.Capabilities is PlatformAgnosticClientCapabilities clientCapabilities &&
                 clientCapabilities.SupportsVisualStudioExtensions;
 
