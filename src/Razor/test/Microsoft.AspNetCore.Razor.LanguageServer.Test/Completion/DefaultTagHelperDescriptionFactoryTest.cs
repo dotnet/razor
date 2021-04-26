@@ -1,12 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultTagHelperTooltipFactory;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
@@ -602,6 +605,77 @@ Uses `List<System.String>`s
 
 Uses `List<System.String>`s", markdown.Value);
             Assert.Equal(MarkupKind.Markdown, markdown.Kind);
+        }
+
+        [Fact]
+        public void TryCreateTooltip_ClassifiedTextElement_Element_SingleAssociatedTagHelper_ReturnsTrue_NestedTypes()
+        {
+            // Arrange
+            var descriptionFactory = new DefaultTagHelperTooltipFactory(LanguageServer);
+            var associatedTagHelperInfos = new[]
+            {
+                new BoundElementDescriptionInfo(
+                    "Microsoft.AspNetCore.SomeTagHelper",
+                    "<summary>Uses <see cref=\"T:System.Collections.List{System.Collections.List{System.String}}\" />s</summary>"),
+            };
+            var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
+
+            // Act
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out RazorClassifiedTextElement classifiedTextElement);
+
+            // Assert
+            Assert.True(result);
+
+            // Expected output:
+            //     Microsoft.AspNetCore.SomeTagHelper
+            //     Uses List<List<string>>s
+            var runs = classifiedTextElement.Runs.ToArray();
+            Assert.True(runs.Length == 15, $"Number of runs does not match. Expected: {15} Actual: {runs.Length}");
+
+            Assert.Equal("Microsoft", runs[0].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.PlainText, runs[0].ClassificationTypeName);
+
+            Assert.Equal(".", runs[1].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.PlainText, runs[1].ClassificationTypeName);
+
+            Assert.Equal("AspNetCore", runs[2].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.PlainText, runs[2].ClassificationTypeName);
+
+            Assert.Equal(".", runs[3].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.PlainText, runs[3].ClassificationTypeName);
+
+            Assert.Equal("SomeTagHelper", runs[4].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.Type, runs[4].ClassificationTypeName);
+
+            Assert.Equal(Environment.NewLine, runs[5].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.WhiteSpace, runs[5].ClassificationTypeName);
+
+            Assert.Equal("Uses ", runs[6].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.PlainText, runs[6].ClassificationTypeName);
+
+            Assert.Equal("List", runs[7].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.Type, runs[7].ClassificationTypeName);
+
+            Assert.Equal("<", runs[8].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.PlainText, runs[8].ClassificationTypeName);
+
+            Assert.Equal("List", runs[9].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.Type, runs[9].ClassificationTypeName);
+
+            Assert.Equal("<", runs[10].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.PlainText, runs[10].ClassificationTypeName);
+
+            Assert.Equal("string", runs[11].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.Keyword, runs[11].ClassificationTypeName);
+
+            Assert.Equal(">", runs[12].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.PlainText, runs[12].ClassificationTypeName);
+
+            Assert.Equal(">", runs[13].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.PlainText, runs[13].ClassificationTypeName);
+
+            Assert.Equal("s", runs[14].Text);
+            Assert.Equal(RazorPredefinedClassificationNames.PlainText, runs[14].ClassificationTypeName);
         }
     }
 }
