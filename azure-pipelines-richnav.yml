@@ -5,6 +5,8 @@
 variables:
 - name: Build.Repository.Clean
   value: true
+- name: System.Debug
+  value: true
 
 trigger:
   branches:
