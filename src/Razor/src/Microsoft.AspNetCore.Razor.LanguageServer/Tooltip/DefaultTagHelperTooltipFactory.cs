@@ -32,10 +32,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             { "String", "string" },
         };
 
-        private static readonly RazorClassifiedTextRun Space = new(RazorPredefinedClassificationNames.WhiteSpace, " ");
-        private static readonly RazorClassifiedTextRun Dot = new(RazorPredefinedClassificationNames.Punctuation, ".");
-        private static readonly RazorClassifiedTextRun NewLine = new(RazorPredefinedClassificationNames.WhiteSpace, Environment.NewLine);
-        private static readonly RazorClassifiedTextRun NullableType = new(RazorPredefinedClassificationNames.Punctuation, "?");
+        private static readonly RazorClassifiedTextRun Space = new(RazorPredefinedClassificationTypeNames.WhiteSpace, " ");
+        private static readonly RazorClassifiedTextRun Dot = new(RazorPredefinedClassificationTypeNames.Punctuation, ".");
+        private static readonly RazorClassifiedTextRun NewLine = new(RazorPredefinedClassificationTypeNames.WhiteSpace, Environment.NewLine);
+        private static readonly RazorClassifiedTextRun NullableType = new(RazorPredefinedClassificationTypeNames.Punctuation, "?");
 
         // Need to have a lazy server here because if we try to resolve the server it creates types which create a DefaultTagHelperDescriptionFactory, and we end up StackOverflowing.
         // This lazy can be avoided in the future by using an upcoming ILanguageServerSettings interface, but it doesn't exist/work yet.
@@ -470,7 +470,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 runs.Add(Space);
                 ClassifyTypeName(runs, descriptionInfo.TypeName);
                 runs.Add(Dot);
-                runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationNames.Identifier, descriptionInfo.PropertyName));
+                runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationTypeNames.Identifier, descriptionInfo.PropertyName));
                 TryClassifySummary(runs, descriptionInfo.Documentation);
             }
 
@@ -505,7 +505,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 }
                 else
                 {
-                    runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationNames.PlainText, typeNamePart));
+                    runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationTypeNames.Text, typeNamePart));
                 }
 
                 partIndex++;
@@ -541,7 +541,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                         currentRunText.Clear();
                     }
 
-                    runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationNames.Punctuation, ch.ToString()));
+                    runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationTypeNames.Punctuation, ch.ToString()));
                 }
                 else
                 {
@@ -567,12 +567,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             // Case 1: Type can be aliased as a C# built-in type (e.g. Boolean -> bool, Int32 -> int, etc.).
             if (TypeNameToAlias.TryGetValue(typeName, out var aliasedTypeName))
             {
-                runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationNames.Keyword, aliasedTypeName));
+                runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationTypeNames.Keyword, aliasedTypeName));
             }
             // Case 2: Type is a C# built-in type (e.g. bool, int, etc.).
             else if (CSharpBuiltInTypes.Contains(typeName))
             {
-                runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationNames.Keyword, typeName));
+                runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationTypeNames.Keyword, typeName));
             }
             // Case 3: All other types.
             else
@@ -587,7 +587,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                         runs.Add(Dot);
                     }
 
-                    runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationNames.Type, typeNamePart));
+                    runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationTypeNames.Type, typeNamePart));
                     partIndex++;
                 }
             }
@@ -621,7 +621,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             {
                 if (!classifyNextSection)
                 {
-                    runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationNames.PlainText, section));
+                    runs.Add(new RazorClassifiedTextRun(RazorPredefinedClassificationTypeNames.Text, section));
                     classifyNextSection = true;
                 }
                 else
@@ -635,19 +635,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         }
 
         // Internal for testing
-        internal static class RazorPredefinedClassificationNames
+        // Adapted from VS' PredefinedClassificationTypeNames
+        internal static class RazorPredefinedClassificationTypeNames
         {
-            public const string Keyword = "keyword";
+            public const string Identifier = "identifier";
 
-            public const string WhiteSpace = "whitespace";
+            public const string Keyword = "keyword";
 
             public const string Punctuation = "punctuation";
 
-            public const string Type = "Type";
+            public const string Text = "text";
 
-            public const string Identifier = "identifier";
+            public const string Type = "type";
 
-            public const string PlainText = "Plain Text";
+            public const string WhiteSpace = "whitespace";
         }
     }
 }
