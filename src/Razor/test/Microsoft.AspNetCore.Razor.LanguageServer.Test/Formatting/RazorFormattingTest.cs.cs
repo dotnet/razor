@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -166,7 +167,8 @@ expected: @"@functions
         currentCount++;
     }
 }
-");
+",
+fileKind: FileKinds.Legacy);
         }
 
         [Fact]
@@ -191,7 +193,8 @@ expected: @"@functions {
         currentCount++;
     }
 }
-");
+",
+fileKind: FileKinds.Legacy);
         }
 
         [Fact]
@@ -247,6 +250,30 @@ input: @"
 ",
 expected: @"@attribute [Obsolete(""asdf"", error: false)]
 ");
+        }
+
+        [Fact]
+        public async Task Model()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@model    MyModel
+",
+expected: @"@model MyModel
+",
+            fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
+        public async Task Page()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@page    ""MyPage""
+",
+expected: @"@page ""MyPage""
+",
+            fileKind: FileKinds.Legacy);
         }
     }
 }
