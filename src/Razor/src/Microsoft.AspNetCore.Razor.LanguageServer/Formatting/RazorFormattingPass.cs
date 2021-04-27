@@ -131,7 +131,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // If there is whitespace between the directive and the brace, it will be in the first child
                 // of the 4 total children
                 whitespace = null;
-                if (children.Count == 4 && children[0] is UnclassifiedTextLiteralSyntax literal)
+                if (children.Count == 4 &&
+                    children[0] is UnclassifiedTextLiteralSyntax literal &&
+                    literal.ContainsOnlyWhitespace())
                 {
                     whitespace = literal;
                 }
@@ -167,45 +169,44 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // but for @inject its also between the type and the field name.
                 foreach (var child in content.Children)
                 {
-                    if (child is CSharpStatementLiteralSyntax &&
-                        child.ContainsOnlyWhitespace())
+                    if (child.ContainsOnlyWhitespace(includingNewLines: false))
                     {
-                        edits.Add(new TextEdit
-                        {
-                            Range = child.GetRange(source),
-                            NewText = " "
-                        });
+                        ShrinkToSingleSpace(child, edits, source);
                     }
                 }
             }
         }
 
-        private static void FormatWhitespaceBetweenDirectiveAndBrace(UnclassifiedTextLiteralSyntax literal, RazorDirectiveSyntax directive, List<TextEdit> edits, RazorSourceDocument source, FormattingContext context)
+        private static void FormatWhitespaceBetweenDirectiveAndBrace(SyntaxNode node, RazorDirectiveSyntax directive, List<TextEdit> edits, RazorSourceDocument source, FormattingContext context)
         {
-            if (literal.LiteralTokens.Any(t => t.Kind == SyntaxKind.NewLine))
+            if (node.ContainsOnlyWhitespace(includingNewLines: false))
+            {
+                ShrinkToSingleSpace(node, edits, source);
+            }
+            else
             {
                 // If there is a newline then we want to have just one newline after the directive
                 // and indent the { to match the @
                 var edit = new TextEdit
                 {
-                    Range = literal.GetRange(source),
+                    Range = node.GetRange(source),
                     NewText = context.NewLineString + context.GetIndentationString(directive.GetLinePositionSpan(source).Start.Character)
                 };
                 edits.Add(edit);
             }
-            else if (literal.Width > 1 ||
-                literal.LiteralTokens[0].Content.Equals("\t"))
+        }
+
+        private static void ShrinkToSingleSpace(SyntaxNode node, List<TextEdit> edits, RazorSourceDocument source)
+        {
+            // If there is anything other than one single space then we replace with one space between directive and brace.
+            //
+            // ie, "@code     {" will become "@code {"
+            var edit = new TextEdit
             {
-                // If there is anything other than one single space then we replace with one space between directive and brace.
-                //
-                // ie, "@code     {" will become "@code {"
-                var edit = new TextEdit
-                {
-                    Range = literal.GetRange(source),
-                    NewText = " "
-                };
-                edits.Add(edit);
-            }
+                Range = node.GetRange(source),
+                NewText = " "
+            };
+            edits.Add(edit);
         }
     }
 }
