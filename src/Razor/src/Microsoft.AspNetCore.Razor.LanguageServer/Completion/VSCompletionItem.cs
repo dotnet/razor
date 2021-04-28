@@ -9,8 +9,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     /// <summary>
     /// VS-specific completion item based off of LSP's VSCompletionItem.
     /// </summary>
-    internal class RazorVSCompletionItem : CompletionItem
+    internal class VSCompletionItem : CompletionItem
     {
-        public RazorClassifiedTextElement Description { get; set; }
+        public VSClassifiedTextElement Description { get; set; }
     }
 }

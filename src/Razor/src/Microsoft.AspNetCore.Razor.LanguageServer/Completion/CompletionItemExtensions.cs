@@ -40,9 +40,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return false;
         }
 
-        public static RazorVSCompletionItem ToRazorVSCompletionItem(this CompletionItem completion)
+        public static VSCompletionItem ToVSCompletionItem(this CompletionItem completion)
         {
-            return new RazorVSCompletionItem
+            if (completion is null)
+            {
+                throw new ArgumentNullException(nameof(completion));
+            }
+
+            return new VSCompletionItem
             {
                 AdditionalTextEdits = completion.AdditionalTextEdits,
                 Command = completion.Command,

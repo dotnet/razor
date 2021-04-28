@@ -28,10 +28,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorCompletionFactsService _completionFactsService;
-        private readonly TagHelperTooltipFactory _tagHelperTooltipFactory;
+        private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
+        private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly CompletionListCache _completionListCache;
-        private static readonly Command RetriggerCompletionCommand = new Command()
+        private static readonly Command RetriggerCompletionCommand = new()
         {
             Name = "editor.action.triggerSuggest",
             Title = "Re-trigger completions...",
@@ -43,7 +44,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             RazorCompletionFactsService completionFactsService,
-            TagHelperTooltipFactory tagHelperTooltipFactory,
+            LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
+            VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
         {
@@ -62,9 +64,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            if (tagHelperTooltipFactory == null)
+            if (lspTagHelperTooltipFactory == null)
             {
-                throw new ArgumentNullException(nameof(tagHelperTooltipFactory));
+                throw new ArgumentNullException(nameof(lspTagHelperTooltipFactory));
+            }
+
+            if (vsLspTagHelperTooltipFactory is null)
+            {
+                throw new ArgumentNullException(nameof(vsLspTagHelperTooltipFactory));
             }
 
             if (languageServer is null)
@@ -80,7 +87,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
             _completionFactsService = completionFactsService;
-            _tagHelperTooltipFactory = tagHelperTooltipFactory;
+            _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
+            _vsLspTagHelperTooltipFactory = vsLspTagHelperTooltipFactory;
             _languageServer = languageServer;
             _logger = loggerFactory.CreateLogger<RazorCompletionEndpoint>();
             _completionListCache = new CompletionListCache();
@@ -171,7 +179,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 clientCapabilities.SupportsVisualStudioExtensions;
 
             MarkupContent tagHelperMarkupTooltip = null;
-            RazorClassifiedTextElement tagHelperClassifiedTextTooltip = null;
+            VSClassifiedTextElement tagHelperClassifiedTextTooltip = null;
 
             switch (associatedRazorCompletion.Kind)
             {
@@ -192,11 +200,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 case RazorCompletionItemKind.TagHelperAttribute:
                     {
                         var descriptionInfo = associatedRazorCompletion.GetAttributeCompletionDescription();
-                        _tagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperMarkupTooltip);
+                        _lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperMarkupTooltip);
 
                         if (useDescriptionProperty)
                         {
-                            _tagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
+                            _vsLspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
                         }
 
                         break;
@@ -204,11 +212,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 case RazorCompletionItemKind.TagHelperElement:
                     {
                         var descriptionInfo = associatedRazorCompletion.GetTagHelperElementDescriptionInfo();
-                        _tagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperMarkupTooltip);
+                        _lspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperMarkupTooltip);
 
                         if (useDescriptionProperty)
                         {
-                            _tagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
+                            _vsLspTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
                         }
 
                         break;
@@ -223,7 +231,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             if (tagHelperClassifiedTextTooltip != null)
             {
-                var vsCompletionItem = completionItem.ToRazorVSCompletionItem();
+                var vsCompletionItem = completionItem.ToVSCompletionItem();
                 vsCompletionItem.Description = tagHelperClassifiedTextTooltip;
                 return Task.FromResult<CompletionItem>(vsCompletionItem);
             }

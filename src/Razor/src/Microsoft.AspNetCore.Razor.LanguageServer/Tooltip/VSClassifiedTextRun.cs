@@ -11,14 +11,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
     /// can use it for LSP serialization since we don't have access to the VS version.
     /// Refer to original class for additional details.
     /// </summary>
-    internal sealed class RazorClassifiedTextRun
+    internal sealed class VSClassifiedTextRun
     {
-        public RazorClassifiedTextRun(string classificationTypeName, string text)
-            : this(classificationTypeName, text, RazorClassifiedTextRunStyle.Plain)
+        public VSClassifiedTextRun(string classificationTypeName, string text)
+            : this(classificationTypeName, text, VSClassifiedTextRunStyle.Plain)
         {
         }
 
-        public RazorClassifiedTextRun(string classificationTypeName, string text, RazorClassifiedTextRunStyle style)
+        public VSClassifiedTextRun(string classificationTypeName, string text, VSClassifiedTextRunStyle style)
         {
             ClassificationTypeName = classificationTypeName
                 ?? throw new ArgumentNullException(nameof(classificationTypeName));
@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             Style = style;
         }
 
-        public RazorClassifiedTextRun(string classificationTypeName, string text, RazorClassifiedTextRunStyle style, string markerTagType)
+        public VSClassifiedTextRun(string classificationTypeName, string text, VSClassifiedTextRunStyle style, string markerTagType)
         {
             ClassificationTypeName = classificationTypeName
                 ?? throw new ArgumentNullException(nameof(classificationTypeName));
@@ -35,12 +35,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             Style = style;
         }
 
-        public RazorClassifiedTextRun(
+        public VSClassifiedTextRun(
             string classificationTypeName,
             string text,
             Action navigationAction,
             string tooltip = null,
-            RazorClassifiedTextRunStyle style = RazorClassifiedTextRunStyle.Plain)
+            VSClassifiedTextRunStyle style = VSClassifiedTextRunStyle.Plain)
         {
             ClassificationTypeName = classificationTypeName
                 ?? throw new ArgumentNullException(nameof(classificationTypeName));
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public string MarkerTagType { get; }
 
         [JsonProperty("Style")]
-        public RazorClassifiedTextRunStyle Style { get; }
+        public VSClassifiedTextRunStyle Style { get; }
 
         [JsonProperty("Tooltip")]
         public string Tooltip { get; }

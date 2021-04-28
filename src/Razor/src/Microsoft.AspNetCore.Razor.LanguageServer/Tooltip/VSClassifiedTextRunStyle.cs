@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
     /// Refer to original class for additional details.
     /// </summary>
     [Flags]
-    public enum RazorClassifiedTextRunStyle
+    public enum VSClassifiedTextRunStyle
     {
         Plain = 0b_0000_0000,
         Bold = 0b_0000_0001,
