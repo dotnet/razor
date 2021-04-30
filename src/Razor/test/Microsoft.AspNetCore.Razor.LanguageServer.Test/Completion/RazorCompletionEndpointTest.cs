@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService)
             };
             CompletionFactsService = new DefaultRazorCompletionFactsService(completionProviders);
-            LSPTagHelperTooltipFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict)).Object;
+            LSPTagHelperTooltipFactory = Mock.Of<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
             VSLSPTagHelperTooltipFactory = Mock.Of<VSLSPTagHelperTooltipFactory>(MockBehavior.Strict);
             EmptyDocumentResolver = Mock.Of<DocumentResolver>(MockBehavior.Strict);
         }
@@ -280,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_Resolve_DirectiveAttributeCompletion_ReturnsCompletionItemWithDocumentation()
         {
             // Arrange
-            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict));
+            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
             var markdown = new MarkupContent
             {
                 Kind = MarkupKind.Markdown,
@@ -308,7 +308,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_Resolve_DirectiveAttributeParameterCompletion_ReturnsCompletionItemWithDocumentation()
         {
             // Arrange
-            var descriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict));
+            var descriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
             var markdown = new MarkupContent
             {
                 Kind = MarkupKind.Markdown,
@@ -336,7 +336,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_Resolve_TagHelperElementCompletion_ReturnsCompletionItemWithDocumentation()
         {
             // Arrange
-            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict));
+            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
             var markdown = new MarkupContent
             {
                 Kind = MarkupKind.Markdown,
@@ -364,7 +364,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_Resolve_TagHelperAttribute_ReturnsCompletionItemWithDocumentation()
         {
             // Arrange
-            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict));
+            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
             var markdown = new MarkupContent
             {
                 Kind = MarkupKind.Markdown,
@@ -392,7 +392,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public async Task Handle_Resolve_NonTagHelperCompletion_Noops()
         {
             // Arrange
-            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict, Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict));
+            var lspDescriptionFactory = new Mock<LSPTagHelperTooltipFactory>(MockBehavior.Strict);
             var markdown = new MarkupContent
             {
                 Kind = MarkupKind.Markdown,

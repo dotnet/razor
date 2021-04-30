@@ -5,14 +5,14 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.VSLSPTagHelperTooltipFactory;
+using static Microsoft.AspNetCore.Razor.LanguageServer.Tooltip.DefaultVSLSPTagHelperTooltipFactory;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
-    public class VSLSPTagHelperDescriptionFactoryTest
+    public class DefaultVSLSPTagHelperDescriptionFactoryTest
     {
         [Fact]
-        public void CleanAndClassifySummaryContent_ReplacesSeeCrefs()
+        public void CleanAndClassifySummaryContent_ClassifiedTextElement_ReplacesSeeCrefs()
         {
             // Arrange
             var runs = new List<VSClassifiedTextRun>();
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         }
 
         [Fact]
-        public void CleanSummaryContent_ReplacesSeeAlsoCrefs()
+        public void CleanSummaryContent_ClassifiedTextElement_ReplacesSeeAlsoCrefs()
         {
             // Arrange
             var runs = new List<VSClassifiedTextRun>();
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         }
 
         [Fact]
-        public void CleanSummaryContent_TrimsSurroundingWhitespace()
+        public void CleanSummaryContent_ClassifiedTextElement_TrimsSurroundingWhitespace()
         {
             // Arrange
             var runs = new List<VSClassifiedTextRun>();
@@ -81,10 +81,59 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         }
 
         [Fact]
+        public void CleanSummaryContent_ClassifiedTextElement_ClassifiesCodeBlocks()
+        {
+            // Arrange
+            var runs = new List<VSClassifiedTextRun>();
+            var summary = @"code: <code>This is code</code> and <code>This is some other code</code>.";
+
+            // Act
+            CleanAndClassifySummaryContent(runs, summary);
+
+            // Assert
+
+            // Expected output:
+            //     code: This is code and This is some other code.
+            Assert.Collection(runs, run => AssertExpectedClassification(run, "code: ", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "This is code", VSPredefinedClassificationTypeNames.Text, VSClassifiedTextRunStyle.UseClassificationFont),
+                run => AssertExpectedClassification(run, " and ", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "This is some other code", VSPredefinedClassificationTypeNames.Text, VSClassifiedTextRunStyle.UseClassificationFont),
+                run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Text));
+        }
+
+        [Fact]
+        public void CleanSummaryContent_ClassifiedTextElement_ParasCreateNewLines()
+        {
+            // Arrange
+            var runs = new List<VSClassifiedTextRun>();
+            var summary = @"Summary description:
+<para>Paragraph text.</para>
+End summary description.";
+
+            // Act
+            CleanAndClassifySummaryContent(runs, summary);
+
+            // Assert
+
+            // Expected output:
+            //     code: This is code and This is some other code.
+            Assert.Collection(runs, run => AssertExpectedClassification(
+                run,
+                "Summary description:" +
+                Environment.NewLine +
+                Environment.NewLine +
+                "Paragraph text." +
+                Environment.NewLine +
+                Environment.NewLine +
+                "End summary description.",
+                VSPredefinedClassificationTypeNames.Text));
+        }
+
+        [Fact]
         public void TryCreateTooltip_ClassifiedTextElement_NoAssociatedTagHelperDescriptions_ReturnsFalse()
         {
             // Arrange
-            var descriptionFactory = new VSLSPTagHelperTooltipFactory();
+            var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory();
             var elementDescription = AggregateBoundElementDescription.Default;
 
             // Act
@@ -99,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void TryCreateTooltip_ClassifiedTextElement_Element_SingleAssociatedTagHelper_ReturnsTrue_NestedTypes()
         {
             // Arrange
-            var descriptionFactory = new VSLSPTagHelperTooltipFactory();
+            var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory();
             var associatedTagHelperInfos = new[]
             {
                 new BoundElementDescriptionInfo(
@@ -138,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void TryCreateTooltip_ClassifiedTextElement_Element_NamespaceContainsTypeName_ReturnsTrue()
         {
             // Arrange
-            var descriptionFactory = new VSLSPTagHelperTooltipFactory();
+            var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory();
             var associatedTagHelperInfos = new[]
             {
                 new BoundElementDescriptionInfo(
@@ -176,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void TryCreateTooltip_ClassifiedTextElement_Element_MultipleAssociatedTagHelpers_ReturnsTrue()
         {
             // Arrange
-            var descriptionFactory = new VSLSPTagHelperTooltipFactory();
+            var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory();
             var associatedTagHelperInfos = new[]
             {
                 new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
@@ -228,7 +277,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void TryCreateTooltip_ClassifiedTextElement_NoAssociatedAttributeDescriptions_ReturnsFalse()
         {
             // Arrange
-            var descriptionFactory = new VSLSPTagHelperTooltipFactory();
+            var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory();
             var elementDescription = AggregateBoundAttributeDescription.Default;
 
             // Act
@@ -243,7 +292,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void TryCreateTooltip_ClassifiedTextElement_Attribute_SingleAssociatedAttribute_ReturnsTrue_NestedTypes()
         {
             // Arrange
-            var descriptionFactory = new VSLSPTagHelperTooltipFactory();
+            var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory();
             var associatedAttributeDescriptions = new[]
             {
                 new BoundAttributeDescriptionInfo(
@@ -290,7 +339,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         public void TryCreateTooltip_ClassifiedTextElement_Attribute_MultipleAssociatedAttributes_ReturnsTrue()
         {
             // Arrange
-            var descriptionFactory = new VSLSPTagHelperTooltipFactory();
+            var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory();
             var associatedAttributeDescriptions = new[]
             {
                 new BoundAttributeDescriptionInfo(
@@ -359,10 +408,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 run => AssertExpectedClassification(run, "s", VSPredefinedClassificationTypeNames.Text));
         }
 
-        private static void AssertExpectedClassification(VSClassifiedTextRun run, string expectedText, string expectedClassificationType)
+        private static void AssertExpectedClassification(
+            VSClassifiedTextRun run,
+            string expectedText,
+            string expectedClassificationType,
+            VSClassifiedTextRunStyle expectedClassificationStyle = VSClassifiedTextRunStyle.Plain)
         {
             Assert.Equal(expectedText, run.Text);
             Assert.Equal(expectedClassificationType, run.ClassificationTypeName);
+            Assert.Equal(expectedClassificationStyle, run.Style);
         }
     }
 }

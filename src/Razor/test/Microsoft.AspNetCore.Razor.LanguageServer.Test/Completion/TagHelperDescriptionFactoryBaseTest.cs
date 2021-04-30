@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName";
 
             // Act
-            var reduced = LSPTagHelperTooltipFactory.ReduceTypeName(content);
+            var reduced = DefaultLSPTagHelperTooltipFactory.ReduceTypeName(content);
 
             // Assert
             Assert.Equal("SomeTypeName", reduced);
@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "System.Collections.Generic.List<System.String>";
 
             // Act
-            var reduced = LSPTagHelperTooltipFactory.ReduceTypeName(content);
+            var reduced = DefaultLSPTagHelperTooltipFactory.ReduceTypeName(content);
 
             // Assert
             Assert.Equal("List<System.String>", reduced);
@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "System.Collections.Generic.List{System.String}";
 
             // Act
-            var reduced = LSPTagHelperTooltipFactory.ReduceTypeName(content);
+            var reduced = DefaultLSPTagHelperTooltipFactory.ReduceTypeName(content);
 
             // Assert
             Assert.Equal("List{System.String}", reduced);
@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "Microsoft.AspNetCore.SometTagHelpers.SomeType<Foo.Bar<Baz.Phi>>";
 
             // Act
-            var reduced = LSPTagHelperTooltipFactory.ReduceTypeName(content);
+            var reduced = DefaultLSPTagHelperTooltipFactory.ReduceTypeName(content);
 
             // Assert
             Assert.Equal("SomeType<Foo.Bar<Baz.Phi>>", reduced);
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             // Arrange
 
             // Act
-            var reduced = LSPTagHelperTooltipFactory.ReduceTypeName(content);
+            var reduced = DefaultLSPTagHelperTooltipFactory.ReduceTypeName(content);
 
             // Assert
             Assert.Equal(content, reduced);
@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "Microsoft.AspNetCore.SometTagHelpers.SomeType.SomeProperty";
 
             // Act
-            var reduced = LSPTagHelperTooltipFactory.ReduceMemberName(content);
+            var reduced = DefaultLSPTagHelperTooltipFactory.ReduceMemberName(content);
 
             // Assert
             Assert.Equal("SomeType.SomeProperty", reduced);
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "Microsoft.AspNetCore.SometTagHelpers.SomeType<Foo.Bar>.SomeProperty<Foo.Bar>";
 
             // Act
-            var reduced = LSPTagHelperTooltipFactory.ReduceMemberName(content);
+            var reduced = DefaultLSPTagHelperTooltipFactory.ReduceMemberName(content);
 
             // Assert
             Assert.Equal("SomeType<Foo.Bar>.SomeProperty<Foo.Bar>", reduced);
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "Microsoft.AspNetCore.SometTagHelpers.SomeType{Foo.Bar}.SomeProperty{Foo.Bar}";
 
             // Act
-            var reduced = LSPTagHelperTooltipFactory.ReduceMemberName(content);
+            var reduced = DefaultLSPTagHelperTooltipFactory.ReduceMemberName(content);
 
             // Assert
             Assert.Equal("SomeType{Foo.Bar}.SomeProperty{Foo.Bar}", reduced);
@@ -120,7 +120,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "Microsoft.AspNetCore.SometTagHelpers.SomeType<Foo.Bar<Baz,Fi>>.SomeMethod(Foo.Bar<System.String>,Baz<Something>.Fi)";
 
             // Act
-            var reduced = LSPTagHelperTooltipFactory.ReduceMemberName(content);
+            var reduced = DefaultLSPTagHelperTooltipFactory.ReduceMemberName(content);
 
             // Assert
             Assert.Equal("SomeType<Foo.Bar<Baz,Fi>>.SomeMethod(Foo.Bar<System.String>,Baz<Something>.Fi)", reduced);
@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             // Arrange
 
             // Act
-            var reduced = LSPTagHelperTooltipFactory.ReduceMemberName(content);
+            var reduced = DefaultLSPTagHelperTooltipFactory.ReduceMemberName(content);
 
             // Assert
             Assert.Equal(content, reduced);
@@ -149,7 +149,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "T:";
 
             // Act
-            var value = LSPTagHelperTooltipFactory.ReduceCrefValue(content);
+            var value = DefaultLSPTagHelperTooltipFactory.ReduceCrefValue(content);
 
             // Assert
             Assert.Equal(string.Empty, value);
@@ -162,7 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "X:";
 
             // Act
-            var value = LSPTagHelperTooltipFactory.ReduceCrefValue(content);
+            var value = DefaultLSPTagHelperTooltipFactory.ReduceCrefValue(content);
 
             // Assert
             Assert.Equal(string.Empty, value);
@@ -175,7 +175,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "T:Microsoft.AspNetCore.SometTagHelpers.SomeType";
 
             // Act
-            var value = LSPTagHelperTooltipFactory.ReduceCrefValue(content);
+            var value = DefaultLSPTagHelperTooltipFactory.ReduceCrefValue(content);
 
             // Assert
             Assert.Equal("SomeType", value);
@@ -188,7 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "P:Microsoft.AspNetCore.SometTagHelpers.SomeType.SomeProperty";
 
             // Act
-            var value = LSPTagHelperTooltipFactory.ReduceCrefValue(content);
+            var value = DefaultLSPTagHelperTooltipFactory.ReduceCrefValue(content);
 
             // Assert
             Assert.Equal("SomeType.SomeProperty", value);
@@ -201,7 +201,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
             var content = "P:Microsoft.AspNetCore.SometTagHelpers.SomeType.SomeMember";
 
             // Act
-            var value = LSPTagHelperTooltipFactory.ReduceCrefValue(content);
+            var value = DefaultLSPTagHelperTooltipFactory.ReduceCrefValue(content);
 
             // Assert
             Assert.Equal("SomeType.SomeMember", value);
@@ -211,7 +211,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
         public void TryExtractSummary_Null_ReturnsFalse()
         {
             // Arrange & Act
-            var result = LSPTagHelperTooltipFactory.TryExtractSummary(documentation: null, out var summary);
+            var result = DefaultLSPTagHelperTooltipFactory.TryExtractSummary(documentation: null, out var summary);
 
             // Assert
             Assert.False(result);
@@ -232,7 +232,7 @@ Prefixed invalid content
 Suffixed invalid content";
 
             // Act
-            var result = LSPTagHelperTooltipFactory.TryExtractSummary(documentation, out var summary);
+            var result = DefaultLSPTagHelperTooltipFactory.TryExtractSummary(documentation, out var summary);
 
             // Assert
             Assert.True(result);
@@ -252,7 +252,7 @@ Prefixed invalid content
 Suffixed invalid content";
 
             // Act
-            var result = LSPTagHelperTooltipFactory.TryExtractSummary(documentation, out var summary);
+            var result = DefaultLSPTagHelperTooltipFactory.TryExtractSummary(documentation, out var summary);
 
             // Assert
             Assert.True(result);
@@ -277,7 +277,7 @@ Prefixed invalid content
 Suffixed invalid content";
 
             // Act
-            var result = LSPTagHelperTooltipFactory.TryExtractSummary(documentation, out var summary);
+            var result = DefaultLSPTagHelperTooltipFactory.TryExtractSummary(documentation, out var summary);
 
             // Assert
             Assert.True(result);
@@ -299,7 +299,7 @@ Suffixed invalid content", summary);
 ";
 
             // Act
-            var result = LSPTagHelperTooltipFactory.TryExtractSummary(documentation, out var summary);
+            var result = DefaultLSPTagHelperTooltipFactory.TryExtractSummary(documentation, out var summary);
 
             // Assert
             Assert.False(result);
@@ -315,7 +315,7 @@ There is no xml, but I got you this < and the >.
 ";
 
             // Act
-            var result = LSPTagHelperTooltipFactory.TryExtractSummary(documentation, out var summary);
+            var result = DefaultLSPTagHelperTooltipFactory.TryExtractSummary(documentation, out var summary);
 
             // Assert
             Assert.True(result);

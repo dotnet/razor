@@ -338,7 +338,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 languageServer = LanguageServer;
             }
 
-            var tagHelperTooltipFactory = new LSPTagHelperTooltipFactory(languageServer);
+            var tagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(languageServer);
             return new DefaultRazorHoverInfoService(TagHelperFactsService, tagHelperTooltipFactory, HtmlFactsService);
         }
     }
