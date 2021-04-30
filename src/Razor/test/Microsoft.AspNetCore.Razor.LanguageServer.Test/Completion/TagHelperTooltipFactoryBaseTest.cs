@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Completion
 {
-    public class TagHelperDescriptionFactoryBaseTest
+    public class TagHelperTooltipFactoryBaseTest
     {
         [Fact]
         public void ReduceTypeName_Plain()
