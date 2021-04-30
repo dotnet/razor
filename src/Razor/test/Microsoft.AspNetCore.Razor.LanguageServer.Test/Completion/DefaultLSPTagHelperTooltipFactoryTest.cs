@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
-    public class DefaultLSPTagHelperDescriptionFactoryTest
+    public class DefaultLSPTagHelperTooltipFactoryTest
     {
         internal static ClientNotifierServiceBase LanguageServer
         {
