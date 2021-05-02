@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Contains("**Test1TagHelper**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Contains("**BoolVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(edgeLocation, 0, edgeLocation);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Contains("**BoolVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("true", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Null(hover);
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("=", StringComparison.Ordinal) + 1, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Null(hover);
@@ -145,7 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("true'", StringComparison.Ordinal) + 5, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Null(hover);
@@ -161,7 +161,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Contains("**BoolVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
@@ -186,7 +186,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(charIndex, -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.NotNull(hover);
@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Contains("**Test1TagHelper**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Contains("**BoolVal**", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
@@ -242,7 +242,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("strong", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Null(hover);
@@ -261,7 +261,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("test1", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Contains("Test1TagHelper", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
@@ -283,7 +283,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("bool-val", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Contains("BoolVal", hover.Contents.MarkupContent.Value, StringComparison.Ordinal);
@@ -306,7 +306,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("strong", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Null(hover);
@@ -325,7 +325,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             var location = new SourceLocation(txt.IndexOf("weak", StringComparison.Ordinal), -1, -1);
 
             // Act
-            var hover = service.GetHoverInfo(codeDocument, location);
+            var hover = service.GetHoverInfo(codeDocument, location, isVSClient: false);
 
             // Assert
             Assert.Null(hover);
@@ -338,8 +338,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
                 languageServer = LanguageServer;
             }
 
-            var tagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(languageServer);
-            return new DefaultRazorHoverInfoService(TagHelperFactsService, tagHelperTooltipFactory, HtmlFactsService);
+            var lspTagHelperTooltipFactory = new DefaultLSPTagHelperTooltipFactory(languageServer);
+            var vsLspTagHelperTooltipFactory = new DefaultVSLSPTagHelperTooltipFactory();
+            return new DefaultRazorHoverInfoService(TagHelperFactsService, lspTagHelperTooltipFactory, vsLspTagHelperTooltipFactory, HtmlFactsService);
         }
     }
 }

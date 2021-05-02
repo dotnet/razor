@@ -11,11 +11,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
     internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactory
     {
-        private static readonly Guid ImageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
-
-        private static readonly VSImageElement TagHelperGlyph = new(
+        // Internal for testing
+        internal static readonly VSImageElement TagHelperGlyph = new(
             new VSImageId(ImageCatalogGuid, 3564), // KnownImageIds.Type = 3564
             "Razor TagHelper Glyph");
+
+        private static readonly Guid ImageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
 
         private static readonly IReadOnlyList<string> CSharpPrimitiveTypes =
             new string[] { "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",
