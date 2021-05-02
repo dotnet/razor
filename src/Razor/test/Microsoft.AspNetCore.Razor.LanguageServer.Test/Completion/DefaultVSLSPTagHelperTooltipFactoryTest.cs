@@ -437,11 +437,11 @@ End summary description.";
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(elementDescription, out VSContainerElement containerElement);
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out VSContainerElement container);
 
             // Assert
             Assert.True(result);
-            var container = containerElement.Elements.ToList();
+            var containerElements = container.Elements.ToList();
 
             // Expected output:
             //     [TagHelper Glyph] Microsoft.AspNetCore.SomeTagHelper
@@ -449,11 +449,11 @@ End summary description.";
             //
             //     [TagHelper Glyph] Microsoft.AspNetCore.OtherTagHelper
             //     Also uses List<string>s
-            Assert.Equal(VSContainerElementStyle.Stacked, containerElement.Style);
-            Assert.Equal(4, container.Count);
+            Assert.Equal(VSContainerElementStyle.Stacked, container.Style);
+            Assert.Equal(4, containerElements.Count);
 
             // [TagHelper Glyph] Microsoft.AspNetCore.SomeTagHelper
-            var innerContainer = ((VSContainerElement)container[0]).Elements.ToList();
+            var innerContainer = ((VSContainerElement)containerElements[0]).Elements.ToList();
             var classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(TagHelperGlyph, innerContainer[0]);
@@ -464,7 +464,7 @@ End summary description.";
                 run => AssertExpectedClassification(run, "SomeTagHelper", VSPredefinedClassificationTypeNames.Type));
 
             // Uses List<string>s
-            innerContainer = ((VSContainerElement)container[1]).Elements.ToList();
+            innerContainer = ((VSContainerElement)containerElements[1]).Elements.ToList();
             classifiedTextElement = (VSClassifiedTextElement)innerContainer[0];
             Assert.Single(innerContainer);
             Assert.Collection(classifiedTextElement.Runs, run => AssertExpectedClassification(run, "Uses ", VSPredefinedClassificationTypeNames.Text),
@@ -475,7 +475,7 @@ End summary description.";
                 run => AssertExpectedClassification(run, "s", VSPredefinedClassificationTypeNames.Text));
 
             // [TagHelper Glyph] Microsoft.AspNetCore.OtherTagHelper
-            innerContainer = ((VSContainerElement)container[2]).Elements.ToList();
+            innerContainer = ((VSContainerElement)containerElements[2]).Elements.ToList();
             classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(TagHelperGlyph, innerContainer[0]);
@@ -486,7 +486,7 @@ End summary description.";
                 run => AssertExpectedClassification(run, "OtherTagHelper", VSPredefinedClassificationTypeNames.Type));
 
             // Also uses List<string>s
-            innerContainer = ((VSContainerElement)container[3]).Elements.ToList();
+            innerContainer = ((VSContainerElement)containerElements[3]).Elements.ToList();
             classifiedTextElement = (VSClassifiedTextElement)innerContainer[0];
             Assert.Single(innerContainer);
             Assert.Collection(classifiedTextElement.Runs, run => AssertExpectedClassification(run, "Also uses ", VSPredefinedClassificationTypeNames.Text),
@@ -533,11 +533,11 @@ End summary description.";
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
             // Act
-            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out VSContainerElement containerElement);
+            var result = descriptionFactory.TryCreateTooltip(attributeDescription, out VSContainerElement container);
 
             // Assert
             Assert.True(result);
-            var container = containerElement.Elements.ToList();
+            var containerElements = container.Elements.ToList();
 
             // Expected output:
             //     [TagHelper Glyph] string Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeProperty
@@ -545,11 +545,11 @@ End summary description.";
             //
             //     [TagHelper Glyph] bool? Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName.AnotherProperty
             //     Uses List<string>s
-            Assert.Equal(VSContainerElementStyle.Stacked, containerElement.Style);
-            Assert.Equal(4, container.Count);
+            Assert.Equal(VSContainerElementStyle.Stacked, container.Style);
+            Assert.Equal(4, containerElements.Count);
 
             // [TagHelper Glyph] string Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeProperty
-            var innerContainer = ((VSContainerElement)container[0]).Elements.ToList();
+            var innerContainer = ((VSContainerElement)containerElements[0]).Elements.ToList();
             var classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(TagHelperGlyph, innerContainer[0]);
@@ -566,7 +566,7 @@ End summary description.";
                 run => AssertExpectedClassification(run, "SomeProperty", VSPredefinedClassificationTypeNames.Identifier));
 
             // Uses List<string>s
-            innerContainer = ((VSContainerElement)container[1]).Elements.ToList();
+            innerContainer = ((VSContainerElement)containerElements[1]).Elements.ToList();
             classifiedTextElement = (VSClassifiedTextElement)innerContainer[0];
             Assert.Single(innerContainer);
             Assert.Collection(classifiedTextElement.Runs, run => AssertExpectedClassification(run, "Uses ", VSPredefinedClassificationTypeNames.Text),
@@ -577,7 +577,7 @@ End summary description.";
                 run => AssertExpectedClassification(run, "s", VSPredefinedClassificationTypeNames.Text));
 
             // [TagHelper Glyph] bool? Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName.AnotherProperty
-            innerContainer = ((VSContainerElement)container[2]).Elements.ToList();
+            innerContainer = ((VSContainerElement)containerElements[2]).Elements.ToList();
             classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(TagHelperGlyph, innerContainer[0]);
@@ -595,7 +595,7 @@ End summary description.";
                 run => AssertExpectedClassification(run, "AnotherProperty", VSPredefinedClassificationTypeNames.Identifier));
 
             // Uses List<string>s
-            innerContainer = ((VSContainerElement)container[3]).Elements.ToList();
+            innerContainer = ((VSContainerElement)containerElements[3]).Elements.ToList();
             classifiedTextElement = (VSClassifiedTextElement)innerContainer[0];
             Assert.Single(innerContainer);
             Assert.Collection(classifiedTextElement.Runs, run => AssertExpectedClassification(run, "Uses ", VSPredefinedClassificationTypeNames.Text),
@@ -606,7 +606,7 @@ End summary description.";
                 run => AssertExpectedClassification(run, "s", VSPredefinedClassificationTypeNames.Text));
         }
 
-        private static void AssertExpectedClassification(
+        internal static void AssertExpectedClassification(
             VSClassifiedTextRun run,
             string expectedText,
             string expectedClassificationType,
