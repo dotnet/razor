@@ -3,16 +3,12 @@
 
 #nullable enable
 
-using Newtonsoft.Json;
 using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
     internal class VSHover : HoverModel
     {
-        [JsonProperty("type")]
-        public readonly string Type = "VSHover";
-
         public object? RawContent { get; set; }
     }
 }
