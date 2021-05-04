@@ -275,5 +275,48 @@ expected: @"@page ""MyPage""
 ",
             fileKind: FileKinds.Legacy);
         }
+
+        // Regression prevention tests:
+        [Fact]
+        public async Task Using()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@using   System;
+",
+expected: @"@using   System;
+");
+        }
+
+        [Fact]
+        public async Task UsingStatic()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@using  static   System.Math;
+",
+expected: @"@using  static   System.Math;
+");
+        }
+
+        [Fact]
+        public async Task TagHelpers()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
+@removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper    ""*,  Microsoft.AspNetCore.Mvc.TagHelpers""
+@removeTagHelper    ""*,  Microsoft.AspNetCore.Mvc.TagHelpers""
+@tagHelperPrefix    th:
+",
+expected: @"@addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
+@removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper    ""*,  Microsoft.AspNetCore.Mvc.TagHelpers""
+@removeTagHelper    ""*,  Microsoft.AspNetCore.Mvc.TagHelpers""
+@tagHelperPrefix    th:
+",
+            fileKind: FileKinds.Legacy);
+        }
     }
 }
