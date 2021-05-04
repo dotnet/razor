@@ -215,6 +215,27 @@ stages:
           displayName: Produce Blazor WASM Debugging Extension VSIX
           workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+        - task: CopyFiles@2
+          displayName: 'Copy Files for APIScan'
+          inputs:
+            SourceFolder: '$(Build.SourcesDirectory)/artifacts/bin'
+            Contents: |
+              *\$(_BuildConfig)\*\*.dll
+            TargetFolder: '$(Build.SourcesDirectory)/artifacts/APIScanFiles'
+          condition: and(succeeded(), ne(variables['DisableAPIScan'], 'true'))
+        ### Run latest version of APIScan listed at https://www.1eswiki.com/wiki/APIScan_Build_Task
+        - task: APIScan@2
+          displayName: Run APIScan
+          inputs:
+            softwareFolder: '$(Build.SourcesDirectory)/artifacts/APIScan/'
+            softwareName: 'AspNetCore-Tooling'
+            softwareVersionNum: '$(Build.BuildId)'
+            isLargeApp: false
+            toolVersion: 'Latest'
+          condition: and(succeeded(), ne(variables['DisableAPIScan'], 'true'))
+          env:
+            AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+
         - task: PublishBuildArtifacts@1
           displayName: Upload Test Results
           condition: always()
