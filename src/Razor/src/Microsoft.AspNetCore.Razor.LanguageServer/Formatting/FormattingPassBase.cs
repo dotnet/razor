@@ -589,6 +589,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             if (IsInHtmlTag() ||
+                IsInDirectiveWithNoKind() ||
                 (!allowImplicitStatements && IsInSingleLineDirective()) ||
                 IsImplicitOrExplicitExpression() ||
                 IsInSectionDirective() ||
@@ -630,16 +631,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     n => n is MarkupStartTagSyntax || n is MarkupTagHelperStartTagSyntax || n is MarkupEndTagSyntax || n is MarkupTagHelperEndTagSyntax);
             }
 
+            bool IsInDirectiveWithNoKind()
+            {
+                // E.g, (| is position)
+                //
+                // `@using |System;
+                //
+                return owner.AncestorsAndSelf().Any(
+                    n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor == null);
+            }
+
             bool IsInSingleLineDirective()
             {
                 // E.g, (| is position)
                 //
                 // `@inject |SomeType SomeName` - true
                 //
-                // Note: @using directives don't have a descriptor associated with them, hence the extra null check.
-                //
                 return owner.AncestorsAndSelf().Any(
-                    n => n is RazorDirectiveSyntax directive && (directive.DirectiveDescriptor == null || directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine));
+                    n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine);
             }
 
             bool IsImplicitOrExplicitExpression()
@@ -656,7 +665,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 var directive = owner.FirstAncestorOrSelf<RazorDirectiveSyntax>();
                 if (directive != null &&
-                    directive.DirectiveDescriptor != null &&
                     directive.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
                 {
                     return true;
