@@ -444,19 +444,19 @@ End summary description.";
             var containerElements = container.Elements.ToList();
 
             // Expected output:
-            //     [TagHelper Glyph] Microsoft.AspNetCore.SomeTagHelper
+            //     [Class Glyph] Microsoft.AspNetCore.SomeTagHelper
             //     Uses List<string>s
             //
-            //     [TagHelper Glyph] Microsoft.AspNetCore.OtherTagHelper
+            //     [Class Glyph] Microsoft.AspNetCore.OtherTagHelper
             //     Also uses List<string>s
             Assert.Equal(VSContainerElementStyle.Stacked, container.Style);
             Assert.Equal(4, containerElements.Count);
 
-            // [TagHelper Glyph] Microsoft.AspNetCore.SomeTagHelper
+            // [Class Glyph] Microsoft.AspNetCore.SomeTagHelper
             var innerContainer = ((VSContainerElement)containerElements[0]).Elements.ToList();
             var classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
-            Assert.Equal(TagHelperGlyph, innerContainer[0]);
+            Assert.Equal(ClassGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs, run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
@@ -474,11 +474,11 @@ End summary description.";
                 run => AssertExpectedClassification(run, ">", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "s", VSPredefinedClassificationTypeNames.Text));
 
-            // [TagHelper Glyph] Microsoft.AspNetCore.OtherTagHelper
+            // [Class Glyph] Microsoft.AspNetCore.OtherTagHelper
             innerContainer = ((VSContainerElement)containerElements[2]).Elements.ToList();
             classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
-            Assert.Equal(TagHelperGlyph, innerContainer[0]);
+            Assert.Equal(ClassGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs, run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
@@ -540,10 +540,10 @@ End summary description.";
             var containerElements = container.Elements.ToList();
 
             // Expected output:
-            //     [TagHelper Glyph] string Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeProperty
+            //     [Property Glyph] string Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeProperty
             //     Uses List<string>s
             //
-            //     [TagHelper Glyph] bool? Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName.AnotherProperty
+            //     [Property Glyph] bool? Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName.AnotherProperty
             //     Uses List<string>s
             Assert.Equal(VSContainerElementStyle.Stacked, container.Style);
             Assert.Equal(4, containerElements.Count);
@@ -552,7 +552,7 @@ End summary description.";
             var innerContainer = ((VSContainerElement)containerElements[0]).Elements.ToList();
             var classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
-            Assert.Equal(TagHelperGlyph, innerContainer[0]);
+            Assert.Equal(PropertyGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs, run => AssertExpectedClassification(run, "string", VSPredefinedClassificationTypeNames.Keyword),
                 run => AssertExpectedClassification(run, " ", VSPredefinedClassificationTypeNames.WhiteSpace),
                 run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
@@ -580,7 +580,7 @@ End summary description.";
             innerContainer = ((VSContainerElement)containerElements[2]).Elements.ToList();
             classifiedTextElement = (VSClassifiedTextElement)innerContainer[1];
             Assert.Equal(2, innerContainer.Count);
-            Assert.Equal(TagHelperGlyph, innerContainer[0]);
+            Assert.Equal(PropertyGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,run => AssertExpectedClassification(run, "bool", VSPredefinedClassificationTypeNames.Keyword),
                 run => AssertExpectedClassification(run, "?", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, " ", VSPredefinedClassificationTypeNames.WhiteSpace),

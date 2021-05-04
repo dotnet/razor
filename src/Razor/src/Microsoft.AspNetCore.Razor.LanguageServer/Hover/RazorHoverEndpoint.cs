@@ -94,10 +94,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character);
-            var isVSClient = _languageServer.ClientSettings.Capabilities is PlatformAgnosticClientCapabilities clientCapabilities &&
-                clientCapabilities.SupportsVisualStudioExtensions;
+            var clientCapabilities = _languageServer.ClientSettings.Capabilities;
 
-            var hoverItem = _hoverInfoService.GetHoverInfo(codeDocument, location, isVSClient);
+            var hoverItem = _hoverInfoService.GetHoverInfo(codeDocument, location, clientCapabilities);
 
             _logger.LogTrace($"Found hover info items.");
 

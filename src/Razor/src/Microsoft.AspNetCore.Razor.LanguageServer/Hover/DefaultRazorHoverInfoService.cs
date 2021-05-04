@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
+using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
 using RangeModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
@@ -58,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             _htmlFactsService = htmlFactsService;
         }
 
-        public override HoverModel GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, bool isVSClient)
+        public override HoverModel GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, ClientCapabilities clientCapabilities)
         {
             if (codeDocument is null)
             {
@@ -106,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 
                     var range = containingTagNameToken.GetRange(codeDocument.Source);
 
-                    var result = ElementInfoToHover(binding.Descriptors, range, isVSClient);
+                    var result = ElementInfoToHover(binding.Descriptors, range, clientCapabilities);
                     return result;
                 }
             }
@@ -173,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                             break;
                     }
 
-                    var attributeHoverModel = AttributeInfoToHover(tagHelperAttributes, range, attributeName, isVSClient);
+                    var attributeHoverModel = AttributeInfoToHover(tagHelperAttributes, range, attributeName, clientCapabilities);
 
                     return attributeHoverModel;
                 }
@@ -182,7 +183,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return null;
         }
 
-        private HoverModel AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, RangeModel range, string attributeName, bool isVSClient)
+        private HoverModel AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, RangeModel range, string attributeName, ClientCapabilities clientCapabilities)
         {
             var descriptionInfos = descriptors.Select(boundAttribute =>
             {
@@ -192,16 +193,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }).ToList().AsReadOnly();
             var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
 
-            if (!_lspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out var markupContent))
-            {
-                return null;
-            }
-
+            var isVSClient = clientCapabilities is PlatformAgnosticClientCapabilities platformAgnosticClientCapabilities &&
+                platformAgnosticClientCapabilities.SupportsVisualStudioExtensions;
             if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out VSContainerElement classifiedTextElement))
             {
                 var vsHover = new VSHover
                 {
-                    Contents = new MarkedStringsOrMarkupContent(markupContent),
+                    Contents = new MarkedStringsOrMarkupContent(),
                     Range = range,
                     RawContent = classifiedTextElement,
                 };
@@ -210,6 +208,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }
             else
             {
+                if (!_lspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out var markupContent))
+                {
+                    return null;
+                }
+
                 var hover = new HoverModel
                 {
                     Contents = new MarkedStringsOrMarkupContent(markupContent),
@@ -220,23 +223,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }
         }
 
-        private HoverModel ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, RangeModel range, bool isVSClient)
+        private HoverModel ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, RangeModel range, ClientCapabilities clientCapabilities)
         {
             var descriptionInfos = descriptors.Select(descriptor => BoundElementDescriptionInfo.From(descriptor))
                 .ToList()
                 .AsReadOnly();
             var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
 
-            if (!_lspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out var markupContent))
-            {
-                return null;
-            }
-
+            var isVSClient = clientCapabilities is PlatformAgnosticClientCapabilities platformAgnosticClientCapabilities &&
+                platformAgnosticClientCapabilities.SupportsVisualStudioExtensions;
             if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out VSContainerElement classifiedTextElement))
             {
                 var vsHover = new VSHover
                 {
-                    Contents = new MarkedStringsOrMarkupContent(markupContent),
+                    Contents = new MarkedStringsOrMarkupContent(),
                     Range = range,
                     RawContent = classifiedTextElement,
                 };
@@ -245,6 +245,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             }
             else
             {
+                if (!_lspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out var markupContent))
+                {
+                    return null;
+                }
+
                 var hover = new HoverModel
                 {
                     Contents = new MarkedStringsOrMarkupContent(markupContent),

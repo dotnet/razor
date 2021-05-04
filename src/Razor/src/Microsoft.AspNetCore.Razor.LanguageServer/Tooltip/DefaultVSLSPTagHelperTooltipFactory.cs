@@ -14,9 +14,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         private static readonly Guid ImageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
 
         // Internal for testing
-        internal static readonly VSImageElement TagHelperGlyph = new(
-            new VSImageId(ImageCatalogGuid, 3564), // KnownImageIds.Type = 3564
-            "Razor TagHelper Glyph");
+        internal static readonly VSImageElement ClassGlyph = new(
+            new VSImageId(ImageCatalogGuid, 463), // KnownImageIds.Type = 463
+            "Razor TagHelper Element Glyph");
+
+        // Internal for testing
+        internal static readonly VSImageElement PropertyGlyph = new(
+            new VSImageId(ImageCatalogGuid, 2429), // KnownImageIds.Type = 2429
+            "Razor TagHelper Attribute Glyph");
 
         private static readonly IReadOnlyList<string> CSharpPrimitiveTypes =
             new string[] { "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",
@@ -47,15 +52,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 throw new ArgumentNullException(nameof(elementDescriptionInfo));
             }
 
-            var runs = new List<VSClassifiedTextRun>();
-            var classifiedElementContainer = new List<object>();
-            if (!TryClassifyElement(elementDescriptionInfo, runs, classifiedElementContainer))
+            if (!TryClassifyElement(elementDescriptionInfo, out var descriptionClassifications))
             {
                 tooltipContent = null;
                 return false;
             }
 
-            tooltipContent = new VSContainerElement(VSContainerElementStyle.Stacked, classifiedElementContainer);
+            tooltipContent = CombineClassifiedTextRuns(descriptionClassifications, ClassGlyph);
             return true;
         }
 
@@ -66,15 +69,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 throw new ArgumentNullException(nameof(attributeDescriptionInfo));
             }
 
-            var runs = new List<VSClassifiedTextRun>();
-            var classifiedElementContainer = new List<object>();
-            if (!TryClassifyAttribute(attributeDescriptionInfo, runs, classifiedElementContainer))
+            if (!TryClassifyAttribute(attributeDescriptionInfo, out var descriptionClassifications))
             {
                 tooltipContent = null;
                 return false;
             }
 
-            tooltipContent = new VSContainerElement(VSContainerElementStyle.Stacked, classifiedElementContainer);
+            tooltipContent = CombineClassifiedTextRuns(descriptionClassifications, PropertyGlyph);
             return true;
         }
 
@@ -87,14 +88,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 throw new ArgumentNullException(nameof(elementDescriptionInfo));
             }
 
-            var runs = new List<VSClassifiedTextRun>();
-            if (!TryClassifyElement(elementDescriptionInfo, runs, classifiedElementContainer: null))
+            if (!TryClassifyElement(elementDescriptionInfo, out var descriptionClassifications))
             {
                 tooltipContent = null;
                 return false;
             }
 
-            tooltipContent = new VSClassifiedTextElement(runs.ToArray());
+            tooltipContent = GenerateClassifiedTextElement(descriptionClassifications);
             return true;
         }
 
@@ -107,30 +107,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 throw new ArgumentNullException(nameof(attributeDescriptionInfo));
             }
 
-            var runs = new List<VSClassifiedTextRun>();
-            if (!TryClassifyAttribute(attributeDescriptionInfo, runs, classifiedElementContainer: null))
+            if (!TryClassifyAttribute(attributeDescriptionInfo, out var descriptionClassifications))
             {
                 tooltipContent = null;
                 return false;
             }
 
-            tooltipContent = new VSClassifiedTextElement(runs.ToArray());
+            tooltipContent = GenerateClassifiedTextElement(descriptionClassifications);
             return true;
         }
 
         private static bool TryClassifyElement(
             AggregateBoundElementDescription elementDescriptionInfo,
-            List<VSClassifiedTextRun> runs,
-            List<object> classifiedElementContainer)
+            out IReadOnlyList<DescriptionClassification> descriptionClassifications)
         {
             var associatedTagHelperInfos = elementDescriptionInfo.AssociatedTagHelperDescriptions;
             if (associatedTagHelperInfos.Count == 0)
             {
+                descriptionClassifications = null;
                 return false;
             }
 
-            // Once LSP's VSCompletionItem supports ContainerElements we can remove this check.
-            var useContainer = classifiedElementContainer != null;
+            var descriptions = new List<DescriptionClassification>();
 
             // Generates a ClassifiedTextElement that looks something like:
             //     Namespace.TypeName
@@ -139,43 +137,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
             foreach (var descriptionInfo in associatedTagHelperInfos)
             {
-                if (runs.Count > 0)
-                {
-                    runs.Add(NewLine);
-                    runs.Add(NewLine);
-                }
+                // 1. Classify type name
+                var typeRuns = new List<VSClassifiedTextRun>();
 
-                ClassifyTypeName(runs, descriptionInfo.TagHelperTypeName);
+                ClassifyTypeName(typeRuns, descriptionInfo.TagHelperTypeName);
 
-                if (useContainer)
-                {
-                    classifiedElementContainer.Add(new VSContainerElement(VSContainerElementStyle.Wrapped, TagHelperGlyph, new VSClassifiedTextElement(runs)));
-                    runs.Clear();
-                }
+                // 2. Classify summary
+                var documentationRuns = new List<VSClassifiedTextRun>();
+                TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
 
-                if (TryClassifySummary(runs, descriptionInfo.Documentation, addNewLineBeforeSummary: !useContainer) && useContainer)
-                {
-                    classifiedElementContainer.Add(new VSContainerElement(VSContainerElementStyle.Wrapped, new VSClassifiedTextElement(runs)));
-                    runs.Clear();
-                }
+                // 3. Combine type + summary information
+                descriptions.Add(new DescriptionClassification(new List<VSClassifiedTextRun>(typeRuns), new List<VSClassifiedTextRun>(documentationRuns)));
+                typeRuns.Clear();
+                documentationRuns.Clear();
             }
 
+            descriptionClassifications = descriptions;
             return true;
         }
 
         private static bool TryClassifyAttribute(
             AggregateBoundAttributeDescription attributeDescriptionInfo,
-            List<VSClassifiedTextRun> runs,
-            List<object> classifiedElementContainer)
+            out List<DescriptionClassification> descriptionClassifications)
         {
             var associatedAttributeInfos = attributeDescriptionInfo.DescriptionInfos;
             if (associatedAttributeInfos.Count == 0)
             {
+                descriptionClassifications = null;
                 return false;
             }
 
-            // Once LSP's VSCompletionItem supports ContainerElements we can remove this check.
-            var useContainer = classifiedElementContainer != null;
+            var descriptions = new List<DescriptionClassification>();
 
             // Generates a ClassifiedTextElement that looks something like:
             //     ReturnType Namespace.TypeName.Property
@@ -184,11 +176,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
             foreach (var descriptionInfo in associatedAttributeInfos)
             {
-                if (runs.Count > 0)
-                {
-                    runs.Add(NewLine);
-                    runs.Add(NewLine);
-                }
+                // 1. Classify type name and property
+                var typeRuns = new List<VSClassifiedTextRun>();
 
                 if (!TypeNameStringResolver.TryGetSimpleName(descriptionInfo.ReturnTypeName, out var returnTypeName))
                 {
@@ -196,25 +185,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 }
 
                 var reducedReturnTypeName = ReduceTypeName(returnTypeName);
-                ClassifyReducedTypeName(runs, reducedReturnTypeName);
-                runs.Add(Space);
-                ClassifyTypeName(runs, descriptionInfo.TypeName);
-                runs.Add(Dot);
-                runs.Add(new VSClassifiedTextRun(VSPredefinedClassificationTypeNames.Identifier, descriptionInfo.PropertyName));
+                ClassifyReducedTypeName(typeRuns, reducedReturnTypeName);
+                typeRuns.Add(Space);
+                ClassifyTypeName(typeRuns, descriptionInfo.TypeName);
+                typeRuns.Add(Dot);
+                typeRuns.Add(new VSClassifiedTextRun(VSPredefinedClassificationTypeNames.Identifier, descriptionInfo.PropertyName));
 
-                if (useContainer)
-                {
-                    classifiedElementContainer.Add(new VSContainerElement(VSContainerElementStyle.Wrapped, TagHelperGlyph, new VSClassifiedTextElement(runs)));
-                    runs.Clear();
-                }
+                // 2. Classify summary
+                var documentationRuns = new List<VSClassifiedTextRun>();
+                TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
 
-                if (TryClassifySummary(runs, descriptionInfo.Documentation, addNewLineBeforeSummary: !useContainer) && useContainer)
-                {
-                    classifiedElementContainer.Add(new VSContainerElement(VSContainerElementStyle.Wrapped, new VSClassifiedTextElement(runs)));
-                    runs.Clear();
-                }
+                // 3. Combine type + summary information
+                descriptions.Add(new DescriptionClassification(new List<VSClassifiedTextRun>(typeRuns), new List<VSClassifiedTextRun>(documentationRuns)));
+                typeRuns.Clear();
+                documentationRuns.Clear();
             }
 
+            descriptionClassifications = descriptions;
             return true;
         }
 
@@ -331,16 +318,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             }
         }
 
-        private static bool TryClassifySummary(List<VSClassifiedTextRun> runs, string documentation, bool addNewLineBeforeSummary)
+        private static bool TryClassifySummary(List<VSClassifiedTextRun> runs, string documentation)
         {
             if (!TryExtractSummary(documentation, out var summaryContent))
             {
                 return false;
-            }
-
-            if (addNewLineBeforeSummary)
-            {
-                runs.Add(NewLine);
             }
 
             CleanAndClassifySummaryContent(runs, summaryContent);
@@ -431,6 +413,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 }
             }
         }
+
+        private static VSContainerElement CombineClassifiedTextRuns(IReadOnlyList<DescriptionClassification> descriptionClassifications, VSImageElement glyph)
+        {
+            var classifiedElementContainer = new List<VSContainerElement>();
+            foreach (var classification in descriptionClassifications)
+            {
+                classifiedElementContainer.Add(new VSContainerElement(VSContainerElementStyle.Wrapped, glyph, new VSClassifiedTextElement(classification.Type)));
+
+                if (classification.Documentation.Count > 0)
+                {
+                    classifiedElementContainer.Add(new VSContainerElement(VSContainerElementStyle.Wrapped, new VSClassifiedTextElement(classification.Documentation)));
+                }
+            }
+
+            return new VSContainerElement(VSContainerElementStyle.Stacked, classifiedElementContainer);
+        }
+
+        private static VSClassifiedTextElement GenerateClassifiedTextElement(IReadOnlyList<DescriptionClassification> descriptionClassifications)
+        {
+            var runs = new List<VSClassifiedTextRun>();
+            foreach (var classification in descriptionClassifications)
+            {
+                if (runs.Count > 0)
+                {
+                    runs.Add(NewLine);
+                    runs.Add(NewLine);
+                }
+
+                runs.AddRange(classification.Type);
+                if (classification.Documentation.Count > 0)
+                {
+                    runs.Add(NewLine);
+                    runs.AddRange(classification.Documentation);
+                }
+            }
+
+            return new VSClassifiedTextElement(runs);
+        }
+
+        private record DescriptionClassification(IReadOnlyList<VSClassifiedTextRun> Type, IReadOnlyList<VSClassifiedTextRun> Documentation);
 
         // Internal for testing
         // Adapted from VS' PredefinedClassificationTypeNames
