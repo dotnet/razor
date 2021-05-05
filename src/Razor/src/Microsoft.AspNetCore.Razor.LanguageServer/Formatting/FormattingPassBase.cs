@@ -339,6 +339,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         razorDesiredIndentation = context.Indentations[i].ExistingIndentation;
                     }
                 }
+
                 var effectiveDesiredIndentation = razorDesiredIndentation + effectiveCSharpDesiredIndentation;
 
                 // This will now contain the indentation we ultimately want to apply to this line.

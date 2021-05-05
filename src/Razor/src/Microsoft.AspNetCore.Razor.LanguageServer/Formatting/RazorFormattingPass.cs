@@ -137,6 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 {
                     whitespace = literal;
                 }
+
                 return whitespace != null;
             }
 
@@ -149,6 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 {
                     brace = metaCode.MetaCode.SingleOrDefault(m => m.Kind == SyntaxKind.LeftBrace);
                 }
+
                 return brace != null;
             }
         }
