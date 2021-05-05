@@ -147,9 +147,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
 
                 // 3. Combine type + summary information
-                descriptions.Add(new DescriptionClassification(new List<VSClassifiedTextRun>(typeRuns), new List<VSClassifiedTextRun>(documentationRuns)));
-                typeRuns.Clear();
-                documentationRuns.Clear();
+                descriptions.Add(new DescriptionClassification(typeRuns, documentationRuns));
             }
 
             descriptionClassifications = descriptions;
@@ -196,9 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
 
                 // 3. Combine type + summary information
-                descriptions.Add(new DescriptionClassification(new List<VSClassifiedTextRun>(typeRuns), new List<VSClassifiedTextRun>(documentationRuns)));
-                typeRuns.Clear();
-                documentationRuns.Clear();
+                descriptions.Add(new DescriptionClassification(typeRuns, documentationRuns));
             }
 
             descriptionClassifications = descriptions;
@@ -452,8 +448,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             return new VSClassifiedTextElement(runs);
         }
 
-        private record DescriptionClassification(IReadOnlyList<VSClassifiedTextRun> Type, IReadOnlyList<VSClassifiedTextRun> Documentation);
-
         // Internal for testing
         // Adapted from VS' PredefinedClassificationTypeNames
         internal static class VSPredefinedClassificationTypeNames
@@ -470,5 +464,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
             public const string WhiteSpace = "whitespace";
         }
+
+        private record DescriptionClassification(IReadOnlyList<VSClassifiedTextRun> Type, IReadOnlyList<VSClassifiedTextRun> Documentation);
     }
 }

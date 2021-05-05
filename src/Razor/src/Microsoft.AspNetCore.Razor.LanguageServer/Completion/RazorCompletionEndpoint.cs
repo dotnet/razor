@@ -236,7 +236,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             if (tagHelperClassifiedTextTooltip != null)
             {
                 var vsCompletionItem = completionItem.ToVSCompletionItem();
-                vsCompletionItem.Documentation = "";
+                vsCompletionItem.Documentation = string.Empty;
                 vsCompletionItem.Description = tagHelperClassifiedTextTooltip;
                 return Task.FromResult<CompletionItem>(vsCompletionItem);
             }
