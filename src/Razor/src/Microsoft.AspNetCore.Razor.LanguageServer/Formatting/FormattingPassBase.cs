@@ -588,9 +588,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return true;
             }
 
+            // special case: If we're formatting implicit statements, we want to treat the `@attribute` directive as one
+            // so that the C# definition of the attribute is formatted as C#
+            if (allowImplicitStatements &&
+                IsAttributeDirective())
+            {
+                return true;
+            }
+
+
             if (IsInHtmlTag() ||
                 IsInDirectiveWithNoKind() ||
-                (!allowImplicitStatements && IsInSingleLineDirective()) ||
+                IsInSingleLineDirective() ||
                 IsImplicitOrExplicitExpression() ||
                 IsInSectionDirective() ||
                 (!allowImplicitStatements && IsImplicitStatementStart()))
@@ -639,6 +648,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 //
                 return owner.AncestorsAndSelf().Any(
                     n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor == null);
+            }
+
+            bool IsAttributeDirective()
+            {
+                // E.g, (| is position)
+                //
+                // `@attribute |[System.Obsolete]
+                //
+                return owner.AncestorsAndSelf().Any(
+                    n => n is RazorDirectiveSyntax directive &&
+                        directive.DirectiveDescriptor != null &&
+                        directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine &&
+                        directive.DirectiveDescriptor.Directive.Equals(AttributeDirective.Directive.Directive, StringComparison.Ordinal));
             }
 
             bool IsInSingleLineDirective()
