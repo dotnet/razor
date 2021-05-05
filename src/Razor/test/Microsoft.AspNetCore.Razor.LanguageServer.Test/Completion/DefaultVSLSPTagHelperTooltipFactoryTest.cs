@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             // Expected output:
             //     Accepts List<string>s
             Assert.Collection(runs,
-                run =>AssertExpectedClassification(run, "Accepts ", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Accepts ", VSPredefinedClassificationTypeNames.Text),
                 run => AssertExpectedClassification(run, "List", VSPredefinedClassificationTypeNames.Type),
                 run => AssertExpectedClassification(run, "<", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "string", VSPredefinedClassificationTypeNames.Keyword),
