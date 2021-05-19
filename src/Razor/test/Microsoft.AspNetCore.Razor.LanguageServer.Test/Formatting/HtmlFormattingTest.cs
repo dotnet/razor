@@ -533,6 +533,25 @@ insertSpaces: false,
 fileKind: FileKinds.Legacy);
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+        public async Task FormatNestedComponents()
+        {
+            var tagHelpers = GetComponents();
+            var code = @"
+<GridTable>
+    @foreach (var item in items)
+    {
+        <GridRow>@item</GridRow>
+    }
+</GridTable>
+";
+            await RunFormattingTestAsync(
+                input: code,
+                expected: code,
+                tagHelpers: tagHelpers);
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetComponents()
         {
             AdditionalSyntaxTrees.Add(Parse(@"
