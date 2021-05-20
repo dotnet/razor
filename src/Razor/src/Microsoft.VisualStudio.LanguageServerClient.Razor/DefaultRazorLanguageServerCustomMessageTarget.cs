@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly RazorUIContextManager _uIContextManager;
         private readonly IDisposable _razorReadyListener;
         private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
-
         private const string RazorReadyFeature = "Razor-Initialization";
 
         [ImportingConstructor]
@@ -279,7 +278,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(semanticTokensParams));
             }
 
-            if (!_documentManager.TryGetDocument(semanticTokensParams.TextDocument.Uri, out var documentSnapshot))
+            var normalizedPath = FilePathNormalizer.NormalizeFilePath(semanticTokensParams.TextDocument.Uri.OriginalString);
+            var normalizedUri = new Uri(normalizedPath);
+            if (!_documentManager.TryGetDocument(normalizedUri, out var documentSnapshot))
             {
                 return null;
             }
