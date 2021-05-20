@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly RazorUIContextManager _uIContextManager;
         private readonly IDisposable _razorReadyListener;
         private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
+
         private const string RazorReadyFeature = "Razor-Initialization";
 
         [ImportingConstructor]
