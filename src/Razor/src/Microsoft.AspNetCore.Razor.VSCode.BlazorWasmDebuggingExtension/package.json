@@ -33,6 +33,11 @@
   "files": [
     "BlazorDebugProxy/"
   ],
+  "capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		}
+	},
   "contributes": {},
   "scripts": {
     "vscode:prepublish": "yarn run compile",
