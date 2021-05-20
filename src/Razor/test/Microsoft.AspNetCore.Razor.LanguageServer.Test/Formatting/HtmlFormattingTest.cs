@@ -345,7 +345,7 @@ expected: @"@page ""/""
         void Method() { }
     }
 }
-");
+", tagHelpers: GetSurveyPrompt());
         }
 
         [Fact]
@@ -591,18 +591,31 @@ expected: @"
                 tagHelpers: tagHelpers);
         }
 
+        private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()
+        {
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+namespace Test
+{
+    public class SurveyPrompt : ComponentBase
+    {
+        [Parameter]
+        public string Title { get; set; }
+    }
+}
+"));
+
+            var generated = CompileToCSharp("SurveyPrompt.razor", string.Empty, throwOnFailure: false, fileKind: FileKinds.Component);
+            var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
+            return tagHelpers;
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetComponents()
         {
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Components;
 namespace Test
 {
-    public class Counter : ComponentBase
-    {
-        [Parameter]
-        public int IncrementAmount { get; set; }
-    }
-
     public class GridTable : ComponentBase
     {
         [Parameter]
