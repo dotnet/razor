@@ -584,7 +584,6 @@ expected: @"
         {
             await RunFormattingTestAsync(
 input: @"
-@using Microsoft.AspNetCore.Components.Authentication;
 @using Microsoft.AspNetCore.Components.Routing;
 
 <CascadingAuthenticationState>
@@ -605,8 +604,7 @@ input: @"
 </Router>
 </CascadingAuthenticationState>
 ",
-expected: @"@using Microsoft.AspNetCore.Components.Authentication;
-@using Microsoft.AspNetCore.Components.Routing;
+expected: @"@using Microsoft.AspNetCore.Components.Routing;
 
 <CascadingAuthenticationState>
     <Router AppAssembly=""@typeof(Program).Assembly"">
@@ -635,7 +633,6 @@ expected: @"@using Microsoft.AspNetCore.Components.Authentication;
             await RunFormattingTestAsync(
 input: @"
 @using Microsoft.AspNetCore.Components;
-@using Microsoft.AspNetCore.Components.Authentication;
 @using Microsoft.AspNetCore.Components.Routing;
 
 <CascadingAuthenticationState>
@@ -657,7 +654,6 @@ input: @"
 </CascadingAuthenticationState>
 ",
 expected: @"@using Microsoft.AspNetCore.Components;
-@using Microsoft.AspNetCore.Components.Authentication;
 @using Microsoft.AspNetCore.Components.Routing;
 
 <CascadingAuthenticationState>
