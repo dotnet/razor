@@ -538,17 +538,46 @@ fileKind: FileKinds.Legacy);
         public async Task FormatNestedComponents()
         {
             var tagHelpers = GetComponents();
-            var code = @"
-<GridTable>
-    @foreach (var item in items)
-    {
-        <GridRow>@item</GridRow>
-    }
-</GridTable>
-";
+
             await RunFormattingTestAsync(
-                input: code,
-                expected: code,
+input: @"
+<CascadingAuthenticationState>
+<Router AppAssembly=""@typeof(Program).Assembly"">
+    <Found Context=""routeData"">
+        <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout=""@typeof(MainLayout)"">
+            <p>Sorry, there's nothing at this address.</p>
+
+            @if (true)
+                    {
+                        <strong></strong>
+            }
+        </LayoutView>
+    </NotFound>
+</Router>
+</CascadingAuthenticationState>
+",
+expected: @"
+<CascadingAuthenticationState>
+    <Router AppAssembly=""@typeof(Program).Assembly"">
+        <Found Context=""routeData"">
+            <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
+        </Found>
+        <NotFound>
+            <LayoutView Layout=""@typeof(MainLayout)"">
+                <p>Sorry, there's nothing at this address.</p>
+
+                @if (true)
+                {
+                    <strong></strong>
+                }
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+",
                 tagHelpers: tagHelpers);
         }
 
