@@ -627,26 +627,5 @@ namespace Test
             var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
             return tagHelpers;
         }
-
-        private IReadOnlyList<TagHelperDescriptor> GetDefaultRuntimeComponents()
-        {
-            var testFileName = "test.taghelpers.json";
-            var current = new DirectoryInfo(AppContext.BaseDirectory);
-            while (current != null && !File.Exists(Path.Combine(current.FullName, testFileName)))
-            {
-                current = current.Parent;
-            }
-            var tagHelperFilePath = Path.Combine(current.FullName, testFileName);
-            var buffer = File.ReadAllBytes(tagHelperFilePath);
-            var serializer = new JsonSerializer();
-            serializer.Converters.Add(new TagHelperDescriptorJsonConverter());
-
-            using var stream = new MemoryStream(buffer);
-            var streamReader = new StreamReader(stream);
-            using var reader = new JsonTextReader(streamReader);
-
-            return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
-
-        }
     }
 }
