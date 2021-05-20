@@ -24,11 +24,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public string Normalize(string filePath)
         {
-            return NormalizeFilePath(filePath);
-        }
-
-        public static string NormalizeFilePath(string filePath)
-        {
             if (string.IsNullOrEmpty(filePath))
             {
                 return "/";
