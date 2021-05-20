@@ -1,14 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Serialization;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -539,15 +535,10 @@ fileKind: FileKinds.Legacy);
 
         [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
-        public async Task FormatNestedComponents()
+        public async Task FormatNestedComponents1()
         {
-            var tagHelpers = GetDefaultRuntimeComponents();
-
             await RunFormattingTestAsync(
 input: @"
-@using Microsoft.AspNetCore.Components.Routing
-@using Microsoft.AspNetCore.Components.Web
-
 <CascadingAuthenticationState>
 <Router AppAssembly=""@typeof(Program).Assembly"">
     <Found Context=""routeData"">
@@ -567,8 +558,55 @@ input: @"
 </CascadingAuthenticationState>
 ",
 expected: @"
-@using Microsoft.AspNetCore.Components.Routing
-@using Microsoft.AspNetCore.Components.Web
+<CascadingAuthenticationState>
+    <Router AppAssembly=""@typeof(Program).Assembly"">
+        <Found Context=""routeData"">
+            <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
+        </Found>
+        <NotFound>
+            <LayoutView Layout=""@typeof(MainLayout)"">
+                <p>Sorry, there's nothing at this address.</p>
+
+                @if (true)
+                {
+                    <strong></strong>
+                }
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+        public async Task FormatNestedComponents2()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@using Microsoft.AspNetCore.Components.Authentication;
+@using Microsoft.AspNetCore.Components.Routing;
+
+<CascadingAuthenticationState>
+<Router AppAssembly=""@typeof(Program).Assembly"">
+    <Found Context=""routeData"">
+        <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout=""@typeof(MainLayout)"">
+            <p>Sorry, there's nothing at this address.</p>
+
+            @if (true)
+                    {
+                        <strong></strong>
+                }
+        </LayoutView>
+    </NotFound>
+</Router>
+</CascadingAuthenticationState>
+",
+expected: @"@using Microsoft.AspNetCore.Components.Authentication;
+@using Microsoft.AspNetCore.Components.Routing;
 
 <CascadingAuthenticationState>
     <Router AppAssembly=""@typeof(Program).Assembly"">
@@ -587,8 +625,59 @@ expected: @"
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+        public async Task FormatNestedComponents3()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.AspNetCore.Components.Authentication;
+@using Microsoft.AspNetCore.Components.Routing;
+
+<CascadingAuthenticationState>
+<Router AppAssembly=""@typeof(Program).Assembly"">
+    <Found Context=""routeData"">
+        <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout=""@typeof(MainLayout)"">
+            <p>Sorry, there's nothing at this address.</p>
+
+            @if (true)
+                    {
+                        <strong></strong>
+                }
+        </LayoutView>
+    </NotFound>
+</Router>
+</CascadingAuthenticationState>
 ",
-                tagHelpers: tagHelpers);
+expected: @"@using Microsoft.AspNetCore.Components;
+@using Microsoft.AspNetCore.Components.Authentication;
+@using Microsoft.AspNetCore.Components.Routing;
+
+<CascadingAuthenticationState>
+    <Router AppAssembly=""@typeof(Program).Assembly"">
+        <Found Context=""routeData"">
+            <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
+        </Found>
+        <NotFound>
+            <LayoutView Layout=""@typeof(MainLayout)"">
+                <p>Sorry, there's nothing at this address.</p>
+
+                @if (true)
+                {
+                    <strong></strong>
+                }
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+");
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()
