@@ -1,10 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Serialization;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -537,10 +541,13 @@ fileKind: FileKinds.Legacy);
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
         public async Task FormatNestedComponents()
         {
-            var tagHelpers = GetComponents();
+            var tagHelpers = GetDefaultRuntimeComponents();
 
             await RunFormattingTestAsync(
 input: @"
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+
 <CascadingAuthenticationState>
 <Router AppAssembly=""@typeof(Program).Assembly"">
     <Found Context=""routeData"">
@@ -553,13 +560,16 @@ input: @"
             @if (true)
                     {
                         <strong></strong>
-            }
+                }
         </LayoutView>
     </NotFound>
 </Router>
 </CascadingAuthenticationState>
 ",
 expected: @"
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+
 <CascadingAuthenticationState>
     <Router AppAssembly=""@typeof(Program).Assembly"">
         <Found Context=""routeData"">
@@ -616,6 +626,27 @@ namespace Test
             var generated = CompileToCSharp("Test.razor", string.Empty, throwOnFailure: false, fileKind: FileKinds.Component);
             var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
             return tagHelpers;
+        }
+
+        private IReadOnlyList<TagHelperDescriptor> GetDefaultRuntimeComponents()
+        {
+            var testFileName = "test.taghelpers.json";
+            var current = new DirectoryInfo(AppContext.BaseDirectory);
+            while (current != null && !File.Exists(Path.Combine(current.FullName, testFileName)))
+            {
+                current = current.Parent;
+            }
+            var tagHelperFilePath = Path.Combine(current.FullName, testFileName);
+            var buffer = File.ReadAllBytes(tagHelperFilePath);
+            var serializer = new JsonSerializer();
+            serializer.Converters.Add(new TagHelperDescriptorJsonConverter());
+
+            using var stream = new MemoryStream(buffer);
+            var streamReader = new StreamReader(stream);
+            using var reader = new JsonTextReader(streamReader);
+
+            return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
+
         }
     }
 }
