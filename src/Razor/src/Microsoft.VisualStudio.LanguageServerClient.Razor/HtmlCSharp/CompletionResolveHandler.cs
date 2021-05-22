@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -128,6 +129,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var formattingOptions = _formattingOptionsProvider.GetOptions(requestContext.HostDocumentUri);
             if (resolvedCompletionItem.TextEdit != null)
             {
+                if (!formattingOptions.InsertSpaces)
+                {
+                    // Language servers should technically be formatting these edits with the correct tabs/spaces setting,
+                    // however LSP doesn't currently include formatting options in completion requests. Until they do,
+                    // we convert spaces->tabs manually as a temporary workaround. LSP issue tracked at:
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1332433
+                    resolvedCompletionItem.TextEdit.NewText = ConvertEditIndentationToTabs(
+                        resolvedCompletionItem.TextEdit.NewText, formattingOptions.TabSize);
+                }
+
                 var containsSnippet = resolvedCompletionItem.InsertTextFormat == InsertTextFormat.Snippet;
                 var remappedEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(
                     requestContext.ProjectedDocumentUri,
@@ -145,6 +156,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (resolvedCompletionItem.AdditionalTextEdits != null)
             {
+                if (!formattingOptions.InsertSpaces)
+                {
+                    for (var i = 0; i < resolvedCompletionItem.AdditionalTextEdits.Length; i++)
+                    {
+                        resolvedCompletionItem.AdditionalTextEdits[i].NewText = ConvertEditIndentationToTabs(
+                            resolvedCompletionItem.AdditionalTextEdits[i].NewText, formattingOptions.TabSize);
+                    }
+                }
+
                 var remappedEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(
                     requestContext.ProjectedDocumentUri,
                     resolvedCompletionItem.AdditionalTextEdits,
@@ -158,6 +178,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             return resolvedCompletionItem;
+
+            static string ConvertEditIndentationToTabs(string textEdit, int tabSize)
+            {
+                var indentationString = new StringBuilder();
+                for (var i = 0; i < tabSize; i++)
+                {
+                    indentationString.Append(' ');
+                }
+
+                var updatedTextEdit = textEdit.Replace(indentationString.ToString(), "\t");
+                return updatedTextEdit;
+            }
         }
     }
 }
