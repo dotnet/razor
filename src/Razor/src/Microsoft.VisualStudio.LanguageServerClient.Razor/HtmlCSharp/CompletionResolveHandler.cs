@@ -129,15 +129,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var formattingOptions = _formattingOptionsProvider.GetOptions(requestContext.HostDocumentUri);
             if (resolvedCompletionItem.TextEdit != null)
             {
-                if (!formattingOptions.InsertSpaces)
-                {
-                    // Language servers should technically be formatting these edits with the correct tabs/spaces setting,
-                    // however LSP doesn't currently include formatting options in completion requests. Until they do,
-                    // we convert spaces->tabs manually as a temporary workaround. LSP issue tracked at:
-                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1332433
-                    resolvedCompletionItem.TextEdit.NewText = ConvertEditIndentationToTabs(
+                // Language servers should technically be formatting these edits with the correct tabs/spaces setting,
+                // however LSP doesn't currently include formatting options in completion requests. Until they do,
+                // we convert spaces->tabs and tabs->spaces manually as a temporary workaround. LSP issue tracked at:
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1332433
+                resolvedCompletionItem.TextEdit.NewText = formattingOptions.InsertSpaces
+                    ? ConvertEditIndentationToSpaces(
+                        resolvedCompletionItem.TextEdit.NewText, formattingOptions.TabSize)
+                    : ConvertEditIndentationToTabs(
                         resolvedCompletionItem.TextEdit.NewText, formattingOptions.TabSize);
-                }
 
                 var containsSnippet = resolvedCompletionItem.InsertTextFormat == InsertTextFormat.Snippet;
                 var remappedEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(
@@ -156,7 +156,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (resolvedCompletionItem.AdditionalTextEdits != null)
             {
-                if (!formattingOptions.InsertSpaces)
+                if (formattingOptions.InsertSpaces)
+                {
+                    for (var i = 0; i < resolvedCompletionItem.AdditionalTextEdits.Length; i++)
+                    {
+                        resolvedCompletionItem.AdditionalTextEdits[i].NewText = ConvertEditIndentationToSpaces(
+                            resolvedCompletionItem.AdditionalTextEdits[i].NewText, formattingOptions.TabSize);
+                    }
+                }
+                else
                 {
                     for (var i = 0; i < resolvedCompletionItem.AdditionalTextEdits.Length; i++)
                     {
@@ -181,13 +189,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             static string ConvertEditIndentationToTabs(string textEdit, int tabSize)
             {
-                var indentationString = new StringBuilder();
-                for (var i = 0; i < tabSize; i++)
-                {
-                    indentationString.Append(' ');
-                }
-
+                var indentationString = new string(' ', tabSize);
                 var updatedTextEdit = textEdit.Replace(indentationString.ToString(), "\t");
+                return updatedTextEdit;
+            }
+
+            static string ConvertEditIndentationToSpaces(string textEdit, int tabSize)
+            {
+                var indentationString = new string(' ', tabSize);
+                var updatedTextEdit = textEdit.Replace("\t", indentationString.ToString());
                 return updatedTextEdit;
             }
         }
