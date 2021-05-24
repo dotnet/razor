@@ -240,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private class TestFormattingOptionsProvider : FormattingOptionsProvider
         {
-            public override FormattingOptions GetOptions(Uri lspDocumentUri) => null;
+            public override FormattingOptions GetOptions(Uri lspDocumentUri) => new FormattingOptions { InsertSpaces = true, TabSize = 4 };
         }
 
         private class TestDocumentMappingProvider : LSPDocumentMappingProvider
