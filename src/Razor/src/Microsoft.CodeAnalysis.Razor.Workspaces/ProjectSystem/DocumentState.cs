@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                             // (mostly all in VS) resulting in this lock being held for significantly longer than expected. To avoid threads queuing up repeatedly on the
                             // above lock and blocking we can allow those threads to await asynchronously for the completion of the original parse.
 
-                            tcs = new();
+                            tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
                             taskUnsafe = tcs.Task;
                             TaskUnsafeReference = new WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>>(taskUnsafe);
                         }
