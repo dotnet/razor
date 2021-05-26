@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return null;
             }
 
-            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper, out var @namespaceName, out var typeName);
+            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var @namespaceName, out var typeName);
             var lookupSymbolName = RemoveGenericContent(typeName);
 
             var projects = await Task.Factory.StartNew(
