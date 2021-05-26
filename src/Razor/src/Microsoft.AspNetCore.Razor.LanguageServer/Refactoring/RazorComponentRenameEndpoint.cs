@@ -241,15 +241,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 if (originTagHelper?.IsComponentFullyQualifiedNameMatch() == true)
                 {
                     // Fully qualified binding, our "new name" needs to be fully qualified.
-                    if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(originTagHelper.Name, out var namespaceSpan, out _))
+                    if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(originTagHelper, out var @namespace, out _))
                     {
                         return;
                     }
 
-                    var namespaceString = originTagHelper.Name.Substring(namespaceSpan.Start, namespaceSpan.Length);
-
                     // The origin TagHelper was fully qualified so any fully qualified rename locations we find will need a fully qualified renamed edit.
-                    editedName = $"{namespaceString}.{newName}";
+                    editedName = @namespace + "." + newName;
                 }
 
                 foreach (var node in tagHelperElements)
