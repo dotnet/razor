@@ -102,9 +102,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public void ValidateBreakpointLocation_CanNotCreateDialog_ReturnsEFail()
         {
             // Arrange
-            var waitDialogFactory = new Mock<IUIThreadOperationExecutor>(MockBehavior.Strict);
-            waitDialogFactory.Setup(f => f.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<Action<IUIThreadOperationContext>>())).Returns(value: UIThreadOperationStatus.Canceled);
-            var languageService = CreateLanguageServiceWith(waitDialogFactory: waitDialogFactory.Object);
+            var uiThreadExecutor = new Mock<IUIThreadOperationExecutor>(MockBehavior.Strict);
+            uiThreadExecutor.Setup(f => f.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<Action<IUIThreadOperationContext>>())).Returns(value: UIThreadOperationStatus.Canceled);
+            var languageService = CreateLanguageServiceWith(uiThreadOperationExecutor: uiThreadExecutor.Object);
 
             // Act
             var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, TextSpans);
@@ -175,9 +175,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public void GetProximityExpressions_CanNotCreateDialog_ReturnsEFail()
         {
             // Arrange
-            var waitDialogFactory = new Mock<IUIThreadOperationExecutor>(MockBehavior.Strict);
-            waitDialogFactory.Setup(f => f.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<Action<IUIThreadOperationContext>>())).Returns(UIThreadOperationStatus.Canceled);
-            var languageService = CreateLanguageServiceWith(waitDialogFactory: waitDialogFactory.Object);
+            var uiThreadOperationExecutor = new Mock<IUIThreadOperationExecutor>(MockBehavior.Strict);
+            uiThreadOperationExecutor.Setup(f => f.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<Action<IUIThreadOperationContext>>())).Returns(UIThreadOperationStatus.Canceled);
+            var languageService = CreateLanguageServiceWith(uiThreadOperationExecutor: uiThreadOperationExecutor.Object);
 
             // Act
             var result = languageService.GetProximityExpressions(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, 0, out _);
@@ -189,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private RazorLanguageService CreateLanguageServiceWith(
             RazorBreakpointResolver breakpointResolver = null,
             RazorProximityExpressionResolver proximityExpressionResolver = null,
-            IUIThreadOperationExecutor waitDialogFactory = null,
+            IUIThreadOperationExecutor uiThreadOperationExecutor = null,
             IVsEditorAdaptersFactoryService editorAdaptersFactory = null)
         {
             if (breakpointResolver is null)
@@ -204,10 +204,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Mock.Get(proximityExpressionResolver).Setup(r => r.TryResolveProximityExpressionsAsync(It.IsAny<ITextBuffer>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(value: null);
             }
 
-            waitDialogFactory ??= new TestIUIThreadOperationExecutor();
+            uiThreadOperationExecutor ??= new TestIUIThreadOperationExecutor();
             editorAdaptersFactory ??= Mock.Of<IVsEditorAdaptersFactoryService>(service => service.GetDataBuffer(It.IsAny<IVsTextBuffer>()) == new TestTextBuffer(new StringTextSnapshot(Environment.NewLine)), MockBehavior.Strict);
 
-            var languageService = new RazorLanguageService(breakpointResolver, proximityExpressionResolver, waitDialogFactory, editorAdaptersFactory, JoinableTaskFactory);
+            var languageService = new RazorLanguageService(breakpointResolver, proximityExpressionResolver, uiThreadOperationExecutor, editorAdaptersFactory, JoinableTaskFactory);
             return languageService;
         }
 
@@ -238,36 +238,36 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new NotImplementedException();
             }
 
-            private class TestUIThreadOperationContext: IUIThreadOperationContext
-            {
-                public TestUIThreadOperationContext()
-                {
-                }
+            //private class TestUIThreadOperationContext: IUIThreadOperationContext
+            //{
+            //    public TestUIThreadOperationContext()
+            //    {
+            //    }
 
-                public CancellationToken UserCancellationToken => new CancellationToken();
+            //    public CancellationToken UserCancellationToken => new CancellationToken();
 
-                public bool AllowCancellation => throw new NotImplementedException();
+            //    public bool AllowCancellation => throw new NotImplementedException();
 
-                public string Description => throw new NotImplementedException();
+            //    public string Description => throw new NotImplementedException();
 
-                public IEnumerable<IUIThreadOperationScope> Scopes => throw new NotImplementedException();
+            //    public IEnumerable<IUIThreadOperationScope> Scopes => throw new NotImplementedException();
 
-                public PropertyCollection Properties => throw new NotImplementedException();
+            //    public PropertyCollection Properties => throw new NotImplementedException();
 
-                public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
-                {
-                    throw new NotImplementedException();
-                }
+            //    public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
+            //    {
+            //        throw new NotImplementedException();
+            //    }
 
-                public void Dispose()
-                {
-                }
+            //    public void Dispose()
+            //    {
+            //    }
 
-                public void TakeOwnership()
-                {
-                    throw new NotImplementedException();
-                }
-            }
+            //    public void TakeOwnership()
+            //    {
+            //        throw new NotImplementedException();
+            //    }
+            //}
         }
     }
 }
