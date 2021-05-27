@@ -16,12 +16,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         // Internal for testing
         internal static readonly VSImageElement ClassGlyph = new(
             new VSImageId(ImageCatalogGuid, 463), // KnownImageIds.Type = 463
-            "Razor TagHelper Element Glyph");
+            RazorLS.Resources.TagHelper_Element_Glyph);
 
         // Internal for testing
         internal static readonly VSImageElement PropertyGlyph = new(
             new VSImageId(ImageCatalogGuid, 2429), // KnownImageIds.Type = 2429
-            "Razor TagHelper Attribute Glyph");
+            RazorLS.Resources.TagHelper_Attribute_Glyph);
 
         private static readonly IReadOnlyList<string> CSharpPrimitiveTypes =
             new string[] { "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",

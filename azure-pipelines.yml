@@ -43,6 +43,10 @@ stages:
 - stage: build
   displayName: Build
   jobs:
+  - template: /eng/common/templates/job/onelocbuild.yml
+    parameters:
+      CreatePr: false
+
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
       enablePublishBuildArtifacts: false

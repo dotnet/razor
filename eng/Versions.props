@@ -8,10 +8,6 @@
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
   </PropertyGroup>
-  <!-- Opt out Arcade features -->
-  <PropertyGroup>
-    <UsingToolXliff>false</UsingToolXliff>
-  </PropertyGroup>
   <!-- Versioning for assemblies/packages -->
   <PropertyGroup>
     <MajorVersion>6</MajorVersion>
