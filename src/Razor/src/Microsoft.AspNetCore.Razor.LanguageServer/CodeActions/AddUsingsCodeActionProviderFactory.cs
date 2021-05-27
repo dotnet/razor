@@ -20,14 +20,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(
                     fullyQualifiedName,
-                    out var namespaceSpan,
+                    out var namespaceName,
                     out _))
             {
                 return string.Empty;
             }
 
-            var namespaceName = fullyQualifiedName.Substring(namespaceSpan.Start, namespaceSpan.Length);
-            return namespaceName;
+            return namespaceName.Value;
         }
 
         internal static RazorCodeAction CreateAddUsingCodeAction(string fullyQualifiedName, DocumentUri uri)

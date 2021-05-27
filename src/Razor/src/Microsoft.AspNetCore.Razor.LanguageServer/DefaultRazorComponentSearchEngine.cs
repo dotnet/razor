@@ -42,10 +42,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return null;
             }
 
-            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var namespaceSpan, out var typeSpan);
-            var namespaceName = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.GetTextSpanContent(namespaceSpan, tagHelper.Name);
-            StringSegment typeName = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.GetTextSpanContent(typeSpan, tagHelper.Name);
-            StringSegment lookupSymbolName = RemoveGenericContent(typeName);
+            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var @namespaceName, out var typeName);
+            var lookupSymbolName = RemoveGenericContent(typeName);
 
             var projects = await Task.Factory.StartNew(
                 () => _projectSnapshotManager.Projects.ToArray(),
