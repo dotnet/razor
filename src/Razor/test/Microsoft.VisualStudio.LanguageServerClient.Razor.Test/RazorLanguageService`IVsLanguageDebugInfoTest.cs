@@ -238,36 +238,36 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new NotImplementedException();
             }
 
-            //private class TestUIThreadOperationContext: IUIThreadOperationContext
-            //{
-            //    public TestUIThreadOperationContext()
-            //    {
-            //    }
+            private class TestUIThreadOperationContext : IUIThreadOperationContext
+            {
+                public TestUIThreadOperationContext()
+                {
+                }
 
-            //    public CancellationToken UserCancellationToken => new CancellationToken();
+                public CancellationToken UserCancellationToken => new CancellationToken();
 
-            //    public bool AllowCancellation => throw new NotImplementedException();
+                public bool AllowCancellation => throw new NotImplementedException();
 
-            //    public string Description => throw new NotImplementedException();
+                public string Description => throw new NotImplementedException();
 
-            //    public IEnumerable<IUIThreadOperationScope> Scopes => throw new NotImplementedException();
+                public IEnumerable<IUIThreadOperationScope> Scopes => throw new NotImplementedException();
 
-            //    public PropertyCollection Properties => throw new NotImplementedException();
+                public PropertyCollection Properties => throw new NotImplementedException();
 
-            //    public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
-            //    {
-            //        throw new NotImplementedException();
-            //    }
+                public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
+                {
+                    throw new NotImplementedException();
+                }
 
-            //    public void Dispose()
-            //    {
-            //    }
+                public void Dispose()
+                {
+                }
 
-            //    public void TakeOwnership()
-            //    {
-            //        throw new NotImplementedException();
-            //    }
-            //}
+                public void TakeOwnership()
+                {
+                    throw new NotImplementedException();
+                }
+            }
         }
     }
 }
