@@ -28,9 +28,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         /// <summary>Search for a component in a project based on its tag name and fully qualified name.</summary>
         /// <remarks>
-        /// This method makes several assumptions about the nature of components. It assumes that a component
-        /// a given name `Name` will be located in a file `Name.razor`. Implicitly, this method also inherits
-        /// any assumptions made by TrySplitNamespaceAndType.
+        /// This method makes several assumptions about the nature of components. First, it assumes that a component
+        /// a given name `Name` will be located in a file `Name.razor`. Second, it assumes that the namespace the
+        /// component is present in has the same name as the assembly its corresponding tag helper is loaded from.
+        /// Implicitly, this method inherits any assumptions made by TrySplitNamespaceAndType.
         /// </remarks>
         /// <param name="tagHelper">A TagHelperDescriptor to find the corresponding Razor component for.</param>
         /// <returns>The corresponding DocumentSnapshot if found, null otherwise.</returns>
