@@ -43,9 +43,9 @@ namespace Microsoft.VisualStudio.RazorExtension
                 var proximityExpressionResolver = componentModel.GetService<RazorProximityExpressionResolver>();
                 var uiThreadOperationExecutor = componentModel.GetService<IUIThreadOperationExecutor>();
                 var editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-                var joinableTaskFactory = new JoinableTaskFactory(ThreadHelper.JoinableTaskContext);
+                var joinableTaskContext = componentModel.GetService<JoinableTaskContext>();
 
-                return new RazorLanguageService(breakpointResolver, proximityExpressionResolver, uiThreadOperationExecutor, editorAdaptersFactory, joinableTaskFactory);
+                return new RazorLanguageService(breakpointResolver, proximityExpressionResolver, uiThreadOperationExecutor, editorAdaptersFactory, joinableTaskContext.Factory);
             }, promote: true);
         }
     }
