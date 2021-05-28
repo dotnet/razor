@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
             }
 
-            public Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
+            public async Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
             {
                 if (project == null)
                 {
@@ -327,18 +327,48 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (TaskUnsafeReference == null ||
                     !TaskUnsafeReference.TryGetTarget(out var taskUnsafe))
                 {
+                    TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> tcs = null;
+
                     lock (_lock)
                     {
                         if (TaskUnsafeReference == null ||
                             !TaskUnsafeReference.TryGetTarget(out taskUnsafe))
                         {
-                            taskUnsafe = GetGeneratedOutputAndVersionCoreAsync(project, document);
+                            // So this is a bit confusing. Instead of directly calling the Razor parser inside of this lock we create an indirect TaskCompletionSource
+                            // to represent when it completes. The reason behind this is that there are several scenarios in which the Razor parser will run synchronously
+                            // (mostly all in VS) resulting in this lock being held for significantly longer than expected. To avoid threads queuing up repeatedly on the
+                            // above lock and blocking we can allow those threads to await asynchronously for the completion of the original parse.
+
+                            tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                            taskUnsafe = tcs.Task;
                             TaskUnsafeReference = new WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>>(taskUnsafe);
                         }
                     }
+
+                    if (tcs == null)
+                    {
+                        // There's no task completion source created meaning a value was retrieved from cache, just return it.
+                        return await taskUnsafe.ConfigureAwait(false);
+                    }
+
+                    try
+                    {
+                        // Typically in VS scenarios this will run synchronously because all resources are readily available.
+                        var result = await GetGeneratedOutputAndVersionCoreAsync(project, document).ConfigureAwait(false);
+
+                        // Notify any memoized awaiters of the result.
+                        tcs.SetResult(result);
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
+                        throw;
+                    }
                 }
 
-                return taskUnsafe;
+                // We were able to immediately retrieve the cached result, return as is.
+                return await taskUnsafe.ConfigureAwait(false);
             }
 
             private async Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionCoreAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
