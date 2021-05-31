@@ -4,11 +4,16 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class CodeDirectiveFormattingTest : FormattingTestBase
     {
+        public CodeDirectiveFormattingTest(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public async Task FormatsCodeBlockDirective()
         {

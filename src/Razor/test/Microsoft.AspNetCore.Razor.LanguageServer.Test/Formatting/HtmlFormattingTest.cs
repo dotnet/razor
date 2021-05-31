@@ -6,11 +6,16 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class HtmlFormattingTest : FormattingTestBase
     {
+        public HtmlFormattingTest(ITestOutputHelper output) : base(output)
+        {
+        }
+
         internal override bool UseTwoPhaseCompilation => true;
 
         internal override bool DesignTime => true;

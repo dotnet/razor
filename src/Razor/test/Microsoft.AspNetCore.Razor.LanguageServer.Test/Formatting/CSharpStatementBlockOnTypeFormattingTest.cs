@@ -3,11 +3,16 @@
 
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class CSharpStatementBlockOnTypeFormattingTest : FormattingTestBase
     {
+        public CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public async Task CloseCurly_IfBlock_SingleLine()
         {

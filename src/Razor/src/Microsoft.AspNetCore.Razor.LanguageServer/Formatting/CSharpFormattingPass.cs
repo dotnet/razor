@@ -55,6 +55,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 changedContext = await context.WithTextAsync(changedText);
             }
 
+            _logger.LogInformation("Before C# Formatting:\r\n" + originalText);
+            _logger.LogInformation("After Previous Edits:\r\n" + changedText);
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // Apply original C# edits
@@ -66,6 +69,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 changedContext = await changedContext.WithTextAsync(changedText);
             }
 
+            _logger.LogInformation("After C# Formatting:\r\n" + changedText);
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // We make an optimistic attempt at fixing corner cases.
@@ -75,11 +80,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            _logger.LogInformation("After Clean up:\r\n" + changedText);
+
             var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken);
             if (indentationChanges.Count > 0)
             {
                 // Apply the edits that modify indentation.
                 changedText = changedText.WithChanges(indentationChanges);
+
+                _logger.LogInformation("After Indentation:\r\n" + changedText);
             }
 
             var finalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
@@ -92,6 +101,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             var sourceText = context.SourceText;
             var csharpEdits = new List<TextEdit>();
+
+            _logger.LogInformation("CSharp Code:\r\n" + context.CodeDocument.GetCSharpDocument().GeneratedCode);
+            _logger.LogInformation("Source Mappings:\r\n" + string.Join(Environment.NewLine, context.CodeDocument.GetCSharpDocument().SourceMappings));
+
             foreach (var mapping in context.CodeDocument.GetCSharpDocument().SourceMappings)
             {
                 var span = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
@@ -104,7 +117,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // These should already be remapped.
                 var range = span.AsRange(sourceText);
                 var edits = await CSharpFormatter.FormatAsync(context, range, cancellationToken);
-                csharpEdits.AddRange(edits.Where(e => range.Contains(e.Range)));
+
+                _logger.LogInformation("Formatting:\r\n" + sourceText.GetSubTextString(span));
+                var collection = edits.Where(e => range.Contains(e.Range));
+                _logger.LogInformation("Edits:\r\n" + string.Join(Environment.NewLine, collection));
+                //_logger.LogInformation("After:\r\n" + sourceText.WithChanges(collection.Select(t => t.AsTextChange(sourceText))).GetSubTextString(span));
+
+                csharpEdits.AddRange(collection);
             }
 
             return csharpEdits;
