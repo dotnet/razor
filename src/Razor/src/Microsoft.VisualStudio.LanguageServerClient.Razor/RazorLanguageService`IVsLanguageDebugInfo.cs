@@ -82,10 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 description: "Razor Debugger",
                 allowCancellation: true,
                 showProgress: true,
-                async (cancellationToken) =>
-                    await _proximityExpressionResolver.TryResolveProximityExpressionsAsync(textBuffer, iLine, iCol, cancellationToken)
-                        .ConfigureAwait(false),
-                _joinableTaskFactory);
+                (cancellationToken) => _proximityExpressionResolver.TryResolveProximityExpressionsAsync(textBuffer, iLine, iCol, cancellationToken), _joinableTaskFactory);
 
             if (proximityExpressions is null)
             {
@@ -118,10 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 description: "Razor Debugger",
                 allowCancellation: true,
                 showProgress: true,
-                async (cancellationToken) =>
-                    await _breakpointResolver.TryResolveBreakpointRangeAsync(textBuffer, iLine, iCol, cancellationToken)
-                        .ConfigureAwait(false),
-                _joinableTaskFactory);
+                (cancellationToken) => _breakpointResolver.TryResolveBreakpointRangeAsync(textBuffer, iLine, iCol, cancellationToken), _joinableTaskFactory);
 
             if (breakpointRange is null)
             {
