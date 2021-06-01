@@ -676,6 +676,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Assert.Empty(response.Diagnostics);
         }
 
+        [Fact]
+        public async Task Handle_ProcessDiagnostics_Html_Razor_UnexpectedEndTagErrorCode()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.razor";
+            var codeDocument = CreateCodeDocument("<!body></!body>", kind: FileKinds.Component);
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[]
+                {
+                    new Diagnostic()
+                    {
+                        Code = new DiagnosticCode(HtmlErrorCodes.UnexpectedEndTagErrorCode),
+                        Range = new Range(new Position(0, 7), new Position(0, 9))
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(response.Diagnostics);
+        }
+
         private static TagHelperDescriptorBuilder GetButtonTagHelperDescriptor()
         {
             var descriptor = TagHelperDescriptorBuilder.Create("ButtonTagHelper", "TestAssembly");

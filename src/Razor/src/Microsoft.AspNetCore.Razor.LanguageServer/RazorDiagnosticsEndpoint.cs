@@ -182,10 +182,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return diagnostic.Code.Value.String switch
             {
+                HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree),
                 HtmlErrorCodes.InvalidNestingErrorCode => IsInvalidNestingWarningWithinComponent(diagnostic, sourceText, syntaxTree),
                 HtmlErrorCodes.MissingEndTagErrorCode => FileKinds.IsComponent(syntaxTree.Options.FileKind), // Redundant with RZ9980 in Components
                 _ => false,
             };
+
+            // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
+            // but we don't currently have a system to accomplish that
+            static bool IsHtmlWithBangAndMatchingTags(Diagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            {
+                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
+
+                var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n is MarkupElementSyntax);
+                var startNode = element.StartTag;
+                var endNode = element.EndTag;
+                var haveBang = startNode.Bang != null && endNode.Bang != null;
+                var namesEquivilant = startNode.Name.Content.Equals(endNode.Name.Content, StringComparison.Ordinal);
+
+                return haveBang && namesEquivilant;
+            }
 
             static bool IsInvalidNestingWarningWithinComponent(Diagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
             {

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 using Microsoft.VisualStudio.Text;
@@ -78,19 +77,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return VSConstants.E_FAIL;
             }
 
-            IReadOnlyList<string> proximityExpressions = null;
-            var dialogResult = _uiThreadOperationExecutor.Execute(
+            var proximityExpressions = _uiThreadOperationExecutor.Execute(
                 title: "Determining proximity expressions...",
-                defaultDescription: "Razor Debugger",
+                description: "Razor Debugger",
                 allowCancellation: true,
                 showProgress: true,
-                (context) => _joinableTaskFactory.Run(async () => proximityExpressions = await _proximityExpressionResolver.TryResolveProximityExpressionsAsync(textBuffer, iLine, iCol, context.UserCancellationToken).ConfigureAwait(false)));
-
-            if (dialogResult == UIThreadOperationStatus.Canceled)
-            {
-                ppEnum = null;
-                return VSConstants.E_FAIL;
-            }
+                (cancellationToken) => _proximityExpressionResolver.TryResolveProximityExpressionsAsync(textBuffer, iLine, iCol, cancellationToken), _joinableTaskFactory);
 
             if (proximityExpressions is null)
             {
@@ -105,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public int ValidateBreakpointLocation(IVsTextBuffer pBuffer, int iLine, int iCol, TextSpan[] pCodeSpan)
         {
             var textBuffer = _editorAdaptersFactory.GetDataBuffer(pBuffer);
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 // Can't resolve the text buffer, let someone else deal with this breakpoint.
                 return VSConstants.E_NOTIMPL;
@@ -118,40 +110,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return VSConstants.E_FAIL;
             }
 
-            LanguageServer.Protocol.Range breakpointRange = null;
-            var dialogResult = _uiThreadOperationExecutor.Execute(
+            var breakpointRange = _uiThreadOperationExecutor.Execute(
                 title: "Determining breakpoint location...",
-                defaultDescription: "Razor Debugger",
+                description: "Razor Debugger",
                 allowCancellation: true,
                 showProgress: true,
-                (context) => _joinableTaskFactory.Run(async () => {
-                    breakpointRange = await _breakpointResolver.TryResolveBreakpointRangeAsync(textBuffer, iLine, iCol, context.UserCancellationToken).ConfigureAwait(false);
+                (cancellationToken) => _breakpointResolver.TryResolveBreakpointRangeAsync(textBuffer, iLine, iCol, cancellationToken), _joinableTaskFactory);
 
-                    if (breakpointRange == null)
-                    {
-                        // No applicable breakpoint location.
-                        return;
-                    }
-
-                    pCodeSpan[0] = new TextSpan()
-                    {
-                        iStartIndex = breakpointRange.Start.Character,
-                        iStartLine = breakpointRange.Start.Line,
-                        iEndIndex = breakpointRange.End.Character,
-                        iEndLine = breakpointRange.End.Line,
-                    };
-                }));
-
-            if (breakpointRange == null)
+            if (breakpointRange is null)
             {
-                // Failed to create the dialog at all.
+                // Failed to create the dialog at all or no applicable breakpoint location.
                 return VSConstants.E_FAIL;
             }
 
-            if (dialogResult == UIThreadOperationStatus.Canceled)
+            pCodeSpan[0] = new TextSpan()
             {
-                return VSConstants.E_FAIL;
-            }
+                iStartIndex = breakpointRange.Start.Character,
+                iStartLine = breakpointRange.Start.Line,
+                iEndIndex = breakpointRange.End.Character,
+                iEndLine = breakpointRange.End.Line,
+            };
 
             return VSConstants.S_OK;
         }
