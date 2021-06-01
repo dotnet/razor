@@ -121,6 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public async Task<Connection> ActivateAsync(CancellationToken token)
         {
+            // Swap to background thread, nothing below needs to be done on the UI thread.
+            await TaskScheduler.Default;
+
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
             await EnsureCleanedUpServerAsync(token).ConfigureAwait(false);
