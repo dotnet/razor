@@ -71,6 +71,7 @@
       <RuleInjectionClassName>RazorProjectProperties</RuleInjectionClassName>
       <Context></Context>
       <OutputPath>ProjectSystem\Rules\</OutputPath>
+      <XlfInput>false</XlfInput>
     </XamlPropertyRule>
     <XamlPropertyRule Include="$(RulesDirectory)RazorExtension.xaml">
       <SubType>Designer</SubType>
@@ -78,6 +79,7 @@
       <Namespace>Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules</Namespace>
       <RuleInjectionClassName>RazorProjectProperties</RuleInjectionClassName>
       <OutputPath>ProjectSystem\Rules\</OutputPath>
+      <XlfInput>false</XlfInput>
     </XamlPropertyRule>
     <XamlPropertyRule Include="$(RulesDirectory)RazorGeneral.xaml">
       <SubType>Designer</SubType>
@@ -85,6 +87,7 @@
       <Namespace>Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules</Namespace>
       <RuleInjectionClassName>RazorProjectProperties</RuleInjectionClassName>
       <OutputPath>ProjectSystem\Rules\</OutputPath>
+      <XlfInput>false</XlfInput>
     </XamlPropertyRule>
     <XamlPropertyRule Include="$(RulesDirectory)RazorGenerateWithTargetPath.xaml">
       <SubType>Designer</SubType>
@@ -92,6 +95,7 @@
       <Namespace>Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules</Namespace>
       <RuleInjectionClassName>RazorProjectProperties</RuleInjectionClassName>
       <OutputPath>ProjectSystem\Rules\</OutputPath>
+      <XlfInput>false</XlfInput>
     </XamlPropertyRule>
     <XamlPropertyRule Include="$(RulesDirectory)RazorComponentWithTargetPath.xaml">
       <SubType>Designer</SubType>
@@ -99,6 +103,7 @@
       <Namespace>Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules</Namespace>
       <RuleInjectionClassName>RazorProjectProperties</RuleInjectionClassName>
       <OutputPath>ProjectSystem\Rules\</OutputPath>
+      <XlfInput>false</XlfInput>
     </XamlPropertyRule>
   </ItemGroup>
   <ItemGroup>
