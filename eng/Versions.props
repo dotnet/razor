@@ -8,6 +8,11 @@
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
   </PropertyGroup>
+  <!-- Opt out Arcade features -->
+  <PropertyGroup>
+    <!-- Don't run xliff tools on official builds -->
+    <UsingToolXliff Condition="'$(OfficialBuildId)' != ''">false</UsingToolXliff>
+  </PropertyGroup>
   <!-- Versioning for assemblies/packages -->
   <PropertyGroup>
     <MajorVersion>6</MajorVersion>
