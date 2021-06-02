@@ -156,12 +156,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static bool CheckRazorLanguageQueryCapability(JToken token)
         {
-            if (!RazorLanguageServerCapability.TryGet(token, out var razorCapabilty))
+            if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
             {
                 return false;
             }
 
-            return razorCapabilty.LanguageQuery;
+            return razorCapability.LanguageQuery;
         }
     }
 }

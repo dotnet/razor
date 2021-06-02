@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public static void AddTo(ServerCapabilities capabilities)
         {
             // We have to use the experimental capabilities bucket here because not all platforms maintain custom capabilities. For instance
-            // in Visual Studio scenarios it will deserialize serve capabilties into what it believes is "valid" and then will re-pass said
+            // in Visual Studio scenarios it will deserialize server capabilties into what it believes is "valid" and then will re-pass said
             // server capabilities to our client side code having lost the information of the custom capabilities. To avoid this we use the
             // experimental bag since it's part of the official LSP spec. This approach enables us to work with any client.
             capabilities.Experimental ??= new Dictionary<string, JToken>();

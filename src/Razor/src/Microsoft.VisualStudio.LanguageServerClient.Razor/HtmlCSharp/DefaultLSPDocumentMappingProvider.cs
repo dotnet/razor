@@ -369,22 +369,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static bool CheckRazorRangeMappingCapability(JToken token)
         {
-            if (!RazorLanguageServerCapability.TryGet(token, out var razorCapabilty))
+            if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
             {
                 return false;
             }
 
-            return razorCapabilty.RangeMapping;
+            return razorCapability.RangeMapping;
         }
 
         private static bool CheckRazorEditMappingCapability(JToken token)
         {
-            if (!RazorLanguageServerCapability.TryGet(token, out var razorCapabilty))
+            if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
             {
                 return false;
             }
 
-            return razorCapabilty.EditMapping;
+            return razorCapability.EditMapping;
         }
     }
 }
