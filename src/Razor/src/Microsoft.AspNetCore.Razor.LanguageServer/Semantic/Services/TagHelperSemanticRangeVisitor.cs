@@ -180,7 +180,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
             else
             {
-                throw new NotSupportedException("Attempted to visit a RazorMetaCode other than '{' or '}'.");
+                throw new NotSupportedException(RazorLS.Resources.Unknown_RazorMetaCode);
             }
         }
 

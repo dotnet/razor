@@ -78,8 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             var proximityExpressions = _uiThreadOperationExecutor.Execute(
-                title: "Determining proximity expressions...",
-                description: "Razor Debugger",
+                title: VS.LSClientRazor.Resources.ProximityExpression_Dialog_Title,
+                description: VS.LSClientRazor.Resources.ProximityExpression_Dialog_Description,
                 allowCancellation: true,
                 showProgress: true,
                 (cancellationToken) => _proximityExpressionResolver.TryResolveProximityExpressionsAsync(textBuffer, iLine, iCol, cancellationToken), _joinableTaskFactory);
