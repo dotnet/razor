@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
             }
 
-            public async Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
+            public Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
             {
                 if (project == null)
                 {
@@ -348,27 +349,55 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     if (tcs == null)
                     {
                         // There's no task completion source created meaning a value was retrieved from cache, just return it.
-                        return await taskUnsafe.ConfigureAwait(false);
+                        return taskUnsafe;
                     }
 
-                    try
+                    // Typically in VS scenarios this will run synchronously because all resources are readily available.
+                    var outputTask = GetGeneratedOutputAndVersionCoreAsync(project, document);
+                    if (outputTask.IsCompleted)
                     {
-                        // Typically in VS scenarios this will run synchronously because all resources are readily available.
-                        var result = await GetGeneratedOutputAndVersionCoreAsync(project, document).ConfigureAwait(false);
-
-                        // Notify any memoized awaiters of the result.
-                        tcs.SetResult(result);
-                        return result;
+                        // Compiling ran synchronously, lets just immediately propagate to the TCS
+                        PropagateToTaskCompletionSource(outputTask, tcs);
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        tcs.SetException(ex);
-                        throw;
+                        // Task didn't run synchronously (most likely outside of VS), lets allocate a bit more but utilize ContinueWith
+                        // to properly connect the output task and TCS
+                        _ = outputTask.ContinueWith(
+                            static (task, state) =>
+                            {
+                                var tcs = (TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>)state;
+
+                                PropagateToTaskCompletionSource(task, tcs);
+                            },
+                            tcs,
+                            CancellationToken.None,
+                            TaskContinuationOptions.ExecuteSynchronously,
+                            TaskScheduler.Default);
                     }
                 }
 
-                // We were able to immediately retrieve the cached result, return as is.
-                return await taskUnsafe.ConfigureAwait(false);
+                return taskUnsafe;
+
+                static void PropagateToTaskCompletionSource(
+                    Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> targetTask,
+                    TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> tcs)
+                {
+                    if (targetTask.Status == TaskStatus.RanToCompletion)
+                    {
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+                        tcs.SetResult(targetTask.Result);
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
+                    }
+                    else if (targetTask.Status == TaskStatus.Canceled)
+                    {
+                        tcs.SetCanceled();
+                    }
+                    else if (targetTask.Status == TaskStatus.Faulted)
+                    {
+                        tcs.SetException(targetTask.Exception);
+                    }
+                }
             }
 
             private async Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionCoreAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
