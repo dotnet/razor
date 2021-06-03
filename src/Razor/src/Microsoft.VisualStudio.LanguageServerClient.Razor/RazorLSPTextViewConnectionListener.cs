@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Newtonsoft.Json.Linq;
 using DidChangeConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.DidChangeConfigurationParams;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -244,6 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 await _requestInvoker.ReinvokeRequestOnServerAsync<DidChangeConfigurationParams, Unit>(
                     Methods.WorkspaceDidChangeConfigurationName,
                     RazorLSPConstants.RazorLSPContentTypeName,
+                    CheckRazorServerCapability,
                     new DidChangeConfigurationParams(),
                     CancellationToken.None);
             }
@@ -254,6 +256,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 // is ready. However, we should catch any exceptions here just in case since VS will crash
                 // if an exception is hit in this method.
             }
+        }
+
+        private static bool CheckRazorServerCapability(JToken token)
+        {
+            // We're talking cross-language servers here. Given the workspace/didChangeConfiguration is a normal LSP message this will only fail
+            // if the Razor language server is not running. Typically this would be OK from a platform perspective; however VS will explode if
+            // there's not a corresponding language server to accept the message. To protect ourselves from this scenario we can utilize capabilities
+            // and just lookup generic Razor language server specific capabilities. If they exist we can succeed.
+            var isRazorLanguageServer = RazorLanguageServerCapability.TryGet(token, out _);
+            return isRazorLanguageServer;
         }
 
         private static EditorSettings GetRazorEditorOptions(IVsTextManager2 textManager)
