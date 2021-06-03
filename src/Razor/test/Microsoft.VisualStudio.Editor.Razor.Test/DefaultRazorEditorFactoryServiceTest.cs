@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 smartIndenterFactory
             });
 
-            var workspace = TestWorkspace.Create(services);
+            Workspace workspace = TestWorkspace.Create(services);
             var workspaceAccessor = new Mock<VisualStudioWorkspaceAccessor>(MockBehavior.Strict);
             workspaceAccessor.Setup(p => p.TryGetWorkspace(It.IsAny<ITextBuffer>(), out workspace))
                 .Returns(true);

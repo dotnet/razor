@@ -18,13 +18,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
+        private readonly AdhocWorkspaceFactory _workspaceFactory;
         private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
         private readonly Container<string> _onAutoInsertTriggerCharacters;
 
         public OnAutoInsertEndpoint(
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
-            IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider)
+            IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider,
+            AdhocWorkspaceFactory workspaceFactory)
         {
             if (foregroundDispatcher is null)
             {
@@ -41,8 +43,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 throw new ArgumentNullException(nameof(onAutoInsertProvider));
             }
 
+            if (workspaceFactory is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceFactory));
+            }
+
             _foregroundDispatcher = foregroundDispatcher;
             _documentResolver = documentResolver;
+            _workspaceFactory = workspaceFactory;
             _onAutoInsertProviders = onAutoInsertProvider.ToList();
             _onAutoInsertTriggerCharacters = _onAutoInsertProviders.Select(provider => provider.TriggerCharacter).ToList();
         }
@@ -104,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             var uri = request.TextDocument.Uri;
             var position = request.Position;
 
-            using (var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, new Range(position, position)))
+            using (var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, _workspaceFactory, new Range(position, position)))
             {
                 for (var i = 0; i < applicableProviders.Count; i++)
                 {

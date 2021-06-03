@@ -19,8 +19,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         private readonly List<IFormattingPass> _formattingPasses;
         private readonly ILogger _logger;
+        private readonly AdhocWorkspaceFactory _workspaceFactory;
 
-        public DefaultRazorFormattingService(IEnumerable<IFormattingPass> formattingPasses, ILoggerFactory loggerFactory)
+        public DefaultRazorFormattingService(
+            IEnumerable<IFormattingPass> formattingPasses,
+            ILoggerFactory loggerFactory,
+            AdhocWorkspaceFactory workspaceFactory)
         {
             if (formattingPasses is null)
             {
@@ -32,8 +36,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
+            if (workspaceFactory is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceFactory));
+            }
+
             _formattingPasses = formattingPasses.OrderBy(f => f.Order).ToList();
             _logger = loggerFactory.CreateLogger<DefaultRazorFormattingService>();
+            _workspaceFactory = workspaceFactory;
         }
 
         public override async Task<TextEdit[]> FormatAsync(
@@ -64,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, range);
+            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory, range);
 
             var result = new FormattingResult(Array.Empty<TextEdit>());
             foreach (var pass in _formattingPasses)
@@ -98,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             collapseEdits |= formattedEdits.Length == 1;
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, isFormatOnType: true);
+            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory, isFormatOnType: true);
             var result = new FormattingResult(formattedEdits, kind);
 
             foreach (var pass in _formattingPasses)

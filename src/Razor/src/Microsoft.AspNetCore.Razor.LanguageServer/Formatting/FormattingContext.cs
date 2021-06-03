@@ -17,8 +17,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class FormattingContext : IDisposable
     {
+        private AdhocWorkspaceFactory _workspaceFactory;
         private Document _csharpWorkspaceDocument;
         private AdhocWorkspace _csharpWorkspace;
+
+        private FormattingContext(AdhocWorkspaceFactory workspaceFactory)
+        {
+            _workspaceFactory = workspaceFactory;
+        }
 
         public DocumentUri Uri { get; private set; }
 
@@ -52,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 if (_csharpWorkspace == null)
                 {
-                    var adhocWorkspace = new AdhocWorkspace();
+                    var adhocWorkspace = _workspaceFactory.Create();
                     var csharpOptions = adhocWorkspace.Options
                         .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, LanguageNames.CSharp, (int)Options.TabSize)
                         .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, LanguageNames.CSharp, (int)Options.TabSize)
@@ -209,7 +215,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var codeDocument = engine.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, importSources, OriginalSnapshot.Project.TagHelpers);
 
-            var newContext = Create(Uri, OriginalSnapshot, codeDocument, Options, Range, IsFormatOnType);
+            var newContext = Create(Uri, OriginalSnapshot, codeDocument, Options, _workspaceFactory, Range, IsFormatOnType);
             return newContext;
         }
 
@@ -218,6 +224,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             DocumentSnapshot originalSnapshot,
             RazorCodeDocument codeDocument,
             FormattingOptions options,
+            AdhocWorkspaceFactory workspaceFactory,
             Range range = null,
             bool isFormatOnType = false)
         {
@@ -241,13 +248,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(options));
             }
 
+            if (workspaceFactory is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceFactory));
+            }
+
             var text = codeDocument.GetSourceText();
             range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
 
             var syntaxTree = codeDocument.GetSyntaxTree();
             var formattingSpans = syntaxTree.GetFormattingSpans();
 
-            var result = new FormattingContext()
+            var result = new FormattingContext(workspaceFactory)
             {
                 Uri = uri,
                 OriginalSnapshot = originalSnapshot,

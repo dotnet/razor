@@ -137,6 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<FilePathNormalizer>();
                         services.AddSingleton<ForegroundDispatcher, DefaultForegroundDispatcher>();
                         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
+                        services.AddSingleton<AdhocWorkspaceFactory, DefaultAdhocWorkspaceFactory>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());
 
                         services.AddSingleton<DocumentVersionCache, DefaultDocumentVersionCache>();
@@ -240,6 +241,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                         // Defaults: For when the caller hasn't provided them through the `configure` action.
                         services.TryAddSingleton<LanguageServerFeatureOptions, DefaultLanguageServerFeatureOptions>();
+
+                        // Defaults: For when the caller hasn't provided them through the `configure` action.
+                        services.TryAddSingleton<HostWorkspaceServicesProvider, DefaultHostWorkspaceServicesProvider>();
                     }));
 
             try
