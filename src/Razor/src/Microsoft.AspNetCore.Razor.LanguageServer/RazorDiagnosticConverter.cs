@@ -41,6 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return severity switch
             {
                 RazorDiagnosticSeverity.Error => DiagnosticSeverity.Error,
+                RazorDiagnosticSeverity.Warning => DiagnosticSeverity.Warning,
                 _ => DiagnosticSeverity.Information,
             };
         }
