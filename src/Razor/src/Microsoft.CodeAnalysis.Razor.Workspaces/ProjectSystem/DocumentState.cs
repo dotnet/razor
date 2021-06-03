@@ -395,7 +395,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     }
                     else if (targetTask.Status == TaskStatus.Faulted)
                     {
-                        tcs.SetException(targetTask.Exception);
+                        // Faulted tasks area always aggregate exceptions so we need to extract the "true" exception if it's available:
+                        var exception = targetTask.Exception.InnerException ?? targetTask.Exception;
+                        tcs.SetException(exception);
                     }
                 }
             }
