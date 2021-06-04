@@ -26,13 +26,13 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 throw new ArgumentNullException(nameof(dispatcher));
             }
 
-            var services = AdhocServices.Create(
+            var services = TestServices.Create(
                 workspaceServices: new[]
                 {
                     new DefaultProjectSnapshotProjectEngineFactory(new FallbackProjectEngineFactory(), ProjectEngineFactories.Factories)
                 },
                 razorLanguageServices: Enumerable.Empty<ILanguageService>());
-            var workspace = new AdhocWorkspace(services);
+            var workspace = TestWorkspace.Create(services);
             var testProjectManager = new TestProjectSnapshotManager(dispatcher, workspace);
 
             return testProjectManager;

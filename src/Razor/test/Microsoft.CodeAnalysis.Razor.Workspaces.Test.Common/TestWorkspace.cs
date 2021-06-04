@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 
         public static Workspace Create(Action<AdhocWorkspace> configure = null) => Create(services: null, configure: configure);
 
-        public static Workspace Create(HostServices services, Action<AdhocWorkspace> configure = null)
+        public static AdhocWorkspace Create(HostServices services, Action<AdhocWorkspace> configure = null)
         {
             lock (WorkspaceLock)
             {
