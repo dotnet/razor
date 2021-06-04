@@ -22,9 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private readonly RazorDynamicFileInfoProvider _dynamicFileInfoProvider;
         private readonly LSPDocumentMappingProvider _lspDocumentMappingProvider;
+        private readonly RazorLSPClientOptionsMonitor _optionsMonitor;
 
         [ImportingConstructor]
-        public CSharpVirtualDocumentPublisher(RazorDynamicFileInfoProvider dynamicFileInfoProvider, LSPDocumentMappingProvider lspDocumentMappingProvider)
+        public CSharpVirtualDocumentPublisher(
+            RazorDynamicFileInfoProvider dynamicFileInfoProvider,
+            LSPDocumentMappingProvider lspDocumentMappingProvider,
+            RazorLSPClientOptionsMonitor optionsMonitor)
         {
             if (dynamicFileInfoProvider is null)
             {
@@ -36,8 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(lspDocumentMappingProvider));
             }
 
+            if (optionsMonitor is null)
+            {
+                throw new ArgumentNullException(nameof(optionsMonitor));
+            }
+
             _dynamicFileInfoProvider = dynamicFileInfoProvider;
             _lspDocumentMappingProvider = lspDocumentMappingProvider;
+            _optionsMonitor = optionsMonitor;
         }
 
         public override void Initialize(LSPDocumentManager documentManager)
@@ -72,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (args.VirtualNew is CSharpVirtualDocumentSnapshot)
             {
-                var csharpContainer = new CSharpVirtualDocumentContainer(_lspDocumentMappingProvider, args.New, args.VirtualNew.Snapshot);
+                var csharpContainer = new CSharpVirtualDocumentContainer(_lspDocumentMappingProvider, args.New, args.VirtualNew.Snapshot, _optionsMonitor);
                 _dynamicFileInfoProvider.UpdateLSPFileInfo(args.New.Uri, csharpContainer);
             }
         }
@@ -82,14 +92,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             private readonly ITextSnapshot _textSnapshot;
             private readonly LSPDocumentMappingProvider _lspDocumentMappingProvider;
             private readonly LSPDocumentSnapshot _documentSnapshot;
+            private readonly RazorLSPClientOptionsMonitor _optionsMonitor;
             private IRazorSpanMappingService _mappingService;
             private IRazorDocumentExcerptService _excerptService;
+            private IRazorDocumentOptionsProvider _optionsProvider;
 
             public override string FilePath => _documentSnapshot.Uri.LocalPath;
 
             public override bool SupportsDiagnostics => true;
 
-            public CSharpVirtualDocumentContainer(LSPDocumentMappingProvider lspDocumentMappingProvider, LSPDocumentSnapshot documentSnapshot, ITextSnapshot textSnapshot)
+            public CSharpVirtualDocumentContainer(
+                LSPDocumentMappingProvider lspDocumentMappingProvider,
+                LSPDocumentSnapshot documentSnapshot,
+                ITextSnapshot textSnapshot,
+                RazorLSPClientOptionsMonitor optionsMonitor)
             {
                 if (lspDocumentMappingProvider is null)
                 {
@@ -101,6 +117,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     throw new ArgumentNullException(nameof(textSnapshot));
                 }
 
+                if (optionsMonitor is null)
+                {
+                    throw new ArgumentNullException(nameof(optionsMonitor));
+                }
+
                 if (documentSnapshot is null)
                 {
                     throw new ArgumentNullException(nameof(documentSnapshot));
@@ -110,6 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 _textSnapshot = textSnapshot;
                 _documentSnapshot = documentSnapshot;
+                _optionsMonitor = optionsMonitor;
             }
 
             public override IRazorDocumentExcerptService GetExcerptService()
@@ -143,6 +165,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 var sourceText = _textSnapshot.AsText();
                 var textLoader = new SourceTextLoader(sourceText, filePath);
                 return textLoader;
+            }
+
+            public override IRazorDocumentOptionsProvider GetDocumentOptionsProvider()
+            {
+                if (_optionsProvider == null)
+                {
+                    _optionsProvider = new RazorDocumentOptionsProvider(_optionsMonitor);
+                }
+
+                return _optionsProvider;
             }
 
             private sealed class SourceTextLoader : TextLoader

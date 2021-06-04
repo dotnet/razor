@@ -18,5 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         public abstract IRazorDocumentExcerptService GetExcerptService();
 
         public abstract IRazorDocumentPropertiesService GetDocumentPropertiesService();
+
+        public abstract IRazorDocumentOptionsProvider GetDocumentOptionsProvider();
     }
 }
