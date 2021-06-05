@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private readonly object _lock;
 
         private IRazorSpanMappingService _spanMappingService;
-        private IRazorDocumentExcerptService _excerptService;
+        private IRazorDocumentExcerptService _documentExcerptService;
         private IRazorDocumentPropertiesService _documentPropertiesService;
-        private IRazorDocumentOptionsProvider _documentOptionsProvider;
+        private IRazorDocumentOptionSetProvider _documentOptionSetProvider;
 
         public RazorDocumentServiceProvider()
             : this(null)
@@ -56,18 +56,18 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             if (typeof(TService) == typeof(IRazorDocumentExcerptService))
             {
-                if (_excerptService == null)
+                if (_documentExcerptService == null)
                 {
                     lock (_lock)
                     {
-                        if (_excerptService == null)
+                        if (_documentExcerptService == null)
                         {
-                            _excerptService = _documentContainer.GetExcerptService();
+                            _documentExcerptService = _documentContainer.GetExcerptService();
                         }
                     }
                 }
 
-                return (TService)_excerptService;
+                return (TService)_documentExcerptService;
             }
 
             if (typeof(TService) == typeof(IRazorDocumentPropertiesService))
@@ -86,20 +86,20 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 return (TService)_documentPropertiesService;
             }
 
-            if (typeof(TService) == typeof(IRazorDocumentOptionsProvider))
+            if (typeof(TService) == typeof(IRazorDocumentOptionSetProvider))
             {
-                if (_documentOptionsProvider == null)
+                if (_documentOptionSetProvider == null)
                 {
                     lock (_lock)
                     {
-                        if (_documentOptionsProvider == null)
+                        if (_documentOptionSetProvider == null)
                         {
-                            _documentOptionsProvider = _documentContainer.GetDocumentOptionsProvider();
+                            _documentOptionSetProvider = _documentContainer.GetDocumentOptionSetProvider();
                         }
                     }
                 }
 
-                return (TService)_documentOptionsProvider;
+                return (TService)_documentOptionSetProvider;
             }
 
             return this as TService;
