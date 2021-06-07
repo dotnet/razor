@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -34,6 +33,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     {
         #region CSharp
+        [Fact]
+        public async Task GetSemanticTokens_CSharp_RazorIfNotReady()
+        {
+            var txt = $@"<p></p>@{{
+    var d = ""t"";
+}}";
+
+            var cSharpTokens = new SemanticTokens
+            {
+                Data = new int[] { }.ToImmutableArray(),
+                ResultId = null,
+            };
+            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 1);
+
+            await AssertSemanticTokensAsync(txt, isRazor: false, csharpTokens: cSharpResponse, documentMappings: null, documentVersion: 1);
+        }
+
+        [Fact]
+        public async Task GetSemanticTokensEdits_CSharp_RazorIfNotReady()
+        {
+            var txt = $@"<p></p>@{{
+    var d = ""t"";
+}}";
+
+            var cSharpTokens = new SemanticTokens
+            {
+                Data = new int[] { }.ToImmutableArray(),
+                ResultId = null,
+            };
+            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+            var isRazor = true;
+
+            var response = await AssertSemanticTokensAsync(txt, isRazor, csharpTokens: cSharpResponse, documentVersion: 0);
+            _ = await AssertSemanticTokenEditsAsync(txt, expectDelta: true, isRazor, response.Item1, response.Item2);
+        }
+
         [Fact]
         public async Task GetSemanticTokens_CSharpBlock_HTML()
         {
