@@ -9,6 +9,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     public class DefaultLSPEditorFeatureDetectorTest
     {
         [Fact]
+        public void IsLSPEditorAvailable_LegacyEditorTrue_ReturnsFalse()
+        {
+            // Arrange
+            var featureDetector = new TestLSPEditorFeatureDetector()
+            {
+                UseLegacyASPNETCoreEditor = true,
+                IsFeatureFlagEnabledValue = true,
+                ProjectSupportsRazorLSPEditorValue = true,
+            };
+
+            // Act
+            var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
         public void IsLSPEditorAvailable_EnvironmentVariableTrue_ReturnsTrue()
         {
             // Arrange
@@ -220,6 +238,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private class TestLSPEditorFeatureDetector : DefaultLSPEditorFeatureDetector
         {
+            public bool UseLegacyASPNETCoreEditor { get; set; }
+
             public bool EnvironmentFeatureEnabledValue { get; set; }
 
             public bool IsFeatureFlagEnabledValue { get; set; }
@@ -233,6 +253,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             public bool IsVSServerValue { get; set; }
 
             public bool ProjectSupportsRazorLSPEditorValue { get; set; }
+
+            private protected override bool UseLegacyEditor() => UseLegacyASPNETCoreEditor;
 
             public override bool IsLiveShareHost() => IsLiveShareHostValue;
 

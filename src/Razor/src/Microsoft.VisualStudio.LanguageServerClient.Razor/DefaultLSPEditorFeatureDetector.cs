@@ -5,6 +5,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -16,12 +17,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private const string DotNetCoreCSharpCapability = "CSharp&CPS";
         private const string RazorLSPEditorFeatureFlag = "Razor.LSP.Editor";
+        private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTMLX.Specific.UseLegacyASPNETCoreRazorEditor";
 
         private static readonly Guid LiveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
         private static readonly Guid LiveShareGuestUIContextGuid = Guid.Parse("fd93f3eb-60da-49cd-af15-acda729e357e");
 
         private readonly ProjectHierarchyInspector _projectHierarchyInspector;
         private readonly Lazy<IVsUIShellOpenDocument> _vsUIShellOpenDocument;
+        private readonly Lazy<bool> _useLegacyEditor;
         private readonly IVsFeatureFlags _featureFlags;
 
         private bool? _environmentFeatureEnabled;
@@ -44,6 +47,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 return shellOpenDocument;
             });
+
+            _useLegacyEditor = new Lazy<bool>(() =>
+            {
+                var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
+                Assumes.Present(settingsManager);
+
+                var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
+                return useLegacyEditor;
+            });
         }
 
         // Test constructor
@@ -58,7 +70,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return false;
             }
 
-            var ivsHierarchy = hierarchy as IVsHierarchy;
+            if (UseLegacyEditor())
+            {
+                return false;
+            }
 
             if (!IsLSPEditorFeatureEnabled())
             {
@@ -66,6 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return false;
             }
 
+            var ivsHierarchy = hierarchy as IVsHierarchy;
             if (!ProjectSupportsRazorLSPEditor(documentMoniker, ivsHierarchy))
             {
                 // Current project hierarchy doesn't support the LSP Razor editor
@@ -121,6 +137,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return false;
         }
+
+        // Private protected virtual for testing
+        private protected virtual bool UseLegacyEditor() => _useLegacyEditor.Value;
 
         // Private protected virtual for testing
         private protected virtual bool ProjectSupportsRazorLSPEditor(string documentMoniker, IVsHierarchy hierarchy)
