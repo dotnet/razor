@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public abstract IRazorDocumentPropertiesService GetDocumentPropertiesService();
 
-        public abstract IRazorDocumentOptionSetProvider GetDocumentOptionSetProvider();
+        public abstract IRazorDocumentOptionsService GetDocumentOptionsService();
     }
 }

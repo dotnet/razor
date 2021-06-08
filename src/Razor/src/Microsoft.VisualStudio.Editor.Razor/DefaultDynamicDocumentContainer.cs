@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Razor
             return null;
         }
 
-        public override IRazorDocumentOptionSetProvider GetDocumentOptionSetProvider()
+        public override IRazorDocumentOptionsService GetDocumentOptionsService()
         {
             // DocumentOptionSetProviders are used to tell Roslyn which options to use to format edits. That information isn't needed
             // for non-open documents for the time being, so we can return `null` here.

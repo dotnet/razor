@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             private readonly RazorLSPClientOptionsMonitor _optionsMonitor;
             private IRazorSpanMappingService _mappingService;
             private IRazorDocumentExcerptService _excerptService;
-            private IRazorDocumentOptionSetProvider _optionSetProvider;
+            private IRazorDocumentOptionsService _optionsService;
 
             public override string FilePath => _documentSnapshot.Uri.LocalPath;
 
@@ -167,14 +167,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return textLoader;
             }
 
-            public override IRazorDocumentOptionSetProvider GetDocumentOptionSetProvider()
+            public override IRazorDocumentOptionsService GetDocumentOptionsService()
             {
-                if (_optionSetProvider == null)
+                if (_optionsService == null)
                 {
-                    _optionSetProvider = new RazorDocumentOptionSetProvider(_optionsMonitor);
+                    _optionsService = new RazorDocumentOptionsService(_optionsMonitor);
                 }
 
-                return _optionSetProvider;
+                return _optionsService;
             }
 
             private sealed class SourceTextLoader : TextLoader

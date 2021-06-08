@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             var documentServiceProvider = associatedEntry.Current.DocumentServiceProvider;
             var excerptService = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
             var mappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
-            var optionSetProvider = documentServiceProvider.GetService<IRazorDocumentOptionSetProvider>();
+            var optionsService = documentServiceProvider.GetService<IRazorDocumentOptionsService>();
             var emptyContainer = new PromotedDynamicDocumentContainer(
-                documentUri, propertiesService, excerptService, mappingService, optionSetProvider, associatedEntry.Current.TextLoader);
+                documentUri, propertiesService, excerptService, mappingService, optionsService, associatedEntry.Current.TextLoader);
 
             lock (associatedEntry.Lock)
             {
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             private readonly IRazorDocumentPropertiesService _documentPropertiesService;
             private readonly IRazorDocumentExcerptService _documentExcerptService;
             private readonly IRazorSpanMappingService _spanMappingService;
-            private readonly IRazorDocumentOptionSetProvider _documentOptionSetProvider;
+            private readonly IRazorDocumentOptionsService _documentOptionsService;
             private readonly TextLoader _textLoader;
 
             public PromotedDynamicDocumentContainer(
@@ -369,10 +369,10 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 IRazorDocumentPropertiesService documentPropertiesService,
                 IRazorDocumentExcerptService documentExcerptService,
                 IRazorSpanMappingService spanMappingService,
-                IRazorDocumentOptionSetProvider documentOptionSetProvider,
+                IRazorDocumentOptionsService documentOptionsService,
                 TextLoader textLoader)
             {
-                // It's valid for the excerpt service, span mapping service, and options provider
+                // It's valid for the excerpt service, span mapping service, and options service
                 // to be null in this class, so we purposefully don't null check them below.
 
                 if (documentUri is null)
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 _documentPropertiesService = documentPropertiesService;
                 _documentExcerptService = documentExcerptService;
                 _spanMappingService = spanMappingService;
-                _documentOptionSetProvider = documentOptionSetProvider;
+                _documentOptionsService = documentOptionsService;
                 _textLoader = textLoader;
             }
 
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             public override TextLoader GetTextLoader(string filePath) => _textLoader;
 
-            public override IRazorDocumentOptionSetProvider GetDocumentOptionSetProvider() => _documentOptionSetProvider;
+            public override IRazorDocumentOptionsService GetDocumentOptionsService() => _documentOptionsService;
         }
     }
 }
