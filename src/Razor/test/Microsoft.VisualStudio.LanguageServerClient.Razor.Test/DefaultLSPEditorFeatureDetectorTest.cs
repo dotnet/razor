@@ -9,12 +9,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     public class DefaultLSPEditorFeatureDetectorTest
     {
         [Fact]
-        public void IsLSPEditorAvailable_LegacyEditorTrue_ReturnsFalse()
+        public void IsLSPEditorAvailable_ShouldUseLegacyEditorTrue_ReturnsFalse()
         {
             // Arrange
             var featureDetector = new TestLSPEditorFeatureDetector()
             {
-                UseLegacyASPNETCoreEditor = true,
+                UseLegacyEditor = true,
                 IsFeatureFlagEnabledValue = true,
                 ProjectSupportsRazorLSPEditorValue = true,
             };
@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private class TestLSPEditorFeatureDetector : DefaultLSPEditorFeatureDetector
         {
-            public bool UseLegacyASPNETCoreEditor { get; set; }
+            public bool UseLegacyEditor { get; set; }
 
             public bool EnvironmentFeatureEnabledValue { get; set; }
 
@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public bool ProjectSupportsRazorLSPEditorValue { get; set; }
 
-            private protected override bool UseLegacyEditor() => UseLegacyASPNETCoreEditor;
+            private protected override bool ShouldUseLegacyEditor() => UseLegacyEditor;
 
             public override bool IsLiveShareHost() => IsLiveShareHostValue;
 

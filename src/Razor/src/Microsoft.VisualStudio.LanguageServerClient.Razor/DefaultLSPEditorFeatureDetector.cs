@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return false;
             }
 
-            if (UseLegacyEditor())
+            if (ShouldUseLegacyEditor())
             {
                 return false;
             }
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // Private protected virtual for testing
-        private protected virtual bool UseLegacyEditor() => _useLegacyEditor.Value;
+        private protected virtual bool ShouldUseLegacyEditor() => _useLegacyEditor.Value;
 
         // Private protected virtual for testing
         private protected virtual bool ProjectSupportsRazorLSPEditor(string documentMoniker, IVsHierarchy hierarchy)
