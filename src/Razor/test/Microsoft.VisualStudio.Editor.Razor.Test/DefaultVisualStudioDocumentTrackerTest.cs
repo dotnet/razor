@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public DefaultVisualStudioDocumentTrackerTest()
         {
-            RazorCoreContentType = Mock.Of<IContentType>(c => c.IsOfType(RazorLanguage.ContentType) == true, MockBehavior.Strict);
+            RazorCoreContentType = Mock.Of<IContentType>(c => c.IsOfType(RazorLanguage.ContentType) || c.IsOfType(RazorConstants.LegacyContentType), MockBehavior.Strict);
             TextBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == RazorCoreContentType, MockBehavior.Strict);
 
             FilePath = TestProjectData.SomeProjectFile1.FilePath;
