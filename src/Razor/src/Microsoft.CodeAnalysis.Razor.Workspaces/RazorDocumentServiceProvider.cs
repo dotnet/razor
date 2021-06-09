@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private IRazorSpanMappingService _spanMappingService;
         private IRazorDocumentExcerptService _documentExcerptService;
         private IRazorDocumentPropertiesService _documentPropertiesService;
-        private IRazorDocumentOptionsService _documentOptionsService;
 
         public RazorDocumentServiceProvider()
             : this(null)
@@ -84,22 +83,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 }
 
                 return (TService)_documentPropertiesService;
-            }
-
-            if (typeof(TService) == typeof(IRazorDocumentOptionsService))
-            {
-                if (_documentOptionsService == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_documentOptionsService == null)
-                        {
-                            _documentOptionsService = _documentContainer.GetDocumentOptionsService();
-                        }
-                    }
-                }
-
-                return (TService)_documentOptionsService;
             }
 
             return this as TService;
