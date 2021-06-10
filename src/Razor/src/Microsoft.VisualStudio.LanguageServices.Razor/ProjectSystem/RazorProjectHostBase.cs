@@ -106,7 +106,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 {
                     if (Current != null)
                     {
-                        await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                        await UpdateAsync(async () =>
+                        {
+                            await CommonServices.ThreadingService.SwitchToUIThread();
+                            UninitializeProjectUnsafe();
+                        }).ConfigureAwait(false);
                     }
                 }).ConfigureAwait(false);
             }
@@ -127,11 +131,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     var old = Current;
                     var oldDocuments = _currentDocuments.Values.ToArray();
 
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(async () =>
+                    {
+                        await CommonServices.ThreadingService.SwitchToUIThread();
+                        UninitializeProjectUnsafe();
+                    }).ConfigureAwait(false);
 
-                    await UpdateAsync(() =>
+                    await UpdateAsync(async () =>
                     {
                         var filePath = CommonServices.UnconfiguredProject.FullPath;
+
+                        await CommonServices.ThreadingService.SwitchToUIThread();
                         UpdateProjectUnsafe(new HostProject(filePath, old.Configuration, old.RootNamespace));
 
                         // This should no-op in the common case, just putting it here for insurance.
@@ -157,11 +167,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return _projectManager;
         }
 
-        protected async Task UpdateAsync(Action action)
-        {
-            await CommonServices.ThreadingService.SwitchToUIThread();
-            action();
-        }
+        protected static async Task UpdateAsync(Func<Task> action) => await action().ConfigureAwait(false);
 
         protected void UninitializeProjectUnsafe()
         {

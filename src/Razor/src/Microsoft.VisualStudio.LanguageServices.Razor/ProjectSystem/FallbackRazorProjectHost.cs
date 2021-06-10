@@ -111,7 +111,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (mvcReferenceFullPath == null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(async () =>
+                    {
+                        await CommonServices.ThreadingService.SwitchToUIThread();
+                        UninitializeProjectUnsafe();
+                    }).ConfigureAwait(false);
                     return;
                 }
 
@@ -119,7 +123,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (version == null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(async () =>
+                    {
+                        await CommonServices.ThreadingService.SwitchToUIThread();
+                        UninitializeProjectUnsafe();
+                    }).ConfigureAwait(false);
                     return;
                 }
 
@@ -133,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 var documents = GetCurrentDocuments(update.Value);
                 var changedDocuments = GetChangedAndRemovedDocuments(update.Value);
 
-                await UpdateAsync(() =>
+                await UpdateAsync(async () =>
                 {
                     var configuration = FallbackRazorConfiguration.SelectConfiguration(version);
                     var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, configuration, rootNamespace: null);
@@ -143,6 +151,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         var projectRazorJson = Path.Combine(intermediatePath, "project.razor.json");
                         _projectConfigurationFilePathStore.Set(hostProject.FilePath, projectRazorJson);
                     }
+
+                    await CommonServices.ThreadingService.SwitchToUIThread();
 
                     UpdateProjectUnsafe(hostProject);
 

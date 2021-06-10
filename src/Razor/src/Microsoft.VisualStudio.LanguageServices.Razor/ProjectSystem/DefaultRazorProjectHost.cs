@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     var documents = GetCurrentDocuments(update.Value);
                     var changedDocuments = GetChangedAndRemovedDocuments(update.Value);
 
-                    await UpdateAsync(() =>
+                    await UpdateAsync(async () =>
                     {
                         var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, configuration, rootNamespace);
 
@@ -116,6 +116,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                             var projectRazorJson = Path.Combine(intermediatePath, "project.razor.json");
                             _projectConfigurationFilePathStore.Set(hostProject.FilePath, projectRazorJson);
                         }
+
+                        await CommonServices.ThreadingService.SwitchToUIThread();
 
                         UpdateProjectUnsafe(hostProject);
 
@@ -133,7 +135,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 else
                 {
                     // Ok we can't find a configuration. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(async () =>
+                    {
+                        await CommonServices.ThreadingService.SwitchToUIThread();
+                        UninitializeProjectUnsafe();
+                    }).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false), registerFaultHandler: true);
         }
