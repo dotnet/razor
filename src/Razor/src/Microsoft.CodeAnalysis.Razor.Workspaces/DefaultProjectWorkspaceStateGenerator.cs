@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Razor
                         workspaceState = new ProjectWorkspaceState(tagHelperResolutionResult.Descriptors, csharpLanguageVersion);
                     }
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                     // Abort work if we get a task cancelled exception
                     return;
