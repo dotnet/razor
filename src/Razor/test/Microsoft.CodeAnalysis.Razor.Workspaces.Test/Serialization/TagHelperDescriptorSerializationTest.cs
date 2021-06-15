@@ -286,6 +286,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             Assert.Equal(expectedDescriptor, descriptor, TagHelperDescriptorComparer.Default);
         }
 
+        [Fact]
+        public void TagHelperDescriptor_WithoutEditorRequired_RoundTripsProperly()
+        {
+            // Arrange
+            var expectedDescriptor = CreateTagHelperDescriptor(
+                kind: TagHelperConventions.DefaultKind,
+                tagName: "tag-name2",
+                typeName: "type name",
+                assemblyName: "assembly name",
+                attributes: new Action<BoundAttributeDescriptorBuilder>[]
+                {
+                    builder =>
+                    {
+                        builder
+                        .Name("test-attribute")
+                        .PropertyName("TestAttribute")
+                        .TypeName("string");
+                    },
+                });
+
+            // Act
+            var serializedDescriptor = JsonConvert.SerializeObject(expectedDescriptor, TagHelperDescriptorJsonConverter.Instance, RazorDiagnosticJsonConverter.Instance);
+            var descriptor = JsonConvert.DeserializeObject<TagHelperDescriptor>(serializedDescriptor, TagHelperDescriptorJsonConverter.Instance, RazorDiagnosticJsonConverter.Instance);
+
+            // Assert
+            Assert.Equal(expectedDescriptor, descriptor, TagHelperDescriptorComparer.Default);
+            var boundAttribute = Assert.Single(descriptor.BoundAttributes);
+            Assert.False(boundAttribute.IsEditorRequired);
+        }
+
+        [Fact]
+        public void TagHelperDescriptor_WithEditorRequired_RoundTripsProperly()
+        {
+            // Arrange
+            var expectedDescriptor = CreateTagHelperDescriptor(
+                kind: TagHelperConventions.DefaultKind,
+                tagName: "tag-name3",
+                typeName: "type name",
+                assemblyName: "assembly name",
+                attributes: new Action<BoundAttributeDescriptorBuilder>[]
+                {
+                    builder =>
+                    {
+                        builder
+                        .Name("test-attribute")
+                        .PropertyName("TestAttribute")
+                        .TypeName("string");
+
+                        builder.IsEditorRequired = true;
+                    },
+                });
+
+            // Act
+            var serializedDescriptor = JsonConvert.SerializeObject(expectedDescriptor, TagHelperDescriptorJsonConverter.Instance, RazorDiagnosticJsonConverter.Instance);
+            var descriptor = JsonConvert.DeserializeObject<TagHelperDescriptor>(serializedDescriptor, TagHelperDescriptorJsonConverter.Instance, RazorDiagnosticJsonConverter.Instance);
+
+            // Assert
+            Assert.Equal(expectedDescriptor, descriptor, TagHelperDescriptorComparer.Default);
+            var boundAttribute = Assert.Single(descriptor.BoundAttributes);
+            Assert.True(boundAttribute.IsEditorRequired);
+        }
+
         private static TagHelperDescriptor CreateTagHelperDescriptor(
             string kind,
             string tagName,
