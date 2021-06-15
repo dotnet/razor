@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             format = InsertTextFormat.Snippet;
-            if (autoClosingBehavior == AutoClosingBehavior.Default)
+            if (autoClosingBehavior == AutoClosingBehavior.EndTag)
             {
                 edit = new TextEdit()
                 {
@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 return AutoClosingBehavior.SelfClosing;
             }
 
-            return AutoClosingBehavior.Default;
+            return AutoClosingBehavior.EndTag;
         }
 
         private static bool TryGetTagHelperAutoClosingBehavior(TagHelperBinding bindingResult, out AutoClosingBehavior autoClosingBehavior)
@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                         // We have a rule that indicates it can be normal or self-closing, that always wins because.
                         // it's all encompassing. Meaning, even if all previous rules indicate "no children" and at least
                         // one says it supports children we render the tag as having the potential to have children.
-                        autoClosingBehavior = AutoClosingBehavior.Default;
+                        autoClosingBehavior = AutoClosingBehavior.EndTag;
                         return true;
                     }
 
@@ -194,7 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         private enum AutoClosingBehavior
         {
-            Default,
+            EndTag,
             SelfClosing,
         }
     }
