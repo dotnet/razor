@@ -321,6 +321,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private async Task VerifyMergedOnAutoInsertAsync(VSServerCapabilities mergedCapabilities)
         {
             var triggerCharEnumeration = mergedCapabilities.OnAutoInsertProvider?.TriggerCharacters ?? Enumerable.Empty<string>();
+            var purposefullyRemovedTriggerCharacters = new[]
+            {
+                ">"
+            };
+            triggerCharEnumeration = triggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
             var onAutoInsertMergedTriggerChars = new HashSet<string>(triggerCharEnumeration);
             if (!onAutoInsertMergedTriggerChars.SetEquals(triggerCharEnumeration))
             {
@@ -347,7 +352,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var mergedCommitChars = new HashSet<string>(mergedAllCommitCharEnumeration);
             var purposefullyRemovedTriggerCharacters = new[]
             {
-                "_" // https://github.com/dotnet/aspnetcore-tooling/pull/2827
+                "_", // https://github.com/dotnet/aspnetcore-tooling/pull/2827
+                ">"
             };
             mergedTriggerCharEnumeration = mergedTriggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
             var mergedTriggerChars = new HashSet<string>(mergedTriggerCharEnumeration);

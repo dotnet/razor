@@ -199,6 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorOnAutoInsertProvider, HtmlSmartIndentOnAutoInsertProvider>();
                         services.AddSingleton<RazorOnAutoInsertProvider, CloseRazorCommentOnAutoInsertProvider>();
                         services.AddSingleton<RazorOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
+                        services.AddSingleton<RazorOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
                         services.AddSingleton<RazorOnAutoInsertProvider, AttributeSnippetOnAutoInsertProvider>();
 
                         // Formatting
