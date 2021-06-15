@@ -353,6 +353,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var purposefullyRemovedTriggerCharacters = new[]
             {
                 "_", // https://github.com/dotnet/aspnetcore-tooling/pull/2827
+
+                // C# uses '>' as a trigger character for pointer operations. This conflicts heavily with HTML's auto-closing support
+                // Therefore, for perf reasons we purposefully remove the trigger character since using pointers in Razor is quite rare.
                 ">"
             };
             mergedTriggerCharEnumeration = mergedTriggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
