@@ -123,8 +123,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             if (owner.Parent is MarkupStartTagSyntax startTag &&
                 startTag.Parent is MarkupElementSyntax)
             {
-                name = startTag.Name.Content;
-                autoClosingBehavior = InferAutoClosingBehavior(name);
+                var unescapedTagName = startTag.Name.Content;
+                autoClosingBehavior = InferAutoClosingBehavior(unescapedTagName);
+
+                // Finally capture the entire tag name with the potential escape operator.
                 name = startTag.GetTagNameWithOptionalBang();
                 return true;
             }
@@ -169,7 +171,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                     var tagMatchingRule = tagMatchingRules[i];
                     if (tagMatchingRule.TagStructure == TagStructure.NormalOrSelfClosing)
                     {
-                        // We have a rule that indicates it can be normal or self-closing, that always wins because.
+                        // We have a rule that indicates it can be normal or self-closing, that always wins because
                         // it's all encompassing. Meaning, even if all previous rules indicate "no children" and at least
                         // one says it supports children we render the tag as having the potential to have children.
                         autoClosingBehavior = AutoClosingBehavior.EndTag;

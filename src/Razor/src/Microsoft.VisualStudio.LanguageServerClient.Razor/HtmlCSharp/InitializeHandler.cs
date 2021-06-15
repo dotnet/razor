@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var triggerCharEnumeration = mergedCapabilities.OnAutoInsertProvider?.TriggerCharacters ?? Enumerable.Empty<string>();
             var purposefullyRemovedTriggerCharacters = new[]
             {
-                ">"
+                ">" // https://github.com/dotnet/aspnetcore-tooling/pull/3797
             };
             triggerCharEnumeration = triggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
             var onAutoInsertMergedTriggerChars = new HashSet<string>(triggerCharEnumeration);
