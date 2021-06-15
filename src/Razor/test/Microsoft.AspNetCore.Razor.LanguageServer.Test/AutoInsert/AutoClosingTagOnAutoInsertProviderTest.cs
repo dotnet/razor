@@ -16,7 +16,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             get
             {
-
                 var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
                 descriptor.SetTypeName("TestNamespace.TestTagHelper");
                 descriptor.TagMatchingRule(builder => builder.RequireTagName("test").RequireTagStructure(TagStructure.Unspecified));
@@ -29,7 +28,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             get
             {
-
                 var descriptor = TagHelperDescriptorBuilder.Create("TestInputTagHelper", "TestAssembly");
                 descriptor.SetTypeName("TestNamespace.TestInputTagHelper");
                 descriptor.TagMatchingRule(builder => builder.RequireTagName("input").RequireTagStructure(TagStructure.Unspecified));
@@ -42,7 +40,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             get
             {
-
                 var descriptor = TagHelperDescriptorBuilder.Create("TestInputTagHelper", "TestAssembly");
                 descriptor.SetTypeName("TestNamespace.TestInputTagHelper");
                 descriptor.TagMatchingRule(builder => builder.RequireTagName("input").RequireTagStructure(TagStructure.NormalOrSelfClosing));
@@ -55,7 +52,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             get
             {
-
                 var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper2", "TestAssembly");
                 descriptor.SetTypeName("TestNamespace.TestTagHelper2");
                 descriptor.TagMatchingRule(builder => builder.RequireTagName("test").RequireTagStructure(TagStructure.NormalOrSelfClosing));
@@ -68,7 +64,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             get
             {
-
                 var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper3", "TestAssembly");
                 descriptor.SetTypeName("TestNamespace.TestTagHelper3");
                 descriptor.TagMatchingRule(builder => builder.RequireTagName("test").RequireTagStructure(TagStructure.WithoutEndTag));
