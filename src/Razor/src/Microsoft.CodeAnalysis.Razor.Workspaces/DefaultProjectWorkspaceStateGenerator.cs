@@ -196,6 +196,11 @@ namespace Microsoft.CodeAnalysis.Razor
                     TaskCreationOptions.None,
                     _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
             }
+            catch (OperationCanceledException)
+            {
+                // Abort work if we get a task canceled exception
+                return;
+            }
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the project manager.
