@@ -557,7 +557,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
 
                 return (documentSnapshot, version);
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.SpecializedForegroundScheduler);
 
             return documentInfo;
         }

@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot)
         {
-            await Task.Factory.StartNew(() => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            await Task.Factory.StartNew(() => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
         }
 
         [GlobalCleanup]

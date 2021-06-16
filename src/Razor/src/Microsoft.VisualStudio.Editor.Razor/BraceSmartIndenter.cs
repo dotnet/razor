@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void Dispose()
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             _textBuffer.Changed -= TextBuffer_OnChanged;
             _textBuffer.PostChanged -= TextBuffer_OnPostChanged;
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             if (!args.TextChangeOccurred(out var changeInformation))
             {
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void TextBuffer_OnPostChanged(object sender, EventArgs e)
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             var context = _context;
             _context = null;

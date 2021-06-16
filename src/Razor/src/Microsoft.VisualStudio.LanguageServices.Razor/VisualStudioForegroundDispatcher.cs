@@ -2,20 +2,23 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    [System.Composition.Shared]
     [Export(typeof(ForegroundDispatcher))]
-    internal class VisualStudioForegroundDispatcher : ForegroundDispatcher
+    internal class VisualStudioForegroundDispatcher : DefaultForegroundDispatcher
     {
-        public override TaskScheduler BackgroundScheduler { get; } = TaskScheduler.Default;
+        private readonly JoinableTaskContext _joinableTaskContext;
 
-        public override TaskScheduler ForegroundScheduler { get; } = TaskScheduler.FromCurrentSynchronizationContext();
+        [ImportingConstructor]
+        public VisualStudioForegroundDispatcher(JoinableTaskContext joinableTaskContext)
+        {
+            _joinableTaskContext = joinableTaskContext;
+        }
 
-        public override bool IsForegroundThread => ThreadHelper.CheckAccess();
+        public override bool IsBackgroundThread => !IsSpecializedForegroundThread && !_joinableTaskContext.IsOnMainThread;
     }
 }

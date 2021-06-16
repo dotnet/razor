@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(args));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             switch (args.Kind)
             {

@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal abstract class RazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
     {
         private readonly Workspace _workspace;
+        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly AsyncSemaphore _lock;
+        private readonly AsyncSemaphore _updateLock;
 
         private ProjectSnapshotManagerBase _projectManager;
         private readonly Dictionary<string, HostDocument> _currentDocuments;
@@ -42,23 +44,31 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public RazorProjectHostBase(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
+            ForegroundDispatcher foregroundDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
             : base(commonServices.ThreadingService.JoinableTaskContext)
         {
-            if (commonServices == null)
+            if (commonServices is null)
             {
                 throw new ArgumentNullException(nameof(commonServices));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
 
+            if (foregroundDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(foregroundDispatcher));
+            }
+
             CommonServices = commonServices;
             _workspace = workspace;
+            _foregroundDispatcher = foregroundDispatcher;
 
             _lock = new AsyncSemaphore(initialCount: 1);
+            _updateLock = new AsyncSemaphore(initialCount: 1);
             _currentDocuments = new Dictionary<string, HostDocument>(FilePathComparer.Instance);
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
         }
@@ -67,9 +77,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         protected RazorProjectHostBase(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
+            ForegroundDispatcher foregroundDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             ProjectSnapshotManagerBase projectManager)
-            : this(commonServices, workspace, projectConfigurationFilePathStore)
+            : this(commonServices, workspace, foregroundDispatcher, projectConfigurationFilePathStore)
         {
             if (projectManager == null)
             {
@@ -144,10 +155,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }).ConfigureAwait(false);
         }
 
-        // Should only be called from the UI thread.
+        // Should only be called from the specialized foreground thread.
         private ProjectSnapshotManagerBase GetProjectManager()
         {
-            CommonServices.ThreadingService.VerifyOnUIThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             if (_projectManager == null)
             {
@@ -159,8 +170,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         protected async Task UpdateAsync(Action action)
         {
-            await CommonServices.ThreadingService.SwitchToUIThread();
-            action();
+            // The passed-in action is intended to execute solely on our specialized single-threaded
+            // foreground scheduler. However, there are times when the action may need to temporarily
+            // switch to the UI thread to perform a certain task. We want to make sure that no other
+            // action else picks up the specialized foreground thread in the meantime, so we need to
+            // protect the below area with a lock.
+            using (JoinableCollection.Join())
+            {
+                using (await _updateLock.EnterAsync().ConfigureAwait(false))
+                {
+                    await _foregroundDispatcher.SpecializedForegroundScheduler;
+                    action();
+                }
+            }
         }
 
         protected void UninitializeProjectUnsafe()

@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(updatedSettings));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             lock (SettingsAccessorLock)
             {
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void OnChanged()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var args = new EditorSettingsChangedEventArgs(Current);
             Changed?.Invoke(this, args);

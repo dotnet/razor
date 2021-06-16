@@ -5,6 +5,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
@@ -15,6 +16,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     [Export(typeof(ProjectSnapshotChangeTrigger))]
     internal class EditorDocumentManagerListener : ProjectSnapshotChangeTrigger
     {
+        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskFactory _joinableTaskFactory;
+
         private readonly EventHandler _onChangedOnDisk;
         private readonly EventHandler _onChangedInEditor;
         private readonly EventHandler _onOpened;
@@ -24,8 +28,20 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private ProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public EditorDocumentManagerListener()
+        public EditorDocumentManagerListener(ForegroundDispatcher foregroundDispatcher, JoinableTaskContext joinableTaskContext)
         {
+            if (foregroundDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(foregroundDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskFactory = joinableTaskContext.Factory;
             _onChangedOnDisk = Document_ChangedOnDisk;
             _onChangedInEditor = Document_ChangedInEditor;
             _onOpened = Document_Opened;
@@ -33,8 +49,17 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         // For testing purposes only.
-        internal EditorDocumentManagerListener(EditorDocumentManager documentManager, EventHandler onChangedOnDisk, EventHandler onChangedInEditor, EventHandler onOpened, EventHandler onClosed)
+        internal EditorDocumentManagerListener(
+            ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
+            EditorDocumentManager documentManager,
+            EventHandler onChangedOnDisk,
+            EventHandler onChangedInEditor,
+            EventHandler onOpened,
+            EventHandler onClosed)
         {
+            _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskFactory = joinableTaskContext.Factory;
             _documentManager = documentManager;
             _onChangedOnDisk = onChangedOnDisk;
             _onChangedInEditor = onChangedInEditor;
@@ -61,14 +86,21 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         // Internal for testing.
-        internal void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        internal async void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             switch (e.Kind)
             {
                 case ProjectChangeKind.DocumentAdded:
                     {
                         var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
+
+                        // GetOrCreateDocument requires the UI thread due to IVs access, so we need to temporarily switch to it.
+                        await _joinableTaskFactory.SwitchToMainThreadAsync();
                         var document = _documentManager.GetOrCreateDocument(key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
+                        await _foregroundDispatcher.SpecializedForegroundScheduler;
+
                         if (document.IsOpenInEditor)
                         {
                             _onOpened(document, EventArgs.Empty);

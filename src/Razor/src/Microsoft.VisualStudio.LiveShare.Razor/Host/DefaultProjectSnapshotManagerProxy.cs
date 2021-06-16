@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         public void Dispose()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             _projectSnapshotManager.Changed -= ProjectSnapshotManager_Changed;
             _latestStateSemaphore.Dispose();
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         // Internal for testing
         internal async Task<IReadOnlyList<ProjectSnapshot>> GetLatestProjectsAsync()
         {
-            if (!_foregroundDispatcher.IsForegroundThread)
+            if (!_foregroundDispatcher.IsSpecializedForegroundThread)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
             }
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             if (_disposed)
             {
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         private void OnChanged(ProjectChangeEventProxyArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             if (_disposed)
             {

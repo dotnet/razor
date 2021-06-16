@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             protected override async void InitializeSolution(Solution solution)
 #pragma warning restore VSTHRD100 // Avoid async void methods
             {
-                if (_foregroundDispatcher.IsForegroundThread)
+                if (_foregroundDispatcher.IsSpecializedForegroundThread)
                 {
                     base.InitializeSolution(solution);
                     return;
@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                     },
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler);
+                    _foregroundDispatcher.SpecializedForegroundScheduler);
             }
 
             // We override Workspace_WorkspaceChanged in order to enforce calls to this to be on the foreground thread.
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             internal override async void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
 #pragma warning restore VSTHRD100 // Avoid async void methods
             {
-                if (_foregroundDispatcher.IsForegroundThread)
+                if (_foregroundDispatcher.IsSpecializedForegroundThread)
                 {
                     base.Workspace_WorkspaceChanged(sender, args);
                     return;
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                     },
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler);
+                    _foregroundDispatcher.SpecializedForegroundScheduler);
             }
         }
     }

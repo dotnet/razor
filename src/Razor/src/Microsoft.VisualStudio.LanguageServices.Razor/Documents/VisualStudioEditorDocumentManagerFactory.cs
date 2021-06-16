@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
@@ -18,31 +19,39 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
         public VisualStudioEditorDocumentManagerFactory(
             SVsServiceProvider serviceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
-            ForegroundDispatcher foregroundDispatcher)
+            ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext)
         {
-            if (serviceProvider == null)
+            if (serviceProvider is null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            if (editorAdaptersFactory == null)
+            if (editorAdaptersFactory is null)
             {
                 throw new ArgumentNullException(nameof(editorAdaptersFactory));
             }
 
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
             _serviceProvider = serviceProvider;
             _editorAdaptersFactory = editorAdaptersFactory;
             _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -54,7 +63,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             var fileChangeTrackerFactory = workspaceServices.GetRequiredService<FileChangeTrackerFactory>();
-            return new VisualStudioEditorDocumentManager(_foregroundDispatcher, fileChangeTrackerFactory, runningDocumentTable, _editorAdaptersFactory);
+            return new VisualStudioEditorDocumentManager(_foregroundDispatcher, _joinableTaskContext, fileChangeTrackerFactory, runningDocumentTable, _editorAdaptersFactory);
         }
     }
 }

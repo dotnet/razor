@@ -3,7 +3,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
@@ -14,11 +14,11 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             InternalDispatcher = new DefaultForegroundDispatcher();
         }
 
-        public override bool IsForegroundThread => InternalDispatcher.IsForegroundThread;
-        public override TaskScheduler ForegroundScheduler => InternalDispatcher.ForegroundScheduler;
+        public override bool IsForegroundThread => InternalDispatcher.IsSpecializedForegroundThread;
+        public override TaskScheduler ForegroundScheduler => InternalDispatcher.SpecializedForegroundScheduler;
         public override TaskScheduler BackgroundScheduler => InternalDispatcher.BackgroundScheduler;
 
         public override void AssertBackgroundThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertBackgroundThread(caller);
-        public override void AssertForegroundThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertForegroundThread(caller);
+        public override void AssertForegroundThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertSpecializedForegroundThread(caller);
     }
 }

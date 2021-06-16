@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             switch (args.Kind)
             {
@@ -111,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var hostDocumentVersion = nullableHostDocumentVersion.Value;
 
                     _generatedDocumentPublisher.PublishCSharp(filePath, args.NewText, hostDocumentVersion);
-                }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.SpecializedForegroundScheduler);
             };
 
             documentContainer.GeneratedHtmlChanged += (sender, args) =>
@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var hostDocumentVersion = nullableHostDocumentVersion.Value;
 
                     _generatedDocumentPublisher.PublishHtml(filePath, args.NewText, hostDocumentVersion);
-                }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.SpecializedForegroundScheduler);
             };
 
             return documentContainer;

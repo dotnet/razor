@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(subjectBuffers));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             foreach (var textBuffer in subjectBuffers)
             {
@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(subjectBuffers));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             // This means a Razor buffer has be detached from this ITextView or the ITextView is closing. Since we keep a 
             // list of all of the open text views for each text buffer, we need to update the tracker.

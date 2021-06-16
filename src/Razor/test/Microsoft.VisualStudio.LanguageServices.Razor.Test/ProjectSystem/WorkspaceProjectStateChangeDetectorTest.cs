@@ -614,7 +614,7 @@ namespace Microsoft.AspNetCore.Components
             private static ForegroundDispatcher CreateForegroundDispatcher()
             {
                 var dispatcher = new Mock<ForegroundDispatcher>(MockBehavior.Strict);
-                dispatcher.Setup(d => d.AssertForegroundThread(It.IsAny<string>())).Verifiable();
+                dispatcher.Setup(d => d.AssertSpecializedForegroundThread(It.IsAny<string>())).Verifiable();
                 return dispatcher.Object;
             }
         }

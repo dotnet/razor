@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         public override event EventHandler<ProjectChangeEventArgs> Changed;
 
+        private readonly object _lock = new();
+
         private readonly ErrorReporter _errorReporter;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly ProjectSnapshotChangeTrigger[] _triggers;
@@ -77,16 +79,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             get
             {
-                _foregroundDispatcher.AssertForegroundThread();
+                _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
                 var i = 0;
-                var projects = new ProjectSnapshot[_projects.Count];
-                foreach (var entry in _projects)
+                var projects = _projects;
+                var projectSnapshots = new ProjectSnapshot[projects.Count];
+                foreach (var entry in projects)
                 {
-                    projects[i++] = entry.Value.GetSnapshot();
+                    projectSnapshots[i++] = entry.Value.GetSnapshot();
                 }
 
-                return projects;
+                return projectSnapshots;
             }
         }
 
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             get
             {
-                _foregroundDispatcher.AssertForegroundThread();
+                _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
                 return _openDocuments;
             }
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
             if (_projects.TryGetValue(filePath, out var entry))
             {
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
             return GetLoadedProject(filePath) ?? new EphemeralProjectSnapshot(Workspace.Services, filePath);
         }
@@ -138,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
             return _openDocuments.Contains(documentFilePath);
         }
@@ -155,22 +158,25 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
-            if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+            lock (_lock)
             {
-                var loader = textLoader == null
-                    ? DocumentState.EmptyLoader
-                    : (() => textLoader.LoadTextAndVersionAsync(Workspace, null, CancellationToken.None));
-                var state = entry.State.WithAddedHostDocument(document, loader);
-
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+                if (_projects.TryGetValue(hostProject.FilePath, out var entry))
                 {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentAdded));
+                    var loader = textLoader == null
+                        ? DocumentState.EmptyLoader
+                        : (() => textLoader.LoadTextAndVersionAsync(Workspace, null, CancellationToken.None));
+                    var state = entry.State.WithAddedHostDocument(document, loader);
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[hostProject.FilePath] = entry;
+                        NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentAdded));
+                    }
                 }
             }
         }
@@ -187,18 +193,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
-            if (_projects.TryGetValue(hostProject.FilePath, out var entry))
-            {
-                var state = entry.State.WithRemovedHostDocument(document);
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+            lock (_lock)
+            {
+                if (_projects.TryGetValue(hostProject.FilePath, out var entry))
                 {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentRemoved));
+                    var state = entry.State.WithRemovedHostDocument(document);
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[hostProject.FilePath] = entry;
+                        NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentRemoved));
+                    }
                 }
             }
         }
@@ -220,40 +230,44 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
-            if (_projects.TryGetValue(projectFilePath, out var entry) &&
-                entry.State.Documents.TryGetValue(documentFilePath, out var older))
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
+
+            lock (_lock)
             {
-                ProjectState state;
+                if (_projects.TryGetValue(projectFilePath, out var entry) &&
+                    entry.State.Documents.TryGetValue(documentFilePath, out var older))
+                {
+                    ProjectState state;
 
-                var currentText = sourceText;
-                if (older.TryGetText(out var olderText) &&
-                    older.TryGetTextVersion(out var olderVersion))
-                {
-                    var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                    state = entry.State.WithChangedHostDocument(older.HostDocument, currentText, version);
-                }
-                else
-                {
-                    state = entry.State.WithChangedHostDocument(older.HostDocument, async () =>
+                    var currentText = sourceText;
+                    if (older.TryGetText(out var olderText) &&
+                        older.TryGetTextVersion(out var olderVersion))
                     {
-                        olderText = await older.GetTextAsync().ConfigureAwait(false);
-                        olderVersion = await older.GetTextVersionAsync().ConfigureAwait(false);
-
                         var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                        return TextAndVersion.Create(currentText, version, documentFilePath);
-                    });
-                }
+                        state = entry.State.WithChangedHostDocument(older.HostDocument, currentText, version);
+                    }
+                    else
+                    {
+                        state = entry.State.WithChangedHostDocument(older.HostDocument, async () =>
+                        {
+                            olderText = await older.GetTextAsync().ConfigureAwait(false);
+                            olderVersion = await older.GetTextVersionAsync().ConfigureAwait(false);
 
-                _openDocuments.Add(documentFilePath);
+                            var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
+                            return TextAndVersion.Create(currentText, version, documentFilePath);
+                        });
+                    }
 
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
-                {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                    _openDocuments.Add(documentFilePath);
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[projectFilePath] = entry;
+                        NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                    }
                 }
             }
         }
@@ -275,23 +289,27 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(textLoader));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
-            if (_projects.TryGetValue(projectFilePath, out var entry) &&
-                entry.State.Documents.TryGetValue(documentFilePath, out var older))
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
+
+            lock (_lock)
             {
-                var state = entry.State.WithChangedHostDocument(
-                    older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(Workspace, default, default));
-
-                _openDocuments.Remove(documentFilePath);
-
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+                if (_projects.TryGetValue(projectFilePath, out var entry) &&
+                    entry.State.Documents.TryGetValue(documentFilePath, out var older))
                 {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                    var state = entry.State.WithChangedHostDocument(
+                        older.HostDocument,
+                        async () => await textLoader.LoadTextAndVersionAsync(Workspace, default, default));
+
+                    _openDocuments.Remove(documentFilePath);
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[projectFilePath] = entry;
+                        NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                    }
                 }
             }
         }
@@ -313,38 +331,42 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
-            if (_projects.TryGetValue(projectFilePath, out var entry) &&
-                entry.State.Documents.TryGetValue(documentFilePath, out var older))
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
+
+            lock (_lock)
             {
-                ProjectState state;
+                if (_projects.TryGetValue(projectFilePath, out var entry) &&
+                    entry.State.Documents.TryGetValue(documentFilePath, out var older))
+                {
+                    ProjectState state;
 
-                var currentText = sourceText;
-                if (older.TryGetText(out var olderText) &&
-                    older.TryGetTextVersion(out var olderVersion))
-                {
-                    var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                    state = entry.State.WithChangedHostDocument(older.HostDocument, currentText, version);
-                }
-                else
-                {
-                    state = entry.State.WithChangedHostDocument(older.HostDocument, async () =>
+                    var currentText = sourceText;
+                    if (older.TryGetText(out var olderText) &&
+                        older.TryGetTextVersion(out var olderVersion))
                     {
-                        olderText = await older.GetTextAsync().ConfigureAwait(false);
-                        olderVersion = await older.GetTextVersionAsync().ConfigureAwait(false);
-
                         var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                        return TextAndVersion.Create(currentText, version, documentFilePath);
-                    });
-                }
+                        state = entry.State.WithChangedHostDocument(older.HostDocument, currentText, version);
+                    }
+                    else
+                    {
+                        state = entry.State.WithChangedHostDocument(older.HostDocument, async () =>
+                        {
+                            olderText = await older.GetTextAsync().ConfigureAwait(false);
+                            olderVersion = await older.GetTextVersionAsync().ConfigureAwait(false);
 
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
-                {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                            var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
+                            return TextAndVersion.Create(currentText, version, documentFilePath);
+                        });
+                    }
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[projectFilePath] = entry;
+                        NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                    }
                 }
             }
         }
@@ -366,21 +388,25 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(textLoader));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
-            if (_projects.TryGetValue(projectFilePath, out var entry) &&
-                entry.State.Documents.TryGetValue(documentFilePath, out var older))
-            {
-                var state = entry.State.WithChangedHostDocument(
-                    older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(Workspace, default, default));
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
-                // Document updates can no-op.
-                if (!ReferenceEquals(state, entry.State))
+            lock (_lock)
+            {
+                if (_projects.TryGetValue(projectFilePath, out var entry) &&
+                    entry.State.Documents.TryGetValue(documentFilePath, out var older))
                 {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                    var state = entry.State.WithChangedHostDocument(
+                        older.HostDocument,
+                        async () => await textLoader.LoadTextAndVersionAsync(Workspace, default, default));
+
+                    // Document updates can no-op.
+                    if (!ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[projectFilePath] = entry;
+                        NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                    }
                 }
             }
         }
@@ -392,20 +418,24 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(hostProject));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
-            // We don't expect to see a HostProject initialized multiple times for the same path. Just ignore it.
-            if (_projects.ContainsKey(hostProject.FilePath))
+            lock (_lock)
             {
-                return;
+                // We don't expect to see a HostProject initialized multiple times for the same path. Just ignore it.
+                if (_projects.ContainsKey(hostProject.FilePath))
+                {
+                    return;
+                }
+
+                var state = ProjectState.Create(Workspace.Services, hostProject);
+                var entry = new Entry(state);
+
+                _projects[hostProject.FilePath] = entry;
+
+                // We need to notify listeners about every project add.
+                NotifyListeners(new ProjectChangeEventArgs(null, entry.GetSnapshot(), ProjectChangeKind.ProjectAdded));
             }
-
-            var state = ProjectState.Create(Workspace.Services, hostProject);
-            var entry = new Entry(state);
-            _projects[hostProject.FilePath] = entry;
-
-            // We need to notify listeners about every project add.
-            NotifyListeners(new ProjectChangeEventArgs(null, entry.GetSnapshot(), ProjectChangeKind.ProjectAdded));
         }
 
         public override void ProjectConfigurationChanged(HostProject hostProject)
@@ -415,19 +445,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(hostProject));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
-            if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+            lock (_lock)
             {
-                var state = entry.State.WithHostProject(hostProject);
-
-                // HostProject updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+                if (_projects.TryGetValue(hostProject.FilePath, out var entry))
                 {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), ProjectChangeKind.ProjectChanged));
+                    var state = entry.State.WithHostProject(hostProject);
+
+                    // HostProject updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[hostProject.FilePath] = entry;
+                        NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), ProjectChangeKind.ProjectChanged));
+                    }
                 }
             }
         }
@@ -444,19 +477,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(projectWorkspaceState));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
-            if (_projects.TryGetValue(projectFilePath, out var entry))
+            lock (_lock)
             {
-                var state = entry.State.WithProjectWorkspaceState(projectWorkspaceState);
-
-                // HostProject updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+                if (_projects.TryGetValue(projectFilePath, out var entry))
                 {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), ProjectChangeKind.ProjectChanged));
+                    var state = entry.State.WithProjectWorkspaceState(projectWorkspaceState);
+
+                    // HostProject updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[projectFilePath] = entry;
+                        NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), ProjectChangeKind.ProjectChanged));
+                    }
                 }
             }
         }
@@ -468,14 +504,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(hostProject));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
-            if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+            lock (_lock)
             {
-                // We need to notify listeners about every project removal.
-                var oldSnapshot = entry.GetSnapshot();
-                _projects.Remove(hostProject.FilePath);
-                NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, null, ProjectChangeKind.ProjectRemoved));
+                if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+                {
+                    // We need to notify listeners about every project removal.
+                    var oldSnapshot = entry.GetSnapshot();
+                    _projects.Remove(hostProject.FilePath);
+                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, null, ProjectChangeKind.ProjectRemoved));
+                }
             }
         }
 
@@ -513,30 +552,32 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // virtual so it can be overridden in tests
         protected virtual void NotifyListeners(ProjectChangeEventArgs e)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
-            _notificationWork.Enqueue(e);
-
-            if (_notificationWork.Count == 1)
+            lock (_lock)
             {
-                // Only one notification, go ahead and start notifying. In the situation where Count > 1 it means an event was triggered as a response to another event.
-                // To ensure order we wont immediately re-invoke Changed here, we'll wait for the stack to unwind to notify others. This process still happens synchronously
-                // it just ensures that events happen in the correct order. For instance lets take the situation where a document is added to a project. That document will be
-                // added and then opened. However, if the result of "adding" causes an "open" to triger we want to ensure that "add" finishes prior to "open" being notified.
+                _notificationWork.Enqueue(e);
 
-
-                // Start unwinding the notification queue
-                do
+                if (_notificationWork.Count == 1)
                 {
-                    // Don't dequeue yet, we want the notification to sit in the queue until we've finished notifying to ensure other calls to NotifyListeners know there's a currently running event loop.
-                    var args = _notificationWork.Peek();
-                    Changed?.Invoke(this, args);
+                    // Only one notification, go ahead and start notifying. In the situation where Count > 1 it means an event was triggered as a response to another event.
+                    // To ensure order we wont immediately re-invoke Changed here, we'll wait for the stack to unwind to notify others. This process still happens synchronously
+                    // it just ensures that events happen in the correct order. For instance lets take the situation where a document is added to a project. That document will be
+                    // added and then opened. However, if the result of "adding" causes an "open" to triger we want to ensure that "add" finishes prior to "open" being notified.
 
-                    _notificationWork.Dequeue();
+
+                    // Start unwinding the notification queue
+                    do
+                    {
+                        // Don't dequeue yet, we want the notification to sit in the queue until we've finished notifying to ensure other calls to NotifyListeners know there's a currently running event loop.
+                        var args = _notificationWork.Peek();
+                        Changed?.Invoke(this, args);
+
+                        _notificationWork.Dequeue();
+                    }
+                    while (_notificationWork.Count > 0);
                 }
-                while (_notificationWork.Count > 0);
             }
-
         }
 
         private class Entry

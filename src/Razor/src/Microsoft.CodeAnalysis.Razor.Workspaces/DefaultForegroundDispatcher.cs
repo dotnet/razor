@@ -5,24 +5,25 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
+namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal class DefaultForegroundDispatcher : ForegroundDispatcher
     {
-        public override bool IsForegroundThread => Thread.CurrentThread.ManagedThreadId == ForegroundTaskScheduler.Instance.ForegroundThreadId;
+        public override bool IsSpecializedForegroundThread => System.Environment.CurrentManagedThreadId == ForegroundTaskScheduler.Instance.ForegroundThreadId;
 
-        public override TaskScheduler ForegroundScheduler { get; } = ForegroundTaskScheduler.Instance;
+        public override bool IsBackgroundThread => !IsSpecializedForegroundThread;
+
+        public override TaskScheduler SpecializedForegroundScheduler { get; } = ForegroundTaskScheduler.Instance;
 
         public override TaskScheduler BackgroundScheduler { get; } = TaskScheduler.Default;
 
         internal class ForegroundTaskScheduler : TaskScheduler
         {
-            public static ForegroundTaskScheduler Instance = new ForegroundTaskScheduler();
+            public static ForegroundTaskScheduler Instance = new();
 
             private readonly Thread _thread;
-            private readonly BlockingCollection<Task> _tasks = new BlockingCollection<Task>();
+            private readonly BlockingCollection<Task> _tasks = new();
 
             private ForegroundTaskScheduler()
             {

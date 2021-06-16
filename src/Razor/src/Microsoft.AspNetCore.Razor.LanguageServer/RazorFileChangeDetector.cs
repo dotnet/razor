@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     FileSystemWatcher_RazorFileEvent(razorFilePath, RazorFileChangeKind.Added);
                 }
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.SpecializedForegroundScheduler);
 
             // This is an entry point for testing
             OnInitializationFinished();
@@ -208,7 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             await Task.Factory.StartNew(
                 () => NotifyAfterDelay_Foreground(physicalFilePath),
-                CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.SpecializedForegroundScheduler);
         }
 
         private void NotifyAfterDelay_Foreground(string physicalFilePath)

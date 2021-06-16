@@ -5,8 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using MonoDevelop.Ide;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
@@ -15,8 +17,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     {
         public VisualStudioMacEditorDocumentManager(
             ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
             FileChangeTrackerFactory fileChangeTrackerFactory)
-            : base(foregroundDispatcher, fileChangeTrackerFactory)
+            : base(foregroundDispatcher, joinableTaskContext, fileChangeTrackerFactory)
         {
         }
 
@@ -41,7 +44,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void HandleDocumentOpened(string filePath, ITextBuffer textBuffer)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -57,7 +60,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void HandleDocumentClosed(string filePath)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -81,7 +84,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void HandleDocumentRenamed(string fromFilePath, string toFilePath, ITextBuffer textBuffer)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             if (string.Equals(fromFilePath, toFilePath, FilePathComparison.Instance))
             {
@@ -102,7 +105,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void BufferLoaded(ITextBuffer textBuffer, string filePath, EditorDocument[] documents)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {

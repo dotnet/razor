@@ -147,19 +147,19 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Can be called from any thread
 
-            if (_dispatcher.IsForegroundThread)
+            if (_dispatcher.IsSpecializedForegroundThread)
             {
                 ReparseOnForeground(null);
             }
             else
             {
-                _ = Task.Factory.StartNew(ReparseOnForeground, null, CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                _ = Task.Factory.StartNew(ReparseOnForeground, null, CancellationToken.None, TaskCreationOptions.None, _dispatcher.SpecializedForegroundScheduler);
             }
         }
 
         public void Dispose()
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             StopParser();
 
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void DocumentTracker_ContextChanged(object sender, ContextChangeEventArgs args)
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             if (!TryReinitializeParser())
             {
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal bool TryReinitializeParser()
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             StopParser();
 
@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void StartParser()
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             // Make sure any tests use the real thing or a good mock. These tests can cause failures
             // that are hard to understand when this throws.
@@ -242,7 +242,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void StopParser()
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             if (_parser != null)
             {
@@ -258,7 +258,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void StartIdleTimer()
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             lock (IdleLock)
             {
@@ -287,7 +287,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             if (args.Changes.Count > 0)
             {
@@ -343,7 +343,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnIdle(object state)
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             if (_disposed)
             {
@@ -368,7 +368,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void ReparseOnForeground(object state)
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             if (_disposed)
             {
@@ -381,7 +381,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void QueueChange(SourceChange change, ITextSnapshot snapshot)
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             // _parser can be null if we're in the midst of rebuilding the internal parser (TagHelper refresh/solution teardown)
             _latestChangeReference = _parser?.QueueChange(change, snapshot);
@@ -414,12 +414,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 StopIdleTimer();
 
                 // We need to get back to the UI thread to properly check if a completion is active.
-                _ = Task.Factory.StartNew(OnIdle, null, CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                _ = Task.Factory.StartNew(OnIdle, null, CancellationToken.None, TaskCreationOptions.None, _dispatcher.SpecializedForegroundScheduler);
             }
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the workspace.
-                _ = Task.Factory.StartNew(() => _errorReporter.ReportError(ex), CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                _ = Task.Factory.StartNew(() => _errorReporter.ReportError(ex), CancellationToken.None, TaskCreationOptions.None, _dispatcher.SpecializedForegroundScheduler);
             }
         }
 
@@ -431,13 +431,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
             UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
 
             // Jump back to UI thread to notify structure changes.
-            _ = Task.Factory.StartNew(OnDocumentStructureChanged, args, CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+            _ = Task.Factory.StartNew(OnDocumentStructureChanged, args, CancellationToken.None, TaskCreationOptions.None, _dispatcher.SpecializedForegroundScheduler);
         }
 
         // Internal for testing
         internal void OnDocumentStructureChanged(object state)
         {
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             if (_disposed)
             {

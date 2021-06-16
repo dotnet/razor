@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
@@ -15,7 +16,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public EditorDocumentManagerBaseTest()
         {
 
-            Manager = new TestEditorDocumentManager(Dispatcher);
+            Manager = new TestEditorDocumentManager(Dispatcher, new JoinableTaskContext());
         }
 
         private TestEditorDocumentManager Manager { get; }
@@ -170,8 +171,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private class TestEditorDocumentManager : EditorDocumentManagerBase
         {
-            public TestEditorDocumentManager(ForegroundDispatcher foregroundDispatcher) 
-                : base(foregroundDispatcher, new DefaultFileChangeTrackerFactory())
+            public TestEditorDocumentManager(ForegroundDispatcher foregroundDispatcher, JoinableTaskContext joinableTaskContext) 
+                : base(foregroundDispatcher, joinableTaskContext, new DefaultFileChangeTrackerFactory())
             {
             }
 

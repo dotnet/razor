@@ -2,19 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    [System.Composition.Shared]
     [Export(typeof(ForegroundDispatcher))]
-    internal class VisualStudioForegroundDispatcher : ForegroundDispatcher
+    internal class VisualStudioForegroundDispatcher : DefaultForegroundDispatcher
     {
-        public override TaskScheduler BackgroundScheduler { get; } = TaskScheduler.Default;
-
-        public override TaskScheduler ForegroundScheduler { get; } = MonoDevelop.Core.Runtime.MainTaskScheduler;
-
-        public override bool IsForegroundThread => MonoDevelop.Core.Runtime.IsMainThread;
+        public override bool IsBackgroundThread => !IsSpecializedForegroundThread && !MonoDevelop.Core.Runtime.IsMainThread;
     }
 }

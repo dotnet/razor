@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
             lock (_work)
             {
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     _projectManager,
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                    _foregroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
             }
         }
 
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 _projectManager,
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                _foregroundDispatcher.SpecializedForegroundScheduler);
         }
 
         private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)

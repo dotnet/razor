@@ -12,14 +12,24 @@
         <target state="new">{0} must be called on a background thread.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertForegroundThread">
-        <source>{0} must be called on the foreground thread.</source>
-        <target state="new">{0} must be called on the foreground thread.</target>
+      <trans-unit id="ForegroundDispatcher_AssertSpecializedForegroundOrUIThread">
+        <source>{0} must be called on the specialized foreground or UI thread.</source>
+        <target state="new">{0} must be called on the specialized foreground or UI thread.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ForegroundDispatcher_AssertSpecializedForegroundThread">
+        <source>{0} must be called on the specialized foreground thread.</source>
+        <target state="new">{0} must be called on the specialized foreground thread.</target>
         <note />
       </trans-unit>
       <trans-unit id="ForegroundDispatcher_NoMethodNamePlaceholder">
         <source>The method</source>
         <target state="new">The method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JoinableTaskContextExtensions_AssertUIThread">
+        <source>{0} must be called on the UI thread.</source>
+        <target state="new">{0} must be called on the UI thread.</target>
         <note />
       </trans-unit>
     </body>

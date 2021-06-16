@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(documentTracker));
             }
 
-            _dispatcher.AssertForegroundThread();
+            _dispatcher.AssertSpecializedForegroundThread();
 
             var braceSmartIndenter = new BraceSmartIndenter(_dispatcher, documentTracker, _codeDocumentProvider, _editorOperationsFactory);
 

@@ -34,18 +34,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public DefaultRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
+            ForegroundDispatcher foregroundDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
-            : base(commonServices, workspace, projectConfigurationFilePathStore)
+            : base(commonServices, workspace, foregroundDispatcher, projectConfigurationFilePathStore)
         {
         }
 
         // Internal for testing
         internal DefaultRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
-                Workspace workspace,
-                ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-                ProjectSnapshotManagerBase projectManager)
-        : base(commonServices, workspace, projectConfigurationFilePathStore, projectManager)
+            Workspace workspace,
+            ForegroundDispatcher foregroundDispatcher,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            ProjectSnapshotManagerBase projectManager)
+            : base(commonServices, workspace, foregroundDispatcher, projectConfigurationFilePathStore, projectManager)
         {
         }
 

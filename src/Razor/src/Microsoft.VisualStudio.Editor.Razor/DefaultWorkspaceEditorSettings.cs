@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             add
             {
-                _foregroundDispatcher.AssertForegroundThread();
+                _foregroundDispatcher.AssertSpecializedForegroundThread();
 
                 _listenerCount++;
                 _changed += value;
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
             remove
             {
-                _foregroundDispatcher.AssertForegroundThread();
+                _foregroundDispatcher.AssertSpecializedForegroundThread();
 
                 _listenerCount--;
                 _changed -= value;
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnChanged(object sender, EditorSettingsChangedEventArgs e)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             Debug.Assert(_changed != null, nameof(OnChanged) + " should not be invoked when there are no listeners.");
 

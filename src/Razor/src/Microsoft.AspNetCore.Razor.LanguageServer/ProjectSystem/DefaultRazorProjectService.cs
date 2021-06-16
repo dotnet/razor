@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void AddDocument(string filePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var textDocumentPath = _filePathNormalizer.Normalize(filePath);
             if (_documentResolver.TryResolveDocument(textDocumentPath, out var _))
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void OpenDocument(string filePath, SourceText sourceText, int version)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var textDocumentPath = _filePathNormalizer.Normalize(filePath);
             if (!_documentResolver.TryResolveDocument(textDocumentPath, out _))
@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void CloseDocument(string filePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var textDocumentPath = _filePathNormalizer.Normalize(filePath);
             if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
@@ -182,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void RemoveDocument(string filePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var textDocumentPath = _filePathNormalizer.Normalize(filePath);
             if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
@@ -204,7 +204,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void UpdateDocument(string filePath, SourceText sourceText, int version)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var textDocumentPath = _filePathNormalizer.Normalize(filePath);
             if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
@@ -221,7 +221,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void AddProject(string filePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var normalizedPath = _filePathNormalizer.Normalize(filePath);
 
@@ -242,7 +242,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void RemoveProject(string filePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var normalizedPath = _filePathNormalizer.Normalize(filePath);
             var project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
@@ -266,7 +266,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             ProjectWorkspaceState projectWorkspaceState,
             IReadOnlyList<DocumentSnapshotHandle> documents)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var normalizedPath = _filePathNormalizer.Normalize(filePath);
             var project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
@@ -411,7 +411,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         // Internal for testing
         internal void TryMigrateDocumentsFromRemovedProject(ProjectSnapshot project)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var miscellaneousProject = _projectResolver.GetMiscellaneousProject();
 
@@ -437,7 +437,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         // Internal for testing
         internal void TryMigrateMiscellaneousDocumentsToProject()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             var miscellaneousProject = _projectResolver.GetMiscellaneousProject();
 

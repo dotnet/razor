@@ -93,9 +93,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 
         private class TestForegroundDispatcher : ForegroundDispatcher
         {
-            public override bool IsForegroundThread => true;
+            public override bool IsSpecializedForegroundThread => true;
 
-            public override TaskScheduler ForegroundScheduler => TaskScheduler.Default;
+            public override bool IsBackgroundThread => false;
+
+            public override TaskScheduler SpecializedForegroundScheduler => TaskScheduler.Default;
 
             public override TaskScheduler BackgroundScheduler => TaskScheduler.Default;
         }

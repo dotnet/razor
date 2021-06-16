@@ -5,9 +5,11 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 
@@ -56,7 +58,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                     Assert.Same(closed, onClosed);
                 });
 
-            var listener = new EditorDocumentManagerListener(editorDocumentManger.Object, changedOnDisk, changedInEditor, opened, closed);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var joinableTaskContext = new JoinableTaskContext();
+
+            var listener = new EditorDocumentManagerListener(
+                foregroundDispatcher, joinableTaskContext, editorDocumentManger.Object, changedOnDisk, changedInEditor, opened, closed);
 
             var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
 
@@ -76,7 +82,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 .Setup(e => e.GetOrCreateDocument(It.IsAny<DocumentKey>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>()))
                 .Returns(GetEditorDocument(isOpen: true));
 
-            var listener = new EditorDocumentManagerListener(editorDocumentManger.Object, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var joinableTaskContext = new JoinableTaskContext();
+
+            var listener = new EditorDocumentManagerListener(
+                foregroundDispatcher, joinableTaskContext, editorDocumentManger.Object, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
 
             var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
 

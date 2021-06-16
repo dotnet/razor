@@ -330,7 +330,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (hasTask)
             {
                 var kvp = Assert.Single(synchronizer._projectInfoMap);
-                await Task.Factory.StartNew(() => kvp.Value.ProjectUpdateTask.Wait(), CancellationToken.None, TaskCreationOptions.None, Dispatcher.ForegroundScheduler);
+                await Task.Factory.StartNew(() => kvp.Value.ProjectUpdateTask.Wait(), CancellationToken.None, TaskCreationOptions.None, Dispatcher.SpecializedForegroundScheduler);
             }
             else
             {

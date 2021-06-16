@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         // Internal for testing
         internal void Enqueue(DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
             lock (_work)
             {
@@ -196,7 +196,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     () => NotifyDocumentsProcessed(work),
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler);
+                    _foregroundDispatcher.SpecializedForegroundScheduler);
 
                 lock (_work)
                 {
@@ -237,7 +237,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
 
             switch (args.Kind)
             {
@@ -321,7 +321,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 () => _projectManager.ReportError(ex),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                _foregroundDispatcher.SpecializedForegroundScheduler);
         }
     }
 }

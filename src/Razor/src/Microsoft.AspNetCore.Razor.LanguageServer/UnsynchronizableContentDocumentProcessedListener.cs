@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override void DocumentProcessed(DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _foregroundDispatcher.AssertSpecializedForegroundThread();
 
             if (!_projectManager.IsDocumentOpen(document.FilePath))
             {

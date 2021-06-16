@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
             _ = IdeApp.TypeSystemService.GetWorkspaceAsync(Project.ParentSolution, token).ContinueWith(task => projectHost.Subscribe(),
             token,
             TaskContinuationOptions.OnlyOnRanToCompletion, // We only want to act if we could properly retrieve the workspace.
-            _foregroundDispatcher.ForegroundScheduler);
+            _foregroundDispatcher.SpecializedForegroundScheduler);
         }
 
         protected override void OnUnboundFromSolution()

@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
@@ -26,27 +28,23 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public VisualStudioEditorDocumentManager(
             ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
             FileChangeTrackerFactory fileChangeTrackerFactory,
             IVsRunningDocumentTable runningDocumentTable,
             IVsEditorAdaptersFactoryService editorAdaptersFactory)
-            : base(foregroundDispatcher, fileChangeTrackerFactory)
+            : base(foregroundDispatcher, joinableTaskContext, fileChangeTrackerFactory)
         {
-            if (runningDocumentTable == null)
+            if (runningDocumentTable is null)
             {
                 throw new ArgumentNullException(nameof(runningDocumentTable));
             }
 
-            if (editorAdaptersFactory == null)
+            if (editorAdaptersFactory is null)
             {
                 throw new ArgumentNullException(nameof(editorAdaptersFactory));
             }
 
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            if (fileChangeTrackerFactory == null)
+            if (fileChangeTrackerFactory is null)
             {
                 throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
             }
@@ -63,6 +61,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
         {
+            JoinableTaskContext.AssertUIThread();
+
             if (filePath == null)
             {
                 throw new ArgumentNullException(nameof(filePath));
@@ -85,6 +85,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override void OnDocumentOpened(EditorDocument document)
         {
+            JoinableTaskContext.AssertUIThread();
+
             var cookie = _runningDocumentTable.GetDocumentCookie(document.DocumentFilePath);
             if (cookie != VSConstants.VSCOOKIE_NIL)
             {
@@ -94,6 +96,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override void OnDocumentClosed(EditorDocument document)
         {
+            JoinableTaskContext.AssertUIThread();
+
             var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
             if (_cookiesByDocument.TryGetValue(key, out var cookie))
             {
@@ -103,7 +107,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void DocumentOpened(uint cookie)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -139,8 +143,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void BufferLoaded(IVsTextBuffer vsTextBuffer, string filePath)
         {
-            ForegroundDispatcher.AssertForegroundThread();
-            
+            JoinableTaskContext.AssertUIThread();
+
             var textBuffer = _editorAdaptersFactory.GetDocumentBuffer(vsTextBuffer);
             if (textBuffer != null)
             {
@@ -155,7 +159,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void BufferLoaded(ITextBuffer textBuffer, string filePath, EditorDocument[] documents)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -168,7 +172,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void DocumentClosed(uint cookie, string exceptFilePath = null)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -192,7 +196,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void DocumentRenamed(uint cookie, string fromFilePath, string toFilePath)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             // Ignore changes is casing
             if (FilePathComparer.Instance.Equals(fromFilePath, toFilePath))
