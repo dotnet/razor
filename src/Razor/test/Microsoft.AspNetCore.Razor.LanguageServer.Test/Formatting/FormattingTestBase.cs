@@ -35,6 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     public class FormattingTestBase : RazorIntegrationTestBase
     {
         private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
+        private static readonly IReadOnlyList<TagHelperDescriptor> _defaultComponents = GetDefaultRuntimeComponents();
 
         public FormattingTestBase()
         {
@@ -187,7 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             if (fileKind == FileKinds.Component)
             {
-                tagHelpers = tagHelpers.Concat(GetDefaultRuntimeComponents()).ToArray();
+                tagHelpers = tagHelpers.Concat(_defaultComponents).ToArray();
             }
             var sourceDocument = text.GetRazorSourceDocument(path, path);
 
@@ -281,7 +282,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             using var reader = new JsonTextReader(streamReader);
 
             return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
-
         }
     }
 }
