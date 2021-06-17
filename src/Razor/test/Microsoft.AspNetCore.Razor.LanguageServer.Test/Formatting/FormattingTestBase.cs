@@ -13,11 +13,13 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 
@@ -71,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var source = SourceText.From(input);
             var range = span.AsRange(source);
 
-            var path = "file:///path/to/document." + fileKind;
+            var path = "file:///path/to/Document." + fileKind;
             var uri = new Uri(path);
             var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, tagHelpers, fileKind);
             var options = new FormattingOptions()
@@ -106,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var source = SourceText.From(input);
 
-            var path = "file:///path/to/document.razor";
+            var path = "file:///path/to/Document.razor";
             var uri = new Uri(path);
             var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, fileKind: fileKind);
             var options = new FormattingOptions()
@@ -183,16 +185,43 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             fileKind ??= FileKinds.Component;
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
+            if (fileKind == FileKinds.Component)
+            {
+                tagHelpers = tagHelpers.Concat(GetDefaultRuntimeComponents()).ToArray();
+            }
             var sourceDocument = text.GetRazorSourceDocument(path, path);
+
+            // Yes I know "BlazorServer_31 is weird, but thats what is in the taghelpers.json file
+            const string defaultImports = @"
+@using BlazorServer_31
+@using BlazorServer_31.Pages
+@using BlazorServer_31.Shared
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+";
+
+            var importsPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
+            var importsSourceText = SourceText.From(defaultImports);
+            var importsDocument = importsSourceText.GetRazorSourceDocument(importsPath, importsPath);
+            var importsSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
+            importsSnapshot.Setup(d => d.GetTextAsync()).Returns(Task.FromResult(importsSourceText));
+            importsSnapshot.Setup(d => d.FilePath).Returns(importsPath);
+            importsSnapshot.Setup(d => d.TargetPath).Returns(importsPath);
+
             var projectEngine = RazorProjectEngine.Create(builder =>
             {
                 builder.SetRootNamespace("Test");
                 RazorExtensions.Register(builder);
             });
-            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, Array.Empty<RazorSourceDocument>(), tagHelpers);
+            var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, new[] { importsDocument }, tagHelpers);
+
+            Assert.False(codeDocument.GetCSharpDocument().Diagnostics.Any(), "Error creating document: " + string.Join(Environment.NewLine, codeDocument.GetCSharpDocument().Diagnostics));
 
             var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
             documentSnapshot.Setup(d => d.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
+            documentSnapshot.Setup(d => d.GetImports()).Returns(new[] { importsSnapshot.Object });
             documentSnapshot.Setup(d => d.Project.GetProjectEngine()).Returns(projectEngine);
             documentSnapshot.Setup(d => d.FilePath).Returns(path);
             documentSnapshot.Setup(d => d.TargetPath).Returns(path);
@@ -232,6 +261,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             while (directoryInfo.Parent != null);
 
             return null;
+        }
+
+        private static IReadOnlyList<TagHelperDescriptor> GetDefaultRuntimeComponents()
+        {
+            var testFileName = "test.taghelpers.json";
+            var current = new DirectoryInfo(AppContext.BaseDirectory);
+            while (current != null && !File.Exists(Path.Combine(current.FullName, testFileName)))
+            {
+                current = current.Parent;
+            }
+            var tagHelperFilePath = Path.Combine(current.FullName, testFileName);
+            var buffer = File.ReadAllBytes(tagHelperFilePath);
+            var serializer = new JsonSerializer();
+            serializer.Converters.Add(new TagHelperDescriptorJsonConverter());
+
+            using var stream = new MemoryStream(buffer);
+            using var streamReader = new StreamReader(stream);
+            using var reader = new JsonTextReader(streamReader);
+
+            return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
+
         }
     }
 }
