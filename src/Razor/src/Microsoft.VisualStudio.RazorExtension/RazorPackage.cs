@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.RazorExtension
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider", Audience = Shell.ServiceBroker.ServiceAudience.Local)]
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64", Audience = Shell.ServiceBroker.ServiceAudience.Local)]
     [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64S", Audience = Shell.ServiceBroker.ServiceAudience.Local)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64", Audience = Shell.ServiceBroker.ServiceAudience.Local)]
     [Guid(PackageGuidString)]
     public sealed class RazorPackage : AsyncPackage
     {

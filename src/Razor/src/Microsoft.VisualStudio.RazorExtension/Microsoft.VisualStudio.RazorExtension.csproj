@@ -25,6 +25,7 @@
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 
     <SetupProductArch>neutral</SetupProductArch>
+    <ServiceHubCoreSubPath>ServiceHubCore</ServiceHubCoreSubPath>
   </PropertyGroup>
 
   <!-- Include Razor SDK design time assets in the VSIX -->
@@ -56,6 +57,14 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Microsoft.VisualStudio.Razor.TagHelperProvider64S.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.TagHelperProviderCore64.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.TagHelperProviderCore64.AssemblySearchPathsConfig.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -167,6 +176,20 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.csproj">
+      <Name>Microsoft.CodeAnalysis.Remote.Razor.CoreComponents</Name>
+      <!-- This project targets netcoreapp -->
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+      <Private>false</Private>
+      <VSIXSubPath>$(ServiceHubCoreSubPath)</VSIXSubPath>
+
+      <!-- Disable NGEN. Core assemblies are crossgened. -->
+      <Ngen>false</Ngen>
+    </ProjectReference>
+    
     <ProjectReference Include="..\Microsoft.VisualStudio.Editor.Razor\Microsoft.VisualStudio.Editor.Razor.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj" />
@@ -223,6 +246,7 @@
   <Target Name="_GenerateVSIXBindingRedirects" DependsOnTargets="PrepareForBuild;GetAssemblyVersion" BeforeTargets="CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(_GeneratedVSIXBindingRedirectFile)">
     <ItemGroup>
       <BindingRedirectAssemblies Include="@(ProjectReference)" AssemblyName="%(Filename)" />
+      <BindingRedirectAssemblies Remove="@(ProjectReference)" Condition="%(ProjectReference.Name) == 'Microsoft.CodeAnalysis.Remote.Razor.CoreComponents'" />
       <BindingRedirectAssemblies Include="$(AssemblyName)" AssemblyName="$(AssemblyName)" />
     </ItemGroup>
     <PropertyGroup>
