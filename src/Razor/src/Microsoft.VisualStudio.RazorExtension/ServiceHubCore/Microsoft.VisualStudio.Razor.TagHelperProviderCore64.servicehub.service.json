@@ -5,8 +5,6 @@
   "entryPoint": {
     "assemblyPath": "Microsoft.CodeAnalysis.Remote.Razor.dll",
     "fullClassName": "Microsoft.CodeAnalysis.Remote.Razor.RemoteTagHelperProviderServiceFactory",
-    "appBasePath": "%VSAPPIDDIR%",
-    "configPath": "%PkgDefApplicationConfigFile%",
     "AssemblySearchPathsConfig": "Microsoft.VisualStudio.Razor.TagHelperProviderCore64.AssemblySearchPathsConfig.json"
   },
   "friendServices": [ "roslynRemoteHostCore64" ]
