@@ -30,24 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _optionsMonitor = optionsMonitor;
         }
 
-        public async Task<OptionSet> GetDocumentOptionsAsync(Document document, CancellationToken cancellationToken)
-        {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            // TO-DO: We should switch to a per-document implementation once Razor starts supporting .editorconfig.
-            var editorSettings = _optionsMonitor.EditorSettings;
-
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            documentOptions = documentOptions.WithChangedOption(FormattingOptions.UseTabs, editorSettings.IndentWithTabs);
-            documentOptions = documentOptions.WithChangedOption(FormattingOptions.TabSize, editorSettings.IndentSize);
-            documentOptions = documentOptions.WithChangedOption(FormattingOptions.IndentationSize, editorSettings.IndentSize);
-
-            return documentOptions;
-        }
-
         public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             if (document is null)
