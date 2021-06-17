@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(subjectBuffers));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             _documentManager.OnTextViewOpened(textView, subjectBuffers);
         }
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(subjectBuffers));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             _documentManager.OnTextViewClosed(textView, subjectBuffers);
         }

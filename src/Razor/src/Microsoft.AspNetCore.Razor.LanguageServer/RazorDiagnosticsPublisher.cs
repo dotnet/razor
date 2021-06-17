@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             lock (_work)
             {
@@ -118,7 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ClearClosedDocuments,
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.SpecializedForegroundScheduler);
+                _foregroundDispatcher.ForegroundScheduler);
         }
 
         // Internal for testing

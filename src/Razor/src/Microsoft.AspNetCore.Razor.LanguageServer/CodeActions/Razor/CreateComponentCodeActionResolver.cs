@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
             if (document is null)
             {
                 return null;

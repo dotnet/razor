@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 () => _projectSnapshotManager.Projects.ToArray(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
+                _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
 
             foreach (var project in projects)
             {

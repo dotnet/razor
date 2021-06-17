@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     _projectManager,
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
+                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
             }
         }
 
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 _projectManager,
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.SpecializedForegroundScheduler);
+                _foregroundDispatcher.ForegroundScheduler);
         }
 
         private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)

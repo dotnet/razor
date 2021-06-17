@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                         () => activeSession.Dismiss(),
                         CancellationToken.None,
                         TaskCreationOptions.None,
-                        _foregroundDispatcher.SpecializedForegroundScheduler);
+                        _foregroundDispatcher.ForegroundScheduler);
                 }
 
                 var completionItems = new List<CompletionItem>();

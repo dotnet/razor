@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public void Detach()
         {
-            ForegroundDispatcher.AssertSpecializedForegroundThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             DotNetProject.Modified -= DotNetProject_Modified;
 
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Protected virtual for testing
         protected virtual void AttachToProject()
         {
-            ForegroundDispatcher.AssertSpecializedForegroundThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             DotNetProject.Modified += DotNetProject_Modified;
 
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         {
             ForegroundDispatcher.AssertBackgroundThread();
 
-            await Task.Factory.StartNew(UpdateHostProjectForeground, newHostProject, CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.SpecializedForegroundScheduler);
+            await Task.Factory.StartNew(UpdateHostProjectForeground, newHostProject, CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.ForegroundScheduler);
         }
 
         protected async Task ExecuteWithLockAsync(Func<Task> func)
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(args));
             }
 
-            ForegroundDispatcher.AssertSpecializedForegroundThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             if (_batchingProjectChanges)
             {
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         private void UpdateHostProjectForeground(object state)
         {
-            ForegroundDispatcher.AssertSpecializedForegroundThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             var newHostProject = (HostProject)state;
 
@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         protected void AddDocument(HostProject hostProject, string filePath, string relativeFilePath)
         {
-            ForegroundDispatcher.AssertSpecializedForegroundThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             if (_currentDocuments.ContainsKey(filePath))
             {

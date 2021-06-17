@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (!_publishedCSharpData.TryGetValue(filePath, out var previouslyPublishedData))
             {
@@ -123,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (!_publishedHtmlData.TryGetValue(filePath, out var previouslyPublishedData))
             {
@@ -167,7 +167,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             switch (args.Kind)
             {

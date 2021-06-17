@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public override void StartListening()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (_listening)
             {
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public override void StopListening()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (!_listening)
             {
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         private void HandleFileChangeEvent(FileChangeKind changeKind, FileEventArgs args)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (Changed == null)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         private void OnChanged(FileChangeKind changeKind)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             var args = new FileChangeEventArgs(FilePath, changeKind);
             Changed?.Invoke(this, args);

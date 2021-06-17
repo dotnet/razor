@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal abstract class ForegroundDispatcher
     {
-        public abstract bool IsSpecializedForegroundThread { get; }
+        public abstract bool IsForegroundThread { get; }
 
         public abstract bool IsBackgroundThread { get; }
 
@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Razor
         /// Single-threaded scheduler intended to be a "fake" UI thread for code that requires
         /// running on a single thread.
         /// </summary>
-        public abstract TaskScheduler SpecializedForegroundScheduler { get; }
+        public abstract TaskScheduler ForegroundScheduler { get; }
 
         public abstract TaskScheduler BackgroundScheduler { get; }
 
-        public virtual void AssertSpecializedForegroundThread([CallerMemberName] string caller = null)
+        public virtual void AssertForegroundThread([CallerMemberName] string caller = null)
         {
-            if (!IsSpecializedForegroundThread)
+            if (!IsForegroundThread)
             {
                 caller = caller == null ? Workspaces.Resources.ForegroundDispatcher_NoMethodNamePlaceholder : $"'{caller}'";
                 throw new InvalidOperationException(Workspaces.Resources.FormatForegroundDispatcher_AssertSpecializedForegroundThread(caller));

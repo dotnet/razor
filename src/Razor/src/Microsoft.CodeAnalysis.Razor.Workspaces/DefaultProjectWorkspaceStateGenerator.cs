@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(projectSnapshot));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (_disposed)
             {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public void Dispose()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             _disposed = true;
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Razor
                        () => _projectManager.ReportError(ex, projectSnapshot),
                        CancellationToken.None, // Don't allow errors to be cancelled
                        TaskCreationOptions.None,
-                       _foregroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
+                       _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
                     return;
                 }
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     },
                     cancellationToken,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
+                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     () => _projectManager.ReportError(ex),
                     CancellationToken.None, // Don't allow errors to be cancelled
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
+                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
             }
             finally
             {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private void ReportWorkspaceStateChange(string projectFilePath, ProjectWorkspaceState workspaceStateChange)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             _projectManager.ProjectWorkspaceStateChanged(projectFilePath, workspaceStateChange);
         }

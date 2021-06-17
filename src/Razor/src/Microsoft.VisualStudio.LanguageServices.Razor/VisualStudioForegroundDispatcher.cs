@@ -19,6 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             _joinableTaskContext = joinableTaskContext;
         }
 
-        public override bool IsBackgroundThread => !IsSpecializedForegroundThread && !_joinableTaskContext.IsOnMainThread;
+        public override bool IsBackgroundThread => !IsForegroundThread && !_joinableTaskContext.IsOnMainThread;
     }
 }

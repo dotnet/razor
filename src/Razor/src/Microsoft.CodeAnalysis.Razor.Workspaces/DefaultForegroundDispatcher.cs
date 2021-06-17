@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal class DefaultForegroundDispatcher : ForegroundDispatcher
     {
-        public override bool IsSpecializedForegroundThread => System.Environment.CurrentManagedThreadId == ForegroundTaskScheduler.Instance.ForegroundThreadId;
+        public override bool IsForegroundThread => System.Environment.CurrentManagedThreadId == ForegroundTaskScheduler.Instance.ForegroundThreadId;
 
-        public override bool IsBackgroundThread => !IsSpecializedForegroundThread;
+        public override bool IsBackgroundThread => !IsForegroundThread;
 
-        public override TaskScheduler SpecializedForegroundScheduler { get; } = ForegroundTaskScheduler.Instance;
+        public override TaskScheduler ForegroundScheduler { get; } = ForegroundTaskScheduler.Instance;
 
         public override TaskScheduler BackgroundScheduler { get; } = TaskScheduler.Default;
 

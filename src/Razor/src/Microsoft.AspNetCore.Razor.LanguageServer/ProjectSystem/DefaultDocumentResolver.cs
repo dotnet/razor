@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override bool TryResolveDocument(string documentFilePath, out DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             var normalizedPath = _filePathNormalizer.Normalize(documentFilePath);
             if (!_projectResolver.TryResolveProject(normalizedPath, out var project))

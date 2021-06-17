@@ -196,7 +196,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     () => NotifyDocumentsProcessed(work),
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.SpecializedForegroundScheduler);
+                    _foregroundDispatcher.ForegroundScheduler);
 
                 lock (_work)
                 {
@@ -321,7 +321,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 () => _projectManager.ReportError(ex),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.SpecializedForegroundScheduler);
+                _foregroundDispatcher.ForegroundScheduler);
         }
     }
 }

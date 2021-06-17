@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (!_textViews.Contains(textView))
             {
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (_textViews.Contains(textView))
             {
@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override ITextView GetFocusedTextView()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             for (var i = 0; i < TextViews.Count; i++)
             {
@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void Subscribe()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (_subscribeCount++ > 0)
             {
@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void Unsubscribe()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (_subscribeCount == 0 || _subscribeCount-- > 1)
             {
@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void OnContextChanged(ContextChangeKind kind)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             ContextChanged?.Invoke(this, new ContextChangeEventArgs(kind));
         }
@@ -210,7 +210,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (_projectPath != null &&
                 string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void EditorSettingsManager_Changed(object sender, EditorSettingsChangedEventArgs args)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             OnContextChanged(ContextChangeKind.EditorSettingsChanged);
         }
@@ -264,7 +264,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void Import_Changed(object sender, ImportChangedEventArgs args)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             foreach (var path in args.AssociatedDocuments)
             {

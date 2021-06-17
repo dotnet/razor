@@ -445,7 +445,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 () => action(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.SpecializedForegroundScheduler);
+                Dispatcher.ForegroundScheduler);
         }
 
         protected Task<TReturn> RunOnForegroundAsync<TReturn>(Func<TReturn> action)
@@ -454,7 +454,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 () => action(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.SpecializedForegroundScheduler);
+                Dispatcher.ForegroundScheduler);
         }
 
         protected Task RunOnForegroundAsync(Func<Task> action)
@@ -463,7 +463,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 async () => await action().ConfigureAwait(true),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.SpecializedForegroundScheduler);
+                Dispatcher.ForegroundScheduler);
         }
 
         private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher

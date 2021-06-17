@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public override void StopListening()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (_fileChangeAdviseTask == null || _fileChangeUnadviseTask?.IsCompleted == false)
             {
@@ -178,7 +178,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private void OnChanged(FileChangeKind changeKind)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (Changed == null)
             {

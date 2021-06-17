@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Mock.Get(ImportDocumentManager).Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
 
             var foregroundDispatcher = new Mock<ForegroundDispatcher>(MockBehavior.Strict);
-            foregroundDispatcher.Setup(d => d.AssertSpecializedForegroundThread(It.IsAny<string>())).Verifiable();
+            foregroundDispatcher.Setup(d => d.AssertForegroundThread(It.IsAny<string>())).Verifiable();
             WorkspaceEditorSettings = new DefaultWorkspaceEditorSettings(foregroundDispatcher.Object, Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
 
             SomeTagHelpers = new List<TagHelperDescriptor>()

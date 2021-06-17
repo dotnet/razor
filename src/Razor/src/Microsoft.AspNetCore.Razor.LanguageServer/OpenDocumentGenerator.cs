@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal void Enqueue(DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (!_projectManager.IsDocumentOpen(document.FilePath))
             {
@@ -204,7 +204,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         () => NotifyDocumentsProcessed(work),
                         CancellationToken.None,
                         TaskCreationOptions.None,
-                        _foregroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
+                        _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
                 }
 
                 lock (_work)
@@ -246,7 +246,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             switch (args.Kind)
             {
@@ -312,7 +312,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 () => _projectManager.ReportError(ex),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.SpecializedForegroundScheduler);
+                _foregroundDispatcher.ForegroundScheduler);
         }
     }
 }

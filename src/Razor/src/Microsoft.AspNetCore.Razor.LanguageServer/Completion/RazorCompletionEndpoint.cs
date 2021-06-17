@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.SpecializedForegroundScheduler);
+            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {

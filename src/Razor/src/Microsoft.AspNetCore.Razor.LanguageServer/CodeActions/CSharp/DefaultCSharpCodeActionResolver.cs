@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
 
             if (documentSnapshot is null)
             {
@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
                 return version;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.SpecializedForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
 
             var codeDocumentIdentifier = new VersionedTextDocumentIdentifier()
             {

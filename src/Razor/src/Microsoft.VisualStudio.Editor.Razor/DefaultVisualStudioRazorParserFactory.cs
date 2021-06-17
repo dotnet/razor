@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(documentTracker));
             }
 
-            _dispatcher.AssertSpecializedForegroundThread();
+            _dispatcher.AssertForegroundThread();
 
             var parser = new DefaultVisualStudioRazorParser(
                 _dispatcher,

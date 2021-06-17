@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public sealed override bool TryGetMatchingDocuments(string filePath, out EditorDocument[] documents)
         {
-            ForegroundDispatcher.AssertSpecializedForegroundThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             lock (_lock)
             {
@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            ForegroundDispatcher.AssertSpecializedForegroundThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             lock (_lock)
             {
@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            ForegroundDispatcher.AssertSpecializedForegroundThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             lock (_lock)
             {
@@ -206,7 +206,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(document));
             }
 
-            ForegroundDispatcher.AssertSpecializedForegroundThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
             if (_documentsByFilePath.TryGetValue(document.DocumentFilePath, out var documents))

@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(tracker));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             var imports = GetImportItems(tracker);
             foreach (var import in imports)
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(tracker));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             var imports = GetImportItems(tracker);
             foreach (var import in imports)
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void OnChanged(ImportTracker importTracker, FileChangeKind changeKind)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (Changed == null)
             {
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void FileChangeTracker_Changed(object sender, FileChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (_importTrackerCache.TryGetValue(args.FilePath, out var importTracker))
             {

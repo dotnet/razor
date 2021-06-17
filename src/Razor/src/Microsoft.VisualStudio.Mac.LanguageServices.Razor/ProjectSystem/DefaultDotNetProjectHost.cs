@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public override void Subscribe()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             UpdateRazorHostProject();
 
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         private void Project_Disposing(object sender, EventArgs e)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             _project.ProjectCapabilitiesChanged -= Project_ProjectCapabilitiesChanged;
             _project.Disposing -= Project_Disposing;
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Internal for testing
         internal void UpdateRazorHostProject()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             DetachCurrentRazorProjectHost();
 

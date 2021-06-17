@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
               },
             CancellationToken.None,
             TaskCreationOptions.None,
-            ForegroundDispatcher.SpecializedForegroundScheduler);
+            ForegroundDispatcher.ForegroundScheduler);
         }
 
         // Internal for testing

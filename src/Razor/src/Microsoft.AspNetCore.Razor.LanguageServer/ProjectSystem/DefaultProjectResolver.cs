@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             var normalizedDocumentPath = _filePathNormalizer.Normalize(documentFilePath);
             var projects = _projectSnapshotManagerAccessor.Instance.Projects;
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override ProjectSnapshot GetMiscellaneousProject()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(_miscellaneousHostProject.FilePath);
             if (miscellaneousProject == null)

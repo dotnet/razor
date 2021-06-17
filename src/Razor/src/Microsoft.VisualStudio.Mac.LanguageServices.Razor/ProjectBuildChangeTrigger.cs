@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentNullException(nameof(args));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (!args.Success)
             {

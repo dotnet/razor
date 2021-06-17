@@ -10,6 +10,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     [Export(typeof(ForegroundDispatcher))]
     internal class VisualStudioForegroundDispatcher : DefaultForegroundDispatcher
     {
-        public override bool IsBackgroundThread => !IsSpecializedForegroundThread && !MonoDevelop.Core.Runtime.IsMainThread;
+        public override bool IsBackgroundThread => !IsForegroundThread && !MonoDevelop.Core.Runtime.IsMainThread;
     }
 }

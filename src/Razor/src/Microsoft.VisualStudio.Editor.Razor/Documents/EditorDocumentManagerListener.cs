@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                         // GetOrCreateDocument requires the UI thread due to IVs access, so we need to temporarily switch to it.
                         await _joinableTaskFactory.SwitchToMainThreadAsync();
                         var document = _documentManager.GetOrCreateDocument(key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
-                        await _foregroundDispatcher.SpecializedForegroundScheduler;
+                        await _foregroundDispatcher.ForegroundScheduler;
 
                         if (document.IsOpenInEditor)
                         {

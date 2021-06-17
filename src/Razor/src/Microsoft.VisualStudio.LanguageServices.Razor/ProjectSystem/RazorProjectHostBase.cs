@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // Should only be called from the specialized foreground thread.
         private ProjectSnapshotManagerBase GetProjectManager()
         {
-            _foregroundDispatcher.AssertSpecializedForegroundThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (_projectManager == null)
             {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 using (await _updateLock.EnterAsync().ConfigureAwait(false))
                 {
-                    await _foregroundDispatcher.SpecializedForegroundScheduler;
+                    await _foregroundDispatcher.ForegroundScheduler;
                     action();
                 }
             }
