@@ -578,6 +578,53 @@ expected: @"
 ");
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+        public async Task FormatNestedComponents2()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<GridTable>
+<ChildContent>
+<GridRow>
+<ChildContent>
+<GridCell>
+<ChildContent>
+<strong></strong>
+@if (true)
+{
+<strong></strong>
+}
+<strong></strong>
+</ChildContent>
+</GridCell>
+</ChildContent>
+</GridRow>
+</ChildContent>
+</GridTable>
+",
+expected: @"
+<GridTable>
+    <ChildContent>
+        <GridRow>
+            <ChildContent>
+                <GridCell>
+                    <ChildContent>
+                        <strong></strong>
+                        @if (true)
+                        {
+                            <strong></strong>
+                        }
+                        <strong></strong>
+                    </ChildContent>
+                </GridCell>
+            </ChildContent>
+        </GridRow>
+    </ChildContent>
+</GridTable>
+", tagHelpers: GetComponents());
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()
         {
             AdditionalSyntaxTrees.Add(Parse(@"
