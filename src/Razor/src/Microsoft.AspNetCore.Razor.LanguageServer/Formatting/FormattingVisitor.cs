@@ -214,8 +214,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             static bool IsComponentTagHelperNode(MarkupTagHelperElementSyntax node)
             {
-                return node.TagHelperInfo?.BindingResult?.Descriptors?.Any(
-                    d => d.IsComponentOrChildContentTagHelper()) ?? false;
+                var tagHelperInfo = node.TagHelperInfo;
+
+                if (tagHelperInfo is null)
+                {
+                    return false;
+                }
+
+                var descriptors = tagHelperInfo.BindingResult?.Descriptors;
+                if (descriptors is null)
+                {
+                    return false;
+                }
+
+                // Special case until a better API is available from https://github.com/dotnet/aspnetcore/issues/33630
+                if (descriptors.Any(d => d.ParsedTypeInfo.HasValue && d.ParsedTypeInfo.Value.Namespace == "Microsoft.AspNetCore.Components.Routing" && d.ParsedTypeInfo.Value.TypeName == "Router"))
+                {
+                    return false;
+                }
+
+                return descriptors.Any(d => d.IsComponentOrChildContentTagHelper());
             }
         }
 
