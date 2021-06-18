@@ -373,5 +373,29 @@ expected: @"
 }
 ");
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+        public async Task CodeBlock_SemiColon_SingleLine()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+<div></div>
+@{ Debugger.Launch()$$;}
+<div></div>
+",
+afterCSharpFormatting: @"
+<div></div>
+@{ Debugger.Launch(); }
+<div></div>
+",
+expected: @"
+<div></div>
+@{
+    Debugger.Launch(); 
+}
+<div></div>
+");
+        }
     }
 }

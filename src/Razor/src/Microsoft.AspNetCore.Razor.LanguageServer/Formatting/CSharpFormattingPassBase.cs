@@ -266,9 +266,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
+                var changesBefore = changes.Count;
                 CleanupSourceMappingStart(context, mappingRange, changes);
 
-                CleanupSourceMappingEnd(context, mappingRange, changes);
+                var didChange = changesBefore != changes.Count;
+                CleanupSourceMappingEnd(context, mappingRange, changes, didChange);
             }
 
             return changes;
@@ -368,7 +370,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return builder.ToString();
         }
 
-        private static void CleanupSourceMappingEnd(FormattingContext context, Range sourceMappingRange, List<TextChange> changes)
+        private static void CleanupSourceMappingEnd(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, bool didCleanupStart)
         {
             //
             // We look through every source mapping that intersects with the affected range and
@@ -395,7 +397,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var text = context.SourceText;
             var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
             var mappingEndLineIndex = sourceMappingRange.End.Line;
-            if (!context.Indentations[mappingEndLineIndex].StartsInCSharpContext)
+
+            var startsInCSharpContext = context.Indentations[mappingEndLineIndex].StartsInCSharpContext;
+
+            // If the span is on a single line, and we formatted the start, then it means we would have
+            // added a line so the line the end point is on now does start in a C# context.
+            if (!startsInCSharpContext && didCleanupStart && sourceMappingRange.Start.Line == mappingEndLineIndex)
+            {
+                startsInCSharpContext = true;
+            }
+
+            if (!startsInCSharpContext)
             {
                 // For corner cases like (Position marked with |),
                 // It is already in a separate line. It doesn't need cleaning up.
