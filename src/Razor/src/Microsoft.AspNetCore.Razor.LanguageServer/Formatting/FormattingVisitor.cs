@@ -188,12 +188,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
         {
-            var isComponent = IsComponentTagHelperNode(node);
+            var causesIndentation = CausesGeneratedCSharpIndentation(node);
 
             Visit(node.StartTag);
 
             _currentHtmlIndentationLevel++;
-            if (isComponent)
+            if (causesIndentation)
             {
                 _componentTracker.Push(node);
             }
@@ -203,7 +203,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Visit(child);
             }
 
-            if (isComponent)
+            if (causesIndentation)
             {
                 Debug.Assert(_componentTracker.Any(), "Component tracker should not be empty.");
                 _componentTracker.Pop();
@@ -212,7 +212,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             Visit(node.EndTag);
 
-            static bool IsComponentTagHelperNode(MarkupTagHelperElementSyntax node)
+            static bool CausesGeneratedCSharpIndentation(MarkupTagHelperElementSyntax node)
             {
                 var tagHelperInfo = node.TagHelperInfo;
 
