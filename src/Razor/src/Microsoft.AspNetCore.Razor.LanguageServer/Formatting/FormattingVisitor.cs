@@ -227,8 +227,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     return false;
                 }
 
-                // Special case until a better API is available from https://github.com/dotnet/aspnetcore/issues/33630
-                if (descriptors.Any(d => d.ParsedTypeInfo.HasValue && d.ParsedTypeInfo.Value.Namespace == "Microsoft.AspNetCore.Components.Routing" && d.ParsedTypeInfo.Value.TypeName == "Router"))
+                // If there are any child tag helpers that match properties of this tag helper, that are RenderFragments,
+                // then it means this specific node won't actually cause a change in indentation.
+                // For example, the following two bits of Razor generate identical C# code, even though the code block is
+                // nested in a different number of tag helper elements:
+                //
+                // <Component>
+                //     @if (true)
+                //     {
+                //     }
+                // </Component>
+                //
+                // and
+                //
+                // <Component>
+                //     <ChildContent>
+                //         @if (true)
+                //         {
+                //         }
+                //     </ChildContent>
+                // </Component>
+                //
+                // This code will not count "Component" as causing indentation because it has a child component called "ChildContent"
+                // and a property called "ChildContent".
+
+                // Get the child components, if any
+                var childComponents = node.ChildNodes().OfType<MarkupTagHelperElementSyntax>()
+                    .Where(n => n.TagHelperInfo?.BindingResult.Descriptors.Any(d => d.IsComponentOrChildContentTagHelper()) ?? false)
+                    .Select(n => n.TagHelperInfo.TagName).ToArray();
+                // Now check the properties of this tag helper (ie, bound attributes) for a matching name
+                if (descriptors.Any(d => d.BoundAttributes.Any(a => childComponents.Contains(a.Name))))
                 {
                     return false;
                 }
