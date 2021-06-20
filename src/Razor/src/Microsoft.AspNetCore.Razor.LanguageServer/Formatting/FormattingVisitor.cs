@@ -188,7 +188,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
         {
-            var causesIndentation = CausesGeneratedCSharpIndentation(node);
+            var isComponent = IsComponentTagHelperNode(node);
+
+            var causesIndentation = isComponent;
+            if (node.Parent is MarkupTagHelperElementSyntax parentComponent &&
+                IsComponentTagHelperNode(parentComponent) &&
+                ParentHasProperty(parentComponent, node.TagHelperInfo?.TagName))
+            {
+                causesIndentation = false;
+            }
 
             Visit(node.StartTag);
 
@@ -212,7 +220,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             Visit(node.EndTag);
 
-            static bool CausesGeneratedCSharpIndentation(MarkupTagHelperElementSyntax node)
+            static bool IsComponentTagHelperNode(MarkupTagHelperElementSyntax node)
             {
                 var tagHelperInfo = node.TagHelperInfo;
 
@@ -227,7 +235,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     return false;
                 }
 
-                // If there are any child tag helpers that match properties of this tag helper, that are RenderFragments,
+                return descriptors.Any(d => d.IsComponentOrChildContentTagHelper());
+            }
+
+            static bool ParentHasProperty(MarkupTagHelperElementSyntax parentComponent, string propertyName)
+            {
+                // If this is a child tag helper that match a property of its parent tag helper
                 // then it means this specific node won't actually cause a change in indentation.
                 // For example, the following two bits of Razor generate identical C# code, even though the code block is
                 // nested in a different number of tag helper elements:
@@ -248,20 +261,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 //     </ChildContent>
                 // </Component>
                 //
-                // This code will not count "Component" as causing indentation because it has a child component called "ChildContent"
-                // and a property called "ChildContent".
-
-                // Get the child components, if any
-                var childComponents = node.ChildNodes().OfType<MarkupTagHelperElementSyntax>()
-                    .Where(n => n.TagHelperInfo?.BindingResult.Descriptors.Any(d => d.IsComponentOrChildContentTagHelper()) ?? false)
-                    .Select(n => n.TagHelperInfo.TagName).ToArray();
-                // Now check the properties of this tag helper (ie, bound attributes) for a matching name
-                if (descriptors.Any(d => d.BoundAttributes.Any(a => childComponents.Contains(a.Name))))
+                // This code will not count "ChildContent" as causing indentation because its parent
+                // has a property called "ChildContent".
+                if (parentComponent.TagHelperInfo?.BindingResult.Descriptors.Any(d => d.BoundAttributes.Any(a => a.Name == propertyName)) ?? false)
                 {
-                    return false;
+                    return true;
                 }
 
-                return descriptors.Any(d => d.IsComponentOrChildContentTagHelper());
+                return false;
             }
         }
 
