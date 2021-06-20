@@ -123,11 +123,8 @@
   <data name="ForegroundDispatcher_AssertBackgroundThread" xml:space="preserve">
     <value>{0} must be called on a background thread.</value>
   </data>
-  <data name="ForegroundDispatcher_AssertSpecializedForegroundThread" xml:space="preserve">
-    <value>{0} must be called on the specialized foreground thread.</value>
-  </data>
-  <data name="ForegroundDispatcher_AssertSpecializedForegroundOrUIThread" xml:space="preserve">
-    <value>{0} must be called on the specialized foreground or UI thread.</value>
+  <data name="ForegroundDispatcher_AssertForegroundThread" xml:space="preserve">
+    <value>{0} must be called on the foreground thread.</value>
   </data>
   <data name="ForegroundDispatcher_NoMethodNamePlaceholder" xml:space="preserve">
     <value>The method</value>

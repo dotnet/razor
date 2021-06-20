@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -65,7 +64,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public override void StartListening()
         {
-            _joinableTaskFactory.Context.AssertUIThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             if (_fileChangeUnadviseTask?.IsCompleted == false)
             {
@@ -89,9 +88,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 {
                     // Don't report PathTooLongExceptions but don't fault either.
                 }
-#pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception exception)
-#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     // Don't explode on actual exceptions, just report gracefully.
                     _errorReporter.ReportError(exception);

@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             lock (_work)
             {

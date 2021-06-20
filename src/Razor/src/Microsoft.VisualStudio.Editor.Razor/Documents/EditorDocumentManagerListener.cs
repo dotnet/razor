@@ -3,6 +3,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
@@ -90,59 +91,110 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         internal async void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            switch (e.Kind)
+            try
             {
-                case ProjectChangeKind.DocumentAdded:
-                    {
-                        var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
+                await _foregroundDispatcher.SwitchToForegroundThread();
 
-                        // GetOrCreateDocument requires the UI thread due to IVs access, so we need to temporarily switch to it.
-                        await _joinableTaskFactory.SwitchToMainThreadAsync();
-                        var document = _documentManager.GetOrCreateDocument(key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
-                        await _foregroundDispatcher.ForegroundScheduler;
-
-                        if (document.IsOpenInEditor)
+                switch (e.Kind)
+                {
+                    case ProjectChangeKind.DocumentAdded:
                         {
-                            _onOpened(document, EventArgs.Empty);
+                            var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
+                            var document = await _documentManager.GetOrCreateDocumentAsync(
+                                key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
+
+                            if (document.IsOpenInEditor)
+                            {
+                                _onOpened(document, EventArgs.Empty);
+                            }
+
+                            break;
                         }
 
-                        break;
-                    }
-
-                case ProjectChangeKind.DocumentRemoved:
-                    {
-                        // This class 'owns' the document entry so it's safe for us to dispose it.
-                        if (_documentManager.TryGetDocument(new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document))
+                    case ProjectChangeKind.DocumentRemoved:
                         {
-                            document.Dispose();
+                            // This class 'owns' the document entry so it's safe for us to dispose it.
+                            if (_documentManager.TryGetDocument(new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document))
+                            {
+                                document.Dispose();
+                            }
+                            break;
                         }
-                        break;
-                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("Microsoft.VisualStudio.Editor.Razor.Documents.ProjectManager_Changed threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }
 
-        private void Document_ChangedOnDisk(object sender, EventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void Document_ChangedOnDisk(object sender, EventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            var document = (EditorDocument)sender;
-            _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+            try
+            {
+                await _foregroundDispatcher.SwitchToForegroundThread();
+                var document = (EditorDocument)sender;
+                _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("Microsoft.VisualStudio.Editor.Razor.Documents.Document_ChangedOnDisk threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
         }
 
-        private void Document_ChangedInEditor(object sender, EventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void Document_ChangedInEditor(object sender, EventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            var document = (EditorDocument)sender;
-            _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+            try
+            {
+                await _foregroundDispatcher.SwitchToForegroundThread();
+                var document = (EditorDocument)sender;
+                _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("Microsoft.VisualStudio.Editor.Razor.Documents.Document_ChangedInEditor threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
         }
 
-        private void Document_Opened(object sender, EventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void Document_Opened(object sender, EventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            var document = (EditorDocument)sender;
-            _projectManager.DocumentOpened(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+            try
+            {
+                await _foregroundDispatcher.SwitchToForegroundThread();
+                var document = (EditorDocument)sender;
+                _projectManager.DocumentOpened(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("Microsoft.VisualStudio.Editor.Razor.Documents.Document_Opened threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
         }
 
-        private void Document_Closed(object sender, EventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void Document_Closed(object sender, EventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            var document = (EditorDocument)sender;
-            _projectManager.DocumentClosed(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+            try
+            {
+                await _foregroundDispatcher.SwitchToForegroundThread();
+                 var document = (EditorDocument)sender;
+                _projectManager.DocumentClosed(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("Microsoft.VisualStudio.Editor.Razor.Documents.Document_Closed threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
         }
     }
 }

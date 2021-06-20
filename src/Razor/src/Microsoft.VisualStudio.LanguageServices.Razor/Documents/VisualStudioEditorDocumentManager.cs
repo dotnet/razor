@@ -61,6 +61,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
         {
+            // GetDocumentBuffer requires the UI thread
             JoinableTaskContext.AssertUIThread();
 
             if (filePath == null)
@@ -85,6 +86,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override void OnDocumentOpened(EditorDocument document)
         {
+            // We should call this method from the UI thread to make sure access and modification to
+            // the shared variables called in this method are exclusive to one thread.
             JoinableTaskContext.AssertUIThread();
 
             var cookie = _runningDocumentTable.GetDocumentCookie(document.DocumentFilePath);
@@ -96,6 +99,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override void OnDocumentClosed(EditorDocument document)
         {
+            // We should call this method from the UI thread to make sure access and modification to
+            // the shared variables called in this method are exclusive to one thread.
             JoinableTaskContext.AssertUIThread();
 
             var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
@@ -107,6 +112,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void DocumentOpened(uint cookie)
         {
+            // One of the callers of this method is RunningDocumentTableEventSink.OnAfterAttributeChangeEx,
+            // which needs to run on the UI thread.
             JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
@@ -143,6 +150,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void BufferLoaded(IVsTextBuffer vsTextBuffer, string filePath)
         {
+            // Calls into BufferLoaded, which requires the UI thread.
             JoinableTaskContext.AssertUIThread();
 
             var textBuffer = _editorAdaptersFactory.GetDocumentBuffer(vsTextBuffer);
@@ -159,6 +167,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void BufferLoaded(ITextBuffer textBuffer, string filePath, EditorDocument[] documents)
         {
+            // Calls into DocumentOpened, which requires the UI thread.
             JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
@@ -172,6 +181,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void DocumentClosed(uint cookie, string exceptFilePath = null)
         {
+            // One of the callers of this method is RunningDocumentTableEventSink.OnBeforeLastDocumentUnlock,
+            // which needs to run on the UI thread.
             JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
@@ -196,6 +207,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void DocumentRenamed(uint cookie, string fromFilePath, string toFilePath)
         {
+            // Calls into DocumentClosed and DocumentOpened, which require the UI thread.
             JoinableTaskContext.AssertUIThread();
 
             // Ignore changes is casing

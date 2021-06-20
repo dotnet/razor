@@ -13,31 +13,18 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public abstract bool IsBackgroundThread { get; }
 
-        /// <summary>
-        /// Single-threaded scheduler intended to be a "fake" UI thread for code that requires
-        /// running on a single thread.
-        /// </summary>
         public abstract TaskScheduler ForegroundScheduler { get; }
 
         public abstract TaskScheduler BackgroundScheduler { get; }
+
+        public TaskScheduler SwitchToForegroundThread() => ForegroundScheduler;
 
         public virtual void AssertForegroundThread([CallerMemberName] string caller = null)
         {
             if (!IsForegroundThread)
             {
                 caller = caller == null ? Workspaces.Resources.ForegroundDispatcher_NoMethodNamePlaceholder : $"'{caller}'";
-                throw new InvalidOperationException(Workspaces.Resources.FormatForegroundDispatcher_AssertSpecializedForegroundThread(caller));
-            }
-        }
-
-        // Depending on where it's called from (e.g. language server or editor), a method may be
-        // run on the UI thread or the specialized foreground thread.
-        public virtual void AssertSpecializedForegroundOrUIThread([CallerMemberName] string caller = null)
-        {
-            if (IsBackgroundThread)
-            {
-                caller = caller == null ? Workspaces.Resources.ForegroundDispatcher_NoMethodNamePlaceholder : $"'{caller}'";
-                throw new InvalidOperationException(Workspaces.Resources.FormatForegroundDispatcher_AssertSpecializedForegroundOrUIThread(caller));
+                throw new InvalidOperationException(Workspaces.Resources.FormatForegroundDispatcher_AssertForegroundThread(caller));
             }
         }
 

@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void GetOrCreateDocument_CreatesAndCachesDocument()
         {
             // Arrange
-            var expected = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var expected = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Act
             Manager.TryGetDocument(new DocumentKey(Project1, File1), out var actual);
@@ -48,10 +48,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void GetOrCreateDocument_NoOp()
         {
             // Arrange
-            var expected = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var expected = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Act
-            var actual = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var actual = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Assert
             Assert.Same(expected, actual);
@@ -61,10 +61,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void GetOrCreateDocument_SameFile_MulipleProjects()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Act
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project2, File1), null, null, null, null);
 
             // Assert
             Assert.NotSame(document1, document2);
@@ -74,10 +74,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void GetOrCreateDocument_MulipleFiles_SameProject()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Act
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File2), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File2), null, null, null, null);
 
             // Assert
             Assert.NotSame(document1, document2);
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             Manager.Buffers.Add(File1, TextBuffer);
 
             // Act
-            var document = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Assert
             Assert.True(document.IsOpenInEditor);
@@ -104,8 +104,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void TryGetMatchingDocuments_MultipleDocuments()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File1), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project2, File1), null, null, null, null);
 
             // Act
             Manager.TryGetMatchingDocuments(File1, out var documents);
@@ -121,8 +121,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void RemoveDocument_MultipleDocuments_RemovesOne()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File1), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project2, File1), null, null, null, null);
 
             // Act
             Manager.RemoveDocument(document1);
@@ -138,8 +138,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void DocumentOpened_MultipleDocuments_OpensAll()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File1), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project2, File1), null, null, null, null);
 
             // Act
             Manager.DocumentOpened(File1, TextBuffer);
@@ -155,8 +155,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public void DocumentOpened_MultipleDocuments_ClosesAll()
         {
             // Arrange
-            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project1, File1), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocumentAsync(new DocumentKey(Project2, File1), null, null, null, null);
             Manager.DocumentOpened(File1, TextBuffer);
 
             // Act

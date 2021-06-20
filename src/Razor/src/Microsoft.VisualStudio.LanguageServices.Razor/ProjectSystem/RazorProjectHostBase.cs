@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private readonly Workspace _workspace;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly AsyncSemaphore _lock;
-        private readonly AsyncSemaphore _updateLock;
 
         private ProjectSnapshotManagerBase _projectManager;
         private readonly Dictionary<string, HostDocument> _currentDocuments;
@@ -68,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _foregroundDispatcher = foregroundDispatcher;
 
             _lock = new AsyncSemaphore(initialCount: 1);
-            _updateLock = new AsyncSemaphore(initialCount: 1);
             _currentDocuments = new Dictionary<string, HostDocument>(FilePathComparer.Instance);
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
         }
@@ -170,19 +168,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         protected async Task UpdateAsync(Action action)
         {
-            // The passed-in action is intended to execute solely on our specialized single-threaded
-            // foreground scheduler. However, there are times when the action may need to temporarily
-            // switch to the UI thread to perform a certain task. We want to make sure that no other
-            // action else picks up the specialized foreground thread in the meantime, so we need to
-            // protect the below area with a lock.
-            using (JoinableCollection.Join())
-            {
-                using (await _updateLock.EnterAsync().ConfigureAwait(false))
-                {
-                    await _foregroundDispatcher.ForegroundScheduler;
-                    action();
-                }
-            }
+            await _foregroundDispatcher.SwitchToForegroundThread();
+            action();
         }
 
         protected void UninitializeProjectUnsafe()

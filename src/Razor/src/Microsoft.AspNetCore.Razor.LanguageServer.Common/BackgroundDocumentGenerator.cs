@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         // Internal for testing
         internal void Enqueue(DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             lock (_work)
             {
@@ -237,7 +237,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertSpecializedForegroundOrUIThread();
+            _foregroundDispatcher.AssertForegroundThread();
 
             switch (args.Kind)
             {
