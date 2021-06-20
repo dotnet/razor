@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
         private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
-
+        private readonly VSHostWorkspaceServicesProvider _vsHostWorkspaceServicesProvider;
         private readonly object _shutdownLock;
         private RazorLanguageServer _server;
         private IDisposable _serverShutdownDisposable;
@@ -53,7 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             LSPRequestInvoker requestInvoker,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
-            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions)
+            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions,
+            VSHostWorkspaceServicesProvider vsHostWorkspaceServicesProvider)
         {
             if (customTarget is null)
             {
@@ -85,13 +86,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(vsLanguageServerFeatureOptions));
             }
 
+            if (vsHostWorkspaceServicesProvider is null)
+            {
+                throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
+            }
+
             _customMessageTarget = customTarget;
             _middleLayer = middleLayer;
             _requestInvoker = requestInvoker;
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
             _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
             _vsLanguageServerFeatureOptions = vsLanguageServerFeatureOptions;
-
+            _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
             _shutdownLock = new object();
         }
 
@@ -121,6 +127,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public async Task<Connection> ActivateAsync(CancellationToken token)
         {
+            // Swap to background thread, nothing below needs to be done on the UI thread.
+            await TaskScheduler.Default;
+
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
             await EnsureCleanedUpServerAsync(token).ConfigureAwait(false);
@@ -153,6 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 logging.AddProvider(_loggerProvider);
             });
             services.AddSingleton<LanguageServerFeatureOptions>(_vsLanguageServerFeatureOptions);
+            services.AddSingleton<HostWorkspaceServicesProvider>(_vsHostWorkspaceServicesProvider);
         }
 
         private Trace GetVerbosity()

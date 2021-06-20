@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            if (_lspEditorFeatureDetector.IsLSPEditorFeatureEnabled())
+            if (_lspEditorFeatureDetector.IsLSPEditorAvailable())
             {
                 return;
             }

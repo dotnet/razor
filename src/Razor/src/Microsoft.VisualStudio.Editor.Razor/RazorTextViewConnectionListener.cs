@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     [ContentType(RazorLanguage.CoreContentType)]
+    [ContentType(RazorConstants.LegacyCoreContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     [Export(typeof(ITextViewConnectionListener))]
     internal class RazorTextViewConnectionListener : ITextViewConnectionListener

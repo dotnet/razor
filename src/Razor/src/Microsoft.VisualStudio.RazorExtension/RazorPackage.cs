@@ -9,10 +9,10 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServerClient.Razor;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Dialogs;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.RazorExtension
@@ -41,9 +41,11 @@ namespace Microsoft.VisualStudio.RazorExtension
                 var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
                 var breakpointResolver = componentModel.GetService<RazorBreakpointResolver>();
                 var proximityExpressionResolver = componentModel.GetService<RazorProximityExpressionResolver>();
-                var waitDialogFactory = componentModel.GetService<WaitDialogFactory>();
+                var uiThreadOperationExecutor = componentModel.GetService<IUIThreadOperationExecutor>();
                 var editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-                return new RazorLanguageService(breakpointResolver, proximityExpressionResolver, waitDialogFactory, editorAdaptersFactory);
+                var joinableTaskContext = componentModel.GetService<JoinableTaskContext>();
+
+                return new RazorLanguageService(breakpointResolver, proximityExpressionResolver, uiThreadOperationExecutor, editorAdaptersFactory, joinableTaskContext.Factory);
             }, promote: true);
         }
     }

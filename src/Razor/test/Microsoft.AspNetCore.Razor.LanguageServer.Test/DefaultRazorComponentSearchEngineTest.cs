@@ -109,6 +109,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             Assert.Null(documentSnapshot);
         }
 
+        [Fact]
+        public async Task Handle_FilePathAndAssemblyNameDifferent()
+        {
+            // Arrange
+            var tagHelperDescriptor = CreateRazorComponentTagHelperDescriptor("AssemblyName", "Test", "Component2");
+            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, _projectSnapshotManager);
+
+            // Act
+            var documentSnapshot = await searchEngine.TryLocateComponentAsync(tagHelperDescriptor).ConfigureAwait(false);
+
+            // Assert
+            Assert.NotNull(documentSnapshot);
+        }
+
         internal static TagHelperDescriptor CreateRazorComponentTagHelperDescriptor(string assemblyName, string namespaceName, string tagName, string typeName = null)
         {
             typeName ??= tagName;

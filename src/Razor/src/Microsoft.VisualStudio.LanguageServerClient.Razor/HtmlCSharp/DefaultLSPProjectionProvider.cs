@@ -5,11 +5,13 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -83,6 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
                 LanguageServerConstants.RazorLanguageQueryEndpoint,
                 RazorLSPConstants.RazorLSPContentTypeName,
+                CheckRazorLanguageQueryCapability,
                 languageQueryParams,
                 cancellationToken).ConfigureAwait(false);
 
@@ -149,6 +152,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 _logHubLogger = _loggerProvider.CreateLogger(nameof(DefaultLSPProjectionProvider));
             }
+        }
+
+        private static bool CheckRazorLanguageQueryCapability(JToken token)
+        {
+            if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
+            {
+                return false;
+            }
+
+            return razorCapability.LanguageQuery;
         }
     }
 }

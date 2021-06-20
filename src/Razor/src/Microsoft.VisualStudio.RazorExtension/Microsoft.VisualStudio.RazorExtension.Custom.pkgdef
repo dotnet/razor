@@ -17,12 +17,6 @@
 "source.css"="$PackageFolder$\css-language-configuration.json"
 "source.cs"="$PackageFolder$\csharp-language-configuration.json"
 
-[$RootKey$\FeatureFlags\Razor\LSP\Editor]
-"Description"="Enables the Razor Language Server Protocol powered editor experience for Razor (ASP.NET Core)."
-"Value"=dword:00000000
-"Title"="Enable experimental Razor editor (requires restart)"
-"PreviewPaneChannels"="*"
-
 // Sets up Razor's default settings in Tools->Options.
 // Razor's default settings can be found in the VS repo at:
 //     src/VSCommonContent/profiles/General.vssettings

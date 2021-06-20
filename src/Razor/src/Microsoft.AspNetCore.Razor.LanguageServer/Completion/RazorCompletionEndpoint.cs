@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private static readonly Command RetriggerCompletionCommand = new()
         {
             Name = "editor.action.triggerSuggest",
-            Title = "Re-trigger completions...",
+            Title = RazorLS.Resources.ReTrigger_Completions_Title,
         };
 
         private IReadOnlyList<ExtendedCompletionItemKinds> _supportedItemKinds;

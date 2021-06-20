@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 // We only want to store the last 'seen' version of any given document. That way when we pick one to process
                 // it's always the best version to use.
                 _work[new DocumentKey(project.FilePath, document.FilePath)] = (project, document);
-                
+
                 StartWorker();
             }
         }

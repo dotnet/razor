@@ -20,8 +20,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
     {
-        private static readonly string Title = "Extract block to code behind";
-
         private static readonly Task<IReadOnlyList<RazorCodeAction>> EmptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
 
         public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
@@ -109,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var codeAction = new RazorCodeAction()
             {
-                Title = Title,
+                Title = RazorLS.Resources.ExtractTo_CodeBehind_Title,
                 Data = JToken.FromObject(resolutionParams)
             };
 
