@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
-    internal class RazorSpanMappingService : IRazorSpanMappingService
+    internal class RazorSpanMappingService: IRazorSpanMappingService
     {
         private readonly DocumentSnapshot _document;
 
