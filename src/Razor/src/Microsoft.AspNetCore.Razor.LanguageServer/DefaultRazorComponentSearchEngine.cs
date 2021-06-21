@@ -53,11 +53,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             foreach (var project in projects)
             {
-                if (!project.FilePath.EndsWith($"{tagHelper.AssemblyName}.csproj", FilePathComparison.Instance))
-                {
-                    continue;
-                }
-
                 foreach (var path in project.DocumentFilePaths)
                 {
                     // Get document and code document

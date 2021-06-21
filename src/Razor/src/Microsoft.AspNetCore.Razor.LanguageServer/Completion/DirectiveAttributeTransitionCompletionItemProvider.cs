@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         // where this directive attribute transition character ("@...") gets provided and then typing
                         // `@` should re-trigger OR typing `/` should re-trigger.
                         commitCharacters: new[] { "@", "/", ">" });
-                    _transitionCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription("Blazor directive attributes"));
+                    _transitionCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(RazorLS.Resources.Blazor_directive_attributes));
                 }
 
                 return _transitionCompletionItem;

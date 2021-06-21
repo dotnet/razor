@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            if (!_lspEditorFeatureDetector.IsLSPEditorFeatureEnabled())
+            if (!_lspEditorFeatureDetector.IsLSPEditorAvailable())
             {
                 return;
             }

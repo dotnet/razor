@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
@@ -327,18 +328,78 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (TaskUnsafeReference == null ||
                     !TaskUnsafeReference.TryGetTarget(out var taskUnsafe))
                 {
+                    TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> tcs = null;
+
                     lock (_lock)
                     {
                         if (TaskUnsafeReference == null ||
                             !TaskUnsafeReference.TryGetTarget(out taskUnsafe))
                         {
-                            taskUnsafe = GetGeneratedOutputAndVersionCoreAsync(project, document);
+                            // So this is a bit confusing. Instead of directly calling the Razor parser inside of this lock we create an indirect TaskCompletionSource
+                            // to represent when it completes. The reason behind this is that there are several scenarios in which the Razor parser will run synchronously
+                            // (mostly all in VS) resulting in this lock being held for significantly longer than expected. To avoid threads queuing up repeatedly on the
+                            // above lock and blocking we can allow those threads to await asynchronously for the completion of the original parse.
+
+                            tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                            taskUnsafe = tcs.Task;
                             TaskUnsafeReference = new WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>>(taskUnsafe);
                         }
+                    }
+
+                    if (tcs == null)
+                    {
+                        // There's no task completion source created meaning a value was retrieved from cache, just return it.
+                        return taskUnsafe;
+                    }
+
+                    // Typically in VS scenarios this will run synchronously because all resources are readily available.
+                    var outputTask = GetGeneratedOutputAndVersionCoreAsync(project, document);
+                    if (outputTask.IsCompleted)
+                    {
+                        // Compiling ran synchronously, lets just immediately propagate to the TCS
+                        PropagateToTaskCompletionSource(outputTask, tcs);
+                    }
+                    else
+                    {
+                        // Task didn't run synchronously (most likely outside of VS), lets allocate a bit more but utilize ContinueWith
+                        // to properly connect the output task and TCS
+                        _ = outputTask.ContinueWith(
+                            static (task, state) =>
+                            {
+                                var tcs = (TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>)state;
+
+                                PropagateToTaskCompletionSource(task, tcs);
+                            },
+                            tcs,
+                            CancellationToken.None,
+                            TaskContinuationOptions.ExecuteSynchronously,
+                            TaskScheduler.Default);
                     }
                 }
 
                 return taskUnsafe;
+
+                static void PropagateToTaskCompletionSource(
+                    Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> targetTask,
+                    TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> tcs)
+                {
+                    if (targetTask.Status == TaskStatus.RanToCompletion)
+                    {
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+                        tcs.SetResult(targetTask.Result);
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
+                    }
+                    else if (targetTask.Status == TaskStatus.Canceled)
+                    {
+                        tcs.SetCanceled();
+                    }
+                    else if (targetTask.Status == TaskStatus.Faulted)
+                    {
+                        // Faulted tasks area always aggregate exceptions so we need to extract the "true" exception if it's available:
+                        var exception = targetTask.Exception.InnerException ?? targetTask.Exception;
+                        tcs.SetException(exception);
+                    }
+                }
             }
 
             private async Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionCoreAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
@@ -466,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                 if (document is DefaultDocumentSnapshot defaultDocument)
                 {
-                    defaultDocument.State.HostDocument.GeneratedDocumentContainer.SetOutput(
+                    defaultDocument.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(
                         defaultDocument,
                         codeDocument,
                         inputVersion,

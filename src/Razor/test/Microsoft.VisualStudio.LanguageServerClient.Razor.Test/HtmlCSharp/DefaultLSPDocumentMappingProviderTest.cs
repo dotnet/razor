@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
@@ -46,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<RazorMapToDocumentRangesParams, RazorMapToDocumentRangesResponse>(LanguageServerConstants.RazorMapToDocumentRangesEndpoint, RazorLSPConstants.RazorLSPContentTypeName, It.IsAny<RazorMapToDocumentRangesParams>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReinvokeRequestOnServerAsync<RazorMapToDocumentRangesParams, RazorMapToDocumentRangesResponse>(LanguageServerConstants.RazorMapToDocumentRangesEndpoint, RazorLSPConstants.RazorLSPContentTypeName, It.IsAny<Func<JToken, bool>>(), It.IsAny<RazorMapToDocumentRangesParams>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(response));
 
             var lazyDocumentManager = new Lazy<LSPDocumentManager>(() => new TestDocumentManager());
@@ -245,7 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 };
 
                 requestInvoker
-                    .Setup(r => r.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(LanguageServerConstants.RazorMapToDocumentEditsEndpoint, RazorLSPConstants.RazorLSPContentTypeName, requestParams, It.IsAny<CancellationToken>()))
+                    .Setup(r => r.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(LanguageServerConstants.RazorMapToDocumentEditsEndpoint, RazorLSPConstants.RazorLSPContentTypeName, It.IsAny<Func<JToken, bool>>(), requestParams, It.IsAny<CancellationToken>()))
                     .Returns(Task.FromResult(response));
             }
 

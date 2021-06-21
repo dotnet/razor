@@ -37,6 +37,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             CodeLensProvider = inner.CodeLensProvider;
             Workspace = inner.Workspace;
 
+            RazorLanguageServerCapability.AddTo(this);
+
             CapabilityExtensions = new Dictionary<string, object>(StringComparer.Ordinal);
             foreach (var registrationExtension in registrationExtensions)
             {

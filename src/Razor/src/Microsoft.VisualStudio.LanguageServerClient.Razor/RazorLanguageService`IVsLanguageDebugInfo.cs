@@ -4,9 +4,10 @@
 using System;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Dialogs;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -15,14 +16,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private readonly RazorBreakpointResolver _breakpointResolver;
         private readonly RazorProximityExpressionResolver _proximityExpressionResolver;
-        private readonly WaitDialogFactory _waitDialogFactory;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
+        private readonly JoinableTaskFactory _joinableTaskFactory;
 
         public RazorLanguageService(
             RazorBreakpointResolver breakpointResolver,
             RazorProximityExpressionResolver proximityExpressionResolver,
-            WaitDialogFactory waitDialogFactory,
-            IVsEditorAdaptersFactoryService editorAdaptersFactory)
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
+            IVsEditorAdaptersFactoryService editorAdaptersFactory,
+            JoinableTaskFactory joinableTaskFactory)
         {
             if (breakpointResolver is null)
             {
@@ -34,9 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(proximityExpressionResolver));
             }
 
-            if (waitDialogFactory is null)
+            if (uiThreadOperationExecutor is null)
             {
-                throw new ArgumentNullException(nameof(waitDialogFactory));
+                throw new ArgumentNullException(nameof(uiThreadOperationExecutor));
             }
 
             if (editorAdaptersFactory is null)
@@ -44,10 +47,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(editorAdaptersFactory));
             }
 
+            if (joinableTaskFactory is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskFactory));
+            }
+
             _breakpointResolver = breakpointResolver;
             _proximityExpressionResolver = proximityExpressionResolver;
-            _waitDialogFactory = waitDialogFactory;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _editorAdaptersFactory = editorAdaptersFactory;
+            _joinableTaskFactory = joinableTaskFactory;
         }
 
         public int GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR ppEnum)
@@ -68,42 +77,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return VSConstants.E_FAIL;
             }
 
-            var dialogResult = _waitDialogFactory.TryCreateWaitDialog(
-                title: "Determining proximity expressions...",
-                message: "Razor Debugger",
-                async (context) =>
-                {
-                    var proximityExpressions = await _proximityExpressionResolver.TryResolveProximityExpressionsAsync(textBuffer, iLine, iCol, context.CancellationToken).ConfigureAwait(false);
-                    return proximityExpressions;
-                });
+            var proximityExpressions = _uiThreadOperationExecutor.Execute(
+                title: VS.LSClientRazor.Resources.ProximityExpression_Dialog_Title,
+                description: VS.LSClientRazor.Resources.ProximityExpression_Dialog_Description,
+                allowCancellation: true,
+                showProgress: true,
+                (cancellationToken) => _proximityExpressionResolver.TryResolveProximityExpressionsAsync(textBuffer, iLine, iCol, cancellationToken), _joinableTaskFactory);
 
-            if (dialogResult == null)
-            {
-                // Failed to create the dialog at all.
-                ppEnum = null;
-                return VSConstants.E_FAIL;
-            }
-
-            if (dialogResult.Cancelled)
+            if (proximityExpressions is null)
             {
                 ppEnum = null;
                 return VSConstants.E_FAIL;
             }
 
-            if (dialogResult.Result == null)
-            {
-                ppEnum = null;
-                return VSConstants.E_FAIL;
-            }
-
-            ppEnum = new VsEnumBSTR(dialogResult.Result);
+            ppEnum = new VsEnumBSTR(proximityExpressions);
             return VSConstants.S_OK;
         }
 
         public int ValidateBreakpointLocation(IVsTextBuffer pBuffer, int iLine, int iCol, TextSpan[] pCodeSpan)
         {
             var textBuffer = _editorAdaptersFactory.GetDataBuffer(pBuffer);
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 // Can't resolve the text buffer, let someone else deal with this breakpoint.
                 return VSConstants.E_NOTIMPL;
@@ -116,40 +110,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return VSConstants.E_FAIL;
             }
 
-            var dialogResult = _waitDialogFactory.TryCreateWaitDialog(
+            var breakpointRange = _uiThreadOperationExecutor.Execute(
                 title: "Determining breakpoint location...",
-                message: "Razor Debugger",
-                async (context) =>
-                {
-                    var breakpointRange = await _breakpointResolver.TryResolveBreakpointRangeAsync(textBuffer, iLine, iCol, context.CancellationToken).ConfigureAwait(false);
-                    if (breakpointRange == null)
-                    {
-                        // No applicable breakpoint location.
-                        return VSConstants.E_FAIL;
-                    }
+                description: "Razor Debugger",
+                allowCancellation: true,
+                showProgress: true,
+                (cancellationToken) => _breakpointResolver.TryResolveBreakpointRangeAsync(textBuffer, iLine, iCol, cancellationToken), _joinableTaskFactory);
 
-                    pCodeSpan[0] = new TextSpan()
-                    {
-                        iStartIndex = breakpointRange.Start.Character,
-                        iStartLine = breakpointRange.Start.Line,
-                        iEndIndex = breakpointRange.End.Character,
-                        iEndLine = breakpointRange.End.Line,
-                    };
-                    return VSConstants.S_OK;
-                });
-
-            if (dialogResult == null)
+            if (breakpointRange is null)
             {
-                // Failed to create the dialog at all.
+                // Failed to create the dialog at all or no applicable breakpoint location.
                 return VSConstants.E_FAIL;
             }
 
-            if (dialogResult.Cancelled)
+            pCodeSpan[0] = new TextSpan()
             {
-                return VSConstants.E_FAIL;
-            }
+                iStartIndex = breakpointRange.Start.Character,
+                iStartLine = breakpointRange.Start.Line,
+                iEndIndex = breakpointRange.End.Character,
+                iEndLine = breakpointRange.End.Line,
+            };
 
-            return dialogResult.Result;
+            return VSConstants.S_OK;
         }
 
         public int GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, out string pbstrName, out int piLineOffset)

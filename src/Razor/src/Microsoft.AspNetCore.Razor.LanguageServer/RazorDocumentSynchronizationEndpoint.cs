@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (notification.TextDocument.Version is null)
             {
-                throw new InvalidOperationException("Provided version should not be null.");
+                throw new InvalidOperationException(RazorLS.Resources.Version_Should_Not_Be_Null);
             }
 
             await Task.Factory.StartNew(
@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (notification.TextDocument.Version is null)
             {
-                throw new InvalidOperationException("Provided version should not be null.");
+                throw new InvalidOperationException(RazorLS.Resources.Version_Should_Not_Be_Null);
             }
 
             await Task.Factory.StartNew(

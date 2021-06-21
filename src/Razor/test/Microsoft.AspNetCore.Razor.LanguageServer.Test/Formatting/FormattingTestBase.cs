@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Testing;
@@ -173,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 new FormattingContentValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory),
             };
 
-            return new DefaultRazorFormattingService(passes, LoggerFactory);
+            return new DefaultRazorFormattingService(passes, LoggerFactory, TestAdhocWorkspaceFactory.Instance);
         }
 
         private static SourceText ApplyEdits(SourceText source, TextEdit[] edits)

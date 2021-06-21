@@ -321,6 +321,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private async Task VerifyMergedOnAutoInsertAsync(VSServerCapabilities mergedCapabilities)
         {
             var triggerCharEnumeration = mergedCapabilities.OnAutoInsertProvider?.TriggerCharacters ?? Enumerable.Empty<string>();
+            var purposefullyRemovedTriggerCharacters = new[]
+            {
+                ">" // https://github.com/dotnet/aspnetcore-tooling/pull/3797
+            };
+            triggerCharEnumeration = triggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
             var onAutoInsertMergedTriggerChars = new HashSet<string>(triggerCharEnumeration);
             if (!onAutoInsertMergedTriggerChars.SetEquals(triggerCharEnumeration))
             {
@@ -347,7 +352,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var mergedCommitChars = new HashSet<string>(mergedAllCommitCharEnumeration);
             var purposefullyRemovedTriggerCharacters = new[]
             {
-                "_" // https://github.com/dotnet/aspnetcore-tooling/pull/2827
+                "_", // https://github.com/dotnet/aspnetcore-tooling/pull/2827
+
+                // C# uses '>' as a trigger character for pointer operations. This conflicts heavily with HTML's auto-closing support
+                // Therefore, for perf reasons we purposefully remove the trigger character since using pointers in Razor is quite rare.
+                ">"
             };
             mergedTriggerCharEnumeration = mergedTriggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
             var mergedTriggerChars = new HashSet<string>(mergedTriggerCharEnumeration);

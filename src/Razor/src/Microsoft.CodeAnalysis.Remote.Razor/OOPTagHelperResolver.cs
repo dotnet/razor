@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
                 return result;
             }
-            catch (Exception exception) when (!(exception is TaskCanceledException))
+            catch (Exception exception) when (!(exception is TaskCanceledException) && !(exception is OperationCanceledException))
             {
                 throw new InvalidOperationException($"An unexpected exception occurred when invoking '{typeof(DefaultTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.", exception);
             }

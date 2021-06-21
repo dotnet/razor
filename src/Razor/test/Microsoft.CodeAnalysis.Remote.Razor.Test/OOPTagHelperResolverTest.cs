@@ -111,7 +111,34 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
             // Assert
             Assert.Same(TagHelperResolutionResult.Empty, result);
+        }
 
+        [Fact]
+        public async Task GetTagHelpersAsync_OperationCanceledException_DoesNotGetWrapped()
+        {
+            // Arrange
+            ProjectManager.ProjectAdded(HostProject_For_2_0);
+
+            var projectSnapshot = ProjectManager.GetLoadedProject("Test.csproj");
+
+            var cancellationToken = new CancellationToken(canceled: true);
+            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace)
+            {
+                OnResolveInProcess = (p) =>
+                {
+                    Assert.Same(projectSnapshot, p);
+
+                    return Task.FromResult(TagHelperResolutionResult.Empty);
+                },
+                OnResolveOutOfProcess = (f, p) =>
+                {
+                    Assert.Same(projectSnapshot, p);
+
+                    throw new OperationCanceledException();
+                }
+            };
+
+            await Assert.ThrowsAsync<OperationCanceledException>(async () => await resolver.GetTagHelpersAsync(WorkspaceProject, projectSnapshot, cancellationToken));
         }
 
         private class TestTagHelperResolver : OOPTagHelperResolver
