@@ -43,7 +43,7 @@ stages:
 - stage: build
   displayName: Build
   jobs:
-  - ${{ if and(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
+  - ${{ if and(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')), eq(variables['Build.SourceBranch'], 'refs/heads/main-vs-deps')) }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         LclSource: lclFilesfromPackage
