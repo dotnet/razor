@@ -7,9 +7,11 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -74,6 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentMappingResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorMapToDocumentRangesParams, RazorMapToDocumentRangesResponse>(
                 LanguageServerConstants.RazorMapToDocumentRangesEndpoint,
                 RazorLSPConstants.RazorLSPContentTypeName,
+                CheckRazorRangeMappingCapability,
                 mapToDocumentRangeParams,
                 cancellationToken).ConfigureAwait(false);
 
@@ -344,6 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var mappingResult = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(
                 LanguageServerConstants.RazorMapToDocumentEditsEndpoint,
                 RazorLSPConstants.RazorLSPContentTypeName,
+                CheckRazorEditMappingCapability,
                 mapToDocumentEditsParams,
                 cancellationToken).ConfigureAwait(false);
 
@@ -361,6 +365,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private static bool CanRemap(Uri uri)
         {
             return RazorLSPConventions.IsVirtualCSharpFile(uri) || RazorLSPConventions.IsVirtualHtmlFile(uri);
+        }
+
+        private static bool CheckRazorRangeMappingCapability(JToken token)
+        {
+            if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
+            {
+                return false;
+            }
+
+            return razorCapability.RangeMapping;
+        }
+
+        private static bool CheckRazorEditMappingCapability(JToken token)
+        {
+            if (!RazorLanguageServerCapability.TryGet(token, out var razorCapability))
+            {
+                return false;
+            }
+
+            return razorCapability.EditMapping;
         }
     }
 }

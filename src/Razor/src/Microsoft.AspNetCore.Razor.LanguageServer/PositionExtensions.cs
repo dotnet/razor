@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var linePosition = new LinePosition(position.Line, position.Character);
             if (linePosition.Line >= sourceText.Lines.Count)
             {
-                throw new ArgumentOutOfRangeException($"Line '{position.Line}' outside of the {nameof(sourceText)} range of '{sourceText.Lines.Count}' was queried. The document may not be up to date.");
+                throw new ArgumentOutOfRangeException(RazorLS.Resources.FormatPositionIndex_Outside_Range(position.Line, nameof(sourceText), sourceText.Lines.Count));
             }
             var index = sourceText.Lines.GetPosition(linePosition);
             return index;

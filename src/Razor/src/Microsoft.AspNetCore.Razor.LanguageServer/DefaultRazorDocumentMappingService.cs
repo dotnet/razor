@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             else
             {
-                throw new InvalidOperationException("Unknown mapping behavior");
+                throw new InvalidOperationException(RazorLS.Resources.Unknown_mapping_behavior);
             }
         }
 

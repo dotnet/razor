@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     var newLastWriteTime = File.GetLastWriteTimeUtc(_filePath);
                     if (!newLastWriteTime.Equals(prevLastWriteTime))
                     {
-                        throw new IOException($"File was externally modified: {_filePath}");
+                        throw new IOException(RazorLSCommon.Resources.FormatFile_Externally_Modified(_filePath));
                     }
                 }
                 catch (IOException)

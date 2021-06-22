@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (startOffset > line.SpanIncludingLineBreak.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(startOffset), "Invalid offset.");
+                throw new ArgumentOutOfRangeException(nameof(startOffset), RazorLS.Resources.Invalid_Offset);
             }
 
             return line.Text.GetFirstNonWhitespaceOffset(TextSpan.FromBounds(line.Start + startOffset, line.EndIncludingLineBreak), out _);

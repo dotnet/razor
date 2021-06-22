@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             if (service == null)
             {
-                throw new InvalidOperationException($"Razor language services not configured properly, missing language service '{typeof(TLanguageService).FullName}'.");
+                throw new InvalidOperationException(RazorLSCommon.Resources.FormatLanguage_Services_Missing_Service(typeof(TLanguageService).FullName));
             }
 
             return service;

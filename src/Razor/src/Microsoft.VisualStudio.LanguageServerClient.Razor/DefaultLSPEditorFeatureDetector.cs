@@ -5,6 +5,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -15,17 +16,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class DefaultLSPEditorFeatureDetector : LSPEditorFeatureDetector
     {
         private const string DotNetCoreCSharpCapability = "CSharp&CPS";
-        private const string RazorLSPEditorFeatureFlag = "Razor.LSP.Editor";
+        private const string UseLegacyASPNETCoreEditorSettingTemp = "TextEditor.HTMLX.Specific.UseLegacyASPNETCoreRazorEditor";
+        private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
         private static readonly Guid LiveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
         private static readonly Guid LiveShareGuestUIContextGuid = Guid.Parse("fd93f3eb-60da-49cd-af15-acda729e357e");
 
         private readonly ProjectHierarchyInspector _projectHierarchyInspector;
         private readonly Lazy<IVsUIShellOpenDocument> _vsUIShellOpenDocument;
-        private readonly IVsFeatureFlags _featureFlags;
-
-        private bool? _environmentFeatureEnabled;
-        private bool? _isVSServer;
+        private readonly Lazy<bool> _useLegacyEditor;
 
         [ImportingConstructor]
         public DefaultLSPEditorFeatureDetector(ProjectHierarchyInspector projectHierarchyInspector)
@@ -36,13 +35,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             _projectHierarchyInspector = projectHierarchyInspector;
-            _featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
             _vsUIShellOpenDocument = new Lazy<IVsUIShellOpenDocument>(() =>
             {
                 var shellOpenDocument = (IVsUIShellOpenDocument)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument));
                 Assumes.Present(shellOpenDocument);
 
                 return shellOpenDocument;
+            });
+
+            _useLegacyEditor = new Lazy<bool>(() =>
+            {
+                var settingsManager = (ISettingsManager)ServiceProvider.GlobalProvider.GetService(typeof(SVsSettingsPersistenceManager));
+                Assumes.Present(settingsManager);
+
+                var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
+
+                // WebTools is in the process of renaming HTMLX -> HTML and this Temp setting represents the HTMLX variant of the setting.
+                // Once they've committed the fix we'll need to "do the right thing" for the point-in-time where things vary.
+                var useLegacyEditorTemp = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSettingTemp);
+                var shouldUseLegacyEditor = useLegacyEditor || useLegacyEditorTemp;
+                return shouldUseLegacyEditor;
             });
         }
 
@@ -58,15 +70,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return false;
             }
 
-            var ivsHierarchy = hierarchy as IVsHierarchy;
-
-            if (!IsLSPEditorFeatureEnabled())
+            if (!IsLSPEditorAvailable())
             {
-                // Razor LSP feature is not enabled
                 return false;
             }
 
-            if (!ProjectSupportsRazorLSPEditor(documentMoniker, ivsHierarchy))
+            var ivsHierarchy = hierarchy as IVsHierarchy;
+            if (!ProjectSupportsLSPEditor(documentMoniker, ivsHierarchy))
             {
                 // Current project hierarchy doesn't support the LSP Razor editor
                 return false;
@@ -74,6 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return true;
         }
+
+        public override bool IsLSPEditorAvailable() => !_useLegacyEditor.Value;
 
         public override bool IsRemoteClient() => IsVSRemoteClient() || IsLiveShareGuest();
 
@@ -83,47 +95,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return context.IsActive;
         }
 
-        public override bool IsLSPEditorFeatureEnabled()
-        {
-            if (EnvironmentFeatureEnabled())
-            {
-                return true;
-            }
-
-            if (IsFeatureFlagEnabledCached())
-            {
-                return true;
-            }
-
-            if (IsVSServer())
-            {
-                // We default to "on" in Visual Studio server cloud environments
-                return true;
-            }
-
-            if (IsVSRemoteClient())
-            {
-                // We default to "on" in Visual Studio remotely joined cloud environment clients
-                return true;
-            }
-
-            if (IsLiveShareHost())
-            {
-                // Placeholder for when we turn on LiveShare support by default
-                return false;
-            }
-
-            if (IsLiveShareGuest())
-            {
-                // Placeholder for when we turn on LiveShare support by default
-                return false;
-            }
-
-            return false;
-        }
-
         // Private protected virtual for testing
-        private protected virtual bool ProjectSupportsRazorLSPEditor(string documentMoniker, IVsHierarchy hierarchy)
+        private protected virtual bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy hierarchy)
         {
             if (hierarchy == null)
             {
@@ -143,48 +116,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             // Not a C# .NET Core project. This typically happens for legacy Razor scenarios
             return false;
-        }
-
-        // Private protected virtual for testing
-        private protected virtual bool EnvironmentFeatureEnabled()
-        {
-            if (!_environmentFeatureEnabled.HasValue)
-            {
-                var lspRazorEnabledString = Environment.GetEnvironmentVariable(RazorLSPEditorFeatureFlag);
-                _ = bool.TryParse(lspRazorEnabledString, out var enabled);
-                _environmentFeatureEnabled = enabled;
-            }
-
-            return _environmentFeatureEnabled.Value;
-        }
-
-        // Private protected virtual for testing
-        private protected virtual bool IsFeatureFlagEnabledCached()
-        {
-            var featureFlagEnabled = _featureFlags.IsFeatureEnabled(RazorLSPEditorFeatureFlag, defaultValue: false);
-            return featureFlagEnabled;
-        }
-
-        // Private protected virtual for testing
-        private protected virtual bool IsVSServer()
-        {
-            if (!_isVSServer.HasValue)
-            {
-                var shell = AsyncPackage.GetGlobalService(typeof(SVsShell)) as IVsShell;
-                var result = shell.GetProperty((int)__VSSPROPID11.VSSPROPID_ShellMode, out var mode);
-
-                if (ErrorHandler.Succeeded(result))
-                {
-                    // VSSPROPID_ShellMode is set to VSSM_Server when /server is used in devenv command
-                    _isVSServer = (int)mode == (int)__VSShellMode.VSSM_Server;
-                }
-                else
-                {
-                    _isVSServer = false;
-                }
-            }
-
-            return _isVSServer.Value;
         }
 
         // Private protected virtual for testing

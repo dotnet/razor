@@ -42,6 +42,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
+        public void ConvertSeverity_WarningReturnsWarning()
+        {
+            // Arrange
+            var expectedSeverity = DiagnosticSeverity.Warning;
+
+            // Act
+            var severity = RazorDiagnosticConverter.ConvertSeverity(RazorDiagnosticSeverity.Warning);
+
+            // Assert
+            Assert.Equal(expectedSeverity, severity);
+        }
+
+        [Fact]
         public void ConvertSpanToRange_ReturnsConvertedRange()
         {
             // Arrange

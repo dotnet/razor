@@ -477,7 +477,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             static TestDefaultRazorProjectChangePublisher()
             {
                 _lspEditorFeatureDetector
-                    .Setup(t => t.IsLSPEditorFeatureEnabled())
+                    .Setup(t => t.IsLSPEditorAvailable())
                     .Returns(true);
             }
 

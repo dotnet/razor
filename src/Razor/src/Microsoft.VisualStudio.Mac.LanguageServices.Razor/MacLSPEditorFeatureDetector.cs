@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     {
         public override bool IsLSPEditorAvailable(string documentMoniker, object hierarchy) => false;
 
-        public override bool IsLSPEditorFeatureEnabled() => false;
+        public override bool IsLSPEditorAvailable() => false;
 
         public override bool IsLiveShareHost() => false;
 

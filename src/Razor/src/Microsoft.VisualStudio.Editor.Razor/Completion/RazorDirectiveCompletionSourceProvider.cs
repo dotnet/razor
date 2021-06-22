@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     [Export(typeof(IAsyncCompletionSourceProvider))]
     [Name("Razor directive completion provider.")]
     [ContentType(RazorLanguage.CoreContentType)]
+    [ContentType(RazorConstants.LegacyCoreContentType)]
     internal class RazorDirectiveCompletionSourceProvider : IAsyncCompletionSourceProvider
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;

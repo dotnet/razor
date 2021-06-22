@@ -311,7 +311,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     }
 
                 default:
-                    throw new InvalidOperationException($"Unknown ProjectChangeKind {args.Kind}");
+                    throw new InvalidOperationException(RazorLSCommon.Resources.FormatUnknown_ProjectChangeKind(args.Kind));
             }
         }
 

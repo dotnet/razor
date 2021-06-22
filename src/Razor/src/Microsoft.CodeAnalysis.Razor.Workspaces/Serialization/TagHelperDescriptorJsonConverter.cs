@@ -219,6 +219,12 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                 writer.WriteValue(boundAttribute.IsEnum);
             }
 
+            if (boundAttribute.IsEditorRequired)
+            {
+                writer.WritePropertyName(nameof(BoundAttributeDescriptor.IsEditorRequired));
+                writer.WriteValue(true);
+            }
+
             if (boundAttribute.IndexerNamePrefix != null)
             {
                 writer.WritePropertyName(nameof(BoundAttributeDescriptor.IndexerNamePrefix));
@@ -476,6 +482,12 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
                         break;
                     case nameof(BoundAttributeDescriptor.Metadata):
                         ReadMetadata(reader, attribute.Metadata);
+                        break;
+                    case nameof(BoundAttributeDescriptor.IsEditorRequired):
+                        if (reader.Read())
+                        {
+                            attribute.IsEditorRequired = (bool)reader.Value;
+                        }
                         break;
                 }
             }));

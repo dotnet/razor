@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
@@ -13,8 +12,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
     {
         private readonly IEnumerable<IWorkspaceService> _workspaceServices;
         private readonly IEnumerable<ILanguageService> _razorLanguageServices;
+        private readonly HostWorkspaceServices _fallbackServices;
 
-        private AdhocServices(IEnumerable<IWorkspaceService> workspaceServices, IEnumerable<ILanguageService> razorLanguageServices)
+        private AdhocServices(
+            IEnumerable<IWorkspaceService> workspaceServices,
+            IEnumerable<ILanguageService> razorLanguageServices,
+            HostWorkspaceServices fallbackServices)
         {
             if (workspaceServices == null)
             {
@@ -26,8 +29,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 throw new ArgumentNullException(nameof(razorLanguageServices));
             }
 
+            if (fallbackServices is null)
+            {
+                throw new ArgumentNullException(nameof(fallbackServices));
+            }
+
             _workspaceServices = workspaceServices;
             _razorLanguageServices = razorLanguageServices;
+            _fallbackServices = fallbackServices;
         }
 
         protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
@@ -37,13 +46,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            return new AdhocWorkspaceServices(this, _workspaceServices, _razorLanguageServices, workspace);
+            return new AdhocWorkspaceServices(this, _workspaceServices, _razorLanguageServices, workspace, _fallbackServices);
         }
 
-        public static HostServices Create(IEnumerable<ILanguageService> razorLanguageServices)
-            => Create(Enumerable.Empty<IWorkspaceService>(), razorLanguageServices);
-
-        public static HostServices Create(IEnumerable<IWorkspaceService> workspaceServices, IEnumerable<ILanguageService> razorLanguageServices)
-            => new AdhocServices(workspaceServices, razorLanguageServices);
+        public static HostServices Create(IEnumerable<IWorkspaceService> workspaceServices, IEnumerable<ILanguageService> razorLanguageServices, HostWorkspaceServices fallbackServices)
+            => new AdhocServices(workspaceServices, razorLanguageServices, fallbackServices);
     }
 }

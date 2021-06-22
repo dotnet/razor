@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Razor
                         workspaceState = new ProjectWorkspaceState(tagHelperResolutionResult.Descriptors, csharpLanguageVersion);
                     }
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                     // Abort work if we get a task cancelled exception
                     return;
@@ -195,6 +195,11 @@ namespace Microsoft.CodeAnalysis.Razor
                     cancellationToken,
                     TaskCreationOptions.None,
                     _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Abort work if we get a task canceled exception
+                return;
             }
             catch (Exception ex)
             {

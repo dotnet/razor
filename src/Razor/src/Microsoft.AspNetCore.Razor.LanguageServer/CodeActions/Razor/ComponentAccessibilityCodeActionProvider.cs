@@ -21,7 +21,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvider
     {
-        private static readonly string CreateComponentFromTagTitle = "Create component from tag";
         private static readonly Task<IReadOnlyList<RazorCodeAction>> EmptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
 
         private readonly TagHelperFactsService _tagHelperFactsService;
@@ -120,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             container.Add(new RazorCodeAction()
             {
-                Title = CreateComponentFromTagTitle,
+                Title = RazorLS.Resources.Create_Component_FromTag_Title,
                 Data = JToken.FromObject(resolutionParams)
             });
         }
