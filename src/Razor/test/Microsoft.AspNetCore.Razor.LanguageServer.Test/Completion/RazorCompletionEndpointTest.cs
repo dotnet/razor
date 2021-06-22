@@ -59,6 +59,54 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private DocumentResolver EmptyDocumentResolver { get; }
 
         [Fact]
+        public void IsApplicableTriggerContext_Deletion_ReturnsFalse()
+        {
+            // Arrange
+            var completionContext = new OmniSharpVSCompletionContext()
+            {
+                InvokeKind = OmniSharpVSCompletionInvokeKind.Deletion
+            };
+
+            // Act
+            var result = RazorCompletionEndpoint.IsApplicableTriggerContext(completionContext);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void IsApplicableTriggerContext_Explicit_ReturnsTrue()
+        {
+            // Arrange
+            var completionContext = new OmniSharpVSCompletionContext()
+            {
+                InvokeKind = OmniSharpVSCompletionInvokeKind.Explicit
+            };
+
+            // Act
+            var result = RazorCompletionEndpoint.IsApplicableTriggerContext(completionContext);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsApplicableTriggerContext_Typing_ReturnsTrue()
+        {
+            // Arrange
+            var completionContext = new OmniSharpVSCompletionContext()
+            {
+                InvokeKind = OmniSharpVSCompletionInvokeKind.Typing
+            };
+
+            // Act
+            var result = RazorCompletionEndpoint.IsApplicableTriggerContext(completionContext);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
         public void TryConvert_Directive_ReturnsTrue()
         {
             // Arrange
