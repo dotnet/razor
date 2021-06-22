@@ -79,6 +79,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
                 containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
             {
+                if (containingTagNameToken.FullWidth > 1 &&
+                    containingTagNameToken.Span.Start != location.AbsoluteIndex)
+                {
+                    // To align with HTML completion behavior we only want to only provide completion items if we're trying to resolve completion at the
+                    // beginning of an HTML element name.
+                    return Array.Empty<RazorCompletionItem>();
+                }
+
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
                 var elementCompletions = GetElementCompletions(parent, containingTagNameToken.Content, stringifiedAttributes, tagHelperDocumentContext);
                 return elementCompletions;
@@ -95,6 +103,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 selectedAttributeNameLocation?.IntersectsWith(location.AbsoluteIndex) == true ||
                 (prefixLocation?.IntersectsWith(location.AbsoluteIndex) ?? false)))
             {
+                if (prefixLocation.HasValue &&
+                    prefixLocation.Value.Length == 1 &&
+                    selectedAttributeNameLocation.HasValue &&
+                    selectedAttributeNameLocation.Value.Length > 1 &&
+                    selectedAttributeNameLocation.Value.Start != location.AbsoluteIndex)
+                {
+                    // To align with HTML completion behavior we only want to only provide completion items if we're trying to resolve completion at the
+                    // beginning of an HTML attribute name. We do extra checks on prefix locations here in order to rule out malformed cases when the Razor
+                    // compiler incorrectly parses multi-line attributes while in the middle of typing out an element. For instance:
+                    //
+                    // <SurveyPrompt |
+                    // @code { ... }
+                    //
+                    // Will be interpreted as having an `@code` attribute name due to multi-line attributes being a thing. Ultimately this is mostly a
+                    // heuristic that we have to apply in order to workaround limitations of the Razor compiler.
+                    return Array.Empty<RazorCompletionItem>();
+                }
+
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
                 var attributeCompletions = GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, tagHelperDocumentContext);
                 return attributeCompletions;
