@@ -477,7 +477,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Position = new Position(0, 1)
+                Position = new Position(0, 1),
+                Context = new OmniSharpVSCompletionContext(),
             };
 
             // Act
@@ -502,7 +503,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Position = new Position(0, 1)
+                Position = new Position(0, 1),
+                Context = new OmniSharpVSCompletionContext(),
             };
 
             // Act
@@ -537,7 +539,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Position = new Position(0, 1)
+                Position = new Position(0, 1),
+                Context = new OmniSharpVSCompletionContext(),
             };
 
             // Act
@@ -574,7 +577,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var request = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Position = new Position(0, 6)
+                Position = new Position(0, 6),
+                Context = new OmniSharpVSCompletionContext(),
             };
 
             // Act
