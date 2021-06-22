@@ -200,7 +200,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorOnAutoInsertProvider, CloseRazorCommentOnAutoInsertProvider>();
                         services.AddSingleton<RazorOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
                         services.AddSingleton<RazorOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
-                        services.AddSingleton<RazorOnAutoInsertProvider, AttributeSnippetOnAutoInsertProvider>();
+
+                        // Disabling equals => `="|"` OnAutoInsert support until dynamic overtyping is a thing: https://github.com/dotnet/aspnetcore/issues/33677
+                        // services.AddSingleton<RazorOnAutoInsertProvider, AttributeSnippetOnAutoInsertProvider>();
 
                         // Formatting
                         services.AddSingleton<RazorFormattingService, DefaultRazorFormattingService>();
