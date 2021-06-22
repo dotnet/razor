@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="new">Value cannot be null or an empty string.</target>
+        <target state="translated">值不能为 null 或空字符串。</target>
         <note />
       </trans-unit>
       <trans-unit id="ForegroundDispatcher_AssertBackgroundThread">
         <source>{0} must be called on a background thread.</source>
-        <target state="new">{0} must be called on a background thread.</target>
+        <target state="translated">必须在后台线程上调用 {0}。</target>
         <note />
       </trans-unit>
       <trans-unit id="ForegroundDispatcher_AssertForegroundThread">
         <source>{0} must be called on the foreground thread.</source>
-        <target state="new">{0} must be called on the foreground thread.</target>
+        <target state="translated">必须在前台线程上调用 {0}。</target>
         <note />
       </trans-unit>
       <trans-unit id="ForegroundDispatcher_NoMethodNamePlaceholder">
         <source>The method</source>
-        <target state="new">The method</target>
+        <target state="translated">方法</target>
         <note />
       </trans-unit>
     </body>

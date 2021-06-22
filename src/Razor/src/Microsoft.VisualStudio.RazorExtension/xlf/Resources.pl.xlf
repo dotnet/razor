@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="IDS_EDITORNAME">
         <source>LSP Razor Editor</source>
-        <target state="new">LSP Razor Editor</target>
+        <target state="translated">Edytor składni Razor LSP</target>
         <note />
       </trans-unit>
     </body>
