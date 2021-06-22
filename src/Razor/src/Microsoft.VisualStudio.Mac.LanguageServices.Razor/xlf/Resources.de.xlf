@@ -4,23 +4,23 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="new">Value cannot be null or an empty string.</target>
+        <target state="translated">Der Wert darf nicht NULL oder eine leere Zeichenfolge sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorLanguageServiceGeneralError">
         <source>Razor Language Service error encountered.</source>
-        <target state="new">Razor Language Service error encountered.</target>
+        <target state="translated">Razor-Sprachdienstfehler.</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorLanguageServiceProjectError">
         <source>Razor Language Service error encountered from project '{0}'.</source>
-        <target state="new">Razor Language Service error encountered from project '{0}'.</target>
+        <target state="translated">Razor-Sprachdienstfehler im Projekt "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorLanguageServiceProjectSnapshotError">
         <source>Error encountered from project '{0}':
 {1}</source>
-        <target state="new">Error encountered from project '{0}':
+        <target state="translated">Fehler beim Projekt "{0}":
 {1}</target>
         <note />
       </trans-unit>
