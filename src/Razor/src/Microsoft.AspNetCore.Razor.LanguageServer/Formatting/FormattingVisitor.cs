@@ -190,10 +190,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             var isComponent = IsComponentTagHelperNode(node);
 
+            var causesIndentation = isComponent;
+            if (node.Parent is MarkupTagHelperElementSyntax parentComponent &&
+                IsComponentTagHelperNode(parentComponent) &&
+                ParentHasProperty(parentComponent, node.TagHelperInfo?.TagName))
+            {
+                causesIndentation = false;
+            }
+
             Visit(node.StartTag);
 
             _currentHtmlIndentationLevel++;
-            if (isComponent)
+            if (causesIndentation)
             {
                 _componentTracker.Push(node);
             }
@@ -203,7 +211,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Visit(child);
             }
 
-            if (isComponent)
+            if (causesIndentation)
             {
                 Debug.Assert(_componentTracker.Any(), "Component tracker should not be empty.");
                 _componentTracker.Pop();
@@ -214,8 +222,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             static bool IsComponentTagHelperNode(MarkupTagHelperElementSyntax node)
             {
-                return node.TagHelperInfo?.BindingResult?.Descriptors?.Any(
-                    d => d.IsComponentOrChildContentTagHelper()) ?? false;
+                var tagHelperInfo = node.TagHelperInfo;
+
+                if (tagHelperInfo is null)
+                {
+                    return false;
+                }
+
+                var descriptors = tagHelperInfo.BindingResult?.Descriptors;
+                if (descriptors is null)
+                {
+                    return false;
+                }
+
+                return descriptors.Any(d => d.IsComponentOrChildContentTagHelper());
+            }
+
+            static bool ParentHasProperty(MarkupTagHelperElementSyntax parentComponent, string propertyName)
+            {
+                // If this is a child tag helper that match a property of its parent tag helper
+                // then it means this specific node won't actually cause a change in indentation.
+                // For example, the following two bits of Razor generate identical C# code, even though the code block is
+                // nested in a different number of tag helper elements:
+                //
+                // <Component>
+                //     @if (true)
+                //     {
+                //     }
+                // </Component>
+                //
+                // and
+                //
+                // <Component>
+                //     <ChildContent>
+                //         @if (true)
+                //         {
+                //         }
+                //     </ChildContent>
+                // </Component>
+                //
+                // This code will not count "ChildContent" as causing indentation because its parent
+                // has a property called "ChildContent".
+                if (parentComponent.TagHelperInfo?.BindingResult.Descriptors.Any(d => d.BoundAttributes.Any(a => a.Name == propertyName)) ?? false)
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
 
