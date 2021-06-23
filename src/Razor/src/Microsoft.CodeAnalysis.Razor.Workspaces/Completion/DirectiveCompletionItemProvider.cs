@@ -66,6 +66,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return false;
             }
 
+            if (implicitExpression.FullWidth > 2)
+            {
+                // We only want to provide directive completions if the implicit expression is empty "@|" or at the beginning of a word "@i|", this ensures
+                // we're consistent with how C# typically provides completion items
+                return false;
+            }
+
             if (owner.ChildNodes().Any(n => !n.IsToken || !IsDirectiveCompletableToken((AspNetCore.Razor.Language.Syntax.SyntaxToken)n)))
             {
                 // Implicit expression contains invalid directive tokens

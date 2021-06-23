@@ -65,6 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Custom ClientCapabilities deserializer to extract platform specific capabilities
             Serializer.Instance.JsonSerializer.Converters.Add(PlatformAgnosticClientCapabilities.JsonConverter);
             Serializer.Instance.JsonSerializer.Converters.Add(PlatformAgnosticCompletionCapability.JsonConverter);
+            Serializer.Instance.JsonSerializer.Converters.Add(OmniSharpVSCompletionContext.JsonConverter);
 
             ILanguageServer server = null;
             var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
