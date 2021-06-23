@@ -145,5 +145,33 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return null;
         }
+
+        public static int? GetLastNonWhitespaceOffset(this SourceText source, TextSpan? span, out int newLineCount)
+        {
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            span ??= new TextSpan(0, source.Length);
+            newLineCount = 0;
+
+            // If the span is at the end of the document it's common for the "End" to represent 1 past the end of the source
+            var indexableSpanEnd = Math.Min(span.Value.End, source.Length - 1);
+
+            for (var i = indexableSpanEnd; i >= span.Value.Start; i--)
+            {
+                if (!char.IsWhiteSpace(source[i]))
+                {
+                    return i - span.Value.Start;
+                }
+                else if (source[i] == '\n')
+                {
+                    newLineCount++;
+                }
+            }
+
+            return null;
+        }
     }
 }

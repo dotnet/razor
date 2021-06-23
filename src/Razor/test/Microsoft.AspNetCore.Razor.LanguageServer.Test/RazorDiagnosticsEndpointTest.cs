@@ -127,6 +127,113 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         [Fact]
+        public async Task Handle_ProcessRudeEditDiagnostics_StatementLiteral_CSharp()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "@{ void Foo() {} }",
+                "   void Foo() {} ",
+                new[] {
+                    // " void Foo() {} "
+                    new SourceMapping(
+                        new SourceSpan(2, 15),
+                        new SourceSpan(2, 15))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+
+                // Rude edit diagnostics get mapped directly onto the Razor document via the corresponding "runtime" representation
+                Diagnostics = new[] { new Diagnostic() { Code = new DiagnosticCode("ENC123"), Range = new Range(new Position(0, 3), new Position(0, 16)) } },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+            var expectedRange = new Range(new Position(0, 3), new Position(0, 16));
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Equal(expectedRange, response.Diagnostics[0].Range);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
+        public async Task Handle_ProcessRudeEditDiagnostics_ExpressionLiteral_CSharp()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "@Method((parameter) => {})",
+                "__o = Method((parameter) => {})",
+                new[] {
+                    // "Method((parameter) => {})"
+                    new SourceMapping(
+                        new SourceSpan(1, 25),
+                        new SourceSpan(6, 25))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+
+                // Rude edit diagnostics get mapped directly onto the Razor document via the corresponding "runtime" representation
+                Diagnostics = new[] { new Diagnostic() { Code = new DiagnosticCode("ENC123"), Range = new Range(new Position(0, 13), new Position(0, 23)) } },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+            var expectedRange = new Range(new Position(0, 13), new Position(0, 23));
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Equal(expectedRange, response.Diagnostics[0].Range);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
+        public async Task Handle_ProcessRudeEditDiagnostics_Unknown_CSharp()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                " @{ void Foo< @* Comment! *@ TValue>() {} }  ",
+                "    void Foo<  TValue>() {} ",
+                new[] {
+                    // "Foo< "
+                    new SourceMapping(
+                        new SourceSpan(3, 11),
+                        new SourceSpan(3, 11)),
+
+                    // " TValue>"
+                    new SourceMapping(
+                        new SourceSpan(28, 14),
+                        new SourceSpan(15, 13))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.CSharp,
+
+                // Rude edit diagnostics get mapped directly onto the Razor document via the corresponding "runtime" representation
+                Diagnostics = new[] { new Diagnostic() { Code = new DiagnosticCode("ENC123"), Range = new Range(new Position(0, 9), new Position(0, 36)) } },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+            var expectedRange = new Range(new Position(0, 1), new Position(0, 43));
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Equal(expectedRange, response.Diagnostics[0].Range);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
         public async Task Handle_FilterDiagnostics_CSharpWarning()
         {
             // Arrange

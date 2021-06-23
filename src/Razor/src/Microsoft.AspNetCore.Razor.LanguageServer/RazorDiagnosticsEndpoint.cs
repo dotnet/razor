@@ -123,10 +123,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
             }
 
+            var sourceText = await documentSnapshot.GetTextAsync();
             var unmappedDiagnostics = request.Diagnostics;
             var filteredDiagnostics = request.Kind == RazorLanguageKind.CSharp ?
-                FilterCSharpDiagnostics(unmappedDiagnostics, codeDocument) :
-                await FilterHTMLDiagnosticsAsync(unmappedDiagnostics, codeDocument, documentSnapshot).ConfigureAwait(false);
+                FilterCSharpDiagnostics(unmappedDiagnostics, codeDocument, sourceText) :
+                FilterHTMLDiagnostics(unmappedDiagnostics, codeDocument, sourceText);
             if (!filteredDiagnostics.Any())
             {
                 _logger.LogInformation("No diagnostics remaining after filtering.");
@@ -143,7 +144,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var mappedDiagnostics = MapDiagnostics(
                 request.Kind,
                 filteredDiagnostics,
-                codeDocument);
+                codeDocument,
+                sourceText);
 
             _logger.LogInformation($"Returning {mappedDiagnostics.Length} mapped diagnostics.");
 
@@ -154,12 +156,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
         }
 
-        private static async Task<Diagnostic[]> FilterHTMLDiagnosticsAsync(
+        private static Diagnostic[] FilterHTMLDiagnostics(
             Diagnostic[] unmappedDiagnostics,
             RazorCodeDocument codeDocument,
-            DocumentSnapshot documentSnapshot)
+            SourceText sourceText)
         {
-            var sourceText = await documentSnapshot.GetTextAsync();
             var syntaxTree = codeDocument.GetSyntaxTree();
 
             var processedAttributes = new Dictionary<TextSpan, bool>();
@@ -255,13 +256,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private Diagnostic[] FilterCSharpDiagnostics(Diagnostic[] unmappedDiagnostics, RazorCodeDocument codeDocument)
+        private Diagnostic[] FilterCSharpDiagnostics(Diagnostic[] unmappedDiagnostics, RazorCodeDocument codeDocument, SourceText sourceText)
         {
             return unmappedDiagnostics.Where(d =>
-                !ShouldFilterCSharpDiagnosticBasedOnErrorCode(d, codeDocument)).ToArray();
+                !ShouldFilterCSharpDiagnosticBasedOnErrorCode(d, codeDocument, sourceText)).ToArray();
         }
 
-        private bool ShouldFilterCSharpDiagnosticBasedOnErrorCode(Diagnostic diagnostic, RazorCodeDocument codeDocument)
+        private bool ShouldFilterCSharpDiagnosticBasedOnErrorCode(Diagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText)
         {
             if (!diagnostic.Code.HasValue)
             {
@@ -270,15 +271,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return diagnostic.Code.Value.String switch
             {
-                "CS1525" => ShouldIgnoreCS1525(diagnostic, codeDocument),
+                "CS1525" => ShouldIgnoreCS1525(diagnostic, codeDocument, sourceText),
                 _ => CSharpDiagnosticsToIgnore.Contains(diagnostic.Code.Value.String) &&
                         diagnostic.Severity != DiagnosticSeverity.Error,
             };
 
-            bool ShouldIgnoreCS1525(Diagnostic diagnostic, RazorCodeDocument codeDocument)
+            bool ShouldIgnoreCS1525(Diagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText)
             {
                 if (CheckIfDocumentHasRazorDiagnostic(codeDocument, RazorDiagnosticFactory.TagHelper_EmptyBoundAttribute.Id) &&
-                    TryGetOriginalDiagnosticRange(diagnostic.Range, diagnostic.Severity, codeDocument, out var originalRange) &&
+                    TryGetOriginalDiagnosticRange(diagnostic, codeDocument, sourceText, out var originalRange) &&
                     originalRange.IsUndefined())
                 {
                     // Empty attribute values will take the following form in the generated C# document:
@@ -303,7 +304,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private Diagnostic[] MapDiagnostics(
             RazorLanguageKind languageKind,
             IReadOnlyList<Diagnostic> diagnostics,
-            RazorCodeDocument codeDocument)
+            RazorCodeDocument codeDocument,
+            SourceText sourceText)
         {
             if (languageKind != RazorLanguageKind.CSharp)
             {
@@ -317,7 +319,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 var diagnostic = diagnostics[i];
 
-                if (!TryGetOriginalDiagnosticRange(diagnostic.Range, diagnostic.Severity, codeDocument, out var originalRange))
+                if (!TryGetOriginalDiagnosticRange(diagnostic, codeDocument, sourceText, out var originalRange))
                 {
                     continue;
                 }
@@ -329,17 +331,75 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return mappedDiagnostics.ToArray();
         }
 
-        private bool TryGetOriginalDiagnosticRange(Range projectedRange, DiagnosticSeverity? severity, RazorCodeDocument codeDocument, out Range originalRange)
+        private static bool IsRudeEditDiagnostic(Diagnostic diagnostic)
         {
+            return diagnostic.Code.HasValue &&
+                diagnostic.Code.Value.IsString &&
+                diagnostic.Code.Value.String.StartsWith("ENC");
+        }
+
+        private Range RemapRudeEditRange(Range diagnosticRange, RazorCodeDocument codeDocument, SourceText sourceText)
+        {
+            // This is a rude edit diagnostic that has already been mapped to the Razor document. The mapping isn't absolutely correct though,
+            // it's based on the runtime code generation of the Razor document therefore we need to re-map the already mapped diagnostic in a
+            // semi-intelligent way.
+
+            var syntaxTree = codeDocument.GetSyntaxTree();
+            var owner = syntaxTree.GetOwner(sourceText, diagnosticRange);
+
+            switch (owner?.Kind)
+            {
+                case SyntaxKind.CSharpStatementLiteral: // Simple C# in @code block, @{ ... } etc.
+                case SyntaxKind.CSharpExpressionLiteral: // Referenced simple C# in an implicit expression @Foo((abc) => {....})
+                    // Good as is, we were able to find a known leaf-node that fully contains the diagnostic range. Therefore we can
+                    // return the diagnostic range as is.
+                    return diagnosticRange;
+
+                default:
+                    // Unsupported owner of rude diagnostic, lets map to the entirety of the diagnostic range to be sure the diagnostic can be presented
+
+                    _logger.LogInformation($"Failed to remap rude edit for SyntaxTree owner '{owner?.Kind}'.");
+
+                    var startLineIndex = diagnosticRange.Start.Line;
+                    var startLine = sourceText.Lines[startLineIndex];
+
+                    // Look for the first non-whitespace character so we're not squiggling random whitespace at the start of the diagnostic
+                    var firstNonWhitespaceCharacterOffset = sourceText.GetFirstNonWhitespaceOffset(startLine.Span, out _);
+                    var diagnosticStartCharacter = firstNonWhitespaceCharacterOffset ?? 0;
+                    var startLinePosition = new Position(startLineIndex, diagnosticStartCharacter);
+
+
+                    var endLineIndex = diagnosticRange.End.Line;
+                    var endLine = sourceText.Lines[endLineIndex];
+
+                    // Look for the last non-whitespace character so we're not squiggling random whitespace at the end of the diagnostic
+                    var lastNonWhitespaceCharacterOffset = sourceText.GetLastNonWhitespaceOffset(endLine.Span, out _);
+                    var diagnosticEndCharacter = lastNonWhitespaceCharacterOffset ?? 0;
+                    var diagnosticEndWhitespaceOffset = diagnosticEndCharacter + 1;
+                    var endLinePosition = new Position(endLineIndex, diagnosticEndWhitespaceOffset);
+
+                    var encompassingRange = new Range(startLinePosition, endLinePosition);
+                    return encompassingRange;
+            }
+        }
+
+        private bool TryGetOriginalDiagnosticRange(Diagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText, out Range originalRange)
+        {
+            if (IsRudeEditDiagnostic(diagnostic))
+            {
+                originalRange = RemapRudeEditRange(diagnostic.Range, codeDocument, sourceText);
+                return true;
+            }
+
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(
-                    codeDocument,
-                    projectedRange,
-                    MappingBehavior.Inclusive,
-                    out originalRange))
+                codeDocument,
+                diagnostic.Range,
+                MappingBehavior.Inclusive,
+                out originalRange))
             {
                 // Couldn't remap the range correctly.
                 // If this isn't an `Error` Severity Diagnostic we can discard it.
-                if (severity != DiagnosticSeverity.Error)
+                if (diagnostic.Severity != DiagnosticSeverity.Error)
                 {
                     return false;
                 }
