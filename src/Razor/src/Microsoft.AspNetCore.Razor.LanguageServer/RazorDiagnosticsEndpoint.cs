@@ -338,7 +338,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 diagnostic.Code.Value.String.StartsWith("ENC");
         }
 
-        private Range RemapRudeEditRange(Range diagnosticRange, RazorCodeDocument codeDocument, SourceText sourceText)
+        private bool TryRemapRudeEditRange(Range diagnosticRange, RazorCodeDocument codeDocument, SourceText sourceText, out Range remappedRange)
         {
             // This is a rude edit diagnostic that has already been mapped to the Razor document. The mapping isn't absolutely correct though,
             // it's based on the runtime code generation of the Razor document therefore we need to re-map the already mapped diagnostic in a
@@ -353,7 +353,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 case SyntaxKind.CSharpExpressionLiteral: // Referenced simple C# in an implicit expression @Foo((abc) => {....})
                     // Good as is, we were able to find a known leaf-node that fully contains the diagnostic range. Therefore we can
                     // return the diagnostic range as is.
-                    return diagnosticRange;
+                    remappedRange = diagnosticRange;
+                    return true;
 
                 default:
                     // Unsupported owner of rude diagnostic, lets map to the entirety of the diagnostic range to be sure the diagnostic can be presented
@@ -361,6 +362,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     _logger.LogInformation($"Failed to remap rude edit for SyntaxTree owner '{owner?.Kind}'.");
 
                     var startLineIndex = diagnosticRange.Start.Line;
+                    if (startLineIndex >= sourceText.Lines.Count)
+                    {
+                        // Documents aren't sync'd we can't remap the ranges correctly, drop the diagnostic.
+                        remappedRange = null;
+                        return false;
+                    }
                     var startLine = sourceText.Lines[startLineIndex];
 
                     // Look for the first non-whitespace character so we're not squiggling random whitespace at the start of the diagnostic
@@ -370,6 +377,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
 
                     var endLineIndex = diagnosticRange.End.Line;
+                    if (endLineIndex >= sourceText.Lines.Count)
+                    {
+                        // Documents aren't sync'd we can't remap the ranges correctly, drop the diagnostic.
+                        remappedRange = null;
+                        return false;
+                    }
                     var endLine = sourceText.Lines[endLineIndex];
 
                     // Look for the last non-whitespace character so we're not squiggling random whitespace at the end of the diagnostic
@@ -378,8 +391,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var diagnosticEndWhitespaceOffset = diagnosticEndCharacter + 1;
                     var endLinePosition = new Position(endLineIndex, diagnosticEndWhitespaceOffset);
 
-                    var encompassingRange = new Range(startLinePosition, endLinePosition);
-                    return encompassingRange;
+                    remappedRange = new Range(startLinePosition, endLinePosition);
+                    return true;
             }
         }
 
@@ -387,8 +400,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (IsRudeEditDiagnostic(diagnostic))
             {
-                originalRange = RemapRudeEditRange(diagnostic.Range, codeDocument, sourceText);
-                return true;
+                if (TryRemapRudeEditRange(diagnostic.Range, codeDocument, sourceText, out originalRange))
+                {
+                    return true;
+                }
+
+                return false;
             }
 
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(

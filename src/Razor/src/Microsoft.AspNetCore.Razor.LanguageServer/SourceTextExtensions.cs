@@ -146,6 +146,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return null;
         }
 
+        // Given the source text and the current span, we start at the ending span location and iterate towards the start
+        // until we've reached a non-whitespace character.
+        // For instance "  abcdef  " would have a last non-whitespace offset of 7 to correspond to the charcter 'f'.
         public static int? GetLastNonWhitespaceOffset(this SourceText source, TextSpan? span, out int newLineCount)
         {
             if (source is null)
