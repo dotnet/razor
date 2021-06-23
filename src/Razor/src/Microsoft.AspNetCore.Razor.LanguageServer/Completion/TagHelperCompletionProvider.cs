@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     selectedAttributeNameLocation.Value.Length > 1 &&
                     selectedAttributeNameLocation.Value.Start != location.AbsoluteIndex)
                 {
-                    // To align with HTML completion behavior we only want to only provide completion items if we're trying to resolve completion at the
+                    // To align with HTML completion behavior we only want to provide completion items if we're trying to resolve completion at the
                     // beginning of an HTML attribute name. We do extra checks on prefix locations here in order to rule out malformed cases when the Razor
                     // compiler incorrectly parses multi-line attributes while in the middle of typing out an element. For instance:
                     //
