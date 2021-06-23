@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
                 return Array.Empty<string>();
             }
 
-            _joinableTaskFactory.RunAsync(() => ZipLogsAsync(logDirectory, zipFilePath));
+            _ = _joinableTaskFactory.RunAsync(() => ZipLogsAsync(logDirectory, zipFilePath));
 
             return new[] { zipFilePath };
         }
