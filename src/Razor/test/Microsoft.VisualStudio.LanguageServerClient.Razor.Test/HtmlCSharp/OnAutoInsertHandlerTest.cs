@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Null(response);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/33677")]
         public async Task HandleRequestAsync_InvokesHTMLServer_RemapsEdits()
         {
             // Arrange
