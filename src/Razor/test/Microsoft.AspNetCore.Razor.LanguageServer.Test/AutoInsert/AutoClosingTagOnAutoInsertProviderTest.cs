@@ -102,7 +102,7 @@ input: @"
 expected: @"
 @addTagHelper *, TestAssembly
 
-<input />$0
+<input />
 ",
 fileKind: FileKinds.Legacy,
 tagHelpers: new[] { UnspecifiedInputTagHelper });
@@ -145,6 +145,42 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
         }
 
         [Fact]
+        public void OnTypeCloseAngle_WithSlash_WithoutEndTagTagHelperTagStructure()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+<test />$$
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+<test />
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { WithoutEndTagTagHelper });
+        }
+
+        [Fact]
+        public void OnTypeCloseAngle_WithSpace_WithoutEndTagTagHelperTagStructure()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+<test >$$
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+<test />
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { WithoutEndTagTagHelper });
+        }
+
+        [Fact]
         public void OnTypeCloseAngle_WithoutEndTagTagHelperTagStructure()
         {
             RunAutoInsertTest(
@@ -156,7 +192,7 @@ input: @"
 expected: @"
 @addTagHelper *, TestAssembly
 
-<test />$0
+<test />
 ",
 fileKind: FileKinds.Legacy,
 tagHelpers: new[] { WithoutEndTagTagHelper });
@@ -230,7 +266,31 @@ input: @"
     <input>$$
 ",
 expected: @"
-    <input />$0
+    <input />
+");
+        }
+
+        [Fact]
+        public void OnTypeCloseAngle_WithSlash_ClosesVoidHTMLTag()
+        {
+            RunAutoInsertTest(
+input: @"
+    <input />$$
+",
+expected: @"
+    <input />
+");
+        }
+
+        [Fact]
+        public void OnTypeCloseAngle_WithSpace_ClosesVoidHTMLTag()
+        {
+            RunAutoInsertTest(
+input: @"
+    <input >$$
+",
+expected: @"
+    <input />
 ");
         }
 
