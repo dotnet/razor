@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 if (containingTagNameToken.FullWidth > 1 &&
                     containingTagNameToken.Span.Start != location.AbsoluteIndex)
                 {
-                    // To align with HTML completion behavior we only want to only provide completion items if we're trying to resolve completion at the
+                    // To align with HTML completion behavior we only want to provide completion items if we're trying to resolve completion at the
                     // beginning of an HTML element name.
                     return Array.Empty<RazorCompletionItem>();
                 }
