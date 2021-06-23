@@ -74,12 +74,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         public async Task GetCompletionContextAsync_ProvidesCompletionsWhenAtCompletionPoint()
         {
             // Arrange
-            var text = "@addTag";
+            var text = "@";
             var parser = CreateParser(text, SectionDirective.Directive);
             var completionSource = new RazorDirectiveCompletionSource(Dispatcher, parser, CompletionFactsService);
             var documentSnapshot = new StringTextSnapshot(text);
-            var triggerLocation = new SnapshotPoint(documentSnapshot, 4);
-            var applicableSpan = new SnapshotSpan(documentSnapshot, new Span(1, 6 /* addTag */));
+            var triggerLocation = new SnapshotPoint(documentSnapshot, 1);
+            var applicableSpan = new SnapshotSpan(documentSnapshot, new Span(1, 0));
 
             // Act
             var completionContext = await Task.Run(
