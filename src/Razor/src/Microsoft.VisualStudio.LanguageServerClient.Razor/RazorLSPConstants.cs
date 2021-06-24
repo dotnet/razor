@@ -9,6 +9,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         public const string RazorLSPContentTypeName = "Razor";
 
+        public const string RazorCSharpLanguageServerName = "Razor C# Language Server Client";
+
+        public const string RazorLanguageServerName = "Razor Language Server Client";
+
+        public const string HtmlLanguageServerName = "HtmlDelegationLanguageServerClient";
+
         public const string CSHTMLFileExtension = ".cshtml";
 
         public const string RazorFileExtension = ".razor";

@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(ri => ri.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, RazorDiagnosticsResponse>(
                     LanguageServerConstants.RazorTranslateDiagnosticsEndpoint,
+                    RazorLSPConstants.RazorLanguageServerName,
                     RazorLSPConstants.RazorLSPContentTypeName,
                     It.IsAny<RazorDiagnosticsParams>(),
                     It.IsAny<CancellationToken>()))

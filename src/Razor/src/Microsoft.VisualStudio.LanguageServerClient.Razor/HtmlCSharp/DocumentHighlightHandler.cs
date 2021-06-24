@@ -111,6 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var highlights = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentHighlightParams, DocumentHighlight[]>(
                 Methods.TextDocumentDocumentHighlightName,
+                serverKind.ToLanguageServerName(),
                 serverKind.ToContentType(),
                 documentHighlightParams,
                 cancellationToken).ConfigureAwait(false);
