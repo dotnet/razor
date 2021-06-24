@@ -80,5 +80,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var owner = syntaxTree.Root.LocateOwner(change);
             return owner;
         }
+
+        public static SyntaxNode GetOwner(this RazorSyntaxTree syntaxTree, SourceText sourceText, Range range)
+        {
+            if (syntaxTree is null)
+            {
+                throw new ArgumentNullException(nameof(syntaxTree));
+            }
+
+            if (sourceText is null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            if (range is null)
+            {
+                throw new ArgumentNullException(nameof(range));
+            }
+
+            var absoluteStartIndex = range.Start.GetAbsoluteIndex(sourceText);
+            var absoluteEndIndex = range.End.GetAbsoluteIndex(sourceText);
+            var length = absoluteEndIndex - absoluteStartIndex;
+            var change = new SourceChange(absoluteStartIndex, length, string.Empty);
+            var owner = syntaxTree.Root.LocateOwner(change);
+            return owner;
+        }
     }
 }
