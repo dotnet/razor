@@ -45,17 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             _serializer.AddVSExtensionConverters();
         }
 
-        public override Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(string method, string contentType, TIn parameters, CancellationToken cancellationToken)
-        {
-            var capabilitiesFilter = _fallbackCapabilitiesFilterResolver.Resolve(method);
-            return RequestServerCoreAsync<TIn, TOut>(method, contentType, capabilitiesFilter, parameters, cancellationToken);
-        }
-
-        public override Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
-        {
-            return RequestServerCoreAsync<TIn, TOut>(method, contentType, capabilitiesFilter, parameters, cancellationToken);
-        }
-
         public override Task<IEnumerable<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, TIn parameters, CancellationToken cancellationToken)
         {
             var capabilitiesFilter = _fallbackCapabilitiesFilterResolver.Resolve(method);
@@ -67,23 +56,43 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             return RequestMultipleServerCoreAsync<TIn, TOut>(method, contentType, capabilitiesFilter, parameters, cancellationToken);
         }
 
-        private async Task<TOut> RequestServerCoreAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
+        public override Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
+            string method,
+            string languageServerName,
+            string contentType,
+            TIn parameters,
+            CancellationToken cancellationToken)
+        {
+            return ReinvokeRequestOnServerAsync<TIn, TOut>(method, languageServerName, contentType, capabilitiesFilter: null, parameters, cancellationToken);
+        }
+
+        public override async Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
+            string method,
+            string languageServerName,
+            string contentType,
+            Func<JToken, bool> capabilitiesFilter,
+            TIn parameters,
+            CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(method))
             {
                 throw new ArgumentException("message", nameof(method));
             }
 
+            if (capabilitiesFilter == null)
+            {
+                capabilitiesFilter = _fallbackCapabilitiesFilterResolver.Resolve(method);
+            }
+
             var serializedParams = JToken.FromObject(parameters);
 
-#pragma warning disable CS0618 // Type or member is obsolete
             var (_, resultToken) = await _languageServiceBroker.RequestAsync(
                 new[] { contentType },
                 capabilitiesFilter,
+                languageServerName,
                 method,
                 serializedParams,
-                cancellationToken).ConfigureAwait(false);
-#pragma warning restore CS0618 // Type or member is obsolete
+                cancellationToken);
 
             var result = resultToken != null ? resultToken.ToObject<TOut>(_serializer) : default;
             return result;

@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 TextEdit = originalEdit,
             };
-            var requestInvoker = CreateRequestInvoker((method, serverContentType, completionItem) => resolvedCompletionItem);
+            var requestInvoker = CreateRequestInvoker((method, languageServerName, serverContentType, completionItem) => resolvedCompletionItem);
             var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 InsertText = "DateTime",
                 TextEdit = originalEdit,
             };
-            var requestInvoker = CreateRequestInvoker((method, serverContentType, completionItem) => resolvedCompletionItem);
+            var requestInvoker = CreateRequestInvoker((method, languageServerName, serverContentType, completionItem) => resolvedCompletionItem);
             var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 InsertText = "DateTime",
             };
-            var requestInvoker = CreateRequestInvoker((method, serverContentType, completionItem) => resolvedCompletionItem);
+            var requestInvoker = CreateRequestInvoker((method, languageServerName, serverContentType, completionItem) => resolvedCompletionItem);
             var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act & Assert
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 TextEdit = originalEdit,
             };
-            var requestInvoker = CreateRequestInvoker((method, serverContentType, completionItem) => resolvedCompletionItem);
+            var requestInvoker = CreateRequestInvoker((method, languageServerName, serverContentType, completionItem) => resolvedCompletionItem);
             var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 AdditionalTextEdits = new[] { originalEdit },
             };
-            var requestInvoker = CreateRequestInvoker((method, serverContentType, completionItem) => resolvedCompletionItem);
+            var requestInvoker = CreateRequestInvoker((method, languageServerName, serverContentType, completionItem) => resolvedCompletionItem);
             var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
@@ -155,9 +155,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Data = originalData,
                 Detail = "Some documentation"
             };
-            var requestInvoker = CreateRequestInvoker((method, serverContentType, completionItem) =>
+            var requestInvoker = CreateRequestInvoker((method, languageServerName, serverContentType, completionItem) =>
             {
                 Assert.Equal(Methods.TextDocumentCompletionResolveName, method);
+                Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, languageServerName);
                 Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                 Assert.Same(originalData, completionItem.Data);
                 called = true;
@@ -192,9 +193,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Data = originalData,
                 Detail = "Some documentation"
             };
-            var requestInvoker = CreateRequestInvoker((method, serverContentType, completionItem) =>
+            var requestInvoker = CreateRequestInvoker((method, languageServerName, serverContentType, completionItem) =>
             {
                 Assert.Equal(Methods.TextDocumentCompletionResolveName, method);
+                Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, languageServerName);
                 Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
                 Assert.Same(originalData, completionItem.Data);
                 called = true;
@@ -211,13 +213,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Same(expectedResponse, result);
         }
 
-        private LSPRequestInvoker CreateRequestInvoker(Func<string, string, CompletionItem, CompletionItem> reinvokeCallback)
+        private static LSPRequestInvoker CreateRequestInvoker(Func<string, string, string, CompletionItem, CompletionItem> reinvokeCallback)
         {
             CompletionItem response = null;
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionItem>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, CompletionItem, CancellationToken>((method, serverContentType, completionItem, ct) => response = reinvokeCallback(method, serverContentType, completionItem))
+                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionItem>(), It.IsAny<CancellationToken>()))
+                .Callback<string, string, string, CompletionItem, CancellationToken>((method, languageServerName, serverContentType, completionItem, ct) => response = reinvokeCallback(method, languageServerName, serverContentType, completionItem))
                 .Returns(() => Task.FromResult(response));
 
             return requestInvoker.Object;

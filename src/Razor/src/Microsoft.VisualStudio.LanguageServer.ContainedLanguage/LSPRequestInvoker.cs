@@ -13,12 +13,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     {
         public abstract Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
             string method,
+            string languageServerName,
             string contentType,
             TIn parameters,
             CancellationToken cancellationToken);
 
         public abstract Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
             string method,
+            string languageServerName,
             string contentType,
             Func<JToken, bool> capabilitiesFilter,
             TIn parameters,
