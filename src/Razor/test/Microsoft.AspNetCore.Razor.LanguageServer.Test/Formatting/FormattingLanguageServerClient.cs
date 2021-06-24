@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -251,9 +250,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             throw new NotImplementedException();
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        public bool TryGetRequest(long id, [NotNullWhen(true)] out string method, [NotNullWhen(true)] out TaskCompletionSource<JToken> pendingTask)
-#pragma warning restore IDE0060 // Remove unused parameter
+        public bool TryGetRequest(long id, out string method, out TaskCompletionSource<JToken> pendingTask)
         {
             throw new NotImplementedException();
         }

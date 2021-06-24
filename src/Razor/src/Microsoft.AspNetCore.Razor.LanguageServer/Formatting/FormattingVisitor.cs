@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private readonly RazorSourceDocument _source;
         private readonly List<FormattingSpan> _spans;
         private FormattingBlockKind _currentBlockKind;
-        private SyntaxNode _currentBlock;
+        private SyntaxNode? _currentBlock;
         private int _currentHtmlIndentationLevel = 0;
         private int _currentRazorIndentationLevel = 0;
         private bool _isInClassBody = false;
@@ -240,7 +240,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return descriptors.Any(d => d.IsComponentOrChildContentTagHelper());
             }
 
-            static bool ParentHasProperty(MarkupTagHelperElementSyntax parentComponent, string propertyName)
+            static bool ParentHasProperty(MarkupTagHelperElementSyntax parentComponent, string? propertyName)
             {
                 // If this is a child tag helper that match a property of its parent tag helper
                 // then it means this specific node won't actually cause a change in indentation.
@@ -437,6 +437,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return;
             }
 
+            Assumes.NotNull(_currentBlock);
+
             var spanSource = new TextSpan(node.Position, node.FullWidth);
             var blockSource = new TextSpan(_currentBlock.Position, _currentBlock.FullWidth);
 
@@ -475,7 +477,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().CreateRed(node, node.Position));
             }
 
-            SpanContext latestSpanContext = null;
+            SpanContext? latestSpanContext = null;
             var children = node.Children;
             var newChildren = new SyntaxListBuilder(children.Count);
             var literals = new List<MarkupTextLiteralSyntax>();

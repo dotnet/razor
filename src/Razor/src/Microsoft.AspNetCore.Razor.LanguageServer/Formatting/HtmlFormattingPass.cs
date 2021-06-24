@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return new FormattingResult(finalEdits);
         }
 
-        private List<TextChange> AdjustRazorIndentation(FormattingContext context)
+        private static List<TextChange> AdjustRazorIndentation(FormattingContext context)
         {
             // Assume HTML formatter has already run at this point and HTML is relatively indented correctly.
             // But HTML doesn't know about Razor blocks.
