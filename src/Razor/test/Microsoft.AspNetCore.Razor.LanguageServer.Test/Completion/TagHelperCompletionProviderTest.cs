@@ -123,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
-        public void GetCompletionAt_AtHtmlElementNameEdge_ReturnsCompletions()
+        public void GetCompletionAt_AtHtmlElementNameEdge_ReturnsNoCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -134,14 +134,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
 
             // Assert
-            Assert.Collection(
-                completions,
-                completion => Assert.Equal("test1", completion.InsertText),
-                completion => Assert.Equal("test2", completion.InsertText));
+            Assert.Empty(completions);
         }
 
         [Fact]
-        public void GetCompletionAt_AtTagHelperElementNameEdge_ReturnsCompletions()
+        public void GetCompletionAt_AtTagHelperElementNameEdge_ReturnsNoCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -152,10 +149,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
 
             // Assert
-            Assert.Collection(
-                completions,
-                completion => Assert.Equal("test1", completion.InsertText),
-                completion => Assert.Equal("test2", completion.InsertText));
+            Assert.Empty(completions);
         }
 
         [Fact]
@@ -283,7 +277,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
-        public void GetCompletionAt_MinimizedAttribute_ReturnsCompletions()
+        public void GetCompletionAt_MinimizedAttributeEdge_ReturnsNoCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -294,11 +288,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
 
             // Assert
-            AssertBoolIntCompletions(completions);
+            Assert.Empty(completions);
         }
 
         [Fact]
-        public void GetCompletionAt_MinimizedTagHelperAttribute_ReturnsCompletions()
+        public void GetCompletionAt_MinimizedTagHelperAttributeEdge_ReturnsNoCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -309,11 +303,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
 
             // Assert
-            AssertBoolIntCompletions(completions);
+            Assert.Empty(completions);
         }
 
         [Fact]
-        public void GetCompletionAt_HtmlAttribute_ReturnsCompletions()
+        public void GetCompletionAt_InHtmlAttributeName_ReturnsNoCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -324,11 +318,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
 
             // Assert
-            AssertBoolIntCompletions(completions);
+            Assert.Empty(completions);
         }
 
         [Fact]
-        public void GetCompletionAt_TagHelperAttribute_ReturnsCompletions()
+        public void GetCompletionAt_InTagHelperAttribute_ReturnsCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -339,11 +333,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
 
             // Assert
-            AssertBoolIntCompletions(completions);
+            Assert.Empty(completions);
         }
 
         [Fact]
-        public void GetCompletionsAt_MalformedAttributeValue_ReturnsCompletions()
+        public void GetCompletionsAt_MalformedAttributeValueInName_ReturnsNoCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
@@ -355,16 +349,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
 
             // Assert
-            AssertBoolIntCompletions(completions);
+            Assert.Empty(completions);
         }
 
         [Fact]
-        public void GetCompletionsAt_MalformedAttributeName_ReturnsCompletions()
+        public void GetCompletionsAt_MalformedAttributeNamePrefix_ReturnsCompletions()
         {
             // Arrange
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int->", DefaultTagHelpers);
-            var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
+            var sourceSpan = new SourceSpan(36 + Environment.NewLine.Length, 0);
 
             // Act
             var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
