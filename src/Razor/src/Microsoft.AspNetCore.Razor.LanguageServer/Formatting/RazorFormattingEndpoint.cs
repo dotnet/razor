@@ -22,8 +22,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class RazorFormattingEndpoint : IDocumentFormattingHandler, IDocumentRangeFormattingHandler
     {
-        private DocumentFormattingCapability _formattingCapability;
-        private DocumentRangeFormattingCapability _rangeFormattingCapability;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorFormattingService _razorFormattingService;
@@ -85,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
         }
 
-        public async Task<TextEditContainer> Handle(DocumentFormattingParams request, CancellationToken cancellationToken)
+        public async Task<TextEditContainer?> Handle(DocumentFormattingParams request, CancellationToken cancellationToken)
         {
             if (!_optionsMonitor.CurrentValue.EnableFormatting)
             {
@@ -118,6 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return editContainer;
         }
 
+#nullable disable // OmniSharp annotations don't allow a null return, though the spec does
         public async Task<TextEditContainer> Handle(DocumentRangeFormattingParams request, CancellationToken cancellationToken)
         {
             if (!_optionsMonitor.CurrentValue.EnableFormatting)
@@ -148,15 +147,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var editContainer = new TextEditContainer(edits);
             return editContainer;
         }
+#nullable restore
 
         public void SetCapability(DocumentFormattingCapability capability)
         {
-            _formattingCapability = capability;
         }
 
         public void SetCapability(DocumentRangeFormattingCapability capability)
         {
-            _rangeFormattingCapability = capability;
         }
     }
 }

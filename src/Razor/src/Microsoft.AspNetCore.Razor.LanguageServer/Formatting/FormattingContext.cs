@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -21,20 +22,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class FormattingContext : IDisposable
     {
-        private AdhocWorkspaceFactory _workspaceFactory;
-        private Document _csharpWorkspaceDocument;
-        private AdhocWorkspace _csharpWorkspace;
+        private readonly AdhocWorkspaceFactory _workspaceFactory;
+        private Document? _csharpWorkspaceDocument;
+        private AdhocWorkspace? _csharpWorkspace;
 
         private FormattingContext(AdhocWorkspaceFactory workspaceFactory)
         {
             _workspaceFactory = workspaceFactory;
         }
 
-        public DocumentUri Uri { get; private set; }
+        public DocumentUri Uri { get; private set; } = null!;
 
-        public DocumentSnapshot OriginalSnapshot { get; private set; }
+        public DocumentSnapshot OriginalSnapshot { get; private set; } = null!;
 
-        public RazorCodeDocument CodeDocument { get; private set; }
+        public RazorCodeDocument CodeDocument { get; private set; } = null!;
 
         public SourceText SourceText => CodeDocument.GetSourceText();
 
@@ -75,17 +76,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
         }
 
-        public FormattingOptions Options { get; private set; }
+        public FormattingOptions Options { get; private set; } = null!;
 
         public string NewLineString => Environment.NewLine;
 
         public bool IsFormatOnType { get; private set; }
 
-        public Range Range { get; private set; }
+        public Range Range { get; private set; } = null!;
 
-        public IReadOnlyDictionary<int, IndentationContext> Indentations { get; private set; }
+        public IReadOnlyDictionary<int, IndentationContext> Indentations { get; private set; } = null!;
 
-        public IReadOnlyList<FormattingSpan> FormattingSpans { get; private set; }
+        public IReadOnlyList<FormattingSpan> FormattingSpans { get; private set; } = null!;
 
         /// <summary>
         /// Generates a string of indentation based on a specific indentation level. For instance, inside of a C# method represents 1 indentation level. A method within a class would have indentaiton level of 2 by default etc.
@@ -160,7 +161,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return false;
         }
 
-        public bool TryGetFormattingSpan(int absoluteIndex, out FormattingSpan result)
+        public bool TryGetFormattingSpan(int absoluteIndex, [NotNullWhen(true)] out FormattingSpan? result)
         {
             result = null;
             for (var i = 0; i < FormattingSpans.Count; i++)
@@ -228,7 +229,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         /// Without this guarantee its hard to reason about test behaviour/failures.
         /// </summary>
         [Conditional("DEBUG")]
-        private void ValidateComponents(RazorCodeDocument oldCodeDocument, RazorCodeDocument newCodeDocument)
+        private static void ValidateComponents(RazorCodeDocument oldCodeDocument, RazorCodeDocument newCodeDocument)
         {
             var oldTagHelperElements = oldCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<Language.Syntax.MarkupTagHelperElementSyntax>().Count();
             var newTagHelperElements = newCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<Language.Syntax.MarkupTagHelperElementSyntax>().Count();
@@ -241,7 +242,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorCodeDocument codeDocument,
             FormattingOptions options,
             AdhocWorkspaceFactory workspaceFactory,
-            Range range = null,
+            Range? range = null,
             bool isFormatOnType = false)
         {
             if (uri is null)
@@ -311,7 +312,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // position now contains the first non-whitespace character or 0. Get the corresponding FormattingSpan.
                 if (result.TryGetFormattingSpan(nonWsPos.Value, out var span))
                 {
-                    indentations[i] = new IndentationContext
+                    indentations[i] = new IndentationContext(firstSpan: span)
                     {
                         Line = i,
                         RazorIndentationLevel = span.RazorIndentationLevel,
@@ -319,7 +320,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         RelativeIndentationLevel = span.IndentationLevel - previousIndentationLevel,
                         ExistingIndentation = existingIndentation,
                         ExistingIndentationSize = existingIndentationSize,
-                        FirstSpan = span,
                         EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
                     };
                     previousIndentationLevel = span.IndentationLevel;
@@ -338,7 +338,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         isInClassBody: false,
                         componentLambdaNestingLevel: 0);
 
-                    indentations[i] = new IndentationContext
+                    indentations[i] = new IndentationContext(firstSpan: placeholderSpan)
                     {
                         Line = i,
                         RazorIndentationLevel = 0,
@@ -346,7 +346,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         RelativeIndentationLevel = previousIndentationLevel,
                         ExistingIndentation = existingIndentation,
                         ExistingIndentationSize = existingIndentation,
-                        FirstSpan = placeholderSpan,
                         EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
                     };
                 }

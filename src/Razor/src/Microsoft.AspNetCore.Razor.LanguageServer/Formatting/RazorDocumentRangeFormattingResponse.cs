@@ -9,6 +9,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class RazorDocumentRangeFormattingResponse
     {
-        public TextEdit[] Edits { get; set; }
+        public TextEdit[]? Edits { get; set; }
     }
 }

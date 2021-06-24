@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public override bool IsValidationPass => false;
 
-        protected async Task<List<TextChange>> AdjustIndentationAsync(FormattingContext context, CancellationToken cancellationToken, Range range = null)
+        protected async Task<List<TextChange>> AdjustIndentationAsync(FormattingContext context, CancellationToken cancellationToken, Range? range = null)
         {
             // In this method, the goal is to make final adjustments to the indentation of each line.
             // We will take into account the following,
@@ -251,7 +251,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return changes;
         }
 
-        protected static List<TextChange> CleanupDocument(FormattingContext context, Range range = null)
+        protected static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
         {
             var text = context.SourceText;
             range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
