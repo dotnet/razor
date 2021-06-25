@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -157,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             foreach (var change in changes)
             {
-                var newLineCount = change.NewText.Split('\n').Length - 1;
+                var newLineCount = change.NewText is null ? 0 : change.NewText.Split('\n').Length - 1;
 
                 var range = change.Span.AsRange(text);
                 Debug.Assert(range.Start.Line <= range.End.Line, "Invalid range.");

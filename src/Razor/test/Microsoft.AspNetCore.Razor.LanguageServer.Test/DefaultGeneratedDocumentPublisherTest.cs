@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -375,7 +374,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new NotImplementedException();
             }
 
-            public bool TryGetRequest(long id, [NotNullWhen(true)] out string method, [NotNullWhen(true)] out TaskCompletionSource<JToken> pendingTask)
+            public bool TryGetRequest(long id, out string method, out TaskCompletionSource<JToken> pendingTask)
             {
                 throw new NotImplementedException();
             }
