@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor
@@ -17,7 +18,11 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public abstract TaskScheduler BackgroundScheduler { get; }
 
-        public TaskScheduler SwitchToForegroundThread() => ForegroundScheduler;
+        public async Task RunOnForegroundAsync(Action action, CancellationToken cancellationToken)
+            => await RunOnForegroundAsync(new Func<Task>(() => { action(); return Task.CompletedTask; }), cancellationToken);
+
+        public async Task<TParam> RunOnForegroundAsync<TParam>(Func<TParam> action, CancellationToken cancellationToken)
+            => await Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, ForegroundScheduler);
 
         public virtual void AssertForegroundThread([CallerMemberName] string caller = null)
         {

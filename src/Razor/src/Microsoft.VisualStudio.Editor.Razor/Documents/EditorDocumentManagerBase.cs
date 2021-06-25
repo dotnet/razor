@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected JoinableTaskContext JoinableTaskContext { get; }
 
-        protected abstract ITextBuffer GetTextBufferForOpenDocument(string filePath);
+        protected abstract Task<ITextBuffer> GetTextBufferForOpenDocumentAsync(string filePath);
 
         protected abstract void OnDocumentOpened(EditorDocument document);
 
@@ -96,25 +96,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             EventHandler opened,
             EventHandler closed)
         {
-            ITextBuffer textBuffer;
-            EditorDocument document;
+            ForegroundDispatcher.AssertForegroundThread();
 
-            // GetTextBufferForOpenDocument requires the UI thread due to IVs access, so we need to
-            // temporarily switch to it.
-            await JoinableTaskContext.Factory.SwitchToMainThreadAsync();
+            var textBuffer = await GetTextBufferForOpenDocumentAsync(key.DocumentFilePath);
 
             lock (_lock)
             {
-                // Check if the document is already open and initialized, and associate a buffer if
-                // possible.
-                textBuffer = GetTextBufferForOpenDocument(key.DocumentFilePath);
-            }
-
-            await ForegroundDispatcher.SwitchToForegroundThread();
-
-            lock (_lock)
-            {
-                if (TryGetDocument(key, out document))
+                if (TryGetDocument(key, out var document))
                 {
                     return document;
                 }
@@ -143,22 +131,14 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 {
                     documents.Add(key);
                 }
-            }
 
-            // OnDocumentOpened requires the UI thread
-            await JoinableTaskContext.Factory.SwitchToMainThreadAsync();
-
-            lock (_lock)
-            {
                 if (document.IsOpenInEditor)
                 {
                     OnDocumentOpened(document);
                 }
+
+                return document;
             }
-
-            await ForegroundDispatcher.SwitchToForegroundThread();
-
-            return document;
         }
 
         protected void DocumentOpened(string filePath, ITextBuffer textBuffer)
@@ -223,22 +203,25 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             ForegroundDispatcher.AssertForegroundThread();
 
-            var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
-            if (_documentsByFilePath.TryGetValue(document.DocumentFilePath, out var documents))
+            lock (_lock)
             {
-                documents.Remove(key);
-
-                if (documents.Count == 0)
+                var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
+                if (_documentsByFilePath.TryGetValue(document.DocumentFilePath, out var documents))
                 {
-                    _documentsByFilePath.Remove(document.DocumentFilePath);
+                    documents.Remove(key);
+
+                    if (documents.Count == 0)
+                    {
+                        _documentsByFilePath.Remove(document.DocumentFilePath);
+                    }
                 }
-            }
 
-            _documents.Remove(key);
+                _documents.Remove(key);
 
-            if (document.IsOpenInEditor)
-            {
-                OnDocumentClosed(document);
+                if (document.IsOpenInEditor)
+                {
+                    OnDocumentClosed(document);
+                }
             }
         }
     }

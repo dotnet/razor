@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -52,22 +54,21 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactory = editorAdaptersFactory;
             
-            var hr = runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out _);
+            var hr = runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this, foregroundDispatcher), out _);
             Marshal.ThrowExceptionForHR(hr);
 
             _documentsByCookie = new Dictionary<uint, List<DocumentKey>>();
             _cookiesByDocument = new Dictionary<DocumentKey, uint>();
         }
 
-        protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
+        protected override async Task<ITextBuffer> GetTextBufferForOpenDocumentAsync(string filePath)
         {
-            // GetDocumentBuffer requires the UI thread
-            JoinableTaskContext.AssertUIThread();
-
             if (filePath == null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
+
+            ForegroundDispatcher.AssertForegroundThread();
 
             // Check if the document is already open and initialized, and associate a buffer if possible.
             uint cookie;
@@ -75,7 +76,15 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 ((cookie = _runningDocumentTable.GetDocumentCookie(filePath)) != VSConstants.VSCOOKIE_NIL) &&
                 (_runningDocumentTable.GetDocumentFlags(cookie) & (uint)_VSRDTFLAGS4.RDT_PendingInitialization) == 0)
             {
-                var textBuffer = !(((object)_runningDocumentTable.GetDocumentData(cookie)) is VsTextBuffer vsTextBuffer)
+                // Notes:
+                // 1) Cast avoids dynamic
+                // 2) GetDocumentData requires the UI thread
+                var documentData = await JoinableTaskContext.RunOnMainThreadAsync(ForegroundDispatcher.ForegroundScheduler,
+                    () => (object)_runningDocumentTable.GetDocumentData(cookie), CancellationToken.None);
+
+                ForegroundDispatcher.AssertForegroundThread();
+
+                var textBuffer = !(documentData is VsTextBuffer vsTextBuffer)
                     ? null
                     : _editorAdaptersFactory.GetDocumentBuffer(vsTextBuffer);
                 return textBuffer;
@@ -86,9 +95,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override void OnDocumentOpened(EditorDocument document)
         {
-            // We should call this method from the UI thread to make sure access and modification to
-            // the shared variables called in this method are exclusive to one thread.
-            JoinableTaskContext.AssertUIThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             var cookie = _runningDocumentTable.GetDocumentCookie(document.DocumentFilePath);
             if (cookie != VSConstants.VSCOOKIE_NIL)
@@ -99,9 +106,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override void OnDocumentClosed(EditorDocument document)
         {
-            // We should call this method from the UI thread to make sure access and modification to
-            // the shared variables called in this method are exclusive to one thread.
-            JoinableTaskContext.AssertUIThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
             if (_cookiesByDocument.TryGetValue(key, out var cookie))
@@ -110,16 +115,20 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
         }
 
-        public void DocumentOpened(uint cookie)
+        public async Task DocumentOpenedAsync(uint cookie)
         {
-            // One of the callers of this method is RunningDocumentTableEventSink.OnAfterAttributeChangeEx,
-            // which needs to run on the UI thread.
-            JoinableTaskContext.AssertUIThread();
+            // Notes:
+            // 1) Cast avoids dynamic
+            // 2) GetDocumentData requires the UI thread
+            var documentData = await JoinableTaskContext.RunOnMainThreadAsync(ForegroundDispatcher.ForegroundScheduler,
+                () => (object)_runningDocumentTable.GetDocumentData(cookie), CancellationToken.None);
+
+            ForegroundDispatcher.AssertForegroundThread();
 
             lock (_lock)
             {
                 // Casts avoid dynamic
-                if ((object)_runningDocumentTable.GetDocumentData(cookie) is IVsTextBuffer vsTextBuffer)
+                if (documentData is IVsTextBuffer vsTextBuffer)
                 {
                     var filePath = _runningDocumentTable.GetDocumentMoniker(cookie);
                     if (!TryGetMatchingDocuments(filePath, out var documents))
@@ -150,8 +159,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void BufferLoaded(IVsTextBuffer vsTextBuffer, string filePath)
         {
-            // Calls into BufferLoaded, which requires the UI thread.
-            JoinableTaskContext.AssertUIThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             var textBuffer = _editorAdaptersFactory.GetDocumentBuffer(vsTextBuffer);
             if (textBuffer != null)
@@ -167,8 +175,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void BufferLoaded(ITextBuffer textBuffer, string filePath, EditorDocument[] documents)
         {
-            // Calls into DocumentOpened, which requires the UI thread.
-            JoinableTaskContext.AssertUIThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             lock (_lock)
             {
@@ -181,9 +188,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void DocumentClosed(uint cookie, string exceptFilePath = null)
         {
-            // One of the callers of this method is RunningDocumentTableEventSink.OnBeforeLastDocumentUnlock,
-            // which needs to run on the UI thread.
-            JoinableTaskContext.AssertUIThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             lock (_lock)
             {
@@ -205,10 +210,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
         }
 
-        public void DocumentRenamed(uint cookie, string fromFilePath, string toFilePath)
+        public async Task DocumentRenamedAsync(uint cookie, string fromFilePath, string toFilePath)
         {
-            // Calls into DocumentClosed and DocumentOpened, which require the UI thread.
-            JoinableTaskContext.AssertUIThread();
+            ForegroundDispatcher.AssertForegroundThread();
 
             // Ignore changes is casing
             if (FilePathComparer.Instance.Equals(fromFilePath, toFilePath))
@@ -228,7 +232,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             // Try to open any existing documents that match the new name.
             if ((_runningDocumentTable.GetDocumentFlags(cookie) & (uint)_VSRDTFLAGS4.RDT_PendingInitialization) == 0)
             {
-                DocumentOpened(cookie);
+                await DocumentOpenedAsync(cookie);
             }
         }
 

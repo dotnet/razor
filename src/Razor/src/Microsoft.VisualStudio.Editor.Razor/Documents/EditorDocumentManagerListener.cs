@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
@@ -93,34 +94,35 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             try
             {
-                await _foregroundDispatcher.SwitchToForegroundThread();
-
-                switch (e.Kind)
+                await _foregroundDispatcher.RunOnForegroundAsync(async () =>
                 {
-                    case ProjectChangeKind.DocumentAdded:
-                        {
-                            var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
-                            var document = await _documentManager.GetOrCreateDocumentAsync(
-                                key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
-
-                            if (document.IsOpenInEditor)
+                    switch (e.Kind)
+                    {
+                        case ProjectChangeKind.DocumentAdded:
                             {
-                                _onOpened(document, EventArgs.Empty);
+                                var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
+                                var document = await _documentManager.GetOrCreateDocumentAsync(
+                                    key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
+
+                                if (document.IsOpenInEditor)
+                                {
+                                    _onOpened(document, EventArgs.Empty);
+                                }
+
+                                break;
                             }
 
-                            break;
-                        }
-
-                    case ProjectChangeKind.DocumentRemoved:
-                        {
-                            // This class 'owns' the document entry so it's safe for us to dispose it.
-                            if (_documentManager.TryGetDocument(new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document))
+                        case ProjectChangeKind.DocumentRemoved:
                             {
-                                document.Dispose();
+                                // This class 'owns' the document entry so it's safe for us to dispose it.
+                                if (_documentManager.TryGetDocument(new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document))
+                                {
+                                    document.Dispose();
+                                }
+                                break;
                             }
-                            break;
-                        }
-                }
+                    }
+                }, CancellationToken.None);
             }
             catch (Exception ex)
             {
@@ -135,9 +137,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             try
             {
-                await _foregroundDispatcher.SwitchToForegroundThread();
-                var document = (EditorDocument)sender;
-                _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                {
+                    var document = (EditorDocument)sender;
+                    _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+                }, CancellationToken.None);
             }
             catch (Exception ex)
             {
@@ -152,9 +156,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             try
             {
-                await _foregroundDispatcher.SwitchToForegroundThread();
-                var document = (EditorDocument)sender;
-                _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                {
+                    var document = (EditorDocument)sender;
+                    _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+                }, CancellationToken.None);
             }
             catch (Exception ex)
             {
@@ -169,9 +175,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             try
             {
-                await _foregroundDispatcher.SwitchToForegroundThread();
-                var document = (EditorDocument)sender;
-                _projectManager.DocumentOpened(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                {
+                    var document = (EditorDocument)sender;
+                    _projectManager.DocumentOpened(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+                }, CancellationToken.None);
             }
             catch (Exception ex)
             {
@@ -186,9 +194,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             try
             {
-                await _foregroundDispatcher.SwitchToForegroundThread();
-                 var document = (EditorDocument)sender;
-                _projectManager.DocumentClosed(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                {
+                    var document = (EditorDocument)sender;
+                    _projectManager.DocumentClosed(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+                }, CancellationToken.None);
             }
             catch (Exception ex)
             {

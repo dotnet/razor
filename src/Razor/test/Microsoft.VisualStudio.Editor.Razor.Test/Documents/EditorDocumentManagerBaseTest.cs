@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 base.DocumentClosed(filePath);
             }
 
-            protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
+            protected override ITextBuffer GetTextBufferForOpenDocumentAsync(string filePath)
             {
                 Buffers.TryGetValue(filePath, out var buffer);
                 return buffer;
