@@ -60,10 +60,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 });
 
             var foregroundDispatcher = new DefaultForegroundDispatcher();
-            var joinableTaskContext = new JoinableTaskContext();
-
             var listener = new EditorDocumentManagerListener(
-                foregroundDispatcher, joinableTaskContext, editorDocumentManger.Object, changedOnDisk, changedInEditor, opened, closed);
+                foregroundDispatcher, editorDocumentManger.Object, changedOnDisk, changedInEditor, opened, closed);
 
             var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
 
@@ -84,10 +82,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 .Returns(Task.FromResult(GetEditorDocument(isOpen: true)));
 
             var foregroundDispatcher = new DefaultForegroundDispatcher();
-            var joinableTaskContext = new JoinableTaskContext();
-
             var listener = new EditorDocumentManagerListener(
-                foregroundDispatcher, joinableTaskContext, editorDocumentManger.Object, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
+                foregroundDispatcher, editorDocumentManger.Object, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
 
             var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
 

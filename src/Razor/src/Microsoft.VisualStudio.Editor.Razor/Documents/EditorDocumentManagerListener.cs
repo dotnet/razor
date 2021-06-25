@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
@@ -19,7 +18,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     internal class EditorDocumentManagerListener : ProjectSnapshotChangeTrigger
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
-        private readonly JoinableTaskFactory _joinableTaskFactory;
 
         private readonly EventHandler _onChangedOnDisk;
         private readonly EventHandler _onChangedInEditor;
@@ -30,20 +28,14 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private ProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public EditorDocumentManagerListener(ForegroundDispatcher foregroundDispatcher, JoinableTaskContext joinableTaskContext)
+        public EditorDocumentManagerListener(ForegroundDispatcher foregroundDispatcher)
         {
             if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _foregroundDispatcher = foregroundDispatcher;
-            _joinableTaskFactory = joinableTaskContext.Factory;
             _onChangedOnDisk = Document_ChangedOnDisk;
             _onChangedInEditor = Document_ChangedInEditor;
             _onOpened = Document_Opened;
@@ -53,7 +45,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         // For testing purposes only.
         internal EditorDocumentManagerListener(
             ForegroundDispatcher foregroundDispatcher,
-            JoinableTaskContext joinableTaskContext,
             EditorDocumentManager documentManager,
             EventHandler onChangedOnDisk,
             EventHandler onChangedInEditor,
@@ -61,7 +52,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             EventHandler onClosed)
         {
             _foregroundDispatcher = foregroundDispatcher;
-            _joinableTaskFactory = joinableTaskContext.Factory;
             _documentManager = documentManager;
             _onChangedOnDisk = onChangedOnDisk;
             _onChangedInEditor = onChangedInEditor;

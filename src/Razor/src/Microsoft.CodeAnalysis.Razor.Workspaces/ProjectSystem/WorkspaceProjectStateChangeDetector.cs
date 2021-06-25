@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
             ForegroundDispatcher foregroundDispatcher)
         {
-            if (workspaceStateGenerator == null)
+            if (workspaceStateGenerator is null)
             {
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }

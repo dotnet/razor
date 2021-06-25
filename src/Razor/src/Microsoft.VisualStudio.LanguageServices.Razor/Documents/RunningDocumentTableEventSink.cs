@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public RunningDocumentTableEventSink(VisualStudioEditorDocumentManager documentManager, ForegroundDispatcher foregroundDispatcher)
         {
-            if (documentManager == null)
+            if (documentManager is null)
             {
                 throw new ArgumentNullException(nameof(documentManager));
             }

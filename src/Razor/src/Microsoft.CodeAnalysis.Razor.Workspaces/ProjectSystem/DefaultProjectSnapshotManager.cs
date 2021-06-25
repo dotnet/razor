@@ -407,7 +407,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var state = ProjectState.Create(Workspace.Services, hostProject);
             var entry = new Entry(state);
-
             _projects[hostProject.FilePath] = entry;
 
             // We need to notify listeners about every project add.

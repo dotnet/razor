@@ -76,11 +76,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 ((cookie = _runningDocumentTable.GetDocumentCookie(filePath)) != VSConstants.VSCOOKIE_NIL) &&
                 (_runningDocumentTable.GetDocumentFlags(cookie) & (uint)_VSRDTFLAGS4.RDT_PendingInitialization) == 0)
             {
-                // Notes:
-                // 1) Cast avoids dynamic
-                // 2) GetDocumentData requires the UI thread
+                // GetDocumentData requires the UI thread
                 var documentData = await JoinableTaskContext.RunOnMainThreadAsync(ForegroundDispatcher.ForegroundScheduler,
-                    () => (object)_runningDocumentTable.GetDocumentData(cookie), CancellationToken.None);
+                    () => _runningDocumentTable.GetDocumentData(cookie), CancellationToken.None);
 
                 ForegroundDispatcher.AssertForegroundThread();
 
@@ -117,11 +115,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public async Task DocumentOpenedAsync(uint cookie)
         {
-            // Notes:
-            // 1) Cast avoids dynamic
-            // 2) GetDocumentData requires the UI thread
+            // GetDocumentData requires the UI thread
             var documentData = await JoinableTaskContext.RunOnMainThreadAsync(ForegroundDispatcher.ForegroundScheduler,
-                () => (object)_runningDocumentTable.GetDocumentData(cookie), CancellationToken.None);
+                () => _runningDocumentTable.GetDocumentData(cookie), CancellationToken.None);
 
             ForegroundDispatcher.AssertForegroundThread();
 
