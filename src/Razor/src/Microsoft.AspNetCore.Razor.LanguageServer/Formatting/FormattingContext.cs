@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
@@ -200,23 +202,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var engine = OriginalSnapshot.Project.GetProjectEngine();
             var importSources = new List<RazorSourceDocument>();
 
-            if (OriginalSnapshot is DefaultDocumentSnapshot documentSnapshot)
+            var imports = OriginalSnapshot.GetImports();
+            foreach (var import in imports)
             {
-                var imports = documentSnapshot.State.GetImports((DefaultProjectSnapshot)OriginalSnapshot.Project);
-                foreach (var import in imports)
-                {
-                    var sourceText = await import.GetTextAsync();
-                    var source = sourceText.GetRazorSourceDocument(import.FilePath, import.TargetPath);
-                    importSources.Add(source);
-                }
+                var sourceText = await import.GetTextAsync();
+                var source = sourceText.GetRazorSourceDocument(import.FilePath, import.TargetPath);
+                importSources.Add(source);
             }
 
             var changedSourceDocument = changedText.GetRazorSourceDocument(OriginalSnapshot.FilePath, OriginalSnapshot.TargetPath);
 
             var codeDocument = engine.ProcessDesignTime(changedSourceDocument, OriginalSnapshot.FileKind, importSources, OriginalSnapshot.Project.TagHelpers);
 
+            ValidateComponents(CodeDocument, codeDocument);
+
             var newContext = Create(Uri, OriginalSnapshot, codeDocument, Options, _workspaceFactory, Range, IsFormatOnType);
             return newContext;
+        }
+
+        /// <summary>
+        /// It can be difficult in the testing infrastructure to correct constructs input files that work consistently across
+        /// context changes, so this method validates that the number of components isn't changing due to lost tag help info.
+        /// Without this guarantee its hard to reason about test behaviour/failures.
+        /// </summary>
+        [Conditional("DEBUG")]
+        private void ValidateComponents(RazorCodeDocument oldCodeDocument, RazorCodeDocument newCodeDocument)
+        {
+            var oldTagHelperElements = oldCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<Language.Syntax.MarkupTagHelperElementSyntax>().Count();
+            var newTagHelperElements = newCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<Language.Syntax.MarkupTagHelperElementSyntax>().Count();
+            Debug.Assert(oldTagHelperElements == newTagHelperElements, $"Previous context had {oldTagHelperElements} components, new only has {newTagHelperElements}.");
         }
 
         public static FormattingContext Create(
