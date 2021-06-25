@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -49,7 +50,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             var editorDocumentManger = new Mock<EditorDocumentManager>(MockBehavior.Strict);
             editorDocumentManger
                 .Setup(e => e.GetOrCreateDocumentAsync(It.IsAny<DocumentKey>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>()))
-                .Returns(GetEditorDocument())
+                .Returns(Task.FromResult(GetEditorDocument()))
                 .Callback<DocumentKey, EventHandler, EventHandler, EventHandler, EventHandler>((key, onChangedOnDisk, onChangedInEditor, onOpened, onClosed) =>
                 {
                     Assert.Same(changedOnDisk, onChangedOnDisk);
@@ -71,7 +72,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         [Fact]
-        public void ProjectManager_Changed_OpenDocumentAdded_InvokesOnOpened()
+        public async Task ProjectManager_Changed_OpenDocumentAdded_InvokesOnOpened()
         {
             // Arrange
             var called = false;
@@ -80,7 +81,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             var editorDocumentManger = new Mock<EditorDocumentManager>(MockBehavior.Strict);
             editorDocumentManger
                 .Setup(e => e.GetOrCreateDocumentAsync(It.IsAny<DocumentKey>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>()))
-                .Returns(GetEditorDocument(isOpen: true));
+                .Returns(Task.FromResult(GetEditorDocument(isOpen: true)));
 
             var foregroundDispatcher = new DefaultForegroundDispatcher();
             var joinableTaskContext = new JoinableTaskContext();
@@ -92,6 +93,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             // Act
             listener.ProjectManager_Changed(null, new ProjectChangeEventArgs(project, project, ProjectChangeKind.DocumentAdded));
+            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             Assert.True(called);

@@ -7,8 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Razor.Test;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 
@@ -100,11 +102,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         [InlineData(WorkspaceChangeKind.SolutionCleared)]
         [InlineData(WorkspaceChangeKind.SolutionReloaded)]
         [InlineData(WorkspaceChangeKind.SolutionRemoved)]
-        public void WorkspaceChanged_SolutionEvents_EnqueuesUpdatesForProjectsInSolution(WorkspaceChangeKind kind)
+        public async Task WorkspaceChanged_SolutionEvents_EnqueuesUpdatesForProjectsInSolution(WorkspaceChangeKind kind)
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
             projectManager.ProjectAdded(HostProjectTwo);
@@ -113,6 +116,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
+            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             Assert.Collection(
@@ -127,11 +131,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         [InlineData(WorkspaceChangeKind.SolutionCleared)]
         [InlineData(WorkspaceChangeKind.SolutionReloaded)]
         [InlineData(WorkspaceChangeKind.SolutionRemoved)]
-        public void WorkspaceChanged_SolutionEvents_EnqueuesStateClear_EnqueuesSolutionProjectUpdates(WorkspaceChangeKind kind)
+        public async Task WorkspaceChanged_SolutionEvents_EnqueuesStateClear_EnqueuesSolutionProjectUpdates(WorkspaceChangeKind kind)
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
             projectManager.ProjectAdded(HostProjectTwo);
@@ -145,6 +150,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
+            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             Assert.Collection(
@@ -162,7 +168,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator)
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher)
             {
                 EnqueueDelay = 1,
                 BlockDelayedUpdateWorkEnqueue = new ManualResetEventSlim(initialState: false),
@@ -176,6 +183,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
+            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             //
@@ -196,7 +204,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator)
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher)
             {
                 EnqueueDelay = 1,
                 BlockDelayedUpdateWorkEnqueue = new ManualResetEventSlim(initialState: false),
@@ -212,6 +221,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
+            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             //
@@ -232,7 +242,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator)
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher)
             {
                 EnqueueDelay = 1,
                 BlockDelayedUpdateWorkEnqueue = new ManualResetEventSlim(initialState: false),
@@ -248,6 +259,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
+            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             //
@@ -268,7 +280,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator)
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher)
             {
                 EnqueueDelay = 1,
                 BlockDelayedUpdateWorkEnqueue = new ManualResetEventSlim(initialState: false),
@@ -284,6 +297,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
+            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             //
@@ -304,7 +318,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator)
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher)
             {
                 EnqueueDelay = 1,
                 BlockDelayedUpdateWorkEnqueue = new ManualResetEventSlim(initialState: false),
@@ -337,6 +352,7 @@ namespace Microsoft.AspNetCore.Components
             
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
+            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             //
@@ -353,11 +369,12 @@ namespace Microsoft.AspNetCore.Components
         }
 
         [ForegroundFact]
-        public void WorkspaceChanged_ProjectRemovedEvent_QueuesProjectStateRemoval()
+        public async Task WorkspaceChanged_ProjectRemovedEvent_QueuesProjectStateRemoval()
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
             projectManager.ProjectAdded(HostProjectTwo);
@@ -367,6 +384,7 @@ namespace Microsoft.AspNetCore.Components
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
+            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             Assert.Collection(
@@ -375,11 +393,12 @@ namespace Microsoft.AspNetCore.Components
         }
 
         [ForegroundFact]
-        public void WorkspaceChanged_ProjectAddedEvent_AddsProject()
+        public async Task WorkspaceChanged_ProjectAddedEvent_AddsProject()
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectThree);
 
@@ -388,6 +407,7 @@ namespace Microsoft.AspNetCore.Components
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
+            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             Assert.Collection(
@@ -400,7 +420,8 @@ namespace Microsoft.AspNetCore.Components
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var sourceText = SourceText.From(
 $@"
 public partial class TestComponent{{}}
@@ -427,7 +448,8 @@ public partial class TestComponent{{}}
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var sourceText = SourceText.From(
 $@"
 public partial class TestComponent : {ComponentsApi.IComponent.MetadataName} {{}}
@@ -458,7 +480,8 @@ namespace Microsoft.AspNetCore.Components
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var sourceText = SourceText.From(
 $@"
 public partial class TestComponent : {ComponentsApi.IComponent.MetadataName} {{}}
@@ -485,7 +508,8 @@ namespace Microsoft.AspNetCore.Components
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var sourceText = SourceText.From(
 $@"
 public partial class TestComponent : {ComponentsApi.IComponent.MetadataName} {{}}
@@ -514,7 +538,8 @@ namespace Microsoft.AspNetCore.Components
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var sourceText = SourceText.From(string.Empty);
             var syntaxTreeRoot = await CSharpSyntaxTree.ParseText(sourceText).GetRootAsync();
             var solution = SolutionWithTwoProjects
@@ -539,7 +564,8 @@ namespace Microsoft.AspNetCore.Components
 
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var sourceText = SourceText.From(
 $@"
 public partial class NonComponent1 {{}}
@@ -575,7 +601,8 @@ namespace Microsoft.AspNetCore.Components
 
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator);
+            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, foregroundDispatcher);
             var sourceText = SourceText.From(
 $@"
 public partial class NonComponent1 {{}}

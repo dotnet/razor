@@ -8,13 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
-using static Microsoft.CodeAnalysis.Razor.Workspaces.DefaultForegroundDispatcher;
 using ItemCollection = Microsoft.VisualStudio.ProjectSystem.ItemCollection;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
@@ -625,8 +623,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
-            var host = new DefaultRazorProjectHost(services, Workspace, foregroundDispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             // Act & Assert
             await host.LoadAsync();
@@ -641,8 +638,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
-            var host = new DefaultRazorProjectHost(services, Workspace, foregroundDispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             // Act & Assert
             await Task.Run(async () => await host.LoadAsync());
@@ -661,8 +657,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
-            var host = new DefaultRazorProjectHost(services, Workspace, foregroundDispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             // Act & Assert
             await Task.Run(async () => await host.LoadAsync());
@@ -765,8 +760,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
-            var host = new DefaultRazorProjectHost(services, Workspace, foregroundDispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -813,8 +807,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
-            var host = new DefaultRazorProjectHost(services, Workspace, foregroundDispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -964,8 +957,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
-            var host = new DefaultRazorProjectHost(services, Workspace, foregroundDispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -1035,8 +1027,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
-            var host = new DefaultRazorProjectHost(services, Workspace, foregroundDispatcher.Object, ProjectConfigurationFilePathStore, ProjectManager);
+            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);
@@ -1110,8 +1101,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
-            var host = new DefaultRazorProjectHost(services, Workspace, foregroundDispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+
+            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
 
             await Task.Run(async () => await host.LoadAsync());
             Assert.Empty(ProjectManager.Projects);

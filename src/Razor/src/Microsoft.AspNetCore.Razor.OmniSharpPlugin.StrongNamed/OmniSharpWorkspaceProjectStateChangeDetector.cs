@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
 
             public ForegroundWorkspaceProjectStateChangeDetector(
                 ForegroundDispatcher foregroundDispatcher,
-                ProjectWorkspaceStateGenerator workspaceStateGenerator) : base(workspaceStateGenerator)
+                ProjectWorkspaceStateGenerator workspaceStateGenerator) : base(workspaceStateGenerator, foregroundDispatcher)
             {
                 if (foregroundDispatcher == null)
                 {

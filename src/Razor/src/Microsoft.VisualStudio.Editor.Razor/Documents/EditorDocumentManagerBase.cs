@@ -64,7 +64,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             ForegroundDispatcher.AssertForegroundThread();
 
-            return _documents.TryGetValue(key, out document);
+            lock (_lock)
+            {
+                return _documents.TryGetValue(key, out document);
+            }
         }
 
         public sealed override bool TryGetMatchingDocuments(string filePath, out EditorDocument[] documents)
