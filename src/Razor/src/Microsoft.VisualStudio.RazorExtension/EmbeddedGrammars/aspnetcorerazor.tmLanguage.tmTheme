@@ -35,7 +35,7 @@
 
       <dict>
         <key>scope</key>
-        <string>keyword.control.cshtml, keyword.control.razor.directive, keyword.control.razor.comment.star</string>
+        <string>keyword.control.cshtml, keyword.control.razor.comment.star</string>
         <key>settings</key>
         <dict>
           <key>vsclassificationtype</key>
