@@ -9,7 +9,7 @@
 
       <!-- Begin General -->
 
-      <dict>
+      <!-- <dict>
         <key>scope</key>
         <string>string - meta.attribute, punctuation.definition.string - meta.attribute, punctuation.definition.template-expression, constant.character.escape, constant.regexp, markup.heading, string.quoted.double.cs</string>
         <key>settings</key>
@@ -17,7 +17,7 @@
           <key>vsclassificationtype</key>
           <string>string</string>
         </dict>
-      </dict>
+      </dict> -->
 
       <dict>
         <key>scope</key>
@@ -189,7 +189,7 @@
         </dict>
       </dict> -->
 
-      <dict>
+      <!-- <dict>
         <key>scope</key>
         <string>keyword.control.conditional, keyword.control.loop, keyword.control.flow</string>
         <key>settings</key>
@@ -197,7 +197,7 @@
           <key>vsclassificationtype</key>
           <string>keyword - control</string>
         </dict>
-      </dict>
+      </dict> -->
 
       <dict>
         <key>scope</key>
