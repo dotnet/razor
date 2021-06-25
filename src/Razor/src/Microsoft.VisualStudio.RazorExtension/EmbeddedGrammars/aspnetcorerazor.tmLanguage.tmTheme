@@ -146,7 +146,7 @@
           <string>Identifier</string>
         </dict>
       </dict>
-
+<!--
       <dict>
         <key>scope</key>
         <string>constant.language, variable.language, storage.modifier.cs, keyword.type.cs, keyword.other.using.cs, keyword.other.await.cs, keyword.other.var.cs</string>
@@ -155,7 +155,7 @@
           <key>vsclassificationtype</key>
           <string>Keyword</string>
         </dict>
-      </dict>
+      </dict> -->
 
       <!-- Temporarily removed because in VS TextMate sometimes superceeds Semantic tokens
         and this is a common offender -->
