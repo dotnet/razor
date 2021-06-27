@@ -215,7 +215,7 @@
         <key>settings</key>
         <dict>
           <key>vsclassificationtype</key>
-          <string>User Members - Parameters</string>
+          <string>parameter name</string>
         </dict>
       </dict>
 
