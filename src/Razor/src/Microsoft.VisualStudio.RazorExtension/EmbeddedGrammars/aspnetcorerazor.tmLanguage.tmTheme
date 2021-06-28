@@ -35,11 +35,21 @@
 
       <dict>
         <key>scope</key>
-        <string>keyword.control.cshtml, keyword.control.razor.directive, keyword.control.razor.comment.star</string>
+        <string>keyword.control.cshtml, keyword.control.razor.comment.star</string>
         <key>settings</key>
         <dict>
           <key>vsclassificationtype</key>
           <string>HTML Server-Side Script</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>keyword.control.razor.directive</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>RazorDirective</string>
         </dict>
       </dict>
 

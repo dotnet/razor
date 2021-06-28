@@ -453,7 +453,7 @@ insertSpaces: false);
         {
             await RunFormattingTestAsync(
 input: @"
-@page ""/""  
+@page ""/""
 @{
  ViewData[""Title""] = ""Create"";
  <hr />
@@ -498,7 +498,7 @@ fileKind: FileKinds.Legacy);
         {
             await RunFormattingTestAsync(
 input: @"
-@page ""/""  
+@page ""/""
 
  <hr />
  <div class=""row"">
@@ -531,6 +531,98 @@ expected: @"@page ""/""
 tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
 insertSpaces: false,
 fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+        public async Task FormatNestedComponents()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<CascadingAuthenticationState>
+<Router AppAssembly=""@typeof(Program).Assembly"">
+    <Found Context=""routeData"">
+        <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout=""@typeof(MainLayout)"">
+            <p>Sorry, there's nothing at this address.</p>
+
+            @if (true)
+                    {
+                        <strong></strong>
+                }
+        </LayoutView>
+    </NotFound>
+</Router>
+</CascadingAuthenticationState>
+",
+expected: @"
+<CascadingAuthenticationState>
+    <Router AppAssembly=""@typeof(Program).Assembly"">
+        <Found Context=""routeData"">
+            <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
+        </Found>
+        <NotFound>
+            <LayoutView Layout=""@typeof(MainLayout)"">
+                <p>Sorry, there's nothing at this address.</p>
+
+                @if (true)
+                {
+                    <strong></strong>
+                }
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+        public async Task FormatNestedComponents2()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<GridTable>
+<ChildContent>
+<GridRow>
+<ChildContent>
+<GridCell>
+<ChildContent>
+<strong></strong>
+@if (true)
+{
+<strong></strong>
+}
+<strong></strong>
+</ChildContent>
+</GridCell>
+</ChildContent>
+</GridRow>
+</ChildContent>
+</GridTable>
+",
+expected: @"
+<GridTable>
+    <ChildContent>
+        <GridRow>
+            <ChildContent>
+                <GridCell>
+                    <ChildContent>
+                        <strong></strong>
+                        @if (true)
+                        {
+                            <strong></strong>
+                        }
+                        <strong></strong>
+                    </ChildContent>
+                </GridCell>
+            </ChildContent>
+        </GridRow>
+    </ChildContent>
+</GridTable>
+", tagHelpers: GetComponents());
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()

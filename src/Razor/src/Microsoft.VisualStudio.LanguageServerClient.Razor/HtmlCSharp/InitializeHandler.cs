@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 },
                 OnAutoInsertProvider = new DocumentOnAutoInsertOptions()
                 {
-                    TriggerCharacters = new[] { ">", "=", "-", "'", "/", "\n" }
+                    TriggerCharacters = new[] { "-", "'", "/", "\n" }
                 },
                 DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions()
                 {
@@ -323,7 +323,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var triggerCharEnumeration = mergedCapabilities.OnAutoInsertProvider?.TriggerCharacters ?? Enumerable.Empty<string>();
             var purposefullyRemovedTriggerCharacters = new[]
             {
-                ">" // https://github.com/dotnet/aspnetcore-tooling/pull/3797
+                ">", // https://github.com/dotnet/aspnetcore-tooling/pull/3797
+                "=", // https://github.com/dotnet/aspnetcore/issues/33677
             };
             triggerCharEnumeration = triggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
             var onAutoInsertMergedTriggerChars = new HashSet<string>(triggerCharEnumeration);

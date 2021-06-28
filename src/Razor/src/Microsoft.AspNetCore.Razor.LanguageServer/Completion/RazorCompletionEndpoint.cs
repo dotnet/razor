@@ -116,6 +116,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 return new CompletionList(isIncomplete: false);
             }
 
+            if (!IsApplicableTriggerContext(request.Context))
+            {
+                return new CompletionList(isIncomplete: false);
+            }
+
             var codeDocument = await document.GetGeneratedOutputAsync();
             if (codeDocument.IsUnsupported())
             {
@@ -126,7 +131,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
             var sourceText = await document.GetTextAsync();
-            var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
+            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceSpan(hostDocumentIndex, 0);
 
@@ -242,6 +247,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             return Task.FromResult(completionItem);
+        }
+
+        // Internal for testing
+        internal static bool IsApplicableTriggerContext(CompletionContext context)
+        {
+            if (context is not OmniSharpVSCompletionContext vsCompletionContext)
+            {
+                Debug.Fail("Completion context should always be converted into a VSCompletionContext (even in VSCode).");
+
+                // We do not support providing completions on delete.
+                return false;
+            }
+
+            if (vsCompletionContext.InvokeKind == OmniSharpVSCompletionInvokeKind.Deletion)
+            {
+                // We do not support providing completions on delete.
+                return false;
+            }
+
+            return true;
         }
 
         // Internal for testing

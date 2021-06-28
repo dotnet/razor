@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,8 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(rangeToFormat));
             }
 
-            Range projectedRange = null;
-            if (rangeToFormat != null && !_documentMappingService.TryMapToProjectedDocumentRange(context.CodeDocument, rangeToFormat, out projectedRange))
+            if (!_documentMappingService.TryMapToProjectedDocumentRange(context.CodeDocument, rangeToFormat, out var projectedRange))
             {
                 return Array.Empty<TextEdit>();
             }
@@ -147,6 +148,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
             var spanToFormat = projectedRange.AsTextSpan(csharpSourceText);
             var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken);
+            Assumes.NotNull(root);
+
             var workspace = context.CSharpWorkspace;
 
             // Formatting options will already be set in the workspace.

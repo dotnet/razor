@@ -260,7 +260,21 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsTrueForSimpleImplicitExpressions()
+        public void AtDirectiveCompletionPoint_ReturnsTrueForSimpleImplicitExpressionsStartOfWord()
+        {
+            // Arrange
+            var syntaxTree = CreateSyntaxTree("@m");
+            var location = new SourceSpan(1, 0);
+
+            // Act
+            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void AtDirectiveCompletionPoint_ReturnsFalseForSimpleImplicitExpressions()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@mod");
@@ -270,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
 
             // Assert
-            Assert.True(result);
+            Assert.False(result);
         }
 
         [Fact]

@@ -71,16 +71,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 return false;
             }
 
-            if (!TryGetTagInformation(context, position, out var tagName, out var autoClosingBehavior))
+            var afterCloseAngleIndex = position.GetAbsoluteIndex(context.SourceText);
+            if (!TryGetTagInformation(context, afterCloseAngleIndex, out var tagName, out var autoClosingBehavior))
             {
                 format = default;
                 edit = default;
                 return false;
             }
 
-            format = InsertTextFormat.Snippet;
             if (autoClosingBehavior == AutoClosingBehavior.EndTag)
             {
+                format = InsertTextFormat.Snippet;
                 edit = new TextEdit()
                 {
                     NewText = $"$0</{tagName}>",
@@ -91,14 +92,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             {
                 Debug.Assert(autoClosingBehavior == AutoClosingBehavior.SelfClosing);
 
-                // Need to replace the `>` with ' />$0'
-                var replacementRange = new Range(
-                    start: new Position(position.Line, position.Character - 1),
-                    end: position);
+                format = InsertTextFormat.PlainText;
+
+                // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
+                var insertionText = char.IsWhiteSpace(context.SourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
+                var insertionPosition = new Position(position.Line, position.Character - 1);
+                var insertionRange = new Range(
+                    start: insertionPosition,
+                    end: insertionPosition);
                 edit = new TextEdit()
                 {
-                    NewText = " />$0",
-                    Range = replacementRange
+                    NewText = insertionText,
+                    Range = insertionRange
                 };
 
             }
@@ -106,12 +111,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return true;
         }
 
-        private static bool TryGetTagInformation(FormattingContext context, Position position, out string name, out AutoClosingBehavior autoClosingBehavior)
+        private static bool TryGetTagInformation(FormattingContext context, int afterCloseAngleIndex, out string name, out AutoClosingBehavior autoClosingBehavior)
         {
+            var change = new SourceChange(afterCloseAngleIndex, 0, string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
-
-            var absoluteIndex = position.GetAbsoluteIndex(context.SourceText) - 1;
-            var change = new SourceChange(absoluteIndex, 0, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(change);
             if (owner?.Parent == null)
             {
@@ -121,6 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             if (owner.Parent is MarkupStartTagSyntax startTag &&
+                startTag.ForwardSlash == null &&
                 startTag.Parent is MarkupElementSyntax)
             {
                 var unescapedTagName = startTag.Name.Content;
@@ -132,6 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             if (owner.Parent is MarkupTagHelperStartTagSyntax startTagHelper &&
+                startTagHelper.ForwardSlash == null &&
                 startTagHelper.Parent is MarkupTagHelperElementSyntax tagHelperElement)
             {
                 name = startTagHelper.Name.Content;
