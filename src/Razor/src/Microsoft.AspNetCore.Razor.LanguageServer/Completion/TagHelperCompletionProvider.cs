@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
                 containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
             {
-                if (containingTagNameToken.FullWidth > 1 &&
+                if ((containingTagNameToken.FullWidth > 1 || containingTagNameToken.Content == "-") &&
                     containingTagNameToken.Span.Start != location.AbsoluteIndex)
                 {
                     // To align with HTML completion behavior we only want to provide completion items if we're trying to resolve completion at the
