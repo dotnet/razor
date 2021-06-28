@@ -45,6 +45,16 @@
 
       <dict>
         <key>scope</key>
+        <string>keyword.control.razor.directive</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>RazorDirective</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
         <string>meta.attribute.razor keyword.other, meta.attribute.razor keyword.operator</string>
         <key>settings</key>
         <dict>
