@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "enum name",
             "event name",
             "excluded code",
-            "extension method name",
+            "extension method name", // 30
             "field name",
             "interface name",
             "label name",
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "namespace name",
             "operator - overloaded",
             "parameter name",
-            "property name",
+            "property name", // 40
             "preprocessor keyword",
             "preprocessor text",
             "punctuation",
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "regex - anchor",
             "regex - character class",
             "regex - comment",
-            "regex - grouping",
+            "regex - grouping", // 50
             "regex - other escape",
             "regex - quantifier",
             "regex - self escaped character",
@@ -117,7 +117,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "text",
             "type parameter name",
             "string - verbatim",
-            "whitespace",
+            "whitespace", // 60
             "xml doc comment - attribute name",
             "xml doc comment - attribute quotes",
             "xml doc comment - attribute value",
@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "xml doc comment - entity reference",
             "xml doc comment - name",
             "xml doc comment - processing instruction",
-            "xml doc comment - text",
+            "xml doc comment - text", // 70
             "xml literal - attribute name",
             "xml literal - attribute quotes",
             "xml literal - attribute value",
@@ -137,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             "xml literal - embedded expression",
             "xml literal - entity reference",
             "xml literal - name",
-            "xml literal - processing instruction",
+            "xml literal - processing instruction", // 80
             "xml literal - text",
             RazorTagHelperElementString,
             RazorTagHelperAttributeString,
@@ -147,7 +147,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             RazorDirectiveString,
             RazorCommentString,
             RazorCommentTransitionString,
-            RazorCommentStarString,
+            RazorCommentStarString, // 90
             MarkupTagDelimiterString,
             MarkupElementString,
             MarkupOperatorString,
