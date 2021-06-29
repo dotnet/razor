@@ -10,7 +10,6 @@
   </PropertyGroup>
   <!-- Opt out Arcade features -->
   <PropertyGroup>
-    <!-- Don't run xliff tools on official builds -->
     <UsingToolXliff>true</UsingToolXliff>
   </PropertyGroup>
   <!-- Versioning for assemblies/packages -->
