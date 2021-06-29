@@ -376,7 +376,7 @@ expected: @"
 
         [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
-        public async Task CodeBlock_SemiColon_SingleLine()
+        public async Task CodeBlock_SemiColon_SingleLine1()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
@@ -391,10 +391,52 @@ afterCSharpFormatting: @"
 ",
 expected: @"
 <div></div>
-@{
-    Debugger.Launch(); 
-}
+@{ Debugger.Launch(); }
 <div></div>
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+        public async Task CodeBlock_SemiColon_SingleLine2()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+<div></div>
+@{     Debugger.Launch(   )     $$; }
+<div></div>
+",
+afterCSharpFormatting: @"
+<div></div>
+@{          Debugger.Launch(); }
+<div></div>
+",
+expected: @"
+<div></div>
+@{ Debugger.Launch(); }
+<div></div>
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+        public async Task CodeBlock_SemiColon_SingleLine3()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+<div>
+    @{     Debugger.Launch(   )     $$; }
+</div>
+",
+afterCSharpFormatting: @"
+<div>
+    @{          Debugger.Launch(); }
+</div>
+",
+expected: @"
+<div>
+    @{ Debugger.Launch(); }
+</div>
 ");
         }
     }
