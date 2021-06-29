@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
             catch (Exception ex)
             {
-                Debug.Fail("Microsoft.VisualStudio.Editor.Razor.Documents.ProjectManager_Changed threw exception:" +
+                Debug.Fail("EditorDocumentManagerListener.ProjectManager_Changed threw exception:" +
                     Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
             catch (Exception ex)
             {
-                Debug.Fail("Microsoft.VisualStudio.Editor.Razor.Documents.Document_ChangedOnDisk threw exception:" +
+                Debug.Fail("EditorDocumentManagerListener.Document_ChangedOnDisk threw exception:" +
                     Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
             catch (Exception ex)
             {
-                Debug.Fail("Microsoft.VisualStudio.Editor.Razor.Documents.Document_ChangedInEditor threw exception:" +
+                Debug.Fail("EditorDocumentManagerListener.Document_ChangedInEditor threw exception:" +
                     Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
             catch (Exception ex)
             {
-                Debug.Fail("Microsoft.VisualStudio.Editor.Razor.Documents.Document_Opened threw exception:" +
+                Debug.Fail("EditorDocumentManagerListener.Document_Opened threw exception:" +
                     Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }
@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
             catch (Exception ex)
             {
-                Debug.Fail("Microsoft.VisualStudio.Editor.Razor.Documents.Document_Closed threw exception:" +
+                Debug.Fail("EditorDocumentManagerListener.Document_Closed threw exception:" +
                     Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }

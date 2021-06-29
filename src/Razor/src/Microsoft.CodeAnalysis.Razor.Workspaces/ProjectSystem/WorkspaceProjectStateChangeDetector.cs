@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
             catch (Exception ex)
             {
-                Debug.Fail("Microsoft.CodeAnalysis.Razor.ProjectSystem.Workspace_WorkspaceChanged threw exception:" +
+                Debug.Fail(".WorkspaceProjectStateChangeDetector.Workspace_WorkspaceChanged threw exception:" +
                     Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }

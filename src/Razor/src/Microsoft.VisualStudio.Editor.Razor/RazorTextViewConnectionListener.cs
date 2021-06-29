@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -37,38 +39,56 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _documentManager = documentManager;
         }
 
-        public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        public async void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            if (textView == null)
+            try
             {
-                throw new ArgumentException(nameof(textView));
-            }
+                if (textView == null)
+                {
+                    throw new ArgumentException(nameof(textView));
+                }
 
-            if (subjectBuffers == null)
+                if (subjectBuffers == null)
+                {
+                    throw new ArgumentNullException(nameof(subjectBuffers));
+                }
+
+                await _foregroundDispatcher.RunOnForegroundAsync(
+                    () => _documentManager.OnTextViewOpened(textView, subjectBuffers), CancellationToken.None);
+            }
+            catch (Exception ex)
             {
-                throw new ArgumentNullException(nameof(subjectBuffers));
+                Debug.Fail("RazorTextViewConnectionListener.SubjectBuffersConnected threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
-
-            _foregroundDispatcher.AssertForegroundThread();
-
-            _documentManager.OnTextViewOpened(textView, subjectBuffers);
         }
 
-        public void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        public async void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            if (textView == null)
+            try
             {
-                throw new ArgumentException(nameof(textView));
-            }
+                if (textView == null)
+                {
+                    throw new ArgumentException(nameof(textView));
+                }
 
-            if (subjectBuffers == null)
+                if (subjectBuffers == null)
+                {
+                    throw new ArgumentNullException(nameof(subjectBuffers));
+                }
+
+                await _foregroundDispatcher.RunOnForegroundAsync(
+                    () => _documentManager.OnTextViewClosed(textView, subjectBuffers), CancellationToken.None);
+            }
+            catch (Exception ex)
             {
-                throw new ArgumentNullException(nameof(subjectBuffers));
+                Debug.Fail("RazorTextViewConnectionListener.SubjectBuffersDisconnected threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
-
-            _foregroundDispatcher.AssertForegroundThread();
-
-            _documentManager.OnTextViewClosed(textView, subjectBuffers);
         }
     }
 }

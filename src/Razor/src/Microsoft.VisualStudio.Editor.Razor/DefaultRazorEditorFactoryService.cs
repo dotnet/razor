@@ -4,6 +4,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Text;
 
@@ -15,45 +16,71 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         private static readonly object RazorTextBufferInitializationKey = new object();
         private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
+        private readonly ForegroundDispatcher _foregroundDispatcher;
 
         [ImportingConstructor]
-        public DefaultRazorEditorFactoryService(VisualStudioWorkspaceAccessor workspaceAccessor)
+        public DefaultRazorEditorFactoryService(VisualStudioWorkspaceAccessor workspaceAccessor, ForegroundDispatcher foregroundDispatcher)
         {
             if (workspaceAccessor == null)
             {
                 throw new ArgumentNullException(nameof(workspaceAccessor));
             }
 
+            if (foregroundDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(foregroundDispatcher));
+            }
+
             _workspaceAccessor = workspaceAccessor;
+            _foregroundDispatcher = foregroundDispatcher;
         }
 
         public override bool TryGetDocumentTracker(ITextBuffer textBuffer, out VisualStudioDocumentTracker documentTracker)
         {
-            if (textBuffer == null)
+            try
             {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
+                if (textBuffer == null)
+                {
+                    throw new ArgumentNullException(nameof(textBuffer));
+                }
 
-            if (!textBuffer.IsRazorBuffer())
+                if (!textBuffer.IsRazorBuffer())
+                {
+                    documentTracker = null;
+                    return false;
+                }
+
+                var textBufferInitialized = _foregroundDispatcher.RunOnForegroundAsync(
+                    () => TryInitializeTextBuffer(textBuffer), CancellationToken.None).Result;
+                if (!textBufferInitialized)
+                {
+                    documentTracker = null;
+                    return false;
+                }
+
+
+
+
+
+
+
+
+
+
+
+                if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out documentTracker))
+                {
+                    Debug.Fail("Document tracker should have been stored on the text buffer during initialization.");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
             {
                 documentTracker = null;
                 return false;
             }
-
-            var textBufferInitialized = TryInitializeTextBuffer(textBuffer);
-            if (!textBufferInitialized)
-            {
-                documentTracker = null;
-                return false;
-            }
-
-            if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out documentTracker))
-            {
-                Debug.Fail("Document tracker should have been stored on the text buffer during initialization.");
-                return false;
-            }
-
-            return true;
         }
 
         public override bool TryGetParser(ITextBuffer textBuffer, out VisualStudioRazorParser parser)
