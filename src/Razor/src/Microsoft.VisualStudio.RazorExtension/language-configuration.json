@@ -4,17 +4,23 @@
   },
   "brackets": [
     ["<!--", "-->"],
+    ["@*", "*@"],
     ["<", ">"],
     ["{", "}"],
     ["(", ")"]
   ],
+  "autoCloseBefore": ";:.,=}])>` \r\n\t",
   "autoClosingPairs": [
+    { "open": "<", "close": ">"},
     { "open": "{", "close": "}"},
     { "open": "[", "close": "]"},
     { "open": "(", "close": ")" },
     { "open": "'", "close": "'" },
     { "open": "\"", "close": "\"" },
-    { "open": "@*", "close": "*@" }
+    { "open": "@*", "close": "*@", "notIn": [ "string" ] },
+
+    // The "close" is `--` instead of `-->` because of https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1348281
+    { "open": "<!--", "close":  "--", "notIn": [ "comment", "string" ] }
   ],
   "surroundingPairs": [
     { "open": "'", "close": "'" },
@@ -24,5 +30,34 @@
   "indentationRules": {
     "increaseIndentPattern": "(?:\\s<(?!(?:area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr))(\\w[\\w\\d]*)([^/>]*(?!/)>)\\s*$)|(?:\\{\\s*$)",
     "decreaseIndentPattern": "(?:</([_:\\w][_:\\w-.\\d]*)\\s*>)|(?:\\})"
-  }
+  },
+  "onEnterRules": [
+    {
+      "beforeText": "<(?!(?:area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr))([_:\\w][_:\\w-.\\d]*)([^/>]*(?!\\/)>)[^<]*$",
+      "afterText": "^<\\/([_:\\w][_:\\w-.\\d]*)\\s*>",
+      "action": {
+        "indent": "indentOutdent"
+      }
+    },
+    {
+      "beforeText": "<(?!(?:area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr))(\\w[\\w\\d]*)([^/>]*(?!\\/)>)[^<]*$",
+      "action": {
+        "indent": "indent"
+      }
+    },
+    {
+      "beforeText": "@\\*",
+      "afterText": "\\*@",
+      "action": {
+        "indent": "indentOutdent"
+      }
+    },
+    {
+      "beforeText": "<!--",
+      "afterText": "-->",
+      "action": {
+        "indent": "indentOutdent"
+      }
+    }
+  ]
 }

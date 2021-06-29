@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
@@ -145,6 +145,28 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
         }
 
         [Fact]
+        public void OnTypeCloseAngle_NormalOrSelfClosingTagHelperTagStructure_CodeBlock()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@{
+    <test>$$
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@{
+    <test>$0</test>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
         public void OnTypeCloseAngle_WithSlash_WithoutEndTagTagHelperTagStructure()
         {
             RunAutoInsertTest(
@@ -193,6 +215,28 @@ expected: @"
 @addTagHelper *, TestAssembly
 
 <test />
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { WithoutEndTagTagHelper });
+        }
+
+        [Fact]
+        public void OnTypeCloseAngle_WithoutEndTagTagHelperTagStructure_CodeBlock()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@{
+    <test>$$
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@{
+    <test>
+}
 ",
 fileKind: FileKinds.Legacy,
 tagHelpers: new[] { WithoutEndTagTagHelper });
@@ -259,6 +303,22 @@ expected: @"
         }
 
         [Fact]
+        public void OnTypeCloseAngle_ClosesStandardHTMLTag_CodeBlock()
+        {
+            RunAutoInsertTest(
+input: @"
+@{
+    <div>$$
+}
+",
+expected: @"
+@{
+    <div>$0</div>
+}
+");
+        }
+
+        [Fact]
         public void OnTypeCloseAngle_ClosesVoidHTMLTag()
         {
             RunAutoInsertTest(
@@ -267,6 +327,22 @@ input: @"
 ",
 expected: @"
     <input />
+");
+        }
+
+        [Fact]
+        public void OnTypeCloseAngle_ClosesVoidHTMLTag_CodeBlock()
+        {
+            RunAutoInsertTest(
+input: @"
+@{
+    <input>$$
+}
+",
+expected: @"
+@{
+    <input />
+}
 ");
         }
 
