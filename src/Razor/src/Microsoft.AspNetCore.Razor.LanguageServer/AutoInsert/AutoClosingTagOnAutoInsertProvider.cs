@@ -224,7 +224,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
                 var closeAngleIndex = afterCloseAngleIndex - 1;
                 var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
-                currentOwner = syntaxTree.Root.LocateOwner(closeAngleSoureChange);
+                currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
             }
 
             if (currentOwner?.Parent == null)
