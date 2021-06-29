@@ -209,6 +209,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 var closeAngleSoureChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
                 currentOwner = syntaxTree.Root.LocateOwner(closeAngleSoureChange);
             }
+            else if (currentOwner.Parent is MarkupEndTagSyntax ||
+                     currentOwner.Parent is MarkupTagHelperEndTagSyntax)
+            {
+                // Quirk: https://github.com/dotnet/aspnetcore/issues/33919#issuecomment-870233627
+                // When tags are nested within each other within a C# block like:
+                //
+                // @if (true)
+                // {
+                //     <div><em>|</div>
+                // }
+                //
+                // The owner will be the </div>. Note this does not happen outside of C# blocks.
+
+                var closeAngleIndex = afterCloseAngleIndex - 1;
+                var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
+                currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
+            }
 
             if (currentOwner?.Parent == null)
             {
