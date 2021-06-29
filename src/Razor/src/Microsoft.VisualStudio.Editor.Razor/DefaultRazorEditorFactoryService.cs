@@ -37,50 +37,32 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override bool TryGetDocumentTracker(ITextBuffer textBuffer, out VisualStudioDocumentTracker documentTracker)
         {
-            try
+            if (textBuffer == null)
             {
-                if (textBuffer == null)
-                {
-                    throw new ArgumentNullException(nameof(textBuffer));
-                }
-
-                if (!textBuffer.IsRazorBuffer())
-                {
-                    documentTracker = null;
-                    return false;
-                }
-
-                var textBufferInitialized = _foregroundDispatcher.RunOnForegroundAsync(
-                    () => TryInitializeTextBuffer(textBuffer), CancellationToken.None).Result;
-                if (!textBufferInitialized)
-                {
-                    documentTracker = null;
-                    return false;
-                }
-
-
-
-
-
-
-
-
-
-
-
-                if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out documentTracker))
-                {
-                    Debug.Fail("Document tracker should have been stored on the text buffer during initialization.");
-                    return false;
-                }
-
-                return true;
+                throw new ArgumentNullException(nameof(textBuffer));
             }
-            catch (Exception ex)
+
+            if (!textBuffer.IsRazorBuffer())
             {
                 documentTracker = null;
                 return false;
             }
+
+            var textBufferInitialized = _foregroundDispatcher.RunOnForegroundAsync(
+                () => TryInitializeTextBuffer(textBuffer), CancellationToken.None).Result;
+            if (!textBufferInitialized)
+            {
+                documentTracker = null;
+                return false;
+            }
+
+            if (!textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out documentTracker))
+            {
+                Debug.Fail("Document tracker should have been stored on the text buffer during initialization.");
+                return false;
+            }
+
+            return true;
         }
 
         public override bool TryGetParser(ITextBuffer textBuffer, out VisualStudioRazorParser parser)
@@ -96,7 +78,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            var textBufferInitialized = TryInitializeTextBuffer(textBuffer);
+            var textBufferInitialized = _foregroundDispatcher.RunOnForegroundAsync(
+                () => TryInitializeTextBuffer(textBuffer), CancellationToken.None).Result;
             if (!textBufferInitialized)
             {
                 parser = null;
@@ -125,7 +108,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            var textBufferInitialized = TryInitializeTextBuffer(textBuffer);
+            var textBufferInitialized = _foregroundDispatcher.RunOnForegroundAsync(
+                () => TryInitializeTextBuffer(textBuffer), CancellationToken.None).Result;
             if (!textBufferInitialized)
             {
                 braceSmartIndenter = null;

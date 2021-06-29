@@ -11,8 +11,10 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using static Microsoft.VisualStudio.Editor.Razor.BackgroundParser;
 using ITextBuffer = Microsoft.VisualStudio.Text.ITextBuffer;
 using Timer = System.Threading.Timer;
@@ -34,6 +36,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly object UpdateStateLock = new object();
         private readonly VisualStudioCompletionBroker _completionBroker;
         private readonly VisualStudioDocumentTracker _documentTracker;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly ForegroundDispatcher _dispatcher;
         private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
         private readonly ErrorReporter _errorReporter;
@@ -52,37 +55,44 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public DefaultVisualStudioRazorParser(
             ForegroundDispatcher dispatcher,
+            JoinableTaskContext joinableTaskContext,
             VisualStudioDocumentTracker documentTracker,
             ProjectSnapshotProjectEngineFactory projectEngineFactory,
             ErrorReporter errorReporter,
             VisualStudioCompletionBroker completionBroker)
         {
-            if (dispatcher == null)
+            if (dispatcher is null)
             {
                 throw new ArgumentNullException(nameof(dispatcher));
             }
 
-            if (documentTracker == null)
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (documentTracker is null)
             {
                 throw new ArgumentNullException(nameof(documentTracker));
             }
 
-            if (projectEngineFactory == null)
+            if (projectEngineFactory is null)
             {
                 throw new ArgumentNullException(nameof(projectEngineFactory));
             }
 
-            if (errorReporter == null)
+            if (errorReporter is null)
             {
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            if (completionBroker == null)
+            if (completionBroker is null)
             {
                 throw new ArgumentNullException(nameof(completionBroker));
             }
 
             _dispatcher = dispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _projectEngineFactory = projectEngineFactory;
             _errorReporter = errorReporter;
             _completionBroker = completionBroker;
@@ -285,58 +295,69 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        private void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            _dispatcher.AssertForegroundThread();
-
-            if (args.Changes.Count > 0)
+            try
             {
-                // Idle timers are used to track provisional changes. Provisional changes only last for a single text change. After that normal
-                // partial parsing rules apply (stop the timer).
-                StopIdleTimer();
-            }
-
-            var snapshot = args.After;
-            if (!args.TextChangeOccurred(out var changeInformation))
-            {
-                // Ensure we get a parse for latest snapshot.
-                QueueChange(null, snapshot);
-                return;
-            }
-
-            var change = new SourceChange(changeInformation.firstChange.OldPosition, changeInformation.oldText.Length, changeInformation.newText);
-            var result = PartialParseResultInternal.Rejected;
-            RazorSyntaxTree partialParseSyntaxTree = null;
-            using (_parser.SynchronizeMainThreadState())
-            {
-                // Check if we can partial-parse
-                if (_partialParser != null && _parser.IsIdle)
+                await _dispatcher.RunOnForegroundAsync(() =>
                 {
-                    (result, partialParseSyntaxTree) = _partialParser.Parse(change);
-                }
-            }
+                    if (args.Changes.Count > 0)
+                    {
+                        // Idle timers are used to track provisional changes. Provisional changes only last for a single text change. After that normal
+                        // partial parsing rules apply (stop the timer).
+                        StopIdleTimer();
+                    }
 
-            // If partial parsing failed or there were outstanding parser tasks, start a full reparse
-            if ((result & PartialParseResultInternal.Rejected) == PartialParseResultInternal.Rejected)
-            {
-                QueueChange(change, snapshot);
-            }
-            else
-            {
-                var currentCodeDocument = CodeDocument;
-                var codeDocument = RazorCodeDocument.Create(currentCodeDocument.Source, currentCodeDocument.Imports);
+                    var snapshot = args.After;
+                    if (!args.TextChangeOccurred(out var changeInformation))
+                    {
+                        // Ensure we get a parse for latest snapshot.
+                        QueueChange(null, snapshot);
+                        return;
+                    }
 
-                foreach (var item in currentCodeDocument.Items)
-                {
-                    codeDocument.Items[item.Key] = item.Value;
-                }
-                codeDocument.SetSyntaxTree(partialParseSyntaxTree);
-                TryUpdateLatestParsedSyntaxTreeSnapshot(codeDocument, snapshot);
-            }
+                    var change = new SourceChange(changeInformation.firstChange.OldPosition, changeInformation.oldText.Length, changeInformation.newText);
+                    var result = PartialParseResultInternal.Rejected;
+                    RazorSyntaxTree partialParseSyntaxTree = null;
+                    using (_parser.SynchronizeMainThreadState())
+                    {
+                        // Check if we can partial-parse
+                        if (_partialParser != null && _parser.IsIdle)
+                        {
+                            (result, partialParseSyntaxTree) = _partialParser.Parse(change);
+                        }
+                    }
 
-            if ((result & PartialParseResultInternal.Provisional) == PartialParseResultInternal.Provisional)
+                    // If partial parsing failed or there were outstanding parser tasks, start a full reparse
+                    if ((result & PartialParseResultInternal.Rejected) == PartialParseResultInternal.Rejected)
+                    {
+                        QueueChange(change, snapshot);
+                    }
+                    else
+                    {
+                        var currentCodeDocument = CodeDocument;
+                        var codeDocument = RazorCodeDocument.Create(currentCodeDocument.Source, currentCodeDocument.Imports);
+
+                        foreach (var item in currentCodeDocument.Items)
+                        {
+                            codeDocument.Items[item.Key] = item.Value;
+                        }
+                        codeDocument.SetSyntaxTree(partialParseSyntaxTree);
+                        TryUpdateLatestParsedSyntaxTreeSnapshot(codeDocument, snapshot);
+                    }
+
+                    if ((result & PartialParseResultInternal.Provisional) == PartialParseResultInternal.Provisional)
+                    {
+                        StartIdleTimer();
+                    }
+                }, CancellationToken.None);
+            }
+            catch (Exception ex)
             {
-                StartIdleTimer();
+                Debug.Fail("DefaultVisualStudioRazorParser.TextBuffer_OnChanged threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }
 
@@ -424,18 +445,28 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // Internal for testing
-        internal void OnResultsReady(object sender, BackgroundParserResultsReadyEventArgs args)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        internal async void OnResultsReady(object sender, BackgroundParserResultsReadyEventArgs args)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            _dispatcher.AssertBackgroundThread();
+            try
+            {
+                _dispatcher.AssertBackgroundThread();
 
-            UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
+                UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
 
-            // Jump back to UI thread to notify structure changes.
-            _ = Task.Factory.StartNew(OnDocumentStructureChanged, args, CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                // Jump back to the specialized single thread to notify structure changes.
+                await _dispatcher.RunOnForegroundAsync(() => OnDocumentStructureChangedAsync(args), CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("DefaultVisualStudioRazorParser.OnResultsReady threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
         }
 
         // Internal for testing
-        internal void OnDocumentStructureChanged(object state)
+        internal async Task OnDocumentStructureChangedAsync(object state)
         {
             _dispatcher.AssertForegroundThread();
 
@@ -468,7 +499,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 backgroundParserArgs.ChangeReference.Change,
                 backgroundParserArgs.ChangeReference.Snapshot,
                 backgroundParserArgs.CodeDocument);
-            DocumentStructureChanged?.Invoke(this, documentStructureChangedArgs);
+
+            // DocumentStructureChanged.Invoke requires the UI thread
+            await _joinableTaskContext.RunOnMainThreadAsync(_dispatcher.ForegroundScheduler,
+                () => DocumentStructureChanged?.Invoke(this, documentStructureChangedArgs), CancellationToken.None);
         }
 
         private void ConfigureProjectEngine(RazorProjectEngineBuilder builder)

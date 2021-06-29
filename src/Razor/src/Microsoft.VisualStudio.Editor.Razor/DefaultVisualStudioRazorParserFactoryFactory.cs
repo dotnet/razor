@@ -6,6 +6,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
@@ -14,16 +15,25 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultVisualStudioRazorParserFactoryFactory : ILanguageServiceFactory
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
-        public DefaultVisualStudioRazorParserFactoryFactory(ForegroundDispatcher foregroundDispatcher)
+        public DefaultVisualStudioRazorParserFactoryFactory(
+            ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
         }
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
@@ -39,6 +49,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             return new DefaultVisualStudioRazorParserFactory(
                 _foregroundDispatcher,
+                _joinableTaskContext,
                 errorReporter,
                 completionBroker,
                 projectEngineFactory);

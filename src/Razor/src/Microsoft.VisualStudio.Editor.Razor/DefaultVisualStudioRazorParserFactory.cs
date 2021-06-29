@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
@@ -10,36 +11,44 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         private readonly ForegroundDispatcher _dispatcher;
         private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly VisualStudioCompletionBroker _completionBroker;
         private readonly ErrorReporter _errorReporter;
 
         public DefaultVisualStudioRazorParserFactory(
             ForegroundDispatcher dispatcher,
+            JoinableTaskContext joinableTaskContext,
             ErrorReporter errorReporter,
             VisualStudioCompletionBroker completionBroker,
             ProjectSnapshotProjectEngineFactory projectEngineFactory)
         {
-            if (dispatcher == null)
+            if (dispatcher is null)
             {
                 throw new ArgumentNullException(nameof(dispatcher));
             }
 
-            if (errorReporter == null)
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (errorReporter is null)
             {
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            if (completionBroker == null)
+            if (completionBroker is null)
             {
                 throw new ArgumentNullException(nameof(completionBroker));
             }
 
-            if (projectEngineFactory == null)
+            if (projectEngineFactory is null)
             {
                 throw new ArgumentNullException(nameof(projectEngineFactory));
             }
 
             _dispatcher = dispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _errorReporter = errorReporter;
             _completionBroker = completionBroker;
             _projectEngineFactory = projectEngineFactory;
@@ -56,6 +65,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var parser = new DefaultVisualStudioRazorParser(
                 _dispatcher,
+                _joinableTaskContext,
                 documentTracker,
                 _projectEngineFactory,
                 _errorReporter,

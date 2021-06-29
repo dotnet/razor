@@ -149,7 +149,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 await _foregroundDispatcher.RunOnForegroundAsync(() =>
                 {
                     var document = (EditorDocument)sender;
-                    _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+                    if (document.EditorTextContainer != null)
+                    {
+                        _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+                    }
                 }, CancellationToken.None);
             }
             catch (Exception ex)
