@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 // The owner will be the </div>. Note this does not happen outside of C# blocks.
 
                 var closeAngleIndex = afterCloseAngleIndex - 1;
-                var closeAngleSoureChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
+                var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
                 currentOwner = syntaxTree.Root.LocateOwner(closeAngleSoureChange);
             }
 
