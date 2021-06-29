@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -145,6 +146,55 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper });
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
+        public void OnTypeCloseAngle_TagHelperInHtml_NestedStatement()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test>$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test>$0</test></div>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
+        public void OnTypeCloseAngle_TagHelperInTagHelper_NestedStatement()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<test><input>$$</test>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<test><input /></test>
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
+        }
+        [Fact]
         public void OnTypeCloseAngle_NormalOrSelfClosingTagHelperTagStructure_CodeBlock()
         {
             RunAutoInsertTest(
@@ -179,6 +229,31 @@ expected: @"
 @addTagHelper *, TestAssembly
 
 <test />
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { WithoutEndTagTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
+        public void OnTypeCloseAngle_NestedStatement()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test />$$</div>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<div><test /></div>
+}
 ",
 fileKind: FileKinds.Legacy,
 tagHelpers: new[] { WithoutEndTagTagHelper });
@@ -291,6 +366,25 @@ expected: @"
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
+        public void OnTypeCloseAngle_ClosesStandardHTMLTag_NestedStatement()
+        {
+            RunAutoInsertTest(
+input: @"
+@if (true)
+{
+    <div><p>$$</div>
+}
+",
+expected: @"
+@if (true)
+{
+    <div><p>$0</p></div>
+}
+");
+        }
+
+        [Fact]
         public void OnTypeCloseAngle_ClosesStandardHTMLTag()
         {
             RunAutoInsertTest(
@@ -327,6 +421,25 @@ input: @"
 ",
 expected: @"
     <input />
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/33930")]
+        public void OnTypeCloseAngle_ClosesVoidHTMLTag_NestedStatement()
+        {
+            RunAutoInsertTest(
+input: @"
+@if (true)
+{
+    <strong><input>$$</strong>
+}
+",
+expected: @"
+@if (true)
+{
+    <strong><input /></strong>
+}
 ");
         }
 
