@@ -115,8 +115,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         {
             var change = new SourceChange(afterCloseAngleIndex, 0, string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
-            var owner = syntaxTree.Root.LocateOwner(change);
-            if (owner?.Parent == null)
+            var originalOwner = syntaxTree.Root.LocateOwner(change);
+
+            if (!TryEnsureOwner_WorkaroundCompilerQuirks(afterCloseAngleIndex, syntaxTree, originalOwner, out var owner))
             {
                 name = null;
                 autoClosingBehavior = default;
@@ -152,6 +153,71 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             autoClosingBehavior = default;
             name = null;
             return false;
+        }
+
+        private static bool TryEnsureOwner_WorkaroundCompilerQuirks(int afterCloseAngleIndex, RazorSyntaxTree syntaxTree, SyntaxNode currentOwner, out SyntaxNode newOwner)
+        {
+            // All of these owner modifications are to account for https://github.com/dotnet/aspnetcore/issues/33919
+
+            if (currentOwner?.Parent == null)
+            {
+                newOwner = null;
+                return false;
+            }
+
+            if (currentOwner.Parent is MarkupElementSyntax parentElement &&
+                parentElement.StartTag != null)
+            {
+                // In cases where a user types ">" in a C# code block there can be uncertainty as to "who owns" the edge of the element. Reason being that the tag
+                // could be malformed and you could be in a situation like this:
+                //
+                // @{
+                //     <div>|
+                // }
+                //
+                // In this situation <div> is unclosed and is overriding the `}` understanding of `@{`. Because of this we're in an errored state and the syntax tree
+                // doesn't indicate the appropriate language delimiter.
+
+                if (parentElement.StartTag.EndPosition == afterCloseAngleIndex)
+                {
+                    currentOwner = parentElement.StartTag.CloseAngle;
+                }
+            }
+            else if (currentOwner.Parent is MarkupTagHelperElementSyntax parentTagHelperElement &&
+                parentTagHelperElement.StartTag != null)
+            {
+                // Same reasoning as the above block here.
+
+                if (afterCloseAngleIndex == parentTagHelperElement.StartTag.EndPosition)
+                {
+                    currentOwner = parentTagHelperElement.StartTag.CloseAngle;
+                }
+            }
+            else if (currentOwner is CSharpStatementLiteralSyntax)
+            {
+                // In cases where a user types ">" in a C# code block there can be uncertainty as to "who owns" the edge of the element in void element
+                // scenarios. In a situation like this:
+                //
+                // @{
+                //     <input>|
+                // }
+                //
+                // In this situation <input> is a 100% valid HTML element but after it the C# context begins. When querying owner for the location after
+                // the ">" we get the C# statement block instead of the end close-angle (Razor compiler quirk).
+
+                var closeAngleIndex = afterCloseAngleIndex - 1;
+                var closeAngleSoureChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
+                currentOwner = syntaxTree.Root.LocateOwner(closeAngleSoureChange);
+            }
+
+            if (currentOwner?.Parent == null)
+            {
+                newOwner = null;
+                return false;
+            }
+
+            newOwner = currentOwner;
+            return true;
         }
 
         private static AutoClosingBehavior InferAutoClosingBehavior(string name)
