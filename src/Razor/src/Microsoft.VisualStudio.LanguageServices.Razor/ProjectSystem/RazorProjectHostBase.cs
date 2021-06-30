@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return _projectManager;
         }
 
-        protected async Task UpdateAsync(Action action) => await _foregroundDispatcher.RunOnForegroundAsync(action, CancellationToken.None);
+        protected Task UpdateAsync(Action action) => _foregroundDispatcher.RunOnForegroundAsync(action, CancellationToken.None);
 
         protected void UninitializeProjectUnsafe()
         {

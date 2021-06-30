@@ -22,11 +22,6 @@
         <target state="new">The method</target>
         <note />
       </trans-unit>
-      <trans-unit id="JoinableTaskContextExtensions_AssertUIThread">
-        <source>{0} must be called on the UI thread.</source>
-        <target state="new">{0} must be called on the UI thread.</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

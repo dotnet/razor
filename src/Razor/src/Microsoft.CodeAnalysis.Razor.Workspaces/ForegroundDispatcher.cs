@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Razor
         public abstract TaskScheduler BackgroundScheduler { get; }
 
         public Task RunOnForegroundAsync(Action action, CancellationToken cancellationToken)
-            => RunOnForegroundAsync(new Func<Task>(() => { action(); return Task.CompletedTask; }), cancellationToken);
+            => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, ForegroundScheduler);
 
-        public Task<TParam> RunOnForegroundAsync<TParam>(Func<TParam> action, CancellationToken cancellationToken)
+        public Task<TResult> RunOnForegroundAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
             => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, ForegroundScheduler);
 
         public virtual void AssertForegroundThread([CallerMemberName] string caller = null)

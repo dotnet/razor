@@ -129,7 +129,4 @@
   <data name="ForegroundDispatcher_NoMethodNamePlaceholder" xml:space="preserve">
     <value>The method</value>
   </data>
-  <data name="JoinableTaskContextExtensions_AssertUIThread" xml:space="preserve">
-    <value>{0} must be called on the UI thread.</value>
-  </data>
 </root>

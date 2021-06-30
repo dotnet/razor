@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         {
             if (!joinableTaskContext.IsOnMainThread)
             {
-                caller = caller == null ? Resources.ForegroundDispatcher_NoMethodNamePlaceholder : $"'{caller}'";
-                throw new InvalidOperationException(Resources.FormatJoinableTaskContextExtensions_AssertUIThread(caller));
+                throw new InvalidOperationException($"{caller} must be called on the UI thread.");
             }
         }
 
@@ -30,10 +29,10 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 originalScheduler, new Func<Task>(() => { action(); return Task.CompletedTask; }), cancellationToken);
         }
 
-        public static async Task<TParam> RunOnMainThreadAsync<TParam>(
+        public static async Task<TResult> RunOnMainThreadAsync<TResult>(
             this JoinableTaskContext joinableTaskContext,
             TaskScheduler originalScheduler,
-            Func<TParam> action,
+            Func<TResult> action,
             CancellationToken cancellationToken)
         {
             await joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
