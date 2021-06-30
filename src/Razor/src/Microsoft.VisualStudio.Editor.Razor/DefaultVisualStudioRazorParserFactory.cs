@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -10,8 +11,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFactory
     {
         private readonly ForegroundDispatcher _dispatcher;
-        private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
         private readonly JoinableTaskContext _joinableTaskContext;
+        private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
         private readonly VisualStudioCompletionBroker _completionBroker;
         private readonly ErrorReporter _errorReporter;
 
@@ -61,7 +62,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(documentTracker));
             }
 
-            _dispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             var parser = new DefaultVisualStudioRazorParser(
                 _dispatcher,

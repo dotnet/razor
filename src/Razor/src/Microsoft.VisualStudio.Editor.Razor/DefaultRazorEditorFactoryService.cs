@@ -4,7 +4,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Text;
 
@@ -16,23 +15,16 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         private static readonly object RazorTextBufferInitializationKey = new object();
         private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
 
         [ImportingConstructor]
-        public DefaultRazorEditorFactoryService(VisualStudioWorkspaceAccessor workspaceAccessor, ForegroundDispatcher foregroundDispatcher)
+        public DefaultRazorEditorFactoryService(VisualStudioWorkspaceAccessor workspaceAccessor)
         {
             if (workspaceAccessor == null)
             {
                 throw new ArgumentNullException(nameof(workspaceAccessor));
             }
 
-            if (foregroundDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
             _workspaceAccessor = workspaceAccessor;
-            _foregroundDispatcher = foregroundDispatcher;
         }
 
         public override bool TryGetDocumentTracker(ITextBuffer textBuffer, out VisualStudioDocumentTracker documentTracker)
@@ -48,8 +40,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            var textBufferInitialized = _foregroundDispatcher.RunOnForegroundAsync(
-                () => TryInitializeTextBuffer(textBuffer), CancellationToken.None).Result;
+            var textBufferInitialized = TryInitializeTextBuffer(textBuffer);
             if (!textBufferInitialized)
             {
                 documentTracker = null;
@@ -78,8 +69,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            var textBufferInitialized = _foregroundDispatcher.RunOnForegroundAsync(
-                () => TryInitializeTextBuffer(textBuffer), CancellationToken.None).Result;
+            var textBufferInitialized = TryInitializeTextBuffer(textBuffer);
             if (!textBufferInitialized)
             {
                 parser = null;
@@ -108,8 +98,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return false;
             }
 
-            var textBufferInitialized = _foregroundDispatcher.RunOnForegroundAsync(
-                () => TryInitializeTextBuffer(textBuffer), CancellationToken.None).Result;
+            var textBufferInitialized = TryInitializeTextBuffer(textBuffer);
             if (!textBufferInitialized)
             {
                 braceSmartIndenter = null;

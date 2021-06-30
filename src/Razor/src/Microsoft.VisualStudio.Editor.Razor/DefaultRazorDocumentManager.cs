@@ -20,31 +20,26 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         [ImportingConstructor]
         public DefaultRazorDocumentManager(
-            ForegroundDispatcher dispatcher,
+            ForegroundDispatcher foregroundDispatcher,
             RazorEditorFactoryService editorFactoryService)
         {
-            if (dispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(dispatcher));
-            }
-
-            if (editorFactoryService == null)
+            if (editorFactoryService is null)
             {
                 throw new ArgumentNullException(nameof(editorFactoryService));
             }
 
-            _foregroundDispatcher = dispatcher;
+            _foregroundDispatcher = foregroundDispatcher;
             _editorFactoryService = editorFactoryService;
         }
 
         public override void OnTextViewOpened(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (subjectBuffers == null)
+            if (subjectBuffers is null)
             {
                 throw new ArgumentNullException(nameof(subjectBuffers));
             }

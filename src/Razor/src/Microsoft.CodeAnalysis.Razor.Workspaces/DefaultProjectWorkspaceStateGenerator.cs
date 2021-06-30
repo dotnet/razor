@@ -97,8 +97,6 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public void Dispose()
         {
-            _foregroundDispatcher.AssertForegroundThread();
-
             _disposed = true;
 
             foreach (var update in _updates)

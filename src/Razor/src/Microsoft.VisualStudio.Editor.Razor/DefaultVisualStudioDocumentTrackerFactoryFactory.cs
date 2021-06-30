@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
@@ -17,24 +18,32 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServiceFactory
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly ITextDocumentFactoryService _textDocumentFactory;
 
         [ImportingConstructor]
         public DefaultVisualStudioDocumentTrackerFactoryFactory(
             ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
             ITextDocumentFactoryService textDocumentFactory)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (textDocumentFactory == null)
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (textDocumentFactory is null)
             {
                 throw new ArgumentNullException(nameof(textDocumentFactory));
             }
 
             _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _textDocumentFactory = textDocumentFactory;
         }
 
@@ -53,6 +62,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             return new DefaultVisualStudioDocumentTrackerFactory(
                 _foregroundDispatcher,
+                _joinableTaskContext,
                 projectManager,
                 workspaceEditorSettings,
                 projectPathProvider,

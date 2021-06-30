@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         [ImportingConstructor]
         public RazorTextViewConnectionListener(ForegroundDispatcher foregroundDispatcher, RazorDocumentManager documentManager)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
@@ -45,12 +45,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             try
             {
-                if (textView == null)
+                if (textView is null)
                 {
                     throw new ArgumentException(nameof(textView));
                 }
 
-                if (subjectBuffers == null)
+                if (subjectBuffers is null)
                 {
                     throw new ArgumentNullException(nameof(subjectBuffers));
                 }
@@ -71,12 +71,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             try
             {
-                if (textView == null)
+                if (textView is null)
                 {
                     throw new ArgumentException(nameof(textView));
                 }
 
-                if (subjectBuffers == null)
+                if (subjectBuffers is null)
                 {
                     throw new ArgumentNullException(nameof(subjectBuffers));
                 }

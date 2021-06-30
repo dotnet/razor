@@ -9,9 +9,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Threading;
 using ITextBuffer = Microsoft.VisualStudio.Text.ITextBuffer;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -30,8 +32,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
     /// </example>
     internal class BraceSmartIndenter : IDisposable
     {
-        private readonly ForegroundDispatcher _dispatcher;
         private readonly ITextBuffer _textBuffer;
+        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly VisualStudioDocumentTracker _documentTracker;
         private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
         private readonly IEditorOperationsFactoryService _editorOperationsFactory;
@@ -44,32 +47,39 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         public BraceSmartIndenter(
-            ForegroundDispatcher dispatcher,
+            ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
             VisualStudioDocumentTracker documentTracker,
             TextBufferCodeDocumentProvider codeDocumentProvider,
             IEditorOperationsFactoryService editorOperationsFactory)
         {
-            if (dispatcher == null)
+            if (foregroundDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(dispatcher));
+                throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (documentTracker == null)
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (documentTracker is null)
             {
                 throw new ArgumentNullException(nameof(documentTracker));
             }
 
-            if (codeDocumentProvider == null)
+            if (codeDocumentProvider is null)
             {
                 throw new ArgumentNullException(nameof(codeDocumentProvider));
             }
 
-            if (editorOperationsFactory == null)
+            if (editorOperationsFactory is null)
             {
                 throw new ArgumentNullException(nameof(editorOperationsFactory));
             }
 
-            _dispatcher = dispatcher;
+            _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _documentTracker = documentTracker;
             _codeDocumentProvider = codeDocumentProvider;
             _editorOperationsFactory = editorOperationsFactory;
@@ -80,7 +90,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void Dispose()
         {
-            _dispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             _textBuffer.Changed -= TextBuffer_OnChanged;
             _textBuffer.PostChanged -= TextBuffer_OnPostChanged;
@@ -102,7 +112,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             try
             {
-                await _dispatcher.RunOnForegroundAsync(() =>
+                await _foregroundDispatcher.RunOnForegroundAsync(() =>
                 {
                     if (!args.TextChangeOccurred(out var changeInformation))
                     {
@@ -136,44 +146,44 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             try
             {
-                await _dispatcher.RunOnForegroundAsync(() =>
+                await _foregroundDispatcher.RunOnForegroundAsync(() =>
                 {
                     var context = _context;
                     _context = null;
 
                     if (context != null)
                     {
-                    // Save the current caret position
-                    var textView = context.FocusedTextView;
+                        // Save the current caret position
+                        var textView = context.FocusedTextView;
                         var caret = textView.Caret.Position.BufferPosition;
                         var textViewBuffer = textView.TextBuffer;
                         var indent = CalculateIndent(textViewBuffer, context.ChangePosition);
 
-                    // Current state, pipe is cursor:
-                    // @{
-                    // |}
+                        // Current state, pipe is cursor:
+                        // @{
+                        // |}
 
-                    // Insert the completion text, i.e. "\r\n      "
-                    InsertIndent(caret.Position, indent, textViewBuffer);
+                        // Insert the completion text, i.e. "\r\n      "
+                        InsertIndent(caret.Position, indent, textViewBuffer);
 
-                    // @{
-                    // 
-                    // |}
+                        // @{
+                        // 
+                        // |}
 
-                    // Place the caret inbetween the braces (before our indent).
-                    RestoreCaretTo(caret.Position, textView);
+                        // Place the caret inbetween the braces (before our indent).
+                        RestoreCaretTo(caret.Position, textView);
 
-                    // @{
-                    // |
-                    // }
+                        // @{
+                        // |
+                        // }
 
-                    // For Razor metacode cases the editor's smart indent wont kick in automatically. 
-                    TriggerSmartIndent(textView);
+                        // For Razor metacode cases the editor's smart indent wont kick in automatically. 
+                        TriggerSmartIndent(textView);
 
-                    // @{
-                    //     |
-                    // }
-                }
+                        // @{
+                        //     |
+                        // }
+                    }
                 }, CancellationToken.None);
             }
             catch (Exception ex)

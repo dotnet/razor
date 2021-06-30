@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
@@ -15,43 +16,51 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultBraceSmartIndenterFactoryFactory : ILanguageServiceFactory
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
         private readonly IEditorOperationsFactoryService _editorOperationsFactory;
 
         [ImportingConstructor]
         public DefaultBraceSmartIndenterFactoryFactory(
-            ForegroundDispatcher foregroundDispatcher, 
+            ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
             TextBufferCodeDocumentProvider codeDocumentProvider, 
             IEditorOperationsFactoryService editorOperationsFactory)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (codeDocumentProvider == null)
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (codeDocumentProvider is null)
             {
                 throw new ArgumentNullException(nameof(codeDocumentProvider));
             }
 
-            if (editorOperationsFactory == null)
+            if (editorOperationsFactory is null)
             {
                 throw new ArgumentNullException(nameof(editorOperationsFactory));
             }
 
             _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _codeDocumentProvider = codeDocumentProvider;
             _editorOperationsFactory = editorOperationsFactory;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }
 
-            return new DefaultBraceSmartIndenterFactory(_foregroundDispatcher, _codeDocumentProvider, _editorOperationsFactory);
+            return new DefaultBraceSmartIndenterFactory(_foregroundDispatcher, _joinableTaskContext, _codeDocumentProvider, _editorOperationsFactory);
         }
     }
 }

@@ -381,7 +381,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             parser.Dispose();
 
             // Act & Assert
-            parser.ReparseOnForeground(null);
+            parser.ReparseOnUIThread(null);
         }
 
         [ForegroundFact]

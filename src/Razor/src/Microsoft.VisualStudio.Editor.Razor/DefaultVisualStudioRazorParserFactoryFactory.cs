@@ -18,9 +18,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
-        public DefaultVisualStudioRazorParserFactoryFactory(
-            ForegroundDispatcher foregroundDispatcher,
-            JoinableTaskContext joinableTaskContext)
+        public DefaultVisualStudioRazorParserFactoryFactory(ForegroundDispatcher foregroundDispatcher, JoinableTaskContext joinableTaskContext)
         {
             if (foregroundDispatcher is null)
             {

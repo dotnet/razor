@@ -38,22 +38,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             IEnumerable<ProjectSnapshotChangeTrigger> triggers,
             Workspace workspace)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (errorReporter == null)
+            if (errorReporter is null)
             {
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            if (triggers == null)
+            if (triggers is null)
             {
                 throw new ArgumentNullException(nameof(triggers));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
@@ -67,10 +67,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _openDocuments = new HashSet<string>(FilePathComparer.Instance);
             _notificationWork = new Queue<ProjectChangeEventArgs>();
 
-            for (var i = 0; i < _triggers.Length; i++)
+            _ = _foregroundDispatcher.RunOnForegroundAsync(() =>
             {
-                _triggers[i].Initialize(this);
-            }
+                for (var i = 0; i < _triggers.Length; i++)
+                {
+                    _triggers[i].Initialize(this);
+                }
+            }, CancellationToken.None);
         }
 
         public override IReadOnlyList<ProjectSnapshot> Projects

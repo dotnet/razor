@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -10,11 +11,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal static class JoinableTaskContextExtensions
     {
-        public static void AssertUIThread(this JoinableTaskContext joinableTaskContext)
+        public static void AssertUIThread(this JoinableTaskContext joinableTaskContext, [CallerMemberName] string caller = null)
         {
             if (!joinableTaskContext.IsOnMainThread)
             {
-                throw new InvalidOperationException(Resources.JoinableTaskContextExtensions_AssertUIThread);
+                caller = caller == null ? Resources.ForegroundDispatcher_NoMethodNamePlaceholder : $"'{caller}'";
+                throw new InvalidOperationException(Resources.FormatJoinableTaskContextExtensions_AssertUIThread(caller));
             }
         }
 
