@@ -265,7 +265,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     bypassValidationPasses: true,
                     collapseEdits: true);
 
-
                 if (request.Kind == RazorLanguageKind.CSharp)
                 {
                     UnwrapCSharpSnippets(mappedEdits);

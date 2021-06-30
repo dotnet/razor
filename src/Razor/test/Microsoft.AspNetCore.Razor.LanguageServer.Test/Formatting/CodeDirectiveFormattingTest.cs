@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -548,6 +549,25 @@ expected: @"@code {
 }
 ",
 tabSize: 12);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+        public async Task CodeBlock_SemiColon_SingleLine()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<div></div>
+@{ Debugger.Launch()$$;}
+<div></div>
+",
+expected: @"
+<div></div>
+@{
+    Debugger.Launch();
+}
+<div></div>
+");
         }
     }
 }

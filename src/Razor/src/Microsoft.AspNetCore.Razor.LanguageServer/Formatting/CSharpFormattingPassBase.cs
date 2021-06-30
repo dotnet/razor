@@ -253,6 +253,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         protected static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
         {
+            var isOnType = range is not null;
+
             var text = context.SourceText;
             range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
             var csharpDocument = context.CodeDocument.GetCSharpDocument();
@@ -268,16 +270,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
-                CleanupSourceMappingStart(context, mappingRange, changes);
+                CleanupSourceMappingStart(context, mappingRange, changes, isOnType, out var newLineAdded);
 
-                CleanupSourceMappingEnd(context, mappingRange, changes);
+                CleanupSourceMappingEnd(context, mappingRange, changes, newLineAdded);
             }
 
             return changes;
         }
 
-        private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes)
+        private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, bool isOnType, out bool newLineAdded)
         {
+            newLineAdded = false;
+
             //
             // We look through every source mapping that intersects with the affected range and
             // bring the first line to its own line and adjust its indentation,
@@ -343,9 +347,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return;
             }
 
+            if (newLineCount == 0)
+            {
+                // If on type formatting is happening on a single line then we just clean up the start to one space
+                // so @{    throw null; } will be formatted to @{ throw null; }
+                // Ideally we'd put that across three lines, which is what normal formatting does, but since we
+                // can't control the cursor, that doesn't end well.
+                if (isOnType)
+                {
+                    changes.Add(new TextChange(spanToReplace, " "));
+                    return;
+                }
+
+                newLineAdded = true;
+                newLineCount = 1;
+            }
+
             // At this point, `contentIndentLevel` should contain the correct indentation level for `}` in the above example.
             // Make sure to preserve the same number of blank lines as the original string had
-            var replacement = PrependLines(context.GetIndentationLevelString(contentIndentLevel), context.NewLineString, Math.Max(newLineCount, 1));
+            var replacement = PrependLines(context.GetIndentationLevelString(contentIndentLevel), context.NewLineString, newLineCount);
 
             // After the below change the above example should look like,
             // @{
@@ -370,7 +390,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return builder.ToString();
         }
 
-        private static void CleanupSourceMappingEnd(FormattingContext context, Range sourceMappingRange, List<TextChange> changes)
+        private static void CleanupSourceMappingEnd(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, bool newLineWasAddedAtStart)
         {
             //
             // We look through every source mapping that intersects with the affected range and
@@ -397,7 +417,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var text = context.SourceText;
             var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
             var mappingEndLineIndex = sourceMappingRange.End.Line;
-            if (!context.Indentations[mappingEndLineIndex].StartsInCSharpContext)
+
+            var startsInCSharpContext = context.Indentations[mappingEndLineIndex].StartsInCSharpContext;
+
+            // If the span is on a single line, and we added a line, then end point is now on a line that does start in a C# context.
+            if (!startsInCSharpContext && newLineWasAddedAtStart && sourceMappingRange.Start.Line == mappingEndLineIndex)
+            {
+                startsInCSharpContext = true;
+            }
+
+            if (!startsInCSharpContext)
             {
                 // For corner cases like (Position marked with |),
                 // It is already in a separate line. It doesn't need cleaning up.
