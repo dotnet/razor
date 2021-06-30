@@ -417,14 +417,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.False(serializationSuccessful);
         }
 
-        internal ProjectSnapshot CreateProjectSnapshot(string projectFilePath, ProjectWorkspaceState projectWorkspaceState = null)
+        internal static ProjectSnapshot CreateProjectSnapshot(string projectFilePath, ProjectWorkspaceState projectWorkspaceState = null)
         {
             var testProjectSnapshot = TestProjectSnapshot.Create(projectFilePath, projectWorkspaceState);
 
             return testProjectSnapshot;
         }
 
-        internal ProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
+        internal static ProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
         {
             var testProjectSnapshot = TestProjectSnapshot.Create(projectFilePath, documentFilePaths);
 
@@ -494,7 +494,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             protected override void SerializeToFile(ProjectSnapshot projectSnapshot, string configurationFilePath) => _onSerializeToFile?.Invoke(projectSnapshot, configurationFilePath);
 
-            protected override bool ShouldSerialize(string configurationFilePath)
+            protected override bool ShouldSerialize(ProjectSnapshot projectSnapshot, string configurationFilePath)
             {
                 return _shouldSerialize;
             }

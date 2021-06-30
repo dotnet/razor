@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
     internal class TagHelperResolutionResultJsonConverter : JsonConverter
     {
         private readonly JsonSerializer _serializer;
-        public static readonly TagHelperResolutionResultJsonConverter Instance = new TagHelperResolutionResultJsonConverter();
+        public static readonly TagHelperResolutionResultJsonConverter Instance = new();
 
         public TagHelperResolutionResultJsonConverter()
         {
