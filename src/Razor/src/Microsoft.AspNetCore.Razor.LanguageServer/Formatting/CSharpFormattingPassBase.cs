@@ -251,7 +251,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         protected static List<TextChange> CleanupDocument(FormattingContext context, Range range = null)
         {
-            var isOnType = range != null;
+            var isOnType = range is not null;
 
             var text = context.SourceText;
             range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
