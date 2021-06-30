@@ -41,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private readonly JsonSerializer _serializer = new();
         private ProjectSnapshotManagerBase _projectSnapshotManager;
+        private bool _documentsProcessed = false;
 
         [ImportingConstructor]
         public DefaultRazorProjectChangePublisher(
@@ -264,8 +265,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             tempFileInfo.MoveTo(publishFilePath);
         }
 
-        private bool _documentsProcessed = false;
-
         protected virtual bool ShouldSerialize(ProjectSnapshot projectSnapshot, string configurationFilePath)
         {
             if (!File.Exists(configurationFilePath))
@@ -274,11 +273,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             var status = _operationProgressStatusService?.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
-
-            if (status is null)
-            {
-                return true;
-            }
 
             // Don't serialize our understanding until we've parsed at least one document,
             // otherwise our understanding is incomplete
@@ -295,6 +289,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                         break;
                     }
                 }
+            }
+
+            if (status is null)
+            {
+                return true;
             }
 
             return !status.IsInProgress && _documentsProcessed;
