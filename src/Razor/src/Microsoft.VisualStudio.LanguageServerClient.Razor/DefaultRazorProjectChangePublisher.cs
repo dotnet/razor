@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
@@ -13,9 +14,8 @@ using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
-using Task = System.Threading.Tasks.Task;
 using Shared = System.Composition.SharedAttribute;
-using System.Linq;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -284,13 +284,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                     if (projectSnapshot.TagHelpers.Any(t => t.Name.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase)))
                     {
-                        // No documents have been processed, don't publish
+                        // Documents have been processed, lets publish
                         _documentsProcessed = true;
                         break;
                     }
                 }
             }
-
             if (status is null)
             {
                 return true;
