@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             };
 
             // Act & Assert
-            documentManager.OnTextViewOpened(textView, buffers);
+            documentManager.OnTextViewOpenedAsync(textView, buffers);
         }
 
         [ForegroundFact]
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var documentManager = new DefaultRazorDocumentManager(Dispatcher, editorFactoryService);
 
             // Act
-            documentManager.OnTextViewOpened(textView, buffers);
+            documentManager.OnTextViewOpenedAsync(textView, buffers);
 
             // Assert
             Assert.Collection(documentTracker.TextViews, v => Assert.Same(v, textView));
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.False(documentTracker.IsSupportedProject);
 
             // Act
-            documentManager.OnTextViewOpened(textView, buffers);
+            documentManager.OnTextViewOpenedAsync(textView, buffers);
 
             // Assert 2
             Assert.True(documentTracker.IsSupportedProject);
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             };
 
             // Act
-            documentManager.OnTextViewClosed(textView, buffers);
+            documentManager.OnTextViewClosedAsync(textView, buffers);
 
             // Assert
             Assert.False(buffers[0].Properties.ContainsProperty(typeof(VisualStudioDocumentTracker)));
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var documentManager = new DefaultRazorDocumentManager(Dispatcher, editorFactoryService);
 
             // Act
-            documentManager.OnTextViewClosed(textView2, buffers);
+            documentManager.OnTextViewClosedAsync(textView2, buffers);
 
             // Assert
             documentTracker = buffers[0].Properties.GetProperty<DefaultVisualStudioDocumentTracker>(typeof(VisualStudioDocumentTracker));
@@ -179,13 +179,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
             documentTracker.AddTextView(textView2);
 
             // Act 1
-            documentManager.OnTextViewClosed(textView2, buffers);
+            documentManager.OnTextViewClosedAsync(textView2, buffers);
 
             // Assert 1
             Assert.True(documentTracker.IsSupportedProject);
 
             // Act
-            documentManager.OnTextViewClosed(textView1, buffers);
+            documentManager.OnTextViewClosedAsync(textView1, buffers);
 
             // Assert 2
             Assert.False(documentTracker.IsSupportedProject);

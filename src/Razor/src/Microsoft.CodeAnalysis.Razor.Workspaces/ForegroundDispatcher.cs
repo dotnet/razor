@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Razor
             }
         }
 
+        // TO-DO: Confirm this method is needed
         public virtual void AssertBackgroundThread([CallerMemberName] string caller = null)
         {
             if (!IsBackgroundThread)

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
@@ -18,7 +19,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     internal class EditorDocumentManagerListener : ProjectSnapshotChangeTrigger
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
-
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly EventHandler _onChangedOnDisk;
         private readonly EventHandler _onChangedInEditor;
         private readonly EventHandler _onOpened;
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private ProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public EditorDocumentManagerListener(ForegroundDispatcher foregroundDispatcher)
+        public EditorDocumentManagerListener(ForegroundDispatcher foregroundDispatcher, JoinableTaskContext joinableTaskContext)
         {
             if (foregroundDispatcher is null)
             {
@@ -36,6 +37,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _onChangedOnDisk = Document_ChangedOnDisk;
             _onChangedInEditor = Document_ChangedInEditor;
             _onOpened = Document_Opened;
@@ -82,42 +84,39 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         internal async void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            try
+            switch (e.Kind)
             {
-                await _foregroundDispatcher.RunOnForegroundAsync(async () =>
-                {
-                    switch (e.Kind)
+                case ProjectChangeKind.DocumentAdded:
                     {
-                        case ProjectChangeKind.DocumentAdded:
-                            {
-                                var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
-                                var document = await _documentManager.GetOrCreateDocumentAsync(
-                                    key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
+                        var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
 
-                                if (document.IsOpenInEditor)
-                                {
-                                    _onOpened(document, EventArgs.Empty);
-                                }
+                        // GetOrCreateDocument should be run on the main thread
+                        await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+                        var document = _documentManager.GetOrCreateDocument(
+                            key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
+                        await _foregroundDispatcher.ForegroundScheduler;
 
-                                break;
-                            }
+                        if (document.IsOpenInEditor)
+                        {
+                            _onOpened(document, EventArgs.Empty);
+                        }
 
-                        case ProjectChangeKind.DocumentRemoved:
-                            {
-                                // This class 'owns' the document entry so it's safe for us to dispose it.
-                                if (_documentManager.TryGetDocument(new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document))
-                                {
-                                    document.Dispose();
-                                }
-                                break;
-                            }
+                        break;
                     }
-                }, CancellationToken.None);
-            }
-            catch (Exception ex)
-            {
-                Debug.Fail("EditorDocumentManagerListener.ProjectManager_Changed threw exception:" +
-                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+
+                case ProjectChangeKind.DocumentRemoved:
+                    {
+                        await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+                        var documentFound = _documentManager.TryGetDocument(new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document);
+                        await _foregroundDispatcher.ForegroundScheduler;
+
+                        // This class 'owns' the document entry so it's safe for us to dispose it.
+                        if (documentFound)
+                        {
+                            document.Dispose();
+                        }
+                        break;
+                    }
             }
         }
 
@@ -149,10 +148,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 await _foregroundDispatcher.RunOnForegroundAsync(() =>
                 {
                     var document = (EditorDocument)sender;
-                    if (document.EditorTextContainer != null)
-                    {
-                        _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
-                    }
+                    _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
                 }, CancellationToken.None);
             }
             catch (Exception ex)

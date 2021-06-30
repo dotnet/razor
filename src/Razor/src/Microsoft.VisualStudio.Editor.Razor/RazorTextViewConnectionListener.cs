@@ -5,10 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -19,23 +20,23 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [Export(typeof(ITextViewConnectionListener))]
     internal class RazorTextViewConnectionListener : ITextViewConnectionListener
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly RazorDocumentManager _documentManager;
 
         [ImportingConstructor]
-        public RazorTextViewConnectionListener(ForegroundDispatcher foregroundDispatcher, RazorDocumentManager documentManager)
+        public RazorTextViewConnectionListener(JoinableTaskContext joinableTaskContext, RazorDocumentManager documentManager)
         {
-            if (foregroundDispatcher is null)
+            if (joinableTaskContext is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            if (documentManager == null)
+            if (documentManager is null)
             {
                 throw new ArgumentNullException(nameof(documentManager));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _documentManager = documentManager;
         }
 
@@ -55,8 +56,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     throw new ArgumentNullException(nameof(subjectBuffers));
                 }
 
-                await _foregroundDispatcher.RunOnForegroundAsync(
-                    () => _documentManager.OnTextViewOpened(textView, subjectBuffers), CancellationToken.None);
+                _joinableTaskContext.AssertUIThread();
+                await _documentManager.OnTextViewOpenedAsync(textView, subjectBuffers);
             }
             catch (Exception ex)
             {
@@ -81,8 +82,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     throw new ArgumentNullException(nameof(subjectBuffers));
                 }
 
-                await _foregroundDispatcher.RunOnForegroundAsync(
-                    () => _documentManager.OnTextViewClosed(textView, subjectBuffers), CancellationToken.None);
+                _joinableTaskContext.AssertUIThread();
+                await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
             }
             catch (Exception ex)
             {

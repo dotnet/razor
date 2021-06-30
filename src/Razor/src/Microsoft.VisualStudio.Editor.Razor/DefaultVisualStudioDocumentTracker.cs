@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (!_textViews.Contains(textView))
             {
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (_textViews.Contains(textView))
             {
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override ITextView GetFocusedTextView()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             for (var i = 0; i < TextViews.Count; i++)
             {
@@ -209,6 +209,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Detached from project.
             _isSupportedProject = false;
             _projectSnapshot = null;
+
             OnContextChanged(kind: ContextChangeKind.ProjectChanged);
         }
 
@@ -216,61 +217,67 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private async void OnContextChanged(ContextChangeKind kind)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            try
-            {
-                await _joinableTaskContext.RunOnMainThreadAsync(
-                    _foregroundDispatcher.ForegroundScheduler, () => ContextChanged?.Invoke(this, new ContextChangeEventArgs(kind)), CancellationToken.None);
-            }
-            catch (Exception ex)
-            {
-                Debug.Fail("DefaultVisualStudioDocumentTracker.OnContextChanged threw exception:" +
-                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
-            }
+            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+            ContextChanged?.Invoke(this, new ContextChangeEventArgs(kind));
         }
 
         // Internal for testing
-        internal void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        internal async void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            _foregroundDispatcher.AssertForegroundThread();
-
-            if (_projectPath != null &&
-                string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
+            // Method needs to be async due to project snapshot manager access, which requires
+            // a specialized single thread.
+            try
             {
-                // This will be the new snapshot unless the project was removed.
-                _projectSnapshot = _projectManager.GetLoadedProject(e.ProjectFilePath);
+                // to-do fix this method
+                _foregroundDispatcher.AssertForegroundThread();
 
-                switch (e.Kind)
+                if (_projectPath != null &&
+                    string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
                 {
-                    case ProjectChangeKind.DocumentAdded:
-                    case ProjectChangeKind.DocumentRemoved:
-                    case ProjectChangeKind.DocumentChanged:
+                    // This will be the new snapshot unless the project was removed.
+                    _projectSnapshot = _projectManager.GetLoadedProject(e.ProjectFilePath);
 
-                        // Nothing to do.
-                        break;
+                    switch (e.Kind)
+                    {
+                        case ProjectChangeKind.DocumentAdded:
+                        case ProjectChangeKind.DocumentRemoved:
+                        case ProjectChangeKind.DocumentChanged:
 
-                    case ProjectChangeKind.ProjectAdded:
-                    case ProjectChangeKind.ProjectChanged:
+                            // Nothing to do.
+                            break;
 
-                        // Just an update
-                        OnContextChanged(ContextChangeKind.ProjectChanged);
+                        case ProjectChangeKind.ProjectAdded:
+                        case ProjectChangeKind.ProjectChanged:
 
-                        if (e.Older is null ||
-                            !Enumerable.SequenceEqual(e.Older.TagHelpers, e.Newer.TagHelpers))
-                        {
-                            OnContextChanged(ContextChangeKind.TagHelpersChanged);
-                        }
-                        break;
+                            // Just an update
+                            OnContextChanged(ContextChangeKind.ProjectChanged);
 
-                    case ProjectChangeKind.ProjectRemoved:
+                            if (e.Older is null ||
+                                !Enumerable.SequenceEqual(e.Older.TagHelpers, e.Newer.TagHelpers))
+                            {
+                                OnContextChanged(ContextChangeKind.TagHelpersChanged);
+                            }
+                            break;
 
-                        // Fall back to ephemeral project
-                        _projectSnapshot = _projectManager.GetOrCreateProject(ProjectPath);
-                        OnContextChanged(ContextChangeKind.ProjectChanged);
-                        break;
+                        case ProjectChangeKind.ProjectRemoved:
 
-                    default:
-                        throw new InvalidOperationException($"Unknown ProjectChangeKind {e.Kind}");
+                            // Fall back to ephemeral project
+                            _projectSnapshot = await _foregroundDispatcher.RunOnForegroundAsync(
+                                () => _projectManager.GetOrCreateProject(ProjectPath), CancellationToken.None);
+                            OnContextChanged(ContextChangeKind.ProjectChanged);
+                            break;
+
+                        default:
+                            throw new InvalidOperationException($"Unknown ProjectChangeKind {e.Kind}");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("DefaultVisualStudioDocumentTracker.ProjectManager_Changed threw exception:" +
+                   Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }
 

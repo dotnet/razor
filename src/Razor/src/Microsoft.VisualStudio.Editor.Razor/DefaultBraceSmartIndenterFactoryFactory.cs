@@ -15,23 +15,16 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [ExportLanguageServiceFactory(typeof(BraceSmartIndenterFactory), RazorLanguage.Name, ServiceLayer.Default)]
     internal class DefaultBraceSmartIndenterFactoryFactory : ILanguageServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
         private readonly IEditorOperationsFactoryService _editorOperationsFactory;
 
         [ImportingConstructor]
         public DefaultBraceSmartIndenterFactoryFactory(
-            ForegroundDispatcher foregroundDispatcher,
             JoinableTaskContext joinableTaskContext,
             TextBufferCodeDocumentProvider codeDocumentProvider, 
             IEditorOperationsFactoryService editorOperationsFactory)
         {
-            if (foregroundDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
             if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
@@ -47,7 +40,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(editorOperationsFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _codeDocumentProvider = codeDocumentProvider;
             _editorOperationsFactory = editorOperationsFactory;
@@ -60,7 +52,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(languageServices));
             }
 
-            return new DefaultBraceSmartIndenterFactory(_foregroundDispatcher, _joinableTaskContext, _codeDocumentProvider, _editorOperationsFactory);
+            return new DefaultBraceSmartIndenterFactory(_joinableTaskContext, _codeDocumentProvider, _editorOperationsFactory);
         }
     }
 }

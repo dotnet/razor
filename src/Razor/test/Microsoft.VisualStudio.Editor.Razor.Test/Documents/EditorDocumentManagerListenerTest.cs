@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             var editorDocumentManger = new Mock<EditorDocumentManager>(MockBehavior.Strict);
             editorDocumentManger
-                .Setup(e => e.GetOrCreateDocumentAsync(It.IsAny<DocumentKey>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>()))
+                .Setup(e => e.GetOrCreateDocument(It.IsAny<DocumentKey>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>()))
                 .Returns(Task.FromResult(GetEditorDocument()))
                 .Callback<DocumentKey, EventHandler, EventHandler, EventHandler, EventHandler>((key, onChangedOnDisk, onChangedInEditor, onOpened, onClosed) =>
                 {
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             var editorDocumentManger = new Mock<EditorDocumentManager>(MockBehavior.Strict);
             editorDocumentManger
-                .Setup(e => e.GetOrCreateDocumentAsync(It.IsAny<DocumentKey>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>()))
+                .Setup(e => e.GetOrCreateDocument(It.IsAny<DocumentKey>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>()))
                 .Returns(Task.FromResult(GetEditorDocument(isOpen: true)));
 
             var foregroundDispatcher = new DefaultForegroundDispatcher();

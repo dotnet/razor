@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }).ConfigureAwait(false);
         }
 
-        // Should only be called from the specialized foreground thread.
+        // Should only be called from the specialized single thread.
         private ProjectSnapshotManagerBase GetProjectManager()
         {
             _foregroundDispatcher.AssertForegroundThread();

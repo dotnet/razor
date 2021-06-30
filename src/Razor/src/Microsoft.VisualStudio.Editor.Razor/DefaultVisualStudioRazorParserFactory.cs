@@ -10,24 +10,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFactory
     {
-        private readonly ForegroundDispatcher _dispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
         private readonly VisualStudioCompletionBroker _completionBroker;
         private readonly ErrorReporter _errorReporter;
 
         public DefaultVisualStudioRazorParserFactory(
-            ForegroundDispatcher dispatcher,
             JoinableTaskContext joinableTaskContext,
             ErrorReporter errorReporter,
             VisualStudioCompletionBroker completionBroker,
             ProjectSnapshotProjectEngineFactory projectEngineFactory)
         {
-            if (dispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(dispatcher));
-            }
-
             if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
@@ -48,7 +41,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(projectEngineFactory));
             }
 
-            _dispatcher = dispatcher;
             _joinableTaskContext = joinableTaskContext;
             _errorReporter = errorReporter;
             _completionBroker = completionBroker;
@@ -65,7 +57,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _joinableTaskContext.AssertUIThread();
 
             var parser = new DefaultVisualStudioRazorParser(
-                _dispatcher,
                 _joinableTaskContext,
                 documentTracker,
                 _projectEngineFactory,

@@ -2,13 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Text;
-using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -33,7 +30,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class BraceSmartIndenter : IDisposable
     {
         private readonly ITextBuffer _textBuffer;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly VisualStudioDocumentTracker _documentTracker;
         private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
@@ -47,17 +43,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         public BraceSmartIndenter(
-            ForegroundDispatcher foregroundDispatcher,
             JoinableTaskContext joinableTaskContext,
             VisualStudioDocumentTracker documentTracker,
             TextBufferCodeDocumentProvider codeDocumentProvider,
             IEditorOperationsFactoryService editorOperationsFactory)
         {
-            if (foregroundDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
             if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
@@ -78,7 +68,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(editorOperationsFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _documentTracker = documentTracker;
             _codeDocumentProvider = codeDocumentProvider;
@@ -106,90 +95,68 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // Internal for testing
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        internal async void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        internal void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
         {
-            try
+            _joinableTaskContext.AssertUIThread();
+
+            if (!args.TextChangeOccurred(out var changeInformation))
             {
-                await _foregroundDispatcher.RunOnForegroundAsync(() =>
-                {
-                    if (!args.TextChangeOccurred(out var changeInformation))
-                    {
-                        return;
-                    }
-
-                    var newText = changeInformation.newText;
-                    if (!_codeDocumentProvider.TryGetFromBuffer(_documentTracker.TextBuffer, out var codeDocument))
-                    {
-                        // Parse not available.
-                        return;
-                    }
-
-                    var syntaxTree = codeDocument.GetSyntaxTree();
-                    if (TryCreateIndentationContext(changeInformation.firstChange.NewPosition, newText.Length, newText, syntaxTree, _documentTracker, out var context))
-                    {
-                        _context = context;
-                    }
-                }, CancellationToken.None);
+                return;
             }
-            catch (Exception ex)
+
+            var newText = changeInformation.newText;
+            if (!_codeDocumentProvider.TryGetFromBuffer(_documentTracker.TextBuffer, out var codeDocument))
             {
-                Debug.Fail("BraceSmartIndenter.TextBuffer_OnChanged threw exception:" +
-                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+                // Parse not available.
+                return;
+            }
+
+            var syntaxTree = codeDocument.GetSyntaxTree();
+            if (TryCreateIndentationContext(changeInformation.firstChange.NewPosition, newText.Length, newText, syntaxTree, _documentTracker, out var context))
+            {
+                _context = context;
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void TextBuffer_OnPostChanged(object sender, EventArgs e)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void TextBuffer_OnPostChanged(object sender, EventArgs e)
         {
-            try
+            _joinableTaskContext.AssertUIThread();
+
+            var context = _context;
+            _context = null;
+
+            if (context != null)
             {
-                await _foregroundDispatcher.RunOnForegroundAsync(() =>
-                {
-                    var context = _context;
-                    _context = null;
+                // Save the current caret position
+                var textView = context.FocusedTextView;
+                var caret = textView.Caret.Position.BufferPosition;
+                var textViewBuffer = textView.TextBuffer;
+                var indent = CalculateIndent(textViewBuffer, context.ChangePosition);
 
-                    if (context != null)
-                    {
-                        // Save the current caret position
-                        var textView = context.FocusedTextView;
-                        var caret = textView.Caret.Position.BufferPosition;
-                        var textViewBuffer = textView.TextBuffer;
-                        var indent = CalculateIndent(textViewBuffer, context.ChangePosition);
+                // Current state, pipe is cursor:
+                // @{
+                // |}
 
-                        // Current state, pipe is cursor:
-                        // @{
-                        // |}
+                // Insert the completion text, i.e. "\r\n      "
+                InsertIndent(caret.Position, indent, textViewBuffer);
 
-                        // Insert the completion text, i.e. "\r\n      "
-                        InsertIndent(caret.Position, indent, textViewBuffer);
+                // @{
+                // 
+                // |}
 
-                        // @{
-                        // 
-                        // |}
+                // Place the caret inbetween the braces (before our indent).
+                RestoreCaretTo(caret.Position, textView);
 
-                        // Place the caret inbetween the braces (before our indent).
-                        RestoreCaretTo(caret.Position, textView);
+                // @{
+                // |
+                // }
 
-                        // @{
-                        // |
-                        // }
+                // For Razor metacode cases the editor's smart indent wont kick in automatically. 
+                TriggerSmartIndent(textView);
 
-                        // For Razor metacode cases the editor's smart indent wont kick in automatically. 
-                        TriggerSmartIndent(textView);
-
-                        // @{
-                        //     |
-                        // }
-                    }
-                }, CancellationToken.None);
-            }
-            catch (Exception ex)
-            {
-                Debug.Fail("BraceSmartIndenter.TextBuffer_OnPostChanged threw exception:" +
-                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+                // @{
+                //     |
+                // }
             }
         }
 

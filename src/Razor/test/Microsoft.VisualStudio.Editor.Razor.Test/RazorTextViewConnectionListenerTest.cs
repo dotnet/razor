@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var textView = Mock.Of<ITextView>(MockBehavior.Strict);
             var buffers = new Collection<ITextBuffer>();
             var documentManager = new Mock<RazorDocumentManager>(MockBehavior.Strict);
-            documentManager.Setup(d => d.OnTextViewOpened(textView, buffers)).Verifiable();
+            documentManager.Setup(d => d.OnTextViewOpenedAsync(textView, buffers)).Verifiable();
 
             var listener = new RazorTextViewConnectionListener(Dispatcher, documentManager.Object);
 
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var textView = Mock.Of<ITextView>(MockBehavior.Strict);
             var buffers = new Collection<ITextBuffer>();
             var documentManager = new Mock<RazorDocumentManager>(MockBehavior.Strict);
-            documentManager.Setup(d => d.OnTextViewClosed(textView, buffers)).Verifiable();
+            documentManager.Setup(d => d.OnTextViewClosedAsync(textView, buffers)).Verifiable();
 
             var listener = new RazorTextViewConnectionListener(Dispatcher, documentManager.Object);
 

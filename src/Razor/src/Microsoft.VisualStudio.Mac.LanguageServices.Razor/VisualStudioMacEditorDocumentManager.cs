@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         {
         }
 
-        protected override Task<ITextBuffer> GetTextBufferForOpenDocumentAsync(string filePath)
+        protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
         {
             if (filePath == null)
             {
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
 
             var document = IdeApp.Workbench.GetDocument(filePath);
-            return Task.FromResult(document?.GetContent<ITextBuffer>());
+            return document?.GetContent<ITextBuffer>();
         }
 
         protected override void OnDocumentOpened(EditorDocument document)
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void HandleDocumentOpened(string filePath, ITextBuffer textBuffer)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void HandleDocumentClosed(string filePath)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void HandleDocumentRenamed(string fromFilePath, string toFilePath, ITextBuffer textBuffer)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             if (string.Equals(fromFilePath, toFilePath, FilePathComparison.Instance))
             {
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void BufferLoaded(ITextBuffer textBuffer, string filePath, EditorDocument[] documents)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {

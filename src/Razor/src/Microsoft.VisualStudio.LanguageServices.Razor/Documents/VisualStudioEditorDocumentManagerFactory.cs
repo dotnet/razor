@@ -38,11 +38,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(editorAdaptersFactory));
             }
 
-            if (foregroundDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
             if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
@@ -63,7 +58,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             var fileChangeTrackerFactory = workspaceServices.GetRequiredService<FileChangeTrackerFactory>();
-            return new VisualStudioEditorDocumentManager(_foregroundDispatcher, _joinableTaskContext, fileChangeTrackerFactory, runningDocumentTable, _editorAdaptersFactory);
+            return new VisualStudioEditorDocumentManager(
+                _foregroundDispatcher, _joinableTaskContext, fileChangeTrackerFactory, runningDocumentTable, _editorAdaptersFactory);
         }
     }
 }

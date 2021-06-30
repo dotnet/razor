@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
@@ -13,6 +15,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     internal sealed class EditorDocument : IDisposable
     {
         private readonly EditorDocumentManager _documentManager;
+        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly FileChangeTracker _fileTracker;
         private readonly SnapshotChangeTracker _snapshotTracker;
         private readonly EventHandler _changedOnDisk;
@@ -24,6 +27,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public EditorDocument(
             EditorDocumentManager documentManager,
+            ForegroundDispatcher foregroundDispatcher,
             string projectFilePath,
             string documentFilePath,
             TextLoader textLoader,
@@ -37,6 +41,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             if (documentManager == null)
             {
                 throw new ArgumentNullException(nameof(documentManager));
+            }
+
+            if (foregroundDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
             if (projectFilePath == null)
@@ -60,6 +69,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             _documentManager = documentManager;
+            _foregroundDispatcher = foregroundDispatcher;
             ProjectFilePath = projectFilePath;
             DocumentFilePath = documentFilePath;
             TextLoader = textLoader;
@@ -75,7 +85,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             // Only one of these should be active at a time.
             if (textBuffer == null)
             {
-                _fileTracker.StartListening();
+                _ = _foregroundDispatcher.RunOnForegroundAsync(
+                    () => _fileTracker.StartListening(), CancellationToken.None);
             }
             else
             {
@@ -106,7 +117,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            _fileTracker.StopListening();
+            _ = _foregroundDispatcher.RunOnForegroundAsync(
+                () => _fileTracker.StopListening(), CancellationToken.None);
 
             _snapshotTracker.StartTracking(textBuffer);
             EditorTextBuffer = textBuffer;
@@ -125,8 +137,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             EditorTextContainer.TextChanged -= TextContainer_Changed;
             EditorTextContainer = null;
             EditorTextBuffer = null;
-            
-            _fileTracker.StartListening();
+
+            _ = _foregroundDispatcher.RunOnForegroundAsync(
+                () => _fileTracker.StartListening(), CancellationToken.None);
         }
 
         private void ChangeTracker_Changed(object sender, FileChangeEventArgs e)
@@ -147,7 +160,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             if (!_disposed)
             {
                 _fileTracker.Changed -= ChangeTracker_Changed;
-                _fileTracker.StopListening();
+
+                _ = _foregroundDispatcher.RunOnForegroundAsync(
+                    () => _fileTracker.StopListening(), CancellationToken.None);
 
                 if (EditorTextBuffer != null)
                 {

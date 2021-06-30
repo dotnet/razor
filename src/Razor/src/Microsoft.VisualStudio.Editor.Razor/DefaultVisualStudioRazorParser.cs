@@ -36,7 +36,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly object UpdateStateLock = new object();
         private readonly VisualStudioCompletionBroker _completionBroker;
         private readonly VisualStudioDocumentTracker _documentTracker;
-        private readonly ForegroundDispatcher _dispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
         private readonly ErrorReporter _errorReporter;
@@ -54,44 +53,37 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         public DefaultVisualStudioRazorParser(
-            ForegroundDispatcher dispatcher,
             JoinableTaskContext joinableTaskContext,
             VisualStudioDocumentTracker documentTracker,
             ProjectSnapshotProjectEngineFactory projectEngineFactory,
             ErrorReporter errorReporter,
             VisualStudioCompletionBroker completionBroker)
         {
-            if (dispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(dispatcher));
-            }
-
             if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            if (documentTracker == null)
+            if (documentTracker is null)
             {
                 throw new ArgumentNullException(nameof(documentTracker));
             }
 
-            if (projectEngineFactory == null)
+            if (projectEngineFactory is null)
             {
                 throw new ArgumentNullException(nameof(projectEngineFactory));
             }
 
-            if (errorReporter == null)
+            if (errorReporter is null)
             {
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            if (completionBroker == null)
+            if (completionBroker is null)
             {
                 throw new ArgumentNullException(nameof(completionBroker));
             }
 
-            _dispatcher = dispatcher;
             _joinableTaskContext = joinableTaskContext;
             _projectEngineFactory = projectEngineFactory;
             _errorReporter = errorReporter;
@@ -159,11 +151,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             if (_joinableTaskContext.IsOnMainThread)
             {
-                ReparseOnUIThread(null);
+                ReparseOnUIThread();
             }
             else
             {
-                _ = Task.Factory.StartNew(ReparseOnUIThread, null, CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                _ = Task.Factory.StartNew(ReparseOnUIThread, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
             }
         }
 
@@ -351,7 +343,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // Internal for testing
-        internal void OnIdle(object state)
+        internal void OnIdle()
         {
            _joinableTaskContext.AssertUIThread();
 
@@ -376,7 +368,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // Internal for testing
-        internal void ReparseOnUIThread(object state)
+        internal void ReparseOnUIThread()
         {
            _joinableTaskContext.AssertUIThread();
 
@@ -417,19 +409,20 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             try
             {
-                _dispatcher.AssertBackgroundThread();
+                _joinableTaskContext.AssertBackgroundThread();
 
                 OnStartingBackgroundIdleWork();
 
                 StopIdleTimer();
 
                 // We need to get back to the UI thread to properly check if a completion is active.
-                _ = Task.Factory.StartNew(OnIdle, null, CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                _ = Task.Factory.StartNew(OnIdle, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
             }
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the workspace.
-                _ = Task.Factory.StartNew(() => _errorReporter.ReportError(ex), CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                _ = Task.Factory.StartNew(
+                    () => _errorReporter.ReportError(ex), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
             }
         }
 
@@ -440,7 +433,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             try
             {
-                _dispatcher.AssertBackgroundThread();
+                _joinableTaskContext.AssertBackgroundThread();
 
                 UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
 

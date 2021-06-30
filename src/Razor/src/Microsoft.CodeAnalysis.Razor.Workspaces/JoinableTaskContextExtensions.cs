@@ -3,8 +3,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
@@ -19,29 +17,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
         }
 
-        public static async Task RunOnMainThreadAsync(
-            this JoinableTaskContext joinableTaskContext,
-            TaskScheduler originalScheduler,
-            Action action,
-            CancellationToken cancellationToken)
+        public static void AssertBackgroundThread(this JoinableTaskContext joinableTaskContext, [CallerMemberName] string caller = null)
         {
-            await joinableTaskContext.RunOnMainThreadAsync(
-                originalScheduler, new Func<Task>(() => { action(); return Task.CompletedTask; }), cancellationToken);
-        }
-
-        public static async Task<TResult> RunOnMainThreadAsync<TResult>(
-            this JoinableTaskContext joinableTaskContext,
-            TaskScheduler originalScheduler,
-            Func<TResult> action,
-            CancellationToken cancellationToken)
-        {
-            await joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
-            joinableTaskContext.AssertUIThread();
-            var result = action();
-
-            // Return to original thread
-            await originalScheduler;
-            return result;
+            if (joinableTaskContext.IsOnMainThread)
+            {
+                throw new InvalidOperationException($"{caller} must be called on a background thread.");
+            }
         }
     }
 }

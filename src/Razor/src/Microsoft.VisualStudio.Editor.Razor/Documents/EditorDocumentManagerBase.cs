@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected JoinableTaskContext JoinableTaskContext { get; }
 
-        protected abstract Task<ITextBuffer> GetTextBufferForOpenDocumentAsync(string filePath);
+        protected abstract ITextBuffer GetTextBufferForOpenDocument(string filePath);
 
         protected abstract void OnDocumentOpened(EditorDocument document);
 
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public sealed override bool TryGetDocument(DocumentKey key, out EditorDocument document)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public sealed override bool TryGetMatchingDocuments(string filePath, out EditorDocument[] documents)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -92,16 +92,14 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
         }
 
-        public sealed override async Task<EditorDocument> GetOrCreateDocumentAsync(
+         public sealed override EditorDocument GetOrCreateDocument(
             DocumentKey key,
             EventHandler changedOnDisk,
             EventHandler changedInEditor,
             EventHandler opened,
             EventHandler closed)
         {
-            ForegroundDispatcher.AssertForegroundThread();
-
-            var textBuffer = await GetTextBufferForOpenDocumentAsync(key.DocumentFilePath);
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -110,8 +108,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                     return document;
                 }
 
+                // Check if the document is already open and initialized, and associate a buffer if possible.
+                var textBuffer = GetTextBufferForOpenDocument(key.DocumentFilePath);
                 document = new EditorDocument(
                     this,
+                    ForegroundDispatcher,
                     key.ProjectFilePath,
                     key.DocumentFilePath,
                     new FileTextLoader(key.DocumentFilePath, defaultEncoding: null),
@@ -156,7 +157,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -180,7 +181,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -204,7 +205,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(document));
             }
 
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
