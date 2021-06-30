@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
     {
-        public static readonly ProjectWorkspaceState Default = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.Default);
+        public static readonly ProjectWorkspaceState Default = new(Array.Empty<TagHelperDescriptor>(), LanguageVersion.Default);
 
         public ProjectWorkspaceState(
             IReadOnlyList<TagHelperDescriptor> tagHelpers,
