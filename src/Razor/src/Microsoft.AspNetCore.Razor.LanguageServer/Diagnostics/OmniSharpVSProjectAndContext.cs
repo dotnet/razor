@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         public string? ProjectName { get; set; }
 
         /// <summary>
-        /// Gets or sets A human-readable identifier for the build context (e.g. Win32 or MacOS)
+        /// Gets or sets a human-readable identifier for the build context (e.g. Win32 or MacOS)
         /// in which the diagnostic was generated.
         /// </summary>
         public string? Context { get; set; }
