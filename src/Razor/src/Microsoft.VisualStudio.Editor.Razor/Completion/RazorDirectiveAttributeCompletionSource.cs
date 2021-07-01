@@ -77,8 +77,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         public async Task<CompletionContext> GetCompletionContextAsync(IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             try
             {
                 var codeDocument = await _parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);

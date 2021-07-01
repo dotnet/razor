@@ -194,8 +194,6 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             try
             {
-                _foregroundDispatcher.AssertBackgroundThread();
-
                 // Timer is stopped.
                 _timer.Change(Timeout.Infinite, Timeout.Infinite);
 

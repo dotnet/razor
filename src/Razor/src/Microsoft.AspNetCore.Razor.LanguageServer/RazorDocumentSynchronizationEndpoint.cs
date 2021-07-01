@@ -67,8 +67,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<Unit> Handle(DidChangeTextDocumentParams notification, CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             var document = await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
@@ -95,8 +93,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<Unit> Handle(DidOpenTextDocumentParams notification, CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             var sourceText = SourceText.From(notification.TextDocument.Text);
 
             if (notification.TextDocument.Version is null)
@@ -115,8 +111,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<Unit> Handle(DidCloseTextDocumentParams notification, CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             await Task.Factory.StartNew(
                 () => _projectService.CloseDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath()),
                 CancellationToken.None,

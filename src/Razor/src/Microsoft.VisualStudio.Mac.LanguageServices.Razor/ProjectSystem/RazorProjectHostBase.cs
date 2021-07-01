@@ -81,14 +81,12 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
             // Trigger the initial update to the project.
             _batchingProjectChanges = true;
-            _ = Task.Factory.StartNew(ProjectChangedBackgroundAsync, null, CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.BackgroundScheduler);
+            _ = Task.Factory.StartNew(ProjectChangedBackgroundAsync, null, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         // Must be called inside the lock.
         protected async Task UpdateHostProjectUnsafeAsync(HostProject newHostProject)
         {
-            ForegroundDispatcher.AssertBackgroundThread();
-
             await Task.Factory.StartNew(UpdateHostProjectForeground, newHostProject, CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.ForegroundScheduler);
         }
 
@@ -102,8 +100,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         private async Task ProjectChangedBackgroundAsync(object state)
         {
-            ForegroundDispatcher.AssertBackgroundThread();
-
             _batchingProjectChanges = false;
 
             // Ensure ordering, typically we'll only have 1 background thread in flight at a time. However,
@@ -137,7 +133,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 // Therefore, we re-dispatch here to allow any remaining project change events to fire and to then only have 1 host
                 // project change trigger; this way we don't spam our own system with re-configure calls.
                 _batchingProjectChanges = true;
-                _ = Task.Factory.StartNew(ProjectChangedBackgroundAsync, null, CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.BackgroundScheduler);
+                _ = Task.Factory.StartNew(ProjectChangedBackgroundAsync, null, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
             }
         }
 

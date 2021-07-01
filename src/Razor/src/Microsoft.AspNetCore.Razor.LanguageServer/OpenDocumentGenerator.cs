@@ -170,8 +170,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             try
             {
-                _foregroundDispatcher.AssertBackgroundThread();
-
                 OnStartingBackgroundWork();
 
                 KeyValuePair<string, DocumentSnapshot>[] work;

@@ -95,11 +95,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
         {
             public override bool IsForegroundThread => true;
 
-            public override bool IsBackgroundThread => false;
-
             public override TaskScheduler ForegroundScheduler => TaskScheduler.Default;
-
-            public override TaskScheduler BackgroundScheduler => TaskScheduler.Default;
         }
 
         private class TestErrorReporter : ErrorReporter

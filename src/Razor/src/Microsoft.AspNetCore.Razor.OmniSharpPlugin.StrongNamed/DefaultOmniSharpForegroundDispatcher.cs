@@ -16,9 +16,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public override bool IsForegroundThread => InternalDispatcher.IsForegroundThread;
         public override TaskScheduler ForegroundScheduler => InternalDispatcher.ForegroundScheduler;
-        public override TaskScheduler BackgroundScheduler => InternalDispatcher.BackgroundScheduler;
 
-        public override void AssertBackgroundThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertBackgroundThread(caller);
         public override void AssertForegroundThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertForegroundThread(caller);
     }
 }

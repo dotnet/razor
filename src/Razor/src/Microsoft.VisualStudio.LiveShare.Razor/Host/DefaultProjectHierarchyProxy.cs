@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -14,23 +13,17 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
     internal class DefaultProjectHierarchyProxy : IProjectHierarchyProxy, ICollaborationService
     {
         private readonly CollaborationSession _session;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private IVsUIShellOpenDocument _openDocumentShell;
 
         public DefaultProjectHierarchyProxy(
             CollaborationSession session,
-            ForegroundDispatcher foregroundDispatcher,
             JoinableTaskFactory joinableTaskFactory)
         {
             if (session == null)
             {
                 throw new ArgumentNullException(nameof(session));
-            }
-
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
             if (joinableTaskFactory == null)
@@ -39,7 +32,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             }
 
             _session = session;
-            _foregroundDispatcher = foregroundDispatcher;
             _joinableTaskFactory = joinableTaskFactory;
         }
 
@@ -49,8 +41,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             {
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
-
-            _foregroundDispatcher.AssertBackgroundThread();
 
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

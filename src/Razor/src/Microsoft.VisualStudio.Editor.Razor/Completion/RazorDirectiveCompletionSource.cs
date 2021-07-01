@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -34,18 +33,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         // Internal for testing
         internal readonly VisualStudioRazorParser _parser;
         private readonly RazorCompletionFactsService _completionFactsService;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
 
         public RazorDirectiveCompletionSource(
-            ForegroundDispatcher foregroundDispatcher,
             VisualStudioRazorParser parser,
             RazorCompletionFactsService completionFactsService)
         {
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
             if (parser == null)
             {
                 throw new ArgumentNullException(nameof(parser));
@@ -56,7 +48,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
             _parser = parser;
             _completionFactsService = completionFactsService;
         }
@@ -68,8 +59,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             SnapshotSpan applicableSpan,
             CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             try
             {
                 var codeDocument = await _parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);

@@ -409,8 +409,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             try
             {
-                _joinableTaskContext.AssertBackgroundThread();
-
                 OnStartingBackgroundIdleWork();
 
                 StopIdleTimer();
@@ -433,8 +431,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             try
             {
-                _joinableTaskContext.AssertBackgroundThread();
-
                 UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
 
                 // Jump back to UI thread to notify structure changes.

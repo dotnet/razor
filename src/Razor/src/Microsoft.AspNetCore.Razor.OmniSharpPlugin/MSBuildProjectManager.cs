@@ -103,8 +103,6 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
 
         public void RazorDocumentChanged(RazorFileChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             if (args.Kind == RazorFileChangeKind.Added ||
                 args.Kind == RazorFileChangeKind.Removed)
             {

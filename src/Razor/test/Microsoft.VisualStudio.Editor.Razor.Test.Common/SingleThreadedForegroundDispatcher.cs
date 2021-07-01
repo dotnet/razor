@@ -14,19 +14,16 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         public SingleThreadedForegroundDispatcher()
         {
-            ForegroundScheduler = SynchronizationContext.Current == null ? new ThrowingTaskScheduler() : TaskScheduler.FromCurrentSynchronizationContext();
-            BackgroundScheduler = TaskScheduler.Default;
+            ForegroundScheduler = SynchronizationContext.Current == null
+                ? new ThrowingTaskScheduler()
+                : TaskScheduler.FromCurrentSynchronizationContext();
         }
 
         public override TaskScheduler ForegroundScheduler { get; }
 
-        public override TaskScheduler BackgroundScheduler { get; }
-
         private Thread Thread { get; } = Thread.CurrentThread;
 
         public override bool IsForegroundThread => Thread.CurrentThread == Thread;
-
-        public override bool IsBackgroundThread => !IsForegroundThread;
 
         private class ThrowingTaskScheduler : TaskScheduler
         {

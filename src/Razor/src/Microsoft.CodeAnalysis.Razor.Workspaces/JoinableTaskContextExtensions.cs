@@ -16,13 +16,5 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new InvalidOperationException($"{caller} must be called on the UI thread.");
             }
         }
-
-        public static void AssertBackgroundThread(this JoinableTaskContext joinableTaskContext, [CallerMemberName] string caller = null)
-        {
-            if (joinableTaskContext.IsOnMainThread)
-            {
-                throw new InvalidOperationException($"{caller} must be called on a background thread.");
-            }
-        }
     }
 }

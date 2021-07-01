@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 () => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, lcts.Token),
                 lcts.Token,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.BackgroundScheduler).Unwrap();
+                TaskScheduler.Default).Unwrap();
             updateTask.ConfigureAwait(false);
             updateItem = new UpdateItem(updateTask, lcts);
             _updates[projectSnapshot.FilePath] = updateItem;
@@ -130,8 +130,6 @@ namespace Microsoft.CodeAnalysis.Razor
 
             try
             {
-                _foregroundDispatcher.AssertBackgroundThread();
-
                 OnStartingBackgroundWork();
 
                 if (cancellationToken.IsCancellationRequested)
