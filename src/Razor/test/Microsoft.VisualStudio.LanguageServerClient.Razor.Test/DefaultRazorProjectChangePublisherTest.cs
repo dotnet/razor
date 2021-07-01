@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
                 public Task WaitForCompletionAsync()
                 {
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("name"));
                     throw new NotImplementedException();
                 }
             }
