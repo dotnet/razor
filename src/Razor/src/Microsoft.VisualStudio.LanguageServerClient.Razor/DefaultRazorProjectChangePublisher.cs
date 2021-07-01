@@ -265,29 +265,48 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             tempFileInfo.MoveTo(publishFilePath);
         }
 
+        protected virtual bool FileExists(string file)
+        {
+            return File.Exists(file);
+        }
+
         protected virtual bool ShouldSerialize(ProjectSnapshot projectSnapshot, string configurationFilePath)
         {
-            if (!File.Exists(configurationFilePath))
+            if (!FileExists(configurationFilePath))
             {
                 return true;
             }
 
             var status = _operationProgressStatusService?.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
 
-            // Don't serialize our understanding until we've parsed at least one document,
-            // otherwise our understanding is incomplete
+            // Don't serialize our understanding until we're "ready"
             if (!_documentsProcessed)
             {
-                foreach (var document in projectSnapshot.DocumentFilePaths)
+                if (projectSnapshot.DocumentFilePaths.Any(d => AspNetCore.Razor.Language.FileKinds.GetFileKindFromFilePath(d)
+                    .Equals(AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase)))
                 {
-                    var fileName = Path.GetFileNameWithoutExtension(document);
-
-                    if (projectSnapshot.TagHelpers.Any(t => t.Name.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase)))
+                    foreach (var document in projectSnapshot.DocumentFilePaths)
                     {
-                        // Documents have been processed, lets publish
-                        _documentsProcessed = true;
-                        break;
+                        // We want to wait until at least one document has been processed (meaning it became a TagHelper.
+                        // Because we don't have a way to tell which TagHelpers were created from the local project just from their descriptors we have to improvise
+                        // We assume that a document has been processed if at least one Component matches the name of one of our files.
+                        var fileName = Path.GetFileNameWithoutExtension(document);
+
+                        var documentSnapshot = projectSnapshot.GetDocument(document);
+
+                        if (documentSnapshot.FileKind.Equals(AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase) &&
+                            projectSnapshot.TagHelpers.Any(t => t.Name.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            // Documents have been processed, lets publish
+                            _documentsProcessed = true;
+                            break;
+                        }
                     }
+                }
+                else
+                {
+                    // This project has no Components and thus cannot suffer from the lagging compilation problem.
+                    _documentsProcessed = true;
                 }
             }
             if (status is null)
