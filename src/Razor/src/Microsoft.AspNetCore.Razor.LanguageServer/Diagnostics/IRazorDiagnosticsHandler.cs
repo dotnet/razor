@@ -4,7 +4,7 @@
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using OmniSharp.Extensions.JsonRpc;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
     [Parallel, Method(LanguageServerConstants.RazorTranslateDiagnosticsEndpoint)]
     internal interface IRazorDiagnosticsHandler : IJsonRpcRequestHandler<RazorDiagnosticsParams, RazorDiagnosticsResponse>

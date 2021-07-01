@@ -3,9 +3,8 @@
 
 using System;
 using MediatR;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
     // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
     internal class RazorDiagnosticsParams : IRequest<RazorDiagnosticsResponse>
@@ -14,6 +13,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public Uri RazorDocumentUri { get; set; }
 
-        public Diagnostic[] Diagnostics { get; set; }
+        public OmniSharpVSDiagnostic[] Diagnostics { get; set; }
     }
 }

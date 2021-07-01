@@ -18,7 +18,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SourceText = Microsoft.CodeAnalysis.Text.SourceText;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
     internal class RazorDiagnosticsEndpoint :
         IRazorDiagnosticsHandler
@@ -118,7 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _logger.LogInformation("Unsupported code document.");
                 return new RazorDiagnosticsResponse()
                 {
-                    Diagnostics = Array.Empty<Diagnostic>(),
+                    Diagnostics = Array.Empty<OmniSharpVSDiagnostic>(),
                     HostDocumentVersion = documentVersion
                 };
             }
@@ -134,7 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 return new RazorDiagnosticsResponse()
                 {
-                    Diagnostics = Array.Empty<Diagnostic>(),
+                    Diagnostics = Array.Empty<OmniSharpVSDiagnostic>(),
                     HostDocumentVersion = documentVersion
                 };
             }
@@ -156,8 +156,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
         }
 
-        private static Diagnostic[] FilterHTMLDiagnostics(
-            Diagnostic[] unmappedDiagnostics,
+        private static OmniSharpVSDiagnostic[] FilterHTMLDiagnostics(
+            OmniSharpVSDiagnostic[] unmappedDiagnostics,
             RazorCodeDocument codeDocument,
             SourceText sourceText)
         {
@@ -174,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return filteredDiagnostics;
         }
 
-        private static bool ShouldFilterHtmlDiagnosticBasedOnErrorCode(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
+        private static bool ShouldFilterHtmlDiagnosticBasedOnErrorCode(OmniSharpVSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
         {
             if (!diagnostic.Code.HasValue)
             {
@@ -191,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
             // but we don't currently have a system to accomplish that
-            static bool IsHtmlWithBangAndMatchingTags(Diagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            static bool IsHtmlWithBangAndMatchingTags(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
             {
                 var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
 
@@ -204,7 +204,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return haveBang && namesEquivilant;
             }
 
-            static bool IsInvalidNestingWarningWithinComponent(Diagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            static bool IsInvalidNestingWarningWithinComponent(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
             {
                 var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
 
@@ -216,7 +216,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         private static bool InAttributeContainingCSharp(
-                Diagnostic d,
+                OmniSharpVSDiagnostic d,
                 SourceText sourceText,
                 RazorSyntaxTree syntaxTree,
                 Dictionary<TextSpan, bool> processedAttributes)
@@ -256,13 +256,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private Diagnostic[] FilterCSharpDiagnostics(Diagnostic[] unmappedDiagnostics, RazorCodeDocument codeDocument, SourceText sourceText)
+        private OmniSharpVSDiagnostic[] FilterCSharpDiagnostics(OmniSharpVSDiagnostic[] unmappedDiagnostics, RazorCodeDocument codeDocument, SourceText sourceText)
         {
             return unmappedDiagnostics.Where(d =>
                 !ShouldFilterCSharpDiagnosticBasedOnErrorCode(d, codeDocument, sourceText)).ToArray();
         }
 
-        private bool ShouldFilterCSharpDiagnosticBasedOnErrorCode(Diagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText)
+        private bool ShouldFilterCSharpDiagnosticBasedOnErrorCode(OmniSharpVSDiagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText)
         {
             if (!diagnostic.Code.HasValue)
             {
@@ -276,7 +276,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         diagnostic.Severity != DiagnosticSeverity.Error,
             };
 
-            bool ShouldIgnoreCS1525(Diagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText)
+            bool ShouldIgnoreCS1525(OmniSharpVSDiagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText)
             {
                 if (CheckIfDocumentHasRazorDiagnostic(codeDocument, RazorDiagnosticFactory.TagHelper_EmptyBoundAttribute.Id) &&
                     TryGetOriginalDiagnosticRange(diagnostic, codeDocument, sourceText, out var originalRange) &&
@@ -301,9 +301,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return codeDocument.GetSyntaxTree().Diagnostics.Any(d => d.Id.Equals(razorDiagnosticCode, StringComparison.Ordinal));
         }
 
-        private Diagnostic[] MapDiagnostics(
+        private OmniSharpVSDiagnostic[] MapDiagnostics(
             RazorLanguageKind languageKind,
-            IReadOnlyList<Diagnostic> diagnostics,
+            IReadOnlyList<OmniSharpVSDiagnostic> diagnostics,
             RazorCodeDocument codeDocument,
             SourceText sourceText)
         {
@@ -313,7 +313,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return diagnostics.ToArray();
             }
 
-            var mappedDiagnostics = new List<Diagnostic>();
+            var mappedDiagnostics = new List<OmniSharpVSDiagnostic>();
 
             for (var i = 0; i < diagnostics.Count; i++)
             {
@@ -331,7 +331,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return mappedDiagnostics.ToArray();
         }
 
-        private static bool IsRudeEditDiagnostic(Diagnostic diagnostic)
+        private static bool IsRudeEditDiagnostic(OmniSharpVSDiagnostic diagnostic)
         {
             return diagnostic.Code.HasValue &&
                 diagnostic.Code.Value.IsString &&
@@ -396,7 +396,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private bool TryGetOriginalDiagnosticRange(Diagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText, out Range originalRange)
+        private bool TryGetOriginalDiagnosticRange(OmniSharpVSDiagnostic diagnostic, RazorCodeDocument codeDocument, SourceText sourceText, out Range originalRange)
         {
             if (IsRudeEditDiagnostic(diagnostic))
             {
