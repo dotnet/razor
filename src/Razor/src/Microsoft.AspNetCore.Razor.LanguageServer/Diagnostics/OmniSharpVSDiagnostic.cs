@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
         /// <summary>
         /// Gets or sets some non-human readable identifier so that two diagnostics that are
-        /// equivalent(e.g.a syntax error in both a build for Win32 and MacOs) can be consolidated.
+        /// equivalent (e.g.a syntax error in both a build for Win32 and MacOs) can be consolidated.
         /// </summary>
         [JsonProperty("_ms_identifier")]
         public string? Identifier { get; set; }
