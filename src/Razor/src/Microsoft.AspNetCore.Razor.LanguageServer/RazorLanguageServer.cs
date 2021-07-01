@@ -32,6 +32,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -66,6 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             Serializer.Instance.JsonSerializer.Converters.Add(PlatformAgnosticClientCapabilities.JsonConverter);
             Serializer.Instance.JsonSerializer.Converters.Add(PlatformAgnosticCompletionCapability.JsonConverter);
             Serializer.Instance.JsonSerializer.Converters.Add(OmniSharpVSCompletionContext.JsonConverter);
+            Serializer.Instance.JsonSerializer.Converters.Add(OmniSharpVSDiagnostic.JsonConverter);
 
             ILanguageServer server = null;
             var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
