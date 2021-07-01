@@ -84,39 +84,50 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         internal async void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            switch (e.Kind)
+            try
             {
-                case ProjectChangeKind.DocumentAdded:
-                    {
-                        var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
-
-                        // GetOrCreateDocument should be run on the main thread
-                        await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
-                        var document = _documentManager.GetOrCreateDocument(
-                            key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
-                        await _foregroundDispatcher.ForegroundScheduler;
-
-                        if (document.IsOpenInEditor)
+                switch (e.Kind)
+                {
+                    case ProjectChangeKind.DocumentAdded:
                         {
-                            _onOpened(document, EventArgs.Empty);
+                            var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
+
+                            // GetOrCreateDocument should be run on the UI thread
+                            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+
+                            var document = _documentManager.GetOrCreateDocument(
+                                key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
+
+                            if (document.IsOpenInEditor)
+                            {
+                                _onOpened(document, EventArgs.Empty);
+                            }
+
+                            break;
                         }
 
-                        break;
-                    }
-
-                case ProjectChangeKind.DocumentRemoved:
-                    {
-                        await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
-                        var documentFound = _documentManager.TryGetDocument(new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document);
-                        await _foregroundDispatcher.ForegroundScheduler;
-
-                        // This class 'owns' the document entry so it's safe for us to dispose it.
-                        if (documentFound)
+                    case ProjectChangeKind.DocumentRemoved:
                         {
-                            document.Dispose();
+                            // TryGetDocument and Dispose should both be run on the UI thread
+                            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+
+                            var documentFound = _documentManager.TryGetDocument(
+                                new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document);
+
+                            // This class 'owns' the document entry so it's safe for us to dispose it.
+                            if (documentFound)
+                            {
+                                document.Dispose();
+                            }
+
+                            break;
                         }
-                        break;
-                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("EditorDocumentManagerListener.ProjectManager_Changed threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }
 

@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             try
             {
+                // Method needs to be run on the single-threaded dispatcher due to project snapshot
+                // manager access. 
                 await _foregroundDispatcher.RunOnForegroundAsync(() =>
                 {
                     Project project;

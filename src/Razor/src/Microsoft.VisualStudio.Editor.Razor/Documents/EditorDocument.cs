@@ -5,8 +5,10 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
@@ -16,6 +18,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     {
         private readonly EditorDocumentManager _documentManager;
         private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly FileChangeTracker _fileTracker;
         private readonly SnapshotChangeTracker _snapshotTracker;
         private readonly EventHandler _changedOnDisk;
@@ -28,6 +31,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public EditorDocument(
             EditorDocumentManager documentManager,
             ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
             string projectFilePath,
             string documentFilePath,
             TextLoader textLoader,
@@ -38,7 +42,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             EventHandler opened,
             EventHandler closed)
         {
-            if (documentManager == null)
+            if (documentManager is null)
             {
                 throw new ArgumentNullException(nameof(documentManager));
             }
@@ -48,28 +52,34 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (projectFilePath == null)
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (projectFilePath is null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            if (documentFilePath == null)
+            if (documentFilePath is null)
             {
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            if (textLoader == null)
+            if (textLoader is null)
             {
                 throw new ArgumentNullException(nameof(textLoader));
             }
 
-            if (fileTracker == null)
+            if (fileTracker is null)
             {
                 throw new ArgumentNullException(nameof(fileTracker));
             }
 
             _documentManager = documentManager;
             _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             ProjectFilePath = projectFilePath;
             DocumentFilePath = documentFilePath;
             TextLoader = textLoader;
@@ -157,10 +167,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void Dispose()
         {
+            _joinableTaskContext.AssertUIThread();
+
             if (!_disposed)
             {
                 _fileTracker.Changed -= ChangeTracker_Changed;
 
+                // StopListening is designed to run on the single-threaded dispatcher
                 _ = _foregroundDispatcher.RunOnForegroundAsync(
                     () => _fileTracker.StopListening(), CancellationToken.None);
 

@@ -113,6 +113,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 document = new EditorDocument(
                     this,
                     ForegroundDispatcher,
+                    JoinableTaskContext,
                     key.ProjectFilePath,
                     key.DocumentFilePath,
                     new FileTextLoader(key.DocumentFilePath, defaultEncoding: null),

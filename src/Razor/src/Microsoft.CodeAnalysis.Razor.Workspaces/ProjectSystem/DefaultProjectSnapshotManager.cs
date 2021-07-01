@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _openDocuments = new HashSet<string>(FilePathComparer.Instance);
             _notificationWork = new Queue<ProjectChangeEventArgs>();
 
+            // All methods involving the project snapshot manager need to be run on the
+            // single-threaded dispatcher.
             _ = _foregroundDispatcher.RunOnForegroundAsync(() =>
             {
                 for (var i = 0; i < _triggers.Length; i++)

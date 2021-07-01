@@ -81,6 +81,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                 if (documentTracker.TextViews.Count == 1)
                 {
+                    // tracker.Subscribe() accesses the project snapshot manager, which needs to be run on the
+                    // single-threaded dispatcher.
                     await _foregroundDispatcher.RunOnForegroundAsync(() => tracker.Subscribe(), CancellationToken.None);
                 }
             }
@@ -113,6 +115,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                     if (documentTracker.TextViews.Count == 0)
                     {
+                        // tracker.Unsubscribe() should be in sync with tracker.Subscribe(). The latter of needs to be run
+                        // on the single-threaded dispatcher, so we run both on the single-threaded dispatcher.
                         await _foregroundDispatcher.RunOnForegroundAsync(() => documentTracker.Unsubscribe(), CancellationToken.None);
                     }
                 }
