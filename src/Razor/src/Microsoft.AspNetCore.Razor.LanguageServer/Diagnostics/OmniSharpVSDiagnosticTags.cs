@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         ///     matches the supersedes property of another report for the
         ///     same document.
         ///
-        /// The latter condition(by itself) will also causes Diagnostics
+        /// The latter condition (by itself) will also causes Diagnostics
         /// tagged with the PotentialDuplicate tag to be hidden in the editor.
         /// </summary>
         public const OmniSharpVSDiagnosticTag PotentialDuplicate = (OmniSharpVSDiagnosticTag)(-3);
