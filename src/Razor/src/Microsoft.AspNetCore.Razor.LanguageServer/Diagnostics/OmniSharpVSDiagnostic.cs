@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
         /// <summary>
         /// Gets or sets a message shown when the user hovers over an error. If null, then message
-        /// is used(use <see cref="OmniSharpVSDiagnosticTags.SuppressEditorToolTip"/> to prevent a tool tip from being shown).
+        /// is used (use <see cref="OmniSharpVSDiagnosticTags.SuppressEditorToolTip"/> to prevent a tool tip from being shown).
         /// </summary>
         [JsonProperty("_ms_toolTip")]
         public string? ToolTip { get; set; }
