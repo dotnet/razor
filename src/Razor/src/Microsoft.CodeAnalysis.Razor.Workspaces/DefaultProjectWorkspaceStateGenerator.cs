@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Razor
         [ImportingConstructor]
         public DefaultProjectWorkspaceStateGenerator(ForegroundDispatcher foregroundDispatcher)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }

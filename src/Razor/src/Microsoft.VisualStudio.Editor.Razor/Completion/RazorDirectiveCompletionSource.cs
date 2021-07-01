@@ -38,12 +38,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             VisualStudioRazorParser parser,
             RazorCompletionFactsService completionFactsService)
         {
-            if (parser == null)
+            if (parser is null)
             {
                 throw new ArgumentNullException(nameof(parser));
             }
 
-            if (completionFactsService == null)
+            if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
             }

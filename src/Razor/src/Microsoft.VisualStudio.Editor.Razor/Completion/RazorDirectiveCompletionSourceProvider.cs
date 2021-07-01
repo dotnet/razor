@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         [ImportingConstructor]
         public RazorDirectiveCompletionSourceProvider(RazorCompletionFactsService completionFactsService)
         {
-            if (completionFactsService == null)
+            if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         public IAsyncCompletionSource GetOrCreate(ITextView textView)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }

@@ -21,12 +21,12 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             CollaborationSession session,
             JoinableTaskFactory joinableTaskFactory)
         {
-            if (session == null)
+            if (session is null)
             {
                 throw new ArgumentNullException(nameof(session));
             }
 
-            if (joinableTaskFactory == null)
+            if (joinableTaskFactory is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskFactory));
             }
@@ -37,14 +37,14 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         public async Task<Uri> GetProjectPathAsync(Uri documentFilePath, CancellationToken cancellationToken)
         {
-            if (documentFilePath == null)
+            if (documentFilePath is null)
             {
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            if (_openDocumentShell == null)
+            if (_openDocumentShell is null)
             {
                 _openDocumentShell = ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
             }

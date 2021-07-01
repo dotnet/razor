@@ -30,17 +30,17 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             ForegroundDispatcher foregroundDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (projectSnapshotManager == null)
+            if (projectSnapshotManager is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManager));
             }

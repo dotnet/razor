@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public DefaultHostDocumentFactory(GeneratedDocumentContainerStore generatedDocumentContainerStore)
         {
-            if (generatedDocumentContainerStore == null)
+            if (generatedDocumentContainerStore is null)
             {
                 throw new ArgumentNullException(nameof(generatedDocumentContainerStore));
             }
@@ -28,12 +28,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override HostDocument Create(string filePath, string targetFilePath, string fileKind)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            if (targetFilePath == null)
+            if (targetFilePath is null)
             {
                 throw new ArgumentNullException(nameof(targetFilePath));
             }

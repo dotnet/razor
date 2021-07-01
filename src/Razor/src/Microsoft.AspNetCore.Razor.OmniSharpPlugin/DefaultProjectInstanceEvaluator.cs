@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public override ProjectInstance Evaluate(ProjectInstance projectInstance)
         {
-            if (projectInstance == null)
+            if (projectInstance is null)
             {
                 throw new ArgumentNullException(nameof(projectInstance));
             }

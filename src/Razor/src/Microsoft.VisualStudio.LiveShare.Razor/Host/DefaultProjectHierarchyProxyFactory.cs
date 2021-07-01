@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             ForegroundDispatcher foregroundDispatcher,
             JoinableTaskContext joinableTaskContext)
         {
-            if (joinableTaskContext == null)
+            if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
             }
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
         {
-            if (session == null)
+            if (session is null)
             {
                 throw new ArgumentNullException(nameof(session));
             }

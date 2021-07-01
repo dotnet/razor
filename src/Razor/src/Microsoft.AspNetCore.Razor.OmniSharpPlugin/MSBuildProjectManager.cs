@@ -45,27 +45,27 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             OmniSharpForegroundDispatcher foregroundDispatcher,
             ILoggerFactory loggerFactory)
         {
-            if (projectConfigurationProviders == null)
+            if (projectConfigurationProviders is null)
             {
                 throw new ArgumentNullException(nameof(projectConfigurationProviders));
             }
 
-            if (projectInstanceEvaluator == null)
+            if (projectInstanceEvaluator is null)
             {
                 throw new ArgumentNullException(nameof(projectInstanceEvaluator));
             }
 
-            if (projectConfigurationPublisher == null)
+            if (projectConfigurationPublisher is null)
             {
                 throw new ArgumentNullException(nameof(projectConfigurationPublisher));
             }
 
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
