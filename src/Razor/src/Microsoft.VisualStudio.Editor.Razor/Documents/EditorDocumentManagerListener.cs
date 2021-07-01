@@ -36,6 +36,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             _foregroundDispatcher = foregroundDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _onChangedOnDisk = Document_ChangedOnDisk;
@@ -92,12 +97,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                         {
                             var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
 
-                            // GetOrCreateDocument should be run on the UI thread
+                            // GetOrCreateDocument needs to be run on the UI thread
                             await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
 
                             var document = _documentManager.GetOrCreateDocument(
                                 key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
-
                             if (document.IsOpenInEditor)
                             {
                                 _onOpened(document, EventArgs.Empty);
@@ -108,7 +112,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
                     case ProjectChangeKind.DocumentRemoved:
                         {
-                            // TryGetDocument and Dispose should both be run on the UI thread
+                            // TryGetDocument and Dispose need to be run on the UI thread
                             await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
 
                             var documentFound = _documentManager.TryGetDocument(
@@ -137,6 +141,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             try
             {
+                // This event is called by the EditorDocumentManager, which runs on the UI thread.
+                // However, due to accessing the project snapshot manager, we need to switch to
+                // running on the single-threaded dispatcher.
                 await _foregroundDispatcher.RunOnForegroundAsync(() =>
                 {
                     var document = (EditorDocument)sender;
@@ -156,6 +163,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             try
             {
+                // This event is called by the EditorDocumentManager, which runs on the UI thread.
+                // However, due to accessing the project snapshot manager, we need to switch to
+                // running on the single-threaded dispatcher.
                 await _foregroundDispatcher.RunOnForegroundAsync(() =>
                 {
                     var document = (EditorDocument)sender;
@@ -175,6 +185,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             try
             {
+                // This event is called by the EditorDocumentManager, which runs on the UI thread.
+                // However, due to accessing the project snapshot manager, we need to switch to
+                // running on the single-threaded dispatcher.
                 await _foregroundDispatcher.RunOnForegroundAsync(() =>
                 {
                     var document = (EditorDocument)sender;
@@ -194,6 +207,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             try
             {
+                // This event is called by the EditorDocumentManager, which runs on the UI thread.
+                // However, due to accessing the project snapshot manager, we need to switch to
+                // running on the single-threaded dispatcher.
                 await _foregroundDispatcher.RunOnForegroundAsync(() =>
                 {
                     var document = (EditorDocument)sender;

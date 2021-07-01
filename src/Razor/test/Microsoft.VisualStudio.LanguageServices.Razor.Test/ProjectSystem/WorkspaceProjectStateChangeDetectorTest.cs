@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
             var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher);
-            var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
             projectManager.ProjectAdded(HostProjectTwo);
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
             var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher);
-            var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
             projectManager.ProjectAdded(HostProjectTwo);
             projectManager.ProjectAdded(HostProjectThree);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 BlockDelayedUpdateWorkEnqueue = new ManualResetEventSlim(initialState: false),
             };
 
-            var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
 
             var solution = SolutionWithTwoProjects.WithProjectAssemblyName(ProjectNumberOne.Id, "Changed");
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
-            var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
             workspaceStateGenerator.ClearQueue();
 
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
-            var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
             workspaceStateGenerator.ClearQueue();
 
@@ -253,7 +253,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
-            await Dispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             //
@@ -281,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
-            var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
             workspaceStateGenerator.ClearQueue();
 
@@ -318,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
-            var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
             workspaceStateGenerator.ClearQueue();
 
@@ -366,7 +365,7 @@ namespace Microsoft.AspNetCore.Components
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
             var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher);
-            var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectOne);
             projectManager.ProjectAdded(HostProjectTwo);
 
@@ -389,7 +388,7 @@ namespace Microsoft.AspNetCore.Components
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
             var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher);
-            var projectManager = new TestProjectSnapshotManager(new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             projectManager.ProjectAdded(HostProjectThree);
 
             var solution = SolutionWithOneProject;
@@ -616,16 +615,12 @@ namespace Microsoft.AspNetCore.Components
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
-                : base(CreateForegroundDispatcher(), Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
+            public TestProjectSnapshotManager(
+                ForegroundDispatcher foregroundDispatcher,
+                IEnumerable<ProjectSnapshotChangeTrigger> triggers,
+                Workspace workspace)
+                : base(foregroundDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
             {
-            }
-
-            private static ForegroundDispatcher CreateForegroundDispatcher()
-            {
-                var dispatcher = new Mock<ForegroundDispatcher>(MockBehavior.Strict);
-                dispatcher.Setup(d => d.AssertForegroundThread(It.IsAny<string>())).Verifiable();
-                return dispatcher.Object;
             }
         }
     }

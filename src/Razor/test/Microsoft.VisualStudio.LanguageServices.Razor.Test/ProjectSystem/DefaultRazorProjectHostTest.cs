@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
-using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 using ItemCollection = Microsoft.VisualStudio.ProjectSystem.ItemCollection;
@@ -32,8 +31,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             RazorComponentWithTargetPathItems = new ItemCollection(Rules.RazorComponentWithTargetPath.SchemaName);
             RazorGenerateWithTargetPathItems = new ItemCollection(Rules.RazorGenerateWithTargetPath.SchemaName);
             RazorGeneralProperties = new PropertyCollection(Rules.RazorGeneral.SchemaName);
-
-            JoinableTaskContext = new JoinableTaskContext();
         }
 
         private ItemCollection ConfigurationItems { get; }
@@ -49,8 +46,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private PropertyCollection RazorGeneralProperties { get; }
 
         private TestProjectSnapshotManager ProjectManager { get; }
-
-        private JoinableTaskContext JoinableTaskContext { get; }
 
         [Fact]
         public void TryGetDefaultConfiguration_FailsIfNoRule()

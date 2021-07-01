@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
         }
 
-         public sealed override EditorDocument GetOrCreateDocument(
+        public sealed override EditorDocument GetOrCreateDocument(
             DocumentKey key,
             EventHandler changedOnDisk,
             EventHandler changedInEditor,

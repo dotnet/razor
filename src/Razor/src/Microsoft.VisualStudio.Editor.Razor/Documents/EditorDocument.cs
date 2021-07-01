@@ -173,7 +173,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             {
                 _fileTracker.Changed -= ChangeTracker_Changed;
 
-                // StopListening is designed to run on the single-threaded dispatcher
                 _ = _foregroundDispatcher.RunOnForegroundAsync(
                     () => _fileTracker.StopListening(), CancellationToken.None);
 

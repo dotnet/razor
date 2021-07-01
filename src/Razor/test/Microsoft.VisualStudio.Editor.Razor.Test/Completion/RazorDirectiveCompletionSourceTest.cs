@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var parser = new Mock<VisualStudioRazorParser>(MockBehavior.Strict);
             parser.Setup(p => p.GetLatestCodeDocumentAsync(It.IsAny<ITextSnapshot>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<RazorCodeDocument>(null)); // CodeDocument will be null faking a parser without a parse.
-            var completionSource = new RazorDirectiveCompletionSource(Dispatcher, parser.Object, CompletionFactsService);
+            var completionSource = new RazorDirectiveCompletionSource(parser.Object, CompletionFactsService);
             var documentSnapshot = new StringTextSnapshot(text);
             var triggerLocation = new SnapshotPoint(documentSnapshot, 4);
             var applicableSpan = new SnapshotSpan(documentSnapshot, new Span(1, text.Length - 1 /* validCompletion */));
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             // Arrange
             var text = "@(NotValidCompletionLocation)";
             var parser = CreateParser(text);
-            var completionSource = new RazorDirectiveCompletionSource(Dispatcher, parser, CompletionFactsService);
+            var completionSource = new RazorDirectiveCompletionSource(parser, CompletionFactsService);
             var documentSnapshot = new StringTextSnapshot(text);
             var triggerLocation = new SnapshotPoint(documentSnapshot, 4);
             var applicableSpan = new SnapshotSpan(documentSnapshot, new Span(2, text.Length - 3 /* @() */));
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             // Arrange
             var text = "@addTag";
             var parser = CreateParser(text, SectionDirective.Directive);
-            var completionSource = new RazorDirectiveCompletionSource(Dispatcher, parser, CompletionFactsService);
+            var completionSource = new RazorDirectiveCompletionSource(parser, CompletionFactsService);
             var documentSnapshot = new StringTextSnapshot(text);
             var triggerLocation = new SnapshotPoint(documentSnapshot, 4);
             var applicableSpan = new SnapshotSpan(documentSnapshot, new Span(1, 6 /* addTag */));
@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var completionItem = new CompletionItem("TestDirective", Mock.Of<IAsyncCompletionSource>(MockBehavior.Strict));
             var expectedDescription = new DirectiveCompletionDescription("The expected description");
             completionItem.Properties.AddProperty(RazorDirectiveCompletionSource.DescriptionKey, expectedDescription);
-            var completionSource = new RazorDirectiveCompletionSource(Dispatcher, Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict), CompletionFactsService);
+            var completionSource = new RazorDirectiveCompletionSource(Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict), CompletionFactsService);
 
             // Act
             var descriptionObject = await completionSource.GetDescriptionAsync(null, completionItem, CancellationToken.None);
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         {
             // Arrange
             var completionItem = new CompletionItem("TestDirective", Mock.Of<IAsyncCompletionSource>(MockBehavior.Strict));
-            var completionSource = new RazorDirectiveCompletionSource(Dispatcher, Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict), CompletionFactsService);
+            var completionSource = new RazorDirectiveCompletionSource(Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict), CompletionFactsService);
 
             // Act
             var descriptionObject = await completionSource.GetDescriptionAsync(null, completionItem, CancellationToken.None);

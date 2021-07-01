@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
     {
         public DefaultProjectSnapshotManagerProxyTest()
         {
-            JoinableTaskContext = new JoinableTaskContext();
             JoinableTaskFactory = new JoinableTaskFactory(JoinableTaskContext);
             Workspace = TestWorkspace.Create();
             var projectWorkspaceState1 = new ProjectWorkspaceState(new[]
@@ -43,8 +42,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         }
 
         private JoinableTaskFactory JoinableTaskFactory { get; }
-
-        private JoinableTaskContext JoinableTaskContext { get; }
 
         private Workspace Workspace { get; }
 

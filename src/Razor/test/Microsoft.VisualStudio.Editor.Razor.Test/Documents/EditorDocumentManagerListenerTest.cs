@@ -2,21 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class EditorDocumentManagerListenerTest
+    public class EditorDocumentManagerListenerTest : ForegroundDispatcherTestBase
     {
         public EditorDocumentManagerListenerTest()
         {
@@ -50,7 +47,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             var editorDocumentManger = new Mock<EditorDocumentManager>(MockBehavior.Strict);
             editorDocumentManger
                 .Setup(e => e.GetOrCreateDocument(It.IsAny<DocumentKey>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>()))
-                .Returns(Task.FromResult(GetEditorDocument()))
+                .Returns(GetEditorDocument())
                 .Callback<DocumentKey, EventHandler, EventHandler, EventHandler, EventHandler>((key, onChangedOnDisk, onChangedInEditor, onOpened, onClosed) =>
                 {
                     Assert.Same(changedOnDisk, onChangedOnDisk);
@@ -59,9 +56,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                     Assert.Same(closed, onClosed);
                 });
 
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
             var listener = new EditorDocumentManagerListener(
-                foregroundDispatcher, editorDocumentManger.Object, changedOnDisk, changedInEditor, opened, closed);
+                Dispatcher, editorDocumentManger.Object, changedOnDisk, changedInEditor, opened, closed);
 
             var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
 
@@ -70,7 +66,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         [Fact]
-        public async Task ProjectManager_Changed_OpenDocumentAdded_InvokesOnOpened()
+        public void ProjectManager_Changed_OpenDocumentAdded_InvokesOnOpened()
         {
             // Arrange
             var called = false;
@@ -79,17 +75,15 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             var editorDocumentManger = new Mock<EditorDocumentManager>(MockBehavior.Strict);
             editorDocumentManger
                 .Setup(e => e.GetOrCreateDocument(It.IsAny<DocumentKey>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>()))
-                .Returns(Task.FromResult(GetEditorDocument(isOpen: true)));
+                .Returns(GetEditorDocument(isOpen: true));
 
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
             var listener = new EditorDocumentManagerListener(
-                foregroundDispatcher, editorDocumentManger.Object, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
+                Dispatcher, editorDocumentManger.Object, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
 
             var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
 
             // Act
             listener.ProjectManager_Changed(null, new ProjectChangeEventArgs(project, project, ProjectChangeKind.DocumentAdded));
-            await foregroundDispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             Assert.True(called);
@@ -99,6 +93,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             var document = new EditorDocument(
                 Mock.Of<EditorDocumentManager>(MockBehavior.Strict),
+                Dispatcher,
+                JoinableTaskContext,
                 ProjectFilePath,
                 DocumentFilePath,
                 TextLoader,

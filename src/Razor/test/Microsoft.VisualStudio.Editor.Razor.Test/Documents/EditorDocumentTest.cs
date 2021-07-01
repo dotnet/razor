@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class EditorDocumentTest
+    public class EditorDocumentTest : ForegroundDispatcherTestBase
     {
         public EditorDocumentTest()
         {
@@ -43,6 +43,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             // Arrange & Act
             using (var document = new EditorDocument(
                 DocumentManager,
+                Dispatcher,
+                JoinableTaskContext,
                 ProjectFilePath,
                 DocumentFilePath,
                 TextLoader,
@@ -66,6 +68,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             // Arrange & Act
             using (var document = new EditorDocument(
                 DocumentManager,
+                Dispatcher,
+                JoinableTaskContext,
                 ProjectFilePath,
                 DocumentFilePath,
                 TextLoader,

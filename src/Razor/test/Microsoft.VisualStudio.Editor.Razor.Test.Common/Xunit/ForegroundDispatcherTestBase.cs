@@ -3,11 +3,14 @@
 
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Xunit
 {
     public abstract class ForegroundDispatcherTestBase : ParserTestBase
     {
         internal ForegroundDispatcher Dispatcher { get; } = new SingleThreadedForegroundDispatcher();
+
+        internal JoinableTaskContext JoinableTaskContext { get; } = new JoinableTaskContext();
     }
 }

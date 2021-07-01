@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     if (documentTracker.TextViews.Count == 0)
                     {
                         // tracker.Unsubscribe() should be in sync with tracker.Subscribe(). The latter of needs to be run
-                        // on the single-threaded dispatcher, so we run both on the single-threaded dispatcher.
+                        // on the single-threaded dispatcher, so we run both on it.
                         await _foregroundDispatcher.RunOnForegroundAsync(() => documentTracker.Unsubscribe(), CancellationToken.None);
                     }
                 }

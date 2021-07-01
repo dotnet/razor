@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
@@ -17,7 +16,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public EditorDocumentManagerBaseTest()
         {
 
-            Manager = new TestEditorDocumentManager(Dispatcher, new JoinableTaskContext());
+            Manager = new TestEditorDocumentManager(Dispatcher, JoinableTaskContext);
         }
 
         private TestEditorDocumentManager Manager { get; }
@@ -33,10 +32,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public TestTextBuffer TextBuffer => new TestTextBuffer(new StringTextSnapshot("HI"));
 
         [ForegroundFact]
-        public async Task GetOrCreateDocument_CreatesAndCachesDocument()
+        public void GetOrCreateDocument_CreatesAndCachesDocument()
         {
             // Arrange
-            var expected = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var expected = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Act
             Manager.TryGetDocument(new DocumentKey(Project1, File1), out var actual);
@@ -46,52 +45,52 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         [ForegroundFact]
-        public async Task GetOrCreateDocument_NoOp()
+        public void GetOrCreateDocument_NoOp()
         {
             // Arrange
-            var expected = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var expected = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Act
-            var actual = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var actual = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Assert
             Assert.Same(expected, actual);
         }
 
         [ForegroundFact]
-        public async Task GetOrCreateDocument_SameFile_MulipleProjects()
+        public void GetOrCreateDocument_SameFile_MulipleProjects()
         {
             // Arrange
-            var document1 = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Act
-            var document2 = await Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
 
             // Assert
             Assert.NotSame(document1, document2);
         }
 
         [ForegroundFact]
-        public async Task GetOrCreateDocument_MulipleFiles_SameProject()
+        public void GetOrCreateDocument_MulipleFiles_SameProject()
         {
             // Arrange
-            var document1 = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Act
-            var document2 = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File2), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File2), null, null, null, null);
 
             // Assert
             Assert.NotSame(document1, document2);
         }
 
         [ForegroundFact]
-        public async Task GetOrCreateDocument_WithBuffer_AttachesBuffer()
+        public void GetOrCreateDocument_WithBuffer_AttachesBuffer()
         {
             // Arrange
             Manager.Buffers.Add(File1, TextBuffer);
 
             // Act
-            var document = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
 
             // Assert
             Assert.True(document.IsOpenInEditor);
@@ -102,11 +101,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         [ForegroundFact]
-        public async Task TryGetMatchingDocuments_MultipleDocuments()
+        public void TryGetMatchingDocuments_MultipleDocuments()
         {
             // Arrange
-            var document1 = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = await Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
 
             // Act
             Manager.TryGetMatchingDocuments(File1, out var documents);
@@ -119,11 +118,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         [ForegroundFact]
-        public async Task RemoveDocument_MultipleDocuments_RemovesOne()
+        public void RemoveDocument_MultipleDocuments_RemovesOne()
         {
             // Arrange
-            var document1 = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = await Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
 
             // Act
             Manager.RemoveDocument(document1);
@@ -136,11 +135,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         [ForegroundFact]
-        public async Task DocumentOpened_MultipleDocuments_OpensAll()
+        public void DocumentOpened_MultipleDocuments_OpensAll()
         {
             // Arrange
-            var document1 = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = await Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
 
             // Act
             Manager.DocumentOpened(File1, TextBuffer);
@@ -153,11 +152,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         [ForegroundFact]
-        public async Task DocumentOpened_MultipleDocuments_ClosesAll()
+        public void DocumentOpened_MultipleDocuments_ClosesAll()
         {
             // Arrange
-            var document1 = await Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
-            var document2 = await Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
+            var document1 = Manager.GetOrCreateDocument(new DocumentKey(Project1, File1), null, null, null, null);
+            var document2 = Manager.GetOrCreateDocument(new DocumentKey(Project2, File1), null, null, null, null);
             Manager.DocumentOpened(File1, TextBuffer);
 
             // Act
@@ -193,10 +192,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 base.DocumentClosed(filePath);
             }
 
-            protected override Task<ITextBuffer> GetTextBufferForOpenDocument(string filePath)
+            protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
             {
                 Buffers.TryGetValue(filePath, out var buffer);
-                return Task.FromResult(buffer);
+                return buffer;
             }
 
             protected override void OnDocumentOpened(EditorDocument document)

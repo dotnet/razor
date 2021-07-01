@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -189,7 +189,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var documentTracker = CreateDocumentTracker(versionNumber: 1337);
             var olderSnapshot = new StringTextSnapshot("Older", versionNumber: 910);
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -232,7 +232,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             DefaultVisualStudioRazorParser parser;
             codeDocument.SetSyntaxTree(syntaxTree);
             using (parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -373,7 +373,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -381,7 +381,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             parser.Dispose();
 
             // Act & Assert
-            parser.ReparseOnUIThread(null);
+            parser.ReparseOnUIThread();
         }
 
         [ForegroundFact]
@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -397,7 +397,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             parser.Dispose();
 
             // Act & Assert
-            parser.OnIdle(null);
+            parser.OnIdle();
         }
 
         [ForegroundFact]
@@ -405,7 +405,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -421,7 +421,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -448,7 +448,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -479,7 +479,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -518,7 +518,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -548,7 +548,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -577,7 +577,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var documentTracker = CreateDocumentTracker();
             var textBuffer = (TestTextBuffer)documentTracker.TextBuffer;
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -601,7 +601,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var documentTracker = CreateDocumentTracker();
             var textBuffer = (TestTextBuffer)documentTracker.TextBuffer;
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -621,7 +621,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(isSupportedProject: true),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
@@ -640,7 +640,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(isSupportedProject: false),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),

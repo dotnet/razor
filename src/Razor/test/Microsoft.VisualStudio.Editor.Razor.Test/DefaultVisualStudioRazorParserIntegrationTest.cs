@@ -539,7 +539,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             var templateEngineFactory = CreateProjectEngineFactory();
             var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 templateEngineFactory,
                 new DefaultErrorReporter(),
