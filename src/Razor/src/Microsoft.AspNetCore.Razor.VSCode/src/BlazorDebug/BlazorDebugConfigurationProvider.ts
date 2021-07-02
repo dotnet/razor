@@ -101,6 +101,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
             noDebug: configuration.noDebug || false,
             port: debuggingPort,
             ...configuration.browserConfig,
+            cascadeTerminateToConfigurations: [SERVER_APP_NAME],
         };
 
         try {
