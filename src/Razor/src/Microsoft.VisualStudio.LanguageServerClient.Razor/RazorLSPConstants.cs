@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     internal static class RazorLSPConstants
     {
-        public const string RazorLSPContentTypeName = "RazorLSP";
+        public const string RazorLSPContentTypeName = "Razor";
 
         public const string CSHTMLFileExtension = ".cshtml";
 
