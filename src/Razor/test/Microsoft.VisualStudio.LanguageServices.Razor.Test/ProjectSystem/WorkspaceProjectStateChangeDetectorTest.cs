@@ -216,7 +216,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
-            await Dispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             //

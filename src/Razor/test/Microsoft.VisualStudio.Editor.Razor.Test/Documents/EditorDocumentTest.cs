@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             using (var document = new EditorDocument(
                 DocumentManager,
                 Dispatcher,
-                JoinableTaskContext,
+                JoinableTaskFactory.Context,
                 ProjectFilePath,
                 DocumentFilePath,
                 TextLoader,
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             using (var document = new EditorDocument(
                 DocumentManager,
                 Dispatcher,
-                JoinableTaskContext,
+                JoinableTaskFactory.Context,
                 ProjectFilePath,
                 DocumentFilePath,
                 TextLoader,

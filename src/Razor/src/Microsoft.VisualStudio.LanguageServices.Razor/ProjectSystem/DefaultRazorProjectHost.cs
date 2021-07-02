@@ -129,13 +129,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         for (var i = 0; i < documents.Length; i++)
                         {
                             AddDocumentUnsafe(documents[i]);
-                        }
-                    }).ConfigureAwait(false);
+                        }   
+                    }, CancellationToken.None).ConfigureAwait(false);
                 }
                 else
                 {
                     // Ok we can't find a configuration. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false), registerFaultHandler: true);
         }

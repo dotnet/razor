@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (mvcReferenceFullPath == null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                     return;
                 }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (version == null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                     return;
                 }
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     {
                         AddDocumentUnsafe(documents[i]);
                     }
-                }).ConfigureAwait(false);
+                }, CancellationToken.None).ConfigureAwait(false);
             }).ConfigureAwait(false), registerFaultHandler: true);
         }
 

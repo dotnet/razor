@@ -10,6 +10,13 @@ namespace Xunit
     {
         internal ForegroundDispatcher Dispatcher { get; } = new SingleThreadedForegroundDispatcher();
 
-        internal JoinableTaskContext JoinableTaskContext { get; } = new JoinableTaskContext();
+        internal static JoinableTaskFactory JoinableTaskFactory
+        {
+            get
+            {
+                var joinableTaskContext = new JoinableTaskContextNode(new JoinableTaskContext());
+                return new JoinableTaskFactory(joinableTaskContext.Context);
+            }
+        }
     }
 }

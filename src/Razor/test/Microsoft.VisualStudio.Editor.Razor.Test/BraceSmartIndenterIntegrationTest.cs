@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
             var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
             var editorOperationsFactory = CreateOperationsFactoryService();
-            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskContext, documentTracker, codeDocumentProvider, editorOperationsFactory);
+            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
 
             // Act
             textBuffer.ApplyEdit(edit);
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
             var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
             var editorOperationsFactory = CreateOperationsFactoryService();
-            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskContext, documentTracker, codeDocumentProvider, editorOperationsFactory);
+            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
 
             // Act
             textBuffer.ApplyEdit(edit);
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
             var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
             var editorOperationsFactory = CreateOperationsFactoryService();
-            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskContext, documentTracker, codeDocumentProvider, editorOperationsFactory);
+            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
 
             // Act
             textBuffer.ApplyEdit(edit);
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
             var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
             var editorOperationsFactory = CreateOperationsFactoryService();
-            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskContext, documentTracker, codeDocumentProvider, editorOperationsFactory);
+            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
 
             // Act
             textBuffer.ApplyEdit(edit);

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 
@@ -29,6 +30,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     It.IsAny<RazorProjectFileSystem>(),
                     It.IsAny<Action<RazorProjectEngineBuilder>>()) == engine, MockBehavior.Strict);
         }
+
+        private JoinableTaskContext JoinableTaskContext => JoinableTaskFactory.Context;
 
         private ProjectSnapshot ProjectSnapshot { get; }
 

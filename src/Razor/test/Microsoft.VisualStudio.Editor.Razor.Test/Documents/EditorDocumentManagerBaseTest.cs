@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public EditorDocumentManagerBaseTest()
         {
 
-            Manager = new TestEditorDocumentManager(Dispatcher, JoinableTaskContext);
+            Manager = new TestEditorDocumentManager(Dispatcher, JoinableTaskFactory.Context);
         }
 
         private TestEditorDocumentManager Manager { get; }

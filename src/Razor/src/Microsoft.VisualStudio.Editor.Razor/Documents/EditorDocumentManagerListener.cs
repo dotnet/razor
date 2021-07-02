@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         // For testing purposes only.
         internal EditorDocumentManagerListener(
             ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
             EditorDocumentManager documentManager,
             EventHandler onChangedOnDisk,
             EventHandler onChangedInEditor,
@@ -59,6 +60,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             EventHandler onClosed)
         {
             _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _documentManager = documentManager;
             _onChangedOnDisk = onChangedOnDisk;
             _onChangedInEditor = onChangedInEditor;

@@ -145,20 +145,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        public override void QueueReparse()
-        {
-            // Can be called from any thread
-
-            if (_joinableTaskContext.IsOnMainThread)
-            {
-                ReparseOnUIThread();
-            }
-            else
-            {
-                _ = Task.Factory.StartNew(ReparseOnUIThread, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
-            }
-        }
-
         public void Dispose()
         {
            _joinableTaskContext.AssertUIThread();
@@ -191,7 +177,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             // We have a new parser, force a reparse to generate new document information. Note that this
             // only blocks until the reparse change has been queued.
-            QueueReparse();
+            ReparseOnUIThread();
         }
 
         // Internal for testing
@@ -364,7 +350,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 }
             }
 
-            QueueReparse();
+            ReparseOnUIThread();
         }
 
         // Internal for testing
@@ -410,17 +396,21 @@ namespace Microsoft.VisualStudio.Editor.Razor
             try
             {
                 OnStartingBackgroundIdleWork();
-
                 StopIdleTimer();
 
                 // We need to get back to the UI thread to properly check if a completion is active.
-                _ = Task.Factory.StartNew(OnIdle, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+                _ = Task.Factory.StartNew(() => OnIdle_QueueOnUIThread(), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
             }
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the workspace.
-                _ = Task.Factory.StartNew(
-                    () => _errorReporter.ReportError(ex), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+                _errorReporter.ReportError(ex);
+            }
+
+            async Task OnIdle_QueueOnUIThread()
+            {
+                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+                OnIdle();
             }
         }
 
@@ -468,7 +458,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 // This can happen for a multitude of reasons, usually because of a user auto-completing
                 // C# statements (causes multiple edits in quick succession). This ensures that our latest
                 // parse corresponds to the current snapshot.
-                QueueReparse();
+                ReparseOnUIThread();
                 return;
             }
 

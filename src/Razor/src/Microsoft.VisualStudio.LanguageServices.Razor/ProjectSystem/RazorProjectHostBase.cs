@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 {
                     if (Current != null)
                     {
-                        await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                        await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                     }
                 }).ConfigureAwait(false);
             }
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     var old = Current;
                     var oldDocuments = _currentDocuments.Values.ToArray();
 
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
 
                     await UpdateAsync(() =>
                     {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         {
                             AddDocumentUnsafe(oldDocuments[i]);
                         }
-                    }).ConfigureAwait(false);
+                    }, CancellationToken.None).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
         }
@@ -166,7 +166,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return _projectManager;
         }
 
-        protected Task UpdateAsync(Action action) => _foregroundDispatcher.RunOnForegroundAsync(action, CancellationToken.None);
+        protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
+            => _foregroundDispatcher.RunOnForegroundAsync(action, cancellationToken);
 
         protected void UninitializeProjectUnsafe()
         {

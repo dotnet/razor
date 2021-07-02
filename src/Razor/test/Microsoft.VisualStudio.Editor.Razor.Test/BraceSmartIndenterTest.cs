@@ -313,7 +313,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             editorOperationsFactory.Setup(factory => factory.GetEditorOperations(textView))
                 .Returns(editorOperations.Object);
             var codeDocumentProvider = Mock.Of<TextBufferCodeDocumentProvider>(MockBehavior.Strict);
-            using var smartIndenter = new BraceSmartIndenter(JoinableTaskContext, documentTracker, codeDocumentProvider, editorOperationsFactory.Object);
+            using var smartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory.Object);
 
             // Act
             smartIndenter.TriggerSmartIndent(textView);
@@ -387,7 +387,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var textContentChangeArgs = new TestTextContentChangedEventArgs(changeCollection);
             var documentTracker = CreateDocumentTracker(() => Mock.Of<ITextBuffer>(MockBehavior.Strict), Mock.Of<ITextView>(MockBehavior.Strict));
             var codeDocumentProvider = Mock.Of<TextBufferCodeDocumentProvider>(MockBehavior.Strict);
-            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskContext, documentTracker, codeDocumentProvider, editorOperationsFactory.Object);
+            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory.Object);
 
             // Act & Assert
             braceSmartIndenter.TextBuffer_OnChanged(null, textContentChangeArgs);
@@ -403,7 +403,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
             var documentTracker = CreateDocumentTracker(() => textBuffer, Mock.Of<ITextView>(MockBehavior.Strict));
             var codeDocumentProvider = Mock.Of<TextBufferCodeDocumentProvider>(MockBehavior.Strict);
-            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskContext, documentTracker, codeDocumentProvider, editorOperationsFactory.Object);
+            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory.Object);
 
             // Act & Assert
             textBuffer.ApplyEdits(edit, edit);

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
@@ -18,6 +19,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class DefaultRazorDocumentManagerTest : ForegroundDispatcherTestBase
     {
+        private JoinableTaskContext JoinableTaskContext => JoinableTaskFactory.Context;
+
         private IContentType RazorCoreContentType { get; } = Mock.Of<IContentType>(c => c.IsOfType(RazorLanguage.CoreContentType) == true, MockBehavior.Strict);
 
         private IContentType NonRazorCoreContentType { get; } = Mock.Of<IContentType>(c => c.IsOfType(It.IsAny<string>()) == false, MockBehavior.Strict);
