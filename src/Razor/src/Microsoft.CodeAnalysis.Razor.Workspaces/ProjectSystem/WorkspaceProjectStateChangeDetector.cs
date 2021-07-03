@@ -51,12 +51,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // Used in unit tests to ensure we can control when background work starts.
         public ManualResetEventSlim BlockDelayedUpdateWorkEnqueue { get; set; }
 
+        public ManualResetEventSlim BlockDelayedUpdateWorkAfterEnqueue { get; set; }
+
         private void OnStartingDelayedUpdate()
         {
             if (BlockDelayedUpdateWorkEnqueue != null)
             {
                 BlockDelayedUpdateWorkEnqueue.Wait();
                 BlockDelayedUpdateWorkEnqueue.Reset();
+            }
+
+            if (BlockDelayedUpdateWorkAfterEnqueue != null)
+            {
+                BlockDelayedUpdateWorkAfterEnqueue.Set();
             }
         }
 
