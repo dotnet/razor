@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly IEnumerable<ProjectSnapshotChangeTrigger> _changeTriggers;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
-        private readonly AdhocWorkspaceFactory _workspaceFactory;
+        private readonly LanguageServerWorkspaceFactory _workspaceFactory;
         private ProjectSnapshotManagerBase _instance;
         private bool _disposed;
 
@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             IEnumerable<ProjectSnapshotChangeTrigger> changeTriggers,
             FilePathNormalizer filePathNormalizer,
             IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-            AdhocWorkspaceFactory workspaceFactory)
+            LanguageServerWorkspaceFactory workspaceFactory)
         {
             if (foregroundDispatcher == null)
             {

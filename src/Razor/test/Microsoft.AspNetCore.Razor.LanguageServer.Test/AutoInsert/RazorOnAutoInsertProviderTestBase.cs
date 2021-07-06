@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             };
 
             var provider = CreateProvider();
-            var context = FormattingContext.Create(uri, Mock.Of<DocumentSnapshot>(MockBehavior.Strict), codeDocument, options, TestAdhocWorkspaceFactory.Instance, new Range(position, position));
+            var context = FormattingContext.Create(uri, Mock.Of<DocumentSnapshot>(MockBehavior.Strict), codeDocument, options, TestLanguageServerWorkspaceFactory.Instance, new Range(position, position));
 
             // Act
             if (!provider.TryResolveInsertion(position, context, out var edit, out _))
