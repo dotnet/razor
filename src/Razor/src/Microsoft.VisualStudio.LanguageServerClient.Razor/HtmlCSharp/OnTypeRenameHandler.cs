@@ -102,9 +102,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting OnTypeRename for {projectionResult.Uri}.");
 
+            var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
             var contentType = projectionResult.LanguageKind.ToContainedLanguageContentType();
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>(
                 MSLSPMethods.OnTypeRenameName,
+                languageServerName,
                 contentType,
                 onTypeRenameParams,
                 cancellationToken).ConfigureAwait(false);

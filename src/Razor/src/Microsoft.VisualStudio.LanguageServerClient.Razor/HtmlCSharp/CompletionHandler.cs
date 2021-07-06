@@ -145,6 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var projectedPosition = projectionResult.Position;
             var projectedDocumentUri = projectionResult.Uri;
             var serverKind = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? LanguageServerKind.CSharp : LanguageServerKind.Html;
+            var languageServerName = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? RazorLSPConstants.RazorCSharpLanguageServerName : RazorLSPConstants.HtmlLanguageServerName;
 
             var (succeeded, result) = await TryGetProvisionalCompletionsAsync(request, documentSnapshot, projectionResult, cancellationToken).ConfigureAwait(false);
             if (succeeded)
@@ -189,6 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                     Methods.TextDocumentCompletionName,
+                    languageServerName,
                     serverKind.ToContentType(),
                     completionParams,
                     cancellationToken).ConfigureAwait(false);
@@ -260,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         //    This isn't an applicable scenario for C# to provide the "for" keyword; however, Razor still wants that to be applicable because if you type out the full @for keyword it will generate the
         //    appropriate C# code.
         // 3. Remove Razor intrinsic design time items. Razor adds all sorts of C# helpers like __o, __builder etc. to aid in C# compilation/understanding; however, these aren't useful in regards to C# completion.
-        private CompletionList PostProcessCSharpCompletionList(
+        private static CompletionList PostProcessCSharpCompletionList(
             CompletionParams request,
             LSPDocumentSnapshot documentSnapshot,
             TextExtent? wordExtent,
@@ -314,7 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // We should remove Razor design time helpers from C#'s completion list. If the current identifier being targeted does not start with a double
         // underscore, we trim out all items starting with "__" from the completion list. If the current identifier does start with a double underscore
         // (e.g. "__ab[||]"), we only trim out common design time helpers from the completion list.
-        private CompletionList RemoveDesignTimeItems(
+        private static CompletionList RemoveDesignTimeItems(
             LSPDocumentSnapshot documentSnapshot,
             TextExtent? wordExtent,
             CompletionList completionList)
@@ -469,6 +471,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                 Methods.TextDocumentCompletionName,
+                RazorLSPConstants.RazorCSharpLanguageServerName,
                 RazorLSPConstants.CSharpContentTypeName,
                 provisionalCompletionParams,
                 cancellationToken).ConfigureAwait(true);
@@ -487,7 +490,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // In cases like "@{" preselection can lead to unexpected behavior, so let's exclude it.
-        private CompletionList RemovePreselection(CompletionList completionList)
+        private static CompletionList RemovePreselection(CompletionList completionList)
         {
             foreach (var item in completionList.Items)
             {
@@ -500,7 +503,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // C# keywords were previously provided by snippets, but as of now C# LSP doesn't provide snippets.
         // We're providing these for now to improve the user experience (not having to ESC out of completions to finish),
         // but once C# starts providing them their completion will be offered instead, at which point we should be able to remove this step.
-        private CompletionList IncludeCSharpKeywords(CompletionList completionList)
+        private static CompletionList IncludeCSharpKeywords(CompletionList completionList)
         {
             var newList = completionList.Items.Union(KeywordCompletionItems, CompletionItemComparer.Instance);
             completionList.Items = newList.ToArray();

@@ -83,10 +83,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var htmlLocation = GetLocation(100, 100, 100, 100, virtualHtmlUri);
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, serverContentType, implementationParams, ct) =>
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<TextDocumentPositionParams>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, implementationParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentImplementationName, method);
+                    Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
                     Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
                     invokedLSPRequest = true;
                 })
@@ -140,10 +146,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var csharpLocation = GetLocation(100, 100, 100, 100, virtualCSharpUri);
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, serverContentType, implementationParams, ct) =>
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<TextDocumentPositionParams>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, implementationParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentImplementationName, method);
+                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     invokedLSPRequest = true;
                 })

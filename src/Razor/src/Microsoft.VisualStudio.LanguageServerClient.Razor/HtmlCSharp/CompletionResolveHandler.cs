@@ -86,9 +86,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return request;
             }
 
+            var languageServerName = requestContext.LanguageServerKind.ToLanguageServerName();
             var serverContentType = requestContext.LanguageServerKind.ToContentType();
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(
                 Methods.TextDocumentCompletionResolveName,
+                languageServerName,
                 serverContentType,
                 request,
                 cancellationToken).ConfigureAwait(false);

@@ -139,6 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
+                projectionResult.LanguageKind.ToContainedLanguageServerName(),
                 projectionResult.LanguageKind.ToContainedLanguageContentType(),
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);

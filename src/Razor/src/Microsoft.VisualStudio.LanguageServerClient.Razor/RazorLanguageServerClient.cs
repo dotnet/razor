@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _shutdownLock = new object();
         }
 
-        public string Name => "Razor Language Server Client";
+        public string Name => RazorLSPConstants.RazorLanguageServerName;
 
         public IEnumerable<string> ConfigurationSections => null;
 
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var shell = AsyncPackage.GetGlobalService(typeof(SVsShell)) as IVsShell;
             var result = shell.GetProperty((int)__VSSPROPID11.VSSPROPID_ShellMode, out var mode);
 
-            var isVSServer = ErrorHandler.Succeeded(result) ? (int)mode == (int)__VSShellMode.VSSM_Server : false;
+            var isVSServer = ErrorHandler.Succeeded(result) && (int)mode == (int)__VSShellMode.VSSM_Server;
             return isVSServer;
         }
 
@@ -286,6 +286,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 await _requestInvoker.ReinvokeRequestOnServerAsync<MonitorProjectConfigurationFilePathParams, object>(
                     LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint,
+                    RazorLSPConstants.RazorLanguageServerName,
                     RazorLSPConstants.RazorLSPContentTypeName,
                     parameter,
                     CancellationToken.None);
