@@ -5,16 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class DefaultAdhocWorkspaceFactory : AdhocWorkspaceFactory
+    internal class DefaultLanguageServerWorkspaceFactory : LanguageServerWorkspaceFactory
     {
         private readonly HostWorkspaceServicesProvider _hostWorkspaceServicesProvider;
 
-        public DefaultAdhocWorkspaceFactory(HostWorkspaceServicesProvider hostWorkspaceServicesProvider)
+        public DefaultLanguageServerWorkspaceFactory(HostWorkspaceServicesProvider hostWorkspaceServicesProvider)
         {
             if (hostWorkspaceServicesProvider is null)
             {
@@ -24,9 +23,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _hostWorkspaceServicesProvider = hostWorkspaceServicesProvider;
         }
 
-        public override AdhocWorkspace Create() => Create(Enumerable.Empty<IWorkspaceService>());
+        public override LanguageServerWorkspace Create() => Create(Enumerable.Empty<IWorkspaceService>());
 
-        public override AdhocWorkspace Create(IEnumerable<IWorkspaceService> workspaceServices)
+        public override LanguageServerWorkspace Create(IEnumerable<IWorkspaceService> workspaceServices)
         {
             if (workspaceServices is null)
             {
@@ -38,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 workspaceServices,
                 razorLanguageServices: Enumerable.Empty<ILanguageService>(),
                 fallbackServices);
-            var workspace = new AdhocWorkspace(services);
+            var workspace = new LanguageServerWorkspace(services);
             return workspace;
         }
     }

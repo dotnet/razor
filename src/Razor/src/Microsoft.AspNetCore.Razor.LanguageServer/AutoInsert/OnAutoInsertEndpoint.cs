@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly DocumentResolver _documentResolver;
-        private readonly AdhocWorkspaceFactory _workspaceFactory;
+        private readonly LanguageServerWorkspaceFactory _workspaceFactory;
         private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
         private readonly Container<string> _onAutoInsertTriggerCharacters;
 
@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             ForegroundDispatcher foregroundDispatcher,
             DocumentResolver documentResolver,
             IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider,
-            AdhocWorkspaceFactory workspaceFactory)
+            LanguageServerWorkspaceFactory workspaceFactory)
         {
             if (foregroundDispatcher is null)
             {

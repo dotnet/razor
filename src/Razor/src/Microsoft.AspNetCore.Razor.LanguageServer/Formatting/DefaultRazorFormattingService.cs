@@ -21,12 +21,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     {
         private readonly List<IFormattingPass> _formattingPasses;
         private readonly ILogger _logger;
-        private readonly AdhocWorkspaceFactory _workspaceFactory;
+        private readonly LanguageServerWorkspaceFactory _workspaceFactory;
 
         public DefaultRazorFormattingService(
             IEnumerable<IFormattingPass> formattingPasses,
             ILoggerFactory loggerFactory,
-            AdhocWorkspaceFactory workspaceFactory)
+            LanguageServerWorkspaceFactory workspaceFactory)
         {
             if (formattingPasses is null)
             {

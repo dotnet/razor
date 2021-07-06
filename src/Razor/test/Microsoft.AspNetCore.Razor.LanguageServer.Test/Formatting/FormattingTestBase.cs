@@ -174,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 new FormattingContentValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory),
             };
 
-            return new DefaultRazorFormattingService(passes, LoggerFactory, TestAdhocWorkspaceFactory.Instance);
+            return new DefaultRazorFormattingService(passes, LoggerFactory, TestLanguageServerWorkspaceFactory.Instance);
         }
 
         private static SourceText ApplyEdits(SourceText source, TextEdit[] edits)

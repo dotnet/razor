@@ -22,11 +22,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class FormattingContext : IDisposable
     {
-        private readonly AdhocWorkspaceFactory _workspaceFactory;
+        private readonly LanguageServerWorkspaceFactory _workspaceFactory;
         private Document? _csharpWorkspaceDocument;
-        private AdhocWorkspace? _csharpWorkspace;
+        private LanguageServerWorkspace? _csharpWorkspace;
 
-        private FormattingContext(AdhocWorkspaceFactory workspaceFactory)
+        private FormattingContext(LanguageServerWorkspaceFactory workspaceFactory)
         {
             _workspaceFactory = workspaceFactory;
         }
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 if (_csharpWorkspaceDocument == null)
                 {
                     var workspace = CSharpWorkspace;
-                    var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+                    var project = workspace.AddProject("TestProject");
                     var csharpSourceText = CodeDocument.GetCSharpSourceText();
                     _csharpWorkspaceDocument = workspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
                 }
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
         }
 
-        public AdhocWorkspace CSharpWorkspace
+        public LanguageServerWorkspace CSharpWorkspace
         {
             get
             {
@@ -241,7 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             DocumentSnapshot originalSnapshot,
             RazorCodeDocument codeDocument,
             FormattingOptions options,
-            AdhocWorkspaceFactory workspaceFactory,
+            LanguageServerWorkspaceFactory workspaceFactory,
             Range? range = null,
             bool isFormatOnType = false)
         {
