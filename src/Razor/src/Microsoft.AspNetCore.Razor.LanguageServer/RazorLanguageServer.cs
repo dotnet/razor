@@ -140,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<FilePathNormalizer>();
                         services.AddSingleton<ForegroundDispatcher, DefaultForegroundDispatcher>();
                         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
-                        services.AddSingleton<AdhocWorkspaceFactory, DefaultAdhocWorkspaceFactory>();
+                        services.AddSingleton<LanguageServerWorkspaceFactory, DefaultLanguageServerWorkspaceFactory>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());
 
                         services.AddSingleton<DocumentVersionCache, DefaultDocumentVersionCache>();
