@@ -102,8 +102,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public async Task<CompletionList> Handle(CompletionParams request, CancellationToken cancellationToken)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             var document = await Task.Factory.StartNew(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);

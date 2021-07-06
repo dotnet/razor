@@ -23,12 +23,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             ForegroundDispatcher foregroundDispatcher,
             IEnumerable<DocumentProcessedListener> documentProcessedListeners)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (documentProcessedListeners == null)
+            if (documentProcessedListeners is null)
             {
                 throw new ArgumentNullException(nameof(documentProcessedListeners));
             }
@@ -164,8 +164,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         {
             try
             {
-                _foregroundDispatcher.AssertBackgroundThread();
-
                 OnStartingBackgroundWork();
 
                 KeyValuePair<string, DocumentSnapshot>[] work;

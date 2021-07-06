@@ -38,8 +38,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         protected override async Task OnProjectChangedAsync()
         {
-            ForegroundDispatcher.AssertBackgroundThread();
-
             await ExecuteWithLockAsync(async () =>
             {
                 var projectProperties = DotNetProject.MSBuildProject.EvaluatedProperties;

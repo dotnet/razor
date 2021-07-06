@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         [ForegroundFact]
-        public void Initialize_DoneInCorrectOrderBasedOnInitializePriorityPriority()
+        public async Task Initialize_DoneInCorrectOrderBasedOnInitializePriorityPriority()
         {
             // Arrange
             var initializedOrder = new List<string>();
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act
             var projectManager = new TestProjectSnapshotManager(Dispatcher, triggers, Workspace);
+            await Dispatcher.ForegroundScheduler; // Wait for triggers to finish processing on thread
 
             // Assert
             Assert.Equal(new[] { "highPriority", "lowPriority" }, initializedOrder);

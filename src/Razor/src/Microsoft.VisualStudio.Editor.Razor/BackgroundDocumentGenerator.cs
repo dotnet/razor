@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Razor
         [ImportingConstructor]
         public BackgroundDocumentGenerator(ForegroundDispatcher foregroundDispatcher, RazorDynamicFileInfoProvider infoProvider)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (infoProvider == null)
+            if (infoProvider is null)
             {
                 throw new ArgumentNullException(nameof(infoProvider));
             }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -148,12 +148,12 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public void Enqueue(ProjectSnapshot project, DocumentSnapshot document)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
@@ -194,8 +194,6 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             try
             {
-                _foregroundDispatcher.AssertBackgroundThread();
-
                 // Timer is stopped.
                 _timer.Change(Timeout.Infinite, Timeout.Infinite);
 

@@ -48,22 +48,22 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             ICompletionBroker completionBroker,
             VisualStudioDescriptionFactory descriptionFactory)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (parser == null)
+            if (parser is null)
             {
                 throw new ArgumentNullException(nameof(parser));
             }
 
-            if (completionFactsService == null)
+            if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            if (descriptionFactory == null)
+            if (descriptionFactory is null)
             {
                 throw new ArgumentNullException(nameof(descriptionFactory));
             }
@@ -77,8 +77,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         public async Task<CompletionContext> GetCompletionContextAsync(IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             try
             {
                 var codeDocument = await _parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);

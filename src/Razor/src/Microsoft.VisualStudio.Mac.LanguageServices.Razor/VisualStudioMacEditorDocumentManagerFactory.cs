@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
@@ -15,9 +16,12 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     internal class VisualStudioMacEditorDocumentManagerFactory : IWorkspaceServiceFactory
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
-        public VisualStudioMacEditorDocumentManagerFactory(ForegroundDispatcher foregroundDispatcher)
+        public VisualStudioMacEditorDocumentManagerFactory(
+            ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext)
         {
             if (foregroundDispatcher is null)
             {
@@ -25,6 +29,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
 
             _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -35,7 +40,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
 
             var fileChangeTrackerFactory = workspaceServices.GetRequiredService<FileChangeTrackerFactory>();
-            var editorDocumentManager = new VisualStudioMacEditorDocumentManager(_foregroundDispatcher, fileChangeTrackerFactory);
+            var editorDocumentManager = new VisualStudioMacEditorDocumentManager(_foregroundDispatcher, _joinableTaskContext, fileChangeTrackerFactory);
             return editorDocumentManager;
         }
     }

@@ -38,22 +38,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             IEnumerable<ProjectSnapshotChangeTrigger> triggers,
             Workspace workspace)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (errorReporter == null)
+            if (errorReporter is null)
             {
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            if (triggers == null)
+            if (triggers is null)
             {
                 throw new ArgumentNullException(nameof(triggers));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
@@ -67,10 +67,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _openDocuments = new HashSet<string>(FilePathComparer.Instance);
             _notificationWork = new Queue<ProjectChangeEventArgs>();
 
-            for (var i = 0; i < _triggers.Length; i++)
+            // All methods involving the project snapshot manager need to be run on the
+            // single-threaded dispatcher.
+            _ = _foregroundDispatcher.RunOnForegroundAsync(() =>
             {
-                _triggers[i].Initialize(this);
-            }
+                for (var i = 0; i < _triggers.Length; i++)
+                {
+                    _triggers[i].Initialize(this);
+                }
+            }, CancellationToken.None);
         }
 
         public override IReadOnlyList<ProjectSnapshot> Projects
@@ -188,6 +193,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             _foregroundDispatcher.AssertForegroundThread();
+
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
                 var state = entry.State.WithRemovedHostDocument(document);
@@ -221,6 +227,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             _foregroundDispatcher.AssertForegroundThread();
+
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
@@ -276,6 +283,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             _foregroundDispatcher.AssertForegroundThread();
+
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
@@ -314,6 +322,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             _foregroundDispatcher.AssertForegroundThread();
+
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
@@ -367,6 +376,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             _foregroundDispatcher.AssertForegroundThread();
+
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
@@ -536,7 +546,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
                 while (_notificationWork.Count > 0);
             }
-
         }
 
         private class Entry

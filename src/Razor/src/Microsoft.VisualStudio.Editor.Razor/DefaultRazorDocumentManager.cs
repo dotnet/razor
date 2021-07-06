@@ -5,9 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
@@ -16,40 +20,48 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultRazorDocumentManager : RazorDocumentManager
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly RazorEditorFactoryService _editorFactoryService;
 
         [ImportingConstructor]
         public DefaultRazorDocumentManager(
-            ForegroundDispatcher dispatcher,
+            ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
             RazorEditorFactoryService editorFactoryService)
         {
-            if (dispatcher == null)
+            if (foregroundDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(dispatcher));
+                throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (editorFactoryService == null)
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (editorFactoryService is null)
             {
                 throw new ArgumentNullException(nameof(editorFactoryService));
             }
 
-            _foregroundDispatcher = dispatcher;
+            _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _editorFactoryService = editorFactoryService;
         }
 
-        public override void OnTextViewOpened(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
+        public async override Task OnTextViewOpenedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (subjectBuffers == null)
+            if (subjectBuffers is null)
             {
                 throw new ArgumentNullException(nameof(subjectBuffers));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             foreach (var textBuffer in subjectBuffers)
             {
@@ -69,24 +81,26 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                 if (documentTracker.TextViews.Count == 1)
                 {
-                    tracker.Subscribe();
+                    // tracker.Subscribe() accesses the project snapshot manager, which needs to be run on the
+                    // single-threaded dispatcher.
+                    await _foregroundDispatcher.RunOnForegroundAsync(() => tracker.Subscribe(), CancellationToken.None);
                 }
             }
         }
 
-        public override void OnTextViewClosed(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
+        public async override Task OnTextViewClosedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (subjectBuffers == null)
+            if (subjectBuffers is null)
             {
                 throw new ArgumentNullException(nameof(subjectBuffers));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             // This means a Razor buffer has be detached from this ITextView or the ITextView is closing. Since we keep a 
             // list of all of the open text views for each text buffer, we need to update the tracker.
@@ -101,7 +115,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                     if (documentTracker.TextViews.Count == 0)
                     {
-                        documentTracker.Unsubscribe();
+                        // tracker.Unsubscribe() should be in sync with tracker.Subscribe(). The latter of needs to be run
+                        // on the single-threaded dispatcher, so we run both on it.
+                        await _foregroundDispatcher.RunOnForegroundAsync(() => documentTracker.Unsubscribe(), CancellationToken.None);
                     }
                 }
             }

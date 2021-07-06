@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             var dispatcher = new Mock<ForegroundDispatcher>(MockBehavior.Strict);
             dispatcher.Setup(d => d.AssertForegroundThread(It.IsAny<string>())).Verifiable();
+            dispatcher.Setup(d => d.ForegroundScheduler).Returns(TaskScheduler.FromCurrentSynchronizationContext());
             return dispatcher.Object;
         }
 

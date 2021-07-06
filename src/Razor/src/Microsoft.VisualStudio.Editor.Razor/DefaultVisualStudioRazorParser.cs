@@ -11,8 +11,10 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using static Microsoft.VisualStudio.Editor.Razor.BackgroundParser;
 using ITextBuffer = Microsoft.VisualStudio.Text.ITextBuffer;
 using Timer = System.Threading.Timer;
@@ -34,7 +36,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly object UpdateStateLock = new object();
         private readonly VisualStudioCompletionBroker _completionBroker;
         private readonly VisualStudioDocumentTracker _documentTracker;
-        private readonly ForegroundDispatcher _dispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
         private readonly ErrorReporter _errorReporter;
         private readonly List<CodeDocumentRequest> _codeDocumentRequests;
@@ -51,38 +53,38 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         public DefaultVisualStudioRazorParser(
-            ForegroundDispatcher dispatcher,
+            JoinableTaskContext joinableTaskContext,
             VisualStudioDocumentTracker documentTracker,
             ProjectSnapshotProjectEngineFactory projectEngineFactory,
             ErrorReporter errorReporter,
             VisualStudioCompletionBroker completionBroker)
         {
-            if (dispatcher == null)
+            if (joinableTaskContext is null)
             {
-                throw new ArgumentNullException(nameof(dispatcher));
+                throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            if (documentTracker == null)
+            if (documentTracker is null)
             {
                 throw new ArgumentNullException(nameof(documentTracker));
             }
 
-            if (projectEngineFactory == null)
+            if (projectEngineFactory is null)
             {
                 throw new ArgumentNullException(nameof(projectEngineFactory));
             }
 
-            if (errorReporter == null)
+            if (errorReporter is null)
             {
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            if (completionBroker == null)
+            if (completionBroker is null)
             {
                 throw new ArgumentNullException(nameof(completionBroker));
             }
 
-            _dispatcher = dispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _projectEngineFactory = projectEngineFactory;
             _errorReporter = errorReporter;
             _completionBroker = completionBroker;
@@ -143,23 +145,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        public override void QueueReparse()
-        {
-            // Can be called from any thread
-
-            if (_dispatcher.IsForegroundThread)
-            {
-                ReparseOnForeground(null);
-            }
-            else
-            {
-                _ = Task.Factory.StartNew(ReparseOnForeground, null, CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
-            }
-        }
-
         public void Dispose()
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             StopParser();
 
@@ -180,7 +168,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void DocumentTracker_ContextChanged(object sender, ContextChangeEventArgs args)
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             if (!TryReinitializeParser())
             {
@@ -189,13 +177,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             // We have a new parser, force a reparse to generate new document information. Note that this
             // only blocks until the reparse change has been queued.
-            QueueReparse();
+            ReparseOnUIThread();
         }
 
         // Internal for testing
         internal bool TryReinitializeParser()
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             StopParser();
 
@@ -214,7 +202,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void StartParser()
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             // Make sure any tests use the real thing or a good mock. These tests can cause failures
             // that are hard to understand when this throws.
@@ -242,7 +230,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void StopParser()
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             if (_parser != null)
             {
@@ -258,7 +246,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void StartIdleTimer()
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             lock (IdleLock)
             {
@@ -287,7 +275,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             if (args.Changes.Count > 0)
             {
@@ -341,9 +329,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // Internal for testing
-        internal void OnIdle(object state)
+        internal void OnIdle()
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             if (_disposed)
             {
@@ -362,13 +350,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 }
             }
 
-            QueueReparse();
+            ReparseOnUIThread();
         }
 
         // Internal for testing
-        internal void ReparseOnForeground(object state)
+        internal void ReparseOnUIThread()
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             if (_disposed)
             {
@@ -381,7 +369,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void QueueChange(SourceChange change, ITextSnapshot snapshot)
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             // _parser can be null if we're in the midst of rebuilding the internal parser (TagHelper refresh/solution teardown)
             _latestChangeReference = _parser?.QueueChange(change, snapshot);
@@ -407,37 +395,49 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             try
             {
-                _dispatcher.AssertBackgroundThread();
-
                 OnStartingBackgroundIdleWork();
-
                 StopIdleTimer();
 
                 // We need to get back to the UI thread to properly check if a completion is active.
-                _ = Task.Factory.StartNew(OnIdle, null, CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                _ = Task.Factory.StartNew(() => OnIdle_QueueOnUIThread(), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
             }
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the workspace.
-                _ = Task.Factory.StartNew(() => _errorReporter.ReportError(ex), CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                _errorReporter.ReportError(ex);
+            }
+
+            async Task OnIdle_QueueOnUIThread()
+            {
+                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+                OnIdle();
             }
         }
 
         // Internal for testing
-        internal void OnResultsReady(object sender, BackgroundParserResultsReadyEventArgs args)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        internal async void OnResultsReady(object sender, BackgroundParserResultsReadyEventArgs args)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            _dispatcher.AssertBackgroundThread();
+            try
+            {
+                UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
 
-            UpdateParserState(args.CodeDocument, args.ChangeReference.Snapshot);
-
-            // Jump back to UI thread to notify structure changes.
-            _ = Task.Factory.StartNew(OnDocumentStructureChanged, args, CancellationToken.None, TaskCreationOptions.None, _dispatcher.ForegroundScheduler);
+                // Jump back to UI thread to notify structure changes.
+                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+                OnDocumentStructureChanged(args);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("DefaultVisualStudioRazorParser.OnResultsReady threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
         }
 
         // Internal for testing
         internal void OnDocumentStructureChanged(object state)
         {
-            _dispatcher.AssertForegroundThread();
+           _joinableTaskContext.AssertUIThread();
 
             if (_disposed)
             {
@@ -458,7 +458,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 // This can happen for a multitude of reasons, usually because of a user auto-completing
                 // C# statements (causes multiple edits in quick succession). This ensures that our latest
                 // parse corresponds to the current snapshot.
-                QueueReparse();
+                ReparseOnUIThread();
                 return;
             }
 

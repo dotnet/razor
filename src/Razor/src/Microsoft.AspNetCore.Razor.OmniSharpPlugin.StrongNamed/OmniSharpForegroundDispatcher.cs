@@ -15,10 +15,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         public abstract TaskScheduler ForegroundScheduler { get; }
 
-        public abstract TaskScheduler BackgroundScheduler { get; }
-
         public abstract void AssertForegroundThread([CallerMemberName] string caller = null);
-
-        public abstract void AssertBackgroundThread([CallerMemberName] string caller = null);
     }
 }

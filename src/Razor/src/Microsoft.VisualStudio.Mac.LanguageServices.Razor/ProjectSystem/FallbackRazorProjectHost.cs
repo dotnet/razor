@@ -28,8 +28,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         protected override async Task OnProjectChangedAsync()
         {
-            ForegroundDispatcher.AssertBackgroundThread();
-
             await ExecuteWithLockAsync(async () =>
             {
                 var referencedAssemblies = await DotNetProject.GetReferencedAssemblies(ConfigurationSelector.Default);

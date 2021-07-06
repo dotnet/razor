@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Razor
         [ImportingConstructor]
         public DefaultProjectWorkspaceStateGenerator(ForegroundDispatcher foregroundDispatcher)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 () => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, lcts.Token),
                 lcts.Token,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.BackgroundScheduler).Unwrap();
+                TaskScheduler.Default).Unwrap();
             updateTask.ConfigureAwait(false);
             updateItem = new UpdateItem(updateTask, lcts);
             _updates[projectSnapshot.FilePath] = updateItem;
@@ -97,8 +97,6 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public void Dispose()
         {
-            _foregroundDispatcher.AssertForegroundThread();
-
             _disposed = true;
 
             foreach (var update in _updates)
@@ -132,8 +130,6 @@ namespace Microsoft.CodeAnalysis.Razor
 
             try
             {
-                _foregroundDispatcher.AssertBackgroundThread();
-
                 OnStartingBackgroundWork();
 
                 if (cancellationToken.IsCancellationRequested)

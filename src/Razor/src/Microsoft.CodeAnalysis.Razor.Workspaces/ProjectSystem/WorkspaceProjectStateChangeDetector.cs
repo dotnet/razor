@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigger
     {
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
+        private readonly ForegroundDispatcher _foregroundDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
 
         public int EnqueueDelay { get; set; } = 3 * 1000;
@@ -29,18 +30,30 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         internal Dictionary<ProjectId, UpdateItem> _deferredUpdates;
 
         [ImportingConstructor]
-        public WorkspaceProjectStateChangeDetector(ProjectWorkspaceStateGenerator workspaceStateGenerator)
+        public WorkspaceProjectStateChangeDetector(
+            ProjectWorkspaceStateGenerator workspaceStateGenerator,
+            ForegroundDispatcher foregroundDispatcher)
         {
-            if (workspaceStateGenerator == null)
+            if (workspaceStateGenerator is null)
             {
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
+            if (foregroundDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(foregroundDispatcher));
+            }
+
             _workspaceStateGenerator = workspaceStateGenerator;
+            _foregroundDispatcher = foregroundDispatcher;
         }
 
         // Used in unit tests to ensure we can control when background work starts.
         public ManualResetEventSlim BlockDelayedUpdateWorkEnqueue { get; set; }
+
+        public ManualResetEventSlim BlockDelayedUpdateWorkAfterEnqueue { get; set; }
+
+        public ManualResetEventSlim NotifyWorkspaceChangedEventComplete { get; set; }
 
         private void OnStartingDelayedUpdate()
         {
@@ -48,6 +61,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 BlockDelayedUpdateWorkEnqueue.Wait();
                 BlockDelayedUpdateWorkEnqueue.Reset();
+            }
+
+            if (BlockDelayedUpdateWorkAfterEnqueue != null)
+            {
+                BlockDelayedUpdateWorkAfterEnqueue.Set();
             }
         }
 
@@ -64,107 +82,130 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         // Internal for testing, virtual for temporary VSCode workaround
-        internal virtual void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        internal async virtual void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            Project project;
-            switch (e.Kind)
+            try
             {
-                case WorkspaceChangeKind.ProjectAdded:
+                // Method needs to be run on the single-threaded dispatcher due to project snapshot
+                // manager access. 
+                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                {
+                    Project project;
+                    switch (e.Kind)
                     {
-                        project = e.NewSolution.GetProject(e.ProjectId);
-
-                        Debug.Assert(project != null);
-
-                        if (TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
-                        {
-                            _workspaceStateGenerator.Update(project, projectSnapshot, CancellationToken.None);
-                        }
-                        break;
-                    }
-
-                case WorkspaceChangeKind.ProjectChanged:
-                case WorkspaceChangeKind.ProjectReloaded:
-                    {
-                        project = e.NewSolution.GetProject(e.ProjectId);
-
-                        if (TryGetProjectSnapshot(project?.FilePath, out var _))
-                        {
-                            EnqueueUpdate(e.ProjectId);
-                        }
-                        break;
-                    }
-
-                case WorkspaceChangeKind.ProjectRemoved:
-                    {
-                        project = e.OldSolution.GetProject(e.ProjectId);
-                        Debug.Assert(project != null);
-
-                        if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
-                        {
-                            _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot, CancellationToken.None);
-                        }
-
-                        break;
-                    }
-
-                case WorkspaceChangeKind.DocumentChanged:
-                case WorkspaceChangeKind.DocumentReloaded:
-                    {
-                        // This is the case when a component declaration file changes on disk. We have an MSBuild
-                        // generator configured by the SDK that will poke these files on disk when a component
-                        // is saved, or loses focus in the editor.
-                        project = e.OldSolution.GetProject(e.ProjectId);
-                        var document = project.GetDocument(e.DocumentId);
-
-                        if (document.FilePath == null)
-                        {
-                            return;
-                        }
-
-                        // Using EndsWith because Path.GetExtension will ignore everything before .cs
-                        // Using Ordinal because the SDK generates these filenames.
-                        // Stll have .cshtml.g.cs and .razor.g.cs for Razor.VSCode scenarios.
-                        if (document.FilePath.EndsWith(".cshtml.g.cs", StringComparison.Ordinal) ||
-                            document.FilePath.EndsWith(".razor.g.cs", StringComparison.Ordinal) ||
-                            document.FilePath.EndsWith(".razor", StringComparison.Ordinal) ||
-
-                            // VSCode's background C# document
-                            document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal))
-                        {
-                            EnqueueUpdate(e.ProjectId);
-                            return;
-                        }
-
-                        // We now know we're not operating directly on a Razor file. However, it's possible the user is operating on a partial class that is associated with a Razor file.
-
-                        if (IsPartialComponentClass(document))
-                        {
-                            EnqueueUpdate(e.ProjectId);
-                        }
-
-                        break;
-                    }
-
-                case WorkspaceChangeKind.SolutionAdded:
-                case WorkspaceChangeKind.SolutionChanged:
-                case WorkspaceChangeKind.SolutionCleared:
-                case WorkspaceChangeKind.SolutionReloaded:
-                case WorkspaceChangeKind.SolutionRemoved:
-
-                    if (e.OldSolution != null)
-                    {
-                        foreach (var p in e.OldSolution.Projects)
-                        {
-
-                            if (TryGetProjectSnapshot(p?.FilePath, out var projectSnapshot))
+                        case WorkspaceChangeKind.ProjectAdded:
                             {
-                                _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot, CancellationToken.None);
+                                project = e.NewSolution.GetProject(e.ProjectId);
+
+                                Debug.Assert(project != null);
+
+                                if (TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
+                                {
+                                    _workspaceStateGenerator.Update(project, projectSnapshot, CancellationToken.None);
+                                }
+
+                                break;
                             }
-                        }
+
+                        case WorkspaceChangeKind.ProjectChanged:
+                        case WorkspaceChangeKind.ProjectReloaded:
+                            {
+                                project = e.NewSolution.GetProject(e.ProjectId);
+
+                                if (TryGetProjectSnapshot(project?.FilePath, out var _))
+                                {
+                                    EnqueueUpdate(e.ProjectId);
+                                }
+
+                                break;
+                            }
+
+                        case WorkspaceChangeKind.ProjectRemoved:
+                            {
+                                project = e.OldSolution.GetProject(e.ProjectId);
+                                Debug.Assert(project != null);
+
+                                if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
+                                {
+                                    _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot, CancellationToken.None);
+                                }
+
+                                break;
+                            }
+
+                        case WorkspaceChangeKind.DocumentChanged:
+                        case WorkspaceChangeKind.DocumentReloaded:
+                            {
+                                // This is the case when a component declaration file changes on disk. We have an MSBuild
+                                // generator configured by the SDK that will poke these files on disk when a component
+                                // is saved, or loses focus in the editor.
+                                project = e.OldSolution.GetProject(e.ProjectId);
+                                var document = project.GetDocument(e.DocumentId);
+
+                                if (document.FilePath == null)
+                                {
+                                    break;
+                                }
+
+                                // Using EndsWith because Path.GetExtension will ignore everything before .cs
+                                // Using Ordinal because the SDK generates these filenames.
+                                // Stll have .cshtml.g.cs and .razor.g.cs for Razor.VSCode scenarios.
+                                if (document.FilePath.EndsWith(".cshtml.g.cs", StringComparison.Ordinal) ||
+                                    document.FilePath.EndsWith(".razor.g.cs", StringComparison.Ordinal) ||
+                                    document.FilePath.EndsWith(".razor", StringComparison.Ordinal) ||
+
+                                    // VSCode's background C# document
+                                    document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal))
+                                {
+                                    EnqueueUpdate(e.ProjectId);
+                                    break;
+                                }
+
+                                // We now know we're not operating directly on a Razor file. However, it's possible the user is operating on a partial class that is associated with a Razor file.
+
+                                if (IsPartialComponentClass(document))
+                                {
+                                    EnqueueUpdate(e.ProjectId);
+                                }
+
+                                break;
+                            }
+
+                        case WorkspaceChangeKind.SolutionAdded:
+                        case WorkspaceChangeKind.SolutionChanged:
+                        case WorkspaceChangeKind.SolutionCleared:
+                        case WorkspaceChangeKind.SolutionReloaded:
+                        case WorkspaceChangeKind.SolutionRemoved:
+
+                            if (e.OldSolution != null)
+                            {
+                                foreach (var p in e.OldSolution.Projects)
+                                {
+
+                                    if (TryGetProjectSnapshot(p?.FilePath, out var projectSnapshot))
+                                    {
+                                        _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot, CancellationToken.None);
+                                    }
+                                }
+                            }
+
+                            InitializeSolution(e.NewSolution);
+                            break;
                     }
 
-                    InitializeSolution(e.NewSolution);
-                    break;
+                    // Let tests know that this event has completed
+                    if (NotifyWorkspaceChangedEventComplete != null)
+                    {
+                        NotifyWorkspaceChangedEventComplete.Set();
+                    }
+                }, CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail(".WorkspaceProjectStateChangeDetector.Workspace_WorkspaceChanged threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }
 

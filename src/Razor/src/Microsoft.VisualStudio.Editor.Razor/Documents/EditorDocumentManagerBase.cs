@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
@@ -21,19 +23,26 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public EditorDocumentManagerBase(
             ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
             FileChangeTrackerFactory fileChangeTrackerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (foregroundDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(foregroundDispatcher));
             }
 
-            if (fileChangeTrackerFactory == null)
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (fileChangeTrackerFactory is null)
             {
                 throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
             }
 
             ForegroundDispatcher = foregroundDispatcher;
+            JoinableTaskContext = joinableTaskContext;
             _fileChangeTrackerFactory = fileChangeTrackerFactory;
 
             _documents = new Dictionary<DocumentKey, EditorDocument>();
@@ -43,6 +52,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected ForegroundDispatcher ForegroundDispatcher { get; }
 
+        protected JoinableTaskContext JoinableTaskContext { get; }
+
         protected abstract ITextBuffer GetTextBufferForOpenDocument(string filePath);
 
         protected abstract void OnDocumentOpened(EditorDocument document);
@@ -51,7 +62,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public sealed override bool TryGetDocument(DocumentKey key, out EditorDocument document)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -61,7 +72,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public sealed override bool TryGetMatchingDocuments(string filePath, out EditorDocument[] documents)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -88,13 +99,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             EventHandler opened,
             EventHandler closed)
         {
-            ForegroundDispatcher.AssertForegroundThread();
-
-            EditorDocument document;
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
-                if (TryGetDocument(key, out document))
+                if (TryGetDocument(key, out var document))
                 {
                     return document;
                 }
@@ -103,6 +112,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 var textBuffer = GetTextBufferForOpenDocument(key.DocumentFilePath);
                 document = new EditorDocument(
                     this,
+                    ForegroundDispatcher,
+                    JoinableTaskContext,
                     key.ProjectFilePath,
                     key.DocumentFilePath,
                     new FileTextLoader(key.DocumentFilePath, defaultEncoding: null),
@@ -147,7 +158,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -171,7 +182,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             lock (_lock)
             {
@@ -195,24 +206,27 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(document));
             }
 
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
-            var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
-            if (_documentsByFilePath.TryGetValue(document.DocumentFilePath, out var documents))
+            lock (_lock)
             {
-                documents.Remove(key);
-
-                if (documents.Count == 0)
+                var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
+                if (_documentsByFilePath.TryGetValue(document.DocumentFilePath, out var documents))
                 {
-                    _documentsByFilePath.Remove(document.DocumentFilePath);
+                    documents.Remove(key);
+
+                    if (documents.Count == 0)
+                    {
+                        _documentsByFilePath.Remove(document.DocumentFilePath);
+                    }
                 }
-            }
 
-            _documents.Remove(key);
+                _documents.Remove(key);
 
-            if (document.IsOpenInEditor)
-            {
-                OnDocumentClosed(document);
+                if (document.IsOpenInEditor)
+                {
+                    OnDocumentClosed(document);
+                }
             }
         }
     }

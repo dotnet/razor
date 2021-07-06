@@ -50,6 +50,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             DocumentTracker = new DefaultVisualStudioDocumentTracker(
                 Dispatcher,
+                JoinableTaskFactory.Context,
                 FilePath,
                 ProjectPath,
                 ProjectManager,

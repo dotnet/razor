@@ -9,14 +9,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     {
         private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly string _filePath;
         private readonly string _projectPath;
         private readonly ProjectSnapshotManager _projectManager;
@@ -32,7 +35,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override event EventHandler<ContextChangeEventArgs> ContextChanged;
 
         public DefaultVisualStudioDocumentTracker(
-            ForegroundDispatcher dispatcher,
+            ForegroundDispatcher foregroundDispatcher,
+            JoinableTaskContext joinableTaskContext,
             string filePath,
             string projectPath,
             ProjectSnapshotManager projectManager,
@@ -41,9 +45,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
             ITextBuffer textBuffer,
             ImportDocumentManager importDocumentManager)
         {
-            if (dispatcher == null)
+            if (foregroundDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(dispatcher));
+                throw new ArgumentNullException(nameof(foregroundDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
             if (string.IsNullOrEmpty(filePath))
@@ -51,37 +60,38 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
             }
 
-            if (projectPath == null)
+            if (projectPath is null)
             {
                 throw new ArgumentNullException(nameof(projectPath));
             }
 
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
 
-            if (workspaceEditorSettings == null)
+            if (workspaceEditorSettings is null)
             {
                 throw new ArgumentNullException(nameof(workspaceEditorSettings));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            if (importDocumentManager == null)
+            if (importDocumentManager is null)
             {
                 throw new ArgumentNullException(nameof(importDocumentManager));
             }
 
-            _foregroundDispatcher = dispatcher;
+            _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _filePath = filePath;
             _projectPath = projectPath;
             _projectManager = projectManager;
@@ -115,12 +125,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         internal void AddTextView(ITextView textView)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (!_textViews.Contains(textView))
             {
@@ -130,12 +140,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         internal void RemoveTextView(ITextView textView)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (_textViews.Contains(textView))
             {
@@ -145,7 +155,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override ITextView GetFocusedTextView()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             for (var i = 0; i < TextViews.Count; i++)
             {
@@ -197,13 +207,15 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Detached from project.
             _isSupportedProject = false;
             _projectSnapshot = null;
+
             OnContextChanged(kind: ContextChangeKind.ProjectChanged);
         }
 
-        private void OnContextChanged(ContextChangeKind kind)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void OnContextChanged(ContextChangeKind kind)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            _foregroundDispatcher.AssertForegroundThread();
-
+            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
             ContextChanged?.Invoke(this, new ContextChangeEventArgs(kind));
         }
 
@@ -233,7 +245,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         // Just an update
                         OnContextChanged(ContextChangeKind.ProjectChanged);
 
-                        if (e.Older == null ||
+                        if (e.Older is null ||
                             !Enumerable.SequenceEqual(e.Older.TagHelpers, e.Newer.TagHelpers))
                         {
                             OnContextChanged(ContextChangeKind.TagHelpersChanged);
@@ -255,11 +267,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         // Internal for testing
         internal void EditorSettingsManager_Changed(object sender, EditorSettingsChangedEventArgs args)
-        {
-            _foregroundDispatcher.AssertForegroundThread();
-
-            OnContextChanged(ContextChangeKind.EditorSettingsChanged);
-        }
+            => OnContextChanged(ContextChangeKind.EditorSettingsChanged);
 
         // Internal for testing
         internal void Import_Changed(object sender, ImportChangedEventArgs args)

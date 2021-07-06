@@ -19,6 +19,7 @@ using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using System.Linq;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {

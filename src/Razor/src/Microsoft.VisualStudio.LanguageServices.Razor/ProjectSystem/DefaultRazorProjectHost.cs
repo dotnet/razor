@@ -34,18 +34,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public DefaultRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
+            ForegroundDispatcher foregroundDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
-            : base(commonServices, workspace, projectConfigurationFilePathStore)
+            : base(commonServices, workspace, foregroundDispatcher, projectConfigurationFilePathStore)
         {
         }
 
         // Internal for testing
         internal DefaultRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
-                Workspace workspace,
-                ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-                ProjectSnapshotManagerBase projectManager)
-        : base(commonServices, workspace, projectConfigurationFilePathStore, projectManager)
+            Workspace workspace,
+            ForegroundDispatcher foregroundDispatcher,
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            ProjectSnapshotManagerBase projectManager)
+            : base(commonServices, workspace, foregroundDispatcher, projectConfigurationFilePathStore, projectManager)
         {
         }
 
@@ -127,13 +129,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         for (var i = 0; i < documents.Length; i++)
                         {
                             AddDocumentUnsafe(documents[i]);
-                        }
-                    }).ConfigureAwait(false);
+                        }   
+                    }, CancellationToken.None).ConfigureAwait(false);
                 }
                 else
                 {
                     // Ok we can't find a configuration. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false), registerFaultHandler: true);
         }

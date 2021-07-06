@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor
@@ -13,7 +14,11 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public abstract TaskScheduler ForegroundScheduler { get; }
 
-        public abstract TaskScheduler BackgroundScheduler { get; }
+        public Task RunOnForegroundAsync(Action action, CancellationToken cancellationToken)
+            => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, ForegroundScheduler);
+
+        public Task<TResult> RunOnForegroundAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
+            => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, ForegroundScheduler);
 
         public virtual void AssertForegroundThread([CallerMemberName] string caller = null)
         {
@@ -21,15 +26,6 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 caller = caller == null ? Workspaces.Resources.ForegroundDispatcher_NoMethodNamePlaceholder : $"'{caller}'";
                 throw new InvalidOperationException(Workspaces.Resources.FormatForegroundDispatcher_AssertForegroundThread(caller));
-            }
-        }
-
-        public virtual void AssertBackgroundThread([CallerMemberName] string caller = null)
-        {
-            if (IsForegroundThread)
-            {
-                caller = caller == null ? Workspaces.Resources.ForegroundDispatcher_NoMethodNamePlaceholder : $"'{caller}'";
-                throw new InvalidOperationException(Workspaces.Resources.FormatForegroundDispatcher_AssertBackgroundThread(caller));
             }
         }
     }
