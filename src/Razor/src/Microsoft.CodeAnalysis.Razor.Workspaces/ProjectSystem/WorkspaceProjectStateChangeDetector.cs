@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public ManualResetEventSlim BlockDelayedUpdateWorkAfterEnqueue { get; set; }
 
+        public ManualResetEventSlim NotifyWorkspaceChangedEventComplete { get; set; }
+
         private void OnStartingDelayedUpdate()
         {
             if (BlockDelayedUpdateWorkEnqueue != null)
@@ -103,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 {
                                     _workspaceStateGenerator.Update(project, projectSnapshot, CancellationToken.None);
                                 }
+
                                 break;
                             }
 
@@ -115,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 {
                                     EnqueueUpdate(e.ProjectId);
                                 }
+
                                 break;
                             }
 
@@ -142,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 if (document.FilePath == null)
                                 {
-                                    return;
+                                    break;
                                 }
 
                                 // Using EndsWith because Path.GetExtension will ignore everything before .cs
@@ -156,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                     document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal))
                                 {
                                     EnqueueUpdate(e.ProjectId);
-                                    return;
+                                    break;
                                 }
 
                                 // We now know we're not operating directly on a Razor file. However, it's possible the user is operating on a partial class that is associated with a Razor file.
@@ -189,6 +193,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                             InitializeSolution(e.NewSolution);
                             break;
+                    }
+
+                    // Let tests know that this event has completed
+                    if (NotifyWorkspaceChangedEventComplete != null)
+                    {
+                        NotifyWorkspaceChangedEventComplete.Set();
                     }
                 }, CancellationToken.None);
             }

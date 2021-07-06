@@ -108,7 +108,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher)
+            {
+                NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
+            };
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             await Dispatcher.RunOnForegroundAsync(() =>
             {
@@ -119,8 +122,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var e = new WorkspaceChangeEventArgs(kind, oldSolution: EmptySolution, newSolution: SolutionWithTwoProjects);
 
             // Act
-            await Dispatcher.RunOnForegroundAsync(() => detector.Workspace_WorkspaceChanged(Workspace, e), CancellationToken.None);
-            await Dispatcher.ForegroundScheduler;
+            detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
 
             // Assert
             Assert.Collection(
@@ -139,7 +142,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher)
+            {
+                NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
+            };
 
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
 
@@ -152,12 +158,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Initialize with a project. This will get removed.
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: EmptySolution, newSolution: SolutionWithOneProject);
-            await Dispatcher.RunOnForegroundAsync(() => detector.Workspace_WorkspaceChanged(Workspace, e), CancellationToken.None);
+            detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
 
             e = new WorkspaceChangeEventArgs(kind, oldSolution: SolutionWithOneProject, newSolution: SolutionWithTwoProjects);
+            detector.NotifyWorkspaceChangedEventComplete.Reset();
 
             // Act
-            await Dispatcher.RunOnForegroundAsync(() => detector.Workspace_WorkspaceChanged(Workspace, e), CancellationToken.None);
+            detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
 
             // Assert
             Assert.Collection(
@@ -190,7 +199,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
-            await Dispatcher.ForegroundScheduler; // Wait for event to finish processing on thread
 
             // Assert
             //
@@ -381,7 +389,10 @@ namespace Microsoft.AspNetCore.Components
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher)
+            {
+                NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
+            };
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             await Dispatcher.RunOnForegroundAsync(() =>
             {
@@ -393,8 +404,8 @@ namespace Microsoft.AspNetCore.Components
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.ProjectRemoved, oldSolution: SolutionWithTwoProjects, newSolution: solution, projectId: ProjectNumberOne.Id);
 
             // Act
-            await Dispatcher.RunOnForegroundAsync(() => detector.Workspace_WorkspaceChanged(Workspace, e), CancellationToken.None);
-            await Dispatcher.ForegroundScheduler;
+            detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
 
             // Assert
             Assert.Collection(
@@ -407,7 +418,10 @@ namespace Microsoft.AspNetCore.Components
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher)
+            {
+                NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
+            };
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
             await Dispatcher.RunOnForegroundAsync(() => projectManager.ProjectAdded(HostProjectThree), CancellationToken.None);
 
@@ -415,8 +429,8 @@ namespace Microsoft.AspNetCore.Components
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.ProjectAdded, oldSolution: EmptySolution, newSolution: solution, projectId: ProjectNumberThree.Id);
 
             // Act
-            await Dispatcher.RunOnForegroundAsync(() => detector.Workspace_WorkspaceChanged(Workspace, e), CancellationToken.None);
-            await Dispatcher.ForegroundScheduler;
+            detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
 
             // Assert
             Assert.Collection(
