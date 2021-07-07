@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
                 Array.Empty<ILanguageService>());
 
             return new DefaultProjectSnapshotManager(
-                new TestDispatcher(),
+                new TestSingleThreadedDispatcher(),
                 new TestErrorReporter(),
                 Array.Empty<ProjectSnapshotChangeTrigger>(),
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             }
         }
 
-        private class TestDispatcher : SingleThreadedDispatcher
+        private class TestSingleThreadedDispatcher : SingleThreadedDispatcher
         {
             public override bool IsDispatcherThread => true;
 
