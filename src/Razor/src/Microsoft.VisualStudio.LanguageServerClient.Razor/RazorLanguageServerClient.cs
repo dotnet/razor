@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 logging.AddProvider(_loggerProvider);
             });
             services.AddSingleton<LanguageServerFeatureOptions>(_vsLanguageServerFeatureOptions);
-            services.AddSingleton<HostWorkspaceServicesProvider>(_vsHostWorkspaceServicesProvider);
+            services.AddSingleton<HostServicesProvider>(_vsHostWorkspaceServicesProvider);
         }
 
         private Trace GetVerbosity()

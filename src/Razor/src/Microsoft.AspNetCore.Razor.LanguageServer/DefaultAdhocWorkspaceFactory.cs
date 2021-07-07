@@ -12,16 +12,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultAdhocWorkspaceFactory : AdhocWorkspaceFactory
     {
-        private readonly HostWorkspaceServicesProvider _hostWorkspaceServicesProvider;
+        private readonly HostServicesProvider _hostServicesProvider;
 
-        public DefaultAdhocWorkspaceFactory(HostWorkspaceServicesProvider hostWorkspaceServicesProvider)
+        public DefaultAdhocWorkspaceFactory(HostServicesProvider hostWorkspaceServicesProvider)
         {
             if (hostWorkspaceServicesProvider is null)
             {
                 throw new ArgumentNullException(nameof(hostWorkspaceServicesProvider));
             }
 
-            _hostWorkspaceServicesProvider = hostWorkspaceServicesProvider;
+            _hostServicesProvider = hostWorkspaceServicesProvider;
         }
 
         public override AdhocWorkspace Create() => Create(Enumerable.Empty<IWorkspaceService>());
@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(workspaceServices));
             }
 
-            var fallbackServices = _hostWorkspaceServicesProvider.GetServices();
+            var fallbackServices = _hostServicesProvider.GetServices();
             var services = AdhocServices.Create(
                 workspaceServices,
                 razorLanguageServices: Enumerable.Empty<ILanguageService>(),
