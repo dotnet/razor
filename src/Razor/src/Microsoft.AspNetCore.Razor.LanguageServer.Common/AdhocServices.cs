@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             // We need to create workspace services from the provided fallback host services. To do that we need to invoke into Roslyn's
             // CreateWorkspaceServices method. Ultimately the reason behind this is to ensure that any services created by this class are
             // truly isolated from the passed in fallback services host workspace.
-            _createWorkspaceServicesMethod = typeof(HostServices).GetMethod("CreateWorkspaceServices", BindingFlags.Instance | BindingFlags.NonPublic);
+            _createWorkspaceServicesMethod = typeof(HostServices).GetMethod(nameof(CreateWorkspaceServices), BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
         protected override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)

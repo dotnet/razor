@@ -9,13 +9,13 @@ using Microsoft.VisualStudio.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    [Export(typeof(VSHostWorkspaceServicesProvider))]
-    internal class VSHostWorkspaceServicesProvider : HostServicesProvider
+    [Export(typeof(VSHostServicesProvider))]
+    internal class VSHostServicesProvider : HostServicesProvider
     {
         private readonly CodeAnalysis.Workspace _workspace;
 
         [ImportingConstructor]
-        public VSHostWorkspaceServicesProvider([Import(typeof(VisualStudioWorkspace))] CodeAnalysis.Workspace workspace)
+        public VSHostServicesProvider([Import(typeof(VisualStudioWorkspace))] CodeAnalysis.Workspace workspace)
         {
             if (workspace is null)
             {
