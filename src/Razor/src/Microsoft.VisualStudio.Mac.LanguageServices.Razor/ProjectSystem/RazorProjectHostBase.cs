@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
             DotNetProject.Modified -= DotNetProject_Modified;
 
-            UpdateHostProjectForeground(null);
+            UpdateHostProjectSingleThreadedDispatcher(null);
         }
 
         protected abstract Task OnProjectChangedAsync();
@@ -87,7 +87,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Must be called inside the lock.
         protected async Task UpdateHostProjectUnsafeAsync(HostProject newHostProject)
         {
-            await Task.Factory.StartNew(UpdateHostProjectForeground, newHostProject, CancellationToken.None, TaskCreationOptions.None, SingleThreadedDispatcher.DispatcherScheduler);
+            await Task.Factory.StartNew(
+                UpdateHostProjectSingleThreadedDispatcher, newHostProject, CancellationToken.None, TaskCreationOptions.None, SingleThreadedDispatcher.DispatcherScheduler);
         }
 
         protected async Task ExecuteWithLockAsync(Func<Task> func)
@@ -137,7 +138,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }
         }
 
-        private void UpdateHostProjectForeground(object state)
+        private void UpdateHostProjectSingleThreadedDispatcher(object state)
         {
             SingleThreadedDispatcher.AssertDispatcherThread();
 

@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
-            InternalWorkspaceProjectStateChangeDetector = new ForegroundWorkspaceProjectStateChangeDetector(
+            InternalWorkspaceProjectStateChangeDetector = new SingleThreadedWorkspaceProjectStateChangeDetector(
                 singleThreadedDispatcher.InternalDispatcher,
                 workspaceStateGenerator.InternalWorkspaceStateGenerator);
         }
@@ -39,11 +39,11 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             InternalWorkspaceProjectStateChangeDetector.Initialize(projectManager.InternalProjectSnapshotManager);
         }
 
-        private class ForegroundWorkspaceProjectStateChangeDetector : WorkspaceProjectStateChangeDetector
+        private class SingleThreadedWorkspaceProjectStateChangeDetector : WorkspaceProjectStateChangeDetector
         {
             private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
 
-            public ForegroundWorkspaceProjectStateChangeDetector(
+            public SingleThreadedWorkspaceProjectStateChangeDetector(
                 SingleThreadedDispatcher singleThreadedDispatcher,
                 ProjectWorkspaceStateGenerator workspaceStateGenerator) : base(workspaceStateGenerator, singleThreadedDispatcher)
             {

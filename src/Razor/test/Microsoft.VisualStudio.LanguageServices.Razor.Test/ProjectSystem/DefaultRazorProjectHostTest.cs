@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         [UIFact]
-        public async Task DefaultRazorProjectHost_ForegroundThread_CreateAndDispose_Succeeds()
+        public async Task DefaultRazorProjectHost_UIThread_CreateAndDispose_Succeeds()
         {
             // Arrange
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);

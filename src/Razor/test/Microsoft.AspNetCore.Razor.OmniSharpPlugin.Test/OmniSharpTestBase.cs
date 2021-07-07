@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             return snapshotManager;
         }
 
-        protected Task RunOnForegroundAsync(Action action)
+        protected Task RunOnDispatcherThreadAsync(Action action)
         {
             return Task.Factory.StartNew(
                 () => action(),
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 Dispatcher.DispatcherScheduler);
         }
 
-        protected Task<TReturn> RunOnForegroundAsync<TReturn>(Func<TReturn> action)
+        protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> action)
         {
             return Task.Factory.StartNew(
                 () => action(),
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 Dispatcher.DispatcherScheduler);
         }
 
-        protected Task RunOnForegroundAsync(Func<Task> action)
+        protected Task RunOnDispatcherThreadAsync(Func<Task> action)
         {
             return Task.Factory.StartNew(
                 async () => await action(),

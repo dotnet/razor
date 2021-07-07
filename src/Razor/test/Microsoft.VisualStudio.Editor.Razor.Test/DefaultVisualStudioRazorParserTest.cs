@@ -372,7 +372,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         [UIFact]
-        public void ReparseOnForeground_NoopsIfDisposed()
+        public void ReparseOnUIThread_NoopsIfDisposed()
         {
             // Arrange
             var parser = new DefaultVisualStudioRazorParser(

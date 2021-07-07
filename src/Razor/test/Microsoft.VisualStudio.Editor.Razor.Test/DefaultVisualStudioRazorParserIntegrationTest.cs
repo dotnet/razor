@@ -547,7 +547,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 // We block idle work with the below reset events. Therefore, make tests fast and have the idle timer fire as soon as possible.
                 IdleDelay = TimeSpan.FromMilliseconds(1),
-                NotifyForegroundIdleStart = new ManualResetEventSlim(),
+                NotifyUIIdleStart = new ManualResetEventSlim(),
                 BlockBackgroundIdleWork = new ManualResetEventSlim(),
             };
 
@@ -718,7 +718,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 _parser.BlockBackgroundIdleWork.Set();
 
                 // Get off of the UI thread so we can wait for the idle timer to fire
-                await Task.Run(() => DoWithTimeoutIfNotDebugging(_parser.NotifyForegroundIdleStart.Wait));
+                await Task.Run(() => DoWithTimeoutIfNotDebugging(_parser.NotifyUIIdleStart.Wait));
 
                 Assert.Null(_parser._idleTimer);
 
@@ -727,7 +727,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                 _reparseComplete.Reset();
                 _parser.BlockBackgroundIdleWork.Reset();
-                _parser.NotifyForegroundIdleStart.Reset();
+                _parser.NotifyUIIdleStart.Reset();
             }
 
             public void Dispose()
