@@ -208,9 +208,9 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             var args = new ProjectLoadedEventArgs(
                 id: null,
                 project: null,
-                Guid.NewGuid(),
+                sessionId: Guid.NewGuid(),
                 projectInstance,    
-                Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
+                diagnostics: Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
                 isReload: false,
                 projectIdIsDefinedInSolution: false,
                 sourceFiles: Enumerable.Empty<string>().ToImmutableArray(),
