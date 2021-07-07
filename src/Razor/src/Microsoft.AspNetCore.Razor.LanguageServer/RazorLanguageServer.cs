@@ -247,7 +247,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.TryAddSingleton<LanguageServerFeatureOptions, DefaultLanguageServerFeatureOptions>();
 
                         // Defaults: For when the caller hasn't provided them through the `configure` action.
-                        services.TryAddSingleton<HostWorkspaceServicesProvider, DefaultHostWorkspaceServicesProvider>();
+                        services.TryAddSingleton<HostServicesProvider, DefaultHostWorkspaceServicesProvider>();
                     }));
 
             try

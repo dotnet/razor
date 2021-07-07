@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal abstract class HostWorkspaceServicesProvider
+    internal abstract class HostServicesProvider
     {
-        public abstract HostWorkspaceServices GetServices();
+        public abstract HostServices GetServices();
     }
 }

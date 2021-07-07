@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServices;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(VSHostWorkspaceServicesProvider))]
-    internal class VSHostWorkspaceServicesProvider : HostWorkspaceServicesProvider
+    internal class VSHostWorkspaceServicesProvider : HostServicesProvider
     {
         private readonly CodeAnalysis.Workspace _workspace;
 
@@ -25,6 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _workspace = workspace;
         }
 
-        public override HostWorkspaceServices GetServices() => _workspace.Services;
+        public override HostServices GetServices() => _workspace.Services.HostServices;
     }
 }
