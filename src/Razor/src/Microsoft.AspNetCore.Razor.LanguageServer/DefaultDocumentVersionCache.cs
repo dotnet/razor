@@ -14,17 +14,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         // Internal for testing
         internal readonly Dictionary<string, List<DocumentEntry>> _documentLookup;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
-        public DefaultDocumentVersionCache(ForegroundDispatcher foregroundDispatcher)
+        public DefaultDocumentVersionCache(SingleThreadedDispatcher singleThreadedDispatcher)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _documentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
         }
 
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(documentSnapshot));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             if (!_documentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
             {
@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(documentSnapshot));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             if (!_documentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
             {
@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {

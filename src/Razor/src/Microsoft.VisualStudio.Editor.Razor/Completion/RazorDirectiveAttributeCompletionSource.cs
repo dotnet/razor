@@ -39,18 +39,18 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly ICompletionBroker _completionBroker;
         private readonly VisualStudioDescriptionFactory _descriptionFactory;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
 
         public RazorDirectiveAttributeCompletionSource(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             VisualStudioRazorParser parser,
             RazorCompletionFactsService completionFactsService,
             ICompletionBroker completionBroker,
             VisualStudioDescriptionFactory descriptionFactory)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (parser is null)
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 throw new ArgumentNullException(nameof(descriptionFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _parser = parser;
             _completionFactsService = completionFactsService;
             _completionBroker = completionBroker;
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                         () => activeSession.Dismiss(),
                         CancellationToken.None,
                         TaskCreationOptions.None,
-                        _foregroundDispatcher.ForegroundScheduler);
+                        _singleThreadedDispatcher.DispatcherScheduler);
                 }
 
                 var completionItems = new List<CompletionItem>();

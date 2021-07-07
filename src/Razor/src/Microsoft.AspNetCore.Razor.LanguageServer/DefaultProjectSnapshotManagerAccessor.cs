@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAccessor, IDisposable
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly IEnumerable<ProjectSnapshotChangeTrigger> _changeTriggers;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
@@ -21,15 +21,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private bool _disposed;
 
         public DefaultProjectSnapshotManagerAccessor(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             IEnumerable<ProjectSnapshotChangeTrigger> changeTriggers,
             FilePathNormalizer filePathNormalizer,
             IOptionsMonitor<RazorLSPOptions> optionsMonitor,
             AdhocWorkspaceFactory workspaceFactory)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (changeTriggers == null)
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(workspaceFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _changeTriggers = changeTriggers;
             _filePathNormalizer = filePathNormalizer;
             _optionsMonitor = optionsMonitor;
@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             new RemoteProjectSnapshotProjectEngineFactory(_filePathNormalizer, _optionsMonitor)
                         });
                     _instance = new DefaultProjectSnapshotManager(
-                        _foregroundDispatcher,
+                        _singleThreadedDispatcher,
                         new DefaultErrorReporter(),
                         _changeTriggers,
                         workspace);

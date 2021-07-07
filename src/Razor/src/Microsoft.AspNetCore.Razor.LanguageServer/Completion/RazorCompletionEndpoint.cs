@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         private PlatformAgnosticCompletionCapability _capability;
         private readonly ILogger _logger;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private IReadOnlyList<ExtendedCompletionItemKinds> _supportedItemKinds;
 
         public RazorCompletionEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             DocumentResolver documentResolver,
             RazorCompletionFactsService completionFactsService,
             LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
@@ -49,9 +49,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (documentResolver == null)
@@ -84,7 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _documentResolver = documentResolver;
             _completionFactsService = completionFactsService;
             _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {

@@ -15,14 +15,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
         {
         }
 
-        public OmniSharpProjectWorkspaceStateGenerator(OmniSharpForegroundDispatcher foregroundDispatcher)
+        public OmniSharpProjectWorkspaceStateGenerator(OmniSharpSingleThreadedDispatcher singleThreadedDispatcher)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
-            InternalWorkspaceStateGenerator = new DefaultProjectWorkspaceStateGenerator(foregroundDispatcher.InternalDispatcher);
+            InternalWorkspaceStateGenerator = new DefaultProjectWorkspaceStateGenerator(singleThreadedDispatcher.InternalDispatcher);
         }
 
         internal DefaultProjectWorkspaceStateGenerator InternalWorkspaceStateGenerator { get; }

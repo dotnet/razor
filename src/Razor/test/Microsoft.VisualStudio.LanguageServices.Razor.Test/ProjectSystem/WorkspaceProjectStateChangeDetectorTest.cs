@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     {
-        private static readonly ForegroundDispatcher Dispatcher = new DefaultForegroundDispatcher();
+        private static readonly SingleThreadedDispatcher Dispatcher = new DefaultSingleThreadedDispatcher();
 
         public WorkspaceProjectStateChangeDetectorTest()
         {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public DocumentId PartialComponentClassDocumentId { get; }
 
-        [ForegroundTheory]
+        [UITheory]
         [InlineData(WorkspaceChangeKind.SolutionAdded)]
         [InlineData(WorkspaceChangeKind.SolutionChanged)]
         [InlineData(WorkspaceChangeKind.SolutionCleared)]
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnForegroundAsync(() =>
+            await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(HostProjectOne);
                 projectManager.ProjectAdded(HostProjectTwo);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 p => Assert.Equal(ProjectNumberTwo.Id, p.workspaceProject.Id));
         }
 
-        [ForegroundTheory]
+        [UITheory]
         [InlineData(WorkspaceChangeKind.SolutionAdded)]
         [InlineData(WorkspaceChangeKind.SolutionChanged)]
         [InlineData(WorkspaceChangeKind.SolutionCleared)]
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
 
-            await Dispatcher.RunOnForegroundAsync(() =>
+            await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(HostProjectOne);
                 projectManager.ProjectAdded(HostProjectTwo);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 p => Assert.Equal(ProjectNumberTwo.Id, p.workspaceProject.Id));
         }
 
-        [ForegroundTheory(Skip = "https://github.com/dotnet/aspnetcore/issues/29994")]
+        [UITheory(Skip = "https://github.com/dotnet/aspnetcore/issues/29994")]
         [InlineData(WorkspaceChangeKind.ProjectChanged)]
         [InlineData(WorkspaceChangeKind.ProjectReloaded)]
         public async Task WorkspaceChanged_ProjectChangeEvents_UpdatesProjectState_AfterDelay(WorkspaceChangeKind kind)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(projectSnapshot.FilePath, HostProjectOne.FilePath);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task WorkspaceChanged_DocumentChanged_BackgroundVirtualCS_UpdatesProjectState_AfterDelay()
         {
             // Arrange
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnForegroundAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
             workspaceStateGenerator.ClearQueue();
 
             var solution = SolutionWithTwoProjects.WithDocumentText(BackgroundVirtualCSharpDocumentId, SourceText.From("public class Foo{}"));
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(projectSnapshot.FilePath, HostProjectOne.FilePath);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task WorkspaceChanged_DocumentChanged_CSHTML_UpdatesProjectState_AfterDelay()
         {
             // Arrange
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnForegroundAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
             workspaceStateGenerator.ClearQueue();
 
             var solution = SolutionWithTwoProjects.WithDocumentText(CshtmlDocumentId, SourceText.From("Hello World"));
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(projectSnapshot.FilePath, HostProjectOne.FilePath);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task WorkspaceChanged_DocumentChanged_Razor_UpdatesProjectState_AfterDelay()
         {
             // Arrange
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnForegroundAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
             workspaceStateGenerator.ClearQueue();
 
             var solution = SolutionWithTwoProjects.WithDocumentText(RazorDocumentId, SourceText.From("Hello World"));
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(projectSnapshot.FilePath, HostProjectOne.FilePath);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task WorkspaceChanged_DocumentChanged_PartialComponent_UpdatesProjectState_AfterDelay()
         {
             // Arrange
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnForegroundAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
             workspaceStateGenerator.ClearQueue();
 
             var sourceText = SourceText.From(
@@ -384,7 +384,7 @@ namespace Microsoft.AspNetCore.Components
             Assert.Equal(projectSnapshot.FilePath, HostProjectOne.FilePath);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task WorkspaceChanged_ProjectRemovedEvent_QueuesProjectStateRemoval()
         {
             // Arrange
@@ -394,7 +394,7 @@ namespace Microsoft.AspNetCore.Components
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnForegroundAsync(() =>
+            await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(HostProjectOne);
                 projectManager.ProjectAdded(HostProjectTwo);
@@ -413,7 +413,7 @@ namespace Microsoft.AspNetCore.Components
                 p => Assert.Null(p.workspaceProject));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task WorkspaceChanged_ProjectAddedEvent_AddsProject()
         {
             // Arrange
@@ -423,7 +423,7 @@ namespace Microsoft.AspNetCore.Components
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnForegroundAsync(() => projectManager.ProjectAdded(HostProjectThree), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectThree), CancellationToken.None);
 
             var solution = SolutionWithOneProject;
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.ProjectAdded, oldSolution: EmptySolution, newSolution: solution, projectId: ProjectNumberThree.Id);
@@ -650,10 +650,10 @@ namespace Microsoft.AspNetCore.Components
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
             public TestProjectSnapshotManager(
-                ForegroundDispatcher foregroundDispatcher,
+                SingleThreadedDispatcher singleThreadedDispatcher,
                 IEnumerable<ProjectSnapshotChangeTrigger> triggers,
                 Workspace workspace)
-                : base(foregroundDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
+                : base(singleThreadedDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
             {
             }
         }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigger
     {
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
 
         public int EnqueueDelay { get; set; } = 3 * 1000;
@@ -32,20 +32,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         [ImportingConstructor]
         public WorkspaceProjectStateChangeDetector(
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
-            ForegroundDispatcher foregroundDispatcher)
+            SingleThreadedDispatcher singleThreadedDispatcher)
         {
             if (workspaceStateGenerator is null)
             {
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             _workspaceStateGenerator = workspaceStateGenerator;
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
         }
 
         // Used in unit tests to ensure we can control when background work starts.
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 // Method needs to be run on the single-threaded dispatcher due to project snapshot
                 // manager access. 
-                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     Project project;
                     switch (e.Kind)

@@ -17,13 +17,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     internal class VisualStudioFileChangeTrackerFactoryFactory : IWorkspaceServiceFactory
     {
         private readonly IVsAsyncFileChangeEx _fileChangeService;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
         public VisualStudioFileChangeTrackerFactoryFactory(
             SVsServiceProvider serviceProvider,
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             JoinableTaskContext joinableTaskContext)
         {
             if (serviceProvider is null)
@@ -31,9 +31,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             _fileChangeService = serviceProvider.GetService(typeof(SVsFileChangeEx)) as IVsAsyncFileChangeEx;
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _joinableTaskContext = joinableTaskContext;
         }
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             var errorReporter = workspaceServices.GetRequiredService<ErrorReporter>();
-            return new VisualStudioFileChangeTrackerFactory(errorReporter, _fileChangeService, _foregroundDispatcher, _joinableTaskContext);
+            return new VisualStudioFileChangeTrackerFactory(errorReporter, _fileChangeService, _singleThreadedDispatcher, _joinableTaskContext);
         }
     }
 }

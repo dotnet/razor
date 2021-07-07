@@ -16,21 +16,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
     internal class OnAutoInsertEndpoint : IOnAutoInsertHandler
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly AdhocWorkspaceFactory _workspaceFactory;
         private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
         private readonly Container<string> _onAutoInsertTriggerCharacters;
 
         public OnAutoInsertEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             DocumentResolver documentResolver,
             IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider,
             AdhocWorkspaceFactory workspaceFactory)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (documentResolver is null)
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 throw new ArgumentNullException(nameof(workspaceFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _documentResolver = documentResolver;
             _workspaceFactory = workspaceFactory;
             _onAutoInsertProviders = onAutoInsertProvider.ToList();
@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {

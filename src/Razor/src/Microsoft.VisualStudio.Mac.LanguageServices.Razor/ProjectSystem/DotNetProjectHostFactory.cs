@@ -13,19 +13,19 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
     [Export(typeof(DotNetProjectHostFactory))]
     internal class DotNetProjectHostFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly VisualStudioMacWorkspaceAccessor _workspaceAccessor;
         private readonly TextBufferProjectService _projectService;
 
         [ImportingConstructor]
         public DotNetProjectHostFactory(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             VisualStudioMacWorkspaceAccessor workspaceAccessor,
             TextBufferProjectService projectService)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (workspaceAccessor == null)
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(projectService));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;
         }
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(project));
             }
 
-            var projectHost = new DefaultDotNetProjectHost(project, _foregroundDispatcher, _workspaceAccessor, _projectService);
+            var projectHost = new DefaultDotNetProjectHost(project, _singleThreadedDispatcher, _workspaceAccessor, _projectService);
             return projectHost;
         }
     }

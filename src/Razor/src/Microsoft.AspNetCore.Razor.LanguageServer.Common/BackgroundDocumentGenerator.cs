@@ -13,19 +13,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly IEnumerable<DocumentProcessedListener> _documentProcessedListeners;
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
 
         public BackgroundDocumentGenerator(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             IEnumerable<DocumentProcessedListener> documentProcessedListeners)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (documentProcessedListeners is null)
@@ -33,16 +33,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 throw new ArgumentNullException(nameof(documentProcessedListeners));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _documentProcessedListeners = documentProcessedListeners;
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
         }
 
         // For testing only
         protected BackgroundDocumentGenerator(
-            ForegroundDispatcher foregroundDispatcher)
+            SingleThreadedDispatcher singleThreadedDispatcher)
         {
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
             _documentProcessedListeners = Enumerable.Empty<DocumentProcessedListener>();
         }
@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         // Internal for testing
         internal void Enqueue(DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             lock (_work)
             {
@@ -194,7 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     () => NotifyDocumentsProcessed(work),
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler);
+                    _singleThreadedDispatcher.DispatcherScheduler);
 
                 lock (_work)
                 {
@@ -235,7 +235,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -319,7 +319,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 () => _projectManager.ReportError(ex),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                _singleThreadedDispatcher.DispatcherScheduler);
         }
     }
 }

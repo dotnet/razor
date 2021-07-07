@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
         private readonly IEnumerable<ProjectConfigurationProvider> _projectConfigurationProviders;
         private readonly ProjectInstanceEvaluator _projectInstanceEvaluator;
         private readonly ProjectChangePublisher _projectConfigurationPublisher;
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpSingleThreadedDispatcher _singleThreadedDispatcher;
         private OmniSharpProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             [ImportMany] IEnumerable<ProjectConfigurationProvider> projectConfigurationProviders,
             ProjectInstanceEvaluator projectInstanceEvaluator,
             ProjectChangePublisher projectConfigurationPublisher,
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpSingleThreadedDispatcher singleThreadedDispatcher,
             ILoggerFactory loggerFactory)
         {
             if (projectConfigurationProviders is null)
@@ -60,9 +60,9 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 throw new ArgumentNullException(nameof(projectConfigurationPublisher));
             }
 
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (loggerFactory is null)
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             _projectConfigurationProviders = projectConfigurationProviders;
             _projectInstanceEvaluator = projectInstanceEvaluator;
             _projectConfigurationPublisher = projectConfigurationPublisher;
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
         }
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                     () => UpdateProjectState(evaluatedProjectInstance),
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                    _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
             }
         }
 
@@ -141,12 +141,12 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             projectInstance = _projectInstanceEvaluator.Evaluate(projectInstance);
 
             await Task.Factory.StartNew(() => UpdateProjectState(projectInstance),
-            CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
         }
 
         private void UpdateProjectState(ProjectInstance projectInstance)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             var projectFilePath = projectInstance.GetPropertyValue(MSBuildProjectFullPathPropertyName);
             if (string.IsNullOrEmpty(projectFilePath))

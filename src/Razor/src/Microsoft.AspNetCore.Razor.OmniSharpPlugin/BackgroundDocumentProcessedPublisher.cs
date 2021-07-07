@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         internal const string ActiveVirtualDocumentSuffix = "__virtual.cs";
         internal const string BackgroundVirtualDocumentSuffix = "__bg" + ActiveVirtualDocumentSuffix;
 
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpSingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly OmniSharpWorkspace _workspace;
         private readonly ILogger _logger;
         private OmniSharpProjectSnapshotManager _projectManager;
@@ -43,13 +43,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         [ImportingConstructor]
         public BackgroundDocumentProcessedPublisher(
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpSingleThreadedDispatcher singleThreadedDispatcher,
             OmniSharpWorkspace workspace,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (workspace is null)
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _workspace = workspace;
             _logger = loggerFactory.CreateLogger<BackgroundDocumentProcessedPublisher>();
             _workspaceChangedLock = new object();
@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             lock (_workspaceChangedLock)
             {

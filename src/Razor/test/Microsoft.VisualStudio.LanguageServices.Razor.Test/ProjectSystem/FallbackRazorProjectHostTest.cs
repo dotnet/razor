@@ -14,7 +14,7 @@ using ItemReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectS
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    public class FallbackRazorProjectHostTest : ForegroundDispatcherWorkspaceTestBase
+    public class FallbackRazorProjectHostTest : SingleThreadedDispatcherWorkspaceTestBase
     {
         public FallbackRazorProjectHostTest()
         {
@@ -289,8 +289,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(FileKinds.Legacy, document.FileKind);
         }
 
-        [ForegroundFact]
-        public async Task FallbackRazorProjectHost_ForegroundThread_CreateAndDispose_Succeeds()
+        [UIFact]
+        public async Task FallbackRazorProjectHost_UIThread_CreateAndDispose_Succeeds()
         {
             // Arrange
             var services = new TestProjectSystemServices("C:\\To\\Test.csproj");
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task FallbackRazorProjectHost_BackgroundThread_CreateAndDispose_Succeeds()
         {
             // Arrange
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact] // This can happen if the .xaml files aren't included correctly.
+        [UIFact] // This can happen if the .xaml files aren't included correctly.
         public async Task OnProjectChanged_NoRulesDefined()
         {
             // Arrange
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectChanged_ReadsProperties_InitializesProject()
         {
             // Arrange
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectChanged_NoAssemblyFound_DoesNotIniatializeProject()
         {
             // Arrange
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectChanged_AssemblyFoundButCannotReadVersion_DoesNotIniatializeProject()
         {
             // Arrange
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectChanged_UpdateProject_Succeeds()
         {
             // Arrange
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectChanged_VersionRemoved_DeinitializesProject()
         {
             // Arrange
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectChanged_AfterDispose_IgnoresUpdate()
         {
             // Arrange
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectRenamed_RemovesHostProject_CopiesConfiguration()
         {
             // Arrange
@@ -638,10 +638,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             internal TestFallbackRazorProjectHost(
                 IUnconfiguredProjectCommonServices commonServices,
                 Workspace workspace,
-                ForegroundDispatcher foregroundDispatcher,
+                SingleThreadedDispatcher singleThreadedDispatcher,
                 ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
                 ProjectSnapshotManagerBase projectManager)
-                : base(commonServices, workspace, foregroundDispatcher, projectConfigurationFilePathStore, projectManager)
+                : base(commonServices, workspace, singleThreadedDispatcher, projectConfigurationFilePathStore, projectManager)
             {
             }
 
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(ForegroundDispatcher dispatcher, Workspace workspace)
+            public TestProjectSnapshotManager(SingleThreadedDispatcher dispatcher, Workspace workspace)
                 : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Array.Empty<ProjectSnapshotChangeTrigger>(), workspace)
             {
             }

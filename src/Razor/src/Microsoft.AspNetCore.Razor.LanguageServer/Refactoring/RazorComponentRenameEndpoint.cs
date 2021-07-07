@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
     internal class RazorComponentRenameEndpoint : IRenameHandler
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
@@ -35,13 +35,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private RenameCapability _capability;
 
         public RazorComponentRenameEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             DocumentResolver documentResolver,
             RazorComponentSearchEngine componentSearchEngine,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             LanguageServerFeatureOptions languageServerFeatureOptions)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
 
             if (requestDocumentSnapshot is null)
             {
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                     }
                 }
                 return documentSnapshots;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
         }
 
         public void AddFileRenameForComponent(List<WorkspaceEditDocumentChange> documentChanges, DocumentSnapshot documentSnapshot, string newPath)

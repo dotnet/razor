@@ -7,16 +7,16 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
-    public class DefaultOmniSharpForegroundDispatcher : OmniSharpForegroundDispatcher
+    public class DefaultOmniSharpSingleThreadedDispatcher : OmniSharpSingleThreadedDispatcher
     {
-        public DefaultOmniSharpForegroundDispatcher()
+        public DefaultOmniSharpSingleThreadedDispatcher()
         {
-            InternalDispatcher = new DefaultForegroundDispatcher();
+            InternalDispatcher = new DefaultSingleThreadedDispatcher();
         }
 
-        public override bool IsForegroundThread => InternalDispatcher.IsForegroundThread;
-        public override TaskScheduler ForegroundScheduler => InternalDispatcher.ForegroundScheduler;
+        public override bool IsDispatcherThread => InternalDispatcher.IsDispatcherThread;
+        public override TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
 
-        public override void AssertForegroundThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertForegroundThread(caller);
+        public override void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
     }
 }

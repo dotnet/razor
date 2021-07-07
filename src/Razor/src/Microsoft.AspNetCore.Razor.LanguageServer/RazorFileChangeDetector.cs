@@ -20,20 +20,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal readonly Dictionary<string, DelayedFileChangeNotification> _pendingNotifications;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IRazorFileChangeListener> _listeners;
         private readonly List<FileSystemWatcher> _watchers;
         private readonly object _pendingNotificationsLock = new object();
 
         public RazorFileChangeDetector(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             FilePathNormalizer filePathNormalizer,
             IEnumerable<IRazorFileChangeListener> listeners)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (filePathNormalizer is null)
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(listeners));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
             _watchers = new List<FileSystemWatcher>(RazorFileExtensions.Count);
@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     FileSystemWatcher_RazorFileEvent(razorFilePath, RazorFileChangeKind.Added);
                 }
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
 
             // This is an entry point for testing
             OnInitializationFinished();
@@ -207,11 +207,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             OnStartingDelayedNotificationWork();
 
             await Task.Factory.StartNew(
-                () => NotifyAfterDelay_Foreground(physicalFilePath),
-                CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                () => NotifyAfterDelay_SingleThreadedDispatcher(physicalFilePath),
+                CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
         }
 
-        private void NotifyAfterDelay_Foreground(string physicalFilePath)
+        private void NotifyAfterDelay_SingleThreadedDispatcher(string physicalFilePath)
         {
             lock (_pendingNotificationsLock)
             {

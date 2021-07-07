@@ -14,17 +14,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [ExportLanguageServiceFactory(typeof(ImportDocumentManager), RazorLanguage.Name, ServiceLayer.Default)]
     internal class DefaultImportDocumentManagerFactory : ILanguageServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
 
         [ImportingConstructor]
-        public DefaultImportDocumentManagerFactory(ForegroundDispatcher foregroundDispatcher)
+        public DefaultImportDocumentManagerFactory(SingleThreadedDispatcher singleThreadedDispatcher)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var errorReporter = languageServices.WorkspaceServices.GetRequiredService<ErrorReporter>();
             var fileChangeTrackerFactory = languageServices.WorkspaceServices.GetRequiredService<FileChangeTrackerFactory>();
 
-            return new DefaultImportDocumentManager(_foregroundDispatcher, errorReporter, fileChangeTrackerFactory);
+            return new DefaultImportDocumentManager(_singleThreadedDispatcher, errorReporter, fileChangeTrackerFactory);
         }
     }
 }

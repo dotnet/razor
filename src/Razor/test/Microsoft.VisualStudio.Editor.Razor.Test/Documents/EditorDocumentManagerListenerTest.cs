@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class EditorDocumentManagerListenerTest : ForegroundDispatcherTestBase
+    public class EditorDocumentManagerListenerTest : SingleThreadedDispatcherTestBase
     {
         public EditorDocumentManagerListenerTest()
         {

@@ -15,19 +15,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private const string ProjectFileExtension = ".csproj";
         private const string ProjectFileExtensionPattern = "*" + ProjectFileExtension;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectFileChangeListener> _listeners;
         private FileSystemWatcher _watcher;
 
         public ProjectFileChangeDetector(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             FilePathNormalizer filePathNormalizer,
             IEnumerable<IProjectFileChangeListener> listeners)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (filePathNormalizer is null)
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(listeners));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
         }
@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     FileSystemWatcher_ProjectFileEvent(projectFilePath, RazorFileChangeKind.Added);
                 }
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
 
             // This is an entry point for testing
             OnInitializationFinished();
@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             _ = Task.Factory.StartNew(
                 () => FileSystemWatcher_ProjectFileEvent(physicalFilePath, kind),
-                CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
         }
 
         private void FileSystemWatcher_ProjectFileEvent(string physicalFilePath, RazorFileChangeKind kind)

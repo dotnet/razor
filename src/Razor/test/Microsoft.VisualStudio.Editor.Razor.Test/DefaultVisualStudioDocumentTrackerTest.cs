@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultVisualStudioDocumentTrackerTest : ForegroundDispatcherWorkspaceTestBase
+    public class DefaultVisualStudioDocumentTrackerTest : SingleThreadedDispatcherWorkspaceTestBase
     {
         public DefaultVisualStudioDocumentTrackerTest()
         {
@@ -33,9 +33,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Mock.Get(ImportDocumentManager).Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
             Mock.Get(ImportDocumentManager).Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
 
-            var foregroundDispatcher = new Mock<ForegroundDispatcher>(MockBehavior.Strict);
-            foregroundDispatcher.Setup(d => d.AssertForegroundThread(It.IsAny<string>())).Verifiable();
-            WorkspaceEditorSettings = new DefaultWorkspaceEditorSettings(foregroundDispatcher.Object, Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
+            var singleThreadedDispatcher = new Mock<SingleThreadedDispatcher>(MockBehavior.Strict);
+            singleThreadedDispatcher.Setup(d => d.AssertDispatcherThread(It.IsAny<string>())).Verifiable();
+            WorkspaceEditorSettings = new DefaultWorkspaceEditorSettings(singleThreadedDispatcher.Object, Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
 
             SomeTagHelpers = new List<TagHelperDescriptor>()
             {
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 filePath: TestProjectData.SomeProject.FilePath));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribe_NoopsIfAlreadySubscribed()
         {
             // Arrange
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(1, callCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Unsubscribe_NoopsIfAlreadyUnsubscribed()
         {
             // Arrange
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(1, callCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Unsubscribe_NoopsIfSubscribeHasBeenCalledMultipleTimes()
         {
             // Arrange
@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(1, callCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void EditorSettingsManager_Changed_TriggersContextChanged()
         {
             // Arrange
@@ -179,7 +179,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectManager_Changed_ProjectAdded_TriggersContextChanged()
         {
             // Arrange
@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectManager_Changed_ProjectChanged_TriggersContextChanged()
         {
             // Arrange
@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectManager_Changed_ProjectRemoved_TriggersContextChanged_WithEphemeralProject()
         {
             // Arrange
@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectManager_Changed_IgnoresUnknownProject()
         {
             // Arrange
@@ -270,7 +270,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.False(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Import_Changed_ImportAssociatedWithDocument_TriggersContextChanged()
         {
             // Arrange
@@ -290,7 +290,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Import_Changed_UnrelatedImport_DoesNothing()
         {
             // Arrange
@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             DocumentTracker.Import_Changed(null, importChangedArgs);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribe_SetsSupportedProjectAndTriggersContextChanged()
         {
             // Arrange
@@ -317,7 +317,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(DocumentTracker.IsSupportedProject);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Unsubscribe_ResetsSupportedProjectAndTriggersContextChanged()
         {
             // Arrange
@@ -340,7 +340,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void AddTextView_AddsToTextViewCollection()
         {
             // Arrange
@@ -353,7 +353,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Collection(DocumentTracker.TextViews, v => Assert.Same(v, textView));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void AddTextView_DoesNotAddDuplicateTextViews()
         {
             // Arrange
@@ -367,7 +367,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Collection(DocumentTracker.TextViews, v => Assert.Same(v, textView));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void AddTextView_AddsMultipleTextViewsToCollection()
         {
             // Arrange
@@ -385,7 +385,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 v => Assert.Same(v, textView2));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void RemoveTextView_RemovesTextViewFromCollection_SingleItem()
         {
             // Arrange
@@ -399,7 +399,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Empty(DocumentTracker.TextViews);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void RemoveTextView_RemovesTextViewFromCollection_MultipleItems()
         {
             // Arrange
@@ -420,7 +420,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 v => Assert.Same(v, textView3));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void RemoveTextView_NoopsWhenRemovingTextViewNotInCollection()
         {
             // Arrange
@@ -436,7 +436,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribed_InitializesEphemeralProjectSnapshot()
         {
             // Arrange
@@ -448,7 +448,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.IsType<EphemeralProjectSnapshot>(DocumentTracker.ProjectSnapshot);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribed_InitializesRealProjectSnapshot()
         {
             // Arrange
@@ -461,7 +461,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.IsType<DefaultProjectSnapshot>(DocumentTracker.ProjectSnapshot);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribed_ListensToProjectChanges()
         {
             // Arrange
@@ -485,7 +485,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 e => Assert.Equal(ContextChangeKind.ProjectChanged, e.Kind));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribed_ListensToProjectRemoval()
         {
             // Arrange

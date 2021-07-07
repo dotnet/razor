@@ -277,7 +277,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private class TestOpenDocumentGenerator : OpenDocumentGenerator
         {
-            public TestOpenDocumentGenerator(ForegroundDispatcher foregroundDispatcher) : base(foregroundDispatcher)
+            public TestOpenDocumentGenerator(SingleThreadedDispatcher singleThreadedDispatcher) : base(singleThreadedDispatcher)
             {
             }
         }

@@ -21,8 +21,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     }
 
     [Shared]
-    [Export(typeof(OmniSharpForegroundDispatcher))]
-    internal class ExportOmniSharpForegroundDispatcher : DefaultOmniSharpForegroundDispatcher
+    [Export(typeof(OmniSharpSingleThreadedDispatcher))]
+    internal class ExportOmniSharpSingleThreadedDispatcher : DefaultOmniSharpSingleThreadedDispatcher
     {
     }
 
@@ -44,8 +44,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public ExportDefaultOmniSharpProjectSnapshotManagerAccessor(
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             [ImportMany] IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
-            OmniSharpForegroundDispatcher foregroundDispatcher,
-            OmniSharpWorkspace workspace) : base(remoteTextLoaderFactory, projectChangeTriggers, foregroundDispatcher, workspace)
+            OmniSharpSingleThreadedDispatcher singleThreadedDispatcher,
+            OmniSharpWorkspace workspace) : base(remoteTextLoaderFactory, projectChangeTriggers, singleThreadedDispatcher, workspace)
         {
         }
     }
@@ -56,8 +56,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     {
         [ImportingConstructor]
         public ExportOmniSharpWorkspaceProjectStateChangeDetector(
-            OmniSharpForegroundDispatcher foregroundDispatcher,
-            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator) : base(foregroundDispatcher, workspaceStateGenerator)
+            OmniSharpSingleThreadedDispatcher singleThreadedDispatcher,
+            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator) : base(singleThreadedDispatcher, workspaceStateGenerator)
         {
         }
     }
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     public class ExportOmniSharpProjectWorkspaceStateGenerator : OmniSharpProjectWorkspaceStateGenerator
     {
         [ImportingConstructor]
-        public ExportOmniSharpProjectWorkspaceStateGenerator(OmniSharpForegroundDispatcher foregroundDispatcher) : base(foregroundDispatcher)
+        public ExportOmniSharpProjectWorkspaceStateGenerator(OmniSharpSingleThreadedDispatcher singleThreadedDispatcher) : base(singleThreadedDispatcher)
         {
         }
     }
@@ -79,9 +79,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     {
         [ImportingConstructor]
         public ExportOmniSharpBackgroundDocumentGenerator(
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpSingleThreadedDispatcher singleThreadedDispatcher,
             RemoteTextLoaderFactory remoteTextLoaderFactory,
-            [ImportMany] IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners) : base(foregroundDispatcher, remoteTextLoaderFactory, documentProcessedListeners)
+            [ImportMany] IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners) : base(singleThreadedDispatcher, remoteTextLoaderFactory, documentProcessedListeners)
         {
         }
     }

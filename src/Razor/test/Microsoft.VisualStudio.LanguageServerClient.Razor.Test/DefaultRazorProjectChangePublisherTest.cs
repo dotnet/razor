@@ -379,7 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.True(serializationSuccessful);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectAdded_PublishesToCorrectFilePathAsync()
         {
             // Arrange
@@ -416,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.True(serializationSuccessful);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectAdded_DoesNotPublishWithoutProjectWorkspaceStateAsync()
         {
             // Arrange
@@ -447,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.False(serializationSuccessful);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectRemoved_UnSetPublishFilePath_NoopsAsync()
         {
             // Arrange
@@ -467,7 +467,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.Empty(publisher._deferredPublishTasks);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectAdded_DoesNotFireWhenNotReadyAsync()
         {
             // Arrange
@@ -538,7 +538,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 () => action(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                Dispatcher.DispatcherScheduler);
         }
 
         protected Task<TReturn> RunOnForegroundAsync<TReturn>(Func<TReturn> action)
@@ -547,7 +547,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 () => action(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                Dispatcher.DispatcherScheduler);
         }
 
         protected Task RunOnForegroundAsync(Func<Task> action)
@@ -556,7 +556,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 async () => await action().ConfigureAwait(true),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                Dispatcher.DispatcherScheduler);
         }
 
         private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher

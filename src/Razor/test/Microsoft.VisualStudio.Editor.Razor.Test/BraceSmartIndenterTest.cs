@@ -378,7 +378,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(BraceSmartIndenter.BeforeClosingBrace(0, line));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TextBuffer_OnChanged_NoopsIfNoChanges()
         {
             // Arrange
@@ -393,7 +393,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             braceSmartIndenter.TextBuffer_OnChanged(null, textContentChangeArgs);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TextBuffer_OnChanged_NoopsIfChangesThatResultInNoChange()
         {
             // Arrange

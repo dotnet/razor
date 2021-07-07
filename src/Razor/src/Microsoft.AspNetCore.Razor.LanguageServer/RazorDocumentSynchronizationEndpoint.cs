@@ -22,19 +22,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private SynchronizationCapability _capability;
         private readonly ILogger _logger;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorProjectService _projectService;
 
         public RazorDocumentSynchronizationEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             DocumentResolver documentResolver,
             RazorProjectService projectService,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (documentResolver is null)
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _documentResolver = documentResolver;
             _projectService = projectService;
             _logger = loggerFactory.CreateLogger<RazorDocumentSynchronizationEndpoint>();
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _documentResolver.TryResolveDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
 
             var sourceText = await document.GetTextAsync();
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version.Value),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                _singleThreadedDispatcher.DispatcherScheduler);
 
             return Unit.Value;
         }
@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version.Value),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                _singleThreadedDispatcher.DispatcherScheduler);
 
             return Unit.Value;
         }
@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 () => _projectService.CloseDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath()),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                _singleThreadedDispatcher.DispatcherScheduler);
 
             return Unit.Value;
         }

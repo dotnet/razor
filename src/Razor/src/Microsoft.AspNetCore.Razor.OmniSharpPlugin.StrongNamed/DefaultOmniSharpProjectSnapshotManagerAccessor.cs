@@ -15,14 +15,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     {
         private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
         private readonly IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> _projectChangeTriggers;
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpSingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly Workspace _workspace;
         private OmniSharpProjectSnapshotManager _instance;
 
         public DefaultOmniSharpProjectSnapshotManagerAccessor(
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpSingleThreadedDispatcher singleThreadedDispatcher,
             Workspace workspace)
         {
             if (remoteTextLoaderFactory is null)
@@ -35,9 +35,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 throw new ArgumentNullException(nameof(projectChangeTriggers));
             }
 
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (workspace == null)
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
             _remoteTextLoaderFactory = remoteTextLoaderFactory;
             _projectChangeTriggers = projectChangeTriggers;
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _workspace = workspace;
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 if (_instance == null)
                 {
                     var projectSnapshotManager = new DefaultProjectSnapshotManager(
-                        _foregroundDispatcher.InternalDispatcher,
+                        _singleThreadedDispatcher.InternalDispatcher,
                         new DefaultErrorReporter(),
                         Enumerable.Empty<ProjectSnapshotChangeTrigger>(),
                         _workspace);

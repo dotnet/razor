@@ -22,13 +22,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         protected readonly object _lock;
 
         public EditorDocumentManagerBase(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             JoinableTaskContext joinableTaskContext,
             FileChangeTrackerFactory fileChangeTrackerFactory)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
             }
 
-            ForegroundDispatcher = foregroundDispatcher;
+            SingleThreadedDispatcher = singleThreadedDispatcher;
             JoinableTaskContext = joinableTaskContext;
             _fileChangeTrackerFactory = fileChangeTrackerFactory;
 
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _lock = new object();
         }
 
-        protected ForegroundDispatcher ForegroundDispatcher { get; }
+        protected SingleThreadedDispatcher SingleThreadedDispatcher { get; }
 
         protected JoinableTaskContext JoinableTaskContext { get; }
 
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 var textBuffer = GetTextBufferForOpenDocument(key.DocumentFilePath);
                 document = new EditorDocument(
                     this,
-                    ForegroundDispatcher,
+                    SingleThreadedDispatcher,
                     JoinableTaskContext,
                     key.ProjectFilePath,
                     key.DocumentFilePath,

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
-    public class DefaultDotNetProjectHostTest : ForegroundDispatcherTestBase
+    public class DefaultDotNetProjectHostTest : SingleThreadedDispatcherTestBase
     {
         [Fact]
         public void UpdateRazorHostProject_UnsupportedProjectNoops()

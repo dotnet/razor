@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    [Export(typeof(ForegroundDispatcher))]
-    internal class VisualStudioForegroundDispatcher : DefaultForegroundDispatcher
+    [Export(typeof(SingleThreadedDispatcher))]
+    internal class VisualStudioSingleThreadedDispatcher : DefaultSingleThreadedDispatcher
     {
     }
 }

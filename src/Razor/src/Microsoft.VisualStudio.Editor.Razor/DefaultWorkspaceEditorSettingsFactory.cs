@@ -14,15 +14,15 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [ExportLanguageServiceFactory(typeof(WorkspaceEditorSettings), RazorLanguage.Name)]
     internal class DefaultWorkspaceEditorSettingsFactory : ILanguageServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly EditorSettingsManager _editorSettingsManager;
 
         [ImportingConstructor]
-        public DefaultWorkspaceEditorSettingsFactory(ForegroundDispatcher foregroundDispatcher, EditorSettingsManager editorSettingsManager)
+        public DefaultWorkspaceEditorSettingsFactory(SingleThreadedDispatcher singleThreadedDispatcher, EditorSettingsManager editorSettingsManager)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (editorSettingsManager == null)
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(editorSettingsManager));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _editorSettingsManager = editorSettingsManager;
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(languageServices));
             }
 
-            return new DefaultWorkspaceEditorSettings(_foregroundDispatcher, _editorSettingsManager);
+            return new DefaultWorkspaceEditorSettings(_singleThreadedDispatcher, _editorSettingsManager);
         }
     }
 }

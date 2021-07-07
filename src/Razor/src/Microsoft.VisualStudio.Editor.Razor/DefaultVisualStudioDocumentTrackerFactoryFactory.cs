@@ -17,19 +17,19 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [ExportLanguageServiceFactory(typeof(VisualStudioDocumentTrackerFactory), RazorLanguage.Name, ServiceLayer.Default)]
     internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly ITextDocumentFactoryService _textDocumentFactory;
 
         [ImportingConstructor]
         public DefaultVisualStudioDocumentTrackerFactoryFactory(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             JoinableTaskContext joinableTaskContext,
             ITextDocumentFactoryService textDocumentFactory)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(textDocumentFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _textDocumentFactory = textDocumentFactory;
         }
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var projectPathProvider = languageServices.WorkspaceServices.GetRequiredService<ProjectPathProvider>();
 
             return new DefaultVisualStudioDocumentTrackerFactory(
-                _foregroundDispatcher,
+                _singleThreadedDispatcher,
                 _joinableTaskContext,
                 projectManager,
                 workspaceEditorSettings,

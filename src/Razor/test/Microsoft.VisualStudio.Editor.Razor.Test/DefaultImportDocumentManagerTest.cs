@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultImportDocumentManagerTest : ForegroundDispatcherTestBase
+    public class DefaultImportDocumentManagerTest : SingleThreadedDispatcherTestBase
     {
         public DefaultImportDocumentManagerTest()
         {
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private RazorProjectEngine ProjectEngine { get; }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnSubscribed_StartsFileChangeTrackers()
         {
             // Arrange
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             fileChangeTracker3.Verify();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnSubscribed_AlreadySubscribed_DoesNothing()
         {
             // Arrange
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(1, callCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnUnsubscribed_StopsFileChangeTracker()
         {
             // Arrange
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             fileChangeTracker.Verify();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnUnsubscribed_AnotherDocumentTrackingImport_DoesNotStopFileChangeTracker()
         {
             // Arrange

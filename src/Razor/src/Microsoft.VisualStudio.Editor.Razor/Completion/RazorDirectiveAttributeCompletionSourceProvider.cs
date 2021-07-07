@@ -21,22 +21,22 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     [ContentType(RazorConstants.LegacyCoreContentType)]
     internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletionSourceProvider
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly ICompletionBroker _completionBroker;
         private readonly VisualStudioDescriptionFactory _descriptionFactory;
 
         [ImportingConstructor]
         public RazorDirectiveAttributeCompletionSourceProvider(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             RazorCompletionFactsService completionFactsService,
             IAsyncCompletionBroker asyncCoompletionBroker,
             ICompletionBroker completionBroker,
             VisualStudioDescriptionFactory descriptionFactory)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (completionFactsService == null)
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 throw new ArgumentNullException(nameof(descriptionFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _completionFactsService = completionFactsService;
             _completionBroker = completionBroker;
             _descriptionFactory = descriptionFactory;
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 return null;
             }
 
-            var completionSource = new RazorDirectiveAttributeCompletionSource(_foregroundDispatcher, parser, _completionFactsService, _completionBroker, _descriptionFactory);
+            var completionSource = new RazorDirectiveAttributeCompletionSource(_singleThreadedDispatcher, parser, _completionFactsService, _completionBroker, _descriptionFactory);
             return completionSource;
         }
     }

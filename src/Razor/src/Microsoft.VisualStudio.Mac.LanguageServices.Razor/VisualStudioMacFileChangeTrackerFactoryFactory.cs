@@ -14,17 +14,17 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     [ExportWorkspaceServiceFactory(typeof(FileChangeTrackerFactory), ServiceLayer.Host)]
     internal class VisualStudioMacFileChangeTrackerFactoryFactory : IWorkspaceServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
 
         [ImportingConstructor]
-        public VisualStudioMacFileChangeTrackerFactoryFactory(ForegroundDispatcher foregroundDispatcher)
+        public VisualStudioMacFileChangeTrackerFactoryFactory(SingleThreadedDispatcher singleThreadedDispatcher)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentNullException(nameof(workspaceServices));
             }
 
-            return new VisualStudioMacFileChangeTrackerFactory(_foregroundDispatcher);
+            return new VisualStudioMacFileChangeTrackerFactory(_singleThreadedDispatcher);
         }
     }
 }

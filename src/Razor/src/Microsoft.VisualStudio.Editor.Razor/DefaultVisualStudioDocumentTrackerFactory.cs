@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     internal class DefaultVisualStudioDocumentTrackerFactory : VisualStudioDocumentTrackerFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly ITextDocumentFactoryService _textDocumentFactory;
         private readonly ProjectPathProvider _projectPathProvider;
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly WorkspaceEditorSettings _workspaceEditorSettings;
 
         public DefaultVisualStudioDocumentTrackerFactory(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             JoinableTaskContext joinableTaskContext,
             ProjectSnapshotManager projectManager,
             WorkspaceEditorSettings workspaceEditorSettings,
@@ -33,9 +33,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
             ImportDocumentManager importDocumentManager,
             Workspace workspace)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (projectManager is null)
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _projectManager = projectManager;
             _workspaceEditorSettings = workspaceEditorSettings;
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var filePath = textDocument.FilePath;
             var tracker = new DefaultVisualStudioDocumentTracker(
-                _foregroundDispatcher, _joinableTaskContext, filePath, projectPath, _projectManager, _workspaceEditorSettings, _workspace, textBuffer, _importDocumentManager);
+                _singleThreadedDispatcher, _joinableTaskContext, filePath, projectPath, _projectManager, _workspaceEditorSettings, _workspace, textBuffer, _importDocumentManager);
 
             return tracker;
         }

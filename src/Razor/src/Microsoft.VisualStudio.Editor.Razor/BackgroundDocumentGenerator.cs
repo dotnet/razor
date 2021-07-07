@@ -21,18 +21,18 @@ namespace Microsoft.CodeAnalysis.Razor
         // Internal for testing
         internal readonly Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)> _work;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly RazorDynamicFileInfoProvider _infoProvider;
         private readonly HashSet<string> _suppressedDocuments;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
 
         [ImportingConstructor]
-        public BackgroundDocumentGenerator(ForegroundDispatcher foregroundDispatcher, RazorDynamicFileInfoProvider infoProvider)
+        public BackgroundDocumentGenerator(SingleThreadedDispatcher singleThreadedDispatcher, RazorDynamicFileInfoProvider infoProvider)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (infoProvider is null)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(infoProvider));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _infoProvider = infoProvider;
             _suppressedDocuments = new HashSet<string>(FilePathComparer.Instance);
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             lock (_work)
             {
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     _projectManager,
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                    _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
             }
         }
 
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 _projectManager,
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                _singleThreadedDispatcher.DispatcherScheduler);
         }
 
         private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)

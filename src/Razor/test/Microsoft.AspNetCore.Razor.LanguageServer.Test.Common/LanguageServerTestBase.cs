@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
     {
         public LanguageServerTestBase()
         {
-            Dispatcher = new SingleThreadedForegroundDispatcher();
+            Dispatcher = new TestSingleThreadedDispatcher();
             FilePathNormalizer = new FilePathNormalizer();
             var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
             Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>())).Verifiable();
@@ -25,26 +25,26 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
         }
 
-        internal ForegroundDispatcher Dispatcher { get; }
+        internal SingleThreadedDispatcher Dispatcher { get; }
 
         internal FilePathNormalizer FilePathNormalizer { get; }
 
         protected ILoggerFactory LoggerFactory { get; }
 
-        private class SingleThreadedForegroundDispatcher : ForegroundDispatcher
+        private class TestSingleThreadedDispatcher : SingleThreadedDispatcher
         {
-            public SingleThreadedForegroundDispatcher()
+            public TestSingleThreadedDispatcher()
             {
-                ForegroundScheduler = SynchronizationContext.Current == null
+                DispatcherScheduler = SynchronizationContext.Current == null
                     ? new ThrowingTaskScheduler()
                     : TaskScheduler.FromCurrentSynchronizationContext();
             }
 
-            public override TaskScheduler ForegroundScheduler { get; }
+            public override TaskScheduler DispatcherScheduler { get; }
 
             private Thread Thread { get; } = Thread.CurrentThread;
 
-            public override bool IsForegroundThread => Thread.CurrentThread == Thread;
+            public override bool IsDispatcherThread => Thread.CurrentThread == Thread;
         }
 
         private class ThrowingTaskScheduler : TaskScheduler

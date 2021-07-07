@@ -20,21 +20,21 @@ namespace Microsoft.CodeAnalysis.Razor
         // Internal for testing
         internal readonly Dictionary<string, UpdateItem> _updates;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly SemaphoreSlim _semaphore;
         private ProjectSnapshotManagerBase _projectManager;
         private TagHelperResolver _tagHelperResolver;
         private bool _disposed;
 
         [ImportingConstructor]
-        public DefaultProjectWorkspaceStateGenerator(ForegroundDispatcher foregroundDispatcher)
+        public DefaultProjectWorkspaceStateGenerator(SingleThreadedDispatcher singleThreadedDispatcher)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
 
             _semaphore = new SemaphoreSlim(initialCount: 1);
             _updates = new Dictionary<string, UpdateItem>(FilePathComparer.Instance);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(projectSnapshot));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             if (_disposed)
             {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Razor
                        () => _projectManager.ReportError(ex, projectSnapshot),
                        CancellationToken.None, // Don't allow errors to be cancelled
                        TaskCreationOptions.None,
-                       _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                       _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
                     return;
                 }
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     },
                     cancellationToken,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                    _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     () => _projectManager.ReportError(ex),
                     CancellationToken.None, // Don't allow errors to be cancelled
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                    _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
             }
             finally
             {
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private void ReportWorkspaceStateChange(string projectFilePath, ProjectWorkspaceState workspaceStateChange)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             _projectManager.ProjectWorkspaceStateChanged(projectFilePath, workspaceStateChange);
         }

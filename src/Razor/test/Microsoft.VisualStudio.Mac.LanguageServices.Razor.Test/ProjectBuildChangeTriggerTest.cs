@@ -15,7 +15,7 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    public class ProjectBuildChangeTriggerTest : ForegroundDispatcherTestBase
+    public class ProjectBuildChangeTriggerTest : SingleThreadedDispatcherTestBase
     {
         public ProjectBuildChangeTriggerTest()
         {
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         private Workspace Workspace { get; }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectOperations_EndBuild_EnqueuesProjectStateUpdate()
         {
             // Arrange
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             Assert.Equal(SomeWorkspaceProject, update.workspaceProject);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectOperations_EndBuild_ProjectWithoutWorkspaceProject_Noops()
         {
             // Arrange
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectOperations_EndBuild_UntrackedProject_Noops()
         {
             // Arrange
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectOperations_EndBuild_BuildFailed_Noops()
         {
             // Arrange
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectOperations_EndBuild_UnsupportedProject_Noops()
         {
             // Arrange

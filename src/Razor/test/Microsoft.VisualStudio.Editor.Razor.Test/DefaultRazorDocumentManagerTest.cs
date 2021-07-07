@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultRazorDocumentManagerTest : ForegroundDispatcherTestBase
+    public class DefaultRazorDocumentManagerTest : SingleThreadedDispatcherTestBase
     {
         private JoinableTaskContext JoinableTaskContext => JoinableTaskFactory.Context;
 
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private Workspace Workspace => TestWorkspace.Create();
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnTextViewOpened_ForNonRazorTextBuffer_DoesNothing()
         {
             // Arrange
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             await documentManager.OnTextViewOpenedAsync(textView, buffers);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnTextViewOpened_ForRazorTextBuffer_AddsTextViewToTracker()
         {
             // Arrange
@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Collection(documentTracker.TextViews, v => Assert.Same(v, textView));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnTextViewOpened_SubscribesAfterFirstTextViewOpened()
         {
             // Arrange
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(documentTracker.IsSupportedProject);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnTextViewClosed_TextViewWithoutDocumentTracker_DoesNothing()
         {
             // Arrange
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.False(buffers[0].Properties.ContainsProperty(typeof(VisualStudioDocumentTracker)));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnTextViewClosed_ForAnyTextBufferWithTracker_RemovesTextView()
         {
             // Arrange
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Collection(documentTracker.TextViews, v => Assert.Same(v, textView1));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task nTextViewClosed_UnsubscribesAfterLastTextViewClosed()
         {
             // Arrange

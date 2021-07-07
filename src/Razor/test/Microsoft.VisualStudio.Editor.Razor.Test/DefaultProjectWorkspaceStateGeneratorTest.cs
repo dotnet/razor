@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    public class DefaultProjectWorkspaceStateGeneratorTest : ForegroundDispatcherTestBase
+    public class DefaultProjectWorkspaceStateGeneratorTest : SingleThreadedDispatcherTestBase
     {
         public DefaultProjectWorkspaceStateGeneratorTest()
         {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         private ProjectWorkspaceState ProjectWorkspaceStateWithTagHelpers { get; }
 
-        [ForegroundFact]
+        [UIFact]
         public void Dispose_MakesUpdateNoop()
         {
             // Arrange  
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Update_StartsUpdateTask()
         {
             // Arrange  
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Update_SoftCancelsIncompleteTaskForSameProject()
         {
             // Arrange  
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task Update_NullWorkspaceProject_ClearsProjectWorkspaceState()
         {
             // Arrange  
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 // Act
                 stateGenerator.Update(workspaceProject: null, ProjectSnapshot, CancellationToken.None);
 
-                // Jump off the foreground thread so the background work can complete.
+                // Jump off the UI thread so the background work can complete.
                 await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
                 // Assert
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task Update_ResolvesTagHelpersAndUpdatesWorkspaceState()
         {
             // Arrange  
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 // Act
                 stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
 
-                // Jump off the foreground thread so the background work can complete.
+                // Jump off the UI thread so the background work can complete.
                 await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
                 // Assert

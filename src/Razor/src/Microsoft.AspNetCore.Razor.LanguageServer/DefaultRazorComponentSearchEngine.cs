@@ -15,14 +15,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
 
         public DefaultRazorComponentSearchEngine(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 () => _projectSnapshotManager.Projects.ToArray(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
 
             foreach (var project in projects)
             {

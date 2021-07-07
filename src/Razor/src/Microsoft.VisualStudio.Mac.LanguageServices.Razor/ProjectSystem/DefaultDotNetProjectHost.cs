@@ -14,14 +14,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private const string ExplicitRazorConfigurationCapability = "DotNetCoreRazorConfiguration";
 
         private readonly DotNetProject _project;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly VisualStudioMacWorkspaceAccessor _workspaceAccessor;
         private readonly TextBufferProjectService _projectService;
         private RazorProjectHostBase _razorProjectHost;
 
         public DefaultDotNetProjectHost(
             DotNetProject project,
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             VisualStudioMacWorkspaceAccessor workspaceAccessor,
             TextBufferProjectService projectService)
         {
@@ -30,9 +30,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (workspaceAccessor == null)
@@ -46,20 +46,20 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }
 
             _project = project;
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;
         }
 
         // Internal for testing
         internal DefaultDotNetProjectHost(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             VisualStudioMacWorkspaceAccessor workspaceAccessor,
             TextBufferProjectService projectService)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (workspaceAccessor == null)
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(projectService));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;
         }
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public override void Subscribe()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             UpdateRazorHostProject();
 
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         private void Project_Disposing(object sender, EventArgs e)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             _project.ProjectCapabilitiesChanged -= Project_ProjectCapabilitiesChanged;
             _project.Disposing -= Project_Disposing;
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Internal for testing
         internal void UpdateRazorHostProject()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             DetachCurrentRazorProjectHost();
 
@@ -123,12 +123,12 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             if (_project.IsCapabilityMatch(ExplicitRazorConfigurationCapability))
             {
                 // SDK >= 2.1
-                _razorProjectHost = new DefaultRazorProjectHost(_project, _foregroundDispatcher, projectSnapshotManager);
+                _razorProjectHost = new DefaultRazorProjectHost(_project, _singleThreadedDispatcher, projectSnapshotManager);
                 return;
             }
 
             // We're an older version of Razor at this point, SDK < 2.1
-            _razorProjectHost = new FallbackRazorProjectHost(_project, _foregroundDispatcher, projectSnapshotManager);
+            _razorProjectHost = new FallbackRazorProjectHost(_project, _singleThreadedDispatcher, projectSnapshotManager);
         }
 
         private bool TryGetProjectSnapshotManager(out ProjectSnapshotManagerBase projectSnapshotManagerBase)

@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class DefaultProjectSnapshotManagerFactory : ILanguageServiceFactory
     {
         private readonly IEnumerable<ProjectSnapshotChangeTrigger> _triggers;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
 
         [ImportingConstructor]
         public DefaultProjectSnapshotManagerFactory(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             [ImportMany] IEnumerable<ProjectSnapshotChangeTrigger> triggers)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (triggers == null)
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(triggers));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _triggers = triggers;
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             return new DefaultProjectSnapshotManager(
-                _foregroundDispatcher,
+                _singleThreadedDispatcher,
                 languageServices.WorkspaceServices.GetRequiredService<ErrorReporter>(),
                 _triggers,
                 languageServices.WorkspaceServices.Workspace);

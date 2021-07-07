@@ -20,17 +20,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly Dictionary<string, PublishData> _publishedHtmlData;
         private readonly IClientLanguageServer _server;
         private readonly ILogger _logger;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
         public DefaultGeneratedDocumentPublisher(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             IClientLanguageServer server,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (server is null)
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _server = server;
             _logger = loggerFactory.CreateLogger<DefaultGeneratedDocumentPublisher>();
             _publishedCSharpData = new Dictionary<string, PublishData>(FilePathComparer.Instance);
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             if (!_publishedCSharpData.TryGetValue(filePath, out var previouslyPublishedData))
             {
@@ -123,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             if (!_publishedHtmlData.TryGetValue(filePath, out var previouslyPublishedData))
             {
@@ -167,7 +167,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -178,12 +178,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         if (_publishedCSharpData.ContainsKey(args.DocumentFilePath))
                         {
                             var removed = _publishedCSharpData.Remove(args.DocumentFilePath);
-                            Debug.Assert(removed, "Published data should be protected by the foreground thread and should never fail to remove.");
+                            Debug.Assert(removed, "Published data should be protected by the single-threaded dispatcher's thread and should never fail to remove.");
                         }
                         if (_publishedHtmlData.ContainsKey(args.DocumentFilePath))
                         {
                             var removed = _publishedHtmlData.Remove(args.DocumentFilePath);
-                            Debug.Assert(removed, "Published data should be protected by the foreground thread and should never fail to remove.");
+                            Debug.Assert(removed, "Published data should be protected by the single-threaded dispatcher's thread and should never fail to remove.");
                         }
                     }
                     break;

@@ -14,18 +14,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
     [Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
     internal class DocumentChangedSynchronizationService : IRazorDocumentChangeListener, IOmniSharpProjectSnapshotManagerChangeTrigger
     {
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpSingleThreadedDispatcher _singleThreadedDispatcher;
         private OmniSharpProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public DocumentChangedSynchronizationService(OmniSharpForegroundDispatcher foregroundDispatcher)
+        public DocumentChangedSynchronizationService(OmniSharpSingleThreadedDispatcher singleThreadedDispatcher)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
         }
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             _ = Task.Factory.StartNew(
                 () => _projectManager.DocumentChanged(projectFilePath, documentFilePath),
-                CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
         }
     }
 }

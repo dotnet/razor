@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public RazorProjectHostBase(
             DotNetProject project,
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)
         {
             if (project is null)
@@ -35,9 +35,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (projectSnapshotManager is null)
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }
 
             DotNetProject = project;
-            ForegroundDispatcher = foregroundDispatcher;
+            SingleThreadedDispatcher = singleThreadedDispatcher;
             _projectSnapshotManager = projectSnapshotManager;
             _onProjectChangedInnerSemaphore = new AsyncSemaphore(initialCount: 1);
             _projectChangedSemaphore = new AsyncSemaphore(initialCount: 1);
@@ -59,11 +59,11 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public HostProject HostProject { get; private set; }
 
-        protected ForegroundDispatcher ForegroundDispatcher { get; }
+        protected SingleThreadedDispatcher SingleThreadedDispatcher { get; }
 
         public void Detach()
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            SingleThreadedDispatcher.AssertDispatcherThread();
 
             DotNetProject.Modified -= DotNetProject_Modified;
 
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Protected virtual for testing
         protected virtual void AttachToProject()
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            SingleThreadedDispatcher.AssertDispatcherThread();
 
             DotNetProject.Modified += DotNetProject_Modified;
 
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Must be called inside the lock.
         protected async Task UpdateHostProjectUnsafeAsync(HostProject newHostProject)
         {
-            await Task.Factory.StartNew(UpdateHostProjectForeground, newHostProject, CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.ForegroundScheduler);
+            await Task.Factory.StartNew(UpdateHostProjectForeground, newHostProject, CancellationToken.None, TaskCreationOptions.None, SingleThreadedDispatcher.DispatcherScheduler);
         }
 
         protected async Task ExecuteWithLockAsync(Func<Task> func)
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(args));
             }
 
-            ForegroundDispatcher.AssertForegroundThread();
+            SingleThreadedDispatcher.AssertDispatcherThread();
 
             if (_batchingProjectChanges)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         private void UpdateHostProjectForeground(object state)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            SingleThreadedDispatcher.AssertDispatcherThread();
 
             var newHostProject = (HostProject)state;
 
@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         protected void AddDocument(HostProject hostProject, string filePath, string relativeFilePath)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            SingleThreadedDispatcher.AssertDispatcherThread();
 
             if (_currentDocuments.ContainsKey(filePath))
             {

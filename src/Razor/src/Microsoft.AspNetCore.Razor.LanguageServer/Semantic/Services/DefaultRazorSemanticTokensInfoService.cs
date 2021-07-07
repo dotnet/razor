@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly MemoryCache<string, IReadOnlyList<int>> _csharpGeneratedSemanticTokensCache = new(); // For C# generated docs
 
         private readonly ClientNotifierServiceBase _languageServer;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly ILogger _logger;
@@ -42,14 +42,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
             RazorDocumentMappingService documentMappingService,
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             DocumentResolver documentResolver,
             DocumentVersionCache documentVersionCache,
             ILoggerFactory loggerFactory)
         {
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
 
@@ -564,7 +564,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
 
                 return (documentSnapshot, version);
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
 
             return documentInfo;
         }

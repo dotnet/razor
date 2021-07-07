@@ -13,11 +13,11 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class VisualStudioFileChangeTrackerTest : ForegroundDispatcherTestBase
+    public class VisualStudioFileChangeTrackerTest : SingleThreadedDispatcherTestBase
     {
         private ErrorReporter ErrorReporter { get; } = new DefaultErrorReporter();
 
-        [ForegroundFact]
+        [UIFact]
         public async Task StartListening_AdvisesForFileChange()
         {
             // Arrange
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             fileChangeService.Verify();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task StartListening_AlreadyListening_DoesNothing()
         {
             // Arrange
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             Assert.Equal(1, callCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task StopListening_UnadvisesForFileChange()
         {
             // Arrange
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             fileChangeService.Verify();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StopListening_NotListening_DoesNothing()
         {
             // Arrange
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             Assert.Null(tracker._fileChangeUnadviseTask);
         }
 
-        [ForegroundTheory]
+        [UITheory]
         [InlineData((uint)_VSFILECHANGEFLAGS.VSFILECHG_Size, (int)FileChangeKind.Changed)]
         [InlineData((uint)_VSFILECHANGEFLAGS.VSFILECHG_Time, (int)FileChangeKind.Changed)]
         [InlineData((uint)_VSFILECHANGEFLAGS.VSFILECHG_Add, (int)FileChangeKind.Added)]

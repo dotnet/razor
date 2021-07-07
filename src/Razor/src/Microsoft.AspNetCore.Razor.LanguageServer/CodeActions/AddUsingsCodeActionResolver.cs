@@ -23,12 +23,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class AddUsingsCodeActionResolver : RazorCodeActionResolver
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly DocumentResolver _documentResolver;
 
-        public AddUsingsCodeActionResolver(ForegroundDispatcher foregroundDispatcher, DocumentResolver documentResolver)
+        public AddUsingsCodeActionResolver(SingleThreadedDispatcher singleThreadedDispatcher, DocumentResolver documentResolver)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
             if (documentSnapshot is null)
             {
                 return null;

@@ -1018,7 +1018,7 @@ slf*@";
             loggingFactory.Protected().Setup("CheckDisposed").CallBase();
 
 
-            var foregroundDispatcher = new DefaultForegroundDispatcher();
+            var singleThreadedDispatcher = new DefaultSingleThreadedDispatcher();
 
             var documentResolver = new TestDocumentResolver(documentSnapshots);
 
@@ -1029,7 +1029,7 @@ slf*@";
             return (new DefaultRazorSemanticTokensInfoService(
                 languageServer.Object,
                 documentMappingService.Object,
-                foregroundDispatcher,
+                singleThreadedDispatcher,
                 documentResolver,
                 documentVersionCache.Object,
                 loggingFactory.Object), languageServer);

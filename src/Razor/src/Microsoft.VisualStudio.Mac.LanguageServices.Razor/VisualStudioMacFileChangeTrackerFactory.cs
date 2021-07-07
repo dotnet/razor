@@ -9,16 +9,16 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
     internal class VisualStudioMacFileChangeTrackerFactory : FileChangeTrackerFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
 
-        public VisualStudioMacFileChangeTrackerFactory(ForegroundDispatcher foregroundDispatcher)
+        public VisualStudioMacFileChangeTrackerFactory(SingleThreadedDispatcher singleThreadedDispatcher)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
         }
 
         public override FileChangeTracker Create(string filePath)
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
             }
 
-            var fileChangeTracker = new VisualStudioMacFileChangeTracker(filePath, _foregroundDispatcher);
+            var fileChangeTracker = new VisualStudioMacFileChangeTracker(filePath, _singleThreadedDispatcher);
             return fileChangeTracker;
         }
     }

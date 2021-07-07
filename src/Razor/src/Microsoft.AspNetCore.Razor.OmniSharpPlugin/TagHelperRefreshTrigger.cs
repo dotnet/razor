@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     [Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
     internal class TagHelperRefreshTrigger : IMSBuildEventSink, IRazorDocumentOutputChangeListener, IOmniSharpProjectSnapshotManagerChangeTrigger, IRazorDocumentChangeListener
     {
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpSingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly Workspace _omniSharpWorkspace;
         private readonly OmniSharpProjectWorkspaceStateGenerator _workspaceStateGenerator;
         private readonly Dictionary<string, Task> _deferredUpdates;
@@ -30,22 +30,22 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         [ImportingConstructor]
         public TagHelperRefreshTrigger(
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpSingleThreadedDispatcher singleThreadedDispatcher,
             OmniSharpWorkspace omniSharpWorkspace,
             OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator) :
-                this(foregroundDispatcher, (Workspace)omniSharpWorkspace, workspaceStateGenerator)
+                this(singleThreadedDispatcher, (Workspace)omniSharpWorkspace, workspaceStateGenerator)
         {
         }
 
         // Internal for testing
         internal TagHelperRefreshTrigger(
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpSingleThreadedDispatcher singleThreadedDispatcher,
             Workspace omniSharpWorkspace,
             OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (omniSharpWorkspace == null)
@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _omniSharpWorkspace = omniSharpWorkspace;
             _workspaceStateGenerator = workspaceStateGenerator;
             _deferredUpdates = new Dictionary<string, Task>();
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 () => EnqueueUpdate(args.ProjectInstance.ProjectFileLocation.File),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
         }
 
         public void RazorDocumentChanged(RazorFileChangeEventArgs args)
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 },
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
         }
 
         public void RazorDocumentOutputChanged(RazorFileChangeEventArgs args)
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 () => EnqueueUpdate(args.UnevaluatedProjectInstance.ProjectFileLocation.File),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
         }
 
         // Internal for testing
@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         private void EnqueueUpdate(string projectFilePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             // A race is not possible here because we use the main thread to synchronize the updates
             // by capturing the sync context.
@@ -177,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         // Internal for testing
         internal bool IsComponentFile(string relativeDocumentFilePath, string projectFilePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             var projectSnapshot = _projectManager.GetLoadedProject(projectFilePath);
             if (projectSnapshot == null)

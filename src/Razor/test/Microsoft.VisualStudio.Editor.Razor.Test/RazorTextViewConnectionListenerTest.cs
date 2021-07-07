@@ -10,9 +10,9 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class RazorTextViewConnectionListenerTest : ForegroundDispatcherTestBase
+    public class RazorTextViewConnectionListenerTest : SingleThreadedDispatcherTestBase
     {
-        [ForegroundFact]
+        [UIFact]
         public void SubjectBuffersConnected_CallsRazorDocumentManager_OnTextViewOpened()
         {
             // Arrange
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             documentManager.Verify();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void SubjectBuffersDisonnected_CallsRazorDocumentManager_OnTextViewClosed()
         {
             // Arrange

@@ -69,9 +69,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestProjectConfigurationFileChangeDetector(
                 CancellationTokenSource cancellationTokenSource,
-                ForegroundDispatcher foregroundDispatcher,
+                SingleThreadedDispatcher singleThreadedDispatcher,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-                IReadOnlyList<string> existingConfigurationFiles) : base(foregroundDispatcher, new FilePathNormalizer(), listeners)
+                IReadOnlyList<string> existingConfigurationFiles) : base(singleThreadedDispatcher, new FilePathNormalizer(), listeners)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingConfigurationFiles = existingConfigurationFiles;

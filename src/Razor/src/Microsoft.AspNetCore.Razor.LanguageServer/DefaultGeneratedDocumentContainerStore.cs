@@ -13,19 +13,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class DefaultGeneratedDocumentContainerStore : GeneratedDocumentContainerStore
     {
         private readonly ConcurrentDictionary<string, ReferenceOutputCapturingContainer> _store;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly GeneratedDocumentPublisher _generatedDocumentPublisher;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
         public DefaultGeneratedDocumentContainerStore(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             DocumentVersionCache documentVersionCache,
             GeneratedDocumentPublisher generatedDocumentPublisher)
         {
-            if (foregroundDispatcher == null)
+            if (singleThreadedDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (documentVersionCache == null)
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(generatedDocumentPublisher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _documentVersionCache = documentVersionCache;
             _generatedDocumentPublisher = generatedDocumentPublisher;
             _store = new ConcurrentDictionary<string, ReferenceOutputCapturingContainer>(FilePathComparer.Instance);
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _singleThreadedDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -111,7 +111,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var hostDocumentVersion = nullableHostDocumentVersion.Value;
 
                     _generatedDocumentPublisher.PublishCSharp(filePath, args.NewText, hostDocumentVersion);
-                }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                }, CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
             };
 
             documentContainer.GeneratedHtmlChanged += (sender, args) =>
@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var hostDocumentVersion = nullableHostDocumentVersion.Value;
 
                     _generatedDocumentPublisher.PublishHtml(filePath, args.NewText, hostDocumentVersion);
-                }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                }, CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
             };
 
             return documentContainer;

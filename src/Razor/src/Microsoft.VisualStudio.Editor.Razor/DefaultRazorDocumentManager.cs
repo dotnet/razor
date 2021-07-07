@@ -19,19 +19,19 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [Export(typeof(RazorDocumentManager))]
     internal class DefaultRazorDocumentManager : RazorDocumentManager
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly RazorEditorFactoryService _editorFactoryService;
 
         [ImportingConstructor]
         public DefaultRazorDocumentManager(
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             JoinableTaskContext joinableTaskContext,
             RazorEditorFactoryService editorFactoryService)
         {
-            if (foregroundDispatcher is null)
+            if (singleThreadedDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(editorFactoryService));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _singleThreadedDispatcher = singleThreadedDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _editorFactoryService = editorFactoryService;
         }
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 {
                     // tracker.Subscribe() accesses the project snapshot manager, which needs to be run on the
                     // single-threaded dispatcher.
-                    await _foregroundDispatcher.RunOnForegroundAsync(() => tracker.Subscribe(), CancellationToken.None);
+                    await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() => tracker.Subscribe(), CancellationToken.None);
                 }
             }
         }
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     {
                         // tracker.Unsubscribe() should be in sync with tracker.Subscribe(). The latter of needs to be run
                         // on the single-threaded dispatcher, so we run both on it.
-                        await _foregroundDispatcher.RunOnForegroundAsync(() => documentTracker.Unsubscribe(), CancellationToken.None);
+                        await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() => documentTracker.Unsubscribe(), CancellationToken.None);
                     }
                 }
             }

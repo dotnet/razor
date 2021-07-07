@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class BraceSmartIndenterTestBase : ForegroundDispatcherTestBase
+    public class BraceSmartIndenterTestBase : SingleThreadedDispatcherTestBase
     {
         protected static VisualStudioDocumentTracker CreateDocumentTracker(Func<ITextBuffer> bufferAccessor, ITextView focusedTextView)
         {

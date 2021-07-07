@@ -30,9 +30,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public DefaultRazorProjectHost(
             DotNetProject project,
-            ForegroundDispatcher foregroundDispatcher,
+            SingleThreadedDispatcher singleThreadedDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)
-            : base(project, foregroundDispatcher, projectSnapshotManager)
+            : base(project, singleThreadedDispatcher, projectSnapshotManager)
         {
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
               },
             CancellationToken.None,
             TaskCreationOptions.None,
-            ForegroundDispatcher.ForegroundScheduler);
+            SingleThreadedDispatcher.DispatcherScheduler);
         }
 
         // Internal for testing

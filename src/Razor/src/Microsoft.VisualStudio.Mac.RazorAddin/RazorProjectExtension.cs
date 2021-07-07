@@ -14,12 +14,12 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
     internal class RazorProjectExtension : ProjectExtension
     {
         private readonly object _lock = new object();
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
         private CancellationTokenSource _cancellationTokenSource;
 
         public RazorProjectExtension()
         {
-            _foregroundDispatcher = CompositionManager.Instance.GetExportedValue<ForegroundDispatcher>();
+            _singleThreadedDispatcher = CompositionManager.Instance.GetExportedValue<SingleThreadedDispatcher>();
         }
 
         protected override void OnBoundToSolution()
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
             _ = IdeApp.TypeSystemService.GetWorkspaceAsync(Project.ParentSolution, token).ContinueWith(task => projectHost.Subscribe(),
             token,
             TaskContinuationOptions.OnlyOnRanToCompletion, // We only want to act if we could properly retrieve the workspace.
-            _foregroundDispatcher.ForegroundScheduler);
+            _singleThreadedDispatcher.DispatcherScheduler);
         }
 
         protected override void OnUnboundFromSolution()

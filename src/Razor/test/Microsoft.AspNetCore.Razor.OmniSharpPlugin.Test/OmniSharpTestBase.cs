@@ -39,14 +39,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             _createWithDocumentsTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(string[]), typeof(ProjectWorkspaceState) });
             _createProjectSnapshotManagerMethod = testProjectSnapshotManagerType.GetMethod("Create");
             _allowNotifyListenersProperty = testProjectSnapshotManagerType.GetProperty("AllowNotifyListeners");
-            _dispatcherProperty = typeof(OmniSharpForegroundDispatcher).GetProperty("InternalDispatcher", BindingFlags.NonPublic | BindingFlags.Instance);
+            _dispatcherProperty = typeof(OmniSharpSingleThreadedDispatcher).GetProperty("InternalDispatcher", BindingFlags.NonPublic | BindingFlags.Instance);
             _omniSharpProjectSnapshotMangerConstructor = defaultSnapshotManagerType.GetConstructors().Single();
             _omniSharpSnapshotConstructor = typeof(OmniSharpProjectSnapshot).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
 
-            Dispatcher = new DefaultOmniSharpForegroundDispatcher();
+            Dispatcher = new DefaultOmniSharpSingleThreadedDispatcher();
         }
 
-        protected OmniSharpForegroundDispatcher Dispatcher { get; }
+        protected OmniSharpSingleThreadedDispatcher Dispatcher { get; }
 
         protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
         {
@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 () => action(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                Dispatcher.DispatcherScheduler);
         }
 
         protected Task<TReturn> RunOnForegroundAsync<TReturn>(Func<TReturn> action)
@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 () => action(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                Dispatcher.DispatcherScheduler);
         }
 
         protected Task RunOnForegroundAsync(Func<Task> action)
@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 async () => await action(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                Dispatcher.DispatcherScheduler);
         }
     }
 }

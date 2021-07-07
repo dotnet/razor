@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class BraceSmartIndenterIntegrationTest : BraceSmartIndenterTestBase
     {
-        [ForegroundFact]
+        [UIFact]
         public void TextBuffer_OnPostChanged_IndentsInbetweenBraces_BaseIndentation()
         {
             // Arrange
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(expectedIndentResult, ((StringTextSnapshot)textBuffer.CurrentSnapshot).Content);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TextBuffer_OnPostChanged_IndentsInbetweenBraces_OneLevelOfIndentation()
         {
             // Arrange
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(expectedIndentResult, ((StringTextSnapshot)textBuffer.CurrentSnapshot).Content);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TextBuffer_OnPostChanged_IndentsInbetweenDirectiveBlockBraces()
         {
             // Arrange
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(expectedIndentResult, ((StringTextSnapshot)textBuffer.CurrentSnapshot).Content);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TextBuffer_OnPostChanged_DoesNotIndentJavaScript()
         {
             // Arrange
