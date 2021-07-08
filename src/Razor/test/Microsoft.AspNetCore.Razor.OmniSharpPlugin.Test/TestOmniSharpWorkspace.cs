@@ -3,7 +3,6 @@
 
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using Moq;
 using OmniSharp.FileWatching;
 using OmniSharp.Services;
 
@@ -34,6 +33,10 @@ namespace OmniSharp
             }
 
             public void Watch(string pathOrExtension, FileSystemNotificationCallback callback)
+            {
+            }
+
+            public void WatchDirectories(FileSystemNotificationCallback callback)
             {
             }
         }

@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
-using Microsoft.CodeAnalysis;
 using Moq;
 using OmniSharp.MSBuild.Logging;
 using OmniSharp.MSBuild.Notification;
@@ -207,12 +206,15 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             var projectManager = CreateProjectSnapshotManager();
             msbuildProjectManager.Initialize(projectManager);
             var args = new ProjectLoadedEventArgs(
-                ProjectId.CreateNewId(),
-                projectInstance,
+                id: null,
+                project: null,
+                sessionId: Guid.NewGuid(),
+                projectInstance,    
                 diagnostics: Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
                 isReload: false,
                 projectIdIsDefinedInSolution: false,
-                sourceFiles: Enumerable.Empty<string>().ToImmutableArray());
+                sourceFiles: Enumerable.Empty<string>().ToImmutableArray(),
+                sdkVersion: default);
 
             // Act
             await msbuildProjectManager.ProjectLoadedAsync(args);

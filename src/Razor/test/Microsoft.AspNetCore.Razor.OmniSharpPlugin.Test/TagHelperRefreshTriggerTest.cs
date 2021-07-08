@@ -151,12 +151,15 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 .Callback<Project, OmniSharpProjectSnapshot>((_, __) => mre.Set());
             var refreshTrigger = CreateRefreshTrigger(workspaceStateGenerator.Object);
             var args = new ProjectLoadedEventArgs(
-                null,
+                id: null,
+                project: null,
+                sessionId: Guid.NewGuid(),
                 (ProjectInstance)Project1Instance,
-                Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
+                diagnostics: Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
                 isReload: false,
                 projectIdIsDefinedInSolution: false,
-                sourceFiles: Enumerable.Empty<string>().ToImmutableArray());
+                sourceFiles: Enumerable.Empty<string>().ToImmutableArray(),
+                sdkVersion: default);
 
             // Act
             refreshTrigger.ProjectLoaded(args);
@@ -185,12 +188,15 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 });
             var refreshTrigger = CreateRefreshTrigger(workspaceStateGenerator.Object, enqueueDelay: 10);
             var args = new ProjectLoadedEventArgs(
-                null,
+                id: null,
+                project: null,
+                sessionId: Guid.NewGuid(),
                 (ProjectInstance)Project1Instance,
-                Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
+                diagnostics: Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
                 isReload: false,
                 projectIdIsDefinedInSolution: false,
-                sourceFiles: Enumerable.Empty<string>().ToImmutableArray());
+                sourceFiles: Enumerable.Empty<string>().ToImmutableArray(),
+                sdkVersion: default);
 
             // Act
             refreshTrigger.ProjectLoaded(args);
