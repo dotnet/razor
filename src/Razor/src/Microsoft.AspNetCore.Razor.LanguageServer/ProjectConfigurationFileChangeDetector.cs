@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             ForegroundDispatcher foregroundDispatcher,
             FilePathNormalizer filePathNormalizer,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory = null)
         {
             if (foregroundDispatcher is null)
             {
@@ -47,15 +47,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(listeners));
             }
 
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _foregroundDispatcher = foregroundDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
-            _logger = loggerFactory.CreateLogger<ProjectConfigurationFileChangeDetector>();
+            _logger = loggerFactory?.CreateLogger<ProjectConfigurationFileChangeDetector>();
         }
 
         public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
