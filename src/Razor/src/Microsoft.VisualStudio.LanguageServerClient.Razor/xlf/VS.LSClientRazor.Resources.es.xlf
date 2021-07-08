@@ -12,6 +12,11 @@
         <target state="translated">Determinando las expresiones de proximidad...</target>
         <note />
       </trans-unit>
+      <trans-unit id="View Code">
+        <source>View Code</source>
+        <target state="new">View Code</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
