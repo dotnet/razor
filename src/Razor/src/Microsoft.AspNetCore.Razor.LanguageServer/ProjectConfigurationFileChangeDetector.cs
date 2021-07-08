@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -16,12 +17,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
+        private readonly ILogger _logger;
         private FileSystemWatcher _watcher;
+
+        private static readonly IReadOnlyCollection<string> _ignoredDirectories = new string[]
+        {
+            "node_modules",
+            "bin",
+        };
 
         public ProjectConfigurationFileChangeDetector(
             ForegroundDispatcher foregroundDispatcher,
             FilePathNormalizer filePathNormalizer,
-            IEnumerable<IProjectConfigurationFileChangeListener> listeners)
+            IEnumerable<IProjectConfigurationFileChangeListener> listeners,
+            ILoggerFactory loggerFactory)
         {
             if (foregroundDispatcher is null)
             {
@@ -38,9 +47,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(listeners));
             }
 
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _foregroundDispatcher = foregroundDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
+            _logger = loggerFactory.CreateLogger<ProjectConfigurationFileChangeDetector>();
         }
 
         public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
@@ -114,9 +129,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Protected virtual for testing
-        protected virtual IReadOnlyList<string> GetExistingConfigurationFiles(string workspaceDirectory)
+        protected virtual IEnumerable<string> GetExistingConfigurationFiles(string workspaceDirectory)
         {
-            return Directory.GetFiles(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile, SearchOption.AllDirectories);
+            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile, _ignoredDirectories, _logger);
+
+            return files;
         }
 
         private void FileSystemWatcher_ProjectConfigurationFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
