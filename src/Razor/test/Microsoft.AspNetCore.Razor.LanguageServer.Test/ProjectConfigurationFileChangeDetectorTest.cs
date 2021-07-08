@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _cancellationTokenSource.Cancel();
             }
 
-            protected override IReadOnlyList<string> GetExistingConfigurationFiles(string workspaceDirectory)
+            protected override IEnumerable<string> GetExistingConfigurationFiles(string workspaceDirectory)
             {
                 return _existingConfigurationFiles;
             }

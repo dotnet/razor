@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 CancellationTokenSource cancellationTokenSource,
                 ForegroundDispatcher foregroundDispatcher,
                 IEnumerable<IProjectFileChangeListener> listeners,
-                IReadOnlyList<string> existingprojectFiles) : base(foregroundDispatcher, new FilePathNormalizer(), listeners)
+                IReadOnlyList<string> existingprojectFiles) : base(foregroundDispatcher, new FilePathNormalizer(), listeners, loggerFactory: null)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingProjectFiles = existingprojectFiles;
@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _cancellationTokenSource.Cancel();
             }
 
-            protected override IReadOnlyList<string> GetExistingProjectFiles(string workspaceDirectory)
+            protected override IEnumerable<string> GetExistingProjectFiles(string workspaceDirectory)
             {
                 return _existingProjectFiles;
             }

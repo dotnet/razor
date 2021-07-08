@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _foregroundDispatcher = foregroundDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
-            _logger = loggerFactory.CreateLogger<ProjectFileChangeDetector>();
+            _logger = loggerFactory?.CreateLogger<ProjectFileChangeDetector>();
         }
 
         public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)

@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             ForegroundDispatcher foregroundDispatcher,
             FilePathNormalizer filePathNormalizer,
             IEnumerable<IRazorFileChangeListener> listeners,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory = null)
         {
             if (foregroundDispatcher is null)
             {
