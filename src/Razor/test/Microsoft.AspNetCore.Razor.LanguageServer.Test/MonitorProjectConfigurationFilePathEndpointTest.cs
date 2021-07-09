@@ -257,12 +257,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             private readonly Func<IFileChangeDetector> _fileChangeDetectorFactory;
 
             public TestMonitorProjectConfigurationFilePathEndpoint(
-                SingleThreadedDispatcher singleThreadedDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners) : this(
                     fileChangeDetectorFactory: null,
-                    singleThreadedDispatcher,
+                    projectSnapshotManagerDispatcher,
                     filePathNormalizer,
                     workspaceDirectoryPathResolver,
                     listeners)
@@ -271,11 +271,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestMonitorProjectConfigurationFilePathEndpoint(
                 Func<IFileChangeDetector> fileChangeDetectorFactory,
-                SingleThreadedDispatcher singleThreadedDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners) : base(
-                    singleThreadedDispatcher,
+                    projectSnapshotManagerDispatcher,
                     filePathNormalizer,
                     workspaceDirectoryPathResolver,
                     listeners)

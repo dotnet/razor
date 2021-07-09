@@ -22,19 +22,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private SynchronizationCapability _capability;
         private readonly ILogger _logger;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorProjectService _projectService;
 
         public RazorDocumentSynchronizationEndpoint(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorProjectService projectService,
             ILoggerFactory loggerFactory)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver is null)
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _projectService = projectService;
             _logger = loggerFactory.CreateLogger<RazorDocumentSynchronizationEndpoint>();
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<Unit> Handle(DidChangeTextDocumentParams notification, CancellationToken token)
         {
-            var document = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new InvalidOperationException(RazorLS.Resources.Version_Should_Not_Be_Null);
             }
 
-            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version.Value),
                 CancellationToken.None);
 
@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new InvalidOperationException(RazorLS.Resources.Version_Should_Not_Be_Null);
             }
 
-            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version.Value),
                 CancellationToken.None);
 
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<Unit> Handle(DidCloseTextDocumentParams notification, CancellationToken token)
         {
-            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.CloseDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath()),
                 CancellationToken.None);
 

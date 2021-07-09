@@ -18,7 +18,7 @@ using Span = Microsoft.VisualStudio.Text.Span;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
-    public class RazorDirectiveCompletionSourceTest : SingleThreadedDispatcherTestBase
+    public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatcherTestBase
     {
         private static readonly IReadOnlyList<DirectiveDescriptor> DefaultDirectives = new[]
         {

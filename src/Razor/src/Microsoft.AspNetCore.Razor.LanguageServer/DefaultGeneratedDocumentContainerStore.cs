@@ -12,19 +12,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class DefaultGeneratedDocumentContainerStore : GeneratedDocumentContainerStore
     {
         private readonly ConcurrentDictionary<string, ReferenceOutputCapturingContainer> _store;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly GeneratedDocumentPublisher _generatedDocumentPublisher;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
         public DefaultGeneratedDocumentContainerStore(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentVersionCache documentVersionCache,
             GeneratedDocumentPublisher generatedDocumentPublisher)
         {
-            if (singleThreadedDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentVersionCache == null)
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(generatedDocumentPublisher));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentVersionCache = documentVersionCache;
             _generatedDocumentPublisher = generatedDocumentPublisher;
             _store = new ConcurrentDictionary<string, ReferenceOutputCapturingContainer>(FilePathComparer.Instance);
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var latestDocument = generatedDocumentContainer.LatestDocument;
 
-                _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     if (!_projectSnapshotManager.IsDocumentOpen(filePath))
                     {
@@ -119,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var latestDocument = generatedDocumentContainer.LatestDocument;
 
-                _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     if (!_projectSnapshotManager.IsDocumentOpen(filePath))
                     {

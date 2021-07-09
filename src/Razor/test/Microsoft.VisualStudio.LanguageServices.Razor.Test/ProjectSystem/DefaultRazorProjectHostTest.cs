@@ -16,7 +16,7 @@ using ItemCollection = Microsoft.VisualStudio.ProjectSystem.ItemCollection;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    public class DefaultRazorProjectHostTest : SingleThreadedDispatcherWorkspaceTestBase
+    public class DefaultRazorProjectHostTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
         public DefaultRazorProjectHostTest()
         {
@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(SingleThreadedDispatcher dispatcher, Workspace workspace)
+            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, Workspace workspace)
                 : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Array.Empty<ProjectSnapshotChangeTrigger>(), workspace)
             {
             }

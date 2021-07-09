@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         [ImportingConstructor]
         public DefaultProjectHierarchyProxyFactory(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext)
         {
             if (joinableTaskContext is null)

@@ -20,21 +20,21 @@ namespace Microsoft.CodeAnalysis.Razor
         // Internal for testing
         internal readonly Dictionary<string, UpdateItem> _updates;
 
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly SemaphoreSlim _semaphore;
         private ProjectSnapshotManagerBase _projectManager;
         private TagHelperResolver _tagHelperResolver;
         private bool _disposed;
 
         [ImportingConstructor]
-        public DefaultProjectWorkspaceStateGenerator(SingleThreadedDispatcher singleThreadedDispatcher)
+        public DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
             _semaphore = new SemaphoreSlim(initialCount: 1);
             _updates = new Dictionary<string, UpdateItem>(FilePathComparer.Instance);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(projectSnapshot));
             }
 
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_disposed)
             {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 }
                 catch (Exception ex)
                 {
-                    await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                        () => _projectManager.ReportError(ex, projectSnapshot),
                        // Don't allow errors to be cancelled
                        CancellationToken.None).ConfigureAwait(false);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     return;
                 }
 
-                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
                         if (cancellationToken.IsCancellationRequested)
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Razor
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the project manager.
-                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () => _projectManager.ReportError(ex),
                     // Don't allow errors to be cancelled
                     CancellationToken.None).ConfigureAwait(false);
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private void ReportWorkspaceStateChange(string projectFilePath, ProjectWorkspaceState workspaceStateChange)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             _projectManager.ProjectWorkspaceStateChanged(projectFilePath, workspaceStateChange);
         }

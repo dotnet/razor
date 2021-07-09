@@ -13,7 +13,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class VisualStudioFileChangeTrackerTest : SingleThreadedDispatcherTestBase
+    public class VisualStudioFileChangeTrackerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         private ErrorReporter ErrorReporter { get; } = new DefaultErrorReporter();
 

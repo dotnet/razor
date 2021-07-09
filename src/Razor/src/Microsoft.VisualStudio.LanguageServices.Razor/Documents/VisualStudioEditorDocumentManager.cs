@@ -27,12 +27,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private readonly Dictionary<DocumentKey, uint> _cookiesByDocument;
 
         public VisualStudioEditorDocumentManager(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext,
             FileChangeTrackerFactory fileChangeTrackerFactory,
             IVsRunningDocumentTable runningDocumentTable,
             IVsEditorAdaptersFactoryService editorAdaptersFactory)
-            : base(singleThreadedDispatcher, joinableTaskContext, fileChangeTrackerFactory)
+            : base(projectSnapshotManagerDispatcher, joinableTaskContext, fileChangeTrackerFactory)
         {
             if (runningDocumentTable is null)
             {

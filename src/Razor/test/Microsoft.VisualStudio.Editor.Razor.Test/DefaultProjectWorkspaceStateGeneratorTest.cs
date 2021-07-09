@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    public class DefaultProjectWorkspaceStateGeneratorTest : SingleThreadedDispatcherTestBase
+    public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public DefaultProjectWorkspaceStateGeneratorTest()
         {

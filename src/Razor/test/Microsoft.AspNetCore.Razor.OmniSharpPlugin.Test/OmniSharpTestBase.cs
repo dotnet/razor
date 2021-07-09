@@ -39,14 +39,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             _createWithDocumentsTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(string[]), typeof(ProjectWorkspaceState) });
             _createProjectSnapshotManagerMethod = testProjectSnapshotManagerType.GetMethod("Create");
             _allowNotifyListenersProperty = testProjectSnapshotManagerType.GetProperty("AllowNotifyListeners");
-            _dispatcherProperty = typeof(OmniSharpSingleThreadedDispatcher).GetProperty("InternalDispatcher", BindingFlags.NonPublic | BindingFlags.Instance);
+            _dispatcherProperty = typeof(OmniSharpProjectSnapshotManagerDispatcher).GetProperty("InternalDispatcher", BindingFlags.NonPublic | BindingFlags.Instance);
             _omniSharpProjectSnapshotMangerConstructor = defaultSnapshotManagerType.GetConstructors().Single();
             _omniSharpSnapshotConstructor = typeof(OmniSharpProjectSnapshot).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
 
-            Dispatcher = new DefaultOmniSharpSingleThreadedDispatcher();
+            Dispatcher = new DefaultOmniSharpProjectSnapshotManagerDispatcher();
         }
 
-        protected OmniSharpSingleThreadedDispatcher Dispatcher { get; }
+        protected OmniSharpProjectSnapshotManagerDispatcher Dispatcher { get; }
 
         protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
         {

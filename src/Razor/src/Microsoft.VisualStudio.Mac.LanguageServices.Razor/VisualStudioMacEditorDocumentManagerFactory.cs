@@ -15,20 +15,20 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     [ExportWorkspaceServiceFactory(typeof(EditorDocumentManager), ServiceLayer.Host)]
     internal class VisualStudioMacEditorDocumentManagerFactory : IWorkspaceServiceFactory
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
         public VisualStudioMacEditorDocumentManagerFactory(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
 
             var fileChangeTrackerFactory = workspaceServices.GetRequiredService<FileChangeTrackerFactory>();
-            var editorDocumentManager = new VisualStudioMacEditorDocumentManager(_singleThreadedDispatcher, _joinableTaskContext, fileChangeTrackerFactory);
+            var editorDocumentManager = new VisualStudioMacEditorDocumentManager(_projectSnapshotManagerDispatcher, _joinableTaskContext, fileChangeTrackerFactory);
             return editorDocumentManager;
         }
     }

@@ -15,7 +15,7 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    public class ProjectBuildChangeTriggerTest : SingleThreadedDispatcherTestBase
+    public class ProjectBuildChangeTriggerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public ProjectBuildChangeTriggerTest()
         {

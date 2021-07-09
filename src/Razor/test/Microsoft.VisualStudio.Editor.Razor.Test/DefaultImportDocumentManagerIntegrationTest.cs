@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class DefaultImportDocumentManagerIntegrationTest : SingleThreadedDispatcherTestBase
+    public class DefaultImportDocumentManagerIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public DefaultImportDocumentManagerIntegrationTest()
         {

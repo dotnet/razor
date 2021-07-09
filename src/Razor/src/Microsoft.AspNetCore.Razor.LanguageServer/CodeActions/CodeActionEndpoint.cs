@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly IEnumerable<RazorCodeActionProvider> _razorCodeActionProviders;
         private readonly IEnumerable<CSharpCodeActionProvider> _csharpCodeActionProviders;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly ClientNotifierServiceBase _languageServer;
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorDocumentMappingService documentMappingService,
             IEnumerable<RazorCodeActionProvider> razorCodeActionProviders,
             IEnumerable<CSharpCodeActionProvider> csharpCodeActionProviders,
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
             LanguageServerFeatureOptions languageServerFeatureOptions)
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
             _razorCodeActionProviders = razorCodeActionProviders ?? throw new ArgumentNullException(nameof(razorCodeActionProviders));
             _csharpCodeActionProviders = csharpCodeActionProviders ?? throw new ArgumentNullException(nameof(csharpCodeActionProviders));
-            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         // internal for testing
         internal async Task<RazorCodeActionContext> GenerateRazorCodeActionContextAsync(RazorCodeActionParams request, CancellationToken cancellationToken)
         {
-            var documentSnapshot = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
                 return documentSnapshot;

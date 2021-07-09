@@ -19,18 +19,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     /// </summary>
     internal class AddUsingsCSharpCodeActionResolver : CSharpCodeActionResolver
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
 
         public AddUsingsCSharpCodeActionResolver(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
             DocumentVersionCache documentVersionCache)
             : base(languageServer)
         {
-            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
         }
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
             
-            var documentSnapshot = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
                 return documentSnapshot;
@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            var documentVersion = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
                 return version;

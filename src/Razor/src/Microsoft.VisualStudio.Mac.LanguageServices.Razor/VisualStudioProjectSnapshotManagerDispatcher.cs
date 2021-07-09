@@ -5,10 +5,10 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    [Export(typeof(SingleThreadedDispatcher))]
-    internal class VisualStudioSingleThreadedDispatcher : DefaultSingleThreadedDispatcher
+    [Export(typeof(ProjectSnapshotManagerDispatcher))]
+    internal class VisualStudioProjectSnapshotManagerDispatcher : DefaultProjectSnapshotManagerDispatcher
     {
     }
 }

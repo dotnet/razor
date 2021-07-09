@@ -17,19 +17,19 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [ExportLanguageServiceFactory(typeof(VisualStudioDocumentTrackerFactory), RazorLanguage.Name, ServiceLayer.Default)]
     internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServiceFactory
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly ITextDocumentFactoryService _textDocumentFactory;
 
         [ImportingConstructor]
         public DefaultVisualStudioDocumentTrackerFactoryFactory(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext,
             ITextDocumentFactoryService textDocumentFactory)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(textDocumentFactory));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _textDocumentFactory = textDocumentFactory;
         }
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var projectPathProvider = languageServices.WorkspaceServices.GetRequiredService<ProjectPathProvider>();
 
             return new DefaultVisualStudioDocumentTrackerFactory(
-                _singleThreadedDispatcher,
+                _projectSnapshotManagerDispatcher,
                 _joinableTaskContext,
                 projectManager,
                 workspaceEditorSettings,

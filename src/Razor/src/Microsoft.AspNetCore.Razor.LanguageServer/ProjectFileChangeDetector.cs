@@ -15,19 +15,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private const string ProjectFileExtension = ".csproj";
         private const string ProjectFileExtensionPattern = "*" + ProjectFileExtension;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectFileChangeListener> _listeners;
         private FileSystemWatcher _watcher;
 
         public ProjectFileChangeDetector(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             FilePathNormalizer filePathNormalizer,
             IEnumerable<IProjectFileChangeListener> listeners)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (filePathNormalizer is null)
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(listeners));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
         }
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             workspaceDirectory = _filePathNormalizer.Normalize(workspaceDirectory);
             var existingProjectFiles = GetExistingProjectFiles(workspaceDirectory);
 
-            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 foreach (var projectFilePath in existingProjectFiles)
                 {
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void FileSystemWatcher_ProjectFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
         {
-            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => FileSystemWatcher_ProjectFileEvent(physicalFilePath, kind),
                 CancellationToken.None);
         }

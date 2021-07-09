@@ -18,14 +18,14 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     {
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
         public VisualStudioEditorDocumentManagerFactory(
             SVsServiceProvider serviceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext)
         {
             if (serviceProvider is null)
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             _serviceProvider = serviceProvider;
             _editorAdaptersFactory = editorAdaptersFactory;
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             var runningDocumentTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             var fileChangeTrackerFactory = workspaceServices.GetRequiredService<FileChangeTrackerFactory>();
             return new VisualStudioEditorDocumentManager(
-                _singleThreadedDispatcher, _joinableTaskContext, fileChangeTrackerFactory, runningDocumentTable, _editorAdaptersFactory);
+                _projectSnapshotManagerDispatcher, _joinableTaskContext, fileChangeTrackerFactory, runningDocumentTable, _editorAdaptersFactory);
         }
     }
 }

@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class RazorTextViewConnectionListenerTest : SingleThreadedDispatcherTestBase
+    public class RazorTextViewConnectionListenerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         [UIFact]
         public void SubjectBuffersConnected_CallsRazorDocumentManager_OnTextViewOpened()

@@ -20,9 +20,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public FallbackRazorProjectHost(
             DotNetProject project,
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)
-            : base(project, singleThreadedDispatcher, projectSnapshotManager)
+            : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager)
         {
         }
 

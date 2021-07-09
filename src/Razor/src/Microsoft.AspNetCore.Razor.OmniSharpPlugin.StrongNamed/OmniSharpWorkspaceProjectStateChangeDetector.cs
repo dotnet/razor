@@ -13,12 +13,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
     public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
     {
         public OmniSharpWorkspaceProjectStateChangeDetector(
-            OmniSharpSingleThreadedDispatcher singleThreadedDispatcher,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator)
         {
-            if (singleThreadedDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (workspaceStateGenerator == null)
@@ -26,8 +26,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
-            InternalWorkspaceProjectStateChangeDetector = new SingleThreadedWorkspaceProjectStateChangeDetector(
-                singleThreadedDispatcher.InternalDispatcher,
+            InternalWorkspaceProjectStateChangeDetector = new ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
+                projectSnapshotManagerDispatcher.InternalDispatcher,
                 workspaceStateGenerator.InternalWorkspaceStateGenerator);
         }
 
@@ -38,23 +38,23 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             InternalWorkspaceProjectStateChangeDetector.Initialize(projectManager.InternalProjectSnapshotManager);
         }
 
-        private class SingleThreadedWorkspaceProjectStateChangeDetector : WorkspaceProjectStateChangeDetector
+        private class ProjectSnapshotManagerWorkspaceProjectStateChangeDetector : WorkspaceProjectStateChangeDetector
         {
-            private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+            private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
-            public SingleThreadedWorkspaceProjectStateChangeDetector(
-                SingleThreadedDispatcher singleThreadedDispatcher,
-                ProjectWorkspaceStateGenerator workspaceStateGenerator) : base(workspaceStateGenerator, singleThreadedDispatcher)
+            public ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+                ProjectWorkspaceStateGenerator workspaceStateGenerator) : base(workspaceStateGenerator, projectSnapshotManagerDispatcher)
             {
-                if (singleThreadedDispatcher is null)
+                if (projectSnapshotManagerDispatcher is null)
                 {
-                    throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                    throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
                 }
 
-                _singleThreadedDispatcher = singleThreadedDispatcher;
+                _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             }
 
-            // We override the InitializeSolution in order to enforce calls to this to be on the single-threaded dispatcher's
+            // We override the InitializeSolution in order to enforce calls to this to be on the project snapshot manager's
             // thread. OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
             // in change events dispatching through the Workspace on multiple different threads. This normalizes
             // that abnormality.
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             protected override async void InitializeSolution(Solution solution)
 #pragma warning restore VSTHRD100 // Avoid async void methods
             {
-                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
                         try
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                     CancellationToken.None);
             }
 
-            // We override Workspace_WorkspaceChanged in order to enforce calls to this to be on the single-threaded dispatcher's
+            // We override Workspace_WorkspaceChanged in order to enforce calls to this to be on the project snapshot manager's
             // thread. OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
             // in change events dispatching through the Workspace on multiple different threads. This normalizes
             // that abnormality.
@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             internal override async void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
 #pragma warning restore VSTHRD100 // Avoid async void methods
             {
-                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
                         try

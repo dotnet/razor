@@ -14,20 +14,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly RazorProjectService _projectService;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly Dictionary<string, string> _configurationToProjectMap;
         internal readonly Dictionary<string, DelayedProjectInfo> _projectInfoMap;
 
         public ProjectConfigurationStateSynchronizer(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             RazorProjectService projectService,
             FilePathNormalizer filePathNormalizer)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (projectService is null)
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectService = projectService;
             _filePathNormalizer = filePathNormalizer;
             _configurationToProjectMap = new Dictionary<string, string>(FilePathComparer.Instance);
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(args));
             }
 
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {

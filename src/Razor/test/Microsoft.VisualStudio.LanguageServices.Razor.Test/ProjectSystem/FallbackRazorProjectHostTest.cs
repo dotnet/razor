@@ -14,7 +14,7 @@ using ItemReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectS
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    public class FallbackRazorProjectHostTest : SingleThreadedDispatcherWorkspaceTestBase
+    public class FallbackRazorProjectHostTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
         public FallbackRazorProjectHostTest()
         {
@@ -638,10 +638,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             internal TestFallbackRazorProjectHost(
                 IUnconfiguredProjectCommonServices commonServices,
                 Workspace workspace,
-                SingleThreadedDispatcher singleThreadedDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
                 ProjectSnapshotManagerBase projectManager)
-                : base(commonServices, workspace, singleThreadedDispatcher, projectConfigurationFilePathStore, projectManager)
+                : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
             {
             }
 
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(SingleThreadedDispatcher dispatcher, Workspace workspace)
+            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, Workspace workspace)
                 : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Array.Empty<ProjectSnapshotChangeTrigger>(), workspace)
             {
             }

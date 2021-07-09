@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class EditorDocumentManagerBaseTest : SingleThreadedDispatcherTestBase
+    public class EditorDocumentManagerBaseTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public EditorDocumentManagerBaseTest()
         {
@@ -171,8 +171,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private class TestEditorDocumentManager : EditorDocumentManagerBase
         {
-            public TestEditorDocumentManager(SingleThreadedDispatcher singleThreadedDispatcher, JoinableTaskContext joinableTaskContext) 
-                : base(singleThreadedDispatcher, joinableTaskContext, new DefaultFileChangeTrackerFactory())
+            public TestEditorDocumentManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext) 
+                : base(projectSnapshotManagerDispatcher, joinableTaskContext, new DefaultFileChangeTrackerFactory())
             {
             }
 

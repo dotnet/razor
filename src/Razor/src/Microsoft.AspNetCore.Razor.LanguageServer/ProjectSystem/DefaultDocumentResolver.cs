@@ -10,18 +10,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 {
     internal class DefaultDocumentResolver : DocumentResolver
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ProjectResolver _projectResolver;
         private readonly FilePathNormalizer _filePathNormalizer;
 
         public DefaultDocumentResolver(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectResolver projectResolver,
             FilePathNormalizer filePathNormalizer)
         {
-            if (singleThreadedDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (projectResolver == null)
@@ -34,14 +34,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectResolver = projectResolver;
             _filePathNormalizer = filePathNormalizer;
         }
 
         public override bool TryResolveDocument(string documentFilePath, out DocumentSnapshot document)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var normalizedPath = _filePathNormalizer.Normalize(documentFilePath);
             if (!_projectResolver.TryResolveProject(normalizedPath, out var project))

@@ -30,22 +30,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             "IDE0005_gen", // Using directive is unnecessary
         };
 
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger _logger;
 
         public RazorDiagnosticsEndpoint(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             DocumentVersionCache documentVersionCache,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
-            if (singleThreadedDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver == null)
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _documentVersionCache = documentVersionCache;
             _documentMappingService = documentMappingService;
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
 

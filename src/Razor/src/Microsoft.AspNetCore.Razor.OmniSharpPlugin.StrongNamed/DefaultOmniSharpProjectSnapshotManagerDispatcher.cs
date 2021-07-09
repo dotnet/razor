@@ -7,11 +7,11 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
-    public class DefaultOmniSharpSingleThreadedDispatcher : OmniSharpSingleThreadedDispatcher
+    public class DefaultOmniSharpProjectSnapshotManagerDispatcher : OmniSharpProjectSnapshotManagerDispatcher
     {
-        public DefaultOmniSharpSingleThreadedDispatcher()
+        public DefaultOmniSharpProjectSnapshotManagerDispatcher()
         {
-            InternalDispatcher = new DefaultSingleThreadedDispatcher();
+            InternalDispatcher = new DefaultProjectSnapshotManagerDispatcher();
         }
 
         public override TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;

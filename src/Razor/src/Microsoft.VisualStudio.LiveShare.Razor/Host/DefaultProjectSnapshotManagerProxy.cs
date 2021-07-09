@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
     internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy, ICollaborationService, IDisposable
     {
         private readonly CollaborationSession _session;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly AsyncSemaphore _latestStateSemaphore;
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         public DefaultProjectSnapshotManagerProxy(
             CollaborationSession session,
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManager projectSnapshotManager,
             JoinableTaskFactory joinableTaskFactory)
         {
@@ -36,9 +36,9 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
                 throw new ArgumentNullException(nameof(session));
             }
 
-            if (singleThreadedDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (projectSnapshotManager == null)
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             }
 
             _session = session;
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectSnapshotManager = projectSnapshotManager;
             _joinableTaskFactory = joinableTaskFactory;
 
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         public void Dispose()
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             _projectSnapshotManager.Changed -= ProjectSnapshotManager_Changed;
             _latestStateSemaphore.Dispose();
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_disposed)
             {
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
         private void OnChanged(ProjectChangeEventProxyArgs args)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_disposed)
             {

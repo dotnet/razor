@@ -28,22 +28,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             TrimFinalNewlines = true
         };
 
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorFormattingService _razorFormattingService;
         private readonly DocumentVersionCache _documentVersionCache;
 
         public DefaultCSharpCodeActionResolver(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
             RazorFormattingService razorFormattingService,
             DocumentVersionCache documentVersionCache)
             : base(languageServer)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver is null)
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(documentVersionCache));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _razorFormattingService = razorFormattingService;
             _documentVersionCache = documentVersionCache;
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentSnapshot = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
                 return documentSnapshot;
@@ -134,7 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var documentVersion = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
                 return version;

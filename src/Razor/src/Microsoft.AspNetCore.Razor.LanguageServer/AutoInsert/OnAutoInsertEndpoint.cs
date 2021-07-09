@@ -16,21 +16,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
     internal class OnAutoInsertEndpoint : IOnAutoInsertHandler
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly AdhocWorkspaceFactory _workspaceFactory;
         private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
         private readonly Container<string> _onAutoInsertTriggerCharacters;
 
         public OnAutoInsertEndpoint(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider,
             AdhocWorkspaceFactory workspaceFactory)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver is null)
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 throw new ArgumentNullException(nameof(workspaceFactory));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _workspaceFactory = workspaceFactory;
             _onAutoInsertProviders = onAutoInsertProvider.ToList();
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public async Task<OnAutoInsertResponse> Handle(OnAutoInsertParams request, CancellationToken cancellationToken)
         {
-            var document = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 

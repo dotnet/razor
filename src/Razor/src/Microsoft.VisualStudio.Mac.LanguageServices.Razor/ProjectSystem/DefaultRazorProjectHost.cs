@@ -30,9 +30,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public DefaultRazorProjectHost(
             DotNetProject project,
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)
-            : base(project, singleThreadedDispatcher, projectSnapshotManager)
+            : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager)
         {
         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
             _currentRazorFilePaths = documentFilePaths;
 
-            _ = SingleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            _ = ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
               {
                   foreach (var document in removedFiles)
                   {

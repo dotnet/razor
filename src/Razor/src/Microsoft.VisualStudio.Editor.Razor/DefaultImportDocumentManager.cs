@@ -14,20 +14,20 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultImportDocumentManager : ImportDocumentManager
     {
         private readonly FileChangeTrackerFactory _fileChangeTrackerFactory;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ErrorReporter _errorReporter;
         private readonly Dictionary<string, ImportTracker> _importTrackerCache;
 
         public override event EventHandler<ImportChangedEventArgs> Changed;
 
         public DefaultImportDocumentManager(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ErrorReporter errorReporter,
             FileChangeTrackerFactory fileChangeTrackerFactory)
         {
-            if (singleThreadedDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (errorReporter == null)
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _errorReporter = errorReporter;
             _fileChangeTrackerFactory = fileChangeTrackerFactory;
             _importTrackerCache = new Dictionary<string, ImportTracker>(StringComparer.OrdinalIgnoreCase);
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(tracker));
             }
 
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var imports = GetImportItems(tracker);
             foreach (var import in imports)
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(tracker));
             }
 
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var imports = GetImportItems(tracker);
             foreach (var import in imports)
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void OnChanged(ImportTracker importTracker, FileChangeKind changeKind)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (Changed == null)
             {
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void FileChangeTracker_Changed(object sender, FileChangeEventArgs args)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_importTrackerCache.TryGetValue(args.FilePath, out var importTracker))
             {

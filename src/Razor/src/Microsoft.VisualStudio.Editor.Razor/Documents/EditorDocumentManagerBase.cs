@@ -22,13 +22,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         protected readonly object _lock;
 
         public EditorDocumentManagerBase(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext,
             FileChangeTrackerFactory fileChangeTrackerFactory)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
             }
 
-            SingleThreadedDispatcher = singleThreadedDispatcher;
+            ProjectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             JoinableTaskContext = joinableTaskContext;
             _fileChangeTrackerFactory = fileChangeTrackerFactory;
 
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _lock = new object();
         }
 
-        protected SingleThreadedDispatcher SingleThreadedDispatcher { get; }
+        protected ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; }
 
         protected JoinableTaskContext JoinableTaskContext { get; }
 
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 var textBuffer = GetTextBufferForOpenDocument(key.DocumentFilePath);
                 document = new EditorDocument(
                     this,
-                    SingleThreadedDispatcher,
+                    ProjectSnapshotManagerDispatcher,
                     JoinableTaskContext,
                     key.ProjectFilePath,
                     key.DocumentFilePath,

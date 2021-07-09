@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    public class DefaultProjectSnapshotManagerTest : SingleThreadedDispatcherWorkspaceTestBase
+    public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
         public DefaultProjectSnapshotManagerTest()
         {
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(SingleThreadedDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
+            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
                 : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
             {
             }

@@ -21,18 +21,18 @@ namespace Microsoft.CodeAnalysis.Razor
         // Internal for testing
         internal readonly Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)> _work;
 
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly RazorDynamicFileInfoProvider _infoProvider;
         private readonly HashSet<string> _suppressedDocuments;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
 
         [ImportingConstructor]
-        public BackgroundDocumentGenerator(SingleThreadedDispatcher singleThreadedDispatcher, RazorDynamicFileInfoProvider infoProvider)
+        public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorDynamicFileInfoProvider infoProvider)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (infoProvider is null)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(infoProvider));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _infoProvider = infoProvider;
             _suppressedDocuments = new HashSet<string>(FilePathComparer.Instance);
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_work)
             {
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Razor
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the workspace.
-                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () => _projectManager.ReportError(ex),
                     CancellationToken.None).ConfigureAwait(false);
             }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             OnErrorBeingReported();
 
-            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex, project),
                 CancellationToken.None);
         }

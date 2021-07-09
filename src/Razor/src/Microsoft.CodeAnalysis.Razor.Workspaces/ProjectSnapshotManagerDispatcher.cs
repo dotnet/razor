@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
-    internal abstract class SingleThreadedDispatcher
+    internal abstract class ProjectSnapshotManagerDispatcher
     {
         protected abstract bool IsDispatcherThread { get; }
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor
             if (!IsDispatcherThread)
             {
                 caller = caller is null ? "The method" : $"'{caller}'";
-                throw new InvalidOperationException(caller + " must be called on the single-threaded dispatcher's thread.");
+                throw new InvalidOperationException(caller + " must be called on the project snapshot manager's thread.");
             }
         }
     }

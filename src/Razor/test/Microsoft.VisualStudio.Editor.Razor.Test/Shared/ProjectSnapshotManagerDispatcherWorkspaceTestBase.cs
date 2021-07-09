@@ -6,9 +6,9 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Xunit
 {
-    public abstract class SingleThreadedDispatcherWorkspaceTestBase : WorkspaceTestBase
+    public abstract class ProjectSnapshotManagerDispatcherWorkspaceTestBase : WorkspaceTestBase
     {
-        internal SingleThreadedDispatcher Dispatcher { get; } = new TestSingleThreadedDispatcher();
+        internal ProjectSnapshotManagerDispatcher Dispatcher { get; } = new TestProjectSnapshotManagerDispatcher();
 
         internal static JoinableTaskFactory JoinableTaskFactory
         {

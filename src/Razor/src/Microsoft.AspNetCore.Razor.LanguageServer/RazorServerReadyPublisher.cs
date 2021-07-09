@@ -11,18 +11,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorServerReadyPublisher : ProjectSnapshotChangeTrigger
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
         private readonly ClientNotifierServiceBase _clientNotifierService;
         private bool _hasNotified = false;
 
         public RazorServerReadyPublisher(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ClientNotifierServiceBase clientNotifierService)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (clientNotifierService is null)
@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(clientNotifierService));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _clientNotifierService = clientNotifierService;
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private async void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var projectSnapshot = args.Newer;
             if (projectSnapshot?.ProjectWorkspaceState != null && !_hasNotified)

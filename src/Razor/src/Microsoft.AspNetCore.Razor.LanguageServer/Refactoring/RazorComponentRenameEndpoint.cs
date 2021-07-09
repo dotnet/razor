@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 {
     internal class RazorComponentRenameEndpoint : IRenameHandler
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
@@ -35,13 +35,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private RenameCapability _capability;
 
         public RazorComponentRenameEndpoint(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorComponentSearchEngine componentSearchEngine,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             LanguageServerFeatureOptions languageServerFeatureOptions)
         {
-            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var requestDocumentSnapshot = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var requestDocumentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
         private async Task<List<DocumentSnapshot>> GetAllDocumentSnapshotsAsync(DocumentSnapshot skipDocumentSnapshot, CancellationToken cancellationToken)
         {
-            return await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            return await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 var documentSnapshots = new List<DocumentSnapshot>();
                 var documentPaths = new HashSet<string>();

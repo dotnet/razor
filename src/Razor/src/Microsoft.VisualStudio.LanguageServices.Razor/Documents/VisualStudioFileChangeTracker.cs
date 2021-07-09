@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private readonly ErrorReporter _errorReporter;
         private readonly IVsAsyncFileChangeEx _fileChangeService;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
 
         // Internal for testing
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             string filePath,
             ErrorReporter errorReporter,
             IVsAsyncFileChangeEx fileChangeService,
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext)
         {
             if (string.IsNullOrEmpty(filePath))
@@ -49,9 +49,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(fileChangeService));
             }
 
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             FilePath = filePath;
             _errorReporter = errorReporter;
             _fileChangeService = fileChangeService;
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
         }
 
@@ -70,11 +70,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public override void StartListening()
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_fileChangeUnadviseTask?.IsCompleted == false)
             {
-                // An unadvise operation is still processing, block the single-threaded dispatcher's thread until it completes.
+                // An unadvise operation is still processing, block the project snapshot manager's thread until it completes.
                 _fileChangeUnadviseTask.Join();
             }
 
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public override void StopListening()
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_fileChangeAdviseTask == null || _fileChangeUnadviseTask?.IsCompleted == false)
             {

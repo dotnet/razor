@@ -15,14 +15,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
 
         public DefaultRazorComponentSearchEngine(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
-            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
         }
 
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var @namespaceName, out var typeName);
             var lookupSymbolName = RemoveGenericContent(typeName);
 
-            var projects = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectSnapshotManager.Projects.ToArray(),
                 CancellationToken.None).ConfigureAwait(false);
 

@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
-    public class RazorDirectiveCompletionSourceProviderTest : SingleThreadedDispatcherTestBase
+    public class RazorDirectiveCompletionSourceProviderTest : ProjectSnapshotManagerDispatcherTestBase
     {
         private IContentType RazorContentType { get; } = Mock.Of<IContentType>(c => c.IsOfType(RazorLanguage.ContentType) && c.IsOfType(RazorConstants.LegacyContentType), MockBehavior.Strict);
 

@@ -13,19 +13,19 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
     [Export(typeof(DotNetProjectHostFactory))]
     internal class DotNetProjectHostFactory
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly VisualStudioMacWorkspaceAccessor _workspaceAccessor;
         private readonly TextBufferProjectService _projectService;
 
         [ImportingConstructor]
         public DotNetProjectHostFactory(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             VisualStudioMacWorkspaceAccessor workspaceAccessor,
             TextBufferProjectService projectService)
         {
-            if (singleThreadedDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (workspaceAccessor == null)
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(projectService));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspaceAccessor = workspaceAccessor;
             _projectService = projectService;
         }
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(project));
             }
 
-            var projectHost = new DefaultDotNetProjectHost(project, _singleThreadedDispatcher, _workspaceAccessor, _projectService);
+            var projectHost = new DefaultDotNetProjectHost(project, _projectSnapshotManagerDispatcher, _workspaceAccessor, _projectService);
             return projectHost;
         }
     }

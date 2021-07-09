@@ -26,18 +26,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly FilePathNormalizer _filePathNormalizer;
 
         private static readonly Range StartOfDocumentRange = new Range(new Position(0, 0), new Position(0, 0));
 
         public ExtractToCodeBehindCodeActionResolver(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             FilePathNormalizer filePathNormalizer)
         {
-            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var path = _filePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
 
-            var document = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;

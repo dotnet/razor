@@ -13,14 +13,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly EditorSettingsManager _editorSettingsManager;
         private readonly EventHandler<EditorSettingsChangedEventArgs> _onChanged;
         private EventHandler<EditorSettingsChangedEventArgs> _changed;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private int _listenerCount = 0;
 
-        public DefaultWorkspaceEditorSettings(SingleThreadedDispatcher singleThreadedDispatcher, EditorSettingsManager editorSettingsManager)
+        public DefaultWorkspaceEditorSettings(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, EditorSettingsManager editorSettingsManager)
         {
-            if (singleThreadedDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (editorSettingsManager == null)
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(editorSettingsManager));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _editorSettingsManager = editorSettingsManager;
             _onChanged = OnChanged;
         }
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             add
             {
-                _singleThreadedDispatcher.AssertDispatcherThread();
+                _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
                 _listenerCount++;
                 _changed += value;
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
             remove
             {
-                _singleThreadedDispatcher.AssertDispatcherThread();
+                _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
                 _listenerCount--;
                 _changed -= value;
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnChanged(object sender, EditorSettingsChangedEventArgs e)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             Debug.Assert(_changed != null, nameof(OnChanged) + " should not be invoked when there are no listeners.");
 

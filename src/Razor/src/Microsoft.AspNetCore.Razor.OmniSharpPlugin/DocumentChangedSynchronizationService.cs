@@ -13,18 +13,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
     [Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
     internal class DocumentChangedSynchronizationService : IRazorDocumentChangeListener, IOmniSharpProjectSnapshotManagerChangeTrigger
     {
-        private readonly OmniSharpSingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private OmniSharpProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public DocumentChangedSynchronizationService(OmniSharpSingleThreadedDispatcher singleThreadedDispatcher)
+        public DocumentChangedSynchronizationService(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var projectFilePath = args.UnevaluatedProjectInstance.ProjectFileLocation.File;
             var documentFilePath = args.FilePath;
 
-            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.DocumentChanged(projectFilePath, documentFilePath),
                 CancellationToken.None).ConfigureAwait(false);
         }

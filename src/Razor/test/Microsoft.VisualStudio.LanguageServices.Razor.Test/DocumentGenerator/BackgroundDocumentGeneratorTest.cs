@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     // These tests are really integration tests. There isn't a good way to unit test this functionality since
     // the only thing in here is threading.
-    public class BackgroundDocumentGeneratorTest : SingleThreadedDispatcherWorkspaceTestBase
+    public class BackgroundDocumentGeneratorTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
         public BackgroundDocumentGeneratorTest()
         {

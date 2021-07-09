@@ -20,14 +20,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class CreateComponentCodeActionResolver : RazorCodeActionResolver
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
 
         public CreateComponentCodeActionResolver(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver)
         {
-            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var path = actionParams.Uri.GetAbsoluteOrUNCPath();
 
-            var document = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;

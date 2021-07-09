@@ -22,22 +22,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class RazorFormattingEndpoint : IDocumentFormattingHandler, IDocumentRangeFormattingHandler
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorFormattingService _razorFormattingService;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
         private readonly ILogger _logger;
 
         public RazorFormattingEndpoint(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorFormattingService razorFormattingService,
             IOptionsMonitor<RazorLSPOptions> optionsMonitor,
             ILoggerFactory loggerFactory)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver is null)
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _razorFormattingService = razorFormattingService;
             _optionsMonitor = optionsMonitor;
@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var document = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
@@ -124,7 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var document = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 

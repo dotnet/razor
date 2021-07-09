@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     internal sealed class EditorDocument : IDisposable
     {
         private readonly EditorDocumentManager _documentManager;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly FileChangeTracker _fileTracker;
         private readonly SnapshotChangeTracker _snapshotTracker;
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public EditorDocument(
             EditorDocumentManager documentManager,
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext,
             string projectFilePath,
             string documentFilePath,
@@ -47,9 +47,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(documentManager));
             }
 
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             _documentManager = documentManager;
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
             ProjectFilePath = projectFilePath;
             DocumentFilePath = documentFilePath;
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             // Only one of these should be active at a time.
             if (textBuffer == null)
             {
-                _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () => _fileTracker.StartListening(), CancellationToken.None);
             }
             else
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _fileTracker.StopListening(), CancellationToken.None);
 
             _snapshotTracker.StartTracking(textBuffer);
@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             EditorTextContainer = null;
             EditorTextBuffer = null;
 
-            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _fileTracker.StartListening(), CancellationToken.None);
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             {
                 _fileTracker.Changed -= ChangeTracker_Changed;
 
-                _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () => _fileTracker.StopListening(), CancellationToken.None);
 
                 if (EditorTextBuffer != null)

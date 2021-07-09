@@ -8,21 +8,21 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    internal class DefaultSingleThreadedDispatcher : SingleThreadedDispatcher
+    internal class DefaultProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
     {
         protected override bool IsDispatcherThread
-            => Thread.CurrentThread.ManagedThreadId == SingleThreadedTaskScheduler.Instance.ThreadId;
+            => Thread.CurrentThread.ManagedThreadId == ProjectSnapshotManagerTaskScheduler.Instance.ThreadId;
 
-        public override TaskScheduler DispatcherScheduler { get; } = SingleThreadedTaskScheduler.Instance;
+        public override TaskScheduler DispatcherScheduler { get; } = ProjectSnapshotManagerTaskScheduler.Instance;
 
-        internal class SingleThreadedTaskScheduler : TaskScheduler
+        internal class ProjectSnapshotManagerTaskScheduler : TaskScheduler
         {
-            public static SingleThreadedTaskScheduler Instance = new();
+            public static ProjectSnapshotManagerTaskScheduler Instance = new();
 
             private readonly Thread _thread;
             private readonly BlockingCollection<Task> _tasks = new();
 
-            private SingleThreadedTaskScheduler()
+            private ProjectSnapshotManagerTaskScheduler()
             {
                 _thread = new Thread(ThreadStart)
                 {

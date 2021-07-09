@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    public class VisualStudioMacFileChangeTrackerTest : SingleThreadedDispatcherTestBase
+    public class VisualStudioMacFileChangeTrackerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         [UIFact]
         public void StartListening_AdvisesForFileChange()
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         {
             public TestFileChangeTracker(
                 string filePath, 
-                SingleThreadedDispatcher singleThreadedDispatcher) : base(filePath, singleThreadedDispatcher)
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(filePath, projectSnapshotManagerDispatcher)
             {
             }
 

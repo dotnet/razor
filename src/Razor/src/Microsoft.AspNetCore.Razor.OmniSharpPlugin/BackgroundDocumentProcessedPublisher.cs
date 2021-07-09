@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         internal const string ActiveVirtualDocumentSuffix = "__virtual.cs";
         internal const string BackgroundVirtualDocumentSuffix = "__bg" + ActiveVirtualDocumentSuffix;
 
-        private readonly OmniSharpSingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly OmniSharpWorkspace _workspace;
         private readonly ILogger _logger;
         private OmniSharpProjectSnapshotManager _projectManager;
@@ -43,13 +43,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         [ImportingConstructor]
         public BackgroundDocumentProcessedPublisher(
-            OmniSharpSingleThreadedDispatcher singleThreadedDispatcher,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             OmniSharpWorkspace workspace,
             ILoggerFactory loggerFactory)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (workspace is null)
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspace = workspace;
             _logger = loggerFactory.CreateLogger<BackgroundDocumentProcessedPublisher>();
             _workspaceChangedLock = new object();
@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_workspaceChangedLock)
             {

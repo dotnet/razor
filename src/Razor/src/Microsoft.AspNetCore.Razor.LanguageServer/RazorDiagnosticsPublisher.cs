@@ -26,20 +26,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal Timer _documentClosedTimer;
 
         private static readonly TimeSpan CheckForDocumentClosedDelay = TimeSpan.FromSeconds(5);
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ITextDocumentLanguageServer _languageServer;
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private readonly ILogger<RazorDiagnosticsPublisher> _logger;
         private ProjectSnapshotManager _projectManager;
 
         public RazorDiagnosticsPublisher(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ITextDocumentLanguageServer languageServer,
             ILoggerFactory loggerFactory)
         {
-            if (singleThreadedDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (languageServer == null)
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _languageServer = languageServer;
             _publishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
             _work = new Dictionary<string, DocumentSnapshot>(FilePathComparer.Instance);
@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_work)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private async void DocumentClosedTimer_Tick(object state)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 ClearClosedDocuments,
                 CancellationToken.None);
         }

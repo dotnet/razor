@@ -16,10 +16,10 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     internal class VisualStudioMacEditorDocumentManager : EditorDocumentManagerBase
     {
         public VisualStudioMacEditorDocumentManager(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext,
             FileChangeTrackerFactory fileChangeTrackerFactory)
-            : base(singleThreadedDispatcher, joinableTaskContext, fileChangeTrackerFactory)
+            : base(projectSnapshotManagerDispatcher, joinableTaskContext, fileChangeTrackerFactory)
         {
         }
 

@@ -13,19 +13,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly IReadOnlyList<DocumentProcessedListener> _documentProcessedListeners;
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
 
         public OpenDocumentGenerator(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             IEnumerable<DocumentProcessedListener> documentProcessedListeners)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentProcessedListeners is null)
@@ -33,15 +33,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(documentProcessedListeners));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentProcessedListeners = documentProcessedListeners.ToArray();
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
         }
 
         // For testing only
-        protected OpenDocumentGenerator(SingleThreadedDispatcher singleThreadedDispatcher)
+        protected OpenDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
             _documentProcessedListeners = Array.Empty<DocumentProcessedListener>();
         }
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal void Enqueue(DocumentSnapshot document)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_projectManager.IsDocumentOpen(document.FilePath))
             {
@@ -197,7 +197,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 if (_documentProcessedListeners.Count != 0)
                 {
-                    await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                         () => NotifyDocumentsProcessed(work),
                         CancellationToken.None).ConfigureAwait(false);
                 }
@@ -241,7 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -303,7 +303,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ReportError(Exception ex)
         {
-            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
                 CancellationToken.None);
         }

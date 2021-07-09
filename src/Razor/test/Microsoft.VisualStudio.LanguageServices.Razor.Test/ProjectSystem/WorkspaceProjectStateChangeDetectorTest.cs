@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
     {
-        private static readonly SingleThreadedDispatcher Dispatcher = new DefaultSingleThreadedDispatcher();
+        private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new DefaultProjectSnapshotManagerDispatcher();
 
         public WorkspaceProjectStateChangeDetectorTest()
         {
@@ -650,10 +650,10 @@ namespace Microsoft.AspNetCore.Components
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
             public TestProjectSnapshotManager(
-                SingleThreadedDispatcher singleThreadedDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<ProjectSnapshotChangeTrigger> triggers,
                 Workspace workspace)
-                : base(singleThreadedDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
+                : base(projectSnapshotManagerDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
             {
             }
         }

@@ -13,19 +13,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
         private FileSystemWatcher _watcher;
 
         public ProjectConfigurationFileChangeDetector(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             FilePathNormalizer filePathNormalizer,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (filePathNormalizer is null)
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(listeners));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
         }
@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             workspaceDirectory = _filePathNormalizer.Normalize(workspaceDirectory);
             var existingConfigurationFiles = GetExistingConfigurationFiles(workspaceDirectory);
 
-            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 foreach (var configurationFilePath in existingConfigurationFiles)
                 {
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void FileSystemWatcher_ProjectConfigurationFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
         {
-            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => FileSystemWatcher_ProjectConfigurationFileEvent(physicalFilePath, kind),
                 CancellationToken.None);
         }

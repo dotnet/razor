@@ -169,16 +169,16 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         {
             public TestProjectSnapshotManager(Workspace workspace)
                 : base(
-                      CreateSingleThreadedDispatcher(),
+                      CreateProjectSnapshotManagerDispatcher(),
                       Mock.Of<ErrorReporter>(MockBehavior.Strict),
                       Enumerable.Empty<ProjectSnapshotChangeTrigger>(),
                       workspace)
             {
             }
 
-            private static SingleThreadedDispatcher CreateSingleThreadedDispatcher()
+            private static ProjectSnapshotManagerDispatcher CreateProjectSnapshotManagerDispatcher()
             {
-                var dispatcher = new Mock<SingleThreadedDispatcher>(MockBehavior.Strict);
+                var dispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
                 dispatcher.Setup(d => d.AssertDispatcherThread(It.IsAny<string>())).Verifiable();
                 dispatcher.Setup(d => d.DispatcherScheduler).Returns(TaskScheduler.FromCurrentSynchronizationContext());
                 return dispatcher.Object;

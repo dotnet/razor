@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private class TestBackgroundDocumentGenerator : BackgroundDocumentGenerator
         {
-            public TestBackgroundDocumentGenerator(SingleThreadedDispatcher singleThreadedDispatcher) : base(singleThreadedDispatcher)
+            public TestBackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(projectSnapshotManagerDispatcher)
             {
             }
         }

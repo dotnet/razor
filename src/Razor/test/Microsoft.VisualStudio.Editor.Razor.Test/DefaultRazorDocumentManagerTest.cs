@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultRazorDocumentManagerTest : SingleThreadedDispatcherTestBase
+    public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         private JoinableTaskContext JoinableTaskContext => JoinableTaskFactory.Context;
 

@@ -10,9 +10,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
-    internal class TestSingleThreadedDispatcher : SingleThreadedDispatcher
+    internal class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
     {
-        public TestSingleThreadedDispatcher()
+        public TestProjectSnapshotManagerDispatcher()
         {
             DispatcherScheduler = SynchronizationContext.Current == null
                 ? new ThrowingTaskScheduler()

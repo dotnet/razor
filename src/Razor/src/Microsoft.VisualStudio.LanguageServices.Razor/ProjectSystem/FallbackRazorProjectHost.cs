@@ -38,19 +38,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public FallbackRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
-            : base(commonServices, workspace, singleThreadedDispatcher, projectConfigurationFilePathStore)
+            : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
         }
 
         internal FallbackRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             ProjectSnapshotManagerBase projectManager)
-            : base(commonServices, workspace, singleThreadedDispatcher, projectConfigurationFilePathStore, projectManager)
+            : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
         {
         }
 

@@ -23,13 +23,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class AddUsingsCodeActionResolver : RazorCodeActionResolver
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
 
-        public AddUsingsCodeActionResolver(SingleThreadedDispatcher singleThreadedDispatcher, DocumentResolver documentResolver)
+        public AddUsingsCodeActionResolver(
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver)
         {
-            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentResolver is null)
+            {
+                throw new ArgumentNullException(nameof(documentResolver));
+            }
+
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _documentResolver = documentResolver;
         }
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
@@ -49,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var path = actionParams.Uri.GetAbsoluteOrUNCPath();
 
-            var documentSnapshot = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;

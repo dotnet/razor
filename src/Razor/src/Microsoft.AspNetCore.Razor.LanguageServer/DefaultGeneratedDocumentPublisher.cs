@@ -20,17 +20,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly Dictionary<string, PublishData> _publishedHtmlData;
         private readonly IClientLanguageServer _server;
         private readonly ILogger _logger;
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
         public DefaultGeneratedDocumentPublisher(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             IClientLanguageServer server,
             ILoggerFactory loggerFactory)
         {
-            if (singleThreadedDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (server is null)
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _server = server;
             _logger = loggerFactory.CreateLogger<DefaultGeneratedDocumentPublisher>();
             _publishedCSharpData = new Dictionary<string, PublishData>(FilePathComparer.Instance);
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_publishedCSharpData.TryGetValue(filePath, out var previouslyPublishedData))
             {
@@ -123,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_publishedHtmlData.TryGetValue(filePath, out var previouslyPublishedData))
             {
@@ -167,7 +167,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -178,12 +178,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         if (_publishedCSharpData.ContainsKey(args.DocumentFilePath))
                         {
                             var removed = _publishedCSharpData.Remove(args.DocumentFilePath);
-                            Debug.Assert(removed, "Published data should be protected by the single-threaded dispatcher's thread and should never fail to remove.");
+                            Debug.Assert(removed, "Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
                         }
                         if (_publishedHtmlData.ContainsKey(args.DocumentFilePath))
                         {
                             var removed = _publishedHtmlData.Remove(args.DocumentFilePath);
-                            Debug.Assert(removed, "Published data should be protected by the single-threaded dispatcher's thread and should never fail to remove.");
+                            Debug.Assert(removed, "Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
                         }
                     }
                     break;

@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
-    public abstract class OmniSharpSingleThreadedDispatcher
+    public abstract class OmniSharpProjectSnapshotManagerDispatcher
     {
-        internal SingleThreadedDispatcher InternalDispatcher { get; private protected set; }
+        internal ProjectSnapshotManagerDispatcher InternalDispatcher { get; private protected set; }
 
         public abstract TaskScheduler DispatcherScheduler { get; }
 

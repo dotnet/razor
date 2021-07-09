@@ -155,9 +155,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestRazorFileChangeDetector(
                 CancellationTokenSource cancellationTokenSource,
-                SingleThreadedDispatcher singleThreadedDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IRazorFileChangeListener> listeners,
-                IReadOnlyList<string> existingprojectFiles) : base(singleThreadedDispatcher, new FilePathNormalizer(), listeners)
+                IReadOnlyList<string> existingprojectFiles) : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingProjectFiles = existingprojectFiles;

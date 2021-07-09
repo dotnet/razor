@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultVisualStudioRazorParserTest : SingleThreadedDispatcherTestBase
+    public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public DefaultVisualStudioRazorParserTest()
         {

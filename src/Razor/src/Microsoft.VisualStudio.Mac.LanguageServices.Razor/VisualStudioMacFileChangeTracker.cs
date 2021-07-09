@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
     internal class VisualStudioMacFileChangeTracker : FileChangeTracker
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly string _normalizedFilePath;
         private bool _listening;
 
@@ -18,28 +18,28 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public VisualStudioMacFileChangeTracker(
             string filePath,
-            SingleThreadedDispatcher singleThreadedDispatcher)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
             if (string.IsNullOrEmpty(filePath))
             {
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
             }
 
-            if (singleThreadedDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             FilePath = filePath;
             _normalizedFilePath = NormalizePath(FilePath);
-            _singleThreadedDispatcher = singleThreadedDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
         public override string FilePath { get; }
 
         public override void StartListening()
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_listening)
             {
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public override void StopListening()
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_listening)
             {
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         private void HandleFileChangeEvent(FileChangeKind changeKind, FileEventArgs args)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (Changed == null)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         private void OnChanged(FileChangeKind changeKind)
         {
-            _singleThreadedDispatcher.AssertDispatcherThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var args = new FileChangeEventArgs(FilePath, changeKind);
             Changed?.Invoke(this, args);

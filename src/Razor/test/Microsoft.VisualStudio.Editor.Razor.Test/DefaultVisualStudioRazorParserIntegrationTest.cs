@@ -20,7 +20,7 @@ using SystemDebugger = System.Diagnostics.Debugger;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultVisualStudioRazorParserIntegrationTest : SingleThreadedDispatcherTestBase
+    public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
     {
         private const string TestLinePragmaFileName = "C:\\This\\Path\\Is\\Just\\For\\Line\\Pragmas.cshtml";
         private const string TestProjectPath = "C:\\This\\Path\\Is\\Just\\For\\Project.csproj";

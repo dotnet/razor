@@ -21,18 +21,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
     internal class RazorDefinitionEndpoint : IDefinitionHandler
     {
-        private readonly SingleThreadedDispatcher _singleThreadedDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
 
         private DefinitionCapability _capability { get; set; }
 
         public RazorDefinitionEndpoint(
-            SingleThreadedDispatcher singleThreadedDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorComponentSearchEngine componentSearchEngine)
         {
-            _singleThreadedDispatcher = singleThreadedDispatcher ?? throw new ArgumentNullException(nameof(singleThreadedDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
         }
@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentSnapshot = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
