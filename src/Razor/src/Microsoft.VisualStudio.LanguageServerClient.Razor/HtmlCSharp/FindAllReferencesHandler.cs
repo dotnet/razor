@@ -261,18 +261,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static object FilterReferenceDisplayText(object referenceText)
         {
-            const string codeBehindObjectPrefix = "__o = ";
-            const string codeBehindBackingFieldSuffix = "k__BackingField";
+            const string CodeBehindObjectPrefix = "__o = ";
+            const string CodeBehindBackingFieldSuffix = "k__BackingField";
 
             if (referenceText is string text)
             {
-                if (text.StartsWith(codeBehindObjectPrefix, StringComparison.Ordinal))
+                if (text.StartsWith(CodeBehindObjectPrefix, StringComparison.Ordinal))
                 {
                     return text
-                        .Substring(codeBehindObjectPrefix.Length, text.Length - codeBehindObjectPrefix.Length - 1); // -1 for trailing `;`
+                        .Substring(CodeBehindObjectPrefix.Length, text.Length - CodeBehindObjectPrefix.Length - 1); // -1 for trailing `;`
                 }
 
-                return text.Replace(codeBehindBackingFieldSuffix, string.Empty);
+                return text.Replace(CodeBehindBackingFieldSuffix, string.Empty);
             }
 
             if (referenceText is ClassifiedTextElement textElement &&

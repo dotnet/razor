@@ -194,7 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var sourceDocument = text.GetRazorSourceDocument(path, path);
 
             // Yes I know "BlazorServer_31 is weird, but thats what is in the taghelpers.json file
-            const string defaultImports = @"
+            const string DefaultImports = @"
 @using BlazorServer_31
 @using BlazorServer_31.Pages
 @using BlazorServer_31.Shared
@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 ";
 
             var importsPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
-            var importsSourceText = SourceText.From(defaultImports);
+            var importsSourceText = SourceText.From(DefaultImports);
             var importsDocument = importsSourceText.GetRazorSourceDocument(importsPath, importsPath);
             var importsSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
             importsSnapshot.Setup(d => d.GetTextAsync()).Returns(Task.FromResult(importsSourceText));
