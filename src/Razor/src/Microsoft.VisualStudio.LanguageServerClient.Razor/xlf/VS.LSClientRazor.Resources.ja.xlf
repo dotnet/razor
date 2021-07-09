@@ -12,6 +12,11 @@
         <target state="translated">近接式を判別しています...</target>
         <note />
       </trans-unit>
+      <trans-unit id="View Code">
+        <source>View Code</source>
+        <target state="new">View Code</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

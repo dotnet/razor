@@ -19,6 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public const string RazorFileExtension = ".razor";
 
+        public const string CSharpFileExtension = ".cs";
+
         public const string CSharpContentTypeName = "CSharp";
 
         public const string HtmlLSPContentTypeName = "html-delegation";
