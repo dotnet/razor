@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
     [Collection("RazorBaselineIntegrationTestSerialRuns")]
     public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBase
     {
-        private static readonly AsyncLocal<string> _directoryPath = new AsyncLocal<string>();
+        private static readonly AsyncLocal<string> s_directoryPath = new AsyncLocal<string>();
 
         protected RazorBaselineIntegrationTestBase(bool? generateBaselines = null)
         {
@@ -35,8 +35,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         // Used by the test framework to set the directory for test files.
         public static string DirectoryPath
         {
-            get { return _directoryPath.Value; }
-            set { _directoryPath.Value = value; }
+            get { return s_directoryPath.Value; }
+            set { s_directoryPath.Value = value; }
         }
 
 #if GENERATE_BASELINES

@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
     {
         private const string ComponentName = "Razor";
 
-        private static readonly ImmutableArray<JsonConverter> JsonConverters = new JsonConverterCollection()
+        private static readonly ImmutableArray<JsonConverter> s_jsonConverters = new JsonConverterCollection()
             .RegisterRazorConverters()
             .ToImmutableArray();
 
-        public static readonly RazorServiceDescriptorsWrapper TagHelperProviderServiceDescriptors = new RazorServiceDescriptorsWrapper(ComponentName, _ => "Razor TagHelper Provider", JsonConverters, new (Type, Type?)[] { (typeof(IRemoteTagHelperProviderService), null) });
+        public static readonly RazorServiceDescriptorsWrapper TagHelperProviderServiceDescriptors = new RazorServiceDescriptorsWrapper(ComponentName, _ => "Razor TagHelper Provider", s_jsonConverters, new (Type, Type?)[] { (typeof(IRemoteTagHelperProviderService), null) });
     }
 }

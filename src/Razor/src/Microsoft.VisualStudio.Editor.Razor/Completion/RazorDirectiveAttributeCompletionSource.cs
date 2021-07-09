@@ -27,12 +27,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         // Hardcoding the Guid here to avoid a reference to Microsoft.VisualStudio.ImageCatalog.dll
         // that is not present in Visual Studio for Mac
-        private static readonly Guid ImageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
-        private static readonly ImageElement DirectiveAttributeImageGlyph = new ImageElement(
-            new ImageId(ImageCatalogGuid, 3564), // KnownImageIds.Type = 3564
+        private static readonly Guid s_imageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+        private static readonly ImageElement s_directiveAttributeImageGlyph = new ImageElement(
+            new ImageId(s_imageCatalogGuid, 3564), // KnownImageIds.Type = 3564
             "Razor Directive Attribute.");
-        private static readonly ImmutableArray<CompletionFilter> DirectiveAttributeCompletionFilters = new[] {
-            new CompletionFilter("Razor Directive Attrsibute", "r", DirectiveAttributeImageGlyph)
+        private static readonly ImmutableArray<CompletionFilter> s_directiveAttributeCompletionFilters = new[] {
+            new CompletionFilter("Razor Directive Attrsibute", "r", s_directiveAttributeImageGlyph)
         }.ToImmutableArray();
 
         private readonly VisualStudioRazorParser _parser;
@@ -133,8 +133,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                         filterText: razorCompletionItem.DisplayText,
                         insertText: razorCompletionItem.InsertText,
                         source: this,
-                        icon: DirectiveAttributeImageGlyph,
-                        filters: DirectiveAttributeCompletionFilters,
+                        icon: s_directiveAttributeImageGlyph,
+                        filters: s_directiveAttributeCompletionFilters,
                         suffix: string.Empty,
                         sortText: razorCompletionItem.DisplayText,
                         attributeIcons: ImmutableArray<ImageElement>.Empty);

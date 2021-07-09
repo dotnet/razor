@@ -19,13 +19,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public class OptimizedCompletionListJsonConverter : JsonConverter
         {
             public static readonly OptimizedCompletionListJsonConverter Instance = new OptimizedCompletionListJsonConverter();
-            private static readonly ConcurrentDictionary<object, string> CommitCharactersRawJson;
-            private static readonly JsonSerializer DefaultSerializer;
+            private static readonly ConcurrentDictionary<object, string> s_commitCharactersRawJson;
+            private static readonly JsonSerializer s_defaultSerializer;
 
             static OptimizedCompletionListJsonConverter()
             {
-                DefaultSerializer = JsonSerializer.CreateDefault();
-                CommitCharactersRawJson = new ConcurrentDictionary<object, string>();
+                s_defaultSerializer = JsonSerializer.CreateDefault();
+                s_commitCharactersRawJson = new ConcurrentDictionary<object, string>();
             }
 
             public override bool CanConvert(Type objectType)
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
-                var result = DefaultSerializer.Deserialize(reader, objectType);
+                var result = s_defaultSerializer.Deserialize(reader, objectType);
                 return result;
             }
 
@@ -150,10 +150,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 {
                     writer.WritePropertyName("commitCharacters");
 
-                    if (!CommitCharactersRawJson.TryGetValue(completionItem.CommitCharacters, out var jsonString))
+                    if (!s_commitCharactersRawJson.TryGetValue(completionItem.CommitCharacters, out var jsonString))
                     {
                         jsonString = JsonConvert.SerializeObject(completionItem.CommitCharacters);
-                        CommitCharactersRawJson.TryAdd(completionItem.CommitCharacters, jsonString);
+                        s_commitCharactersRawJson.TryAdd(completionItem.CommitCharacters, jsonString);
                     }
 
                     writer.WriteRawValue(jsonString);

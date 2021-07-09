@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     public class DefaultLSPProgressListenerTest
     {
         // Long timeout after last notification to avoid triggering even in slow CI environments
-        private static readonly TimeSpan NotificationTimeout = TimeSpan.FromSeconds(20);
+        private static readonly TimeSpan s_notificationTimeout = TimeSpan.FromSeconds(20);
 
         [Fact]
         public void TryListenForProgress_ReturnsTrue()
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
                 onProgressNotifyAsync: async (value, ct) => await Task.Delay(1).ConfigureAwait(false),
-                delayAfterLastNotifyAsync: cancellationToken => Task.Delay(NotificationTimeout, cancellationToken),
+                delayAfterLastNotifyAsync: cancellationToken => Task.Delay(s_notificationTimeout, cancellationToken),
                 cts.Token,
                 out var onCompleted);
 
@@ -61,13 +61,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _ = lspProgressListener.TryListenForProgress(
                 token,
                 onProgressNotifyAsync: async (value, ct) => await Task.Delay(1).ConfigureAwait(false),
-                delayAfterLastNotifyAsync: cancellationToken => Task.Delay(NotificationTimeout, cancellationToken),
+                delayAfterLastNotifyAsync: cancellationToken => Task.Delay(s_notificationTimeout, cancellationToken),
                 cts.Token,
                 out _);
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
                 onProgressNotifyAsync: async (value, ct) => await Task.Delay(1).ConfigureAwait(false),
-                delayAfterLastNotifyAsync: cancellationToken => Task.Delay(NotificationTimeout, cancellationToken),
+                delayAfterLastNotifyAsync: cancellationToken => Task.Delay(s_notificationTimeout, cancellationToken),
                 cts.Token,
                 out var onCompleted);
 
@@ -178,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
                 onProgressNotifyAsync: onProgressNotifyAsync,
-                delayAfterLastNotifyAsync: cancellationToken => DelayAfterLastNotifyAsync(NotificationTimeout, completedTokenSource.Token, cancellationToken),
+                delayAfterLastNotifyAsync: cancellationToken => DelayAfterLastNotifyAsync(s_notificationTimeout, completedTokenSource.Token, cancellationToken),
                 cts.Token,
                 out var onCompleted);
 
@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
                 onProgressNotifyAsync: onProgressNotifyAsync,
-                delayAfterLastNotifyAsync: cancellationToken => DelayAfterLastNotifyAsync(NotificationTimeout, completedTokenSource.Token, cancellationToken),
+                delayAfterLastNotifyAsync: cancellationToken => DelayAfterLastNotifyAsync(s_notificationTimeout, completedTokenSource.Token, cancellationToken),
                 cts.Token,
                 out var onCompleted);
 

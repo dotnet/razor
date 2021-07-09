@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectDifference.DocumentAdded |
             ProjectDifference.DocumentRemoved;
 
-        private static readonly ImmutableDictionary<string, DocumentState> EmptyDocuments = ImmutableDictionary.Create<string, DocumentState>(FilePathComparer.Instance);
-        private static readonly ImmutableDictionary<string, ImmutableArray<string>> EmptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathComparer.Instance);
-        private static readonly IReadOnlyList<TagHelperDescriptor> EmptyTagHelpers = Array.Empty<TagHelperDescriptor>();
+        private static readonly ImmutableDictionary<string, DocumentState> s_emptyDocuments = ImmutableDictionary.Create<string, DocumentState>(FilePathComparer.Instance);
+        private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathComparer.Instance);
+        private static readonly IReadOnlyList<TagHelperDescriptor> s_emptyTagHelpers = Array.Empty<TagHelperDescriptor>();
         private readonly object _lock;
 
         private RazorProjectEngine _projectEngine;
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Services = services;
             HostProject = hostProject;
             ProjectWorkspaceState = projectWorkspaceState;
-            Documents = EmptyDocuments;
-            ImportsToRelatedDocuments = EmptyImportsToRelatedDocuments;
+            Documents = s_emptyDocuments;
+            ImportsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
             Version = VersionStamp.Create();
             DocumentCollectionVersion = Version;
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public HostWorkspaceServices Services { get; }
 
-        public IReadOnlyList<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState?.TagHelpers ?? EmptyTagHelpers;
+        public IReadOnlyList<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState?.TagHelpers ?? s_emptyTagHelpers;
 
         public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState?.CSharpLanguageVersion ?? LanguageVersion.Default;
 
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithConfigurationChange(), FilePathComparer.Instance);
 
             // If the host project has changed then we need to recompute the imports map
-            var importsToRelatedDocuments = EmptyImportsToRelatedDocuments;
+            var importsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
 
             foreach (var document in documents)
             {

@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorFileChangeDetector : IFileChangeDetector
     {
-        private static readonly IReadOnlyList<string> RazorFileExtensions = new[] { ".razor", ".cshtml" };
+        private static readonly IReadOnlyList<string> s_razorFileExtensions = new[] { ".razor", ".cshtml" };
 
         // Internal for testing
         internal readonly Dictionary<string, DelayedFileChangeNotification> _pendingNotifications;
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _foregroundDispatcher = foregroundDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
-            _watchers = new List<FileSystemWatcher>(RazorFileExtensions.Count);
+            _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Count);
             _pendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
         }
 
@@ -94,9 +94,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Start listening for project file changes (added/removed/renamed).
 
-            for (var i = 0; i < RazorFileExtensions.Count; i++)
+            for (var i = 0; i < s_razorFileExtensions.Count; i++)
             {
-                var extension = RazorFileExtensions[i];
+                var extension = s_razorFileExtensions[i];
                 var watcher = new RazorFileSystemWatcher(workspaceDirectory, "*" + extension)
                 {
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
@@ -149,9 +149,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         protected virtual IReadOnlyList<string> GetExistingRazorFiles(string workspaceDirectory)
         {
             var existingRazorFiles = Enumerable.Empty<string>();
-            for (var i = 0; i < RazorFileExtensions.Count; i++)
+            for (var i = 0; i < s_razorFileExtensions.Count; i++)
             {
-                var extension = RazorFileExtensions[i];
+                var extension = s_razorFileExtensions[i];
                 var existingFiles = Directory.GetFiles(workspaceDirectory, "*" + extension, SearchOption.AllDirectories);
                 existingRazorFiles = existingRazorFiles.Concat(existingFiles);
             }

@@ -19,13 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     public class RazorLSPSpanMappingServiceTest
     {
-        private readonly Uri MockDocumentUri = new Uri("C://project/path/document.razor");
+        private readonly Uri _mockDocumentUri = new Uri("C://project/path/document.razor");
 
-        private static readonly string MockGeneratedContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
-        private static readonly string MockRazorContent = $"Hello {Environment.NewLine} This is the {Environment.NewLine} source text {Environment.NewLine} in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
+        private static readonly string s_mockGeneratedContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
+        private static readonly string s_mockRazorContent = $"Hello {Environment.NewLine} This is the {Environment.NewLine} source text {Environment.NewLine} in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
 
-        private readonly SourceText SourceTextGenerated = SourceText.From(MockGeneratedContent);
-        private readonly SourceText SourceTextRazor = SourceText.From(MockRazorContent);
+        private readonly SourceText SourceTextGenerated = SourceText.From(s_mockGeneratedContent);
+        private readonly SourceText SourceTextRazor = SourceText.From(s_mockRazorContent);
 
         [Fact]
         public async Task MapSpans_WithinRange_ReturnsMapping()
@@ -37,9 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var spans = new TextSpan[] { textSpan };
 
             var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshot.SetupGet(doc => doc.Uri).Returns(MockDocumentUri);
+            documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
 
-            var textSnapshot = new StringTextSnapshot(MockGeneratedContent, 1);
+            var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
             var textSpanAsRange = textSpan.AsLSPRange(SourceTextGenerated);
             var mappedRange = new Range()
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, Uri, ranges, ct) =>
                 {
                     Assert.Equal(RazorLanguageKind.CSharp, languageKind);
-                    Assert.Equal(MockDocumentUri, Uri);
+                    Assert.Equal(_mockDocumentUri, Uri);
                     Assert.Single(ranges, textSpanAsRange);
                     called = true;
                 })
@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var expectedSpan = mappedRange.AsTextSpan(SourceTextRazor);
             var expectedLinePosition = SourceTextRazor.Lines.GetLinePositionSpan(expectedSpan);
-            var expectedFilePath = MockDocumentUri.LocalPath;
+            var expectedFilePath = _mockDocumentUri.LocalPath;
             var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
 
             // Act
@@ -88,9 +88,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var spans = new TextSpan[] { textSpan };
 
             var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshot.SetupGet(doc => doc.Uri).Returns(MockDocumentUri);
+            documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
 
-            var textSnapshot = new StringTextSnapshot(MockGeneratedContent, 1);
+            var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
             var textSpanAsRange = textSpan.AsLSPRange(SourceTextGenerated);
 
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, Uri, ranges, ct) =>
                 {
                     Assert.Equal(RazorLanguageKind.CSharp, languageKind);
-                    Assert.Equal(MockDocumentUri, Uri);
+                    Assert.Equal(_mockDocumentUri, Uri);
                     Assert.Single(ranges, textSpanAsRange);
                     called = true;
                 })
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshot.SetupGet(doc => doc.Uri).Returns(MockDocumentUri);
+            documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
             var sourceTextRazor = SourceText.From("");
             var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { RangeExtensions.UndefinedRange } };
 

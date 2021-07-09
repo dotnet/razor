@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
 {
     internal static class TypeNameStringResolver
     {
-        private static readonly IReadOnlyDictionary<string, string> PrimitiveDisplayTypeNameLookups = new Dictionary<string, string>(StringComparer.Ordinal)
+        private static readonly IReadOnlyDictionary<string, string> s_primitiveDisplayTypeNameLookups = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             [typeof(byte).FullName] = "byte",
             [typeof(sbyte).FullName] = "sbyte",
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
                 throw new ArgumentNullException(nameof(typeName));
             }
 
-            if (PrimitiveDisplayTypeNameLookups.TryGetValue(typeName, out var simpleName))
+            if (s_primitiveDisplayTypeNameLookups.TryGetValue(typeName, out var simpleName))
             {
                 resolvedName = simpleName;
                 return true;

@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
     internal abstract class TagHelperTooltipFactoryBase
     {
-        private static readonly IReadOnlyList<char> NewLineChars = new char[] { '\n', '\r' };
+        private static readonly IReadOnlyList<char> s_newLineChars = new char[] { '\n', '\r' };
 
         // Internal for testing
         internal static string ReduceCrefValue(string value)
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 return false;
             }
 
-            documentation = documentation.Trim(NewLineChars.ToArray());
+            documentation = documentation.Trim(s_newLineChars.ToArray());
 
             var summaryTagStart = documentation.IndexOf(summaryStartTag, StringComparison.OrdinalIgnoreCase);
             var summaryTagEndStart = documentation.IndexOf(summaryEndTag, StringComparison.OrdinalIgnoreCase);

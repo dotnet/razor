@@ -561,7 +561,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
         private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher
         {
-            private static readonly Mock<LSPEditorFeatureDetector> _lspEditorFeatureDetector = new Mock<LSPEditorFeatureDetector>(MockBehavior.Strict);
+            private static readonly Mock<LSPEditorFeatureDetector> s_lspEditorFeatureDetector = new Mock<LSPEditorFeatureDetector>(MockBehavior.Strict);
 
             private readonly Action<ProjectSnapshot, string> _onSerializeToFile;
 
@@ -570,7 +570,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             static TestDefaultRazorProjectChangePublisher()
             {
-                _lspEditorFeatureDetector
+                s_lspEditorFeatureDetector
                     .Setup(t => t.IsLSPEditorAvailable())
                     .Returns(true);
             }
@@ -581,7 +581,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 Action<ProjectSnapshot, string> onSerializeToFile = null,
                 bool shouldSerialize = true,
                 bool useRealShouldSerialize = false)
-                : base(_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestServiceProvider(), logger)
+                : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestServiceProvider(), logger)
             {
                 _onSerializeToFile = onSerializeToFile ?? ((_, __) => throw new XunitException("SerializeToFile should not have been called."));
                 _shouldSerialize = shouldSerialize;

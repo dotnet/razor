@@ -18,8 +18,8 @@ namespace Microsoft.AspNetCore.BenchmarkDotNet.Runner
 {
     partial class Program
     {
-        private static TextWriter _standardOutput;
-        private static StringBuilder _standardOutputText;
+        private static TextWriter s_standardOutput;
+        private static StringBuilder s_standardOutputText;
 
         static partial void BeforeMain(string[] args);
 
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.BenchmarkDotNet.Runner
 
         private static int Fail(object o, string message)
         {
-            _standardOutput?.WriteLine(_standardOutputText.ToString());
+            s_standardOutput?.WriteLine(s_standardOutputText.ToString());
 
             Console.Error.WriteLine("'{0}' failed, reason: '{1}'", o, message);
             return 1;
@@ -113,9 +113,9 @@ namespace Microsoft.AspNetCore.BenchmarkDotNet.Runner
 
         private static void SuppressConsole()
         {
-            _standardOutput = Console.Out;
-            _standardOutputText = new StringBuilder();
-            Console.SetOut(new StringWriter(_standardOutputText));
+            s_standardOutput = Console.Out;
+            s_standardOutputText = new StringBuilder();
+            Console.SetOut(new StringWriter(s_standardOutputText));
         }
     }
 }

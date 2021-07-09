@@ -381,16 +381,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private static bool _haveAsserted = false;
+        private static bool s_haveAsserted = false;
 
         private static bool IsRangeWithinDocument(Range range, SourceText sourceText)
         {
             // This might happen when the document that ranges were created against was not the same as the document we're consulting.
             var result = IsPositionWithinDocument(range.Start, sourceText) && IsPositionWithinDocument(range.End, sourceText);
 
-            if(!_haveAsserted && !result)
+            if(!s_haveAsserted && !result)
             {
-                _haveAsserted = true;
+                s_haveAsserted = true;
                 Debug.Fail($"Attempted to map a range {range} outside of the Source (line count {sourceText.Lines.Count}.) This could happen if the Roslyn and Razor LSP servers are not in sync.");
             }
 

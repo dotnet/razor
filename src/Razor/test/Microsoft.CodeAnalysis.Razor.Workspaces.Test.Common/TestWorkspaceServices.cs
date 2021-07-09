@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal class TestWorkspaceServices : HostWorkspaceServices
     {
-        private static readonly Workspace DefaultWorkspace = TestWorkspace.Create();
+        private static readonly Workspace s_defaultWorkspace = TestWorkspace.Create();
 
         private readonly HostServices _hostServices;
         private readonly HostLanguageServices _razorLanguageServices;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Host
             if (service == null)
             {
                 // Fallback to default host services to resolve roslyn specific features.
-                service = DefaultWorkspace.Services.GetService<TWorkspaceService>();
+                service = s_defaultWorkspace.Services.GetService<TWorkspaceService>();
             }
 
             return service;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             // Fallback to default host services to resolve roslyn specific features.
-            return DefaultWorkspace.Services.GetLanguageServices(languageName);
+            return s_defaultWorkspace.Services.GetLanguageServices(languageName);
         }
 
         public override IEnumerable<string> SupportedLanguages => new[] { RazorLanguage.Name };

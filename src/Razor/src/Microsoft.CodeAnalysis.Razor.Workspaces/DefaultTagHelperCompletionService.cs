@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultTagHelperCompletionService : TagHelperCompletionService
     {
         private readonly TagHelperFactsService _tagHelperFactsService;
-        private static readonly HashSet<TagHelperDescriptor> _emptyHashSet = new HashSet<TagHelperDescriptor>();
+        private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new HashSet<TagHelperDescriptor>();
 
         [ImportingConstructor]
         public DefaultTagHelperCompletionService(TagHelperFactsService tagHelperFactsService)
@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     {
                         if (!elementCompletions.ContainsKey(prefixedName))
                         {
-                            elementCompletions[prefixedName] = _emptyHashSet;
+                            elementCompletions[prefixedName] = s_emptyHashSet;
                         }
 
                         continue;

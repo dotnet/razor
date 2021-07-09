@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private const string CoreCompileTargetName = "CoreCompile";
         private const string RazorGenerateDesignTimeTargetName = "RazorGenerateDesignTime";
         private const string RazorGenerateComponentDesignTimeTargetName = "RazorGenerateComponentDesignTime";
-        private static readonly IEnumerable<ILogger> EmptyMSBuildLoggers = Enumerable.Empty<ILogger>();
+        private static readonly IEnumerable<ILogger> s_emptyMSBuildLoggers = Enumerable.Empty<ILogger>();
         private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
         private readonly object _evaluationLock = new object();
 
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                     var refreshedProjectInstance = project.CreateProjectInstance();
 
                     // Force a Razor information refresh
-                    refreshedProjectInstance.Build(refreshTargets.ToArray(), EmptyMSBuildLoggers);
+                    refreshedProjectInstance.Build(refreshTargets.ToArray(), s_emptyMSBuildLoggers);
 
                     return refreshedProjectInstance;
                 }

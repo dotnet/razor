@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvider
     {
-        private static readonly Task<IReadOnlyList<RazorCodeAction>> EmptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
+        private static readonly Task<IReadOnlyList<RazorCodeAction>> s_emptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
 
         private readonly TagHelperFactsService _tagHelperFactsService;
         private readonly FilePathNormalizer _filePathNormalizer;
@@ -43,25 +43,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var node = context.CodeDocument.GetSyntaxTree().Root.LocateOwner(change);
             if (node is null)
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             // Find start tag
             var startTag = (MarkupStartTagSyntax)node.Ancestors().FirstOrDefault(n => n is MarkupStartTagSyntax);
             if (startTag is null)
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             // Ignore if start tag has dots, as we only handle short tags
             if (startTag.Name.Content.Contains("."))
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             if (!IsApplicableTag(startTag))
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             if (IsTagUnknown(startTag, context))

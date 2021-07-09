@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     [Export(typeof(RazorLogHubTraceProvider))]
     internal class RazorLogHubTraceProvider
     {
-        private static readonly LoggerOptions _logOptions = new(
+        private static readonly LoggerOptions s_logOptions = new(
             requestedLoggingLevel: new LoggingLevelSettings(SourceLevels.Information | SourceLevels.ActivityTracing),
             privacySetting: PrivacyFlags.MayContainPersonallyIdentifibleInformation | PrivacyFlags.MayContainPrivateInformation);
 
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 serviceId: new ServiceMoniker($"Razor.{logIdentifier}"));
 
             using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker, cancellationToken).ConfigureAwait(false);
-            var traceSource = await traceConfig.RegisterLogSourceAsync(_logId, _logOptions, cancellationToken).ConfigureAwait(false);
+            var traceSource = await traceConfig.RegisterLogSourceAsync(_logId, s_logOptions, cancellationToken).ConfigureAwait(false);
             
             return traceSource;
         }

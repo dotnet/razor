@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal static class RazorCodeDocumentExtensions
     {
-        private static readonly object SourceTextKey = new object();
-        private static readonly object CSharpSourceTextKey = new object();
-        private static readonly object HtmlSourceTextKey = new object();
+        private static readonly object s_sourceTextKey = new object();
+        private static readonly object s_cSharpSourceTextKey = new object();
+        private static readonly object s_htmlSourceTextKey = new object();
 
         public static SourceText GetSourceText(this RazorCodeDocument document)
         {
@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(document));
             }
 
-            var sourceTextObj = document.Items[SourceTextKey];
+            var sourceTextObj = document.Items[s_sourceTextKey];
             if (sourceTextObj == null)
             {
                 var source = document.Source;
                 var charBuffer = new char[source.Length];
                 source.CopyTo(0, charBuffer, 0, source.Length);
                 var sourceText = SourceText.From(new string(charBuffer));
-                document.Items[SourceTextKey] = sourceText;
+                document.Items[s_sourceTextKey] = sourceText;
 
                 return sourceText;
             }
@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(document));
             }
 
-            var sourceTextObj = document.Items[CSharpSourceTextKey];
+            var sourceTextObj = document.Items[s_cSharpSourceTextKey];
             if (sourceTextObj == null)
             {
                 var csharpDocument = document.GetCSharpDocument();
                 var sourceText = SourceText.From(csharpDocument.GeneratedCode);
-                document.Items[CSharpSourceTextKey] = sourceText;
+                document.Items[s_cSharpSourceTextKey] = sourceText;
 
                 return sourceText;
             }
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(document));
             }
 
-            var sourceTextObj = document.Items[HtmlSourceTextKey];
+            var sourceTextObj = document.Items[s_htmlSourceTextKey];
             if (sourceTextObj == null)
             {
                 var htmlDocument = document.GetHtmlDocument();
                 var sourceText = SourceText.From(htmlDocument.GeneratedHtml);
-                document.Items[HtmlSourceTextKey] = sourceText;
+                document.Items[s_htmlSourceTextKey] = sourceText;
 
                 return sourceText;
             }

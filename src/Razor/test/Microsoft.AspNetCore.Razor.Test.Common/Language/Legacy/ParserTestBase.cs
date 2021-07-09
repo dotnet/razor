@@ -22,8 +22,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
     [Collection("ParserTestSerialRuns")]
     public abstract class ParserTestBase
     {
-        private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
-        private static readonly AsyncLocal<bool> _isTheory = new AsyncLocal<bool>();
+        private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
+        private static readonly AsyncLocal<bool> s_isTheory = new AsyncLocal<bool>();
 
         internal ParserTestBase()
         {
@@ -47,14 +47,14 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         // Used by the test framework to set the 'base' name for test files.
         public static string FileName
         {
-            get { return _fileName.Value; }
-            set { _fileName.Value = value; }
+            get { return s_fileName.Value; }
+            set { s_fileName.Value = value; }
         }
 
         public static bool IsTheory
         {
-            get { return _isTheory.Value; }
-            set { _isTheory.Value = value; }
+            get { return s_isTheory.Value; }
+            set { s_isTheory.Value = value; }
         }
 
         protected int BaselineTestCount { get; set; }

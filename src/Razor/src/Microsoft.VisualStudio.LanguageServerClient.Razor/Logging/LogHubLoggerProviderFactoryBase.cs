@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     {
         // Unique, monotomically increasing ID to identify loghub session to persist
         // across server restarts.
-        private static int _logHubSessionId;
+        private static int s_logHubSessionId;
 
         private readonly RazorLogHubTraceProvider _traceProvider;
         private readonly SemaphoreSlim _initializationSemaphore;
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                     _currentLogWriter.Dispose();
                 }
 
-                var logInstanceNumber = Interlocked.Increment(ref _logHubSessionId);
+                var logInstanceNumber = Interlocked.Increment(ref s_logHubSessionId);
                 var traceSource = await _traceProvider.InitializeTraceAsync(logIdentifier, logInstanceNumber, cancellationToken).ConfigureAwait(false);
 
                 _currentLogWriter = new DefaultLogHubLogWriter(traceSource);

@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class DocumentState
     {
-        private static readonly TextAndVersion EmptyText = TextAndVersion.Create(
+        private static readonly TextAndVersion s_emptyText = TextAndVersion.Create(
             SourceText.From(string.Empty),
             VersionStamp.Default);
 
-        public static readonly Func<Task<TextAndVersion>> EmptyLoader = () => Task.FromResult(EmptyText);
+        public static readonly Func<Task<TextAndVersion>> EmptyLoader = () => Task.FromResult(s_emptyText);
 
         private readonly object _lock;
 

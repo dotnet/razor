@@ -21,12 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     public class RazorHtmlPublishDiagnosticsInterceptorTest
     {
-        private static readonly Uri RazorUri = new Uri("C:/path/to/file.razor");
-        private static readonly Uri CshtmlUri = new Uri("C:/path/to/file.cshtml");
-        private static readonly Uri RazorVirtualHtmlUri = new Uri("C:/path/to/file.razor__virtual.html");
-        private static readonly Uri RazorVirtualCssUri = new Uri("C:/path/to/file.razor__virtual.css");
+        private static readonly Uri s_razorUri = new Uri("C:/path/to/file.razor");
+        private static readonly Uri s_cshtmlUri = new Uri("C:/path/to/file.cshtml");
+        private static readonly Uri s_razorVirtualHtmlUri = new Uri("C:/path/to/file.razor__virtual.html");
+        private static readonly Uri s_razorVirtualCssUri = new Uri("C:/path/to/file.razor__virtual.css");
 
-        private static readonly Diagnostic ValidDiagnostic_HTML = new Diagnostic()
+        private static readonly Diagnostic s_validDiagnostic_HTML = new Diagnostic()
         {
             Range = new Range()
             {
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Code = null
         };
 
-        private static readonly Diagnostic ValidDiagnostic_CSS = new Diagnostic()
+        private static readonly Diagnostic s_validDiagnostic_CSS = new Diagnostic()
         {
             Range = new Range()
             {
@@ -46,10 +46,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Code = "expectedSemicolon",
         };
 
-        private static readonly Diagnostic[] Diagnostics = new Diagnostic[]
+        private static readonly Diagnostic[] s_diagnostics = new Diagnostic[]
         {
-            ValidDiagnostic_HTML,
-            ValidDiagnostic_CSS
+            s_validDiagnostic_HTML,
+            s_validDiagnostic_CSS
         };
 
         public RazorHtmlPublishDiagnosticsInterceptorTest()
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
-                    Uri = RazorUri
+                    Uri = s_razorUri
                 }
             };
 
@@ -98,9 +98,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
             var diagnosticRequest = new VSPublishDiagnosticParams()
             {
-                Diagnostics = Diagnostics,
+                Diagnostics = s_diagnostics,
                 Mode = null,
-                Uri = RazorUri
+                Uri = s_razorUri
             };
             var token = JToken.FromObject(diagnosticRequest);
 
@@ -122,9 +122,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
             var diagnosticRequest = new VSPublishDiagnosticParams()
             {
-                Diagnostics = Diagnostics,
+                Diagnostics = s_diagnostics,
                 Mode = null,
-                Uri = CshtmlUri
+                Uri = s_cshtmlUri
             };
             var token = JToken.FromObject(diagnosticRequest);
 
@@ -146,9 +146,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
             var diagnosticRequest = new VSPublishDiagnosticParams()
             {
-                Diagnostics = Diagnostics,
+                Diagnostics = s_diagnostics,
                 Mode = null,
-                Uri = RazorVirtualCssUri
+                Uri = s_razorVirtualCssUri
             };
             var token = JToken.FromObject(diagnosticRequest);
 
@@ -170,9 +170,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
             var diagnosticRequest = new VSPublishDiagnosticParams()
             {
-                Diagnostics = Diagnostics,
+                Diagnostics = s_diagnostics,
                 Mode = null,
-                Uri = RazorVirtualHtmlUri
+                Uri = s_razorVirtualHtmlUri
             };
 
             // Act
@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Assert
             var updatedParams = result.UpdatedToken.ToObject<VSPublishDiagnosticParams>();
             Assert.Empty(updatedParams.Diagnostics);
-            Assert.Equal(RazorUri, updatedParams.Uri);
+            Assert.Equal(s_razorUri, updatedParams.Uri);
             Assert.True(result.ChangedDocumentUri);
         }
 
@@ -191,8 +191,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Arrange
             var diagnosticsProvider = Mock.Of<LSPDiagnosticsTranslator>(MockBehavior.Strict);
 
-            var testVirtualDocument = new TestVirtualDocumentSnapshot(RazorUri, hostDocumentVersion: 0);
-            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(RazorUri, version: 0, testVirtualDocument);
+            var testVirtualDocument = new TestVirtualDocumentSnapshot(s_razorUri, hostDocumentVersion: 0);
+            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(s_razorUri, version: 0, testVirtualDocument);
             var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
@@ -200,9 +200,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager.Object, diagnosticsProvider, LoggerProvider);
             var diagnosticRequest = new VSPublishDiagnosticParams()
             {
-                Diagnostics = Diagnostics,
+                Diagnostics = s_diagnostics,
                 Mode = null,
-                Uri = RazorVirtualHtmlUri
+                Uri = s_razorVirtualHtmlUri
             };
 
             // Act
@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Assert
             var updatedParams = result.UpdatedToken.ToObject<VSPublishDiagnosticParams>();
             Assert.Empty(updatedParams.Diagnostics);
-            Assert.Equal(RazorUri, updatedParams.Uri);
+            Assert.Equal(s_razorUri, updatedParams.Uri);
             Assert.True(result.ChangedDocumentUri);
         }
 
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 Diagnostics = Array.Empty<Diagnostic>(),
                 Mode = null,
-                Uri = RazorVirtualHtmlUri
+                Uri = s_razorVirtualHtmlUri
             };
 
             // Act
@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Assert
             var updatedParams = result.UpdatedToken.ToObject<VSPublishDiagnosticParams>();
             Assert.Empty(updatedParams.Diagnostics);
-            Assert.Equal(RazorUri, updatedParams.Uri);
+            Assert.Equal(s_razorUri, updatedParams.Uri);
             Assert.True(result.ChangedDocumentUri);
         }
 
@@ -250,9 +250,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var htmlDiagnosticsInterceptor = new RazorHtmlPublishDiagnosticsInterceptor(documentManager, diagnosticsProvider, LoggerProvider);
             var diagnosticRequest = new VSPublishDiagnosticParams()
             {
-                Diagnostics = Diagnostics,
+                Diagnostics = s_diagnostics,
                 Mode = null,
-                Uri = RazorVirtualHtmlUri
+                Uri = s_razorVirtualHtmlUri
             };
 
             // Act
@@ -260,17 +260,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             // Assert
             var updatedParams = result.UpdatedToken.ToObject<VSPublishDiagnosticParams>();
-            Assert.Equal(Diagnostics, updatedParams.Diagnostics);
-            Assert.Equal(RazorUri, updatedParams.Uri);
+            Assert.Equal(s_diagnostics, updatedParams.Diagnostics);
+            Assert.Equal(s_razorUri, updatedParams.Uri);
             Assert.True(result.ChangedDocumentUri);
         }
 
         private static TrackingLSPDocumentManager CreateDocumentManager(int hostDocumentVersion = 0)
         {
-            var testVirtualDocUri = RazorVirtualHtmlUri;
-            var testVirtualDocument = new TestVirtualDocumentSnapshot(RazorUri, hostDocumentVersion);
+            var testVirtualDocUri = s_razorVirtualHtmlUri;
+            var testVirtualDocument = new TestVirtualDocumentSnapshot(s_razorUri, hostDocumentVersion);
             var htmlVirtualDocument = new HtmlVirtualDocumentSnapshot(testVirtualDocUri, Mock.Of<ITextSnapshot>(MockBehavior.Strict), hostDocumentVersion);
-            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(RazorUri, hostDocumentVersion, testVirtualDocument, htmlVirtualDocument);
+            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(s_razorUri, hostDocumentVersion, testVirtualDocument, htmlVirtualDocument);
             var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
@@ -289,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             diagnosticsProvider.Setup(d =>
                 d.TranslateAsync(
                     RazorLanguageKind.Html,
-                    RazorUri,
+                    s_razorUri,
                     It.IsAny<Diagnostic[]>(),
                     It.IsAny<CancellationToken>()))
                 .Returns((RazorLanguageKind lang, Uri uri, Diagnostic[] diagnostics, CancellationToken ct) =>

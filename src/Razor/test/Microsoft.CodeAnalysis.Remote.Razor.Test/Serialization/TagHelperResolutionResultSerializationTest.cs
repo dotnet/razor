@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Test
 {
     public class TagHelperResolutionResultSerializationTest
     {
-        private static readonly JsonConverter[] Converters = new JsonConverter[]
+        private static readonly JsonConverter[] s_converters = new JsonConverter[]
         {
             TagHelperDescriptorJsonConverter.Instance,
             RazorDiagnosticJsonConverter.Instance,
@@ -110,13 +110,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Test
             var serializerSettings = new JsonSerializerSettings()
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                Converters = Converters,
+                Converters = s_converters,
             };
             var expectedResult = new TagHelperResolutionResult(new[] { descriptor }, Array.Empty<RazorDiagnostic>());
 
             // Act
             var serialized = JsonConvert.SerializeObject(expectedResult, serializerSettings);
-            var result = JsonConvert.DeserializeObject<TagHelperResolutionResult>(serialized, Converters);
+            var result = JsonConvert.DeserializeObject<TagHelperResolutionResult>(serialized, s_converters);
 
             // Assert
             Assert.Equal(expectedResult, result, TagHelperResolutionResultComparer.Default);
@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Test
             var expectedResult = new TagHelperResolutionResult(new[] { descriptor }, Array.Empty<RazorDiagnostic>());
 
             // Act
-            var serialized = JsonConvert.SerializeObject(expectedResult, Converters);
-            var deserializedResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(serialized, Converters);
+            var serialized = JsonConvert.SerializeObject(expectedResult, s_converters);
+            var deserializedResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(serialized, s_converters);
 
             // Assert
             Assert.Equal(expectedResult, deserializedResult, TagHelperResolutionResultComparer.Default);
@@ -207,8 +207,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Test
             var expectedResult = new TagHelperResolutionResult(new[] { descriptor }, Array.Empty<RazorDiagnostic>());
 
             // Act
-            var serialized = JsonConvert.SerializeObject(expectedResult, Converters);
-            var deserializedResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(serialized, Converters);
+            var serialized = JsonConvert.SerializeObject(expectedResult, s_converters);
+            var deserializedResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(serialized, s_converters);
 
             // Assert
             Assert.Equal(expectedResult, deserializedResult, TagHelperResolutionResultComparer.Default);
@@ -251,8 +251,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Test
             var expectedResult = new TagHelperResolutionResult(new[] { descriptor }, Array.Empty<RazorDiagnostic>());
 
             // Act
-            var serialized = JsonConvert.SerializeObject(expectedResult, Converters);
-            var deserializedResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(serialized, Converters);
+            var serialized = JsonConvert.SerializeObject(expectedResult, s_converters);
+            var deserializedResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(serialized, s_converters);
 
             // Assert
             Assert.Equal(expectedResult, deserializedResult, TagHelperResolutionResultComparer.Default);
@@ -296,8 +296,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Test
             var expectedResult = new TagHelperResolutionResult(new[] { descriptor }, Array.Empty<RazorDiagnostic>());
 
             // Act
-            var serialized = JsonConvert.SerializeObject(expectedResult, Converters);
-            var deserializedResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(serialized, Converters);
+            var serialized = JsonConvert.SerializeObject(expectedResult, s_converters);
+            var deserializedResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(serialized, s_converters);
 
             // Assert
             Assert.Equal(expectedResult, deserializedResult, TagHelperResolutionResultComparer.Default);

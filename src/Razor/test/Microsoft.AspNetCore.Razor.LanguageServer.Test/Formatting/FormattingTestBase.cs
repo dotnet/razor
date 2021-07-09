@@ -35,8 +35,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     [Collection("FormattingTestSerialRuns")]
     public class FormattingTestBase : RazorIntegrationTestBase
     {
-        private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
-        private static readonly IReadOnlyList<TagHelperDescriptor> _defaultComponents = GetDefaultRuntimeComponents();
+        private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
+        private static readonly IReadOnlyList<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
 
         public FormattingTestBase()
         {
@@ -54,8 +54,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         // Used by the test framework to set the 'base' name for test files.
         public static string FileName
         {
-            get { return _fileName.Value; }
-            set { _fileName.Value = value; }
+            get { return s_fileName.Value; }
+            set { s_fileName.Value = value; }
         }
 
         protected async Task RunFormattingTestAsync(
@@ -189,7 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             if (fileKind == FileKinds.Component)
             {
-                tagHelpers = tagHelpers.Concat(_defaultComponents).ToArray();
+                tagHelpers = tagHelpers.Concat(s_defaultComponents).ToArray();
             }
             var sourceDocument = text.GetRazorSourceDocument(path, path);
 

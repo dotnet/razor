@@ -22,8 +22,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         internal static readonly IReadOnlyCollection<string> MinimizedAttributeCommitCharacters = new List<string> { "=", " " };
         internal static readonly IReadOnlyCollection<string> AttributeCommitCharacters = new List<string> { "=" };
 
-        private static readonly IReadOnlyCollection<string> ElementCommitCharacters = new List<string> { " ", ">" };
-        private static readonly IReadOnlyCollection<string> NoCommitCharacters = new List<string>();
+        private static readonly IReadOnlyCollection<string> s_elementCommitCharacters = new List<string> { " ", ">" };
+        private static readonly IReadOnlyCollection<string> s_noCommitCharacters = new List<string>();
         private readonly HtmlFactsService _htmlFactsService;
         private readonly TagHelperCompletionService _tagHelperCompletionService;
         private readonly TagHelperFactsService _tagHelperFactsService;
@@ -217,7 +217,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                     displayText: completion.Key,
                     insertText: completion.Key,
                     RazorCompletionItemKind.TagHelperElement,
-                    ElementCommitCharacters);
+                    s_elementCommitCharacters);
 
                 var tagHelperDescriptions = completion.Value.Select(tagHelper => BoundElementDescriptionInfo.From(tagHelper));
                 var elementDescription = new AggregateBoundElementDescription(tagHelperDescriptions.ToList());
@@ -233,7 +233,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         {
             if (indexerCompletion)
             {
-                return NoCommitCharacters;
+                return s_noCommitCharacters;
             }
             else if (boundAttributes.Any(b => b.TypeName == "System.Boolean"))
             {

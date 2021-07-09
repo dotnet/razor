@@ -13,8 +13,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
     public class FullProjectSnapshotHandleSerializationBenchmark
     {
         // Hardcoded expectations from `ProjectSystem\project.razor.json`
-        private static readonly string ExpectedFilePath = "C:\\Users\\admin\\location\\blazorserver\\blazorserver.csproj";
-        private static readonly int ExpectedTagHelperCount = 228;
+        private static readonly string s_expectedFilePath = "C:\\Users\\admin\\location\\blazorserver\\blazorserver.csproj";
+        private static readonly int s_expectedTagHelperCount = 228;
 
         private JsonSerializer Serializer { get; set; }
         private JsonReader Reader { get; set; }
@@ -47,8 +47,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 
             var res = FullProjectSnapshotHandleJsonConverter.Instance.ReadJson(Reader, typeof(FullProjectSnapshotHandle), null, Serializer) as FullProjectSnapshotHandle;
 
-            if (res.FilePath != ExpectedFilePath ||
-                res.ProjectWorkspaceState.TagHelpers.Count != ExpectedTagHelperCount)
+            if (res.FilePath != s_expectedFilePath ||
+                res.ProjectWorkspaceState.TagHelpers.Count != s_expectedTagHelperCount)
             {
                 throw new InvalidDataException();
             }

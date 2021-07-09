@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class CodeActionResolutionEndpoint : IRazorCodeActionResolveHandler
     {
-        private static readonly string CodeActionsResolveProviderCapability = "codeActionsResolveProvider";
+        private static readonly string s_codeActionsResolveProviderCapability = "codeActionsResolveProvider";
 
         private readonly IReadOnlyDictionary<string, RazorCodeActionResolver> _razorCodeActionResolvers;
         private readonly IReadOnlyDictionary<string, CSharpCodeActionResolver> _csharpCodeActionResolvers;
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         // Register VS LSP code action resolution server capability
-        public RegistrationExtensionResult GetRegistration() => new RegistrationExtensionResult(CodeActionsResolveProviderCapability, true);
+        public RegistrationExtensionResult GetRegistration() => new RegistrationExtensionResult(s_codeActionsResolveProviderCapability, true);
 
         public async Task<CodeAction> Handle(CodeAction request, CancellationToken cancellationToken)
         {

@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal Timer _workTimer;
         internal Timer _documentClosedTimer;
 
-        private static readonly TimeSpan CheckForDocumentClosedDelay = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly ITextDocumentLanguageServer _languageServer;
         private readonly Dictionary<string, DocumentSnapshot> _work;
@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (_documentClosedTimer == null)
             {
-                _documentClosedTimer = new Timer(DocumentClosedTimer_Tick, null, CheckForDocumentClosedDelay, Timeout.InfiniteTimeSpan);
+                _documentClosedTimer = new Timer(DocumentClosedTimer_Tick, null, s_checkForDocumentClosedDelay, Timeout.InfiniteTimeSpan);
             }
         }
 

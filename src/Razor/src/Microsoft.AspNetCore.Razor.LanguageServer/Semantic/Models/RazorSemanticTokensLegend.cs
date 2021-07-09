@@ -148,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             MarkupAttributeValueString,
         };
 
-        private static readonly string[] _tokenModifiers = new string[] {
+        private static readonly string[] s_tokenModifiers = new string[] {
             // Razor
             "None",
             // C# Modifiers
@@ -159,7 +159,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 
         public static readonly SemanticTokensLegend Instance = new SemanticTokensLegend
         {
-            TokenModifiers = new Container<string>(_tokenModifiers),
+            TokenModifiers = new Container<string>(s_tokenModifiers),
             TokenTypes = new Container<string>(TokenTypes),
         };
 

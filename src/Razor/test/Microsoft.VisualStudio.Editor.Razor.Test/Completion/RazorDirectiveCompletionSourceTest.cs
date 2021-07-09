@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
     public class RazorDirectiveCompletionSourceTest : ForegroundDispatcherTestBase
     {
-        private static readonly IReadOnlyList<DirectiveDescriptor> DefaultDirectives = new[]
+        private static readonly IReadOnlyList<DirectiveDescriptor> s_defaultDirectives = new[]
         {
             CSharpCodeParser.AddTagHelperDirectiveDescriptor,
             CSharpCodeParser.RemoveTagHelperDirectiveDescriptor,
@@ -89,9 +89,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             Assert.Collection(
                 completionContext.Items,
                 item => AssertRazorCompletionItem(SectionDirective.Directive, item, completionSource),
-                item => AssertRazorCompletionItem(DefaultDirectives[0], item, completionSource),
-                item => AssertRazorCompletionItem(DefaultDirectives[1], item, completionSource),
-                item => AssertRazorCompletionItem(DefaultDirectives[2], item, completionSource));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item, completionSource),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item, completionSource),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item, completionSource));
         }
 
         [Fact]

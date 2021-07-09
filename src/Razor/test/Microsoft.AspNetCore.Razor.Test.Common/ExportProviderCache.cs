@@ -23,8 +23,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty
             .AddAssemblies(MefHostServices.DefaultAssemblies);
-        private static readonly ConcurrentDictionary<string, Scope> _scopes = new ConcurrentDictionary<string, Scope>();
-        private static readonly string DefaultScope = "default";
+        private static readonly ConcurrentDictionary<string, Scope> s_scopes = new ConcurrentDictionary<string, Scope>();
+        private static readonly string s_defaultScope = "default";
 
         internal static bool Enabled { get; private set; }
 
@@ -32,9 +32,9 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         {
             get
             {
-                var scopes = _scopes.Values.ToArray();
-                var defaultScope = scopes.Where(scope => scope.Name == DefaultScope);
-                var allButDefault = scopes.Where(scope => scope.Name != DefaultScope);
+                var scopes = s_scopes.Values.ToArray();
+                var defaultScope = scopes.Where(scope => scope.Name == s_defaultScope);
+                var allButDefault = scopes.Where(scope => scope.Name != s_defaultScope);
 
                 // Make sure to return the default scope as the last element
                 return allButDefault.Concat(defaultScope)
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             Enabled = value;
             if (!Enabled)
             {
-                foreach (var scope in _scopes.Values.ToArray())
+                foreach (var scope in s_scopes.Values.ToArray())
                 {
                     scope.Clear();
                 }
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 return s_defaultHostExportProviderComposition.ExportProviderFactory;
             }
 
-            return CreateExportProviderFactory(CreateAssemblyCatalog(assemblies), scopeName: DefaultScope);
+            return CreateExportProviderFactory(CreateAssemblyCatalog(assemblies), scopeName: s_defaultScope);
         }
 
         public static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver? resolver = null)
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog, string? scopeName = null)
         {
-            var scope = _scopes.GetOrAdd(scopeName ?? DefaultScope, scopeName => new Scope(scopeName));
+            var scope = s_scopes.GetOrAdd(scopeName ?? s_defaultScope, scopeName => new Scope(scopeName));
             var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
             var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
