@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 codeActionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            return results.SelectMany(l => l).ToArray();
+            return results.SelectMany(l => l.Result).ToArray();
         }
 
         public override async Task<VSCodeAction> ResolveCodeActionsAsync(VSCodeAction codeAction, CancellationToken cancellationToken)
@@ -271,7 +271,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 codeAction,
                 cancellationToken).ConfigureAwait(false);
 
-            return results.FirstOrDefault(c => c != null);
+            return results.FirstOrDefault(c => c.Result != null).Result;
         }
 
         [Obsolete]

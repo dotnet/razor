@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
@@ -266,7 +267,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var languageServer1Response = new[] { new VSCodeAction() { Title = "Response 1" } };
             var languageServer2Response = new[] { new VSCodeAction() { Title = "Response 2" } };
-            IEnumerable<VSCodeAction[]> expectedResults = new List<VSCodeAction[]>() { languageServer1Response, languageServer2Response };
+            IEnumerable<(ILanguageClient, VSCodeAction[])> expectedResults = new List<(ILanguageClient, VSCodeAction[])>() {
+                (default(ILanguageClient), languageServer1Response),
+                (default(ILanguageClient), languageServer2Response),
+            };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSCodeAction[]>(
                 Methods.TextDocumentCodeActionName,
@@ -274,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<CodeActionParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult(expectedResults));
+            )).Returns(Task.FromResult<IEnumerable<(ILanguageClient LanguageClient, VSCodeAction[] Result)>>(expectedResults));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
@@ -301,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
-        public async void ResolveCodeActionsAsync_ReturnsSingleCodeAction()
+        public async Task ResolveCodeActionsAsync_ReturnsSingleCodeAction()
         {
             // Arrange
             var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
@@ -318,7 +322,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Title = "Something Else",
                 Data = new object()
             };
-            IEnumerable<VSCodeAction> expectedResponses = new List<VSCodeAction>() { expectedCodeAction, unexpectedCodeAction };
+            IEnumerable<(ILanguageClient, VSCodeAction)> expectedResponses = new List<(ILanguageClient, VSCodeAction)>() {
+                (default(ILanguageClient), expectedCodeAction),
+                (default(ILanguageClient), unexpectedCodeAction),
+            };
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSCodeAction, VSCodeAction>(
                 MSLSPMethods.TextDocumentCodeActionResolveName,
                 LanguageServerKind.CSharp.ToContentType(),
@@ -397,7 +404,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
-        [Obsolete]
         public async Task ProvideSemanticTokensAsync_ReturnsSemanticTokensAsync()
         {
             // Arrange
@@ -414,9 +420,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(testDocUri, out testDocument))
                 .Returns(true);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var expectedcSharpResults = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens();
+#pragma warning restore CS0618 // Type or member is obsolete
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+#pragma warning disable CS0618 // Type or member is obsolete
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens>(
+#pragma warning restore CS0618 // Type or member is obsolete
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 LanguageServerKind.CSharp.ToLanguageServerName(),
                 LanguageServerKind.CSharp.ToContentType(),

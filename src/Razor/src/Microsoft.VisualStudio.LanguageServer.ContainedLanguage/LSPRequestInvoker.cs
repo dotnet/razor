@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
@@ -26,13 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             TIn parameters,
             CancellationToken cancellationToken);
 
-        public abstract Task<IEnumerable<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
+        public abstract Task<IEnumerable<(ILanguageClient LanguageClient, TOut Result)>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
             string method,
             string contentType,
             TIn parameters,
             CancellationToken cancellationToken);
 
-        public abstract Task<IEnumerable<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
+        public abstract Task<IEnumerable<(ILanguageClient LanguageClient, TOut Result)>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
             string method,
             string contentType,
             Func<JToken, bool> capabilitiesFilter,
