@@ -35,7 +35,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private static readonly CommandState s_availableCommandState = new CommandState(isAvailable: true, displayText: Resources.View_Code);
 
+        private readonly ITextDocumentFactoryService _textDocumentFactoryService;
+
         public string DisplayName => nameof(ViewCodeCommandHandler);
+
+        [ImportingConstructor]
+        public ViewCodeCommandHandler(ITextDocumentFactoryService textDocumentFactoryService)
+        {
+            _textDocumentFactoryService = textDocumentFactoryService;
+        }
 
         public CommandState GetCommandState(ViewCodeCommandArgs args)
         {
@@ -59,11 +67,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return false;
         }
 
-        private static bool TryGetCSharpFilePath(ITextBuffer buffer, [NotNullWhen(true)] out string? codeFilePath)
+        private bool TryGetCSharpFilePath(ITextBuffer buffer, [NotNullWhen(true)] out string? codeFilePath)
         {
             codeFilePath = null;
 
-            if (!buffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document) ||
+            if (!_textDocumentFactoryService.TryGetTextDocument(buffer, out var document) ||
                 document?.FilePath is null)
             {
                 return false;
