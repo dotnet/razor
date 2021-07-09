@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public override event EventHandler<EditorSettingsChangedEventArgs> Changed;
 
-        private readonly object SettingsAccessorLock = new object();
+        private readonly object _settingsAccessorLock = new object();
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private EditorSettings _settings;
 
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             get
             {
-                lock (SettingsAccessorLock)
+                lock (_settingsAccessorLock)
                 {
                     return _settings;
                 }
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             _foregroundDispatcher.AssertForegroundThread();
 
-            lock (SettingsAccessorLock)
+            lock (_settingsAccessorLock)
             {
                 if (!_settings.Equals(updatedSettings))
                 {

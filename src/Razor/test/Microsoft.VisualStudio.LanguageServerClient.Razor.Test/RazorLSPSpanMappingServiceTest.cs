@@ -24,8 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private static readonly string s_mockGeneratedContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
         private static readonly string s_mockRazorContent = $"Hello {Environment.NewLine} This is the {Environment.NewLine} source text {Environment.NewLine} in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
 
-        private readonly SourceText SourceTextGenerated = SourceText.From(s_mockGeneratedContent);
-        private readonly SourceText SourceTextRazor = SourceText.From(s_mockRazorContent);
+        private readonly SourceText _sourceTextGenerated = SourceText.From(s_mockGeneratedContent);
+        private readonly SourceText _sourceTextRazor = SourceText.From(s_mockRazorContent);
 
         [Fact]
         public async Task MapSpans_WithinRange_ReturnsMapping()
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
-            var textSpanAsRange = textSpan.AsLSPRange(SourceTextGenerated);
+            var textSpanAsRange = textSpan.AsLSPRange(_sourceTextGenerated);
             var mappedRange = new Range()
             {
                 Start = new Position(2, 1),
@@ -65,13 +65,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
-            var expectedSpan = mappedRange.AsTextSpan(SourceTextRazor);
-            var expectedLinePosition = SourceTextRazor.Lines.GetLinePositionSpan(expectedSpan);
+            var expectedSpan = mappedRange.AsTextSpan(_sourceTextRazor);
+            var expectedLinePosition = _sourceTextRazor.Lines.GetLinePositionSpan(expectedSpan);
             var expectedFilePath = _mockDocumentUri.LocalPath;
             var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
 
             // Act
-            var result = await service.MapSpansAsyncTest(spans, SourceTextGenerated, SourceTextRazor).ConfigureAwait(false);
+            var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
 
             // Assert
             Assert.True(called);
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
-            var textSpanAsRange = textSpan.AsLSPRange(SourceTextGenerated);
+            var textSpanAsRange = textSpan.AsLSPRange(_sourceTextGenerated);
 
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
             // Act
-            var result = await service.MapSpansAsyncTest(spans, SourceTextGenerated, SourceTextRazor).ConfigureAwait(false);
+            var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
 
             // Assert
             Assert.True(called);
