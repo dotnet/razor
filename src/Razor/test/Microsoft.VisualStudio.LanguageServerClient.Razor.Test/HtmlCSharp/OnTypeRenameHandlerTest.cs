@@ -104,11 +104,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var htmlResponse = GetMatchingHTMLBracketRange(10);
             var requestInvoker = GetRequestInvoker<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>(
                 htmlResponse,
-                (method, clientName, serverContentType, highlightParams, ct) =>
+                (method, clientName, highlightParams, ct) =>
                 {
                     Assert.Equal(MSLSPMethods.OnTypeRenameName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
                     invokerCalled = true;
                 });
 
@@ -150,11 +149,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var htmlResponse = GetMatchingHTMLBracketRange(10);
             var requestInvoker = GetRequestInvoker<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>(
                 htmlResponse,
-                (method, clientName, serverContentType, highlightParams, ct) =>
+                (method, clientName, highlightParams, ct) =>
                 {
                     Assert.Equal(MSLSPMethods.OnTypeRenameName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
                     invokerCalled = true;
                 });
 
@@ -193,11 +191,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var htmlResponse = GetMatchingHTMLBracketRange(10);
             var requestInvoker = GetRequestInvoker<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>(
                 htmlResponse,
-                (method, clientName, serverContentType, highlightParams, ct) =>
+                (method, clientName, highlightParams, ct) =>
                 {
                     Assert.Equal(MSLSPMethods.OnTypeRenameName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
                     invokerCalled = true;
                 });
 
@@ -234,11 +231,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return projectionProvider.Object;
         }
 
-        private LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, string, TParams, CancellationToken> callback)
+        private LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, TParams, CancellationToken> callback)
         {
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
                 .Callback(callback)
                 .Returns(Task.FromResult(expectedResponse));
 

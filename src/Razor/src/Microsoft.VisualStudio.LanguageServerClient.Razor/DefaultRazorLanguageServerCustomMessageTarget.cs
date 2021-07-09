@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly IDisposable _razorReadyListener;
         private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
 
-        private const string RazorReadyFeature = "Razor-Initialization";
+        private const string _razorReadyFeature = "Razor-Initialization";
 
         [ImportingConstructor]
         public DefaultRazorLanguageServerCustomMessageTarget(
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     joinableTaskContext,
                     requestInvoker,
                     uIContextManager,
-                    asyncOpListenerProvider.GetListener(RazorReadyFeature).BeginAsyncOperation(RazorReadyFeature),
+                    asyncOpListenerProvider.GetListener(_razorReadyFeature).BeginAsyncOperation(_razorReadyFeature),
                     clientOptionsMonitor)
         {
         }
@@ -186,21 +186,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return response;
             }
 
-            string serverContentType;
             string languageServerName;
             Uri projectedUri;
             if (request.Kind == RazorLanguageKind.CSharp &&
                 documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDocument))
             {
                 languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
-                serverContentType = RazorLSPConstants.CSharpContentTypeName;
                 projectedUri = csharpDocument.Uri;
             }
             else if (request.Kind == RazorLanguageKind.Html &&
                 documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
             {
                 languageServerName = RazorLSPConstants.HtmlLanguageServerName;
-                serverContentType = RazorLSPConstants.HtmlLSPContentTypeName;
                 projectedUri = htmlDocument.Uri;
             }
             else
@@ -219,7 +216,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
                 Methods.TextDocumentRangeFormattingName,
                 languageServerName,
-                serverContentType,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
 
@@ -295,7 +291,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                LanguageServerKind.CSharp.ToContentType(),
                 semanticTokensParams,
                 cancellationToken).ConfigureAwait(false);
 
@@ -327,7 +322,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensEditsParams, SumType<LanguageServer.Protocol.SemanticTokens, SemanticTokensEdits>>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEditEndpoint,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                LanguageServerKind.CSharp.ToContentType(),
                 semanticTokensEditsParams,
                 cancellationToken).ConfigureAwait(false);
 

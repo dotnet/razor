@@ -119,14 +119,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<TextDocumentPositionParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, hoverParams, ct) =>
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, hoverParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentHoverName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 })
                 .Returns(Task.FromResult(lspResponse));
@@ -214,14 +212,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<TextDocumentPositionParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, hoverParams, ct) =>
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, hoverParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentHoverName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
                     called = true;
                 })
                 .Returns(Task.FromResult(lspResponse));
@@ -275,12 +271,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, hoverParams, ct) =>
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, hoverParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentHoverName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 })
                 .Returns(Task.FromResult<Hover>(null));
@@ -352,14 +347,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<TextDocumentPositionParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, hoverParams, ct) =>
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, hoverParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentHoverName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 })
                 .Returns(Task.FromResult(lspResponse));
@@ -426,14 +419,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<TextDocumentPositionParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, hoverParams, ct) =>
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, hoverParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentHoverName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 })
                 .Returns(Task.FromResult(lspResponse));

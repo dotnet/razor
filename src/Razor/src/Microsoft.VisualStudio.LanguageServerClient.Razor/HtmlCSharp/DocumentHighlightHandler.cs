@@ -112,11 +112,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var highlights = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentHighlightParams, DocumentHighlight[]>(
                 Methods.TextDocumentDocumentHighlightName,
                 serverKind.ToLanguageServerName(),
-                serverKind.ToContentType(),
                 documentHighlightParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (highlights == null || highlights.Length == 0)
+            if (highlights is null || highlights.Length == 0)
             {
                 _logger.LogInformation("Received no results.");
                 return highlights;

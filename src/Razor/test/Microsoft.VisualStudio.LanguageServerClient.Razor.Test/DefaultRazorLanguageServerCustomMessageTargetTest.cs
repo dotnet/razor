@@ -161,7 +161,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<DocumentRangeFormattingParams>(),
                     It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new[] { expectedEdit }));
@@ -267,9 +266,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var languageServer1Response = new[] { new VSCodeAction() { Title = "Response 1" } };
             var languageServer2Response = new[] { new VSCodeAction() { Title = "Response 2" } };
-            IEnumerable<(ILanguageClient, VSCodeAction[])> expectedResults = new List<(ILanguageClient, VSCodeAction[])>() {
-                (default(ILanguageClient), languageServer1Response),
-                (default(ILanguageClient), languageServer2Response),
+            IEnumerable<ReinvokeResponse<VSCodeAction[]>> expectedResults = new List<ReinvokeResponse<VSCodeAction[]>>() {
+                new ReinvokeResponse<VSCodeAction[]>(default, languageServer1Response),
+                new ReinvokeResponse<VSCodeAction[]>(default, languageServer2Response),
             };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSCodeAction[]>(
@@ -278,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<CodeActionParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult<IEnumerable<(ILanguageClient LanguageClient, VSCodeAction[] Result)>>(expectedResults));
+            )).Returns(Task.FromResult<IEnumerable<ReinvokeResponse<VSCodeAction[]>>>(expectedResults));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
@@ -322,9 +321,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Title = "Something Else",
                 Data = new object()
             };
-            IEnumerable<(ILanguageClient, VSCodeAction)> expectedResponses = new List<(ILanguageClient, VSCodeAction)>() {
-                (default(ILanguageClient), expectedCodeAction),
-                (default(ILanguageClient), unexpectedCodeAction),
+            IEnumerable<ReinvokeResponse<VSCodeAction>> expectedResponses = new List<ReinvokeResponse<VSCodeAction>> () {
+                new ReinvokeResponse<VSCodeAction>(default, expectedCodeAction),
+                new ReinvokeResponse<VSCodeAction>(default, unexpectedCodeAction),
             };
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSCodeAction, VSCodeAction>(
                 MSLSPMethods.TextDocumentCodeActionResolveName,
@@ -429,7 +428,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 #pragma warning restore CS0618 // Type or member is obsolete
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 LanguageServerKind.CSharp.ToLanguageServerName(),
-                LanguageServerKind.CSharp.ToContentType(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(expectedcSharpResults));
@@ -478,7 +476,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                LanguageServerKind.CSharp.ToContentType(),
                 null,
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()

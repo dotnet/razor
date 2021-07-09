@@ -104,17 +104,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
-            var containedLanguageType = projectionResult.LanguageKind.ToContainedLanguageContentType();
-            _logger.LogInformation($"Requesting {containedLanguageType} implementation for {projectionResult.Uri}.");
+            _logger.LogInformation($"Requesting {languageServerName} implementation for {projectionResult.Uri}.");
 
             var locations = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
                 Methods.TextDocumentImplementationName,
                 languageServerName,
-                containedLanguageType,
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (locations == null || locations.Length == 0)
+            if (locations is null || locations.Length == 0)
             {
                 _logger.LogInformation("Received no results.");
                 return locations;

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
@@ -15,25 +14,36 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public abstract Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
             string method,
             string languageServerName,
-            string contentType,
+            TIn parameters,
+            CancellationToken cancellationToken);
+
+        public abstract Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerWithClientAsync<TIn, TOut>(
+            string method,
+            string languageServerName,
+            TIn parameters,
+            CancellationToken cancellationToken);
+
+        public abstract Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerWithClientAsync<TIn, TOut>(
+            string method,
+            string languageServerName,
+            Func<JToken, bool> capabilitiesFilter,
             TIn parameters,
             CancellationToken cancellationToken);
 
         public abstract Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
             string method,
             string languageServerName,
-            string contentType,
             Func<JToken, bool> capabilitiesFilter,
             TIn parameters,
             CancellationToken cancellationToken);
 
-        public abstract Task<IEnumerable<(ILanguageClient LanguageClient, TOut Result)>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
+        public abstract Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
             string method,
             string contentType,
             TIn parameters,
             CancellationToken cancellationToken);
 
-        public abstract Task<IEnumerable<(ILanguageClient LanguageClient, TOut Result)>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
+        public abstract Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
             string method,
             string contentType,
             Func<JToken, bool> capabilitiesFilter,

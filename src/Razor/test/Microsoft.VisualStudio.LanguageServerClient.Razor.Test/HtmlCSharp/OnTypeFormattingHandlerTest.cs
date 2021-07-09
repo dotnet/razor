@@ -196,14 +196,12 @@ public string _foo;
                 .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<DocumentOnTypeFormattingParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, DocumentOnTypeFormattingParams, CancellationToken>((method, clientName, serverContentType, onTypeFormattingParams, ct) =>
+                .Callback<string, string, DocumentOnTypeFormattingParams, CancellationToken>((method, clientName, onTypeFormattingParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentOnTypeFormattingName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 })
                 .Returns(Task.FromResult(new[] { expectedEdit }));
@@ -249,12 +247,11 @@ public string _foo;
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(m => m.Snapshot == snapshot, MockBehavior.Strict));
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentOnTypeFormattingParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, DocumentOnTypeFormattingParams, CancellationToken>((method, clientName, serverContentType, onTypeFormattingParams, ct) =>
+                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentOnTypeFormattingParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, string, DocumentOnTypeFormattingParams, CancellationToken>((method, clientName, onTypeFormattingParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentOnTypeFormattingName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     invokedCSharpServer = true;
                 })
                 .Returns(Task.FromResult(new[] { expectedEdit }));

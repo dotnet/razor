@@ -287,7 +287,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 await _requestInvoker.ReinvokeRequestOnServerAsync<MonitorProjectConfigurationFilePathParams, object>(
                     LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint,
                     RazorLSPConstants.RazorLanguageServerName,
-                    RazorLSPConstants.RazorLSPContentTypeName,
                     parameter,
                     CancellationToken.None);
             }

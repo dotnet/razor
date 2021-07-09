@@ -140,11 +140,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
                 projectionResult.LanguageKind.ToContainedLanguageServerName(),
-                projectionResult.LanguageKind.ToContainedLanguageContentType(),
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (result == null)
+            if (result is null)
             {
                 _logger.LogInformation("Received no results from initial request.");
                 return null;

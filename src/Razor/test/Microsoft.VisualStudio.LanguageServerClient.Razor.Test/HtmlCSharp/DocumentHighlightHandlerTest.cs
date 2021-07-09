@@ -80,11 +80,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var csharpHighlight = GetHighlight(100, 100, 100, 100);
             var requestInvoker = GetRequestInvoker<DocumentHighlightParams, DocumentHighlight[]>(
                 new[] { csharpHighlight },
-                (method, clientName, serverContentType, highlightParams, ct) =>
+                (method, clientName, highlightParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentDocumentHighlightName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -124,11 +123,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var htmlHighlight = GetHighlight(100, 100, 100, 100);
             var requestInvoker = GetRequestInvoker<DocumentHighlightParams, DocumentHighlight[]>(
                 new[] { htmlHighlight },
-                (method, clientName, serverContentType, highlightParams, ct) =>
+                (method, clientName, highlightParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentDocumentHighlightName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -168,11 +166,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var csharpHighlight = GetHighlight(100, 100, 100, 100);
             var requestInvoker = GetRequestInvoker<DocumentHighlightParams, DocumentHighlight[]>(
                 new[] { csharpHighlight },
-                (method, clientName, serverContentType, highlightParams, ct) =>
+                (method, clientName, highlightParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentDocumentHighlightName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -211,11 +208,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var csharpHighlight = GetHighlight(100, 100, 100, 100);
             var requestInvoker = GetRequestInvoker<DocumentHighlightParams, DocumentHighlight[]>(
                 new[] { csharpHighlight },
-                (method, clientName, serverContentType, highlightParams, ct) =>
+                (method, clientName, highlightParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentDocumentHighlightName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -252,11 +248,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return projectionProvider.Object;
         }
 
-        private LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, string, TParams, CancellationToken> callback)
+        private LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, TParams, CancellationToken> callback)
         {
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
                 .Callback(callback)
                 .Returns(Task.FromResult(expectedResponse));
 
