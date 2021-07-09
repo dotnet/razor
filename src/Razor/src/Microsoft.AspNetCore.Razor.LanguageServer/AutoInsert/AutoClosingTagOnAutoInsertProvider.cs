@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
     internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
     {
         // From http://dev.w3.org/html5/spec/Overview.html#elements-0
-        public static readonly HashSet<string> s_VoidElements = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        public static readonly HashSet<string> VoidElements = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "area",
             "base",
@@ -239,7 +239,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         private static AutoClosingBehavior InferAutoClosingBehavior(string name)
         {
-            if (s_VoidElements.Contains(name))
+            if (VoidElements.Contains(name))
             {
                 return AutoClosingBehavior.SelfClosing;
             }
