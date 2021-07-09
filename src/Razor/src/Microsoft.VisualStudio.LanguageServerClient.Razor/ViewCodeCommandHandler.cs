@@ -24,14 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal sealed class ViewCodeCommandHandler : ICommandHandler<ViewCodeCommandArgs>
     {
-        private const string CSharpFileExtension = ".cs";
-
         // Because query status happens all the time we want to cache the File.Exists checks for a reasonable amount of time
         private const int CacheTimeoutMilliseconds = 10000;
         private static readonly Stopwatch s_fileExistsStopwatch = Stopwatch.StartNew();
         private static readonly Dictionary<string, (bool exists, long addedMs)> s_fileExistsCache = new();
 
-        private static readonly ImmutableHashSet<string> s_relatedRazorFileSuffixes = ImmutableHashSet.CreateRange(StringComparer.OrdinalIgnoreCase, new[] { ".cshtml", ".razor" });
+        private static readonly ImmutableHashSet<string> s_relatedRazorFileSuffixes = ImmutableHashSet.CreateRange(StringComparer.OrdinalIgnoreCase, new[] { RazorLSPConstants.CSHTMLFileExtension, RazorLSPConstants.RazorFileExtension });
 
         private static readonly CommandState s_availableCommandState = new CommandState(isAvailable: true, displayText: Resources.View_Code);
 
@@ -85,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return false;
             }
 
-            codeFilePath = Path.ChangeExtension(filePath, extension + CSharpFileExtension);
+            codeFilePath = Path.ChangeExtension(filePath, extension + RazorLSPConstants.CSharpFileExtension);
 
             var now = s_fileExistsStopwatch.ElapsedMilliseconds;
 
