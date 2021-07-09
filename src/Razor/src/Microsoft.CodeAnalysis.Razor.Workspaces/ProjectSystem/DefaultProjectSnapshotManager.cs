@@ -75,8 +75,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 {
                     _triggers[i].Initialize(this);
                 }
+
+                // Used in tests only to notify trigger initialization completion
+                if (NotifyTriggersFinishedInitializing != null)
+                {
+                    NotifyTriggersFinishedInitializing.Set();
+                }
             }, CancellationToken.None);
         }
+
+        // Used in tests to notify completion of trigger initializations
+        internal ManualResetEventSlim NotifyTriggersFinishedInitializing { get; set; }
 
         public override IReadOnlyList<ProjectSnapshot> Projects
         {
