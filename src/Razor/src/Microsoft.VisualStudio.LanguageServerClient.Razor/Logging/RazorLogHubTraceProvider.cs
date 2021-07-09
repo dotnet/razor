@@ -34,12 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 return null;
             }
 
-            var _logId = new LogId(
+            var logId = new LogId(
                 logName: $"{logIdentifier}.{logHubSessionId}",
                 serviceId: new ServiceMoniker($"Razor.{logIdentifier}"));
 
             using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker, cancellationToken).ConfigureAwait(false);
-            var traceSource = await traceConfig.RegisterLogSourceAsync(_logId, s_logOptions, cancellationToken).ConfigureAwait(false);
+            var traceSource = await traceConfig.RegisterLogSourceAsync(logId, s_logOptions, cancellationToken).ConfigureAwait(false);
             
             return traceSource;
         }

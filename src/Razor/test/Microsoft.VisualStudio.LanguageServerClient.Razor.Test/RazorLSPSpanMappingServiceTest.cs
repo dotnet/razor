@@ -54,10 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Ranges = new Range[] { mappedRange }
             };
             documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
-                .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, Uri, ranges, ct) =>
+                .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
                 {
                     Assert.Equal(RazorLanguageKind.CSharp, languageKind);
-                    Assert.Equal(_mockDocumentUri, Uri);
+                    Assert.Equal(_mockDocumentUri, uri);
                     Assert.Single(ranges, textSpanAsRange);
                     called = true;
                 })
@@ -96,10 +96,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
-                .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, Uri, ranges, ct) =>
+                .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
                 {
                     Assert.Equal(RazorLanguageKind.CSharp, languageKind);
-                    Assert.Equal(_mockDocumentUri, Uri);
+                    Assert.Equal(_mockDocumentUri, uri);
                     Assert.Single(ranges, textSpanAsRange);
                     called = true;
                 })

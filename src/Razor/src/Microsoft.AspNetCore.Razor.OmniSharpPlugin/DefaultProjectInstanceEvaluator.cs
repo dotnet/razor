@@ -79,8 +79,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
                 if (refreshTargets.Count > 2)
                 {
-                    var _projectCollection = new ProjectCollection(projectInstance.GlobalProperties);
-                    var project = _projectCollection.LoadProject(projectInstance.ProjectFileLocation.File, projectInstance.ToolsVersion);
+                    var projectCollection = new ProjectCollection(projectInstance.GlobalProperties);
+                    var project = projectCollection.LoadProject(projectInstance.ProjectFileLocation.File, projectInstance.ToolsVersion);
                     SetTargetFrameworkIfNeeded(project);
 
                     var refreshedProjectInstance = project.CreateProjectInstance();
