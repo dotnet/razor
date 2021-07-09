@@ -93,7 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
-            var contentType = projectionResult.LanguageKind.ToContainedLanguageContentType();
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -111,11 +110,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(
                 Methods.TextDocumentHoverName,
                 languageServerName,
-                contentType,
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (result?.Range == null || result?.Contents == null)
+            if (result?.Range is null || result?.Contents is null)
             {
                 _logger.LogInformation("Received no results.");
                 return null;
@@ -128,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 request.TextDocument.Uri,
                 new[] { result.Range },
                 cancellationToken).ConfigureAwait(false);
-            if (mappingResult == null || mappingResult.Ranges[0].IsUndefined())
+            if (mappingResult is null || mappingResult.Ranges[0].IsUndefined())
             {
                 // Couldn't remap the edits properly. Returning hover at initial request position.
                 _logger.LogInformation("Mapping failed");

@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     internal class TestLanguageServiceBroker : ILanguageServiceBroker2
     {
-        private readonly Action<string, string> _callback;
+        private readonly Action<string> _callback;
 
 #pragma warning disable CS0067 // The event is never used
         public event EventHandler<LanguageClientLoadedEventArgs> LanguageClientLoaded;
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public IRequestBroker<KindAndModifier, IconMapping> KindDescriptionResolveBroker => throw new NotImplementedException();
 
-        public TestLanguageServiceBroker(Action<string, string> callback)
+        public TestLanguageServiceBroker(Action<string> callback)
         {
             _callback = callback;
         }
@@ -96,20 +96,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             JToken parameters,
             CancellationToken cancellationToken)
         {
-            // We except it to be called with only one content type.
-            var contentType = Assert.Single(contentTypes);
-
-            _callback?.Invoke(contentType, method);
+            _callback?.Invoke(method);
 
             return Task.FromResult<(ILanguageClient, JToken)>((null, null));
         }
 
         public Task<(ILanguageClient, JToken)> RequestAsync(string[] contentTypes, Func<JToken, bool> capabilitiesFilter, string clientName, string method, JToken parameters, CancellationToken cancellationToken)
         {
-            // We except it to be called with only one content type.
-            var contentType = Assert.Single(contentTypes);
-
-            _callback?.Invoke(contentType, method);
+            _callback?.Invoke(method);
 
             return Task.FromResult<(ILanguageClient, JToken)>((null, null));
         }

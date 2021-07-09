@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
                     It.IsAny<string>(),
                     RazorLSPConstants.RazorLanguageServerName,
-                    RazorLSPConstants.RazorLSPContentTypeName,
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
@@ -75,7 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
                     It.IsAny<string>(),
                     RazorLSPConstants.RazorLanguageServerName,
-                    RazorLSPConstants.RazorLSPContentTypeName,
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
@@ -124,7 +122,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
                     It.IsAny<string>(),
                     RazorLSPConstants.RazorLanguageServerName,
-                    RazorLSPConstants.RazorLSPContentTypeName,
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
@@ -173,7 +170,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
                     It.IsAny<string>(),
                     RazorLSPConstants.RazorLanguageServerName,
-                    RazorLSPConstants.RazorLSPContentTypeName,
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
@@ -224,7 +220,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
                     It.IsAny<string>(),
                     RazorLSPConstants.RazorLanguageServerName,
-                    RazorLSPConstants.RazorLSPContentTypeName,
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
@@ -430,7 +429,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnMultipleServersAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
                 .Callback(callback)
-                .Returns(Task.FromResult(new List<(ILanguageClient, TResult)>() { (default(ILanguageClient), expectedResponse )} as IEnumerable<(ILanguageClient, TResult)>));
+                .Returns(Task.FromResult(new List<ReinvokeResponse<TResult>>() { new ReinvokeResponse<TResult>(default, expectedResponse )} as IEnumerable<ReinvokeResponse<TResult>>));
 
             return requestInvoker.Object;
         }

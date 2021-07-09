@@ -103,26 +103,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting OnTypeRename for {projectionResult.Uri}.");
 
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
-            var contentType = projectionResult.LanguageKind.ToContainedLanguageContentType();
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>(
+            var onTypeResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>(
                 MSLSPMethods.OnTypeRenameName,
                 languageServerName,
-                contentType,
                 onTypeRenameParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (response is null)
+            if (onTypeResponse is null)
             {
                 _logger.LogInformation("Received no results.");
                 return null;
             }
+
 
             _logger.LogInformation($"Received response, remapping.");
 
             var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
                 projectionResult.LanguageKind,
                 request.TextDocument.Uri,
-                response.Ranges,
+                onTypeResponse.Ranges,
                 cancellationToken).ConfigureAwait(false);
 
             if (mappingResult is null ||
@@ -134,9 +133,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            response.Ranges = mappingResult.Ranges;
+            onTypeResponse.Ranges = mappingResult.Ranges;
             _logger.LogInformation("Returned remapped result.");
-            return response;
+            return onTypeResponse;
         }
     }
 }

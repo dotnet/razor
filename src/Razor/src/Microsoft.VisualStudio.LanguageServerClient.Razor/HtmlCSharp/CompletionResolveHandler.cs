@@ -87,15 +87,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var languageServerName = requestContext.LanguageServerKind.ToLanguageServerName();
-            var serverContentType = requestContext.LanguageServerKind.ToContentType();
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(
                 Methods.TextDocumentCompletionResolveName,
                 languageServerName,
-                serverContentType,
                 request,
                 cancellationToken).ConfigureAwait(false);
 
-            if (result == null)
+            if (result is null)
             {
                 // Could not resolve any additional information about the completion item, return early.
                 return request;

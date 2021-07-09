@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
                 return null;
@@ -126,15 +126,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting auto-insert for {projectionResult.Uri}.");
 
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
-            var contentType = projectionResult.LanguageKind.ToContainedLanguageContentType();
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
                 MSLSPMethods.OnAutoInsertName,
                 languageServerName,
-                contentType,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (response == null)
+            if (result is null)
             {
                 _logger.LogInformation("Received no results.");
                 return null;
@@ -142,10 +140,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation("Received result, remapping.");
 
-            var containsSnippet = response.TextEditFormat == InsertTextFormat.Snippet;
+            var containsSnippet = result.TextEditFormat == InsertTextFormat.Snippet;
             var remappedEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(
                 projectionResult.Uri,
-                new[] { response.TextEdit },
+                new[] { result.TextEdit },
                 request.Options,
                 containsSnippet,
                 cancellationToken).ConfigureAwait(false);
@@ -160,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var remappedResponse = new DocumentOnAutoInsertResponseItem()
             {
                 TextEdit = remappedEdit,
-                TextEditFormat = response.TextEditFormat,
+                TextEditFormat = result.TextEditFormat,
             };
 
             _logger.LogInformation($"Returning edit.");
