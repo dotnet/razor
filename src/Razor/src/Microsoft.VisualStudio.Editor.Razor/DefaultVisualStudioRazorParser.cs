@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override bool HasPendingChanges => _latestChangeReference != null;
 
         // Used in unit tests to ensure we can be notified when idle starts.
-        internal ManualResetEventSlim NotifyForegroundIdleStart { get; set; }
+        internal ManualResetEventSlim NotifyUIIdleStart { get; set; }
 
         // Used in unit tests to ensure we can block background idle work.
         internal ManualResetEventSlim BlockBackgroundIdleWork { get; set; }
@@ -338,7 +338,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return;
             }
 
-            OnNotifyForegroundIdle();
+            OnNotifyUIIdle();
 
             foreach (var textView in _documentTracker.TextViews)
             {
@@ -375,11 +375,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _latestChangeReference = _parser?.QueueChange(change, snapshot);
         }
 
-        private void OnNotifyForegroundIdle()
+        private void OnNotifyUIIdle()
         {
-            if (NotifyForegroundIdleStart != null)
+            if (NotifyUIIdleStart != null)
             {
-                NotifyForegroundIdleStart.Set();
+                NotifyUIIdleStart.Set();
             }
         }
 

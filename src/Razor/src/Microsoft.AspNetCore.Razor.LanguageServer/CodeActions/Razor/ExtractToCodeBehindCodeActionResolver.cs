@@ -26,18 +26,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly FilePathNormalizer _filePathNormalizer;
 
         private static readonly Range StartOfDocumentRange = new Range(new Position(0, 0), new Position(0, 0));
 
         public ExtractToCodeBehindCodeActionResolver(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             FilePathNormalizer filePathNormalizer)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
@@ -59,11 +59,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var path = _filePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
 
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
             if (document is null)
             {
                 return null;

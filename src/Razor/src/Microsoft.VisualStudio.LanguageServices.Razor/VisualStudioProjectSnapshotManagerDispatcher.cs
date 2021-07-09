@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    [Export(typeof(ForegroundDispatcher))]
-    internal class VisualStudioForegroundDispatcher : DefaultForegroundDispatcher
+    [Export(typeof(ProjectSnapshotManagerDispatcher))]
+    internal class VisualStudioProjectSnapshotManagerDispatcher : DefaultProjectSnapshotManagerDispatcher
     {
     }
 }

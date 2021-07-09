@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class EditorDocumentManagerBaseTest : ForegroundDispatcherTestBase
+    public class EditorDocumentManagerBaseTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public EditorDocumentManagerBaseTest()
         {
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public TestTextBuffer TextBuffer => new TestTextBuffer(new StringTextSnapshot("HI"));
 
-        [ForegroundFact]
+        [UIFact]
         public void GetOrCreateDocument_CreatesAndCachesDocument()
         {
             // Arrange
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             Assert.Same(expected, actual);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void GetOrCreateDocument_NoOp()
         {
             // Arrange
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             Assert.Same(expected, actual);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void GetOrCreateDocument_SameFile_MulipleProjects()
         {
             // Arrange
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             Assert.NotSame(document1, document2);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void GetOrCreateDocument_MulipleFiles_SameProject()
         {
             // Arrange
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             Assert.NotSame(document1, document2);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void GetOrCreateDocument_WithBuffer_AttachesBuffer()
         {
             // Arrange
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             Assert.Empty(Manager.Closed);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TryGetMatchingDocuments_MultipleDocuments()
         {
             // Arrange
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 d => Assert.Same(document1, d));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void RemoveDocument_MultipleDocuments_RemovesOne()
         {
             // Arrange
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 d => Assert.Same(document2, d));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentOpened_MultipleDocuments_OpensAll()
         {
             // Arrange
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 d => Assert.Same(document1, d));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentOpened_MultipleDocuments_ClosesAll()
         {
             // Arrange
@@ -171,8 +171,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private class TestEditorDocumentManager : EditorDocumentManagerBase
         {
-            public TestEditorDocumentManager(ForegroundDispatcher foregroundDispatcher, JoinableTaskContext joinableTaskContext) 
-                : base(foregroundDispatcher, joinableTaskContext, new DefaultFileChangeTrackerFactory())
+            public TestEditorDocumentManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext) 
+                : base(projectSnapshotManagerDispatcher, joinableTaskContext, new DefaultFileChangeTrackerFactory())
             {
             }
 

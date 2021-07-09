@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal abstract class RazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
     {
         private readonly Workspace _workspace;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly AsyncSemaphore _lock;
 
         private ProjectSnapshotManagerBase _projectManager;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public RazorProjectHostBase(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
             : base(commonServices.ThreadingService.JoinableTaskContext)
         {
@@ -57,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             CommonServices = commonServices;
             _workspace = workspace;
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
             _lock = new AsyncSemaphore(initialCount: 1);
             _currentDocuments = new Dictionary<string, HostDocument>(FilePathComparer.Instance);
@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         protected RazorProjectHostBase(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             ProjectSnapshotManagerBase projectManager)
-            : this(commonServices, workspace, foregroundDispatcher, projectConfigurationFilePathStore)
+            : this(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
             if (projectManager == null)
             {
@@ -153,10 +153,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }).ConfigureAwait(false);
         }
 
-        // Should only be called from the single-threaded dispatcher's thread.
+        // Should only be called from the project snapshot manager's specialized thread.
         private ProjectSnapshotManagerBase GetProjectManager()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projectManager == null)
             {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
-            => _foregroundDispatcher.RunOnForegroundAsync(action, cancellationToken);
+            => _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
 
         protected void UninitializeProjectUnsafe()
         {

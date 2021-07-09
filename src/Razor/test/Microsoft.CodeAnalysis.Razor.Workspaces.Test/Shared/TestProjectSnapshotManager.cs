@@ -10,22 +10,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
     {
         public TestProjectSnapshotManager(Workspace workspace)
-            : base(CreateForegroundDispatcher(), Mock.Of<ErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
+            : base(CreateProjectSnapshotManagerDispatcher(), Mock.Of<ErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
         {
         }
 
-        public TestProjectSnapshotManager(ForegroundDispatcher foregroundDispatcher, Workspace workspace)
-            : base(foregroundDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
+        public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, Workspace workspace)
+            : base(projectSnapshotManagerDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
         {
         }
 
         public bool AllowNotifyListeners { get; set; }
 
-        private static ForegroundDispatcher CreateForegroundDispatcher()
+        private static ProjectSnapshotManagerDispatcher CreateProjectSnapshotManagerDispatcher()
         {
-            var dispatcher = new Mock<ForegroundDispatcher>(MockBehavior.Strict);
-            dispatcher.Setup(d => d.AssertForegroundThread(It.IsAny<string>())).Verifiable();
-            dispatcher.Setup(d => d.ForegroundScheduler).Returns(TaskScheduler.FromCurrentSynchronizationContext());
+            var dispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
+            dispatcher.Setup(d => d.AssertDispatcherThread(It.IsAny<string>())).Verifiable();
+            dispatcher.Setup(d => d.DispatcherScheduler).Returns(TaskScheduler.FromCurrentSynchronizationContext());
             return dispatcher.Object;
         }
 

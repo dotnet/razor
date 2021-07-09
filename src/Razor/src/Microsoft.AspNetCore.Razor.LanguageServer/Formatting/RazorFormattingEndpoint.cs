@@ -22,22 +22,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class RazorFormattingEndpoint : IDocumentFormattingHandler, IDocumentRangeFormattingHandler
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorFormattingService _razorFormattingService;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
         private readonly ILogger _logger;
 
         public RazorFormattingEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorFormattingService razorFormattingService,
             IOptionsMonitor<RazorLSPOptions> optionsMonitor,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver is null)
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _razorFormattingService = razorFormattingService;
             _optionsMonitor = optionsMonitor;
@@ -90,12 +90,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {
@@ -124,12 +124,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {

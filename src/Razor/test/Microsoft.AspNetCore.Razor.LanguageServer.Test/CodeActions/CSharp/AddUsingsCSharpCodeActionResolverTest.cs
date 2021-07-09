@@ -191,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             documentVersionCache ??= CreateDocumentVersionCache();
 
             addUsingResolver = new AddUsingsCSharpCodeActionResolver(
-                new DefaultForegroundDispatcher(),
+                new DefaultProjectSnapshotManagerDispatcher(),
                 CreateDocumentResolver(documentPath, codeDocument),
                 languageServer,
                 documentVersionCache);

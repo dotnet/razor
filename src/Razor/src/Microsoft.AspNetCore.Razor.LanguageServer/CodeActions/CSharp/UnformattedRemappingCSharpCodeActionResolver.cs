@@ -19,20 +19,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     /// </summary>
     internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionResolver
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly RazorDocumentMappingService _documentMappingService;
 
         public UnformattedRemappingCSharpCodeActionResolver(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
             DocumentVersionCache documentVersionCache,
             RazorDocumentMappingService documentMappingService)
             : base(languageServer)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
@@ -85,14 +85,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var (documentSnapshot, documentVersion) = await Task.Factory.StartNew(() =>
+            var (documentSnapshot, documentVersion) = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
 
                 return (documentSnapshot, version);
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (documentSnapshot is null)
             {

@@ -7,21 +7,6 @@
         <target state="translated">값은 null이거나 빈 문자열일 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertBackgroundThread">
-        <source>{0} must be called on a background thread.</source>
-        <target state="translated">{0}(은)는 배경 스레드에서 호출되어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertForegroundThread">
-        <source>{0} must be called on the foreground thread.</source>
-        <target state="translated">{0}(은)는 전경 스레드에서 호출되어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_NoMethodNamePlaceholder">
-        <source>The method</source>
-        <target state="translated">메서드 이름</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

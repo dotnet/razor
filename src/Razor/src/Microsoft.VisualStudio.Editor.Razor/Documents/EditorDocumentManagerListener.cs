@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     [Export(typeof(ProjectSnapshotChangeTrigger))]
     internal class EditorDocumentManagerListener : ProjectSnapshotChangeTrigger
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly EventHandler _onChangedOnDisk;
         private readonly EventHandler _onChangedInEditor;
@@ -29,11 +29,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private ProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public EditorDocumentManagerListener(ForegroundDispatcher foregroundDispatcher, JoinableTaskContext joinableTaskContext)
+        public EditorDocumentManagerListener(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _onChangedOnDisk = Document_ChangedOnDisk;
             _onChangedInEditor = Document_ChangedInEditor;
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         // For testing purposes only.
         internal EditorDocumentManagerListener(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext,
             EditorDocumentManager documentManager,
             EventHandler onChangedOnDisk,
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             EventHandler onOpened,
             EventHandler onClosed)
         {
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _documentManager = documentManager;
             _onChangedOnDisk = onChangedOnDisk;
@@ -145,8 +145,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             {
                 // This event is called by the EditorDocumentManager, which runs on the UI thread.
                 // However, due to accessing the project snapshot manager, we need to switch to
-                // running on the single-threaded dispatcher.
-                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                // running on the project snapshot manager's specialized thread.
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     var document = (EditorDocument)sender;
                     _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
@@ -167,8 +167,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             {
                 // This event is called by the EditorDocumentManager, which runs on the UI thread.
                 // However, due to accessing the project snapshot manager, we need to switch to
-                // running on the single-threaded dispatcher.
-                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                // running on the project snapshot manager's specialized thread.
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     var document = (EditorDocument)sender;
                     _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
@@ -189,8 +189,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             {
                 // This event is called by the EditorDocumentManager, which runs on the UI thread.
                 // However, due to accessing the project snapshot manager, we need to switch to
-                // running on the single-threaded dispatcher.
-                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                // running on the project snapshot manager's specialized thread.
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     var document = (EditorDocument)sender;
                     _projectManager.DocumentOpened(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
@@ -211,8 +211,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             {
                 // This event is called by the EditorDocumentManager, which runs on the UI thread.
                 // However, due to accessing the project snapshot manager, we need to switch to
-                // running on the single-threaded dispatcher.
-                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                // running on the project snapshot manager's specialized thread.
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     var document = (EditorDocument)sender;
                     _projectManager.DocumentClosed(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);

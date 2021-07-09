@@ -6,9 +6,9 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    public class VisualStudioMacFileChangeTrackerTest : ForegroundDispatcherTestBase
+    public class VisualStudioMacFileChangeTrackerTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        [ForegroundFact]
+        [UIFact]
         public void StartListening_AdvisesForFileChange()
         {
             // Arrange
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             Assert.Equal(1, tracker.AttachToFileServiceEventsCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StartListening_AlreadyListening_DoesNothing()
         {
             // Arrange
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             Assert.Equal(1, tracker.AttachToFileServiceEventsCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StopListening_UnadvisesForFileChange()
         {
             // Arrange
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             Assert.Equal(1, tracker.DetachFromFileServiceEventsCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StopListening_NotListening_DoesNothing()
         {
             // Arrange
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         {
             public TestFileChangeTracker(
                 string filePath, 
-                ForegroundDispatcher foregroundDispatcher) : base(filePath, foregroundDispatcher)
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(filePath, projectSnapshotManagerDispatcher)
             {
             }
 

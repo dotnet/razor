@@ -19,18 +19,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     /// </summary>
     internal class AddUsingsCSharpCodeActionResolver : CSharpCodeActionResolver
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
 
         public AddUsingsCSharpCodeActionResolver(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             ClientNotifierServiceBase languageServer,
             DocumentVersionCache documentVersionCache)
             : base(languageServer)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
         }
@@ -87,11 +87,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
             
-            var documentSnapshot = await Task.Factory.StartNew(() =>
+            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
             if (documentSnapshot is null)
             {
                 return codeAction;
@@ -109,11 +109,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            var documentVersion = await Task.Factory.StartNew(() =>
+            var documentVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
                 return version;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
 
             var codeDocumentIdentifier = new VersionedTextDocumentIdentifier()
             {

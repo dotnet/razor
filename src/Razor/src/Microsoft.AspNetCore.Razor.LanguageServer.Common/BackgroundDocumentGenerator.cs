@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -13,19 +12,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly IEnumerable<DocumentProcessedListener> _documentProcessedListeners;
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
 
         public BackgroundDocumentGenerator(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             IEnumerable<DocumentProcessedListener> documentProcessedListeners)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentProcessedListeners is null)
@@ -33,16 +32,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 throw new ArgumentNullException(nameof(documentProcessedListeners));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentProcessedListeners = documentProcessedListeners;
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
         }
 
         // For testing only
         protected BackgroundDocumentGenerator(
-            ForegroundDispatcher foregroundDispatcher)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
             _documentProcessedListeners = Enumerable.Empty<DocumentProcessedListener>();
         }
@@ -136,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         // Internal for testing
         internal void Enqueue(DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_work)
             {
@@ -190,11 +189,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 OnCompletingBackgroundWork();
 
-                await Task.Factory.StartNew(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () => NotifyDocumentsProcessed(work),
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler);
+                    CancellationToken.None);
 
                 lock (_work)
                 {
@@ -235,7 +232,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -315,11 +312,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void ReportError(Exception ex)
         {
-            _ = Task.Factory.StartNew(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                CancellationToken.None);
         }
     }
 }

@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
         private readonly IEnumerable<ProjectConfigurationProvider> _projectConfigurationProviders;
         private readonly ProjectInstanceEvaluator _projectInstanceEvaluator;
         private readonly ProjectChangePublisher _projectConfigurationPublisher;
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private OmniSharpProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             [ImportMany] IEnumerable<ProjectConfigurationProvider> projectConfigurationProviders,
             ProjectInstanceEvaluator projectInstanceEvaluator,
             ProjectChangePublisher projectConfigurationPublisher,
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ILoggerFactory loggerFactory)
         {
             if (projectConfigurationProviders is null)
@@ -60,9 +60,9 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 throw new ArgumentNullException(nameof(projectConfigurationPublisher));
             }
 
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (loggerFactory is null)
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             _projectConfigurationProviders = projectConfigurationProviders;
             _projectInstanceEvaluator = projectInstanceEvaluator;
             _projectConfigurationPublisher = projectConfigurationPublisher;
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
@@ -109,11 +109,8 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 // When documents get added or removed we need to refresh project state to properly reflect the host documents in the project.
 
                 var evaluatedProjectInstance = _projectInstanceEvaluator.Evaluate(args.UnevaluatedProjectInstance);
-                _ = Task.Factory.StartNew(
-                    () => UpdateProjectState(evaluatedProjectInstance),
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    () => UpdateProjectState(evaluatedProjectInstance), CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -140,13 +137,13 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             // Force project instance evaluation to ensure that all Razor specific targets have run.
             projectInstance = _projectInstanceEvaluator.Evaluate(projectInstance);
 
-            await Task.Factory.StartNew(() => UpdateProjectState(projectInstance),
-            CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () => UpdateProjectState(projectInstance), CancellationToken.None);
         }
 
         private void UpdateProjectState(ProjectInstance projectInstance)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var projectFilePath = projectInstance.GetPropertyValue(MSBuildProjectFullPathPropertyName);
             if (string.IsNullOrEmpty(projectFilePath))

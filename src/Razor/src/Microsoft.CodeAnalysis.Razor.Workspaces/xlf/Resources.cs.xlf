@@ -7,21 +7,6 @@
         <target state="translated">Hodnota nesmí být null ani prázdný řetězec.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertBackgroundThread">
-        <source>{0} must be called on a background thread.</source>
-        <target state="translated">{0} musí být voláno ve vlákně na pozadí.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertForegroundThread">
-        <source>{0} must be called on the foreground thread.</source>
-        <target state="translated">{0} musí být voláno ve vlákně na popředí.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_NoMethodNamePlaceholder">
-        <source>The method</source>
-        <target state="translated">Metoda</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

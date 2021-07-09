@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Internal;
@@ -14,19 +13,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly IReadOnlyList<DocumentProcessedListener> _documentProcessedListeners;
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
 
         public OpenDocumentGenerator(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             IEnumerable<DocumentProcessedListener> documentProcessedListeners)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentProcessedListeners is null)
@@ -34,15 +33,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(documentProcessedListeners));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentProcessedListeners = documentProcessedListeners.ToArray();
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
         }
 
         // For testing only
-        protected OpenDocumentGenerator(ForegroundDispatcher foregroundDispatcher)
+        protected OpenDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
             _documentProcessedListeners = Array.Empty<DocumentProcessedListener>();
         }
@@ -136,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal void Enqueue(DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_projectManager.IsDocumentOpen(document.FilePath))
             {
@@ -198,11 +197,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 if (_documentProcessedListeners.Count != 0)
                 {
-                    await Task.Factory.StartNew(
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                         () => NotifyDocumentsProcessed(work),
-                        CancellationToken.None,
-                        TaskCreationOptions.None,
-                        _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                        CancellationToken.None).ConfigureAwait(false);
                 }
 
                 lock (_work)
@@ -244,7 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -306,11 +303,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ReportError(Exception ex)
         {
-            _ = Task.Factory.StartNew(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                CancellationToken.None);
         }
     }
 }

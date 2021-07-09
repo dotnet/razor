@@ -16,7 +16,7 @@ using ItemCollection = Microsoft.VisualStudio.ProjectSystem.ItemCollection;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    public class DefaultRazorProjectHostTest : ForegroundDispatcherWorkspaceTestBase
+    public class DefaultRazorProjectHostTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
         public DefaultRazorProjectHostTest()
         {
@@ -613,8 +613,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 extension => Assert.Equal(expectedExtension2Name, extension.ExtensionName));
         }
 
-        [ForegroundFact]
-        public async Task DefaultRazorProjectHost_ForegroundThread_CreateAndDispose_Succeeds()
+        [UIFact]
+        public async Task DefaultRazorProjectHost_UIThread_CreateAndDispose_Succeeds()
         {
             // Arrange
             var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DefaultRazorProjectHost_BackgroundThread_CreateAndDispose_Succeeds()
         {
             // Arrange
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact] // This can happen if the .xaml files aren't included correctly.
+        [UIFact] // This can happen if the .xaml files aren't included correctly.
         public async Task DefaultRazorProjectHost_OnProjectChanged_NoRulesDefined()
         {
             // Arrange
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        // [ForegroundFact]
+        // [UIFact]
         // public async Task OnProjectChanged_ReadsProperties_InitializesProject()
         // {
         //     // Arrange
@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         //     Assert.Empty(ProjectManager.Projects);
         // }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectChanged_NoVersionFound_DoesNotIniatializeProject()
         {
             // Arrange
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectChanged_UpdateProject_Succeeds()
         {
             // Arrange
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectChanged_VersionRemoved_DeinitializesProject()
         {
             // Arrange
@@ -993,7 +993,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectChanged_AfterDispose_IgnoresUpdate()
         {
             // Arrange
@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(ProjectManager.Projects);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task OnProjectRenamed_RemovesHostProject_CopiesConfiguration()
         {
             // Arrange
@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(ForegroundDispatcher dispatcher, Workspace workspace)
+            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, Workspace workspace)
                 : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Array.Empty<ProjectSnapshotChangeTrigger>(), workspace)
             {
             }

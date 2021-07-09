@@ -20,21 +20,21 @@ namespace Microsoft.CodeAnalysis.Razor
         // Internal for testing
         internal readonly Dictionary<string, UpdateItem> _updates;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly SemaphoreSlim _semaphore;
         private ProjectSnapshotManagerBase _projectManager;
         private TagHelperResolver _tagHelperResolver;
         private bool _disposed;
 
         [ImportingConstructor]
-        public DefaultProjectWorkspaceStateGenerator(ForegroundDispatcher foregroundDispatcher)
+        public DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
             _semaphore = new SemaphoreSlim(initialCount: 1);
             _updates = new Dictionary<string, UpdateItem>(FilePathComparer.Instance);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(projectSnapshot));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_disposed)
             {
@@ -164,11 +164,10 @@ namespace Microsoft.CodeAnalysis.Razor
                 }
                 catch (Exception ex)
                 {
-                    await Task.Factory.StartNew(
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                        () => _projectManager.ReportError(ex, projectSnapshot),
-                       CancellationToken.None, // Don't allow errors to be cancelled
-                       TaskCreationOptions.None,
-                       _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                       // Don't allow errors to be cancelled
+                       CancellationToken.None).ConfigureAwait(false);
                     return;
                 }
 
@@ -178,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     return;
                 }
 
-                await Task.Factory.StartNew(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
                         if (cancellationToken.IsCancellationRequested)
@@ -188,9 +187,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
                         ReportWorkspaceStateChange(projectSnapshot.FilePath, workspaceState);
                     },
-                    cancellationToken,
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -200,11 +197,10 @@ namespace Microsoft.CodeAnalysis.Razor
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the project manager.
-                await Task.Factory.StartNew(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () => _projectManager.ReportError(ex),
-                    CancellationToken.None, // Don't allow errors to be cancelled
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                    // Don't allow errors to be cancelled
+                    CancellationToken.None).ConfigureAwait(false);
             }
             finally
             {
@@ -223,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private void ReportWorkspaceStateChange(string projectFilePath, ProjectWorkspaceState workspaceStateChange)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             _projectManager.ProjectWorkspaceStateChanged(projectFilePath, workspaceStateChange);
         }

@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private DocumentSnapshot UpdatedDocumentSnapshot { get; set; }
 
-        private ForegroundDispatcher ForegroundDispatcher { get; set; }
+        private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
 
         private string PagesDirectory { get; set; }
 
@@ -76,7 +76,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot)
         {
-            await Task.Factory.StartNew(() => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            await ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None).ConfigureAwait(false);
         }
 
         [GlobalCleanup]
@@ -101,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
             RazorSemanticTokenService = languageServer.GetService(typeof(RazorSemanticTokensInfoService)) as TestRazorSemanticTokensInfoService;
             VersionCache = languageServer.GetService(typeof(DocumentVersionCache)) as DocumentVersionCache;
-            ForegroundDispatcher = languageServer.GetService(typeof(ForegroundDispatcher)) as ForegroundDispatcher;
+            ProjectSnapshotManagerDispatcher = languageServer.GetService(typeof(ProjectSnapshotManagerDispatcher)) as ProjectSnapshotManagerDispatcher;
         }
 
         private class TestRazorSemanticTokensInfoService : DefaultRazorSemanticTokensInfoService
@@ -109,11 +110,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             public TestRazorSemanticTokensInfoService(
                 ClientNotifierServiceBase languageServer,
                 RazorDocumentMappingService documentMappingService,
-                ForegroundDispatcher foregroundDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
                 LoggerFactory loggerFactory) :
-                base(languageServer, documentMappingService, foregroundDispatcher, documentResolver, documentVersionCache, loggerFactory)
+                base(languageServer, documentMappingService, projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, loggerFactory)
             {
             }
 

@@ -21,18 +21,18 @@ namespace Microsoft.CodeAnalysis.Razor
         // Internal for testing
         internal readonly Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)> _work;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly RazorDynamicFileInfoProvider _infoProvider;
         private readonly HashSet<string> _suppressedDocuments;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
 
         [ImportingConstructor]
-        public BackgroundDocumentGenerator(ForegroundDispatcher foregroundDispatcher, RazorDynamicFileInfoProvider infoProvider)
+        public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorDynamicFileInfoProvider infoProvider)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (infoProvider is null)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(infoProvider));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _infoProvider = infoProvider;
             _suppressedDocuments = new HashSet<string>(FilePathComparer.Instance);
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_work)
             {
@@ -250,12 +250,9 @@ namespace Microsoft.CodeAnalysis.Razor
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the workspace.
-                await Task.Factory.StartNew(
-                    (p) => ((ProjectSnapshotManagerBase)p).ReportError(ex),
-                    _projectManager,
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    () => _projectManager.ReportError(ex),
+                    CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -263,12 +260,9 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             OnErrorBeingReported();
 
-            _ = Task.Factory.StartNew(
-                (p) => ((ProjectSnapshotManagerBase)p).ReportError(ex, project),
-                _projectManager,
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () => _projectManager.ReportError(ex, project),
+                CancellationToken.None);
         }
 
         private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)

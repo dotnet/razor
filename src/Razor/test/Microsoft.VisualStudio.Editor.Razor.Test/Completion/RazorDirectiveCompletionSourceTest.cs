@@ -18,7 +18,7 @@ using Span = Microsoft.VisualStudio.Text.Span;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
-    public class RazorDirectiveCompletionSourceTest : ForegroundDispatcherTestBase
+    public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatcherTestBase
     {
         private static readonly IReadOnlyList<DirectiveDescriptor> DefaultDirectives = new[]
         {
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         private RazorCompletionFactsService CompletionFactsService { get; } = new DefaultRazorCompletionFactsService(new[] { new DirectiveCompletionItemProvider() });
 
-        [ForegroundFact]
+        [UIFact]
         public async Task GetCompletionContextAsync_DoesNotProvideCompletionsPriorToParseResults()
         {
             // Arrange
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             Assert.Empty(completionContext.Items);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task GetCompletionContextAsync_DoesNotProvideCompletionsWhenNotAtCompletionPoint()
         {
             // Arrange
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         }
 
         // This is more of an integration level test validating the end-to-end completion flow.
-        [ForegroundFact]
+        [UIFact]
         public async Task GetCompletionContextAsync_ProvidesCompletionsWhenAtCompletionPoint()
         {
             // Arrange

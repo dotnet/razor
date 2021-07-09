@@ -8,20 +8,21 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    internal class DefaultForegroundDispatcher : ForegroundDispatcher
+    internal class DefaultProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
     {
-        public override bool IsForegroundThread => Thread.CurrentThread.ManagedThreadId == ForegroundTaskScheduler.Instance.ForegroundThreadId;
+        protected override bool IsDispatcherThread
+            => Thread.CurrentThread.ManagedThreadId == ProjectSnapshotManagerTaskScheduler.Instance.ThreadId;
 
-        public override TaskScheduler ForegroundScheduler { get; } = ForegroundTaskScheduler.Instance;
+        public override TaskScheduler DispatcherScheduler { get; } = ProjectSnapshotManagerTaskScheduler.Instance;
 
-        internal class ForegroundTaskScheduler : TaskScheduler
+        internal class ProjectSnapshotManagerTaskScheduler : TaskScheduler
         {
-            public static ForegroundTaskScheduler Instance = new();
+            public static ProjectSnapshotManagerTaskScheduler Instance = new();
 
             private readonly Thread _thread;
             private readonly BlockingCollection<Task> _tasks = new();
 
-            private ForegroundTaskScheduler()
+            private ProjectSnapshotManagerTaskScheduler()
             {
                 _thread = new Thread(ThreadStart)
                 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 _thread.Start();
             }
 
-            public int ForegroundThreadId => _thread.ManagedThreadId;
+            public int ThreadId => _thread.ManagedThreadId;
 
             public override int MaximumConcurrencyLevel => 1;
 

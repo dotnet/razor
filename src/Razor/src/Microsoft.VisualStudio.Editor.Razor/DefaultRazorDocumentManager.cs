@@ -19,19 +19,19 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [Export(typeof(RazorDocumentManager))]
     internal class DefaultRazorDocumentManager : RazorDocumentManager
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly RazorEditorFactoryService _editorFactoryService;
 
         [ImportingConstructor]
         public DefaultRazorDocumentManager(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext,
             RazorEditorFactoryService editorFactoryService)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(editorFactoryService));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _editorFactoryService = editorFactoryService;
         }
@@ -82,8 +82,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 if (documentTracker.TextViews.Count == 1)
                 {
                     // tracker.Subscribe() accesses the project snapshot manager, which needs to be run on the
-                    // single-threaded dispatcher.
-                    await _foregroundDispatcher.RunOnForegroundAsync(() => tracker.Subscribe(), CancellationToken.None);
+                    // project snapshot manager's specialized thread.
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => tracker.Subscribe(), CancellationToken.None);
                 }
             }
         }
@@ -116,8 +116,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     if (documentTracker.TextViews.Count == 0)
                     {
                         // tracker.Unsubscribe() should be in sync with tracker.Subscribe(). The latter of needs to be run
-                        // on the single-threaded dispatcher, so we run both on it.
-                        await _foregroundDispatcher.RunOnForegroundAsync(() => documentTracker.Unsubscribe(), CancellationToken.None);
+                        // on the project snapshot manager's specialized thread, so we run both on it.
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => documentTracker.Unsubscribe(), CancellationToken.None);
                     }
                 }
             }

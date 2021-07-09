@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public RazorProjectHostBase(
             DotNetProject project,
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)
         {
             if (project is null)
@@ -35,9 +35,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (projectSnapshotManager is null)
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }
 
             DotNetProject = project;
-            ForegroundDispatcher = foregroundDispatcher;
+            ProjectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectSnapshotManager = projectSnapshotManager;
             _onProjectChangedInnerSemaphore = new AsyncSemaphore(initialCount: 1);
             _projectChangedSemaphore = new AsyncSemaphore(initialCount: 1);
@@ -59,15 +59,15 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public HostProject HostProject { get; private set; }
 
-        protected ForegroundDispatcher ForegroundDispatcher { get; }
+        protected ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; }
 
         public void Detach()
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             DotNetProject.Modified -= DotNetProject_Modified;
 
-            UpdateHostProjectForeground(null);
+            UpdateHostProjectProjectSnapshotManagerDispatcher(null);
         }
 
         protected abstract Task OnProjectChangedAsync();
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Protected virtual for testing
         protected virtual void AttachToProject()
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             DotNetProject.Modified += DotNetProject_Modified;
 
@@ -87,7 +87,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Must be called inside the lock.
         protected async Task UpdateHostProjectUnsafeAsync(HostProject newHostProject)
         {
-            await Task.Factory.StartNew(UpdateHostProjectForeground, newHostProject, CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.ForegroundScheduler);
+            await ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () => UpdateHostProjectProjectSnapshotManagerDispatcher(newHostProject), CancellationToken.None);
         }
 
         protected async Task ExecuteWithLockAsync(Func<Task> func)
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(args));
             }
 
-            ForegroundDispatcher.AssertForegroundThread();
+            ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_batchingProjectChanges)
             {
@@ -137,9 +138,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }
         }
 
-        private void UpdateHostProjectForeground(object state)
+        private void UpdateHostProjectProjectSnapshotManagerDispatcher(object state)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var newHostProject = (HostProject)state;
 
@@ -165,7 +166,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         protected void AddDocument(HostProject hostProject, string filePath, string relativeFilePath)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_currentDocuments.ContainsKey(filePath))
             {

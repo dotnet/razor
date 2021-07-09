@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         {
             if (!joinableTaskContext.IsOnMainThread)
             {
+                caller = caller is null ? "The method" : $"'{caller}'";
                 throw new InvalidOperationException($"{caller} must be called on the UI thread.");
             }
         }

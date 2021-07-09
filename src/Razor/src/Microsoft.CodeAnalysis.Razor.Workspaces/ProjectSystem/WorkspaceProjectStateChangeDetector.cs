@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigger
     {
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
 
         public int EnqueueDelay { get; set; } = 3 * 1000;
@@ -32,20 +32,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         [ImportingConstructor]
         public WorkspaceProjectStateChangeDetector(
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
-            ForegroundDispatcher foregroundDispatcher)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
             if (workspaceStateGenerator is null)
             {
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             _workspaceStateGenerator = workspaceStateGenerator;
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
         // Used in unit tests to ensure we can control when background work starts.
@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             try
             {
-                // Method needs to be run on the single-threaded dispatcher due to project snapshot
-                // manager access. 
-                await _foregroundDispatcher.RunOnForegroundAsync(() =>
+                // Method needs to be run on the project snapshot manager's specialized thread
+                // due to project snapshot manager access. 
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     Project project;
                     switch (e.Kind)

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class EditorDocumentTest : ForegroundDispatcherTestBase
+    public class EditorDocumentTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public EditorDocumentTest()
         {

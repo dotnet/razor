@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 {
-    public class DefaultProjectSnapshotManagerProxyTest : ForegroundDispatcherTestBase
+    public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public DefaultProjectSnapshotManagerProxyTest()
         {

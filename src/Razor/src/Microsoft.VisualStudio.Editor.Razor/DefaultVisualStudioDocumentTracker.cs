@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly string _filePath;
         private readonly string _projectPath;
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override event EventHandler<ContextChangeEventArgs> ContextChanged;
 
         public DefaultVisualStudioDocumentTracker(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext,
             string filePath,
             string projectPath,
@@ -45,9 +45,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
             ITextBuffer textBuffer,
             ImportDocumentManager importDocumentManager)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(importDocumentManager));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
             _filePath = filePath;
             _projectPath = projectPath;
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void Subscribe()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_subscribeCount++ > 0)
             {
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void Unsubscribe()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_subscribeCount == 0 || _subscribeCount-- > 1)
             {
@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projectPath != null &&
                 string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
@@ -272,7 +272,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void Import_Changed(object sender, ImportChangedEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             foreach (var path in args.AssociatedDocuments)
             {

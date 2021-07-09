@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultVisualStudioRazorParserTest : ForegroundDispatcherTestBase
+    public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public DefaultVisualStudioRazorParserTest()
         {
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return documentTracker;
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task GetLatestCodeDocumentAsync_WaitsForParse()
         {
             // Arrange
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task GetLatestCodeDocumentAsync_NoPendingChangesReturnsImmediately()
         {
             // Arrange
@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void GetLatestCodeDocumentAsync_MultipleCallsSameSnapshotMemoizesReturnedTasks()
         {
             // Arrange
@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void GetLatestCodeDocumentAsync_MultipleCallsDifferentSnapshotsReturnDifferentTasks()
         {
             // Arrange
@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task GetLatestCodeDocumentAsync_LatestChangeIsNewerThenRequested_ReturnsImmediately()
         {
             // Arrange
@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task GetLatestCodeDocumentAsync_ParserDisposed_ReturnsImmediately()
         {
             // Arrange
@@ -266,7 +266,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Same(latestCodeDocument, codeDocument);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_Complete_CanBeCalledMultipleTimes()
         {
             // Arrange
@@ -279,7 +279,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             request.Complete(codeDocument);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task CodeDocumentRequest_Complete_FinishesTask()
         {
             // Arrange
@@ -295,7 +295,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Same(codeDocument, resolvedSyntaxTree);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_Cancel_CanBeCalledMultipleTimes()
         {
             // Arrange
@@ -307,7 +307,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             request.Cancel();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_Cancel_CancelsTask()
         {
             // Arrange
@@ -320,7 +320,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(request.Task.IsCanceled);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_LinkedTokenCancel_CancelsTask()
         {
             // Arrange
@@ -334,7 +334,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(request.Task.IsCanceled);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_CompleteToCancelNoops()
         {
             // Arrange
@@ -354,7 +354,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.False(request.Task.IsCanceled);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_CancelToCompleteNoops()
         {
             // Arrange
@@ -371,8 +371,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             request.Complete(codeDocument);
         }
 
-        [ForegroundFact]
-        public void ReparseOnForeground_NoopsIfDisposed()
+        [UIFact]
+        public void ReparseOnUIThread_NoopsIfDisposed()
         {
             // Arrange
             var parser = new DefaultVisualStudioRazorParser(
@@ -387,7 +387,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             parser.ReparseOnUIThread();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnIdle_NoopsIfDisposed()
         {
             // Arrange
@@ -403,7 +403,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             parser.OnIdle();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnDocumentStructureChanged_NoopsIfDisposed()
         {
             // Arrange
@@ -419,7 +419,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             parser.OnDocumentStructureChanged(new object());
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnDocumentStructureChanged_IgnoresEditsThatAreOld()
         {
             // Arrange
@@ -445,7 +445,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnDocumentStructureChanged_FiresForLatestTextBufferEdit()
         {
             // Arrange
@@ -476,7 +476,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnDocumentStructureChanged_FiresForOnlyLatestTextBufferReparseEdit()
         {
             // Arrange
@@ -516,7 +516,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StartIdleTimer_DoesNotRestartTimerWhenAlreadyRunning()
         {
             // Arrange
@@ -546,7 +546,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StopIdleTimer_StopsTimer()
         {
             // Arrange
@@ -573,7 +573,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StopParser_DetachesFromTextBufferChangeLoop()
         {
             // Arrange
@@ -597,7 +597,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StartParser_AttachesToTextBufferChangeLoop()
         {
             // Arrange
@@ -619,7 +619,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TryReinitializeParser_ReturnsTrue_IfProjectIsSupported()
         {
             // Arrange
@@ -638,7 +638,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TryReinitializeParser_ReturnsFalse_IfProjectIsNotSupported()
         {
             // Arrange

@@ -14,17 +14,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         // Internal for testing
         internal readonly Dictionary<string, List<DocumentEntry>> _documentLookup;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
-        public DefaultDocumentVersionCache(ForegroundDispatcher foregroundDispatcher)
+        public DefaultDocumentVersionCache(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
         }
 
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(documentSnapshot));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_documentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
             {
@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(documentSnapshot));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_documentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
             {
@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {

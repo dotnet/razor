@@ -868,12 +868,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         class TestRazorDiagnosticsEndpointWithRazorDiagnostic : RazorDiagnosticsEndpoint
         {
             public TestRazorDiagnosticsEndpointWithRazorDiagnostic(
-                ForegroundDispatcher foregroundDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
                 RazorDocumentMappingService documentMappingService,
                 ILoggerFactory loggerFactory) :
-                base(foregroundDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+                base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
             {
             }
 
@@ -886,12 +886,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         class TestRazorDiagnosticsEndpointWithoutRazorDiagnostic : RazorDiagnosticsEndpoint
         {
             public TestRazorDiagnosticsEndpointWithoutRazorDiagnostic(
-                ForegroundDispatcher foregroundDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 DocumentResolver documentResolver,
                 DocumentVersionCache documentVersionCache,
                 RazorDocumentMappingService documentMappingService,
                 ILoggerFactory loggerFactory) :
-                base(foregroundDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
+                base(projectSnapshotManagerDispatcher, documentResolver, documentVersionCache, documentMappingService, loggerFactory)
             {
             }
 

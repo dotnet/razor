@@ -18,18 +18,18 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     {
         private readonly TextBufferProjectService _projectService;
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
         public ProjectBuildChangeTrigger(
-            ForegroundDispatcher foregroundDispatcher, 
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, 
             TextBufferProjectService projectService,
             ProjectWorkspaceStateGenerator workspaceStateGenerator)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (projectService == null)
@@ -42,21 +42,21 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectService = projectService;
             _workspaceStateGenerator = workspaceStateGenerator;
         }
 
         // Internal for testing
         internal ProjectBuildChangeTrigger(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             TextBufferProjectService projectService,
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
             ProjectSnapshotManagerBase projectManager)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (projectService == null)
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentNullException(nameof(projectManager));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectService = projectService;
             _projectManager = projectManager;
             _workspaceStateGenerator = workspaceStateGenerator;
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentNullException(nameof(args));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!args.Success)
             {
