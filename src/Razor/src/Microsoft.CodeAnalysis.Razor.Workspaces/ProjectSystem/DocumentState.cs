@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // We utilize a WeakReference here to avoid bloating committed memory. If pieces request document output inbetween GC collections
             // then we will provide the weak referenced task; otherwise we require any state requests to be re-computed.
-            public WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>> TaskUnsafeReference;
+            private WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>> _taskUnsafeReference;
 
             public ComputedStateTracker(DocumentState state, ComputedStateTracker older = null)
             {
@@ -299,12 +299,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 get
                 {
-                    if (TaskUnsafeReference == null)
+                    if (_taskUnsafeReference == null)
                     {
                         return false;
                     }
 
-                    if (TaskUnsafeReference.TryGetTarget(out var taskUnsafe))
+                    if (_taskUnsafeReference.TryGetTarget(out var taskUnsafe))
                     {
                         return taskUnsafe.IsCompleted;
                     }
@@ -325,15 +325,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     throw new ArgumentNullException(nameof(document));
                 }
 
-                if (TaskUnsafeReference == null ||
-                    !TaskUnsafeReference.TryGetTarget(out var taskUnsafe))
+                if (_taskUnsafeReference == null ||
+                    !_taskUnsafeReference.TryGetTarget(out var taskUnsafe))
                 {
                     TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> tcs = null;
 
                     lock (_lock)
                     {
-                        if (TaskUnsafeReference == null ||
-                            !TaskUnsafeReference.TryGetTarget(out taskUnsafe))
+                        if (_taskUnsafeReference == null ||
+                            !_taskUnsafeReference.TryGetTarget(out taskUnsafe))
                         {
                             // So this is a bit confusing. Instead of directly calling the Razor parser inside of this lock we create an indirect TaskCompletionSource
                             // to represent when it completes. The reason behind this is that there are several scenarios in which the Razor parser will run synchronously
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                             tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
                             taskUnsafe = tcs.Task;
-                            TaskUnsafeReference = new WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>>(taskUnsafe);
+                            _taskUnsafeReference = new WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>>(taskUnsafe);
                         }
                     }
 
@@ -449,8 +449,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 RazorCodeDocument olderOutput = null;
                 var olderCSharpOutputVersion = default(VersionStamp);
                 var olderHtmlOutputVersion = default(VersionStamp);
-                if (_older?.TaskUnsafeReference != null &&
-                    _older.TaskUnsafeReference.TryGetTarget(out var taskUnsafe))
+                if (_older?._taskUnsafeReference != null &&
+                    _older._taskUnsafeReference.TryGetTarget(out var taskUnsafe))
                 {
                     VersionStamp olderInputVersion;
                     (olderOutput, olderInputVersion, olderCSharpOutputVersion, olderHtmlOutputVersion) = await taskUnsafe.ConfigureAwait(false);
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         // Nothing has changed, we can use the cached result.
                         lock (_lock)
                         {
-                            TaskUnsafeReference = _older.TaskUnsafeReference;
+                            _taskUnsafeReference = _older._taskUnsafeReference;
                             _older = null;
                             return (olderOutput, olderInputVersion, olderCSharpOutputVersion, olderHtmlOutputVersion);
                         }

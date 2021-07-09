@@ -20,10 +20,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
-            LanguageServer = languageServer;
+            _languageServer = languageServer;
         }
 
-        public ClientNotifierServiceBase LanguageServer;
+        private readonly ClientNotifierServiceBase _languageServer;
 
         public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo, out MarkupContent tooltipContent)
         {
@@ -192,8 +192,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
         private MarkupKind GetMarkupKind()
         {
-            var completionSupportedKinds = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Completion.Value?.CompletionItem?.DocumentationFormat;
-            var hoverSupportedKinds = LanguageServer.ClientSettings?.Capabilities?.TextDocument?.Hover.Value?.ContentFormat;
+            var completionSupportedKinds = _languageServer.ClientSettings?.Capabilities?.TextDocument?.Completion.Value?.CompletionItem?.DocumentationFormat;
+            var hoverSupportedKinds = _languageServer.ClientSettings?.Capabilities?.TextDocument?.Hover.Value?.ContentFormat;
 
             // For now we're assuming that if you support Markdown for either completions or hovers you support it for both.
             // If this assumption is ever untrue we'll have to start informing this class about if a request is for Hover or Completions.
