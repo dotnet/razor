@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal abstract class CSharpCodeActionResolver : BaseCodeActionResolver
     {
-        protected readonly ClientNotifierServiceBase _languageServer;
+        protected readonly ClientNotifierServiceBase LanguageServer;
 
         public CSharpCodeActionResolver(ClientNotifierServiceBase languageServer)
         {
@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
-            _languageServer = languageServer;
+            LanguageServer = languageServer;
         }
 
         public abstract Task<CodeAction> ResolveAsync(
@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         protected async Task<CodeAction> ResolveCodeActionWithServerAsync(CodeAction codeAction, CancellationToken cancellationToken)
         {
-            var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorResolveCodeActionsEndpoint, codeAction).ConfigureAwait(false);
+            var response = await LanguageServer.SendRequestAsync(LanguageServerConstants.RazorResolveCodeActionsEndpoint, codeAction).ConfigureAwait(false);
             var resolvedCodeAction = await response.Returning<CodeAction>(cancellationToken).ConfigureAwait(false);
 
             return resolvedCodeAction;

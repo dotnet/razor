@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             ForegroundDispatcher.AssertForegroundThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 // Casts avoid dynamic
                 if ((object)_runningDocumentTable.GetDocumentData(cookie) is IVsTextBuffer vsTextBuffer)
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             ForegroundDispatcher.AssertForegroundThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 for (var i = 0; i < documents.Length; i++)
                 {
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             ForegroundDispatcher.AssertForegroundThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 if (!_documentsByCookie.TryGetValue(cookie, out var documents))
                 {
@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 return;
             }
 
-            lock (_lock)
+            lock (Lock)
             {
                 // Treat a rename as a close + reopen.
                 //

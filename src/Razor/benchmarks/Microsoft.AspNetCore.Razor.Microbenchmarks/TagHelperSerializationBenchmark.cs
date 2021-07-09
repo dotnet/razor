@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
         {
             // Deserialize from json file.
             IReadOnlyList<TagHelperDescriptor> tagHelpers;
-            using var stream = new MemoryStream(_tagHelperBuffer);
+            using var stream = new MemoryStream(TagHelperBuffer);
             using var reader = new JsonTextReader(new StreamReader(stream));
             tagHelpers = DefaultSerializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
         }

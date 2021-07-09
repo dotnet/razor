@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private static readonly IReadOnlyList<string> s_razorFileExtensions = new[] { ".razor", ".cshtml" };
 
         // Internal for testing
-        internal readonly Dictionary<string, DelayedFileChangeNotification> _pendingNotifications;
+        internal readonly Dictionary<string, DelayedFileChangeNotification> PendingNotifications;
 
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
             _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Count);
-            _pendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
+            PendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
         }
 
         // Internal for testing
@@ -164,10 +164,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             lock (_pendingNotificationsLock)
             {
-                if (!_pendingNotifications.TryGetValue(physicalFilePath, out var currentNotification))
+                if (!PendingNotifications.TryGetValue(physicalFilePath, out var currentNotification))
                 {
                     currentNotification = new DelayedFileChangeNotification();
-                    _pendingNotifications[physicalFilePath] = currentNotification;
+                    PendingNotifications[physicalFilePath] = currentNotification;
                 }
 
                 if (currentNotification.ChangeKind != null)
@@ -215,10 +215,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             lock (_pendingNotificationsLock)
             {
-                var result = _pendingNotifications.TryGetValue(physicalFilePath, out var notification);
+                var result = PendingNotifications.TryGetValue(physicalFilePath, out var notification);
                 Debug.Assert(result, "We should always have an associated notification after delaying an update.");
 
-                _pendingNotifications.Remove(physicalFilePath);
+                PendingNotifications.Remove(physicalFilePath);
 
                 if (notification.ChangeKind == null)
                 {

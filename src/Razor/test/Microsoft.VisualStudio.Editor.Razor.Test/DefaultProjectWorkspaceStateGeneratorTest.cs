@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
 
                 // Assert
-                Assert.Empty(stateGenerator._updates);
+                Assert.Empty(stateGenerator.Updates);
             }
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
 
                 // Assert
-                var update = Assert.Single(stateGenerator._updates);
+                var update = Assert.Single(stateGenerator.Updates);
                 Assert.False(update.Value.Task.IsCompleted);
             }
         }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             {
                 stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
                 stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
-                var initialUpdate = stateGenerator._updates.Single().Value;
+                var initialUpdate = stateGenerator.Updates.Single().Value;
 
                 // Act
                 stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);

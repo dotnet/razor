@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         // Internal for testing
         internal TimeSpan _publishDelay = TimeSpan.FromSeconds(2);
-        internal readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> _publishedDiagnostics;
+        internal readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> PublishedDiagnostics;
         internal Timer _workTimer;
         internal Timer _documentClosedTimer;
 
@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             _foregroundDispatcher = foregroundDispatcher;
             _languageServer = languageServer;
-            _publishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
+            PublishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
             _work = new Dictionary<string, DocumentSnapshot>(FilePathComparer.Instance);
             _logger = loggerFactory.CreateLogger<RazorDiagnosticsPublisher>();
         }
@@ -124,15 +124,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal void ClearClosedDocuments()
         {
-            lock (_publishedDiagnostics)
+            lock (PublishedDiagnostics)
             {
-                var publishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(_publishedDiagnostics);
+                var publishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(PublishedDiagnostics);
                 foreach (var entry in publishedDiagnostics)
                 {
                     if (!_projectManager.IsDocumentOpen(entry.Key))
                     {
                         // Document is now closed, we shouldn't track its diagnostics anymore.
-                        _publishedDiagnostics.Remove(entry.Key);
+                        PublishedDiagnostics.Remove(entry.Key);
 
                         // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
                         // doesn't have a ton of closed document errors that they can't get rid of.
@@ -146,7 +146,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _documentClosedTimer?.Dispose();
                 _documentClosedTimer = null;
 
-                if (_publishedDiagnostics.Count > 0)
+                if (PublishedDiagnostics.Count > 0)
                 {
                     lock (_work)
                     {
@@ -165,16 +165,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var diagnostics = result.GetCSharpDocument().Diagnostics;
 
-            lock (_publishedDiagnostics)
+            lock (PublishedDiagnostics)
             {
-                if (_publishedDiagnostics.TryGetValue(document.FilePath, out var previousDiagnostics) &&
+                if (PublishedDiagnostics.TryGetValue(document.FilePath, out var previousDiagnostics) &&
                     diagnostics.SequenceEqual(previousDiagnostics))
                 {
                     // Diagnostics are the same as last publish
                     return;
                 }
 
-                _publishedDiagnostics[document.FilePath] = diagnostics;
+                PublishedDiagnostics[document.FilePath] = diagnostics;
             }
 
             if (!document.TryGetText(out var sourceText))

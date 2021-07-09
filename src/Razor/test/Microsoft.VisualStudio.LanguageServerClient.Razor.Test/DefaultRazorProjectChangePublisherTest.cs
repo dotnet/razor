@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.DocumentAdded(hostProject, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
 
             // Assert
-            Assert.Empty(publisher._deferredPublishTasks);
+            Assert.Empty(publisher.DeferredPublishTasks);
             Assert.False(attemptedToSerialize);
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.DocumentOpened(hostProject.FilePath, hostDocument.FilePath, SourceText.From(string.Empty));
 
             // Assert
-            Assert.Empty(publisher._deferredPublishTasks);
+            Assert.Empty(publisher.DeferredPublishTasks);
             Assert.False(attemptedToSerialize);
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.DocumentOpened(hostProject.FilePath, hostDocument.FilePath, SourceText.From(string.Empty));
 
             // Assert
-            Assert.Empty(publisher._deferredPublishTasks);
+            Assert.Empty(publisher.DeferredPublishTasks);
             Assert.True(serializationSuccessful);
         }
 
@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             publisher.ProjectSnapshotManager_Changed(null, args);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.True(serializationSuccessful);
         }
@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             publisher.ProjectSnapshotManager_Changed(null, args);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
 
             Assert.False(attemptedToSerialize);
@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             publisher.EnqueuePublish(secondSnapshot);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.True(serializationSuccessful);
         }
@@ -288,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             publisher.EnqueuePublish(secondSnapshot);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.True(serializationSuccessful);
         }
@@ -328,7 +328,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             publisher.EnqueuePublish(secondSnapshot);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.False(serializationSuccessful);
         }
@@ -411,7 +411,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             }).ConfigureAwait(false);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.True(serializationSuccessful);
         }
@@ -441,7 +441,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             // Act
             await RunOnForegroundAsync(() => ProjectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
-            Assert.Empty(publisher._deferredPublishTasks);
+            Assert.Empty(publisher.DeferredPublishTasks);
 
             // Assert
             Assert.False(serializationSuccessful);
@@ -464,7 +464,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             // Act & Assert
             await RunOnForegroundAsync(() => ProjectSnapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
 
-            Assert.Empty(publisher._deferredPublishTasks);
+            Assert.Empty(publisher.DeferredPublishTasks);
         }
 
         [ForegroundFact]
@@ -500,7 +500,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             }).ConfigureAwait(false);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.False(serializationSuccessful);
         }

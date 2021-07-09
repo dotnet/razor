@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Assert
             Assert.Equal(VSConstants.S_OK, result);
             var concreteResolvedExpressions = Assert.IsType<VsEnumBSTR>(resolvedExpressions);
-            Assert.Equal(expressions, concreteResolvedExpressions._values);
+            Assert.Equal(expressions, concreteResolvedExpressions.Values);
         }
 
         [Fact]

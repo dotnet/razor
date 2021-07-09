@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 {
     public abstract class TagHelperBenchmarkBase
     {
-        protected readonly byte[] _tagHelperBuffer;
+        protected readonly byte[] TagHelperBuffer;
 
         public TagHelperBenchmarkBase()
         {
@@ -23,14 +23,14 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             }
 
             var tagHelperFilePath = Path.Combine(current.FullName, "taghelpers.json");
-            _tagHelperBuffer = File.ReadAllBytes(tagHelperFilePath);
+            TagHelperBuffer = File.ReadAllBytes(tagHelperFilePath);
 
             // Deserialize from json file.
             TagHelperDescriptorJsonConverter.DisableCachingForTesting = true;
             DefaultSerializer = new JsonSerializer();
             DefaultSerializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
 
-            using var stream = new MemoryStream(_tagHelperBuffer);
+            using var stream = new MemoryStream(TagHelperBuffer);
             using var reader = new JsonTextReader(new StreamReader(stream));
             DefaultTagHelpers = DefaultSerializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
             TagHelperDescriptorJsonConverter.DisableCachingForTesting = false;
