@@ -14,7 +14,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             InternalDispatcher = new DefaultSingleThreadedDispatcher();
         }
 
-        public override bool IsDispatcherThread => InternalDispatcher.IsDispatcherThread;
         public override TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
 
         public override void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);

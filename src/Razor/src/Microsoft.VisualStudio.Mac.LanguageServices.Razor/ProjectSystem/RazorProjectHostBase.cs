@@ -87,8 +87,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Must be called inside the lock.
         protected async Task UpdateHostProjectUnsafeAsync(HostProject newHostProject)
         {
-            await Task.Factory.StartNew(
-                UpdateHostProjectSingleThreadedDispatcher, newHostProject, CancellationToken.None, TaskCreationOptions.None, SingleThreadedDispatcher.DispatcherScheduler);
+            await SingleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                () => UpdateHostProjectSingleThreadedDispatcher(newHostProject), CancellationToken.None);
         }
 
         protected async Task ExecuteWithLockAsync(Func<Task> func)

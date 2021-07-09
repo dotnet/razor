@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -190,11 +189,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 OnCompletingBackgroundWork();
 
-                await Task.Factory.StartNew(
+                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                     () => NotifyDocumentsProcessed(work),
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _singleThreadedDispatcher.DispatcherScheduler);
+                    CancellationToken.None);
 
                 lock (_work)
                 {
@@ -315,11 +312,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void ReportError(Exception ex)
         {
-            _ = Task.Factory.StartNew(
+            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _singleThreadedDispatcher.DispatcherScheduler);
+                CancellationToken.None);
         }
     }
 }

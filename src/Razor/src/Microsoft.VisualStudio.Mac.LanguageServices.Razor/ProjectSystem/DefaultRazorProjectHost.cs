@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
             _currentRazorFilePaths = documentFilePaths;
 
-            _ = Task.Factory.StartNew(() =>
+            _ = SingleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
               {
                   foreach (var document in removedFiles)
                   {
@@ -93,9 +93,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                       AddDocument(hostProject, document, relativeFilePath);
                   }
               },
-            CancellationToken.None,
-            TaskCreationOptions.None,
-            SingleThreadedDispatcher.DispatcherScheduler);
+              CancellationToken.None);
         }
 
         // Internal for testing

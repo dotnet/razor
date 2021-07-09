@@ -90,12 +90,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            }, cancellationToken);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {
@@ -124,12 +124,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            }, cancellationToken);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {

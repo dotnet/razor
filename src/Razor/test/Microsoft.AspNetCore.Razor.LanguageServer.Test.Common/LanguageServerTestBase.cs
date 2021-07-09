@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
             private Thread Thread { get; } = Thread.CurrentThread;
 
-            public override bool IsDispatcherThread => Thread.CurrentThread == Thread;
+            protected override bool IsDispatcherThread => Thread.CurrentThread == Thread;
         }
 
         private class ThrowingTaskScheduler : TaskScheduler

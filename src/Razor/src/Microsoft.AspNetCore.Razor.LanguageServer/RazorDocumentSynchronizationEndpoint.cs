@@ -67,12 +67,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<Unit> Handle(DidChangeTextDocumentParams notification, CancellationToken token)
         {
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            }, CancellationToken.None);
 
             var sourceText = await document.GetTextAsync();
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
@@ -82,11 +82,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new InvalidOperationException(RazorLS.Resources.Version_Should_Not_Be_Null);
             }
 
-            await Task.Factory.StartNew(
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version.Value),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _singleThreadedDispatcher.DispatcherScheduler);
+                CancellationToken.None);
 
             return Unit.Value;
         }
@@ -100,22 +98,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new InvalidOperationException(RazorLS.Resources.Version_Should_Not_Be_Null);
             }
 
-            await Task.Factory.StartNew(
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version.Value),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _singleThreadedDispatcher.DispatcherScheduler);
+                CancellationToken.None);
 
             return Unit.Value;
         }
 
         public async Task<Unit> Handle(DidCloseTextDocumentParams notification, CancellationToken token)
         {
-            await Task.Factory.StartNew(
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.CloseDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath()),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _singleThreadedDispatcher.DispatcherScheduler);
+                CancellationToken.None);
 
             return Unit.Value;
         }

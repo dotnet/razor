@@ -250,12 +250,9 @@ namespace Microsoft.CodeAnalysis.Razor
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the workspace.
-                await Task.Factory.StartNew(
-                    (p) => ((ProjectSnapshotManagerBase)p).ReportError(ex),
-                    _projectManager,
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                    () => _projectManager.ReportError(ex),
+                    CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -263,12 +260,9 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             OnErrorBeingReported();
 
-            _ = Task.Factory.StartNew(
-                (p) => ((ProjectSnapshotManagerBase)p).ReportError(ex, project),
-                _projectManager,
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _singleThreadedDispatcher.DispatcherScheduler);
+            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                () => _projectManager.ReportError(ex, project),
+                CancellationToken.None);
         }
 
         private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)

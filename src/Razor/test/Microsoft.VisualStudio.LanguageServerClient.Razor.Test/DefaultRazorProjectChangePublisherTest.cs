@@ -534,29 +534,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
         protected Task RunOnDispatcherThreadAsync(Action action)
         {
-            return Task.Factory.StartNew(
+            return Dispatcher.RunOnDispatcherThreadAsync(
                 () => action(),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                Dispatcher.DispatcherScheduler);
+                CancellationToken.None);
         }
 
         protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> action)
         {
-            return Task.Factory.StartNew(
+            return Dispatcher.RunOnDispatcherThreadAsync(
                 () => action(),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                Dispatcher.DispatcherScheduler);
+                CancellationToken.None);
         }
 
         protected Task RunOnDispatcherThreadAsync(Func<Task> action)
         {
-            return Task.Factory.StartNew(
+            return Dispatcher.RunOnDispatcherThreadAsync(
                 async () => await action().ConfigureAwait(true),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                Dispatcher.DispatcherScheduler);
+                CancellationToken.None);
         }
 
         private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher

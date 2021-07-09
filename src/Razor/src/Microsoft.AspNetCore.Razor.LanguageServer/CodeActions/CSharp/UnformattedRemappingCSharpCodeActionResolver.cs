@@ -85,14 +85,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var (documentSnapshot, documentVersion) = await Task.Factory.StartNew(() =>
+            var (documentSnapshot, documentVersion) = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
 
                 return (documentSnapshot, version);
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (documentSnapshot is null)
             {

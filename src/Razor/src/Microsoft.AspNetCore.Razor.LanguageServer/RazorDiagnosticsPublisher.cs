@@ -114,11 +114,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private async void DocumentClosedTimer_Tick(object state)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            await Task.Factory.StartNew(
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                 ClearClosedDocuments,
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _singleThreadedDispatcher.DispatcherScheduler);
+                CancellationToken.None);
         }
 
         // Internal for testing

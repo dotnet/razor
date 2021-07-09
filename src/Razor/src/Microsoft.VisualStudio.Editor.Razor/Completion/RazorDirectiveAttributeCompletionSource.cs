@@ -108,11 +108,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
                     // Legacy completion is also active, we need to dismiss it.
 
-                    _ = Task.Factory.StartNew(
+                    _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                         () => activeSession.Dismiss(),
-                        CancellationToken.None,
-                        TaskCreationOptions.None,
-                        _singleThreadedDispatcher.DispatcherScheduler);
+                        CancellationToken.None);
                 }
 
                 var completionItems = new List<CompletionItem>();

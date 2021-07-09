@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal class DefaultSingleThreadedDispatcher : SingleThreadedDispatcher
     {
-        public override bool IsDispatcherThread => Thread.CurrentThread.ManagedThreadId == SingleThreadedTaskScheduler.Instance.ThreadId;
+        protected override bool IsDispatcherThread
+            => Thread.CurrentThread.ManagedThreadId == SingleThreadedTaskScheduler.Instance.ThreadId;
 
         public override TaskScheduler DispatcherScheduler { get; } = SingleThreadedTaskScheduler.Instance;
 

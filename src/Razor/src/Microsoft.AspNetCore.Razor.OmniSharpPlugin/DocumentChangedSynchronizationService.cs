@@ -4,7 +4,6 @@
 using System;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
@@ -53,9 +52,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var projectFilePath = args.UnevaluatedProjectInstance.ProjectFileLocation.File;
             var documentFilePath = args.FilePath;
 
-            _ = Task.Factory.StartNew(
+            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.DocumentChanged(projectFilePath, documentFilePath),
-                CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+                CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

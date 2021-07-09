@@ -45,11 +45,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var @namespaceName, out var typeName);
             var lookupSymbolName = RemoveGenericContent(typeName);
 
-            var projects = await Task.Factory.StartNew(
+            var projects = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectSnapshotManager.Projects.ToArray(),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+                CancellationToken.None).ConfigureAwait(false);
 
             foreach (var project in projects)
             {

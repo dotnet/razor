@@ -75,13 +75,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 
-            await Task.Factory.StartNew(() =>
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 foreach (var razorFilePath in existingRazorFiles)
                 {
                     FileSystemWatcher_RazorFileEvent(razorFilePath, RazorFileChangeKind.Added);
                 }
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            }, cancellationToken);
 
             // This is an entry point for testing
             OnInitializationFinished();
@@ -206,9 +206,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             OnStartingDelayedNotificationWork();
 
-            await Task.Factory.StartNew(
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                 () => NotifyAfterDelay_SingleThreadedDispatcher(physicalFilePath),
-                CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+                CancellationToken.None);
         }
 
         private void NotifyAfterDelay_SingleThreadedDispatcher(string physicalFilePath)

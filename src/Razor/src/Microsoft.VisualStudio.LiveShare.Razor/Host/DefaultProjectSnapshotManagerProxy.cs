@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         // Internal for testing
         internal async Task<IReadOnlyList<ProjectSnapshot>> GetLatestProjectsAsync()
         {
-            if (!_singleThreadedDispatcher.IsDispatcherThread)
+            if (!_joinableTaskFactory.Context.IsOnMainThread)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
             }

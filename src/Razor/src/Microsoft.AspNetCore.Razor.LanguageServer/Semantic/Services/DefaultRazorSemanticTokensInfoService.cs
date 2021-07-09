@@ -558,13 +558,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private async Task<(DocumentSnapshot Snapshot, int? Version)> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
         {
-            var documentInfo = await Task.Factory.StartNew(() =>
+            var documentInfo = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(absolutePath, out var documentSnapshot);
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
 
                 return (documentSnapshot, version);
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            }, cancellationToken);
 
             return documentInfo;
         }

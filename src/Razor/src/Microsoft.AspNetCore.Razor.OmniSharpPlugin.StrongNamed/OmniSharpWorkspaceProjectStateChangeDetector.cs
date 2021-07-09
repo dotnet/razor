@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -63,13 +62,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             protected override async void InitializeSolution(Solution solution)
 #pragma warning restore VSTHRD100 // Avoid async void methods
             {
-                if (_singleThreadedDispatcher.IsDispatcherThread)
-                {
-                    base.InitializeSolution(solution);
-                    return;
-                }
-
-                await Task.Factory.StartNew(
+                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
                         try
@@ -81,9 +74,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                             Debug.Fail("Unexpected error when initializing solution: " + ex);
                         }
                     },
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _singleThreadedDispatcher.DispatcherScheduler);
+                    CancellationToken.None);
             }
 
             // We override Workspace_WorkspaceChanged in order to enforce calls to this to be on the single-threaded dispatcher's
@@ -94,12 +85,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             internal override async void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
 #pragma warning restore VSTHRD100 // Avoid async void methods
             {
-                if (_singleThreadedDispatcher.IsDispatcherThread)
-                {
-                    base.Workspace_WorkspaceChanged(sender, args);
-                    return;
-                }
-                await Task.Factory.StartNew(
+                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
                         try
@@ -111,9 +97,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                             Debug.Fail("Unexpected error when handling a workspace changed event: " + ex);
                         }
                     },
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _singleThreadedDispatcher.DispatcherScheduler);
+                    CancellationToken.None);
             }
         }
     }

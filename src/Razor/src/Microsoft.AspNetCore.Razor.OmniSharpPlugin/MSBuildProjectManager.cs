@@ -109,11 +109,8 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
                 // When documents get added or removed we need to refresh project state to properly reflect the host documents in the project.
 
                 var evaluatedProjectInstance = _projectInstanceEvaluator.Evaluate(args.UnevaluatedProjectInstance);
-                _ = Task.Factory.StartNew(
-                    () => UpdateProjectState(evaluatedProjectInstance),
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+                _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                    () => UpdateProjectState(evaluatedProjectInstance), CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -140,8 +137,8 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             // Force project instance evaluation to ensure that all Razor specific targets have run.
             projectInstance = _projectInstanceEvaluator.Evaluate(projectInstance);
 
-            await Task.Factory.StartNew(() => UpdateProjectState(projectInstance),
-            CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
+                () => UpdateProjectState(projectInstance), CancellationToken.None);
         }
 
         private void UpdateProjectState(ProjectInstance projectInstance)

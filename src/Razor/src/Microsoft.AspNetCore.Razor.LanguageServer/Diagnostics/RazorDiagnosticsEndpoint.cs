@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
 
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 {
                     documentVersion = null;
                 }
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (documentSnapshot is null)
             {

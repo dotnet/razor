@@ -70,12 +70,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                 return null;
             }
 
-            var requestDocumentSnapshot = await Task.Factory.StartNew(() =>
+            var requestDocumentSnapshot = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (requestDocumentSnapshot is null)
             {
@@ -118,7 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             var documentSnapshots = await GetAllDocumentSnapshotsAsync(requestDocumentSnapshot, cancellationToken).ConfigureAwait(false);
             foreach (var documentSnapshot in documentSnapshots)
             {
-                await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, request.NewName, documentSnapshot, cancellationToken);
+                await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, request.NewName, documentSnapshot);
             }
 
             return new WorkspaceEdit
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
 
         private async Task<List<DocumentSnapshot>> GetAllDocumentSnapshotsAsync(DocumentSnapshot skipDocumentSnapshot, CancellationToken cancellationToken)
         {
-            return await Task.Factory.StartNew(() =>
+            return await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 var documentSnapshots = new List<DocumentSnapshot>();
                 var documentPaths = new HashSet<string>();
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
                     }
                 }
                 return documentSnapshots;
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         public void AddFileRenameForComponent(List<WorkspaceEditDocumentChange> documentChanges, DocumentSnapshot documentSnapshot, string newPath)
@@ -188,12 +188,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             return newPath;
         }
 
-        public async Task AddEditsForCodeDocumentAsync(
+        private async Task AddEditsForCodeDocumentAsync(
             List<WorkspaceEditDocumentChange> documentChanges,
             IReadOnlyList<TagHelperDescriptor> originTagHelpers,
             string newName,
-            DocumentSnapshot documentSnapshot,
-            CancellationToken cancellationToken)
+            DocumentSnapshot documentSnapshot)
         {
             if (documentSnapshot is null)
             {

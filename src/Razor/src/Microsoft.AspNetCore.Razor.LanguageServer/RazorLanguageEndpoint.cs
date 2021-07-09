@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.Uri.GetAbsoluteOrUNCPath(), out documentSnapshot);
 
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            }, cancellationToken);
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             var sourceText = await documentSnapshot.GetTextAsync();
@@ -155,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
 
@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     documentVersion = null;
                 }
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            }, cancellationToken);
 
             if (request.Kind != RazorLanguageKind.CSharp)
             {
@@ -215,7 +215,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
 
@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     documentVersion = null;
                 }
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            }, cancellationToken);
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             if (codeDocument.IsUnsupported())

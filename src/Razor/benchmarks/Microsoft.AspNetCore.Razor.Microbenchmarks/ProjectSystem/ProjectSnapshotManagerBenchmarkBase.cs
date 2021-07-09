@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 
         private class TestSingleThreadedDispatcher : SingleThreadedDispatcher
         {
-            public override bool IsDispatcherThread => true;
+            protected override bool IsDispatcherThread => true;
 
             public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
         }

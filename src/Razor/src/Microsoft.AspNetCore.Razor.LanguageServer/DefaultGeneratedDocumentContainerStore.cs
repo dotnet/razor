@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -95,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var latestDocument = generatedDocumentContainer.LatestDocument;
 
-                _ = Task.Factory.StartNew(() =>
+                _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     if (!_projectSnapshotManager.IsDocumentOpen(filePath))
                     {
@@ -111,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var hostDocumentVersion = nullableHostDocumentVersion.Value;
 
                     _generatedDocumentPublisher.PublishCSharp(filePath, args.NewText, hostDocumentVersion);
-                }, CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+                }, CancellationToken.None);
             };
 
             documentContainer.GeneratedHtmlChanged += (sender, args) =>
@@ -120,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var latestDocument = generatedDocumentContainer.LatestDocument;
 
-                _ = Task.Factory.StartNew(() =>
+                _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     if (!_projectSnapshotManager.IsDocumentOpen(filePath))
                     {
@@ -136,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var hostDocumentVersion = nullableHostDocumentVersion.Value;
 
                     _generatedDocumentPublisher.PublishHtml(filePath, args.NewText, hostDocumentVersion);
-                }, CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+                }, CancellationToken.None);
             };
 
             return documentContainer;

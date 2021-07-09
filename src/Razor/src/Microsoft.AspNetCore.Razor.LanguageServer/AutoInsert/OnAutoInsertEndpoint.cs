@@ -70,12 +70,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public async Task<OnAutoInsertResponse> Handle(OnAutoInsertParams request, CancellationToken cancellationToken)
         {
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            }, cancellationToken);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {

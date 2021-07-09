@@ -85,11 +85,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
             // Project file was modified or impacted in a significant way.
 
-            _ = Task.Factory.StartNew(
+            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                 () => EnqueueUpdate(args.ProjectInstance.ProjectFileLocation.File),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+                CancellationToken.None).ConfigureAwait(false);
         }
 
         public void RazorDocumentChanged(RazorFileChangeEventArgs args)

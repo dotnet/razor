@@ -164,11 +164,10 @@ namespace Microsoft.CodeAnalysis.Razor
                 }
                 catch (Exception ex)
                 {
-                    await Task.Factory.StartNew(
+                    await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                        () => _projectManager.ReportError(ex, projectSnapshot),
-                       CancellationToken.None, // Don't allow errors to be cancelled
-                       TaskCreationOptions.None,
-                       _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+                       // Don't allow errors to be cancelled
+                       CancellationToken.None).ConfigureAwait(false);
                     return;
                 }
 
@@ -178,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     return;
                 }
 
-                await Task.Factory.StartNew(
+                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
                         if (cancellationToken.IsCancellationRequested)
@@ -188,9 +187,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
                         ReportWorkspaceStateChange(projectSnapshot.FilePath, workspaceState);
                     },
-                    cancellationToken,
-                    TaskCreationOptions.None,
-                    _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -200,11 +197,10 @@ namespace Microsoft.CodeAnalysis.Razor
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the project manager.
-                await Task.Factory.StartNew(
+                await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                     () => _projectManager.ReportError(ex),
-                    CancellationToken.None, // Don't allow errors to be cancelled
-                    TaskCreationOptions.None,
-                    _singleThreadedDispatcher.DispatcherScheduler).ConfigureAwait(false);
+                    // Don't allow errors to be cancelled
+                    CancellationToken.None).ConfigureAwait(false);
             }
             finally
             {

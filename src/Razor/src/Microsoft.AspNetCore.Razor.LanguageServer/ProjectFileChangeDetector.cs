@@ -57,13 +57,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             workspaceDirectory = _filePathNormalizer.Normalize(workspaceDirectory);
             var existingProjectFiles = GetExistingProjectFiles(workspaceDirectory);
 
-            await Task.Factory.StartNew(() =>
+            await _singleThreadedDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 foreach (var projectFilePath in existingProjectFiles)
                 {
                     FileSystemWatcher_ProjectFileEvent(projectFilePath, RazorFileChangeKind.Added);
                 }
-            }, cancellationToken, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+            }, cancellationToken);
 
             // This is an entry point for testing
             OnInitializationFinished();
@@ -125,9 +125,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void FileSystemWatcher_ProjectFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
         {
-            _ = Task.Factory.StartNew(
+            _ = _singleThreadedDispatcher.RunOnDispatcherThreadAsync(
                 () => FileSystemWatcher_ProjectFileEvent(physicalFilePath, kind),
-                CancellationToken.None, TaskCreationOptions.None, _singleThreadedDispatcher.DispatcherScheduler);
+                CancellationToken.None);
         }
 
         private void FileSystemWatcher_ProjectFileEvent(string physicalFilePath, RazorFileChangeKind kind)

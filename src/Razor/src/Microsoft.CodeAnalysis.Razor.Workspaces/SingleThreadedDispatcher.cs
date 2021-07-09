@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal abstract class SingleThreadedDispatcher
     {
-        public abstract bool IsDispatcherThread { get; }
+        protected abstract bool IsDispatcherThread { get; }
 
         public abstract TaskScheduler DispatcherScheduler { get; }
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             if (!IsDispatcherThread)
             {
-                caller = caller == null ? "The method" : $"'{caller}'";
+                caller = caller is null ? "The method" : $"'{caller}'";
                 throw new InvalidOperationException(caller + " must be called on the single-threaded dispatcher's thread.");
             }
         }
