@@ -18,9 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(MSLSPMethods.OnAutoInsertName)]
     internal class OnAutoInsertHandler : IRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>
     {
-        private static readonly HashSet<string> s_hTMLAllowedTriggerCharacters = new HashSet<string>();
+        private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new HashSet<string>();
         private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new() { "'", "/", "\n" };
-        private static readonly HashSet<string> s_allAllowedTriggerCharacters = s_hTMLAllowedTriggerCharacters
+        private static readonly HashSet<string> s_allAllowedTriggerCharacters = s_htmlAllowedTriggerCharacters
             .Concat(s_cSharpAllowedTriggerCharacters)
             .ToHashSet();
 
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
             else if (projectionResult.LanguageKind == RazorLanguageKind.Html &&
-                !s_hTMLAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
+                !s_htmlAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
             {
                 _logger.LogInformation("Inapplicable HTML trigger char.");
                 return null;
