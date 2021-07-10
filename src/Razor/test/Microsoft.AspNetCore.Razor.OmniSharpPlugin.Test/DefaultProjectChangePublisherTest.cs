@@ -160,7 +160,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 Action<OmniSharpProjectSnapshot, string> onSerializeToFile = null
             ) : base(loggerFactory)
             {
-                _onSerializeToFile = onSerializeToFile ?? ((_, __) => throw new XunitException("SerializeToFile should not have been called."));
+                _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
             }
 
             protected override void SerializeToFile(OmniSharpProjectSnapshot projectSnapshot, string publishFilePath) => _onSerializeToFile?.Invoke(projectSnapshot, publishFilePath);

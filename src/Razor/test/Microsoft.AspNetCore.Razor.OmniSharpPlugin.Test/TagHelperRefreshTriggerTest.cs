@@ -148,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             using var mre = new ManualResetEventSlim(initialState: false);
             var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
             workspaceStateGenerator.Setup(generator => generator.Update(It.IsAny<Project>(), It.IsAny<OmniSharpProjectSnapshot>()))
-                .Callback<Project, OmniSharpProjectSnapshot>((_, __) => mre.Set());
+                .Callback<Project, OmniSharpProjectSnapshot>((_1, _2) => mre.Set());
             var refreshTrigger = CreateRefreshTrigger(workspaceStateGenerator.Object);
             var args = new ProjectLoadedEventArgs(
                 id: null,
@@ -177,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             using var mre = new ManualResetEventSlim(initialState: false);
             var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
             workspaceStateGenerator.Setup(generator => generator.Update(It.IsAny<Project>(), It.IsAny<OmniSharpProjectSnapshot>()))
-                .Callback<Project, OmniSharpProjectSnapshot>((_, __) =>
+                .Callback<Project, OmniSharpProjectSnapshot>((_1, _2) =>
                 {
                     if (mre.IsSet)
                     {
@@ -217,7 +217,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             using var mre = new ManualResetEventSlim(initialState: false);
             var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
             workspaceStateGenerator.Setup(generator => generator.Update(It.IsAny<Project>(), It.IsAny<OmniSharpProjectSnapshot>()))
-                .Callback<Project, OmniSharpProjectSnapshot>((_, __) => mre.Set());
+                .Callback<Project, OmniSharpProjectSnapshot>((_1, _2) => mre.Set());
             var refreshTrigger = CreateRefreshTrigger(workspaceStateGenerator.Object);
             var args = new RazorFileChangeEventArgs("/path/to/obj/file.cshtml.g.cs", (ProjectInstance)Project1Instance, RazorFileChangeKind.Added);
 
@@ -237,7 +237,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             using var mre = new ManualResetEventSlim(initialState: false);
             var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
             workspaceStateGenerator.Setup(generator => generator.Update(It.IsAny<Project>(), It.IsAny<OmniSharpProjectSnapshot>()))
-                .Callback<Project, OmniSharpProjectSnapshot>((_, __) =>
+                .Callback<Project, OmniSharpProjectSnapshot>((_1, _2) =>
                 {
                     if (mre.IsSet)
                     {

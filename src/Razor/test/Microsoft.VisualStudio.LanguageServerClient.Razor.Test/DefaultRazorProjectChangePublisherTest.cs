@@ -583,7 +583,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 bool useRealShouldSerialize = false)
                 : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestServiceProvider(), logger)
             {
-                _onSerializeToFile = onSerializeToFile ?? ((_, __) => throw new XunitException("SerializeToFile should not have been called."));
+                _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
                 _shouldSerialize = shouldSerialize;
                 _useRealShouldSerialize = useRealShouldSerialize;
             }
