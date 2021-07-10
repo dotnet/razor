@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             using var completedTokenSource = new CancellationTokenSource();
             var onProgressNotifyAsyncCalled = false;
-            Task onProgressNotifyAsync(JToken value, CancellationToken ct)
+            Task OnProgressNotifyAsync(JToken value, CancellationToken ct)
             {
                 var result = value.ToObject<string[]>();
                 var firstValue = Assert.Single(result);
@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Act
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: onProgressNotifyAsync,
+                onProgressNotifyAsync: OnProgressNotifyAsync,
                 delayAfterLastNotifyAsync: cancellationToken => DelayAfterLastNotifyAsync(s_notificationTimeout, completedTokenSource.Token, cancellationToken),
                 cts.Token,
                 out var onCompleted);
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             using var completedTokenSource = new CancellationTokenSource();
             var receivedResults = new ConcurrentBag<int>();
-            Task onProgressNotifyAsync(JToken value, CancellationToken ct)
+            Task OnProgressNotifyAsync(JToken value, CancellationToken ct)
             {
                 receivedResults.Add(value.ToObject<int>());
                 if (receivedResults.Count == NUM_NOTIFICATIONS)
@@ -228,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Act
             var listenerAdded = lspProgressListener.TryListenForProgress(
                 token,
-                onProgressNotifyAsync: onProgressNotifyAsync,
+                onProgressNotifyAsync: OnProgressNotifyAsync,
                 delayAfterLastNotifyAsync: cancellationToken => DelayAfterLastNotifyAsync(s_notificationTimeout, completedTokenSource.Token, cancellationToken),
                 cts.Token,
                 out var onCompleted);
