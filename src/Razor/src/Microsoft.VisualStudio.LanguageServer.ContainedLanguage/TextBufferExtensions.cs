@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.Text
 {
     internal static class TextBufferExtensions
     {
-        private static readonly string s_hostDocumentVersionMarked = "__MsLsp_HostDocumentVersionMarker__";
+        private const string HostDocumentVersionMarked = "__MsLsp_HostDocumentVersionMarker__";
 
         public static void SetHostDocumentSyncVersion(this ITextBuffer textBuffer, long hostDocumentVersion)
         {
@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Text
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            textBuffer.Properties[s_hostDocumentVersionMarked] = hostDocumentVersion;
+            textBuffer.Properties[HostDocumentVersionMarked] = hostDocumentVersion;
         }
 
         public static bool TryGetHostDocumentSyncVersion(this ITextBuffer textBuffer, out long hostDocumentVersion)
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Text
                 throw new ArgumentNullException(nameof(textBuffer));
             }
 
-            var result = textBuffer.Properties.TryGetProperty(s_hostDocumentVersionMarked, out hostDocumentVersion);
+            var result = textBuffer.Properties.TryGetProperty(HostDocumentVersionMarked, out hostDocumentVersion);
 
             return result;
         }

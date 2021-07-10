@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
     {
-        private static readonly string s_logFileIdentifier = "Razor.RazorLanguageServerClient";
+        private const string LogFileIdentifier = "Razor.RazorLanguageServerClient";
 
         private readonly RazorLanguageServerCustomMessageTarget _customMessageTarget;
         private readonly ILanguageClientMiddleLayer _middleLayer;
@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var traceLevel = GetVerbosity();
 
             // Initialize Logging Infrastructure
-            _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(s_logFileIdentifier, token).ConfigureAwait(false);
+            _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
             _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, ConfigureLanguageServer).ConfigureAwait(false);
 

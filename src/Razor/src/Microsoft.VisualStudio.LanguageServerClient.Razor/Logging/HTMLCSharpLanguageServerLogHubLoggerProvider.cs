@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
     [Export(typeof(HTMLCSharpLanguageServerLogHubLoggerProvider))]
     internal class HTMLCSharpLanguageServerLogHubLoggerProvider : ILoggerProvider
     {
-        private static readonly string s_logFileIdentifier = "Razor.HTMLCSharpLanguageServerClient";
+        private const string LogFileIdentifier = "Razor.HTMLCSharpLanguageServerClient";
 
         private LogHubLoggerProvider _loggerProvider;
 
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             {
                 if (_loggerProvider is null)
                 {
-                    _loggerProvider = (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(s_logFileIdentifier, cancellationToken).ConfigureAwait(false);
+                    _loggerProvider = (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier, cancellationToken).ConfigureAwait(false);
                 }
             }
             finally
