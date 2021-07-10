@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private Thread Thread { get; } = Thread.CurrentThread;
 
-        protected override bool IsDispatcherThread => Thread.CurrentThread == Thread;
+        public override bool IsDispatcherThread => Thread.CurrentThread == Thread;
 
         private class ThrowingTaskScheduler : TaskScheduler
         {

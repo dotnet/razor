@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 
         private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
         {
-            protected override bool IsDispatcherThread => true;
+            public override bool IsDispatcherThread => true;
 
             public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
         }
