@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             var dispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
             dispatcher.Setup(d => d.AssertDispatcherThread(It.IsAny<string>())).Verifiable();
+            dispatcher.Setup(d => d.IsDispatcherThread).Returns(true);
             dispatcher.Setup(d => d.DispatcherScheduler).Returns(TaskScheduler.FromCurrentSynchronizationContext());
             return dispatcher.Object;
         }
