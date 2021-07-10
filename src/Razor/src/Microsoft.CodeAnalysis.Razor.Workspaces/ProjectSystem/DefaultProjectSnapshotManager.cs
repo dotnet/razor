@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // All methods involving the project snapshot manager need to be run on the
             // project snapshot manager's specialized thread. The LSP editor should already
             // be on the specialized thread, however the old editor may be calling this
-            // constructor using the UI thread.
+            // constructor on the UI thread.
             if (_projectSnapshotManagerDispatcher.IsDispatcherThread)
             {
                 InitializeTriggers(this, _triggers);
