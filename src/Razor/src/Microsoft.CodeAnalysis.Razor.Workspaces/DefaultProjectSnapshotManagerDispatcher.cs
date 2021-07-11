@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal class DefaultProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
     {
-        protected override bool IsDispatcherThread
+        public override bool IsDispatcherThread
             => Thread.CurrentThread.ManagedThreadId == ProjectSnapshotManagerTaskScheduler.Instance.ThreadId;
 
         public override TaskScheduler DispatcherScheduler { get; } = ProjectSnapshotManagerTaskScheduler.Instance;

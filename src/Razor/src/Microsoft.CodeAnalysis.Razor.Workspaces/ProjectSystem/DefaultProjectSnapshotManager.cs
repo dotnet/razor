@@ -68,24 +68,29 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _notificationWork = new Queue<ProjectChangeEventArgs>();
 
             // All methods involving the project snapshot manager need to be run on the
-            // project snapshot manager's specialized thread.
-            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            // project snapshot manager's specialized thread. The LSP editor should already
+            // be on the specialized thread, however the old editor may be calling this
+            // constructor on the UI thread.
+            if (_projectSnapshotManagerDispatcher.IsDispatcherThread)
             {
-                for (var i = 0; i < _triggers.Length; i++)
-                {
-                    _triggers[i].Initialize(this);
-                }
+                InitializeTriggers(this, _triggers);
+            }
+            else
+            {
+                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    () => InitializeTriggers(this, _triggers), CancellationToken.None);
+            }
 
-                // Used in tests only to notify trigger initialization completion
-                if (NotifyTriggersFinishedInitializing != null)
+            static void InitializeTriggers(
+                DefaultProjectSnapshotManager snapshotManager,
+                ProjectSnapshotChangeTrigger[] triggers)
+            {
+                for (var i = 0; i < triggers.Length; i++)
                 {
-                    NotifyTriggersFinishedInitializing.Set();
+                    triggers[i].Initialize(snapshotManager);
                 }
-            }, CancellationToken.None);
+            }
         }
-
-        // Used in tests to notify completion of trigger initializations
-        internal ManualResetEventSlim NotifyTriggersFinishedInitializing { get; set; }
 
         public override IReadOnlyList<ProjectSnapshot> Projects
         {

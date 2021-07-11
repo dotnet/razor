@@ -4,11 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
@@ -85,16 +83,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Building this list in the wrong order so we can verify priority matters
             var triggers = new[] { defaultPriorityTrigger, highPriorityTrigger };
 
-            // This particular test needs to use an actual non-test dispatcher due to threading
-            var dispatcher = new DefaultProjectSnapshotManagerDispatcher();
-
             // Act
-            var projectManager = new TestProjectSnapshotManager(dispatcher, triggers, Workspace)
-            {
-                NotifyTriggersFinishedInitializing = new ManualResetEventSlim()
-            };
-
-            projectManager.NotifyTriggersFinishedInitializing.Wait(); // Wait for triggers to finish processing on thread
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, triggers, Workspace);
 
             // Assert
             Assert.Equal(new[] { "highPriority", "lowPriority" }, initializedOrder);
