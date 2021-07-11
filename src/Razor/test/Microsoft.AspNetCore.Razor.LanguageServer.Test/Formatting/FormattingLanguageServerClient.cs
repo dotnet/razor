@@ -155,15 +155,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private struct HtmlFormatterTextEdit
         {
 #pragma warning disable CS0649 // Field 'name' is never assigned to, and will always have its default value
-            public int _position;
-            public int _length;
-            public string _newText;
+#pragma warning disable IDE1006 // Naming Styles - This type is deserialized above so these need to be cased like this
+            public int Position;
+            public int Length;
+            public string NewText;
+#pragma warning restore IDE1006 // Naming Styles
 #pragma warning restore CS0649 // Field 'name' is never assigned to, and will always have its default value
 
             public TextEdit AsTextEdit(SourceText sourceText)
             {
-                var startLinePosition = sourceText.Lines.GetLinePosition(_position);
-                var endLinePosition = sourceText.Lines.GetLinePosition(_position + _length);
+                var startLinePosition = sourceText.Lines.GetLinePosition(Position);
+                var endLinePosition = sourceText.Lines.GetLinePosition(Position + Length);
 
                 return new TextEdit
                 {
@@ -172,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         Start = new Position(startLinePosition.Line, startLinePosition.Character),
                         End = new Position(endLinePosition.Line, endLinePosition.Character),
                     },
-                    NewText = _newText,
+                    NewText = NewText,
                 };
             }
         }
