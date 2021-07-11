@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
     {
         private static readonly object s_unsupportedKey = new object();
         private static readonly object s_sourceTextKey = new object();
-        private static readonly object s_cSharpSourceTextKey = new object();
+        private static readonly object s_csharpSourceTextKey = new object();
         private static readonly object s_htmlSourceTextKey = new object();
 
         public static bool IsUnsupported(this RazorCodeDocument document)
