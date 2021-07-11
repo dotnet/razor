@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis
 {
     public static class TestWorkspace
     {
-        private static readonly object WorkspaceLock = new object();
+        private static readonly object s_workspaceLock = new object();
 
         public static Workspace Create(Action<AdhocWorkspace> configure = null) => Create(services: null, configure: configure);
 
         public static AdhocWorkspace Create(HostServices services, Action<AdhocWorkspace> configure = null)
         {
-            lock (WorkspaceLock)
+            lock (s_workspaceLock)
             {
                 var workspace = services == null ? new AdhocWorkspace() : new AdhocWorkspace(services);
                 configure?.Invoke(workspace);

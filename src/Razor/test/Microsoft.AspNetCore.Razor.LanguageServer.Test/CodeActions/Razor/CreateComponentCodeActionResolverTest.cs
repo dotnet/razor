@@ -20,13 +20,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
     {
-        private readonly DocumentResolver EmptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
+        private readonly DocumentResolver _emptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
 
         [Fact]
         public async Task Handle_MissingFile()
         {
             // Arrange
-            var resolver = new CreateComponentCodeActionResolver(new DefaultForegroundDispatcher(), EmptyDocumentResolver);
+            var resolver = new CreateComponentCodeActionResolver(new DefaultForegroundDispatcher(), _emptyDocumentResolver);
             var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),

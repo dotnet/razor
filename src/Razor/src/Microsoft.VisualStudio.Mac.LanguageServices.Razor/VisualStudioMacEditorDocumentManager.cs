@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         {
             ForegroundDispatcher.AssertForegroundThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 if (!TryGetMatchingDocuments(filePath, out var documents))
                 {
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         {
             ForegroundDispatcher.AssertForegroundThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 if (!TryGetMatchingDocuments(filePath, out var documents))
                 {
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 return;
             }
 
-            lock (_lock)
+            lock (Lock)
             {
                 // Treat a rename as a close + reopen.
                 //
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         {
             ForegroundDispatcher.AssertForegroundThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 for (var i = 0; i < documents.Length; i++)
                 {

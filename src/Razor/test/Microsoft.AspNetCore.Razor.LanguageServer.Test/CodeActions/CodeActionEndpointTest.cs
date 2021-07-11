@@ -25,10 +25,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class CodeActionEndpointTest : LanguageServerTestBase
     {
-        private readonly RazorDocumentMappingService DocumentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out It.Ref<Range>.IsAny) == false, MockBehavior.Strict);
-        private readonly DocumentResolver EmptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
-        private readonly LanguageServerFeatureOptions LanguageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(l => l.SupportsFileManipulation == true, MockBehavior.Strict);
-        private readonly ClientNotifierServiceBase LanguageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+        private readonly RazorDocumentMappingService _documentMappingService = Mock.Of<RazorDocumentMappingService>(s => s.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out It.Ref<Range>.IsAny) == false, MockBehavior.Strict);
+        private readonly DocumentResolver _emptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(l => l.SupportsFileManipulation == true, MockBehavior.Strict);
+        private readonly ClientNotifierServiceBase _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
 
         [Fact]
         public async Task Handle_NoDocument()
@@ -36,13 +36,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = "C:/path/to/Page.razor";
             var codeActionEndpoint = new CodeActionEndpoint(
-                DocumentMappingService,
+                _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
                 Dispatcher,
-                EmptyDocumentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _emptyDocumentResolver,
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -69,13 +69,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             codeDocument.SetUnsupported();
             var codeActionEndpoint = new CodeActionEndpoint(
-                DocumentMappingService,
+                _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
                 Dispatcher,
                 documentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -101,13 +101,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
-                DocumentMappingService,
+                _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
                 Dispatcher,
                 documentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -133,15 +133,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
-                DocumentMappingService,
+                _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
                 Dispatcher,
                 documentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -178,7 +178,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Dispatcher,
                 documentResolver,
                 languageServer,
-                LanguageServerFeatureOptions)
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -205,15 +205,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
-                DocumentMappingService,
+                _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockMultipleRazorCodeActionProvider(),
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
                 Dispatcher,
                 documentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -255,7 +255,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Dispatcher,
                 documentResolver,
                 languageServer,
-                LanguageServerFeatureOptions)
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -297,7 +297,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Dispatcher,
                 documentResolver,
                 languageServer,
-                LanguageServerFeatureOptions)
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -324,15 +324,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
-                DocumentMappingService,
+                _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockNullRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
                 Dispatcher,
                 documentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -375,7 +375,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Dispatcher,
                 documentResolver,
                 languageServer,
-                LanguageServerFeatureOptions)
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -402,7 +402,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
-                DocumentMappingService,
+                _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider(),
                     new MockRazorCommandProvider(),
@@ -411,8 +411,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Array.Empty<CSharpCodeActionProvider>(),
                 Dispatcher,
                 documentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = true
             };
@@ -449,7 +449,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
-                DocumentMappingService,
+                _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider(),
                     new MockRazorCommandProvider(),
@@ -458,8 +458,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Array.Empty<CSharpCodeActionProvider>(),
                 Dispatcher,
                 documentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -494,15 +494,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
-                DocumentMappingService,
+                _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
                 Dispatcher,
                 documentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -535,15 +535,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument("@code {}");
             var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
             var codeActionEndpoint = new CodeActionEndpoint(
-                DocumentMappingService,
+                _documentMappingService,
                 new RazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
                 Dispatcher,
                 documentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -586,8 +586,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 },
                 Dispatcher,
                 documentResolver,
-                LanguageServer,
-                LanguageServerFeatureOptions)
+                _languageServer,
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };
@@ -629,7 +629,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Dispatcher,
                 documentResolver,
                 languageServer,
-                LanguageServerFeatureOptions)
+                _languageServerFeatureOptions)
             {
                 _supportsCodeActionResolve = false
             };

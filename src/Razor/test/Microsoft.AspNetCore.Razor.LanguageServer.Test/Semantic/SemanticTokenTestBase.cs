@@ -21,15 +21,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     {
-        private static readonly AsyncLocal<string?> _fileName = new AsyncLocal<string?>();
+        private static readonly AsyncLocal<string?> s_fileName = new AsyncLocal<string?>();
 
-        private static readonly string _projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
+        private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
 
         // Used by the test framework to set the 'base' name for test files.
         public static string? FileName
         {
-            get { return _fileName.Value; }
-            set { _fileName.Value = value; }
+            get { return s_fileName.Value; }
+            set { s_fileName.Value = value; }
         }
 
 #if GENERATE_BASELINES
@@ -193,7 +193,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            var semanticBaselineEditPath = Path.Combine(_projectPath, baselineFileName);
+            var semanticBaselineEditPath = Path.Combine(s_projectPath, baselineFileName);
             File.WriteAllText(semanticBaselineEditPath, builder.ToString());
         }
 
@@ -217,7 +217,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            var semanticBaselinePath = Path.Combine(_projectPath, baselineFileName);
+            var semanticBaselinePath = Path.Combine(s_projectPath, baselineFileName);
             File.WriteAllText(semanticBaselinePath, builder.ToString());
         }
 

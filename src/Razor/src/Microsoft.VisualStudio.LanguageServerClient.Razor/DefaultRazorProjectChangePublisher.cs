@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [Export(typeof(ProjectSnapshotChangeTrigger))]
     internal class DefaultRazorProjectChangePublisher : ProjectSnapshotChangeTrigger
     {
-        internal readonly Dictionary<string, Task> _deferredPublishTasks;
+        internal readonly Dictionary<string, Task> DeferredPublishTasks;
 
         // Internal for testing
         internal bool _active;
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            _deferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
+            DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
             _pendingProjectPublishes = new Dictionary<string, ProjectSnapshot>(FilePathComparer.Instance);
             _publishLock = new object();
 
@@ -105,9 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // by capturing the sync context.
             _pendingProjectPublishes[projectSnapshot.FilePath] = projectSnapshot;
 
-            if (!_deferredPublishTasks.TryGetValue(projectSnapshot.FilePath, out var update) || update.IsCompleted)
+            if (!DeferredPublishTasks.TryGetValue(projectSnapshot.FilePath, out var update) || update.IsCompleted)
             {
-                _deferredPublishTasks[projectSnapshot.FilePath] = PublishAfterDelayAsync(projectSnapshot.FilePath);
+                DeferredPublishTasks[projectSnapshot.FilePath] = PublishAfterDelayAsync(projectSnapshot.FilePath);
             }
         }
 

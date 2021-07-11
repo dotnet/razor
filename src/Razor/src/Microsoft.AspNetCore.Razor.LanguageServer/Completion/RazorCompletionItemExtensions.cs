@@ -11,11 +11,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal static class RazorCompletionItemExtensions
     {
-        private readonly static string TagHelperElementCompletionDescriptionKey = "Razor.TagHelperElementDescription";
+        private readonly static string s_tagHelperElementCompletionDescriptionKey = "Razor.TagHelperElementDescription";
 
         public static void SetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem, AggregateBoundElementDescription elementDescriptionInfo)
         {
-            completionItem.Items[TagHelperElementCompletionDescriptionKey] = elementDescriptionInfo;
+            completionItem.Items[s_tagHelperElementCompletionDescriptionKey] = elementDescriptionInfo;
         }
 
         public static AggregateBoundElementDescription? GetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem)
@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(completionItem));
             }
 
-            var description = completionItem.Items[TagHelperElementCompletionDescriptionKey] as AggregateBoundElementDescription;
+            var description = completionItem.Items[s_tagHelperElementCompletionDescriptionKey] as AggregateBoundElementDescription;
             return description;
         }
     }

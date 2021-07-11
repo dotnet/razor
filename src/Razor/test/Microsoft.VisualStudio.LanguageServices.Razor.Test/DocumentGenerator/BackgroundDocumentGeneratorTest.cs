@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             for (var i = 0; i < documents.Length; i++)
             {
                 var key = new DocumentKey(HostProject1.FilePath, documents[i].FilePath);
-                Assert.True(queue._work.ContainsKey(key));
+                Assert.True(queue.Work.ContainsKey(key));
             }
 
             // Allow the background work to start.
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
             Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
 
-            var kvp = Assert.Single(queue._work);
+            var kvp = Assert.Single(queue.Work);
             var expectedKey = new DocumentKey(HostProject1.FilePath, TestProjectData.SomeProjectComponentFile1.FilePath);
             Assert.Equal(expectedKey, kvp.Key);
 

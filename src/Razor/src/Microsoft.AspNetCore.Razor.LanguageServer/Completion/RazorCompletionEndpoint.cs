@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
         private readonly ClientNotifierServiceBase _languageServer;
         private readonly CompletionListCache _completionListCache;
-        private static readonly Command RetriggerCompletionCommand = new()
+        private static readonly Command s_retriggerCompletionCommand = new()
         {
             Name = "editor.action.triggerSuggest",
             Title = RazorLS.Resources.ReTrigger_Completions_Title,
@@ -348,7 +348,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                         if (razorCompletionItem == DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem)
                         {
-                            directiveCompletionItem.Command = RetriggerCompletionCommand;
+                            directiveCompletionItem.Command = s_retriggerCompletionCommand;
                             directiveCompletionItem.Kind = tagHelperCompletionItemKind;
                         }
 

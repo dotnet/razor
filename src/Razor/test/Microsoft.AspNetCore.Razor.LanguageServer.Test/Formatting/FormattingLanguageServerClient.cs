@@ -155,9 +155,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private struct HtmlFormatterTextEdit
         {
 #pragma warning disable CS0649 // Field 'name' is never assigned to, and will always have its default value
+#pragma warning disable IDE1006 // Naming Styles - This type is deserialized above so these need to be cased like this
             public int Position;
             public int Length;
             public string NewText;
+#pragma warning restore IDE1006 // Naming Styles
 #pragma warning restore CS0649 // Field 'name' is never assigned to, and will always have its default value
 
             public TextEdit AsTextEdit(SourceText sourceText)

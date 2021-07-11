@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
             // Assert
             var completionSourceImpl = Assert.IsType<RazorDirectiveCompletionSource>(completionSource);
-            Assert.Same(expectedParser, completionSourceImpl._parser);
+            Assert.Same(expectedParser, completionSourceImpl.Parser);
         }
 
         [Fact]

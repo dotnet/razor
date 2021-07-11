@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private readonly DocumentResolver _documentResolver;
         private readonly FilePathNormalizer _filePathNormalizer;
 
-        private static readonly Range StartOfDocumentRange = new Range(new Position(0, 0), new Position(0, 0));
+        private static readonly Range s_startOfDocumentRange = new Range(new Position(0, 0), new Position(0, 0));
 
         public ExtractToCodeBehindCodeActionResolver(
             ForegroundDispatcher foregroundDispatcher,
@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         new TextEdit
                         {
                             NewText = codeBehindContent,
-                            Range = StartOfDocumentRange,
+                            Range = s_startOfDocumentRange,
                         }
                     },
                 })

@@ -29,9 +29,9 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
     [Collection("IntegrationTestSerialRuns")]
     public abstract class IntegrationTestBase
     {
-        private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
+        private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
 
-        private static readonly CSharpCompilation DefaultBaseCompilation;
+        private static readonly CSharpCompilation s_defaultBaseCompilation;
 
         static IntegrationTestBase()
         {
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 .Select(Assembly.Load)
                 .Select(assembly => MetadataReference.CreateFromFile(assembly.Location))
                 .ToList();
-            DefaultBaseCompilation = CSharpCompilation.Create(
+            s_defaultBaseCompilation = CSharpCompilation.Create(
                 "TestAssembly",
                 Array.Empty<SyntaxTree>(),
                 referenceAssemblies,
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         /// <summary>
         /// Gets the <see cref="CSharpCompilation"/> that will be used as the 'app' compilation.
         /// </summary>
-        protected virtual CSharpCompilation BaseCompilation => DefaultBaseCompilation;
+        protected virtual CSharpCompilation BaseCompilation => s_defaultBaseCompilation;
 
         /// <summary>
         /// Gets the parse options applied when using <see cref="AddCSharpSyntaxTree(string, string)"/>.
@@ -113,8 +113,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         // Used by the test framework to set the 'base' name for test files.
         public static string FileName
         {
-            get { return _fileName.Value; }
-            set { _fileName.Value = value; }
+            get { return s_fileName.Value; }
+            set { s_fileName.Value = value; }
         }
 
         public string FileExtension { get; set; } = ".cshtml";

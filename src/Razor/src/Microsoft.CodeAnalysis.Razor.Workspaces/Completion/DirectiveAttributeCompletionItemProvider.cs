@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     [Export(typeof(RazorCompletionItemProvider))]
     internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
     {
-        private static readonly RazorCompletionItem[] NoDirectiveAttributeCompletionItems = Array.Empty<RazorCompletionItem>();
+        private static readonly RazorCompletionItem[] s_noDirectiveAttributeCompletionItems = Array.Empty<RazorCompletionItem>();
 
         private readonly TagHelperFactsService _tagHelperFactsService;
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             if (!FileKinds.IsComponent(syntaxTree.Options.FileKind))
             {
                 // Directive attributes are only supported in components
-                return NoDirectiveAttributeCompletionItems;
+                return s_noDirectiveAttributeCompletionItems;
             }
 
             var change = new SourceChange(location, string.Empty);
@@ -54,25 +54,25 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
             if (owner == null)
             {
-                return NoDirectiveAttributeCompletionItems;
+                return s_noDirectiveAttributeCompletionItems;
             }
 
             if (!TryGetAttributeInfo(owner, out _, out var attributeName, out var attributeNameLocation, out _, out _))
             {
                 // Either we're not in an attribute or the attribute is so malformed that we can't provide proper completions.
-                return NoDirectiveAttributeCompletionItems;
+                return s_noDirectiveAttributeCompletionItems;
             }
 
             if (!attributeNameLocation.IntersectsWith(location.AbsoluteIndex))
             {
                 // We're trying to retrieve completions on a portion of the name that is not supported (such as a parameter).
-                return NoDirectiveAttributeCompletionItems;
+                return s_noDirectiveAttributeCompletionItems;
             }
 
             if (!TryGetElementInfo(owner.Parent.Parent, out var containingTagName, out var attributes))
             {
                 // This should never be the case, it means that we're operating on an attribute that doesn't have a tag.
-                return NoDirectiveAttributeCompletionItems;
+                return s_noDirectiveAttributeCompletionItems;
             }
 
             // At this point we've determined that completions have been requested for the name portion of the selected attribute.
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return completionItems;
             }
 
-            return NoDirectiveAttributeCompletionItems;
+            return s_noDirectiveAttributeCompletionItems;
         }
 
         // Internal for testing

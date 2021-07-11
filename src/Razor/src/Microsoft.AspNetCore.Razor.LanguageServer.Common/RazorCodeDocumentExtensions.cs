@@ -8,10 +8,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     internal static class RazorCodeDocumentExtensions
     {
-        private static readonly object UnsupportedKey = new object();
-        private static readonly object SourceTextKey = new object();
-        private static readonly object CSharpSourceTextKey = new object();
-        private static readonly object HtmlSourceTextKey = new object();
+        private static readonly object s_unsupportedKey = new object();
+        private static readonly object s_sourceTextKey = new object();
+        private static readonly object s_csharpSourceTextKey = new object();
+        private static readonly object s_htmlSourceTextKey = new object();
 
         public static bool IsUnsupported(this RazorCodeDocument document)
         {
@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 throw new ArgumentNullException(nameof(document));
             }
 
-            var unsupportedObj = document.Items[UnsupportedKey];
+            var unsupportedObj = document.Items[s_unsupportedKey];
             if (unsupportedObj == null)
             {
                 return false;
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 throw new ArgumentNullException(nameof(document));
             }
 
-            document.Items[UnsupportedKey] = true;
+            document.Items[s_unsupportedKey] = true;
         }
     }
 }

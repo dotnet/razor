@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Razor.Test
                 var key = GetKey();
                 var value = new List<uint> { (uint)i };
                 cache.Set(key, value);
-                Assert.False(cache.WasCompacted, "It got compacted early.");
+                Assert.False(cache._wasCompacted, "It got compacted early.");
             }
 
             cache.Set(GetKey(), new List<uint> { (uint)sizeLimit + 1 });
-            Assert.True(cache.WasCompacted, "Compaction is not happening");
+            Assert.True(cache._wasCompacted, "Compaction is not happening");
         }
 
         [Fact]
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Razor.Test
         private class TestMemoryCache : MemoryCache<string, IReadOnlyList<uint>>
         {
             public static int SizeLimit = 10;
-            public bool WasCompacted = false;
+            public bool _wasCompacted = false;
 
             public TestMemoryCache() : base(SizeLimit)
             {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Razor.Test
 
             protected override void Compact()
             {
-                WasCompacted = true;
+                _wasCompacted = true;
                 base.Compact();
             }
         }

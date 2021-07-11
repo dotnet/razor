@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly RazorConfigurationService _configurationService;
         private readonly IOptionsMonitorCache<RazorLSPOptions> _cache;
-        internal event Action<RazorLSPOptions, string> _onChange;
+        private event Action<RazorLSPOptions, string> OnChangeEvent;
         private RazorLSPOptions _currentValue;
 
         public RazorLSPOptionsMonitor(RazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache)
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public IDisposable OnChange(Action<RazorLSPOptions, string> listener)
         {
             var disposable = new ChangeTrackerDisposable(this, listener);
-            _onChange += disposable.OnChange;
+            OnChangeEvent += disposable.OnChange;
             return disposable;
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var name = Options.DefaultName;
             _cache.TryRemove(name);
             var options = Get(name);
-            _onChange?.Invoke(options, name);
+            OnChangeEvent?.Invoke(options, name);
         }
 
         internal class ChangeTrackerDisposable : IDisposable
@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public void OnChange(RazorLSPOptions options, string name) => _listener.Invoke(options, name);
 
-            public void Dispose() => _monitor._onChange -= OnChange;
+            public void Dispose() => _monitor.OnChangeEvent -= OnChange;
         }
     }
 }

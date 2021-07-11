@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [Export(typeof(RazorEditorFactoryService))]
     internal class DefaultRazorEditorFactoryService : RazorEditorFactoryService
     {
-        private static readonly object RazorTextBufferInitializationKey = new object();
+        private static readonly object s_razorTextBufferInitializationKey = new object();
         private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
 
         [ImportingConstructor]
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal bool TryInitializeTextBuffer(ITextBuffer textBuffer)
         {
-            if (textBuffer.Properties.ContainsProperty(RazorTextBufferInitializationKey))
+            if (textBuffer.Properties.ContainsProperty(s_razorTextBufferInitializationKey))
             {
                 // Buffer already initialized.
                 return true;
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var braceSmartIndenter = braceSmartIndenterFactory.Create(tracker);
             textBuffer.Properties[typeof(BraceSmartIndenter)] = braceSmartIndenter;
 
-            textBuffer.Properties.AddProperty(RazorTextBufferInitializationKey, RazorTextBufferInitializationKey);
+            textBuffer.Properties.AddProperty(s_razorTextBufferInitializationKey, s_razorTextBufferInitializationKey);
 
             return true;
         }

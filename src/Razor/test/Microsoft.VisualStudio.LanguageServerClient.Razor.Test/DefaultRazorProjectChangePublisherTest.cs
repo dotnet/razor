@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
     public class DefaultRazorProjectChangePublisherTest : LanguageServerTestBase
     {
-        private readonly RazorLogger RazorLogger = Mock.Of<RazorLogger>(MockBehavior.Strict);
+        private readonly RazorLogger _razorLogger = Mock.Of<RazorLogger>(MockBehavior.Strict);
 
         public DefaultRazorProjectChangePublisherTest()
         {
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.ProjectAdded(hostProject);
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
             {
                 EnqueueDelay = 10,
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.DocumentAdded(hostProject, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
 
             // Assert
-            Assert.Empty(publisher._deferredPublishTasks);
+            Assert.Empty(publisher.DeferredPublishTasks);
             Assert.False(attemptedToSerialize);
         }
 
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.DocumentAdded(hostProject, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
             {
                 EnqueueDelay = 10,
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.DocumentOpened(hostProject.FilePath, hostDocument.FilePath, SourceText.From(string.Empty));
 
             // Assert
-            Assert.Empty(publisher._deferredPublishTasks);
+            Assert.Empty(publisher.DeferredPublishTasks);
             Assert.False(attemptedToSerialize);
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectConfigurationFilePathStore.Set(projectSnapshot.FilePath, expectedConfigurationFilePath);
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectSnapshotManager.DocumentOpened(hostProject.FilePath, hostDocument.FilePath, SourceText.From(string.Empty));
 
             // Assert
-            Assert.Empty(publisher._deferredPublishTasks);
+            Assert.Empty(publisher.DeferredPublishTasks);
             Assert.True(serializationSuccessful);
         }
 
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(projectSnapshot, snapshot);
@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             publisher.ProjectSnapshotManager_Changed(null, args);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.True(serializationSuccessful);
         }
@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) => attemptedToSerialize = true)
             {
                 EnqueueDelay = 10,
@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             publisher.ProjectSnapshotManager_Changed(null, args);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
 
             Assert.False(attemptedToSerialize);
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(secondSnapshot, snapshot);
@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             publisher.EnqueuePublish(secondSnapshot);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.True(serializationSuccessful);
         }
@@ -269,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(secondSnapshot, snapshot);
@@ -288,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             publisher.EnqueuePublish(secondSnapshot);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.True(serializationSuccessful);
         }
@@ -309,7 +309,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(secondSnapshot, snapshot);
@@ -328,7 +328,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             publisher.EnqueuePublish(secondSnapshot);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.False(serializationSuccessful);
         }
@@ -339,7 +339,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             // Arrange
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger)
+                _razorLogger)
             {
                 _active = true,
             };
@@ -359,7 +359,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Same(omniSharpProjectSnapshot, snapshot);
@@ -388,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
@@ -411,7 +411,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             }).ConfigureAwait(false);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.True(serializationSuccessful);
         }
@@ -425,7 +425,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.True(false, "Serialization should not have been atempted because there is no ProjectWorkspaceState.");
@@ -441,7 +441,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             // Act
             await RunOnForegroundAsync(() => ProjectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
-            Assert.Empty(publisher._deferredPublishTasks);
+            Assert.Empty(publisher.DeferredPublishTasks);
 
             // Assert
             Assert.False(serializationSuccessful);
@@ -453,7 +453,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             // Arrange
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger)
+                _razorLogger)
             {
                 _active = true,
             };
@@ -464,7 +464,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             // Act & Assert
             await RunOnForegroundAsync(() => ProjectSnapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
 
-            Assert.Empty(publisher._deferredPublishTasks);
+            Assert.Empty(publisher.DeferredPublishTasks);
         }
 
         [ForegroundFact]
@@ -476,7 +476,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
-                RazorLogger,
+                _razorLogger,
                 onSerializeToFile: (snapshot, configurationFilePath) =>
                 {
                     Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
@@ -500,7 +500,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             }).ConfigureAwait(false);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
             Assert.False(serializationSuccessful);
         }
@@ -561,7 +561,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
         private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher
         {
-            private static readonly Mock<LSPEditorFeatureDetector> _lspEditorFeatureDetector = new Mock<LSPEditorFeatureDetector>(MockBehavior.Strict);
+            private static readonly Mock<LSPEditorFeatureDetector> s_lspEditorFeatureDetector = new Mock<LSPEditorFeatureDetector>(MockBehavior.Strict);
 
             private readonly Action<ProjectSnapshot, string> _onSerializeToFile;
 
@@ -570,7 +570,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             static TestDefaultRazorProjectChangePublisher()
             {
-                _lspEditorFeatureDetector
+                s_lspEditorFeatureDetector
                     .Setup(t => t.IsLSPEditorAvailable())
                     .Returns(true);
             }
@@ -581,9 +581,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 Action<ProjectSnapshot, string> onSerializeToFile = null,
                 bool shouldSerialize = true,
                 bool useRealShouldSerialize = false)
-                : base(_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestServiceProvider(), logger)
+                : base(s_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestServiceProvider(), logger)
             {
-                _onSerializeToFile = onSerializeToFile ?? ((_, __) => throw new XunitException("SerializeToFile should not have been called."));
+                _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
                 _shouldSerialize = shouldSerialize;
                 _useRealShouldSerialize = useRealShouldSerialize;
             }

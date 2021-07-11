@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         // Internal for testing
         internal TimeSpan _synchronizationTimeout = TimeSpan.FromSeconds(2);
         private readonly Dictionary<Uri, DocumentContext> _virtualDocumentContexts;
-        private readonly object DocumentContextLock = new object();
+        private readonly object _documentContextLock = new object();
         private readonly FileUriProvider _fileUriProvider;
 
         [ImportingConstructor]
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 throw new ArgumentNullException(nameof(virtualDocument));
             }
 
-            lock (DocumentContextLock)
+            lock (_documentContextLock)
             {
                 if (!_virtualDocumentContexts.TryGetValue(virtualDocument.Uri, out var documentContext))
                 {
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 return;
             }
 
-            lock (DocumentContextLock)
+            lock (_documentContextLock)
             {
                 if (!_virtualDocumentContexts.TryGetValue(virtualDocumentUri, out var documentContext))
                 {
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 throw new ArgumentNullException(nameof(args));
             }
 
-            lock (DocumentContextLock)
+            lock (_documentContextLock)
             {
                 if (args.Kind == LSPDocumentChangeKind.Added)
                 {

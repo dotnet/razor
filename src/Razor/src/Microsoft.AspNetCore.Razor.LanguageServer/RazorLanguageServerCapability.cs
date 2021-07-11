@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal record RazorLanguageServerCapability(bool LanguageQuery, bool RangeMapping, bool EditMapping, bool MonitorProjectConfigurationFilePath)
     {
         private const string RazorCapabilityKey = "razor";
-        private static readonly RazorLanguageServerCapability Default = new RazorLanguageServerCapability(LanguageQuery: true, RangeMapping: true, EditMapping: true, MonitorProjectConfigurationFilePath: true);
+        private static readonly RazorLanguageServerCapability s_default = new RazorLanguageServerCapability(LanguageQuery: true, RangeMapping: true, EditMapping: true, MonitorProjectConfigurationFilePath: true);
 
         public static void AddTo(ServerCapabilities capabilities)
         {
@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // server capabilities to our client side code having lost the information of the custom capabilities. To avoid this we use the
             // experimental bag since it's part of the official LSP spec. This approach enables us to work with any client.
             capabilities.Experimental ??= new Dictionary<string, JToken>();
-            capabilities.Experimental[RazorCapabilityKey] = JToken.FromObject(Default);
+            capabilities.Experimental[RazorCapabilityKey] = JToken.FromObject(s_default);
         }
 
         public static bool TryGet(JToken token, out RazorLanguageServerCapability razorCapability)

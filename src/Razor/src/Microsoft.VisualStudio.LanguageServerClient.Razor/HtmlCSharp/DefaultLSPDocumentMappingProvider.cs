@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [Export(typeof(LSPDocumentMappingProvider))]
     internal class DefaultLSPDocumentMappingProvider : LSPDocumentMappingProvider
     {
-        private static readonly TextEdit[] EmptyEdits = Array.Empty<TextEdit>();
+        private static readonly TextEdit[] s_emptyEdits = Array.Empty<TextEdit>();
 
         private readonly LSPRequestInvoker _requestInvoker;
 
@@ -358,7 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     mappingResult.HostDocumentVersion != documentSnapshot.Version))
             {
                 // Couldn't remap the location or the document changed in the meantime. Discard these ranges.
-                return (null, EmptyEdits);
+                return (null, s_emptyEdits);
             }
 
             return (documentSnapshot, mappingResult.TextEdits);

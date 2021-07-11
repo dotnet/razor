@@ -20,73 +20,73 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
     {
-        private static readonly Task<IReadOnlyList<RazorCodeAction>> EmptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
+        private static readonly Task<IReadOnlyList<RazorCodeAction>> s_emptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
 
         public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             if (context is null)
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             if (!context.SupportsFileCreation)
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             if (!FileKinds.IsComponent(context.CodeDocument.GetFileKind()))
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
             if (syntaxTree?.Root is null)
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             var owner = syntaxTree.Root.LocateOwner(change);
             if (owner == null)
             {
                 Debug.Fail("Owner should never be null.");
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.RazorDirective);
             if (node == null || !(node is RazorDirectiveSyntax directiveNode))
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             // Make sure we've found a @code or @functions
             if (directiveNode.DirectiveDescriptor != ComponentCodeDirective.Directive &&
                 directiveNode.DirectiveDescriptor != FunctionsDirective.Directive)
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             // No code action if malformed
             if (directiveNode.GetDiagnostics().Any(d => d.Severity == RazorDiagnosticSeverity.Error))
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             var csharpCodeBlockNode = directiveNode.Body.DescendantNodes().FirstOrDefault(n => n is CSharpCodeBlockSyntax);
             if (csharpCodeBlockNode is null)
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             if (HasUnsupportedChildren(csharpCodeBlockNode))
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             // Do not provide code action if the cursor is inside the code block
             if (context.Location.AbsoluteIndex > csharpCodeBlockNode.SpanStart)
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             var actionParams = new ExtractToCodeBehindCodeActionParams()

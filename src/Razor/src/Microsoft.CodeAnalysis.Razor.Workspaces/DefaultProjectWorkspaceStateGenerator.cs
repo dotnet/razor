@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor
     internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGenerator, IDisposable
     {
         // Internal for testing
-        internal readonly Dictionary<string, UpdateItem> _updates;
+        internal readonly Dictionary<string, UpdateItem> Updates;
 
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly SemaphoreSlim _semaphore;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Razor
             _foregroundDispatcher = foregroundDispatcher;
 
             _semaphore = new SemaphoreSlim(initialCount: 1);
-            _updates = new Dictionary<string, UpdateItem>(FilePathComparer.Instance);
+            Updates = new Dictionary<string, UpdateItem>(FilePathComparer.Instance);
         }
 
         // Used in unit tests to ensure we can control when background work starts.
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 return;
             }
 
-            if (_updates.TryGetValue(projectSnapshot.FilePath, out var updateItem) &&
+            if (Updates.TryGetValue(projectSnapshot.FilePath, out var updateItem) &&
                 !updateItem.Task.IsCompleted &&
                 !updateItem.Cts.IsCancellationRequested)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 _foregroundDispatcher.BackgroundScheduler).Unwrap();
             updateTask.ConfigureAwait(false);
             updateItem = new UpdateItem(updateTask, lcts);
-            _updates[projectSnapshot.FilePath] = updateItem;
+            Updates[projectSnapshot.FilePath] = updateItem;
         }
 
         public void Dispose()
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             _disposed = true;
 
-            foreach (var update in _updates)
+            foreach (var update in Updates)
             {
                 if (!update.Value.Task.IsCompleted &&
                     !update.Value.Cts.IsCancellationRequested)

@@ -182,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             documentVersionCache.TrackDocumentVersion(document, 1337);
 
             // Assert
-            var kvp = Assert.Single(documentVersionCache._documentLookup);
+            var kvp = Assert.Single(documentVersionCache.DocumentLookup);
             Assert.Equal(document.FilePath, kvp.Key);
             var entry = Assert.Single(kvp.Value);
             Assert.True(entry.Document.TryGetTarget(out var actualDocument));
@@ -206,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             documentVersionCache.TrackDocumentVersion(document, 1337);
 
             // Assert
-            var kvp = Assert.Single(documentVersionCache._documentLookup);
+            var kvp = Assert.Single(documentVersionCache.DocumentLookup);
             Assert.Equal(DefaultDocumentVersionCache.MaxDocumentTrackingCount, kvp.Value.Count);
             Assert.Equal(1337, kvp.Value.Last().Version);
         }

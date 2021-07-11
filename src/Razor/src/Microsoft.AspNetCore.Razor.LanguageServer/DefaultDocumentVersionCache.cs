@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal const int MaxDocumentTrackingCount = 20;
 
         // Internal for testing
-        internal readonly Dictionary<string, List<DocumentEntry>> _documentLookup;
+        internal readonly Dictionary<string, List<DocumentEntry>> DocumentLookup;
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             _foregroundDispatcher = foregroundDispatcher;
-            _documentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
+            DocumentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
         }
 
         public override void TrackDocumentVersion(DocumentSnapshot documentSnapshot, int version)
@@ -37,10 +37,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             _foregroundDispatcher.AssertForegroundThread();
 
-            if (!_documentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
+            if (!DocumentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
             {
                 documentEntries = new List<DocumentEntry>();
-                _documentLookup[documentSnapshot.FilePath] = documentEntries;
+                DocumentLookup[documentSnapshot.FilePath] = documentEntries;
             }
 
             if (documentEntries.Count == MaxDocumentTrackingCount)
@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             _foregroundDispatcher.AssertForegroundThread();
 
-            if (!_documentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
+            if (!DocumentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
             {
                 version = null;
                 return false;
@@ -106,11 +106,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             switch (args.Kind)
             {
                 case ProjectChangeKind.DocumentChanged:
-                    if (_documentLookup.ContainsKey(args.DocumentFilePath) &&
+                    if (DocumentLookup.ContainsKey(args.DocumentFilePath) &&
                         !_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                     {
                         // Document closed, evict entry.
-                        _documentLookup.Remove(args.DocumentFilePath);
+                        DocumentLookup.Remove(args.DocumentFilePath);
                     }
                     break;
             }
@@ -147,7 +147,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal bool TryGetLatestVersionFromPath(string filePath, out int? version)
         {
-            if (!_documentLookup.TryGetValue(filePath, out var documentEntries))
+            if (!DocumentLookup.TryGetValue(filePath, out var documentEntries))
             {
                 version = null;
                 return false;
@@ -163,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             foreach (var documentPath in projectSnapshot.DocumentFilePaths)
             {
-                if (_documentLookup.ContainsKey(documentPath))
+                if (DocumentLookup.ContainsKey(documentPath))
                 {
                     var document = projectSnapshot.GetDocument(documentPath);
                     MarkAsLatestVersion(document);

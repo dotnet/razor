@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 await manager.InitializeWithDocumentAsync(snapshot);
 
                 // Assert
-                Assert.Equal(1, manager.ParseCount);
+                Assert.Equal(1, manager._parseCount);
 
                 var codeDocument = await manager.InnerParser.GetLatestCodeDocumentAsync(snapshot);
                 Assert.Equal(FileKinds.Component, codeDocument.GetFileKind());
@@ -75,13 +75,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 await manager.ApplyEditAndWaitForParseAsync(edit);
 
                 // Assert - 1
-                Assert.Equal(2, manager.ParseCount);
+                Assert.Equal(2, manager._parseCount);
 
                 // Act - 2
                 await manager.ApplyEditAndWaitForParseAsync(edit);
 
                 // Assert - 2
-                Assert.Equal(3, manager.ParseCount);
+                Assert.Equal(3, manager._parseCount);
             }
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 await manager.ApplyEditAndWaitForReparseAsync(edit);
 
                 // Assert
-                Assert.Equal(2, manager.ParseCount);
+                Assert.Equal(2, manager._parseCount);
                 VerifyCurrentSyntaxTree(manager);
             }
         }
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
                 {
                     manager.ApplyEdit(testEdit);
-                    Assert.Equal(1, manager.ParseCount);
+                    Assert.Equal(1, manager._parseCount);
 
                     VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
                 };
@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
                 {
                     manager.ApplyEdit(testEdit);
-                    Assert.Equal(1, manager.ParseCount);
+                    Assert.Equal(1, manager._parseCount);
                     VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
                 };
 
@@ -198,7 +198,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
                 {
                     manager.ApplyEdit(testEdit);
-                    Assert.Equal(1, manager.ParseCount);
+                    Assert.Equal(1, manager._parseCount);
 
                     VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
                 };
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 // Verify the reparse finally comes
                 await manager.WaitForReparseAsync();
 
-                Assert.Equal(2, manager.ParseCount);
+                Assert.Equal(2, manager._parseCount);
                 VerifyCurrentSyntaxTree(manager);
             }
         }
@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
                 {
                     manager.ApplyEdit(testEdit);
-                    Assert.Equal(1, manager.ParseCount);
+                    Assert.Equal(1, manager._parseCount);
 
                     VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
                 };
@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
                 {
                     manager.ApplyEdit(testEdit);
-                    Assert.Equal(1, manager.ParseCount);
+                    Assert.Equal(1, manager._parseCount);
 
                     VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
                 };
@@ -287,7 +287,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 // Verify the reparse eventually happens
                 await manager.WaitForReparseAsync();
 
-                Assert.Equal(2, manager.ParseCount);
+                Assert.Equal(2, manager._parseCount);
                 VerifyCurrentSyntaxTree(manager);
             }
         }
@@ -304,7 +304,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 void ApplyAndVerifyPartialChange(Action applyEdit, string expectedCode)
                 {
                     applyEdit();
-                    Assert.Equal(1, manager.ParseCount);
+                    Assert.Equal(1, manager._parseCount);
 
                     VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
                 };
@@ -340,7 +340,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 // Verify the reparse eventually happens
                 await manager.WaitForReparseAsync();
 
-                Assert.Equal(2, manager.ParseCount);
+                Assert.Equal(2, manager._parseCount);
                 VerifyCurrentSyntaxTree(manager);
             }
         }
@@ -363,7 +363,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 await manager.ApplyEditAndWaitForParseAsync(charTyped);
 
                 // Assert
-                Assert.Equal(2, manager.ParseCount);
+                Assert.Equal(2, manager._parseCount);
                 VerifyPartialParseTree(manager, charTyped.NewSnapshot.GetText());
             }
         }
@@ -386,7 +386,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 manager.ApplyEdit(charTyped);
 
                 // Assert
-                Assert.Equal(1, manager.ParseCount);
+                Assert.Equal(1, manager._parseCount);
                 VerifyPartialParseTree(manager, charTyped.NewSnapshot.GetText());
             }
         }
@@ -405,7 +405,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 manager.ApplyEdit(edit);
 
                 // Assert
-                Assert.Equal(1, manager.ParseCount);
+                Assert.Equal(1, manager._parseCount);
                 VerifyPartialParseTree(manager, edit.NewSnapshot.GetText());
             }
         }
@@ -427,7 +427,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 manager.ApplyEdit(edit2);
 
                 // Assert
-                Assert.Equal(1, manager.ParseCount);
+                Assert.Equal(1, manager._parseCount);
                 VerifyPartialParseTree(manager, edit2.NewSnapshot.GetText());
             }
         }
@@ -546,7 +546,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 new TestCompletionBroker())
             {
                 // We block idle work with the below reset events. Therefore, make tests fast and have the idle timer fire as soon as possible.
-                IdleDelay = TimeSpan.FromMilliseconds(1),
+                _idleDelay = TimeSpan.FromMilliseconds(1),
                 NotifyForegroundIdleStart = new ManualResetEventSlim(),
                 BlockBackgroundIdleWork = new ManualResetEventSlim(),
             };
@@ -602,7 +602,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 await manager.ApplyEditAndWaitForParseAsync(edit);
 
                 // Assert
-                Assert.Equal(2, manager.ParseCount);
+                Assert.Equal(2, manager._parseCount);
             }
         }
 
@@ -639,7 +639,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private class TestParserManager : IDisposable
         {
-            public int ParseCount;
+            public int _parseCount;
 
             private readonly ManualResetEventSlim _parserComplete;
             private readonly ManualResetEventSlim _reparseComplete;
@@ -652,14 +652,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 _reparseComplete = new ManualResetEventSlim();
 
                 _testBuffer = (TestTextBuffer)parser.TextBuffer;
-                ParseCount = 0;
+                _parseCount = 0;
 
                 _parser = parser;
                 parser.DocumentStructureChanged += (sender, args) =>
                 {
                     CurrentSyntaxTree = args.CodeDocument.GetSyntaxTree();
 
-                    Interlocked.Increment(ref ParseCount);
+                    Interlocked.Increment(ref _parseCount);
 
                     if (args.SourceChange == null)
                     {

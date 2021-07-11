@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
     {
-        private static readonly IEnumerable<string> SupportedDiagnostics = new[]
+        private static readonly IEnumerable<string> s_supportedDiagnostics = new[]
         {
             // `The type or namespace name 'type/namespace' could not be found
             //  (are you missing a using directive or an assembly reference?)`
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
                 diagnostic.Severity == DiagnosticSeverity.Error &&
                 diagnostic.Code?.IsString == true &&
-                SupportedDiagnostics.Any(d => diagnostic.Code.Value.String.Equals(d, StringComparison.OrdinalIgnoreCase)));
+                s_supportedDiagnostics.Any(d => diagnostic.Code.Value.String.Equals(d, StringComparison.OrdinalIgnoreCase)));
 
             if (diagnostics is null || !diagnostics.Any())
             {

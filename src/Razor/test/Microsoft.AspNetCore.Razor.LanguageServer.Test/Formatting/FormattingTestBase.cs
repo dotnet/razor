@@ -35,8 +35,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     [Collection("FormattingTestSerialRuns")]
     public class FormattingTestBase : RazorIntegrationTestBase
     {
-        private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
-        private static readonly IReadOnlyList<TagHelperDescriptor> _defaultComponents = GetDefaultRuntimeComponents();
+        private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
+        private static readonly IReadOnlyList<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
 
         public FormattingTestBase()
         {
@@ -54,8 +54,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         // Used by the test framework to set the 'base' name for test files.
         public static string FileName
         {
-            get { return _fileName.Value; }
-            set { _fileName.Value = value; }
+            get { return s_fileName.Value; }
+            set { s_fileName.Value = value; }
         }
 
         protected async Task RunFormattingTestAsync(
@@ -189,12 +189,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             if (fileKind == FileKinds.Component)
             {
-                tagHelpers = tagHelpers.Concat(_defaultComponents).ToArray();
+                tagHelpers = tagHelpers.Concat(s_defaultComponents).ToArray();
             }
             var sourceDocument = text.GetRazorSourceDocument(path, path);
 
             // Yes I know "BlazorServer_31 is weird, but thats what is in the taghelpers.json file
-            const string defaultImports = @"
+            const string DefaultImports = @"
 @using BlazorServer_31
 @using BlazorServer_31.Pages
 @using BlazorServer_31.Shared
@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 ";
 
             var importsPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
-            var importsSourceText = SourceText.From(defaultImports);
+            var importsSourceText = SourceText.From(DefaultImports);
             var importsDocument = importsSourceText.GetRazorSourceDocument(importsPath, importsPath);
             var importsSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
             importsSnapshot.Setup(d => d.GetTextAsync()).Returns(Task.FromResult(importsSourceText));

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal class RemoteTagHelperResolver : TagHelperResolver
     {
-        private readonly static RazorConfiguration DefaultConfiguration = FallbackRazorConfiguration.MVC_2_0;
+        private readonly static RazorConfiguration s_defaultConfiguration = FallbackRazorConfiguration.MVC_2_0;
 
         private readonly IFallbackProjectEngineFactory _fallbackFactory;
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Razor
             // The default configuration currently matches MVC-2.0. Beyond MVC-2.0 we added SDK support for 
             // properly detecting project versions, so that's a good version to assume when we can't find a
             // configuration.
-            configuration ??= DefaultConfiguration;
+            configuration ??= s_defaultConfiguration;
 
             // If there's no factory to handle the configuration then fall back to a very basic configuration.
             //

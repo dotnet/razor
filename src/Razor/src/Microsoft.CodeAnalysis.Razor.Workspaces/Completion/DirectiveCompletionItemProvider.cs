@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         internal static readonly IReadOnlyCollection<string> SingleLineDirectiveCommitCharacters = new string[] { " " };
         internal static readonly IReadOnlyCollection<string> BlockDirectiveCommitCharacters = new string[] { " ", "{" };
 
-        private static readonly IEnumerable<DirectiveDescriptor> DefaultDirectives = new[]
+        private static readonly IEnumerable<DirectiveDescriptor> s_defaultDirectives = new[]
         {
             CSharpCodeParser.AddTagHelperDirectiveDescriptor,
             CSharpCodeParser.RemoveTagHelperDirectiveDescriptor,
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         // Internal for testing
         internal static List<RazorCompletionItem> GetDirectiveCompletionItems(RazorSyntaxTree syntaxTree)
         {
-            var defaultDirectives = FileKinds.IsComponent(syntaxTree.Options.FileKind) ? Array.Empty<DirectiveDescriptor>() : DefaultDirectives;
+            var defaultDirectives = FileKinds.IsComponent(syntaxTree.Options.FileKind) ? Array.Empty<DirectiveDescriptor>() : s_defaultDirectives;
             var directives = syntaxTree.Options.Directives.Concat(defaultDirectives);
             var completionItems = new List<RazorCompletionItem>();
             foreach (var directive in directives)

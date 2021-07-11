@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Razor
     internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     {
         // Internal for testing
-        internal readonly Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)> _work;
+        internal readonly Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)> Work;
 
         private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly RazorDynamicFileInfoProvider _infoProvider;
@@ -44,16 +44,16 @@ namespace Microsoft.CodeAnalysis.Razor
             _infoProvider = infoProvider;
             _suppressedDocuments = new HashSet<string>(FilePathComparer.Instance);
 
-            _work = new Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>();
+            Work = new Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>();
         }
 
         public bool HasPendingNotifications
         {
             get
             {
-                lock (_work)
+                lock (Work)
                 {
-                    return _work.Count > 0;
+                    return Work.Count > 0;
                 }
             }
         }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             _foregroundDispatcher.AssertForegroundThread();
 
-            lock (_work)
+            lock (Work)
             {
                 if (Suppressed(project, document))
                 {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
                 // We only want to store the last 'seen' version of any given document. That way when we pick one to process
                 // it's always the best version to use.
-                _work[new DocumentKey(project.FilePath, document.FilePath)] = (project, document);
+                Work[new DocumentKey(project.FilePath, document.FilePath)] = (project, document);
 
                 StartWorker();
             }
@@ -202,10 +202,10 @@ namespace Microsoft.CodeAnalysis.Razor
                 OnStartingBackgroundWork();
 
                 KeyValuePair<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>[] work;
-                lock (_work)
+                lock (Work)
                 {
-                    work = _work.ToArray();
-                    _work.Clear();
+                    work = Work.ToArray();
+                    Work.Clear();
                 }
 
                 OnBackgroundCapturedWorkload();
@@ -234,14 +234,14 @@ namespace Microsoft.CodeAnalysis.Razor
 
                 OnCompletingBackgroundWork();
 
-                lock (_work)
+                lock (Work)
                 {
                     // Resetting the timer allows another batch of work to start.
                     _timer.Dispose();
                     _timer = null;
 
                     // If more work came in while we were running start the worker again.
-                    if (_work.Count > 0)
+                    if (Work.Count > 0)
                     {
                         StartWorker();
                     }

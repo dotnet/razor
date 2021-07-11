@@ -11,23 +11,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
     internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactory
     {
-        private static readonly Guid ImageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+        private static readonly Guid s_imageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
 
         // Internal for testing
         internal static readonly VSImageElement ClassGlyph = new(
-            new VSImageId(ImageCatalogGuid, 463), // KnownImageIds.Type = 463
+            new VSImageId(s_imageCatalogGuid, 463), // KnownImageIds.Type = 463
             RazorLS.Resources.TagHelper_Element_Glyph);
 
         // Internal for testing
         internal static readonly VSImageElement PropertyGlyph = new(
-            new VSImageId(ImageCatalogGuid, 2429), // KnownImageIds.Type = 2429
+            new VSImageId(s_imageCatalogGuid, 2429), // KnownImageIds.Type = 2429
             RazorLS.Resources.TagHelper_Attribute_Glyph);
 
-        private static readonly IReadOnlyList<string> CSharpPrimitiveTypes =
+        private static readonly IReadOnlyList<string> s_cSharpPrimitiveTypes =
             new string[] { "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",
                 "nint", "nuint", "long", "ulong", "short", "ushort", "object", "string", "dynamic" };
 
-        private static readonly IReadOnlyDictionary<string, string> TypeNameToAlias = new Dictionary<string, string>(StringComparer.Ordinal)
+        private static readonly IReadOnlyDictionary<string, string> s_typeNameToAlias = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             { "Int32", "int" },
             { "Int64", "long" },
@@ -40,10 +40,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             { "Char", "char" }
         };
 
-        private static readonly VSClassifiedTextRun Space = new(VSPredefinedClassificationTypeNames.WhiteSpace, " ");
-        private static readonly VSClassifiedTextRun Dot = new(VSPredefinedClassificationTypeNames.Punctuation, ".");
-        private static readonly VSClassifiedTextRun NewLine = new(VSPredefinedClassificationTypeNames.WhiteSpace, Environment.NewLine);
-        private static readonly VSClassifiedTextRun NullableType = new(VSPredefinedClassificationTypeNames.Punctuation, "?");
+        private static readonly VSClassifiedTextRun s_space = new(VSPredefinedClassificationTypeNames.WhiteSpace, " ");
+        private static readonly VSClassifiedTextRun s_dot = new(VSPredefinedClassificationTypeNames.Punctuation, ".");
+        private static readonly VSClassifiedTextRun s_newLine = new(VSPredefinedClassificationTypeNames.WhiteSpace, Environment.NewLine);
+        private static readonly VSClassifiedTextRun s_nullableType = new(VSPredefinedClassificationTypeNames.Punctuation, "?");
 
         public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo, out VSContainerElement tooltipContent)
         {
@@ -184,9 +184,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
                 var reducedReturnTypeName = ReduceTypeName(returnTypeName);
                 ClassifyReducedTypeName(typeRuns, reducedReturnTypeName);
-                typeRuns.Add(Space);
+                typeRuns.Add(s_space);
                 ClassifyTypeName(typeRuns, descriptionInfo.TypeName);
-                typeRuns.Add(Dot);
+                typeRuns.Add(s_dot);
                 typeRuns.Add(new VSClassifiedTextRun(VSPredefinedClassificationTypeNames.Identifier, descriptionInfo.PropertyName));
 
                 // 2. Classify summary
@@ -219,7 +219,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             {
                 if (partIndex != 0)
                 {
-                    runs.Add(Dot);
+                    runs.Add(s_dot);
                 }
 
                 var typeNamePart = typeNameParts[partIndex];
@@ -293,12 +293,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             }
 
             // Case 1: Type can be aliased as a C# built-in type (e.g. Boolean -> bool, Int32 -> int, etc.).
-            if (TypeNameToAlias.TryGetValue(typeName, out var aliasedTypeName))
+            if (s_typeNameToAlias.TryGetValue(typeName, out var aliasedTypeName))
             {
                 runs.Add(new VSClassifiedTextRun(VSPredefinedClassificationTypeNames.Keyword, aliasedTypeName));
             }
             // Case 2: Type is a C# built-in type (e.g. bool, int, etc.).
-            else if (CSharpPrimitiveTypes.Contains(typeName))
+            else if (s_cSharpPrimitiveTypes.Contains(typeName))
             {
                 runs.Add(new VSClassifiedTextRun(VSPredefinedClassificationTypeNames.Keyword, typeName));
             }
@@ -310,7 +310,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
             if (nullableType)
             {
-                runs.Add(NullableType);
+                runs.Add(s_nullableType);
             }
         }
 
@@ -433,14 +433,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             {
                 if (runs.Count > 0)
                 {
-                    runs.Add(NewLine);
-                    runs.Add(NewLine);
+                    runs.Add(s_newLine);
+                    runs.Add(s_newLine);
                 }
 
                 runs.AddRange(classification.Type);
                 if (classification.Documentation.Count > 0)
                 {
-                    runs.Add(NewLine);
+                    runs.Add(s_newLine);
                     runs.AddRange(classification.Documentation);
                 }
             }

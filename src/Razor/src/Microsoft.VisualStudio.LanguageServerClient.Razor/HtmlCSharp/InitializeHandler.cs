@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.InitializeName)]
     internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeResult>
     {
-        private static readonly InitializeResult InitializeResult = new()
+        private static readonly InitializeResult s_initializeResult = new()
         {
             Capabilities = new VSServerCapabilities
             {
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation("Providing initialization configuration.");
 
-            return Task.FromResult(InitializeResult);
+            return Task.FromResult(s_initializeResult);
         }
 
         [Conditional("DEBUG")]
@@ -339,7 +339,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task VerifyMergedHoverAsync(VSServerCapabilities mergedCapabilities)
         {
-            if (mergedCapabilities.HoverProvider != InitializeResult.Capabilities.HoverProvider)
+            if (mergedCapabilities.HoverProvider != s_initializeResult.Capabilities.HoverProvider)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -363,8 +363,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             mergedTriggerCharEnumeration = mergedTriggerCharEnumeration.Except(purposefullyRemovedTriggerCharacters);
             var mergedTriggerChars = new HashSet<string>(mergedTriggerCharEnumeration);
 
-            if (!mergedCommitChars.SetEquals(InitializeResult.Capabilities.CompletionProvider?.AllCommitCharacters!) ||
-                !mergedTriggerChars.SetEquals(InitializeResult.Capabilities.CompletionProvider?.TriggerCharacters!))
+            if (!mergedCommitChars.SetEquals(s_initializeResult.Capabilities.CompletionProvider?.AllCommitCharacters!) ||
+                !mergedTriggerChars.SetEquals(s_initializeResult.Capabilities.CompletionProvider?.TriggerCharacters!))
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -380,9 +380,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var mergedRetriggerChars = new HashSet<string>(mergedRetriggerCharEnumeration);
             var mergedWorkDoneProgress = mergedCapabilities.SignatureHelpProvider?.WorkDoneProgress;
 
-            if (!mergedTriggerChars.SetEquals(InitializeResult.Capabilities.SignatureHelpProvider?.TriggerCharacters!) ||
-                !mergedRetriggerChars.SetEquals(InitializeResult.Capabilities.SignatureHelpProvider?.RetriggerCharacters!) ||
-                mergedWorkDoneProgress != InitializeResult.Capabilities.SignatureHelpProvider?.WorkDoneProgress)
+            if (!mergedTriggerChars.SetEquals(s_initializeResult.Capabilities.SignatureHelpProvider?.TriggerCharacters!) ||
+                !mergedRetriggerChars.SetEquals(s_initializeResult.Capabilities.SignatureHelpProvider?.RetriggerCharacters!) ||
+                mergedWorkDoneProgress != s_initializeResult.Capabilities.SignatureHelpProvider?.WorkDoneProgress)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -392,7 +392,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task VerifyMergedDefinitionProviderAsync(VSServerCapabilities mergedCapabilities)
         {
-            if (mergedCapabilities.DefinitionProvider != InitializeResult.Capabilities.DefinitionProvider)
+            if (mergedCapabilities.DefinitionProvider != s_initializeResult.Capabilities.DefinitionProvider)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -402,7 +402,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task VerifyMergedReferencesProviderAsync(VSServerCapabilities mergedCapabilities)
         {
-            if (mergedCapabilities.ReferencesProvider != InitializeResult.Capabilities.ReferencesProvider)
+            if (mergedCapabilities.ReferencesProvider != s_initializeResult.Capabilities.ReferencesProvider)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -412,7 +412,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private async Task VerifyMergedRenameProviderAsync(VSServerCapabilities mergedCapabilities)
         {
-            if (mergedCapabilities.RenameProvider != InitializeResult.Capabilities.RenameProvider)
+            if (mergedCapabilities.RenameProvider != s_initializeResult.Capabilities.RenameProvider)
             {
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -430,7 +430,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var filteredMergedTriggerCharacters = mergedTriggerCharacters.Except(purposefullyRemovedTriggerCharacters);
             var mergedTriggerChars = new HashSet<string>(filteredMergedTriggerCharacters);
 
-            var razorOnTypeFormattingOptions = InitializeResult.Capabilities.DocumentOnTypeFormattingProvider;
+            var razorOnTypeFormattingOptions = s_initializeResult.Capabilities.DocumentOnTypeFormattingProvider;
             var razorTriggerCharacters = new HashSet<string>
             {
                 razorOnTypeFormattingOptions.FirstTriggerCharacter

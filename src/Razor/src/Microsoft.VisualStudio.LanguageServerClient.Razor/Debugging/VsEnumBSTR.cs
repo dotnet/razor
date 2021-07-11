@@ -9,34 +9,34 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class VsEnumBSTR : IVsEnumBSTR
     {
         // Internal for testing
-        internal readonly IReadOnlyList<string> _values;
+        internal readonly IReadOnlyList<string> Values;
 
         private int _currentIndex;
 
         public VsEnumBSTR(IReadOnlyList<string> values)
         {
-            _values = values;
+            Values = values;
             _currentIndex = 0;
         }
 
         public int Clone(out IVsEnumBSTR ppEnum)
         {
-            ppEnum = new VsEnumBSTR(_values);
+            ppEnum = new VsEnumBSTR(Values);
             return VSConstants.S_OK;
         }
 
         public int GetCount(out uint pceltCount)
         {
-            pceltCount = (uint)_values.Count;
+            pceltCount = (uint)Values.Count;
             return VSConstants.S_OK;
         }
 
         public int Next(uint celt, string[] rgelt, out uint pceltFetched)
         {
             var i = 0;
-            for (; i < celt && _currentIndex < _values.Count; i++, _currentIndex++)
+            for (; i < celt && _currentIndex < Values.Count; i++, _currentIndex++)
             {
-                rgelt[i] = _values[_currentIndex];
+                rgelt[i] = Values[_currentIndex];
             }
 
             pceltFetched = (uint)i;
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public int Skip(uint celt)
         {
             _currentIndex += (int)celt;
-            return _currentIndex < _values.Count
+            return _currentIndex < Values.Count
                 ? VSConstants.S_OK
                 : VSConstants.S_FALSE;
         }
