@@ -23,6 +23,7 @@ using Moq;
 using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -38,11 +39,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
         private static readonly IReadOnlyList<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
 
-        public FormattingTestBase()
+        public FormattingTestBase(ITestOutputHelper output)
         {
             TestProjectPath = GetProjectDirectory();
             FilePathNormalizer = new FilePathNormalizer();
-            LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == Mock.Of<ILogger>(MockBehavior.Strict), MockBehavior.Strict);
+            LoggerFactory = new FormattingTestLoggerFactory(output);
         }
 
         public static string TestProjectPath { get; private set; }
