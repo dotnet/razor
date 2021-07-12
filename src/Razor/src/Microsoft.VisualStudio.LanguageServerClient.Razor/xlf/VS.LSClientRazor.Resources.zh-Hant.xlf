@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="View Code">
         <source>View Code</source>
-        <target state="new">View Code</target>
+        <target state="translated">檢視程式碼</target>
         <note />
       </trans-unit>
     </body>
