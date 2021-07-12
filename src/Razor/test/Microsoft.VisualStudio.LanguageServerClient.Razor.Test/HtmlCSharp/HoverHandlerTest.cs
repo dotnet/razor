@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
@@ -21,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         private Uri Uri { get; }
+        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -127,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     called = true;
                 })
-                .Returns(Task.FromResult(lspResponse));
+                .Returns(Task.FromResult(new ReinvokeResponse<Hover>(_languageClient, lspResponse)));
 
             var projectionResult = new ProjectionResult()
             {
@@ -220,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
                     called = true;
                 })
-                .Returns(Task.FromResult(lspResponse));
+                .Returns(Task.FromResult(new ReinvokeResponse<Hover>(_languageClient, lspResponse)));
 
             var projectionResult = new ProjectionResult()
             {
@@ -278,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     called = true;
                 })
-                .Returns(Task.FromResult<Hover>(null));
+                .Returns(Task.FromResult(new ReinvokeResponse<Hover>(null, null)));
 
             var projectionResult = new ProjectionResult()
             {
@@ -355,7 +357,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     called = true;
                 })
-                .Returns(Task.FromResult(lspResponse));
+                .Returns(Task.FromResult(new ReinvokeResponse<Hover>(_languageClient, lspResponse)));
 
             var projectionResult = new ProjectionResult()
             {
@@ -427,7 +429,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     called = true;
                 })
-                .Returns(Task.FromResult(lspResponse));
+                .Returns(Task.FromResult(new ReinvokeResponse<Hover>(_languageClient, lspResponse)));
 
             var projectionResult = new ProjectionResult()
             {

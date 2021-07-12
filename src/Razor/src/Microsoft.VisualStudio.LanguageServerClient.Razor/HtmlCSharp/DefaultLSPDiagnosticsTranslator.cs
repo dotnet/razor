@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 diagnosticsParams,
                 cancellationToken).ConfigureAwait(false);
 
-            return diagnosticResponse;
+            return diagnosticResponse.Result;
         }
     }
 }

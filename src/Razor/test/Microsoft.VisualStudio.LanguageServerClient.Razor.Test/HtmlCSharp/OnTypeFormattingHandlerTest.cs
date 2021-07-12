@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -21,6 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         private Uri Uri { get; }
+
+        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -204,7 +207,7 @@ public string _foo;
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     called = true;
                 })
-                .Returns(Task.FromResult(new[] { expectedEdit }));
+                .Returns(Task.FromResult(new ReinvokeResponse<TextEdit[]>(_languageClient, new[] { expectedEdit })));
 
             var projectionResult = new ProjectionResult()
             {
@@ -254,7 +257,7 @@ public string _foo;
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     invokedCSharpServer = true;
                 })
-                .Returns(Task.FromResult(new[] { expectedEdit }));
+                .Returns(Task.FromResult(new ReinvokeResponse<TextEdit[]>(_languageClient, new[] { expectedEdit })));
 
             var projectionResult = new ProjectionResult()
             {

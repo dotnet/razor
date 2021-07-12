@@ -109,11 +109,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting highlights for {projectionResult.Uri} at ({projectionResult.Position?.Line}, {projectionResult.Position?.Character}).");
 
-            var highlights = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentHighlightParams, DocumentHighlight[]>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentHighlightParams, DocumentHighlight[]>(
                 Methods.TextDocumentDocumentHighlightName,
                 serverKind.ToLanguageServerName(),
                 documentHighlightParams,
                 cancellationToken).ConfigureAwait(false);
+            var highlights = response.Result;
 
             if (highlights is null || highlights.Length == 0)
             {

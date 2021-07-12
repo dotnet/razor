@@ -129,11 +129,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting formatting for {projectionResult.Uri}.");
 
             var languageServerName = triggerCharacterKind.Value.ToContainedLanguageServerName();
-            var textEdits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
                 Methods.TextDocumentOnTypeFormattingName,
                 languageServerName,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
+            var textEdits = response.Result;
 
             if (textEdits is null)
             {

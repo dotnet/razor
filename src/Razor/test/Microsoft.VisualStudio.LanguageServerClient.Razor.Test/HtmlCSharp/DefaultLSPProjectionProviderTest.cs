@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -15,6 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     public class DefaultLSPProjectionProviderTest : HandlerTestBase
     {
+        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
+
         [Fact]
         public async Task GetProjectionAsync_RazorProjection_ReturnsNull()
         {
@@ -35,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(response));
+                .Returns(Task.FromResult(new ReinvokeResponse<RazorLanguageQueryResponse>(_languageClient, response)));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
@@ -77,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(response));
+                .Returns(Task.FromResult(new ReinvokeResponse<RazorLanguageQueryResponse>(_languageClient, response)));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
@@ -125,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(response));
+                .Returns(Task.FromResult(new ReinvokeResponse<RazorLanguageQueryResponse>(_languageClient, response)));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
@@ -173,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(response));
+                .Returns(Task.FromResult(new ReinvokeResponse<RazorLanguageQueryResponse>(_languageClient, response)));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
@@ -223,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(response));
+                .Returns(Task.FromResult(new ReinvokeResponse<RazorLanguageQueryResponse>(_languageClient, response)));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer

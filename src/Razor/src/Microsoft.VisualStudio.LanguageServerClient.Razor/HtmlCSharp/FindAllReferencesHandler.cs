@@ -137,11 +137,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting references for {projectionResult.Uri}.");
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
                 projectionResult.LanguageKind.ToContainedLanguageServerName(),
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
+            var result = response.Result;
 
             if (result is null)
             {

@@ -107,11 +107,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting hovers for {projectionResult.Uri}.");
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(
                 Methods.TextDocumentHoverName,
                 languageServerName,
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
+            var result = response.Result;
 
             if (result?.Range is null || result?.Contents is null)
             {

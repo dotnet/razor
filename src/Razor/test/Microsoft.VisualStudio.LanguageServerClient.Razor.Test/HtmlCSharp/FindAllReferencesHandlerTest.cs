@@ -31,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private Uri Uri { get; }
         private TimeSpan TestWaitForProgressNotificationTimeout { get; }
 
+        private static readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
+
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
         {
@@ -129,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(Array.Empty<VSReferenceItem>()));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSReferenceItem[]>(_languageClient, Array.Empty<VSReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
@@ -261,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(Array.Empty<VSReferenceItem>()));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSReferenceItem[]>(_languageClient, Array.Empty<VSReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
@@ -790,7 +792,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterTokens[i]);
                     }
                 })
-                .Returns(Task.FromResult(Array.Empty<VSReferenceItem>()));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSReferenceItem[]>(_languageClient, Array.Empty<VSReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
@@ -872,7 +874,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         }
 
-        private bool AssertVSReferenceItem(VSReferenceItem expected, VSReferenceItem actual)
+        private static bool AssertVSReferenceItem(VSReferenceItem expected, VSReferenceItem actual)
         {
             Assert.Equal(expected.Location, actual.Location);
             Assert.Equal(expected.DisplayPath, actual.DisplayPath);
@@ -897,7 +899,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return true;
         }
 
-        private (LSPRequestInvoker, LSPProgressListener) MockServices(VSReferenceItem csharpLocation, out string token)
+        private static (LSPRequestInvoker, LSPProgressListener) MockServices(VSReferenceItem csharpLocation, out string token)
         {
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
             var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
@@ -919,7 +921,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(Array.Empty<VSReferenceItem>()));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSReferenceItem[]>(_languageClient, Array.Empty<VSReferenceItem>())));
 
             return (requestInvoker.Object, lspProgressListener);
         }
