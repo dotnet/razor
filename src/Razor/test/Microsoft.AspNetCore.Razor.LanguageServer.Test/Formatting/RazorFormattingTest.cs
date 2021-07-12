@@ -4,11 +4,17 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class RazorFormattingTest : FormattingTestBase
     {
+        public RazorFormattingTest(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public async Task CodeBlock_SpansMultipleLines()
         {
