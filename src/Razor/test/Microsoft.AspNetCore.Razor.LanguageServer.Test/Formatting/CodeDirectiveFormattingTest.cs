@@ -569,5 +569,43 @@ expected: @"
 <div></div>
 ");
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/29837")]
+        public async Task CodeBlock_NestedComponents()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@code {
+    private WeatherForecast[] forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        <Counter>
+            @{
+                    var t = DateTime.Now;
+                    t.ToString();
+                }
+            </Counter>
+        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+    }
+}
+",
+expected: @"@code {
+    private WeatherForecast[] forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        <Counter>
+            @{
+                var t = DateTime.Now;
+                t.ToString();
+            }
+        </Counter>
+        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+    }
+}
+");
+        }
     }
 }
