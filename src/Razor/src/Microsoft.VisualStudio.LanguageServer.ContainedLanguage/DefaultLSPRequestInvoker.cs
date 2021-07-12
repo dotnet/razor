@@ -96,23 +96,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             return result;
         }
 
-        public Task<TOut> ReinvokeRequestOnServerWithClientAsync<TIn, TOut>(string method, string languageServerName, TIn parameters, CancellationToken cancellationToken)
-        {
-            return ReinvokeRequestOnServerWithClientAsync<TIn, TOut>(method, languageServerName, capabilitiesFilter: null, parameters, cancellationToken);
-        }
-
-        public async Task<TOut> ReinvokeRequestOnServerWithClientAsync<TIn, TOut>(
-            string method,
-            string languageServerName,
-            Func<JToken, bool> capabilitiesFilter,
-            TIn parameters,
-            CancellationToken cancellationToken)
-        {
-            var result = await ReinvokeRequestOnServerAsync<TIn, TOut>(method, languageServerName, capabilitiesFilter, parameters, cancellationToken);
-
-            return result.LanguageClient is null ? default : result.Result;
-        }
-
         private async Task<IEnumerable<ReinvokeResponse<TOut>>> RequestMultipleServerCoreAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(method))
