@@ -11,16 +11,13 @@
   ],
   "autoCloseBefore": ";:.,=}])>`\"' \r\n\t",
   "autoClosingPairs": [
-    { "open": "<", "close": ">"},
     { "open": "{", "close": "}"},
     { "open": "[", "close": "]"},
     { "open": "(", "close": ")" },
     { "open": "'", "close": "'" },
     { "open": "\"", "close": "\"" },
     { "open": "@*", "close": "*@", "notIn": [ "string" ] },
-
-    // The "close" is `--` instead of `-->` because of https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1348281
-    { "open": "<!--", "close":  "--", "notIn": [ "comment", "string" ] }
+    { "open": "<!--", "close":  "-->", "notIn": [ "comment", "string" ] }
   ],
   "surroundingPairs": [
     { "open": "'", "close": "'" },
