@@ -87,13 +87,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var languageServerName = requestContext.LanguageServerKind.ToLanguageServerName();
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(
                 Methods.TextDocumentCompletionResolveName,
                 languageServerName,
                 request,
                 cancellationToken).ConfigureAwait(false);
 
-            if (result is null)
+            if (!response.IsSuccess)
             {
                 // Could not resolve any additional information about the completion item, return early.
                 return request;
@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation("Received result, post-processing.");
 
-            result = await PostProcessCompletionItemAsync(request, result, requestContext, cancellationToken).ConfigureAwait(false);
+            var result = await PostProcessCompletionItemAsync(request, response.Result, requestContext, cancellationToken).ConfigureAwait(false);
             _logger.LogInformation("Returning resolved completion.");
             return result;
         }

@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -14,6 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     public class DefaultLSPDiagnosticsTranslatorTest
     {
+        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
+
         [Fact]
         public async Task ProcessDiagnosticsAsync_ReturnsResponse()
         {
@@ -29,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     RazorLSPConstants.RazorLanguageServerName,
                     It.IsAny<RazorDiagnosticsParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(response));
+                .Returns(Task.FromResult(new ReinvokeResponse<RazorDiagnosticsResponse>(_languageClient, response)));
 
             var diagnosticsProvider = new DefaultLSPDiagnosticsTranslator(requestInvoker.Object);
 

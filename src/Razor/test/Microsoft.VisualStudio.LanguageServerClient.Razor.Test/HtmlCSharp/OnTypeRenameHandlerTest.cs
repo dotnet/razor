@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -15,6 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     public class OnTypeRenameHandlerTest : HandlerTestBase
     {
         private static readonly Uri s_uri = new Uri("C:/path/to/file.razor");
+
+        private static readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -223,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Null(result);
         }
 
-        private LSPProjectionProvider GetProjectionProvider(ProjectionResult expectedResult)
+        private static LSPProjectionProvider GetProjectionProvider(ProjectionResult expectedResult)
         {
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(expectedResult));
@@ -231,18 +234,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return projectionProvider.Object;
         }
 
-        private LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, TParams, CancellationToken> callback)
+        private static LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, TParams, CancellationToken> callback)
         {
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
                 .Callback(callback)
-                .Returns(Task.FromResult(expectedResponse));
+                .Returns(Task.FromResult(new ReinvokeResponse<TResult>(_languageClient, expectedResponse)));
 
             return requestInvoker.Object;
         }
 
-        private LSPDocumentMappingProvider GetDocumentMappingProvider(Range[] expectedRanges, int expectedVersion, RazorLanguageKind languageKind)
+        private static LSPDocumentMappingProvider GetDocumentMappingProvider(Range[] expectedRanges, int expectedVersion, RazorLanguageKind languageKind)
         {
             var remappingResult = new RazorMapToDocumentRangesResponse()
             {

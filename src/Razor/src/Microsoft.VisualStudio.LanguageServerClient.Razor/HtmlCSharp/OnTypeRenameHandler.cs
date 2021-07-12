@@ -109,19 +109,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 onTypeRenameParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (onTypeResponse is null)
+            var onTypeResult = onTypeResponse.Result;
+            if (onTypeResult is null)
             {
                 _logger.LogInformation("Received no results.");
                 return null;
             }
-
 
             _logger.LogInformation($"Received response, remapping.");
 
             var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
                 projectionResult.LanguageKind,
                 request.TextDocument.Uri,
-                onTypeResponse.Ranges,
+                onTypeResult.Ranges,
                 cancellationToken).ConfigureAwait(false);
 
             if (mappingResult is null ||
@@ -133,9 +133,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            onTypeResponse.Ranges = mappingResult.Ranges;
+            onTypeResult.Ranges = mappingResult.Ranges;
             _logger.LogInformation("Returned remapped result.");
-            return onTypeResponse;
+            return onTypeResult;
         }
     }
 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -19,6 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private TestFormattingOptionsProvider FormattingOptionsProvider { get; } = new TestFormattingOptionsProvider();
 
         private CompletionRequestContextCache CompletionRequestContextCache { get; } = new CompletionRequestContextCache();
+
+        private static readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public async Task HandleRequestAsync_NonNullOriginalInsertText_DoesNotRemapTextEdit()
@@ -218,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionItem>(), It.IsAny<CancellationToken>()))
                 .Callback<string, string, CompletionItem, CancellationToken>((method, languageServerName, completionItem, ct) => response = reinvokeCallback(method, languageServerName, completionItem))
-                .Returns(() => Task.FromResult(response));
+                .Returns(() => Task.FromResult(new ReinvokeResponse<CompletionItem>(_languageClient, response)));
 
             return requestInvoker.Object;
         }

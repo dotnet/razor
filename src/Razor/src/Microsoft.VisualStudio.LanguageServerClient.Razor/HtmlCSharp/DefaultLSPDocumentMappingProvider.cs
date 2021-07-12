@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 mapToDocumentRangeParams,
                 cancellationToken).ConfigureAwait(false);
 
-            return documentMappingResponse;
+            return documentMappingResponse.Result;
         }
 
         public async override Task<Location[]> RemapLocationsAsync(Location[] locations, CancellationToken cancellationToken)
@@ -344,12 +344,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 FormattingOptions = formattingOptions
             };
 
-            var mappingResult = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(
                 LanguageServerConstants.RazorMapToDocumentEditsEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
                 CheckRazorEditMappingCapability,
                 mapToDocumentEditsParams,
                 cancellationToken).ConfigureAwait(false);
+            var mappingResult = response.Result;
 
             if (mappingResult is null ||
                 (_lazyDocumentManager.Value.TryGetDocument(razorDocumentUri, out var documentSnapshot) &&

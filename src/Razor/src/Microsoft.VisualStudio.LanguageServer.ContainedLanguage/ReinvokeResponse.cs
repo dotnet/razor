@@ -7,11 +7,13 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    internal class ReinvokeResponse<TOut>
+    internal struct ReinvokeResponse<TOut>
     {
         public ILanguageClient LanguageClient { get; }
 
         public TOut Result { get; }
+
+        public bool IsSuccess => LanguageClient != default;
 
         public ReinvokeResponse(
             ILanguageClient languageClient,

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -24,6 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private Uri Uri { get; }
 
+        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
+
         [Fact]
         public async Task HandleRequestAsync_UnknownTriggerCharacter_DoesNotInvokeServer()
         {
@@ -40,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<DocumentOnAutoInsertParams>(),
                     It.IsAny<CancellationToken>()))
                 .Callback<string, string, DocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
-                .Returns(Task.FromResult(new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() }));
+                .Returns(Task.FromResult(new ReinvokeResponse<DocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() })));
 
             var projectionProvider = Mock.Of<LSPProjectionProvider>(MockBehavior.Strict);
             var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
@@ -80,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<DocumentOnAutoInsertParams>(),
                     It.IsAny<CancellationToken>()))
                 .Callback<string, string, DocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
-                .Returns(Task.FromResult(new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() }));
+                .Returns(Task.FromResult(new ReinvokeResponse<DocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() })));
 
             var projectionProvider = Mock.Of<LSPProjectionProvider>(MockBehavior.Strict);
             var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
@@ -117,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentOnAutoInsertParams>(), It.IsAny<CancellationToken>()))
                 .Callback<string, string, DocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
-                .Returns(Task.FromResult(new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() }));
+                .Returns(Task.FromResult(new ReinvokeResponse<DocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() })));
 
             var projectionResult = new ProjectionResult()
             {
@@ -164,7 +167,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<DocumentOnAutoInsertParams>(),
                     It.IsAny<CancellationToken>()))
                 .Callback<string, string, DocumentOnAutoInsertParams, CancellationToken>((method, serverContentType, formattingParams, ct) => invokedServer = true)
-                .Returns(Task.FromResult(new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() { Range = new Range(), NewText = "sometext" }, TextEditFormat = InsertTextFormat.Snippet }));
+                .Returns(Task.FromResult(new ReinvokeResponse<DocumentOnAutoInsertResponseItem>(
+                    languageClient: _languageClient,
+                    new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() { Range = new Range(), NewText = "sometext" }, TextEditFormat = InsertTextFormat.Snippet })));
 
             var projectionUri = new Uri(Uri.AbsoluteUri + "__virtual.html");
             var projectionResult = new ProjectionResult()
@@ -219,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<DocumentOnAutoInsertParams>(),
                     It.IsAny<CancellationToken>()))
                 .Callback<string, string, DocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
-                .Returns(Task.FromResult(new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() { Range = new Range(), NewText = "sometext" }, TextEditFormat = InsertTextFormat.Snippet }));
+                .Returns(Task.FromResult(new ReinvokeResponse<DocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() { Range = new Range(), NewText = "sometext" }, TextEditFormat = InsertTextFormat.Snippet })));
 
             var projectionUri = new Uri(Uri.AbsoluteUri + "__virtual.html");
             var projectionResult = new ProjectionResult()

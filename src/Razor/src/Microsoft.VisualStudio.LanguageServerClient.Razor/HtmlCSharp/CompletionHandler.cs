@@ -188,11 +188,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 _logger.LogInformation($"Requesting non-provisional completions for {projectedDocumentUri}.");
 
-                result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
+                var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                     Methods.TextDocumentCompletionName,
                     languageServerName,
                     completionParams,
                     cancellationToken).ConfigureAwait(false);
+                result = response.Result;
 
                 _logger.LogInformation("Found non-provisional completion");
             }
@@ -468,11 +469,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting provisional completion for {previousCharacterProjection.Uri}.");
 
-            result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                 Methods.TextDocumentCompletionName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 provisionalCompletionParams,
                 cancellationToken).ConfigureAwait(true);
+            result = response.Result;
 
             // We have now obtained the necessary completion items. We no longer need the provisional change. Revert.
             var removeProvisionalDot = new VisualStudioTextChange(previousCharacterProjection.PositionIndex, 1, string.Empty);

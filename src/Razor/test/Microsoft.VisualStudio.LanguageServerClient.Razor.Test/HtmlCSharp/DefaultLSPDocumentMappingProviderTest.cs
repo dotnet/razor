@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -27,6 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public Uri AnotherRazorVirtualCSharpFile => new Uri("file:///some/folder/to/anotherfile.razor.g.cs");
 
         public Uri CSharpFile => new Uri("file:///some/folder/to/csharpfile.cs");
+
+        private static readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public async Task RazorMapToDocumentRangeAsync_InvokesLanguageServer()
@@ -53,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorMapToDocumentRangesParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(response));
+                .Returns(Task.FromResult(new ReinvokeResponse<RazorMapToDocumentRangesResponse>(_languageClient, response)));
 
             var lazyDocumentManager = new Lazy<LSPDocumentManager>(() => new TestDocumentManager());
             var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker.Object, lazyDocumentManager);
@@ -260,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         RazorLSPConstants.RazorLanguageServerName,
                         It.IsAny<Func<JToken, bool>>(), requestParams,
                         It.IsAny<CancellationToken>()))
-                    .Returns(Task.FromResult(response));
+                    .Returns(Task.FromResult(new ReinvokeResponse<RazorMapToDocumentEditsResponse>(_languageClient, response)));
             }
 
             return requestInvoker.Object;

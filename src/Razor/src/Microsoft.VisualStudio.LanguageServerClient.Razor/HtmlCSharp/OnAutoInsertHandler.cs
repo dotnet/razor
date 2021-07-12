@@ -126,11 +126,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting auto-insert for {projectionResult.Uri}.");
 
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
                 MSLSPMethods.OnAutoInsertName,
                 languageServerName,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
+            var result = response.Result;
 
             if (result is null)
             {

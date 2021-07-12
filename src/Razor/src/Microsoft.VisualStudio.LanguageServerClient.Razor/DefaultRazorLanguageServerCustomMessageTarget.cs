@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
 
-            response.Edits = edits ?? Array.Empty<TextEdit>();
+            response.Edits = edits.Result ?? Array.Empty<TextEdit>();
 
             return response;
         }
@@ -294,7 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 semanticTokensParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var result = new ProvideSemanticTokensResponse(csharpResults, csharpDoc.HostDocumentSyncVersion);
+            var result = new ProvideSemanticTokensResponse(csharpResults.Result, csharpDoc.HostDocumentSyncVersion);
 
             return result;
         }
@@ -319,11 +319,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             semanticTokensEditsParams.TextDocument.Uri = csharpDoc.Uri;
 
-            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensEditsParams, SumType<LanguageServer.Protocol.SemanticTokens, SemanticTokensEdits>>(
+            var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensEditsParams, SumType<LanguageServer.Protocol.SemanticTokens, SemanticTokensEdits>>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEditEndpoint,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 semanticTokensEditsParams,
                 cancellationToken).ConfigureAwait(false);
+            var csharpResults = csharpResponse.Result;
 
             // Converting from LSP to O# types
             if (csharpResults.Value is LanguageServer.Protocol.SemanticTokens tokens)

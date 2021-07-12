@@ -106,11 +106,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
             _logger.LogInformation($"Requesting {languageServerName} implementation for {projectionResult.Uri}.");
 
-            var locations = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
                 Methods.TextDocumentImplementationName,
                 languageServerName,
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
+            var locations = response.Result;
 
             if (locations is null || locations.Length == 0)
             {
