@@ -1,4 +1,4 @@
 //line,characterPos,length,tokenType,modifier
-0 0 1 73 0 //razorTransition
-0 1 12 76 0 //razorDirective
-1 0 12 85 0 //markupTextLiteral
+0 0 1 84 0 //razorTransition
+0 1 12 87 0 //razorDirective
+1 0 12 96 0 //markupTextLiteral
