@@ -13,8 +13,8 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
-    [ExportLspMethod(MSLSPMethods.OnTypeRenameName)]
-    internal class OnTypeRenameHandler : IRequestHandler<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>
+    [ExportLspMethod(Methods.TextDocumentLinkedEditingRangeName)]
+    internal class LinkedEditingRangeHandler : IRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges>
     {
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPRequestInvoker _requestInvoker;
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly ILogger _logger;
 
         [ImportingConstructor]
-        public OnTypeRenameHandler(
+        public LinkedEditingRangeHandler(
             LSPDocumentManager documentManager,
             LSPRequestInvoker requestInvoker,
             LSPProjectionProvider projectionProvider,
@@ -60,10 +60,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
 
-            _logger = loggerProvider.CreateLogger(nameof(OnTypeRenameHandler));
+            _logger = loggerProvider.CreateLogger(nameof(LinkedEditingRangeHandler));
         }
 
-        public async Task<DocumentOnTypeRenameResponseItem> HandleRequestAsync(DocumentOnTypeRenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<LinkedEditingRanges> HandleRequestAsync(LinkedEditingRangeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var onTypeRenameParams = new DocumentOnTypeRenameParams()
+            var onTypeRenameParams = new LinkedEditingRangeParams()
             {
                 Position = projectionResult.Position,
                 TextDocument = new TextDocumentIdentifier() { Uri = projectionResult.Uri }
@@ -103,8 +103,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting OnTypeRename for {projectionResult.Uri}.");
 
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
-            var onTypeResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>(
-                MSLSPMethods.OnTypeRenameName,
+            var onTypeResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<LinkedEditingRangeParams, LinkedEditingRanges>(
+                Methods.TextDocumentLinkedEditingRangeName,
                 languageServerName,
                 onTypeRenameParams,
                 cancellationToken).ConfigureAwait(false);

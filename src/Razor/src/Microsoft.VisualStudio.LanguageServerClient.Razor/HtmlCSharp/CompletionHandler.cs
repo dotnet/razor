@@ -216,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (completionList != null)
             {
-                completionList = completionList is VSCompletionList vsCompletionList
+                completionList = completionList is VSInternalCompletionList vsCompletionList
                     ? new OptimizedVSCompletionList(vsCompletionList)
                     : new OptimizedVSCompletionList(completionList);
             }
@@ -381,12 +381,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             // Trigger character not associated with the current langauge. Transform the context into an invoked context.
-            var rewrittenContext = new VSCompletionContext()
+            var rewrittenContext = new VSInternalCompletionContext()
             {
                 TriggerKind = CompletionTriggerKind.Invoked,
             };
 
-            var invokeKind = (context as VSCompletionContext)?.InvokeKind;
+            var invokeKind = (context as VSInternalCompletionContext)?.InvokeKind;
             if (invokeKind.HasValue)
             {
                 rewrittenContext.InvokeKind = invokeKind.Value;
@@ -396,7 +396,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 // The C# language server will not return any completions for the '@' character unless we
                 // send the completion request explicitly.
-                rewrittenContext.InvokeKind = VSCompletionInvokeKind.Explicit;
+                rewrittenContext.InvokeKind = VSInternalCompletionInvokeKind.Explicit;
             }
 
             return rewrittenContext;
@@ -587,7 +587,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         internal static void SetResolveData(long resultId, CompletionList completionList)
         {
-            if (completionList is VSCompletionList vsCompletionList && vsCompletionList.Data != null)
+            if (completionList is VSInternalCompletionList vsCompletionList && vsCompletionList.Data != null)
             {
                 // Provided completion list is already wrapping completion list data, lets wrap that instead of each completion item.
 

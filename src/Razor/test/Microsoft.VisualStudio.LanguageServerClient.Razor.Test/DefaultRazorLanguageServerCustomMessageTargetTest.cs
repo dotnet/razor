@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -265,20 +264,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
 
-            var languageServer1Response = new[] { new VSCodeAction() { Title = "Response 1" } };
-            var languageServer2Response = new[] { new VSCodeAction() { Title = "Response 2" } };
-            IEnumerable<ReinvokeResponse<VSCodeAction[]>> expectedResults = new List<ReinvokeResponse<VSCodeAction[]>>() {
-                new ReinvokeResponse<VSCodeAction[]>(_languageClient, languageServer1Response),
-                new ReinvokeResponse<VSCodeAction[]>(_languageClient, languageServer2Response),
+            var languageServer1Response = new[] { new VSInternalCodeAction() { Title = "Response 1" } };
+            var languageServer2Response = new[] { new VSInternalCodeAction() { Title = "Response 2" } };
+            IEnumerable<ReinvokeResponse<VSInternalCodeAction[]>> expectedResults = new List<ReinvokeResponse<VSInternalCodeAction[]>>() {
+                new ReinvokeResponse<VSInternalCodeAction[]>(_languageClient, languageServer1Response),
+                new ReinvokeResponse<VSInternalCodeAction[]>(_languageClient, languageServer2Response),
             };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSCodeAction[]>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSInternalCodeAction[]>(
                 Methods.TextDocumentCodeActionName,
                 LanguageServerKind.CSharp.ToContentType(),
                 It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<CodeActionParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult<IEnumerable<ReinvokeResponse<VSCodeAction[]>>>(expectedResults));
+            )).Returns(Task.FromResult<IEnumerable<ReinvokeResponse<VSInternalCodeAction[]>>>(expectedResults));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
@@ -312,25 +311,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            var expectedCodeAction = new VSCodeAction()
+            var expectedCodeAction = new VSInternalCodeAction()
             {
                 Title = "Something",
                 Data = new object()
             };
-            var unexpectedCodeAction = new VSCodeAction()
+            var unexpectedCodeAction = new VSInternalCodeAction()
             {
                 Title = "Something Else",
                 Data = new object()
             };
-            IEnumerable<ReinvokeResponse<VSCodeAction>> expectedResponses = new List<ReinvokeResponse<VSCodeAction>> () {
-                new ReinvokeResponse<VSCodeAction>(_languageClient, expectedCodeAction),
-                new ReinvokeResponse<VSCodeAction>(_languageClient, unexpectedCodeAction),
+            IEnumerable<ReinvokeResponse<VSInternalCodeAction>> expectedResponses = new List<ReinvokeResponse<VSInternalCodeAction>> () {
+                new ReinvokeResponse<VSInternalCodeAction>(_languageClient, expectedCodeAction),
+                new ReinvokeResponse<VSInternalCodeAction>(_languageClient, unexpectedCodeAction),
             };
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSCodeAction, VSCodeAction>(
-                MSLSPMethods.TextDocumentCodeActionResolveName,
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
+                Methods.CodeActionResolveName,
                 LanguageServerKind.CSharp.ToContentType(),
                 It.IsAny<Func<JToken, bool>>(),
-                It.IsAny<VSCodeAction>(),
+                It.IsAny<VSInternalCodeAction>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(expectedResponses));
 
@@ -341,7 +340,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
                 uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object);
-            var request = new VSCodeAction()
+            var request = new VSInternalCodeAction()
             {
                 Title = "Something",
             };
@@ -424,7 +423,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var expectedcSharpResults = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens>(
-                LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
+                Methods.TextDocumentSemanticTokensFullName,
                 LanguageServerKind.CSharp.ToLanguageServerName(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
@@ -472,9 +471,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var expectedResults = new SemanticTokens { };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
-                LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
-                RazorLSPConstants.RazorCSharpLanguageServerName,
-                null,
+                Methods.TextDocumentSemanticTokensFullName,
+                LanguageServerKind.CSharp.ToContentType(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(new ReinvokeResponse<SemanticTokens>(_languageClient, expectedResults)));

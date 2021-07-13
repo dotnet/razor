@@ -31,6 +31,7 @@
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="Microsoft.VisualStudio.Razor.TagHelperProvider64S.servicehub.service" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />

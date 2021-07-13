@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSReferenceItem[]>(
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalReferenceItem[]>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<TextDocumentPositionParams>(),
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(new ReinvokeResponse<VSReferenceItem[]>(_languageClient, Array.Empty<VSReferenceItem>())));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
@@ -160,10 +160,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Collection(results,
-                    a => AssertVSReferenceItem(expectedLocation1, a),
-                    b => AssertVSReferenceItem(expectedLocation2, b));
+                    a => AssertVSInternalReferenceItem(expectedLocation1, a),
+                    b => AssertVSInternalReferenceItem(expectedLocation2, b));
                 progressReported = true;
                 completedTokenSource.CancelAfter(0);
             });
@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSReferenceItem[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalReferenceItem[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
                 .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, definitionParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentReferencesName, method);
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(new ReinvokeResponse<VSReferenceItem[]>(_languageClient, Array.Empty<VSReferenceItem>())));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
@@ -292,10 +292,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Collection(results,
-                    a => AssertVSReferenceItem(expectedLocation1, a),
-                    b => AssertVSReferenceItem(expectedLocation2, b));
+                    a => AssertVSInternalReferenceItem(expectedLocation1, a),
+                    b => AssertVSInternalReferenceItem(expectedLocation2, b));
                 progressReported = true;
                 completedTokenSource.CancelAfter(0);
             });
@@ -352,9 +352,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 var actualLocation = Assert.Single(results);
-                AssertVSReferenceItem(expectedLocation, actualLocation);
+                AssertVSInternalReferenceItem(expectedLocation, actualLocation);
                 progressReported = true;
                 completedTokenSource.CancelAfter(0);
             });
@@ -412,9 +412,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 var actualReferenceItem = Assert.Single(results);
-                AssertVSReferenceItem(expectedReferenceItem, actualReferenceItem);
+                AssertVSInternalReferenceItem(expectedReferenceItem, actualReferenceItem);
                 progressReported = true;
                 completedTokenSource.CancelAfter(0);
             });
@@ -484,9 +484,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 var actualReferenceItem = Assert.Single(results);
-                AssertVSReferenceItem(expectedReferenceItem, actualReferenceItem);
+                AssertVSInternalReferenceItem(expectedReferenceItem, actualReferenceItem);
                 progressReported = true;
                 completedTokenSource.CancelAfter(0);
             });
@@ -533,9 +533,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 var actualLocation = Assert.Single(results);
-                AssertVSReferenceItem(externalCsharpLocation, actualLocation);
+                AssertVSInternalReferenceItem(externalCsharpLocation, actualLocation);
                 progressReported = true;
                 completedTokenSource.CancelAfter(0);
             });
@@ -591,7 +591,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Empty(results);
                 progressReported = true;
                 completedTokenSource.CancelAfter(0);
@@ -651,7 +651,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Empty(results);
                 progressReported = true;
                 completedTokenSource.CancelAfter(0);
@@ -703,7 +703,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Empty(results);
                 progressReported = true;
                 completedTokenSource.CancelAfter(0);
@@ -738,8 +738,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var expectedUris = new Uri[NUM_DOCUMENTS];
             var virtualUris = new Uri[NUM_DOCUMENTS];
-            var expectedReferences = new VSReferenceItem[NUM_BATCHES][];
-            var csharpUnmappedReferences = new VSReferenceItem[NUM_BATCHES][];
+            var expectedReferences = new VSInternalReferenceItem[NUM_BATCHES][];
+            var csharpUnmappedReferences = new VSInternalReferenceItem[NUM_BATCHES][];
             var parameterTokens = new JObject[NUM_BATCHES];
 
             var token = Guid.NewGuid().ToString();
@@ -747,8 +747,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentNumber = 0;
             for (var batch = 0; batch < NUM_BATCHES; ++batch)
             {
-                expectedReferences[batch] = new VSReferenceItem[BATCH_SIZE];
-                csharpUnmappedReferences[batch] = new VSReferenceItem[BATCH_SIZE];
+                expectedReferences[batch] = new VSInternalReferenceItem[BATCH_SIZE];
+                csharpUnmappedReferences[batch] = new VSInternalReferenceItem[BATCH_SIZE];
 
                 for (var documentInBatch = 0; documentInBatch < BATCH_SIZE; ++documentInBatch)
                 {
@@ -776,7 +776,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSReferenceItem[]>(
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalReferenceItem[]>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<TextDocumentPositionParams>(),
@@ -792,7 +792,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterTokens[i]);
                     }
                 })
-                .Returns(Task.FromResult(new ReinvokeResponse<VSReferenceItem[]>(_languageClient, Array.Empty<VSReferenceItem>())));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
@@ -828,10 +828,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
             referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
-            var progressBatchesReported = new ConcurrentBag<VSReferenceItem[]>();
+            var progressBatchesReported = new ConcurrentBag<VSInternalReferenceItem[]>();
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Equal(BATCH_SIZE, results.Length);
                 progressBatchesReported.Add(results);
                 if (progressBatchesReported.Count == NUM_BATCHES)
@@ -854,7 +854,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.True(lspFarEndpointCalled);
 
             var sortedBatchesReported = progressBatchesReported.ToList();
-            sortedBatchesReported.Sort((VSReferenceItem[] a, VSReferenceItem[] b) =>
+            sortedBatchesReported.Sort((VSInternalReferenceItem[] a, VSInternalReferenceItem[] b) =>
             {
                 var indexA = a[0].Location.Range.Start.Character;
                 var indexB = b[0].Location.Range.Start.Character;
@@ -867,14 +867,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 for (var documentInBatch = 0; documentInBatch < BATCH_SIZE; ++documentInBatch)
                 {
-                    AssertVSReferenceItem(
+                    AssertVSInternalReferenceItem(
                         expectedReferences[batch][documentInBatch],
                         sortedBatchesReported[batch][documentInBatch]);
                 }
             }
         }
 
-        private static bool AssertVSReferenceItem(VSReferenceItem expected, VSReferenceItem actual)
+        private static bool AssertVSInternalReferenceItem(VSInternalReferenceItem expected, VSInternalReferenceItem actual)
         {
             Assert.Equal(expected.Location, actual.Location);
             Assert.Equal(expected.DisplayPath, actual.DisplayPath);
@@ -899,7 +899,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return true;
         }
 
-        private static (LSPRequestInvoker, LSPProgressListener) MockServices(VSReferenceItem csharpLocation, out string token)
+        private static (LSPRequestInvoker, LSPProgressListener) MockServices(VSInternalReferenceItem csharpLocation, out string token)
         {
             var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
             var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
@@ -912,7 +912,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 { "value", JArray.FromObject(new[] { csharpLocation }) }
             };
 
-            requestInvoker.Setup(i => i.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSReferenceItem[]>(
+            requestInvoker.Setup(i => i.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalReferenceItem[]>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
                 .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, definitionParams, ct) =>
                 {
@@ -921,17 +921,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(new ReinvokeResponse<VSReferenceItem[]>(_languageClient, Array.Empty<VSReferenceItem>())));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             return (requestInvoker.Object, lspProgressListener);
         }
 
-        private static VSReferenceItem GetReferenceItem(int position, Uri uri, string text = "text")
+        private static VSInternalReferenceItem GetReferenceItem(int position, Uri uri, string text = "text")
         {
             return GetReferenceItem(position, position, position, position, uri, text);
         }
 
-        private static VSReferenceItem GetReferenceItem(
+        private static VSInternalReferenceItem GetReferenceItem(
             int startLine,
             int startCharacter,
             int endLine,
@@ -941,7 +941,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             string documentName = "document",
             string projectName = "project")
         {
-            return new VSReferenceItem()
+            return new VSInternalReferenceItem()
             {
                 Location = new Location()
                 {

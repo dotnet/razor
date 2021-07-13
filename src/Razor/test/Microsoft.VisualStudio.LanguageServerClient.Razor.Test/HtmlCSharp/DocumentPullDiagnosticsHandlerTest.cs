@@ -79,9 +79,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Source = "DocumentPullDiagnosticHandler",
         };
 
-        private static readonly DiagnosticReport[] s_roslynDiagnosticResponse = new DiagnosticReport[]
+        private static readonly VSInternalDiagnosticReport[] s_roslynDiagnosticResponse = new VSInternalDiagnosticReport[]
         {
-            new DiagnosticReport()
+            new VSInternalDiagnosticReport()
             {
                 ResultId = "5",
                 Diagnostics = new Diagnostic[]
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var diagnosticsProvider = Mock.Of<LSPDiagnosticsTranslator>(MockBehavior.Strict);
             var documentSynchronizer = Mock.Of<LSPDocumentSynchronizer>(MockBehavior.Strict);
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
-            var diagnosticRequest = new DocumentDiagnosticsParams()
+            var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
                 PreviousResultId = "4"
@@ -137,11 +137,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var called = false;
             var documentManager = CreateDocumentManager();
 
-            var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
+            var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 s_roslynDiagnosticResponse,
                 (method, serverContentType, diagnosticParams, ct) =>
                 {
-                    Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
+                    Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
                     Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentSynchronizer = CreateDocumentSynchronizer();
 
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
-            var diagnosticRequest = new DocumentDiagnosticsParams()
+            var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
                 PreviousResultId = "4"
@@ -183,11 +183,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var called = false;
             var documentManager = CreateDocumentManager();
 
-            var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
+            var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 s_roslynDiagnosticResponse,
                 (method, serverContentType, diagnosticParams, ct) =>
                 {
-                    Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
+                    Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
                     Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Returns(Task.FromResult(false));
 
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer.Object, diagnosticsProvider, LoggerProvider);
-            var diagnosticRequest = new DocumentDiagnosticsParams()
+            var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
                 PreviousResultId = "4"
@@ -245,7 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Severity = DiagnosticSeverity.Warning
             };
 
-            var diagnosticReport = new DiagnosticReport()
+            var diagnosticReport = new VSInternalDiagnosticReport()
             {
                 ResultId = "6",
                 Diagnostics = new Diagnostic[]
@@ -255,11 +255,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
+            var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 new[] { diagnosticReport },
                 (method, serverContentType, diagnosticParams, ct) =>
                 {
-                    Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
+                    Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
                     Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
@@ -270,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentSynchronizer = CreateDocumentSynchronizer();
 
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
-            var diagnosticRequest = new DocumentDiagnosticsParams()
+            var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
                 PreviousResultId = "4"
@@ -314,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 End = new Position(49, 23)
             };
 
-            var diagnosticReport = new DiagnosticReport()
+            var diagnosticReport = new VSInternalDiagnosticReport()
             {
                 ResultId = "6",
                 Diagnostics = new Diagnostic[]
@@ -323,11 +323,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
+            var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 new[] { diagnosticReport },
                 (method, serverContentType, diagnosticParams, ct) =>
                 {
-                    Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
+                    Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
                     Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
@@ -336,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentSynchronizer = CreateDocumentSynchronizer();
 
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
-            var diagnosticRequest = new DocumentDiagnosticsParams()
+            var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
                 PreviousResultId = "4"
@@ -359,11 +359,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var called = false;
             var documentManager = CreateDocumentManager(hostDocumentVersion: 1);
 
-            var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
+            var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 s_roslynDiagnosticResponse,
                 (method, serverContentType, diagnosticParams, ct) =>
                 {
-                    Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
+                    Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
                     Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
@@ -374,7 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentSynchronizer = CreateDocumentSynchronizer();
 
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
-            var diagnosticRequest = new DocumentDiagnosticsParams()
+            var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
                 PreviousResultId = "4"
@@ -397,11 +397,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var called = false;
             var documentManager = CreateDocumentManager();
 
-            var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
+            var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 s_roslynDiagnosticResponse,
                 (method, serverContentType, diagnosticParams, ct) =>
                 {
-                    Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
+                    Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
                     Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
@@ -410,7 +410,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentSynchronizer = CreateDocumentSynchronizer();
 
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
-            var diagnosticRequest = new DocumentDiagnosticsParams()
+            var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
                 PreviousResultId = "4"

@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var completionRequest = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new VSCompletionContext() { TriggerKind = CompletionTriggerKind.TriggerCharacter, TriggerCharacter = "<", InvokeKind = VSCompletionInvokeKind.Typing },
+                Context = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.TriggerCharacter, TriggerCharacter = "<", InvokeKind = VSInternalCompletionInvokeKind.Typing },
                 Position = new Position(0, 1)
             };
 
@@ -112,8 +112,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 {
                     Assert.Equal(Methods.TextDocumentCompletionName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
-                    var vsCompletionContext = Assert.IsType<VSCompletionContext>(completionParams.Context);
-                    Assert.Equal(VSCompletionInvokeKind.Typing, vsCompletionContext.InvokeKind);
+                    var vsCompletionContext = Assert.IsType<VSInternalCompletionContext>(completionParams.Context);
+                    Assert.Equal(VSInternalCompletionInvokeKind.Typing, vsCompletionContext.InvokeKind);
                     called = true;
                 })
                 .Returns(Task.FromResult(new ReinvokeResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, new[] { expectedItem })));
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var completionRequest = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new VSCompletionContext() { TriggerKind = CompletionTriggerKind.TriggerCharacter, TriggerCharacter = "<", InvokeKind = VSCompletionInvokeKind.Typing },
+                Context = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.TriggerCharacter, TriggerCharacter = "<", InvokeKind = VSInternalCompletionInvokeKind.Typing },
                 Position = new Position(0, 1)
             };
 
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             requestInvoker.VerifyAll();
-            Assert.Null(result.Value.Value);
+            Assert.Null(result);
         }
 
         [Fact]
@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var completionRequest = new CompletionParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Context = new VSCompletionContext() { TriggerKind = CompletionTriggerKind.Invoked, InvokeKind = VSCompletionInvokeKind.Explicit },
+                Context = new VSInternalCompletionContext() { TriggerKind = CompletionTriggerKind.Invoked, InvokeKind = VSInternalCompletionInvokeKind.Explicit },
                 Position = new Position(0, 1)
             };
 
@@ -196,8 +196,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 {
                     Assert.Equal(Methods.TextDocumentCompletionName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    var vsCompletionContext = Assert.IsType<VSCompletionContext>(completionParams.Context);
-                    Assert.Equal(VSCompletionInvokeKind.Explicit, vsCompletionContext.InvokeKind);
+                    var vsCompletionContext = Assert.IsType<VSInternalCompletionContext>(completionParams.Context);
+                    Assert.Equal(VSInternalCompletionInvokeKind.Explicit, vsCompletionContext.InvokeKind);
                     called = true;
                 })
                 .Returns(Task.FromResult(new ReinvokeResponse<SumType<CompletionItem[], CompletionList>?>(_languageClient, new[] { expectedItem })));
@@ -295,7 +295,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var rewrittenContext = CompletionHandler.RewriteContext(completionRequest.Context, RazorLanguageKind.CSharp);
             Assert.True(rewrittenContext.TriggerKind == CompletionTriggerKind.Invoked);
-            Assert.True(((VSCompletionContext)rewrittenContext).InvokeKind == VSCompletionInvokeKind.Explicit);
+            Assert.True(((VSInternalCompletionContext)rewrittenContext).InvokeKind == VSInternalCompletionInvokeKind.Explicit);
         }
 
         [Fact]
@@ -1003,7 +1003,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var originalData = new object();
-            var completionList = new VSCompletionList()
+            var completionList = new VSInternalCompletionList()
             {
                 Items = new[]
                 {
@@ -1458,7 +1458,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var wordSnapshotSpan = new SnapshotSpan(documentSnapshot.Snapshot, new Span(39, 1));
             var wordRange = new TextExtent(wordSnapshotSpan, isSignificant: true);
 
-            var completionList = new VSCompletionList
+            var completionList = new VSInternalCompletionList
             {
                 Items = new CompletionItem[]
                 {

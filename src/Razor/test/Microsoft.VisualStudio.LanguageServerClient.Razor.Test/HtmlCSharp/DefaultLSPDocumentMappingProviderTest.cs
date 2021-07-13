@@ -288,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 DocumentChanges = (DocumentChanges?.Value as TextDocumentEdit[])?.Append(new TextDocumentEdit()
                 {
                     Edits = edits,
-                    TextDocument = new VersionedTextDocumentIdentifier()
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier()
                     {
                         Uri = uri,
                         Version = version

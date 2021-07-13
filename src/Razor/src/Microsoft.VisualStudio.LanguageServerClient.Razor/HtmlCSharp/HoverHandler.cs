@@ -147,13 +147,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return CreateHover(result, mappingResult.Ranges[0]);
         }
 
-        private static VSHover CreateHover(Hover originalHover, Range range)
+        private static VSInternalHover CreateHover(Hover originalHover, Range range)
         {
-            return new VSHover
+            return new VSInternalHover
             {
                 Contents = originalHover.Contents,
                 Range = range,
-                RawContent = originalHover is VSHover originalVSHover ? originalVSHover.RawContent : null
+                RawContent = originalHover is VSInternalHover originalVSHover ? originalVSHover.RawContent : null
             };
         }
     }

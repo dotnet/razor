@@ -60,23 +60,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public IRequestBroker<FoldingRangeParams, FoldingRange[]> FoldingRangeBroker => throw new NotImplementedException();
 
-        public IRequestBroker<GetTextDocumentWithContextParams, ActiveProjectContexts> ProjectContextBroker => throw new NotImplementedException();
-
         public IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> FactoryLanguageClients => throw new NotImplementedException();
 
         public IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> LanguageClients => throw new NotImplementedException();
 
-        public IRequestBroker<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem> OnAutoInsertBroker => throw new NotImplementedException();
+        IStreamingRequestBroker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]> ILanguageServiceBroker.DocumentDiagnosticsBroker => throw new NotImplementedException();
 
-        public IRequestBroker<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem> OnTypeRenameBroker => throw new NotImplementedException();
+        IStreamingRequestBroker<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]> ILanguageServiceBroker.WorkspaceDiagnosticsBroker => throw new NotImplementedException();
 
-        public IRequestBroker<CodeAction, CodeAction> CodeActionsResolveBroker => throw new NotImplementedException();
+        IRequestBroker<VSGetProjectContextsParams, VSProjectContextList> ILanguageServiceBroker.ProjectContextBroker => throw new NotImplementedException();
 
-        public IStreamingRequestBroker<DocumentDiagnosticsParams, DiagnosticReport[]> DocumentDiagnosticsBroker => throw new NotImplementedException();
-
-        public IStreamingRequestBroker<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]> WorkspaceDiagnosticsBroker => throw new NotImplementedException();
-
-        public IRequestBroker<KindAndModifier, IconMapping> KindDescriptionResolveBroker => throw new NotImplementedException();
+        IRequestBroker<VSInternalKindAndModifier, VSInternalIconMapping> ILanguageServiceBroker.KindDescriptionResolveBroker => throw new NotImplementedException();
 
         public TestLanguageServiceBroker(Action<string> callback)
         {

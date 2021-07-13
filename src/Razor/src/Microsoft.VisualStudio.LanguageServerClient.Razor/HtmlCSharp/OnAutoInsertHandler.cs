@@ -15,8 +15,8 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
-    [ExportLspMethod(MSLSPMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : IRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>
+    [ExportLspMethod(VSInternalMethods.OnAutoInsertName)]
+    internal class OnAutoInsertHandler : IRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>
     {
         private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new HashSet<string>();
         private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new() { "'", "/", "\n" };
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(OnAutoInsertHandler));
         }
 
-        public async Task<DocumentOnAutoInsertResponseItem> HandleRequestAsync(DocumentOnAutoInsertParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<VSInternalDocumentOnAutoInsertResponseItem> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var formattingParams = new DocumentOnAutoInsertParams()
+            var formattingParams = new VSInternalDocumentOnAutoInsertParams()
             {
                 Character = request.Character,
                 Options = request.Options,
@@ -126,8 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting auto-insert for {projectionResult.Uri}.");
 
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
-                MSLSPMethods.OnAutoInsertName,
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(
+                VSInternalMethods.OnAutoInsertName,
                 languageServerName,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var remappedEdit = remappedEdits.Single();
-            var remappedResponse = new DocumentOnAutoInsertResponseItem()
+            var remappedResponse = new VSInternalDocumentOnAutoInsertResponseItem()
             {
                 TextEdit = remappedEdit,
                 TextEditFormat = result.TextEditFormat,
