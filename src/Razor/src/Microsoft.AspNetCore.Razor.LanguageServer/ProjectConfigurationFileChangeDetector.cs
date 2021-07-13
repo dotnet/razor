@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ILogger _logger;
         private FileSystemWatcher _watcher;
 
-        private static readonly IReadOnlyCollection<string> _ignoredDirectories = new string[]
+        private static readonly IReadOnlyCollection<string> s_ignoredDirectories = new string[]
         {
             "node_modules",
             "bin",
@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Protected virtual for testing
         protected virtual IEnumerable<string> GetExistingConfigurationFiles(string workspaceDirectory)
         {
-            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile, _ignoredDirectories, _logger);
+            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile, s_ignoredDirectories, _logger);
 
             return files;
         }
