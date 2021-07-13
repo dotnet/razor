@@ -60,11 +60,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.TagHelperProviderCore64S.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.TagHelperProviderCore64.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.TagHelperProviderCore64.AssemblySearchPathsConfig.json">
+    <Content Include="ServiceHubCore\Microsoft.VisualStudio.Razor.TagHelperProvider.AssemblySearchPathsConfig.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -88,7 +92,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>Grammars\</VSIXSubPath>
     </Content>
-
+    
     <!-- Language configurations -->
 
     <Content Include="language-configuration.json">

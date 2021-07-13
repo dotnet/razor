@@ -16,7 +16,9 @@
   <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
-      <_PublishedFiles Include="$(PublishDir)**\*.*" />
+
+      <!-- We're only targeting netcoreapp3.1 to ensure the SDK consumes all transitive dependencies, we don't actually need an executable -->
+      <_PublishedFiles Include="$(PublishDir)**\*.*" Exclude="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.*"/>      
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
 
       <!-- Exclude dependencies that are guaranteed to be in our host / could cause trouble otherwise -->
@@ -31,11 +33,8 @@
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.Remote.Workspaces.dll'" />
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.Scripting.dll'" />
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.Workspaces.dll'" />
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.ExternalAccess.Razor.dll'" />
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.Win32.Registry.dll'" />
-
-      <!-- We're only targeting netcoreapp3.1 to ensure the SDK consumes all transitive dependencies, we don't actually need an executable -->
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.exe'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.xml'" />
 
       <!-- Set TargetPath -->
       <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
