@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
         private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
-        private readonly VSHostWorkspaceServicesProvider _vsHostWorkspaceServicesProvider;
+        private readonly VSHostServicesProvider _vsHostWorkspaceServicesProvider;
         private readonly object _shutdownLock;
         private RazorLanguageServer _server;
         private IDisposable _serverShutdownDisposable;
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
             VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions,
-            VSHostWorkspaceServicesProvider vsHostWorkspaceServicesProvider)
+            VSHostServicesProvider vsHostWorkspaceServicesProvider)
         {
             if (customTarget is null)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _shutdownLock = new object();
         }
 
-        public string Name => "Razor Language Server Client";
+        public string Name => RazorLSPConstants.RazorLanguageServerName;
 
         public IEnumerable<string> ConfigurationSections => null;
 
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 logging.AddProvider(_loggerProvider);
             });
             services.AddSingleton<LanguageServerFeatureOptions>(_vsLanguageServerFeatureOptions);
-            services.AddSingleton<HostWorkspaceServicesProvider>(_vsHostWorkspaceServicesProvider);
+            services.AddSingleton<HostServicesProvider>(_vsHostWorkspaceServicesProvider);
         }
 
         private Trace GetVerbosity()
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var shell = AsyncPackage.GetGlobalService(typeof(SVsShell)) as IVsShell;
             var result = shell.GetProperty((int)__VSSPROPID11.VSSPROPID_ShellMode, out var mode);
 
-            var isVSServer = ErrorHandler.Succeeded(result) ? (int)mode == (int)__VSShellMode.VSSM_Server : false;
+            var isVSServer = ErrorHandler.Succeeded(result) && (int)mode == (int)__VSShellMode.VSSM_Server;
             return isVSServer;
         }
 
@@ -286,6 +286,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 await _requestInvoker.ReinvokeRequestOnServerAsync<MonitorProjectConfigurationFilePathParams, object>(
                     LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint,
+                    RazorLSPConstants.RazorLanguageServerName,
                     RazorLSPConstants.RazorLSPContentTypeName,
                     parameter,
                     CancellationToken.None);

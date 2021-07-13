@@ -101,6 +101,9 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
             noDebug: configuration.noDebug || false,
             port: debuggingPort,
             ...configuration.browserConfig,
+            // When the browser debugging session is stopped, propogate
+            // this and terminate the debugging session of the Blazor dev server.
+            cascadeTerminateToConfigurations: [SERVER_APP_NAME],
         };
 
         try {

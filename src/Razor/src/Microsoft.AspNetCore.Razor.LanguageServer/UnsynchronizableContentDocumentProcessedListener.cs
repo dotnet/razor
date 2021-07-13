@@ -9,19 +9,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class UnsynchronizableContentDocumentProcessedListener : DocumentProcessedListener
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly GeneratedDocumentPublisher _generatedDocumentPublisher;
         private ProjectSnapshotManager _projectManager;
 
         public UnsynchronizableContentDocumentProcessedListener(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentVersionCache documentVersionCache,
             GeneratedDocumentPublisher generatedDocumentPublisher)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentVersionCache == null)
@@ -34,14 +34,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(generatedDocumentPublisher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentVersionCache = documentVersionCache;
             _generatedDocumentPublisher = generatedDocumentPublisher;
         }
 
         public override void DocumentProcessed(DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_projectManager.IsDocumentOpen(document.FilePath))
             {

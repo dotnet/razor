@@ -5,6 +5,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     internal static class LanguageServerKindExtensions
     {
+        public static string ToLanguageServerName(this LanguageServerKind languageServerKind)
+        {
+            return languageServerKind switch
+            {
+                LanguageServerKind.CSharp => RazorLSPConstants.RazorCSharpLanguageServerName,
+                LanguageServerKind.Html => RazorLSPConstants.HtmlLanguageServerName,
+                LanguageServerKind.Razor => RazorLSPConstants.RazorLanguageServerName,
+                _ => throw new System.NotImplementedException(),
+            };
+        }
+
         public static string ToContentType(this LanguageServerKind languageServerKind)
         {
             return languageServerKind switch

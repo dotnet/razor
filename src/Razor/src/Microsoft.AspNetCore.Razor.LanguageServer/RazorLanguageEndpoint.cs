@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         IRazorMapToDocumentRangesHandler,
         IRazorMapToDocumentEditsHandler
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly RazorDocumentMappingService _documentMappingService;
@@ -31,16 +31,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ILogger _logger;
 
         public RazorLanguageEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             DocumentVersionCache documentVersionCache,
             RazorDocumentMappingService documentMappingService,
             RazorFormattingService razorFormattingService,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver == null)
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _documentVersionCache = documentVersionCache;
             _documentMappingService = documentMappingService;
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.Uri.GetAbsoluteOrUNCPath(), out documentSnapshot);
 
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken);
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             var sourceText = await documentSnapshot.GetTextAsync();
@@ -155,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
 
@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     documentVersion = null;
                 }
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken);
 
             if (request.Kind != RazorLanguageKind.CSharp)
             {
@@ -215,7 +215,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
 
@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     documentVersion = null;
                 }
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken);
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             if (codeDocument.IsUnsupported())
@@ -264,7 +264,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     cancellationToken,
                     bypassValidationPasses: true,
                     collapseEdits: true);
-
 
                 if (request.Kind == RazorLanguageKind.CSharp)
                 {

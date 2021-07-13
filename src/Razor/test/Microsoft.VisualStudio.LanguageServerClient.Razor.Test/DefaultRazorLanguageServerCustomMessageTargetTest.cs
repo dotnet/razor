@@ -157,7 +157,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentRangeFormattingParams>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<DocumentRangeFormattingParams>(),
+                    It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new[] { expectedEdit }));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
@@ -413,6 +418,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
+                LanguageServerKind.CSharp.ToLanguageServerName(),
                 LanguageServerKind.CSharp.ToContentType(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
@@ -461,7 +467,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
+                RazorLSPConstants.RazorCSharpLanguageServerName,
                 LanguageServerKind.CSharp.ToContentType(),
+                null,
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
             )).Returns(Task.FromResult(expectedResults));

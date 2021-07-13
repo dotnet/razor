@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Dispatcher,
                 Mock.Of<DocumentVersionCache>(MockBehavior.Strict),
                 Mock.Of<GeneratedDocumentPublisher>(MockBehavior.Strict));
-            Factory = new DefaultHostDocumentFactory(Dispatcher, store);
+            Factory = new DefaultHostDocumentFactory(store);
         }
 
         private DefaultHostDocumentFactory Factory { get; }

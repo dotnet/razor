@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override bool TryGetDocumentTracker(ITextBuffer textBuffer, out VisualStudioDocumentTracker documentTracker)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override bool TryGetParser(ITextBuffer textBuffer, out VisualStudioRazorParser parser)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         internal override bool TryGetSmartIndenter(ITextBuffer textBuffer, out BraceSmartIndenter braceSmartIndenter)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }

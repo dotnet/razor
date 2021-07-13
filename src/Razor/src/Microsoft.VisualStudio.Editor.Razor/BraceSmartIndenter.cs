@@ -6,10 +6,11 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Threading;
 using ITextBuffer = Microsoft.VisualStudio.Text.ITextBuffer;
 
 namespace Microsoft.VisualStudio.Editor.Razor
@@ -28,8 +29,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
     /// </example>
     internal class BraceSmartIndenter : IDisposable
     {
-        private readonly ForegroundDispatcher _dispatcher;
         private readonly ITextBuffer _textBuffer;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly VisualStudioDocumentTracker _documentTracker;
         private readonly TextBufferCodeDocumentProvider _codeDocumentProvider;
         private readonly IEditorOperationsFactoryService _editorOperationsFactory;
@@ -42,32 +43,32 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         public BraceSmartIndenter(
-            ForegroundDispatcher dispatcher,
+            JoinableTaskContext joinableTaskContext,
             VisualStudioDocumentTracker documentTracker,
             TextBufferCodeDocumentProvider codeDocumentProvider,
             IEditorOperationsFactoryService editorOperationsFactory)
         {
-            if (dispatcher == null)
+            if (joinableTaskContext is null)
             {
-                throw new ArgumentNullException(nameof(dispatcher));
+                throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            if (documentTracker == null)
+            if (documentTracker is null)
             {
                 throw new ArgumentNullException(nameof(documentTracker));
             }
 
-            if (codeDocumentProvider == null)
+            if (codeDocumentProvider is null)
             {
                 throw new ArgumentNullException(nameof(codeDocumentProvider));
             }
 
-            if (editorOperationsFactory == null)
+            if (editorOperationsFactory is null)
             {
                 throw new ArgumentNullException(nameof(editorOperationsFactory));
             }
 
-            _dispatcher = dispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _documentTracker = documentTracker;
             _codeDocumentProvider = codeDocumentProvider;
             _editorOperationsFactory = editorOperationsFactory;
@@ -78,7 +79,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public void Dispose()
         {
-            _dispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             _textBuffer.Changed -= TextBuffer_OnChanged;
             _textBuffer.PostChanged -= TextBuffer_OnPostChanged;
@@ -96,7 +97,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void TextBuffer_OnChanged(object sender, TextContentChangedEventArgs args)
         {
-            _dispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (!args.TextChangeOccurred(out var changeInformation))
             {
@@ -119,7 +120,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void TextBuffer_OnPostChanged(object sender, EventArgs e)
         {
-            _dispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             var context = _context;
             _context = null;

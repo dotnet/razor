@@ -5,7 +5,8 @@
   "brackets": [
     [ "{", "}" ],
     [ "[", "]" ],
-    [ "(", ")" ]
+    [ "(", ")" ],
+    [ "/*", "*/" ]
   ],
   "autoClosingPairs": [
     {
@@ -32,6 +33,11 @@
       "open": "'",
       "close": "'",
       "notIn": [ "string", "comment" ]
+    },
+    {
+      "open": "/*",
+      "close": "*/",
+      "notIn": [ "string" ]
     }
   ],
   "surroundingPairs": [
@@ -51,5 +57,14 @@
     "increaseIndentPattern": "(^.*\\{[^}]*$)",
     "decreaseIndentPattern": "^\\s*\\}"
   },
-  "wordPattern": "(#?-?\\d*\\.\\d\\w*%?)|(::?[\\w-]*(?=[^,{;]*[,{]))|(([@#.!])?[\\w-?]+%?|[@#!.])"
+  "wordPattern": "(#?-?\\d*\\.\\d\\w*%?)|(::?[\\w-]*(?=[^,{;]*[,{]))|(([@#.!])?[\\w-?]+%?|[@#!.])",
+  "onEnterRules": [
+    {
+      "beforeText": "^\\s*\\/\\*(?!\\/)([^\\*]|\\*(?!\\/))*$",
+      "afterText": "^\\s*\\*\\/$",
+      "action": {
+        "indent": "indentOutdent"
+      }
+    }
+  ]
 }

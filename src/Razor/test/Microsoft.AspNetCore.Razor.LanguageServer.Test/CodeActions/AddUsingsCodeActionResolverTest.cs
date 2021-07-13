@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -26,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public async Task Handle_MissingFile()
         {
             // Arrange
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), EmptyDocumentResolver);
+            var resolver = new AddUsingsCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), EmptyDocumentResolver);
             var data = JObject.FromObject(new AddUsingsCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
@@ -49,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetUnsupported();
 
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new AddUsingsCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
             var data = JObject.FromObject(new AddUsingsCodeActionParams()
             {
                 Uri = new Uri(documentPath),
@@ -72,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = string.Empty;
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new AddUsingsCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
@@ -106,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@page \"/\"{Environment.NewLine}";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new AddUsingsCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
@@ -147,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = projectEngine.Process(projectItem);
             codeDocument.SetFileKind(FileKinds.Legacy);
 
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new AddUsingsCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
@@ -180,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"<table>{Environment.NewLine}<tr>{Environment.NewLine}</tr>{Environment.NewLine}</table>";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new AddUsingsCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
@@ -213,7 +214,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@namespace Testing{Environment.NewLine}";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new AddUsingsCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
@@ -246,7 +247,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@page \"/\"{Environment.NewLine}@namespace Testing{Environment.NewLine}";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new AddUsingsCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
@@ -279,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@using System";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new AddUsingsCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,
@@ -312,7 +313,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@using System{Environment.NewLine}@using System.Linq{Environment.NewLine}";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new AddUsingsCodeActionResolver(new DefaultForegroundDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new AddUsingsCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new AddUsingsCodeActionParams
             {
                 Uri = documentUri,

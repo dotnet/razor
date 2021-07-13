@@ -108,6 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<RenameParams, WorkspaceEdit>(
                 Methods.TextDocumentRenameName,
+                projectionResult.LanguageKind.ToContainedLanguageServerName(),
                 projectionResult.LanguageKind.ToContainedLanguageContentType(),
                 renameParams,
                 cancellationToken).ConfigureAwait(false);

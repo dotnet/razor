@@ -14,18 +14,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         // Internal for testing
         protected internal readonly HostProject _miscellaneousHostProject;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
         public DefaultProjectResolver(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             FilePathNormalizer filePathNormalizer,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (filePathNormalizer == null)
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
 
@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var normalizedDocumentPath = _filePathNormalizer.Normalize(documentFilePath);
             var projects = _projectSnapshotManagerAccessor.Instance.Projects;
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override ProjectSnapshot GetMiscellaneousProject()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(_miscellaneousHostProject.FilePath);
             if (miscellaneousProject == null)

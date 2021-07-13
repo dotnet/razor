@@ -42,25 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             // We need these converters so we don't lose information as part of the deserialization.
             _serializer = new JsonSerializer();
-            _serializer.Converters.Add(new VSExtensionConverter<ClientCapabilities, VSClientCapabilities>());
-            _serializer.Converters.Add(new VSExtensionConverter<CompletionItem, VSCompletionItem>());
-            _serializer.Converters.Add(new VSExtensionConverter<SignatureInformation, VSSignatureInformation>());
-            _serializer.Converters.Add(new VSExtensionConverter<Hover, VSHover>());
-            _serializer.Converters.Add(new VSExtensionConverter<ServerCapabilities, VSServerCapabilities>());
-            _serializer.Converters.Add(new VSExtensionConverter<SymbolInformation, VSSymbolInformation>());
-            _serializer.Converters.Add(new VSExtensionConverter<CompletionList, VSCompletionList>());
-            _serializer.Converters.Add(new VSExtensionConverter<CodeAction, VSCodeAction>());
-        }
-
-        public override Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(string method, string contentType, TIn parameters, CancellationToken cancellationToken)
-        {
-            var capabilitiesFilter = _fallbackCapabilitiesFilterResolver.Resolve(method);
-            return RequestServerCoreAsync<TIn, TOut>(method, contentType, capabilitiesFilter, parameters, cancellationToken);
-        }
-
-        public override Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
-        {
-            return RequestServerCoreAsync<TIn, TOut>(method, contentType, capabilitiesFilter, parameters, cancellationToken);
+            _serializer.AddVSExtensionConverters();
         }
 
         public override Task<IEnumerable<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, TIn parameters, CancellationToken cancellationToken)
@@ -74,23 +56,43 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             return RequestMultipleServerCoreAsync<TIn, TOut>(method, contentType, capabilitiesFilter, parameters, cancellationToken);
         }
 
-        private async Task<TOut> RequestServerCoreAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
+        public override Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
+            string method,
+            string languageServerName,
+            string contentType,
+            TIn parameters,
+            CancellationToken cancellationToken)
+        {
+            return ReinvokeRequestOnServerAsync<TIn, TOut>(method, languageServerName, contentType, capabilitiesFilter: null, parameters, cancellationToken);
+        }
+
+        public override async Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
+            string method,
+            string languageServerName,
+            string contentType,
+            Func<JToken, bool> capabilitiesFilter,
+            TIn parameters,
+            CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(method))
             {
                 throw new ArgumentException("message", nameof(method));
             }
 
+            if (capabilitiesFilter == null)
+            {
+                capabilitiesFilter = _fallbackCapabilitiesFilterResolver.Resolve(method);
+            }
+
             var serializedParams = JToken.FromObject(parameters);
 
-#pragma warning disable CS0618 // Type or member is obsolete
             var (_, resultToken) = await _languageServiceBroker.RequestAsync(
                 new[] { contentType },
                 capabilitiesFilter,
+                languageServerName,
                 method,
                 serializedParams,
-                cancellationToken).ConfigureAwait(false);
-#pragma warning restore CS0618 // Type or member is obsolete
+                cancellationToken);
 
             var result = resultToken != null ? resultToken.ToObject<TOut>(_serializer) : default;
             return result;

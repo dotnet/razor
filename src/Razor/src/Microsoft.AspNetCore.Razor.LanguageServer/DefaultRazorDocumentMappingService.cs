@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -44,7 +45,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Range originalRange, out Range projectedRange)
+#nullable enable
+
+        public override bool TryMapToProjectedDocumentRange(RazorCodeDocument codeDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange)
         {
             if (codeDocument is null)
             {
@@ -104,6 +107,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             return true;
         }
+
+#nullable restore
 
         public override bool TryMapFromProjectedDocumentPosition(RazorCodeDocument codeDocument, int csharpAbsoluteIndex, out Position originalPosition, out int originalIndex)
         {

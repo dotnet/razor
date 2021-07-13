@@ -145,10 +145,10 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var publisher = new TestProjectChangePublisher(LoggerFactory);
             publisher.Initialize(snapshotManager);
             var hostProject = new OmniSharpHostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            await RunOnForegroundAsync(() => snapshotManager.ProjectAdded(hostProject));
+            await RunOnDispatcherThreadAsync(() => snapshotManager.ProjectAdded(hostProject));
 
             // Act & Assert
-            await RunOnForegroundAsync(() => snapshotManager.ProjectRemoved(hostProject));
+            await RunOnDispatcherThreadAsync(() => snapshotManager.ProjectRemoved(hostProject));
         }
 
         private class TestProjectChangePublisher : DefaultProjectChangePublisher

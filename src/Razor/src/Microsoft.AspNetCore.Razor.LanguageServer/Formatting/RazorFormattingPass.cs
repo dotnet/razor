@@ -1,8 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return new FormattingResult(finalEdits);
         }
 
-        private IEnumerable<TextEdit> FormatRazor(FormattingContext context, RazorSyntaxTree syntaxTree)
+        private static IEnumerable<TextEdit> FormatRazor(FormattingContext context, RazorSyntaxTree syntaxTree)
         {
             var edits = new List<TextEdit>();
             var source = syntaxTree.Source;
@@ -126,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
             }
 
-            static bool TryGetLeadingWhitespace(SyntaxList<RazorSyntaxNode> children, out UnclassifiedTextLiteralSyntax whitespace)
+            static bool TryGetLeadingWhitespace(SyntaxList<RazorSyntaxNode> children, [NotNullWhen(true)] out UnclassifiedTextLiteralSyntax? whitespace)
             {
                 // If there is whitespace between the directive and the brace, it will be in the first child
                 // of the 4 total children
@@ -141,7 +144,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return whitespace != null;
             }
 
-            static bool TryGetOpenBrace(SyntaxList<RazorSyntaxNode> children, out SyntaxToken brace)
+            static bool TryGetOpenBrace(SyntaxList<RazorSyntaxNode> children, [NotNullWhen(true)] out SyntaxToken? brace)
             {
                 // If there is no whitespace between the directive and the brace then there will only be
                 // three children and the brace should be the first child

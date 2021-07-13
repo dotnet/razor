@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(MSLSPMethods.OnAutoInsertName)]
     internal class OnAutoInsertHandler : IRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>
     {
-        private static readonly HashSet<string> HTMLAllowedTriggerCharacters = new() { "=", "-" };
+        private static readonly HashSet<string> HTMLAllowedTriggerCharacters = new HashSet<string>();
         private static readonly HashSet<string> CSharpAllowedTriggerCharacters = new() { "'", "/", "\n" };
         private static readonly HashSet<string> AllAllowedTriggerCharacters = HTMLAllowedTriggerCharacters
             .Concat(CSharpAllowedTriggerCharacters)
@@ -125,9 +125,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting auto-insert for {projectionResult.Uri}.");
 
+            var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
             var contentType = projectionResult.LanguageKind.ToContainedLanguageContentType();
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
                 MSLSPMethods.OnAutoInsertName,
+                languageServerName,
                 contentType,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
