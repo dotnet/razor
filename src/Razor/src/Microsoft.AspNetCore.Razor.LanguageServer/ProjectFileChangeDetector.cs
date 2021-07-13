@@ -20,7 +20,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly IEnumerable<IProjectFileChangeListener> _listeners;
         private FileSystemWatcher _watcher;
 
-        private static readonly string[] s_ignoredDirectories = new string[]{
+        private static readonly string[] s_ignoredDirectories = new string[]
+        {
             "node_modules",
             "bin",
             "obj",

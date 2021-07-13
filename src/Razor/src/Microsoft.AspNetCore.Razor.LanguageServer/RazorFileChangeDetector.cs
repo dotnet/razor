@@ -26,7 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly List<FileSystemWatcher> _watchers;
         private readonly object _pendingNotificationsLock = new();
 
-        private static readonly string[] s_ignoredDirectories = new string[]{
+        private static readonly string[] s_ignoredDirectories = new string[]
+        {
             "node_modules",
         };
 

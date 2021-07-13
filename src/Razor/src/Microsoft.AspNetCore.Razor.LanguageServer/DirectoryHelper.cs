@@ -3,6 +3,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,14 +11,38 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public static class DirectoryHelper
+    internal static class DirectoryHelper
     {
-        public static IEnumerable<string> GetFilteredFiles(string workspaceDirectory, string searchPattern, IReadOnlyCollection<string> ignoredNames, ILogger? logger = null)
+        /// <summary>
+        /// Finds all the files in  a directory which meet the given criteria.
+        /// </summary>
+        /// <param name="workspaceDirectory">The directory to be searched.</param>
+        /// <param name="searchPattern">The pattern to apply when searching.</param>
+        /// <param name="ignoredDirectories">List of directories to skip when recursing.</param>
+        /// <param name="logger">An optional logger to report on exceptional situations such as <see cref="PathTooLongException"/>.</param>
+        /// <returns>A list of files within the given directory that meet the search criteria.</returns>
+        /// <remarks>This method is needed to avoid problematic folders such as "node_modules" which are known not to yield the desired results or may cause performance issues.</remarks>
+        internal static IEnumerable<string> GetFilteredFiles(string workspaceDirectory, string searchPattern, IReadOnlyCollection<string> ignoredDirectories, ILogger? logger = null)
         {
+            if (workspaceDirectory is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceDirectory));
+            }
+
+            if (searchPattern is null)
+            {
+                throw new ArgumentNullException(nameof(searchPattern));
+            }
+
+            if (ignoredDirectories is null || ignoredDirectories.Count == 0)
+            {
+                throw new ArgumentNullException(nameof(ignoredDirectories));
+            }
+
             IEnumerable<string> files;
             try
             {
-                files = Directory.GetFiles(workspaceDirectory, searchPattern, SearchOption.TopDirectoryOnly);
+                files = Directory.EnumerateFiles(workspaceDirectory, searchPattern, SearchOption.TopDirectoryOnly);
             }
             catch (PathTooLongException ex)
             {
@@ -30,10 +55,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 yield return file;
             }
 
-            string[] directories;
+            IEnumerable<string> directories;
             try
             {
-                directories = Directory.GetDirectories(workspaceDirectory);
+                directories = Directory.EnumerateDirectories(workspaceDirectory);
             }
             catch (PathTooLongException ex)
             {
@@ -44,9 +69,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             foreach (var path in directories)
             {
                 var directory = Path.GetDirectoryName(path);
-                if (!ignoredNames.Contains(directory))
+                if (!ignoredDirectories.Contains(directory, StringComparer.Ordinal))
                 {
-                    foreach (var result in GetFilteredFiles(path, searchPattern, ignoredNames, logger))
+                    foreach (var result in GetFilteredFiles(path, searchPattern, ignoredDirectories, logger))
                     {
                         yield return result;
                     }
