@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     // These tests are really integration tests. There isn't a good way to unit test this functionality since
     // the only thing in here is threading.
-    public class BackgroundDocumentGeneratorTest : ForegroundDispatcherWorkspaceTestBase
+    public class BackgroundDocumentGeneratorTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
         public BackgroundDocumentGeneratorTest()
         {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             builder.SetImportFeature(new TestImportProjectFeature());
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProcessDocument_LongDocumentParse_DoesNotUpdateAfterSuppress()
         {
             // Arrange
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(DynamicFileInfoProvider.DynamicDocuments[hostDocument.FilePath]);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProcessDocument_SwallowsIOExceptions()
         {
             // Arrange
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.False(queue.NotifyErrorBeingReported.IsSet);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProcessDocument_SwallowsUnauthorizedAccessExceptions()
         {
             // Arrange
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.False(queue.NotifyErrorBeingReported.IsSet);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task Queue_ProcessesNotifications_AndGoesBackToSleep()
         {
             // Arrange
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.False(queue.HasPendingNotifications, "Queue should have processed all notifications");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task Queue_ProcessesNotifications_AndRestarts()
         {
             // Arrange
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.False(queue.HasPendingNotifications, "Queue should have processed all notifications");
         }
 
-        [ForegroundFact(Skip = "https://github.com/dotnet/aspnetcore/issues/14805")]
+        [UIFact(Skip = "https://github.com/dotnet/aspnetcore/issues/14805")]
         public async Task DocumentChanged_ReparsesRelatedFiles()
         {
             // Arrange
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.False(queue.IsScheduledOrRunning, "Queue should not have restarted");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentRemoved_ReparsesRelatedFiles()
         {
             // Arrange

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
@@ -13,8 +14,8 @@ using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
-using Task = System.Threading.Tasks.Task;
 using Shared = System.Composition.SharedAttribute;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -40,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private readonly JsonSerializer _serializer = new();
         private ProjectSnapshotManagerBase _projectSnapshotManager;
+        private bool _documentsProcessed = false;
 
         [ImportingConstructor]
         public DefaultRazorProjectChangePublisher(
@@ -129,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     // A Razor document was just opened, we should become "active" which means we'll constantly be monitoring project state.
                     _active = true;
 
-                    if (args.Newer?.ProjectWorkspaceState != null)
+                    if (ProjectWorkspacePublishable(args))
                     {
                         // Typically document open events don't result in us re-processing project state; however, given this is the first time a user opened a Razor document we should.
                         // Don't enqueue, just publish to get the most immediate result.
@@ -153,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 case ProjectChangeKind.DocumentAdded:
                 case ProjectChangeKind.ProjectChanged:
 
-                    if (args.Newer.ProjectWorkspaceState != null)
+                    if (ProjectWorkspacePublishable(args))
                     {
                         // These changes can come in bursts so we don't want to overload the publishing system. Therefore,
                         // we enqueue publishes and then publish the latest project after a delay.
@@ -163,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 case ProjectChangeKind.ProjectAdded:
 
-                    if (args.Newer.ProjectWorkspaceState != null)
+                    if (ProjectWorkspacePublishable(args))
                     {
                         Publish(args.Newer);
                     }
@@ -172,6 +174,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 case ProjectChangeKind.ProjectRemoved:
                     RemovePublishingData(args.Older);
                     break;
+            }
+
+            static bool ProjectWorkspacePublishable(ProjectChangeEventArgs args)
+            {
+                return args.Newer?.ProjectWorkspaceState != null;
             }
         }
 
@@ -196,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     // We don't want to serialize the project until it's ready to avoid flashing as the project loads different parts.
                     // Since the project.razor.json from last session likely still exists the experience is unlikely to be degraded by this delay.
                     // An exception is made for when there's no existing project.razor.json because some flashing is preferable to having no TagHelper knowledge.
-                    if (ShouldSerialize(configurationFilePath))
+                    if (ShouldSerialize(projectSnapshot, configurationFilePath))
                     {
                         SerializeToFile(projectSnapshot, configurationFilePath);
                     }
@@ -258,21 +265,56 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             tempFileInfo.MoveTo(publishFilePath);
         }
 
-        protected virtual bool ShouldSerialize(string configurationFilePath)
+        protected virtual bool FileExists(string file)
         {
-            if (!File.Exists(configurationFilePath))
+            return File.Exists(file);
+        }
+
+        protected virtual bool ShouldSerialize(ProjectSnapshot projectSnapshot, string configurationFilePath)
+        {
+            if (!FileExists(configurationFilePath))
             {
                 return true;
             }
 
             var status = _operationProgressStatusService?.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
 
+            // Don't serialize our understanding until we're "ready"
+            if (!_documentsProcessed)
+            {
+                if (projectSnapshot.DocumentFilePaths.Any(d => AspNetCore.Razor.Language.FileKinds.GetFileKindFromFilePath(d)
+                    .Equals(AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase)))
+                {
+                    foreach (var document in projectSnapshot.DocumentFilePaths)
+                    {
+                        // We want to wait until at least one document has been processed (meaning it became a TagHelper.
+                        // Because we don't have a way to tell which TagHelpers were created from the local project just from their descriptors we have to improvise
+                        // We assume that a document has been processed if at least one Component matches the name of one of our files.
+                        var fileName = Path.GetFileNameWithoutExtension(document);
+
+                        var documentSnapshot = projectSnapshot.GetDocument(document);
+
+                        if (documentSnapshot.FileKind.Equals(AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase) &&
+                            projectSnapshot.TagHelpers.Any(t => t.Name.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            // Documents have been processed, lets publish
+                            _documentsProcessed = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // This project has no Components and thus cannot suffer from the lagging compilation problem.
+                    _documentsProcessed = true;
+                }
+            }
             if (status is null)
             {
                 return true;
             }
 
-            return !status.IsInProgress;
+            return !status.IsInProgress && _documentsProcessed;
         }
 
         private async Task PublishAfterDelayAsync(string projectFilePath)

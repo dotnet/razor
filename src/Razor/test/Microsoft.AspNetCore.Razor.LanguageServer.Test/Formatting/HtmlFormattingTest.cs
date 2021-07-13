@@ -341,7 +341,7 @@ expected: @"@page ""/""
         void Method() { }
     }
 }
-");
+", tagHelpers: GetSurveyPrompt());
         }
 
         [Fact]
@@ -453,7 +453,7 @@ insertSpaces: false);
         {
             await RunFormattingTestAsync(
 input: @"
-@page ""/""  
+@page ""/""
 @{
  ViewData[""Title""] = ""Create"";
  <hr />
@@ -498,7 +498,7 @@ fileKind: FileKinds.Legacy);
         {
             await RunFormattingTestAsync(
 input: @"
-@page ""/""  
+@page ""/""
 
  <hr />
  <div class=""row"">
@@ -533,18 +533,123 @@ insertSpaces: false,
 fileKind: FileKinds.Legacy);
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+        public async Task FormatNestedComponents()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<CascadingAuthenticationState>
+<Router AppAssembly=""@typeof(Program).Assembly"">
+    <Found Context=""routeData"">
+        <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout=""@typeof(MainLayout)"">
+            <p>Sorry, there's nothing at this address.</p>
+
+            @if (true)
+                    {
+                        <strong></strong>
+                }
+        </LayoutView>
+    </NotFound>
+</Router>
+</CascadingAuthenticationState>
+",
+expected: @"
+<CascadingAuthenticationState>
+    <Router AppAssembly=""@typeof(Program).Assembly"">
+        <Found Context=""routeData"">
+            <RouteView RouteData=""@routeData"" DefaultLayout=""@typeof(MainLayout)"" />
+        </Found>
+        <NotFound>
+            <LayoutView Layout=""@typeof(MainLayout)"">
+                <p>Sorry, there's nothing at this address.</p>
+
+                @if (true)
+                {
+                    <strong></strong>
+                }
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+        public async Task FormatNestedComponents2()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<GridTable>
+<ChildContent>
+<GridRow>
+<ChildContent>
+<GridCell>
+<ChildContent>
+<strong></strong>
+@if (true)
+{
+<strong></strong>
+}
+<strong></strong>
+</ChildContent>
+</GridCell>
+</ChildContent>
+</GridRow>
+</ChildContent>
+</GridTable>
+",
+expected: @"
+<GridTable>
+    <ChildContent>
+        <GridRow>
+            <ChildContent>
+                <GridCell>
+                    <ChildContent>
+                        <strong></strong>
+                        @if (true)
+                        {
+                            <strong></strong>
+                        }
+                        <strong></strong>
+                    </ChildContent>
+                </GridCell>
+            </ChildContent>
+        </GridRow>
+    </ChildContent>
+</GridTable>
+", tagHelpers: GetComponents());
+        }
+
+        private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()
+        {
+            AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+namespace Test
+{
+    public class SurveyPrompt : ComponentBase
+    {
+        [Parameter]
+        public string Title { get; set; }
+    }
+}
+"));
+
+            var generated = CompileToCSharp("SurveyPrompt.razor", string.Empty, throwOnFailure: false, fileKind: FileKinds.Component);
+            var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
+            return tagHelpers;
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetComponents()
         {
             AdditionalSyntaxTrees.Add(Parse(@"
 using Microsoft.AspNetCore.Components;
 namespace Test
 {
-    public class Counter : ComponentBase
-    {
-        [Parameter]
-        public int IncrementAmount { get; set; }
-    }
-
     public class GridTable : ComponentBase
     {
         [Parameter]

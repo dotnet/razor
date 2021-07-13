@@ -187,16 +187,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             string serverContentType;
+            string languageServerName;
             Uri projectedUri;
             if (request.Kind == RazorLanguageKind.CSharp &&
                 documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDocument))
             {
+                languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
                 serverContentType = RazorLSPConstants.CSharpContentTypeName;
                 projectedUri = csharpDocument.Uri;
             }
             else if (request.Kind == RazorLanguageKind.Html &&
                 documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
             {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
                 serverContentType = RazorLSPConstants.HtmlLSPContentTypeName;
                 projectedUri = htmlDocument.Uri;
             }
@@ -215,6 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
                 Methods.TextDocumentRangeFormattingName,
+                languageServerName,
                 serverContentType,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
@@ -290,6 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
+                RazorLSPConstants.RazorCSharpLanguageServerName,
                 LanguageServerKind.CSharp.ToContentType(),
                 semanticTokensParams,
                 cancellationToken).ConfigureAwait(false);
@@ -321,6 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensEditsParams, SumType<LanguageServer.Protocol.SemanticTokens, SemanticTokensEdits>>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEditEndpoint,
+                RazorLSPConstants.RazorCSharpLanguageServerName,
                 LanguageServerKind.CSharp.ToContentType(),
                 semanticTokensEditsParams,
                 cancellationToken).ConfigureAwait(false);

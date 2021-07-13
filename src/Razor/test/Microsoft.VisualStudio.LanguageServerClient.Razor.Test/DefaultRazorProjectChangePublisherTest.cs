@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -42,7 +43,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
             public IVsOperationProgressStageStatusForSolutionLoad GetStageStatusForSolutionLoad(string operationProgressStageId)
             {
-                throw new NotImplementedException();
+                return new TestVsOperationProgressStageStatusForSolutionLoad();
+            }
+
+            private class TestVsOperationProgressStageStatusForSolutionLoad : IVsOperationProgressStageStatusForSolutionLoad
+            {
+                public bool IsInProgress => false;
+
+                public event PropertyChangedEventHandler PropertyChanged;
+
+                public Task WaitForCompletionAsync()
+                {
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("name"));
+                    throw new NotImplementedException();
+                }
             }
         }
     }
@@ -246,6 +260,80 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         }
 
         [Fact]
+        public async Task EnqueuePublish_OnProjectWithoutRazor_Publishes()
+        {
+            // Arrange
+            var serializationSuccessful = false;
+            var firstSnapshot = CreateProjectSnapshot("/path/to/project.csproj");
+            var secondSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new[] { "/path/to/file.cshtml" });
+            var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
+            var publisher = new TestDefaultRazorProjectChangePublisher(
+                ProjectConfigurationFilePathStore,
+                RazorLogger,
+                onSerializeToFile: (snapshot, configurationFilePath) =>
+                {
+                    Assert.Same(secondSnapshot, snapshot);
+                    Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
+                    serializationSuccessful = true;
+                },
+                useRealShouldSerialize: true)
+            {
+                EnqueueDelay = 10,
+                _active = true,
+            };
+            publisher.Initialize(ProjectSnapshotManager);
+            ProjectConfigurationFilePathStore.Set(secondSnapshot.FilePath, expectedConfigurationFilePath);
+
+            // Act
+            publisher.EnqueuePublish(secondSnapshot);
+
+            // Assert
+            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            await kvp.Value.ConfigureAwait(false);
+            Assert.True(serializationSuccessful);
+        }
+
+        [Fact]
+        public async Task EnqueuePublish_OnProjectBeforeTagHelperProcessed_DoesNotPublish()
+        {
+            // Arrange
+            var serializationSuccessful = false;
+            var firstSnapshot = CreateProjectSnapshot("/path/to/project.csproj");
+            var tagHelpers = new TagHelperDescriptor[] {
+                new DefaultTagHelperDescriptor(FileKinds.Component, "Namespace.FileNameOther", "Assembly", "FileName", "FileName document", "FileName hint",
+                    caseSensitive: false,tagMatchingRules: null, attributeDescriptors: null,  allowedChildTags: null, metadata: null, diagnostics: null)
+            };
+            var secondSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp8), new string[]{
+                "FileName.razor"
+            });
+            var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
+            var publisher = new TestDefaultRazorProjectChangePublisher(
+                ProjectConfigurationFilePathStore,
+                RazorLogger,
+                onSerializeToFile: (snapshot, configurationFilePath) =>
+                {
+                    Assert.Same(secondSnapshot, snapshot);
+                    Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
+                    serializationSuccessful = true;
+                },
+                useRealShouldSerialize: true)
+            {
+                EnqueueDelay = 10,
+                _active = true,
+            };
+            publisher.Initialize(ProjectSnapshotManager);
+            ProjectConfigurationFilePathStore.Set(firstSnapshot.FilePath, expectedConfigurationFilePath);
+
+            // Act
+            publisher.EnqueuePublish(secondSnapshot);
+
+            // Assert
+            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            await kvp.Value.ConfigureAwait(false);
+            Assert.False(serializationSuccessful);
+        }
+
+        [Fact]
         public void Publish_UnsetConfigurationFilePath_Noops()
         {
             // Arrange
@@ -291,7 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.True(serializationSuccessful);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectAdded_PublishesToCorrectFilePathAsync()
         {
             // Arrange
@@ -316,7 +404,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var projectWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), CodeAnalysis.CSharp.LanguageVersion.Default);
 
             // Act
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
             {
                 ProjectSnapshotManager.ProjectAdded(hostProject);
                 ProjectSnapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
@@ -328,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.True(serializationSuccessful);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectAdded_DoesNotPublishWithoutProjectWorkspaceStateAsync()
         {
             // Arrange
@@ -351,7 +439,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectConfigurationFilePathStore.Set(hostProject.FilePath, expectedConfigurationFilePath);
 
             // Act
-            await RunOnForegroundAsync(() => ProjectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => ProjectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
             Assert.Empty(publisher._deferredPublishTasks);
 
@@ -359,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.False(serializationSuccessful);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectRemoved_UnSetPublishFilePath_NoopsAsync()
         {
             // Arrange
@@ -371,15 +459,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             };
             publisher.Initialize(ProjectSnapshotManager);
             var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            await RunOnForegroundAsync(() => ProjectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => ProjectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
             // Act & Assert
-            await RunOnForegroundAsync(() => ProjectSnapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => ProjectSnapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
 
             Assert.Empty(publisher._deferredPublishTasks);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectAdded_DoesNotFireWhenNotReadyAsync()
         {
             // Arrange
@@ -405,7 +493,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var projectWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), CodeAnalysis.CSharp.LanguageVersion.Default);
 
             // Act
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
             {
                 ProjectSnapshotManager.ProjectAdded(hostProject);
                 ProjectSnapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
@@ -417,14 +505,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.False(serializationSuccessful);
         }
 
-        internal ProjectSnapshot CreateProjectSnapshot(string projectFilePath, ProjectWorkspaceState projectWorkspaceState = null)
+        internal static ProjectSnapshot CreateProjectSnapshot(string projectFilePath, ProjectWorkspaceState projectWorkspaceState = null, string[] documentFilePaths = null)
         {
-            var testProjectSnapshot = TestProjectSnapshot.Create(projectFilePath, projectWorkspaceState);
+            if (documentFilePaths is null)
+            {
+                documentFilePaths = Array.Empty<string>();
+            }
+
+            var testProjectSnapshot = TestProjectSnapshot.Create(projectFilePath, documentFilePaths, projectWorkspaceState);
 
             return testProjectSnapshot;
         }
 
-        internal ProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
+        internal static ProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
         {
             var testProjectSnapshot = TestProjectSnapshot.Create(projectFilePath, documentFilePaths);
 
@@ -439,31 +532,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             return snapshotManager;
         }
 
-        protected Task RunOnForegroundAsync(Action action)
+        protected Task RunOnDispatcherThreadAsync(Action action)
         {
-            return Task.Factory.StartNew(
+            return Dispatcher.RunOnDispatcherThreadAsync(
                 () => action(),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                CancellationToken.None);
         }
 
-        protected Task<TReturn> RunOnForegroundAsync<TReturn>(Func<TReturn> action)
+        protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> action)
         {
-            return Task.Factory.StartNew(
+            return Dispatcher.RunOnDispatcherThreadAsync(
                 () => action(),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                CancellationToken.None);
         }
 
-        protected Task RunOnForegroundAsync(Func<Task> action)
+        protected Task RunOnDispatcherThreadAsync(Func<Task> action)
         {
-            return Task.Factory.StartNew(
+            return Dispatcher.RunOnDispatcherThreadAsync(
                 async () => await action().ConfigureAwait(true),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                CancellationToken.None);
         }
 
         private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher
@@ -473,6 +560,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             private readonly Action<ProjectSnapshot, string> _onSerializeToFile;
 
             private readonly bool _shouldSerialize;
+            private readonly bool _useRealShouldSerialize;
 
             static TestDefaultRazorProjectChangePublisher()
             {
@@ -485,18 +573,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
                 ProjectConfigurationFilePathStore projectStatePublishFilePathStore,
                 RazorLogger logger,
                 Action<ProjectSnapshot, string> onSerializeToFile = null,
-                bool shouldSerialize = true)
+                bool shouldSerialize = true,
+                bool useRealShouldSerialize = false)
                 : base(_lspEditorFeatureDetector.Object, projectStatePublishFilePathStore, new TestServiceProvider(), logger)
             {
                 _onSerializeToFile = onSerializeToFile ?? ((_, __) => throw new XunitException("SerializeToFile should not have been called."));
                 _shouldSerialize = shouldSerialize;
+                _useRealShouldSerialize = useRealShouldSerialize;
+            }
+
+            protected override bool FileExists(string file)
+            {
+                return true;
             }
 
             protected override void SerializeToFile(ProjectSnapshot projectSnapshot, string configurationFilePath) => _onSerializeToFile?.Invoke(projectSnapshot, configurationFilePath);
 
-            protected override bool ShouldSerialize(string configurationFilePath)
+            protected override bool ShouldSerialize(ProjectSnapshot projectSnapshot, string configurationFilePath)
             {
-                return _shouldSerialize;
+                if (_useRealShouldSerialize)
+                {
+                    return base.ShouldSerialize(projectSnapshot, configurationFilePath);
+                }
+                else
+                {
+                    return _shouldSerialize;
+                }
             }
         }
     }

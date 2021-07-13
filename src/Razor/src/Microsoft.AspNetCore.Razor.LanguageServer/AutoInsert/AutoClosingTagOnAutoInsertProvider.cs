@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -71,16 +71,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 return false;
             }
 
-            if (!TryGetTagInformation(context, position, out var tagName, out var autoClosingBehavior))
+            var afterCloseAngleIndex = position.GetAbsoluteIndex(context.SourceText);
+            if (!TryGetTagInformation(context, afterCloseAngleIndex, out var tagName, out var autoClosingBehavior))
             {
                 format = default;
                 edit = default;
                 return false;
             }
 
-            format = InsertTextFormat.Snippet;
             if (autoClosingBehavior == AutoClosingBehavior.EndTag)
             {
+                format = InsertTextFormat.Snippet;
                 edit = new TextEdit()
                 {
                     NewText = $"$0</{tagName}>",
@@ -91,14 +92,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             {
                 Debug.Assert(autoClosingBehavior == AutoClosingBehavior.SelfClosing);
 
-                // Need to replace the `>` with ' />$0'
-                var replacementRange = new Range(
-                    start: new Position(position.Line, position.Character - 1),
-                    end: position);
+                format = InsertTextFormat.PlainText;
+
+                // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
+                var insertionText = char.IsWhiteSpace(context.SourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
+                var insertionPosition = new Position(position.Line, position.Character - 1);
+                var insertionRange = new Range(
+                    start: insertionPosition,
+                    end: insertionPosition);
                 edit = new TextEdit()
                 {
-                    NewText = " />$0",
-                    Range = replacementRange
+                    NewText = insertionText,
+                    Range = insertionRange
                 };
 
             }
@@ -106,14 +111,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return true;
         }
 
-        private static bool TryGetTagInformation(FormattingContext context, Position position, out string name, out AutoClosingBehavior autoClosingBehavior)
+        private static bool TryGetTagInformation(FormattingContext context, int afterCloseAngleIndex, out string name, out AutoClosingBehavior autoClosingBehavior)
         {
+            var change = new SourceChange(afterCloseAngleIndex, 0, string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
+            var originalOwner = syntaxTree.Root.LocateOwner(change);
 
-            var absoluteIndex = position.GetAbsoluteIndex(context.SourceText) - 1;
-            var change = new SourceChange(absoluteIndex, 0, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
-            if (owner?.Parent == null)
+            if (!TryEnsureOwner_WorkaroundCompilerQuirks(afterCloseAngleIndex, syntaxTree, originalOwner, out var owner))
             {
                 name = null;
                 autoClosingBehavior = default;
@@ -121,6 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             if (owner.Parent is MarkupStartTagSyntax startTag &&
+                startTag.ForwardSlash == null &&
                 startTag.Parent is MarkupElementSyntax)
             {
                 var unescapedTagName = startTag.Name.Content;
@@ -132,6 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             if (owner.Parent is MarkupTagHelperStartTagSyntax startTagHelper &&
+                startTagHelper.ForwardSlash == null &&
                 startTagHelper.Parent is MarkupTagHelperElementSyntax tagHelperElement)
             {
                 name = startTagHelper.Name.Content;
@@ -147,6 +153,88 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             autoClosingBehavior = default;
             name = null;
             return false;
+        }
+
+        private static bool TryEnsureOwner_WorkaroundCompilerQuirks(int afterCloseAngleIndex, RazorSyntaxTree syntaxTree, SyntaxNode currentOwner, out SyntaxNode newOwner)
+        {
+            // All of these owner modifications are to account for https://github.com/dotnet/aspnetcore/issues/33919
+
+            if (currentOwner?.Parent == null)
+            {
+                newOwner = null;
+                return false;
+            }
+
+            if (currentOwner.Parent is MarkupElementSyntax parentElement &&
+                parentElement.StartTag != null)
+            {
+                // In cases where a user types ">" in a C# code block there can be uncertainty as to "who owns" the edge of the element. Reason being that the tag
+                // could be malformed and you could be in a situation like this:
+                //
+                // @{
+                //     <div>|
+                // }
+                //
+                // In this situation <div> is unclosed and is overriding the `}` understanding of `@{`. Because of this we're in an errored state and the syntax tree
+                // doesn't indicate the appropriate language delimiter.
+
+                if (parentElement.StartTag.EndPosition == afterCloseAngleIndex)
+                {
+                    currentOwner = parentElement.StartTag.CloseAngle;
+                }
+            }
+            else if (currentOwner.Parent is MarkupTagHelperElementSyntax parentTagHelperElement &&
+                parentTagHelperElement.StartTag != null)
+            {
+                // Same reasoning as the above block here.
+
+                if (afterCloseAngleIndex == parentTagHelperElement.StartTag.EndPosition)
+                {
+                    currentOwner = parentTagHelperElement.StartTag.CloseAngle;
+                }
+            }
+            else if (currentOwner is CSharpStatementLiteralSyntax)
+            {
+                // In cases where a user types ">" in a C# code block there can be uncertainty as to "who owns" the edge of the element in void element
+                // scenarios. In a situation like this:
+                //
+                // @{
+                //     <input>|
+                // }
+                //
+                // In this situation <input> is a 100% valid HTML element but after it the C# context begins. When querying owner for the location after
+                // the ">" we get the C# statement block instead of the end close-angle (Razor compiler quirk).
+
+                var closeAngleIndex = afterCloseAngleIndex - 1;
+                var closeAngleSoureChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
+                currentOwner = syntaxTree.Root.LocateOwner(closeAngleSoureChange);
+            }
+            else if (currentOwner.Parent is MarkupEndTagSyntax ||
+                     currentOwner.Parent is MarkupTagHelperEndTagSyntax)
+            {
+                // Quirk: https://github.com/dotnet/aspnetcore/issues/33919#issuecomment-870233627
+                // When tags are nested within each other within a C# block like:
+                //
+                // @if (true)
+                // {
+                //     <div><em>|</div>
+                // }
+                //
+                // The owner will be the </div>. Note this does not happen outside of C# blocks.
+
+                var closeAngleIndex = afterCloseAngleIndex - 1;
+                var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
+                currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
+            }
+
+            if (currentOwner?.Parent == null)
+            {
+                newOwner = null;
+                return false;
+            }
+
+            newOwner = currentOwner;
+            return true;
         }
 
         private static AutoClosingBehavior InferAutoClosingBehavior(string name)

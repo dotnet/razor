@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
@@ -16,25 +17,33 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [ExportLanguageServiceFactory(typeof(VisualStudioDocumentTrackerFactory), RazorLanguage.Name, ServiceLayer.Default)]
     internal class DefaultVisualStudioDocumentTrackerFactoryFactory : ILanguageServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly ITextDocumentFactoryService _textDocumentFactory;
 
         [ImportingConstructor]
         public DefaultVisualStudioDocumentTrackerFactoryFactory(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext,
             ITextDocumentFactoryService textDocumentFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (textDocumentFactory == null)
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (textDocumentFactory is null)
             {
                 throw new ArgumentNullException(nameof(textDocumentFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _textDocumentFactory = textDocumentFactory;
         }
 
@@ -52,7 +61,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var projectPathProvider = languageServices.WorkspaceServices.GetRequiredService<ProjectPathProvider>();
 
             return new DefaultVisualStudioDocumentTrackerFactory(
-                _foregroundDispatcher,
+                _projectSnapshotManagerDispatcher,
+                _joinableTaskContext,
                 projectManager,
                 workspaceEditorSettings,
                 projectPathProvider,

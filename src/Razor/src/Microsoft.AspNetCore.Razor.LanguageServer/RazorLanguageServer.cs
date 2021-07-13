@@ -32,6 +32,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -65,6 +66,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Custom ClientCapabilities deserializer to extract platform specific capabilities
             Serializer.Instance.JsonSerializer.Converters.Add(PlatformAgnosticClientCapabilities.JsonConverter);
             Serializer.Instance.JsonSerializer.Converters.Add(PlatformAgnosticCompletionCapability.JsonConverter);
+            Serializer.Instance.JsonSerializer.Converters.Add(OmniSharpVSCompletionContext.JsonConverter);
+            Serializer.Instance.JsonSerializer.Converters.Add(OmniSharpVSDiagnostic.JsonConverter);
 
             ILanguageServer server = null;
             var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
@@ -107,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             var optionsMonitor = languageServer.Services.GetRequiredService<RazorLSPOptionsMonitor>();
 
                             // Explicitly not passing in the same CancellationToken as that might get cancelled before the update happens.
-                            _ = Task.Delay(TimeSpan.FromSeconds(3))
+                            _ = Task.Delay(TimeSpan.FromSeconds(3), CancellationToken.None)
                                 .ContinueWith(async (_) => await optionsMonitor.UpdateAsync(), TaskScheduler.Default);
                         }
                     })
@@ -135,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             .AddLanguageProtocolLogging(logLevel));
 
                         services.AddSingleton<FilePathNormalizer>();
-                        services.AddSingleton<ForegroundDispatcher, DefaultForegroundDispatcher>();
+                        services.AddSingleton<ProjectSnapshotManagerDispatcher, DefaultProjectSnapshotManagerDispatcher>();
                         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
                         services.AddSingleton<AdhocWorkspaceFactory, DefaultAdhocWorkspaceFactory>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());
@@ -196,11 +199,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RazorCompletionItemProvider, TagHelperCompletionProvider>();
 
                         // Auto insert
-                        services.AddSingleton<RazorOnAutoInsertProvider, HtmlSmartIndentOnAutoInsertProvider>();
-                        services.AddSingleton<RazorOnAutoInsertProvider, CloseRazorCommentOnAutoInsertProvider>();
                         services.AddSingleton<RazorOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
                         services.AddSingleton<RazorOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
-                        services.AddSingleton<RazorOnAutoInsertProvider, AttributeSnippetOnAutoInsertProvider>();
+
+                        // Disabling equals => `="|"` OnAutoInsert support until dynamic overtyping is a thing: https://github.com/dotnet/aspnetcore/issues/33677
+                        // services.AddSingleton<RazorOnAutoInsertProvider, AttributeSnippetOnAutoInsertProvider>();
 
                         // Formatting
                         services.AddSingleton<RazorFormattingService, DefaultRazorFormattingService>();
@@ -244,7 +247,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.TryAddSingleton<LanguageServerFeatureOptions, DefaultLanguageServerFeatureOptions>();
 
                         // Defaults: For when the caller hasn't provided them through the `configure` action.
-                        services.TryAddSingleton<HostWorkspaceServicesProvider, DefaultHostWorkspaceServicesProvider>();
+                        services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();
                     }));
 
             try

@@ -23,8 +23,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public abstract bool HasPendingChanges { get; }
 
-        public abstract void QueueReparse();
-
         internal virtual Task<RazorCodeDocument> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

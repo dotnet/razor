@@ -38,17 +38,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public FallbackRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
-            : base(commonServices, workspace, projectConfigurationFilePathStore)
+            : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
         }
 
         internal FallbackRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             ProjectSnapshotManagerBase projectManager)
-            : base(commonServices, workspace, projectConfigurationFilePathStore, projectManager)
+            : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
         {
         }
 
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (mvcReferenceFullPath == null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                     return;
                 }
 
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (version == null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                     return;
                 }
 
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     {
                         AddDocumentUnsafe(documents[i]);
                     }
-                }).ConfigureAwait(false);
+                }, CancellationToken.None).ConfigureAwait(false);
             }).ConfigureAwait(false), registerFaultHandler: true);
         }
 
@@ -267,9 +269,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 var assemblyDefinition = metadataReader.GetAssemblyDefinition();
                 return assemblyDefinition.Version;
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch
-#pragma warning restore CA1031 // Do not catch general exception types
             {
                 // We're purposely silencing any kinds of I/O exceptions here, just in case something wacky is going on.
                 return null;

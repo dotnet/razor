@@ -21,6 +21,10 @@ export class RazorCompletionItemProvider
         projectedPosition: vscode.Position, triggerCharacter: string | undefined) {
 
         if (projectedUri) {
+            // "@" is not a valid trigger character for C# / HTML and therefore we need to translate
+            // it into a non-trigger invocation.
+            triggerCharacter = triggerCharacter === '@' ? undefined : triggerCharacter;
+
             const completions = await vscode
                 .commands
                 .executeCommand<vscode.CompletionList | vscode.CompletionItem[]>(

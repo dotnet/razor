@@ -3,7 +3,6 @@
 
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using Moq;
 using OmniSharp.FileWatching;
 using OmniSharp.Services;
 
@@ -19,10 +18,26 @@ namespace OmniSharp
             {
                 var factory = LoggerFactory.Create((b) => { });
                 var hostServicesAggregator = new HostServicesAggregator(Enumerable.Empty<IHostServicesProvider>(), factory);
-                var fileSystemWatcher = Mock.Of<IFileSystemWatcher>(MockBehavior.Strict);
-                var workspace = new OmniSharpWorkspace(hostServicesAggregator, factory, fileSystemWatcher);
+                var workspace = new OmniSharpWorkspace(hostServicesAggregator, factory, TestFileSystemWatcher.Instance);
 
                 return workspace;
+            }
+        }
+
+        private class TestFileSystemWatcher : IFileSystemWatcher
+        {
+            public static readonly TestFileSystemWatcher Instance = new TestFileSystemWatcher();
+
+            private TestFileSystemWatcher()
+            {
+            }
+
+            public void Watch(string pathOrExtension, FileSystemNotificationCallback callback)
+            {
+            }
+
+            public void WatchDirectories(FileSystemNotificationCallback callback)
+            {
             }
         }
     }

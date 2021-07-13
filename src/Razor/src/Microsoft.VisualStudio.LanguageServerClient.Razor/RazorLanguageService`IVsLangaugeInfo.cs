@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         public int GetLanguageName(out string bstrName)
         {
-            bstrName = "RazorLSP";
+            bstrName = "Razor";
             return VSConstants.S_OK;
         }
 

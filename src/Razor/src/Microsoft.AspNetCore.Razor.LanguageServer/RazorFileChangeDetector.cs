@@ -20,20 +20,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal readonly Dictionary<string, DelayedFileChangeNotification> _pendingNotifications;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IRazorFileChangeListener> _listeners;
         private readonly List<FileSystemWatcher> _watchers;
         private readonly object _pendingNotificationsLock = new object();
 
         public RazorFileChangeDetector(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             FilePathNormalizer filePathNormalizer,
             IEnumerable<IRazorFileChangeListener> listeners)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (filePathNormalizer is null)
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(listeners));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
             _watchers = new List<FileSystemWatcher>(RazorFileExtensions.Count);
@@ -75,13 +75,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 
-            await Task.Factory.StartNew(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 foreach (var razorFilePath in existingRazorFiles)
                 {
                     FileSystemWatcher_RazorFileEvent(razorFilePath, RazorFileChangeKind.Added);
                 }
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken);
 
             // This is an entry point for testing
             OnInitializationFinished();
@@ -206,12 +206,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             OnStartingDelayedNotificationWork();
 
-            await Task.Factory.StartNew(
-                () => NotifyAfterDelay_Foreground(physicalFilePath),
-                CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () => NotifyAfterDelay_ProjectSnapshotManagerDispatcher(physicalFilePath),
+                CancellationToken.None);
         }
 
-        private void NotifyAfterDelay_Foreground(string physicalFilePath)
+        private void NotifyAfterDelay_ProjectSnapshotManagerDispatcher(string physicalFilePath)
         {
             lock (_pendingNotificationsLock)
             {

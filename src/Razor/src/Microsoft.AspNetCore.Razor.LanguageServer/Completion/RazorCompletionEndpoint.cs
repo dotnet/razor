@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         private PlatformAgnosticCompletionCapability _capability;
         private readonly ILogger _logger;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         private IReadOnlyList<ExtendedCompletionItemKinds> _supportedItemKinds;
 
         public RazorCompletionEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorCompletionFactsService completionFactsService,
             LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
@@ -49,9 +49,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver == null)
@@ -84,7 +84,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _completionFactsService = completionFactsService;
             _lspTagHelperTooltipFactory = lspTagHelperTooltipFactory;
@@ -102,16 +102,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public async Task<CompletionList> Handle(CompletionParams request, CancellationToken cancellationToken)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, CancellationToken.None);
 
             if (document is null || cancellationToken.IsCancellationRequested)
+            {
+                return new CompletionList(isIncomplete: false);
+            }
+
+            if (!IsApplicableTriggerContext(request.Context))
             {
                 return new CompletionList(isIncomplete: false);
             }
@@ -126,7 +129,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
             var sourceText = await document.GetTextAsync();
-            var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
+            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceSpan(hostDocumentIndex, 0);
 
@@ -242,6 +245,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             return Task.FromResult(completionItem);
+        }
+
+        // Internal for testing
+        internal static bool IsApplicableTriggerContext(CompletionContext context)
+        {
+            if (context is not OmniSharpVSCompletionContext vsCompletionContext)
+            {
+                Debug.Fail("Completion context should always be converted into a VSCompletionContext (even in VSCode).");
+
+                // We do not support providing completions on delete.
+                return false;
+            }
+
+            if (vsCompletionContext.InvokeKind == OmniSharpVSCompletionInvokeKind.Deletion)
+            {
+                // We do not support providing completions on delete.
+                return false;
+            }
+
+            return true;
         }
 
         // Internal for testing

@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
                 Array.Empty<ILanguageService>());
 
             return new DefaultProjectSnapshotManager(
-                new TestForegroundDispatcher(),
+                new TestProjectSnapshotManagerDispatcher(),
                 new TestErrorReporter(),
                 Array.Empty<ProjectSnapshotChangeTrigger>(),
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -91,13 +91,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             }
         }
 
-        private class TestForegroundDispatcher : ForegroundDispatcher
+        private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
         {
-            public override bool IsForegroundThread => true;
+            public override bool IsDispatcherThread => true;
 
-            public override TaskScheduler ForegroundScheduler => TaskScheduler.Default;
-
-            public override TaskScheduler BackgroundScheduler => TaskScheduler.Default;
+            public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
         }
 
         private class TestErrorReporter : ErrorReporter

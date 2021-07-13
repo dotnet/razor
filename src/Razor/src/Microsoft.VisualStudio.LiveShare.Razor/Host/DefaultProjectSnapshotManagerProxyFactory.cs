@@ -22,19 +22,19 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         Role = ServiceRole.RemoteService)]
     internal class DefaultProjectSnapshotManagerProxyFactory : ICollaborationServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
         private readonly Workspace _workspace;
 
         [ImportingConstructor]
         public DefaultProjectSnapshotManagerProxyFactory(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (joinableTaskContext == null)
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
 
             _workspace = workspace;
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
             var razorLanguageServices = _workspace.Services.GetLanguageServices(RazorLanguage.Name);
             var projectSnapshotManager = razorLanguageServices.GetRequiredService<ProjectSnapshotManager>();
 
-            var service = new DefaultProjectSnapshotManagerProxy(session, _foregroundDispatcher, projectSnapshotManager, _joinableTaskContext.Factory);
+            var service = new DefaultProjectSnapshotManagerProxy(session, _projectSnapshotManagerDispatcher, projectSnapshotManager, _joinableTaskContext.Factory);
             return Task.FromResult<ICollaborationService>(service);
         }
     }
