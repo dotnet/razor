@@ -5,11 +5,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class CodeDirectiveFormattingTest : FormattingTestBase
     {
+        public CodeDirectiveFormattingTest(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public async Task FormatsCodeBlockDirective()
         {
@@ -567,6 +573,44 @@ expected: @"
     Debugger.Launch();
 }
 <div></div>
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/29837")]
+        public async Task CodeBlock_NestedComponents()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@code {
+    private WeatherForecast[] forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        <Counter>
+            @{
+                    var t = DateTime.Now;
+                    t.ToString();
+                }
+            </Counter>
+        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+    }
+}
+",
+expected: @"@code {
+    private WeatherForecast[] forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        <Counter>
+            @{
+                var t = DateTime.Now;
+                t.ToString();
+            }
+        </Counter>
+        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+    }
+}
 ");
         }
     }

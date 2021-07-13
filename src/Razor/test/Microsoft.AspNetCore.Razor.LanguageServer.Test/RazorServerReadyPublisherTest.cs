@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             clientNotifierService.Verify();
         }
 
-        private const string _razorServerReadyEndpoint = "razor/serverReady";
+        private const string RazorServerReadyEndpoint = "razor/serverReady";
 
         [Fact]
         public void ProjectSnapshotManager_WorkspacePopulated_SetsUIContext()
@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
                 .Returns(() => Task.CompletedTask);
 
             var clientNotifierService = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-            clientNotifierService.Setup(l => l.SendRequestAsync(_razorServerReadyEndpoint))
+            clientNotifierService.Setup(l => l.SendRequestAsync(RazorServerReadyEndpoint))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
             var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, clientNotifierService.Object);
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
                 .Returns(() => Task.CompletedTask);
 
             var clientNotifierService = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-            clientNotifierService.Setup(l => l.SendRequestAsync(_razorServerReadyEndpoint))
+            clientNotifierService.Setup(l => l.SendRequestAsync(RazorServerReadyEndpoint))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
             var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, clientNotifierService.Object);

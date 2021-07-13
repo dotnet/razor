@@ -14,28 +14,28 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvider
     {
-        private static readonly IReadOnlyCollection<string> ElementCommitCharacters = new HashSet<string>{ ">" };
+        private static readonly IReadOnlyCollection<string> s_elementCommitCharacters = new HashSet<string>{ ">" };
 
         private readonly HtmlFactsService _htmlFactsService;
 
-        private static RazorCompletionItem _markupTransitionCompletionItem;
+        private static RazorCompletionItem s_markupTransitionCompletionItem;
         public static RazorCompletionItem MarkupTransitionCompletionItem
         {
             get
             {
-                if (_markupTransitionCompletionItem == null)
+                if (s_markupTransitionCompletionItem == null)
                 {
                     var completionDisplayText = SyntaxConstants.TextTagName;
-                    _markupTransitionCompletionItem = new RazorCompletionItem(
+                    s_markupTransitionCompletionItem = new RazorCompletionItem(
                         completionDisplayText,
                         completionDisplayText,
                         RazorCompletionItemKind.MarkupTransition,
-                        ElementCommitCharacters);
+                        s_elementCommitCharacters);
                     var completionDescription = new MarkupTransitionCompletionDescription(Resources.MarkupTransition_Description);
-                    _markupTransitionCompletionItem.SetMarkupTransitionCompletionDescription(completionDescription);
+                    s_markupTransitionCompletionItem.SetMarkupTransitionCompletionDescription(completionDescription);
                 }
 
-                return _markupTransitionCompletionItem;
+                return s_markupTransitionCompletionItem;
             }
         }
 

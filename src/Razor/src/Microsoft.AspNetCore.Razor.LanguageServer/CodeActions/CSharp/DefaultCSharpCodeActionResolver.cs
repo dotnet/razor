@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         // Usually when we need to format code, we utilize the formatting options provided
         // by the platform. However, we aren't provided such options in the case of code actions
         // so we use a default (and commonly used) configuration.
-        private static readonly FormattingOptions DefaultFormattingOptions = new FormattingOptions()
+        private static readonly FormattingOptions s_defaultFormattingOptions = new FormattingOptions()
         {
             TabSize = 4,
             InsertSpaces = true,
@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 documentSnapshot,
                 RazorLanguageKind.CSharp,
                 csharpTextEdits,
-                DefaultFormattingOptions,
+                s_defaultFormattingOptions,
                 cancellationToken,
                 bypassValidationPasses: true);
 

@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         private Uri Uri { get; }
+        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -71,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var called = false;
-            var expectedResult = new SignatureHelp();
+            var expectedResult = new ReinvokeResponse<SignatureHelp>(_languageClient, new SignatureHelp());
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
 
@@ -81,14 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SignatureHelp>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<TextDocumentPositionParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, definitionParams, ct) =>
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, definitionParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentSignatureHelpName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
                     called = true;
                 })
                 .Returns(Task.FromResult(expectedResult));
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.True(called);
-            Assert.Equal(expectedResult, result);
+            Assert.Equal(expectedResult.Result, result);
         }
 
         [Fact]
@@ -120,19 +120,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var called = false;
-            var expectedResult = new SignatureHelp();
+            var expectedResult = new ReinvokeResponse<SignatureHelp>(_languageClient, new SignatureHelp());
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
 
             var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SignatureHelp>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, definitionParams, ct) =>
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SignatureHelp>(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<TextDocumentPositionParams>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, definitionParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentSignatureHelpName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 })
                 .Returns(Task.FromResult(expectedResult));
@@ -156,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Assert
             Assert.True(called);
-            Assert.Equal(expectedResult, result);
+            Assert.Equal(expectedResult.Result, result);
         }
 
         [Fact]
@@ -171,9 +174,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     i.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SignatureHelp>(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<string>(),
                         It.IsAny<TextDocumentPositionParams>(),
-                        It.IsAny<CancellationToken>()) == Task.FromResult<SignatureHelp>(null), MockBehavior.Strict);
+                        It.IsAny<CancellationToken>()) == Task.FromResult(new ReinvokeResponse<SignatureHelp>(null, null)), MockBehavior.Strict);
 
             var projectionResult = new ProjectionResult()
             {

@@ -23,8 +23,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty
             .AddAssemblies(MefHostServices.DefaultAssemblies);
-        private static readonly ConcurrentDictionary<string, Scope> _scopes = new ConcurrentDictionary<string, Scope>();
-        private static readonly string DefaultScope = "default";
+        private static readonly ConcurrentDictionary<string, Scope> s_scopes = new ConcurrentDictionary<string, Scope>();
+        private const string DefaultScope = "default";
 
         internal static bool Enabled { get; private set; }
 
@@ -32,14 +32,14 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         {
             get
             {
-                var scopes = _scopes.Values.ToArray();
+                var scopes = s_scopes.Values.ToArray();
                 var defaultScope = scopes.Where(scope => scope.Name == DefaultScope);
                 var allButDefault = scopes.Where(scope => scope.Name != DefaultScope);
 
                 // Make sure to return the default scope as the last element
                 return allButDefault.Concat(defaultScope)
-                    .Where(scope => scope.CurrentExportProvider is { })
-                    .Select(scope => scope.CurrentExportProvider!)
+                    .Where(scope => scope._currentExportProvider is { })
+                    .Select(scope => scope._currentExportProvider!)
                     .ToArray();
             }
         }
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             Enabled = value;
             if (!Enabled)
             {
-                foreach (var scope in _scopes.Values.ToArray())
+                foreach (var scope in s_scopes.Values.ToArray())
                 {
                     scope.Clear();
                 }
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog, string? scopeName = null)
         {
-            var scope = _scopes.GetOrAdd(scopeName ?? DefaultScope, scopeName => new Scope(scopeName));
+            var scope = s_scopes.GetOrAdd(scopeName ?? DefaultScope, scopeName => new Scope(scopeName));
             var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
             var exportProviderFactory = runtimeComposition.CreateExportProviderFactory();
@@ -157,10 +157,10 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                     throw new InvalidOperationException($"{nameof(ExportProviderCache)} may only be used from tests marked with {nameof(UseExportProviderAttribute)}");
                 }
 
-                var expectedCatalog = Interlocked.CompareExchange(ref _scope.ExpectedCatalog, _catalog, null) ?? _catalog;
+                var expectedCatalog = Interlocked.CompareExchange(ref _scope._expectedCatalog, _catalog, null) ?? _catalog;
                 RequireForSingleExportProvider(expectedCatalog == _catalog);
 
-                var expected = _scope.ExpectedProviderForCatalog;
+                var expected = _scope._expectedProviderForCatalog;
                 if (expected == null)
                 {
                     foreach (var errorCollection in _configuration.CompositionErrors)
@@ -194,11 +194,11 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                     }
 
                     expected = _exportProviderFactory.CreateExportProvider();
-                    expected = Interlocked.CompareExchange(ref _scope.ExpectedProviderForCatalog, expected, null) ?? expected;
-                    Interlocked.CompareExchange(ref _scope.CurrentExportProvider, expected, null);
+                    expected = Interlocked.CompareExchange(ref _scope._expectedProviderForCatalog, expected, null) ?? expected;
+                    Interlocked.CompareExchange(ref _scope._currentExportProvider, expected, null);
                 }
 
-                var exportProvider = _scope.CurrentExportProvider;
+                var exportProvider = _scope._currentExportProvider;
                 RequireForSingleExportProvider(exportProvider == expected);
 
                 return exportProvider!;
@@ -250,9 +250,9 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         private sealed class Scope
         {
             public readonly string Name;
-            public ExportProvider? CurrentExportProvider;
-            public ComposableCatalog? ExpectedCatalog;
-            public ExportProvider? ExpectedProviderForCatalog;
+            public ExportProvider? _currentExportProvider;
+            public ComposableCatalog? _expectedCatalog;
+            public ExportProvider? _expectedProviderForCatalog;
 
             public Scope(string name)
             {
@@ -261,9 +261,9 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
             public void Clear()
             {
-                CurrentExportProvider = null;
-                ExpectedCatalog = null;
-                ExpectedProviderForCatalog = null;
+                _currentExportProvider = null;
+                _expectedCatalog = null;
+                _expectedProviderForCatalog = null;
             }
         }
 

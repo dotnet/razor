@@ -245,7 +245,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 await _requestInvoker.ReinvokeRequestOnServerAsync<DidChangeConfigurationParams, Unit>(
                     Methods.WorkspaceDidChangeConfigurationName,
                     RazorLSPConstants.RazorLanguageServerName,
-                    RazorLSPConstants.RazorLSPContentTypeName,
                     CheckRazorServerCapability,
                     new DidChangeConfigurationParams(),
                     CancellationToken.None);

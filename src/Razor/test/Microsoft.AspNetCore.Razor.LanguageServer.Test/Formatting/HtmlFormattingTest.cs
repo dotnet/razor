@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -14,6 +15,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         internal override bool UseTwoPhaseCompilation => true;
 
         internal override bool DesignTime => true;
+
+        public HtmlFormattingTest(ITestOutputHelper output)
+            : base(output)
+        {
+        }
 
         [Fact]
         public async Task FormatsSimpleHtmlTag()

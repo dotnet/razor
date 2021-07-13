@@ -139,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             using (var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, languageServer.Object, LoggerFactory))
             {
-                publisher._publishedDiagnostics[processedOpenDocument.FilePath] = EmptyDiagnostics;
+                publisher.PublishedDiagnostics[processedOpenDocument.FilePath] = EmptyDiagnostics;
                 publisher.Initialize(ProjectManager);
 
                 // Act
@@ -160,7 +160,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             processedOpenDocument.With(codeDocument);
             using (var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, languageServer.Object, LoggerFactory))
             {
-                publisher._publishedDiagnostics[processedOpenDocument.FilePath] = SingleDiagnosticCollection;
+                publisher.PublishedDiagnostics[processedOpenDocument.FilePath] = SingleDiagnosticCollection;
                 publisher.Initialize(ProjectManager);
 
                 // Act & Assert
@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             });
             using (var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, languageServer.Object, LoggerFactory))
             {
-                publisher._publishedDiagnostics[ClosedDocument.FilePath] = SingleDiagnosticCollection;
+                publisher.PublishedDiagnostics[ClosedDocument.FilePath] = SingleDiagnosticCollection;
                 publisher.Initialize(ProjectManager);
 
                 // Act
@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
             using (var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, languageServer.Object, LoggerFactory))
             {
-                publisher._publishedDiagnostics[OpenedDocument.FilePath] = SingleDiagnosticCollection;
+                publisher.PublishedDiagnostics[OpenedDocument.FilePath] = SingleDiagnosticCollection;
                 publisher.Initialize(ProjectManager);
 
                 // Act & Assert
@@ -214,7 +214,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
             using (var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, languageServer.Object, LoggerFactory))
             {
-                publisher._publishedDiagnostics[ClosedDocument.FilePath] = EmptyDiagnostics;
+                publisher.PublishedDiagnostics[ClosedDocument.FilePath] = EmptyDiagnostics;
                 publisher.Initialize(ProjectManager);
 
                 // Act & Assert
@@ -229,8 +229,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var languageServer = new Mock<ITextDocumentLanguageServer>(MockBehavior.Strict);
             using (var publisher = new TestRazorDiagnosticsPublisher(Dispatcher, languageServer.Object, LoggerFactory))
             {
-                publisher._publishedDiagnostics[ClosedDocument.FilePath] = EmptyDiagnostics;
-                publisher._publishedDiagnostics[OpenedDocument.FilePath] = EmptyDiagnostics;
+                publisher.PublishedDiagnostics[ClosedDocument.FilePath] = EmptyDiagnostics;
+                publisher.PublishedDiagnostics[OpenedDocument.FilePath] = EmptyDiagnostics;
                 publisher.Initialize(ProjectManager);
 
                 // Act

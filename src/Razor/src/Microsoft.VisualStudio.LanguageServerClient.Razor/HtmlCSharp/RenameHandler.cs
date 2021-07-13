@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 return null;
             }
@@ -106,14 +106,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting rename for {projectionResult.Uri}.");
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<RenameParams, WorkspaceEdit>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RenameParams, WorkspaceEdit>(
                 Methods.TextDocumentRenameName,
                 projectionResult.LanguageKind.ToContainedLanguageServerName(),
-                projectionResult.LanguageKind.ToContainedLanguageContentType(),
                 renameParams,
                 cancellationToken).ConfigureAwait(false);
+            var result = response.Result;
 
-            if (result == null)
+            if (result is null)
             {
                 _logger.LogInformation("Received no result.");
                 return null;

@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 return null;
             }
@@ -92,12 +92,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting signature help for {projectionResult.Uri}.");
 
-            var signatureHelp = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SignatureHelp>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, SignatureHelp>(
                 Methods.TextDocumentSignatureHelpName,
                 projectionResult.LanguageKind.ToContainedLanguageServerName(),
-                projectionResult.LanguageKind.ToContainedLanguageContentType(),
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
+            var signatureHelp = response.Result;
 
             if (signatureHelp is null)
             {

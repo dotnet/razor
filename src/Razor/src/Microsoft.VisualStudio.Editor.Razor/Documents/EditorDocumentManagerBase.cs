@@ -19,7 +19,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private readonly FileChangeTrackerFactory _fileChangeTrackerFactory;
         private readonly Dictionary<DocumentKey, EditorDocument> _documents;
         private readonly Dictionary<string, List<DocumentKey>> _documentsByFilePath;
-        protected readonly object _lock;
+
+        protected readonly object Lock;
 
         public EditorDocumentManagerBase(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -47,7 +48,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             _documents = new Dictionary<DocumentKey, EditorDocument>();
             _documentsByFilePath = new Dictionary<string, List<DocumentKey>>(FilePathComparer.Instance);
-            _lock = new object();
+
+            Lock = new object();
         }
 
         protected ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; }
@@ -64,7 +66,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 return _documents.TryGetValue(key, out document);
             }
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 if (!_documentsByFilePath.TryGetValue(filePath, out var keys))
                 {
@@ -101,7 +103,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 if (TryGetDocument(key, out var document))
                 {
@@ -160,7 +162,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 if (TryGetMatchingDocuments(filePath, out var documents))
                 {
@@ -184,7 +186,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 if (TryGetMatchingDocuments(filePath, out var documents))
                 {
@@ -208,7 +210,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
                 if (_documentsByFilePath.TryGetValue(document.DocumentFilePath, out var documents))

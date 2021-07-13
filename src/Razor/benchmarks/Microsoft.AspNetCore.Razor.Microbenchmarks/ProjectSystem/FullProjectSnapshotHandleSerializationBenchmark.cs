@@ -13,8 +13,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
     public class FullProjectSnapshotHandleSerializationBenchmark
     {
         // Hardcoded expectations from `ProjectSystem\project.razor.json`
-        private static readonly string ExpectedFilePath = "C:\\Users\\admin\\location\\blazorserver\\blazorserver.csproj";
-        private static readonly int ExpectedTagHelperCount = 228;
+        private const string ExpectedFilePath = "C:\\Users\\admin\\location\\blazorserver\\blazorserver.csproj";
+        private const int ExpectedTagHelperCount = 228;
 
         private JsonSerializer Serializer { get; set; }
         private JsonReader Reader { get; set; }

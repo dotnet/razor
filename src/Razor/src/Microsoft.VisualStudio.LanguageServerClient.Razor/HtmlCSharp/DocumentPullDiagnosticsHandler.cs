@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var results = resultsFromAllLanguageServers.SelectMany(l => l).ToArray();
+            var results = resultsFromAllLanguageServers.SelectMany(l => l.Result).ToArray();
 
             _logger.LogInformation($"Received {results?.Length} diagnostic reports.");
 

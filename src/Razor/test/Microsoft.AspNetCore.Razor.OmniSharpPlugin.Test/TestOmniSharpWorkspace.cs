@@ -10,11 +10,11 @@ namespace OmniSharp
 {
     public static class TestOmniSharpWorkspace
     {
-        private static readonly object WorkspaceLock = new object();
+        private static readonly object s_workspaceLock = new object();
 
         public static OmniSharpWorkspace Create()
         {
-            lock (WorkspaceLock)
+            lock (s_workspaceLock)
             {
                 var factory = LoggerFactory.Create((b) => { });
                 var hostServicesAggregator = new HostServicesAggregator(Enumerable.Empty<IHostServicesProvider>(), factory);

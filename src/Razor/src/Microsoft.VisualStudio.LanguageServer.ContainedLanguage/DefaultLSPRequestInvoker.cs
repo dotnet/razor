@@ -45,31 +45,29 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             _serializer.AddVSExtensionConverters();
         }
 
-        public override Task<IEnumerable<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, TIn parameters, CancellationToken cancellationToken)
+        public override Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, TIn parameters, CancellationToken cancellationToken)
         {
             var capabilitiesFilter = _fallbackCapabilitiesFilterResolver.Resolve(method);
             return RequestMultipleServerCoreAsync<TIn, TOut>(method, contentType, capabilitiesFilter, parameters, cancellationToken);
         }
 
-        public override Task<IEnumerable<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
+        public override Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
         {
             return RequestMultipleServerCoreAsync<TIn, TOut>(method, contentType, capabilitiesFilter, parameters, cancellationToken);
         }
 
-        public override Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
+        public override Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(
             string method,
             string languageServerName,
-            string contentType,
             TIn parameters,
             CancellationToken cancellationToken)
         {
-            return ReinvokeRequestOnServerAsync<TIn, TOut>(method, languageServerName, contentType, capabilitiesFilter: null, parameters, cancellationToken);
+            return ReinvokeRequestOnServerAsync<TIn, TOut>(method, languageServerName, capabilitiesFilter: null, parameters, cancellationToken);
         }
 
-        public override async Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
+        public override async Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(
             string method,
             string languageServerName,
-            string contentType,
             Func<JToken, bool> capabilitiesFilter,
             TIn parameters,
             CancellationToken cancellationToken)
@@ -79,26 +77,26 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 throw new ArgumentException("message", nameof(method));
             }
 
-            if (capabilitiesFilter == null)
+            if (capabilitiesFilter is null)
             {
                 capabilitiesFilter = _fallbackCapabilitiesFilterResolver.Resolve(method);
             }
 
             var serializedParams = JToken.FromObject(parameters);
 
-            var (_, resultToken) = await _languageServiceBroker.RequestAsync(
-                new[] { contentType },
+            var (languageClient, resultToken) = await _languageServiceBroker.RequestAsync(
+                Array.Empty<string>(),
                 capabilitiesFilter,
                 languageServerName,
                 method,
                 serializedParams,
                 cancellationToken);
 
-            var result = resultToken != null ? resultToken.ToObject<TOut>(_serializer) : default;
+            var result = resultToken != null ? new ReinvokeResponse<TOut>(languageClient, resultToken.ToObject<TOut>(_serializer)) : default;
             return result;
         }
 
-        private async Task<IEnumerable<TOut>> RequestMultipleServerCoreAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
+        private async Task<IEnumerable<ReinvokeResponse<TOut>>> RequestMultipleServerCoreAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(method))
             {
@@ -117,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 #pragma warning restore CS0618 // Type or member is obsolete
 
             // a little ugly - tuple deconstruction in lambda arguments doesn't work - https://github.com/dotnet/csharplang/issues/258
-            var results = clientAndResultTokenPairs.Select((clientAndResultToken) => clientAndResultToken.Item2 != null ? clientAndResultToken.Item2.ToObject<TOut>(_serializer) : default);
+            var results = clientAndResultTokenPairs.Select((clientAndResultToken) => clientAndResultToken.Item2 != null ? new ReinvokeResponse<TOut>(clientAndResultToken.Item1, clientAndResultToken.Item2.ToObject<TOut>(_serializer)) : default);
 
             return results;
         }

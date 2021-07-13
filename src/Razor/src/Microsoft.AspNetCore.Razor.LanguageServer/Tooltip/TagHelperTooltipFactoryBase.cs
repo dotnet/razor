@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
     internal abstract class TagHelperTooltipFactoryBase
     {
-        private static readonly IReadOnlyList<char> NewLineChars = new char[] { '\n', '\r' };
+        private static readonly IReadOnlyList<char> s_newLineChars = new char[] { '\n', '\r' };
 
         // Internal for testing
         internal static string ReduceCrefValue(string value)
@@ -52,8 +52,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         // Internal for testing
         internal static bool TryExtractSummary(string documentation, out string summary)
         {
-            const string summaryStartTag = "<summary>";
-            const string summaryEndTag = "</summary>";
+            const string SummaryStartTag = "<summary>";
+            const string SummaryEndTag = "</summary>";
 
             if (string.IsNullOrEmpty(documentation))
             {
@@ -61,10 +61,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 return false;
             }
 
-            documentation = documentation.Trim(NewLineChars.ToArray());
+            documentation = documentation.Trim(s_newLineChars.ToArray());
 
-            var summaryTagStart = documentation.IndexOf(summaryStartTag, StringComparison.OrdinalIgnoreCase);
-            var summaryTagEndStart = documentation.IndexOf(summaryEndTag, StringComparison.OrdinalIgnoreCase);
+            var summaryTagStart = documentation.IndexOf(SummaryStartTag, StringComparison.OrdinalIgnoreCase);
+            var summaryTagEndStart = documentation.IndexOf(SummaryEndTag, StringComparison.OrdinalIgnoreCase);
             if (summaryTagStart == -1 || summaryTagEndStart == -1)
             {
                 // A really wrong but cheap way to check if this is XML
@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 return false;
             }
 
-            var summaryContentStart = summaryTagStart + summaryStartTag.Length;
+            var summaryContentStart = summaryTagStart + SummaryStartTag.Length;
             var summaryContentLength = summaryTagEndStart - summaryContentStart;
 
             summary = documentation.Substring(summaryContentStart, summaryContentLength);

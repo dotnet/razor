@@ -25,8 +25,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         private readonly DocumentResolver _documentResolver;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
 
-        private DefinitionCapability _capability { get; set; }
-
         public RazorDefinitionEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
@@ -112,7 +110,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
         public void SetCapability(DefinitionCapability capability)
         {
-            _capability = capability;
         }
 
         internal static async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(

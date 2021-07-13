@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -28,6 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public Uri CSharpFile => new Uri("file:///some/folder/to/csharpfile.cs");
 
+        private static readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
+
         [Fact]
         public async Task RazorMapToDocumentRangeAsync_InvokesLanguageServer()
         {
@@ -47,8 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<RazorMapToDocumentRangesParams, RazorMapToDocumentRangesResponse>(LanguageServerConstants.RazorMapToDocumentRangesEndpoint, RazorLSPConstants.RazorLanguageServerName, RazorLSPConstants.RazorLSPContentTypeName, It.IsAny<Func<JToken, bool>>(), It.IsAny<RazorMapToDocumentRangesParams>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(response));
+                .Setup(r => r.ReinvokeRequestOnServerAsync<RazorMapToDocumentRangesParams, RazorMapToDocumentRangesResponse>(
+                    LanguageServerConstants.RazorMapToDocumentRangesEndpoint,
+                    RazorLSPConstants.RazorLanguageServerName,
+                    It.IsAny<Func<JToken, bool>>(),
+                    It.IsAny<RazorMapToDocumentRangesParams>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(new ReinvokeResponse<RazorMapToDocumentRangesResponse>(_languageClient, response)));
 
             var lazyDocumentManager = new Lazy<LSPDocumentManager>(() => new TestDocumentManager());
             var mappingProvider = new DefaultLSPDocumentMappingProvider(requestInvoker.Object, lazyDocumentManager);
@@ -75,7 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var expectedRange = new TestRange(1, 1, 1, 5);
             var expectedVersion = 1;
-            var lazyDocumentManager = new Lazy<LSPDocumentManager>(() => {
+            var lazyDocumentManager = new Lazy<LSPDocumentManager>(() =>
+            {
                 var documentManager = new TestDocumentManager();
                 documentManager.AddDocument(RazorFile, Mock.Of<LSPDocumentSnapshot>(d => d.Version == expectedVersion && d.Uri == RazorFile, MockBehavior.Strict));
                 return documentManager;
@@ -110,7 +119,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var expectedRange = new TestRange(1, 1, 1, 5);
             var expectedVersion = 1;
 
-            var lazyDocumentManager = new Lazy<LSPDocumentManager>(() => {
+            var lazyDocumentManager = new Lazy<LSPDocumentManager>(() =>
+            {
                 var documentManager = new TestDocumentManager();
                 documentManager.AddDocument(RazorFile, Mock.Of<LSPDocumentSnapshot>(d => d.Version == expectedVersion && d.Uri == RazorFile, MockBehavior.Strict));
                 return documentManager;
@@ -145,7 +155,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var expectedRange = new TestRange(10, 10, 10, 15);
             var expectedVersion = 10;
 
-            var lazyDocumentManager = new Lazy<LSPDocumentManager>(() => {
+            var lazyDocumentManager = new Lazy<LSPDocumentManager>(() =>
+            {
                 var documentManager = new TestDocumentManager();
                 documentManager.AddDocument(CSharpFile, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
                 return documentManager;
@@ -179,7 +190,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var expectedVersion1 = 1;
             var expectedVersion2 = 5;
 
-            var lazyDocumentManager = new Lazy<LSPDocumentManager>(() => {
+            var lazyDocumentManager = new Lazy<LSPDocumentManager>(() =>
+            {
                 var documentManager = new TestDocumentManager();
                 documentManager.AddDocument(RazorFile, Mock.Of<LSPDocumentSnapshot>(d => d.Version == expectedVersion1 && d.Uri == RazorFile, MockBehavior.Strict));
                 documentManager.AddDocument(AnotherRazorFile, Mock.Of<LSPDocumentSnapshot>(d => d.Version == expectedVersion2 && d.Uri == AnotherRazorFile, MockBehavior.Strict));
@@ -222,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 });
         }
 
-        private LSPRequestInvoker GetRequestInvoker(((RazorLanguageKind, Uri, TestTextEdit[]), (TestTextEdit[], int))[] mappingPairs)
+        private static LSPRequestInvoker GetRequestInvoker(((RazorLanguageKind, Uri, TestTextEdit[]), (TestTextEdit[], int))[] mappingPairs)
         {
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             if (mappingPairs == null)
@@ -249,10 +261,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     .Setup(r => r.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(
                         LanguageServerConstants.RazorMapToDocumentEditsEndpoint,
                         RazorLSPConstants.RazorLanguageServerName,
-                        RazorLSPConstants.RazorLSPContentTypeName,
                         It.IsAny<Func<JToken, bool>>(), requestParams,
                         It.IsAny<CancellationToken>()))
-                    .Returns(Task.FromResult(response));
+                    .Returns(Task.FromResult(new ReinvokeResponse<RazorMapToDocumentEditsResponse>(_languageClient, response)));
             }
 
             return requestInvoker.Object;

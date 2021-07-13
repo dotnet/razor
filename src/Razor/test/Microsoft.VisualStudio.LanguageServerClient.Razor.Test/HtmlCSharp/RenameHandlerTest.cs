@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -19,6 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         private Uri Uri { get; }
+
+        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -80,11 +83,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = GetRequestInvoker<RenameParams, WorkspaceEdit>(
                 new WorkspaceEdit(),
-                (method, clientName, serverContentType, renameParams, ct) =>
+                (method, clientName, renameParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentRenameName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -120,11 +122,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = GetRequestInvoker<RenameParams, WorkspaceEdit>(
                 new WorkspaceEdit(),
-                (method, clientName, serverContentType, renameParams, ct) =>
+                (method, clientName, renameParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentRenameName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -149,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Actual remapping behavior is tested in LSPDocumentMappingProvider tests.
         }
 
-        private LSPProjectionProvider GetProjectionProvider(ProjectionResult expectedResult)
+        private static LSPProjectionProvider GetProjectionProvider(ProjectionResult expectedResult)
         {
             var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(expectedResult));
@@ -157,18 +158,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return projectionProvider.Object;
         }
 
-        private LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, string, TParams, CancellationToken> callback)
+        private LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, TParams, CancellationToken> callback)
         {
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
                 .Callback(callback)
-                .Returns(Task.FromResult(expectedResponse));
+                .Returns(Task.FromResult(new ReinvokeResponse<TResult>(_languageClient, expectedResponse)));
 
             return requestInvoker.Object;
         }
 
-        private LSPDocumentMappingProvider GetDocumentMappingProvider(WorkspaceEdit expectedEdit)
+        private static LSPDocumentMappingProvider GetDocumentMappingProvider(WorkspaceEdit expectedEdit)
         {
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(d => d.RemapWorkspaceEditAsync(It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>())).

@@ -4,11 +4,17 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class CodeDirectiveOnTypeFormattingTest : FormattingTestBase
     {
+        public CodeDirectiveOnTypeFormattingTest(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public async Task CloseCurly_Class_SingleLine()
         {

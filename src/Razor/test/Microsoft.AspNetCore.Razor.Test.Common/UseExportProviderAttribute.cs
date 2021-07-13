@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         /// to completion. If this timeout is exceeded by the asynchronous operations running after a test completes,
         /// the test is failed.
         /// </summary>
-        private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan s_cleanupTimeout = TimeSpan.FromMinutes(1);
 
 #if false
         private MefHostServices? _hostServices;
@@ -124,7 +124,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 var denyExecutionSynchronizationContext = testExportJoinableTaskContext?.SynchronizationContext as TestExportJoinableTaskContext.DenyExecutionSynchronizationContext;
 
                 // Join remaining operations with a timeout
-                using (var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout))
+                using (var timeoutTokenSource = new CancellationTokenSource(s_cleanupTimeout))
                 {
                     if (denyExecutionSynchronizationContext is object)
                     {

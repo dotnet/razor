@@ -21,19 +21,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
     {
-        private readonly DocumentResolver EmptyDocumentResolver;
+        private readonly DocumentResolver _emptyDocumentResolver;
 
         public ExtractToCodeBehindCodeActionResolverTest()
         {
-            EmptyDocumentResolver = new Mock<DocumentResolver>(MockBehavior.Strict).Object;
-            Mock.Get(EmptyDocumentResolver).Setup(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny)).Returns(false);
+            _emptyDocumentResolver = new Mock<DocumentResolver>(MockBehavior.Strict).Object;
+            Mock.Get(_emptyDocumentResolver).Setup(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny)).Returns(false);
         }
 
         [Fact]
         public async Task Handle_MissingFile()
         {
             // Arrange
-            var resolver = new ExtractToCodeBehindCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), EmptyDocumentResolver, FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), _emptyDocumentResolver, FilePathNormalizer);
             var data = JObject.FromObject(new ExtractToCodeBehindCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),

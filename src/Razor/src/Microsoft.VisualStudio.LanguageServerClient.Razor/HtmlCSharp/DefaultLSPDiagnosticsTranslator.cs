@@ -54,11 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var diagnosticResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, RazorDiagnosticsResponse>(
                 LanguageServerConstants.RazorTranslateDiagnosticsEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
-                RazorLSPConstants.RazorLSPContentTypeName,
                 diagnosticsParams,
                 cancellationToken).ConfigureAwait(false);
 
-            return diagnosticResponse;
+            return diagnosticResponse.Result;
         }
     }
 }

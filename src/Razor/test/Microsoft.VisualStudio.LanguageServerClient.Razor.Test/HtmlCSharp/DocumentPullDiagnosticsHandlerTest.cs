@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
@@ -19,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     public class DocumentPullDiagnosticsHandlerTest
     {
-        private static readonly Diagnostic ValidDiagnostic_UnknownName = new Diagnostic()
+        private static readonly Diagnostic s_validDiagnostic_UnknownName = new Diagnostic()
         {
             Range = new Range()
             {
@@ -31,13 +32,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Message = "The name 'saflkjklj' does not exist in the current context"
         };
 
-        private static readonly Range ValidDiagnostic_UnknownName_MappedRange = new Range()
+        private static readonly Range s_validDiagnostic_UnknownName_MappedRange = new Range()
         {
             Start = new Position(49, 19),
             End = new Position(49, 23)
         };
 
-        private static readonly Diagnostic ValidDiagnostic_InvalidExpression = new Diagnostic()
+        private static readonly Diagnostic s_validDiagnostic_InvalidExpression = new Diagnostic()
         {
             Range = new Range()
             {
@@ -49,13 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Message = "Invalid expression term 'bool'"
         };
 
-        private static readonly Range ValidDiagnostic_InvalidExpression_MappedRange = new Range()
+        private static readonly Range s_validDiagnostic_InvalidExpression_MappedRange = new Range()
         {
             Start = new Position(50, 19),
             End = new Position(50, 23)
         };
 
-        private static readonly Diagnostic UnusedUsingsDiagnostic = new Diagnostic()
+        private static readonly Diagnostic s_unusedUsingsDiagnostic = new Diagnostic()
         {
             Range = new Range()
             {
@@ -67,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Message = "Using directive is unnecessary."
         };
 
-        private static readonly Diagnostic RemoveUnnecessaryImportsFixableDiagnostic = new Diagnostic()
+        private static readonly Diagnostic s_removeUnnecessaryImportsFixableDiagnostic = new Diagnostic()
         {
             Range = new Range()
             {
@@ -78,20 +79,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Source = "DocumentPullDiagnosticHandler",
         };
 
-        private static readonly DiagnosticReport[] RoslynDiagnosticResponse = new DiagnosticReport[]
+        private static readonly DiagnosticReport[] s_roslynDiagnosticResponse = new DiagnosticReport[]
         {
             new DiagnosticReport()
             {
                 ResultId = "5",
                 Diagnostics = new Diagnostic[]
                 {
-                    ValidDiagnostic_UnknownName,
-                    ValidDiagnostic_InvalidExpression,
-                    UnusedUsingsDiagnostic,
-                    RemoveUnnecessaryImportsFixableDiagnostic
+                    s_validDiagnostic_UnknownName,
+                    s_validDiagnostic_InvalidExpression,
+                    s_unusedUsingsDiagnostic,
+                    s_removeUnnecessaryImportsFixableDiagnostic
                 }
             }
         };
+
+        private static readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         public DocumentPullDiagnosticsHandlerTest()
         {
@@ -135,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentManager = CreateDocumentManager();
 
             var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
-                RoslynDiagnosticResponse,
+                s_roslynDiagnosticResponse,
                 (method, serverContentType, diagnosticParams, ct) =>
                 {
                     Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
@@ -143,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     called = true;
                 });
 
-            var diagnosticsProvider = GetDiagnosticsProvider(ValidDiagnostic_UnknownName_MappedRange, ValidDiagnostic_InvalidExpression_MappedRange);
+            var diagnosticsProvider = GetDiagnosticsProvider(s_validDiagnostic_UnknownName_MappedRange, s_validDiagnostic_InvalidExpression_MappedRange);
             var documentSynchronizer = CreateDocumentSynchronizer();
 
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
@@ -159,17 +162,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Assert
             Assert.True(called);
             var diagnosticReport = Assert.Single(result);
-            Assert.Equal(RoslynDiagnosticResponse.First().ResultId, diagnosticReport.ResultId);
+            Assert.Equal(s_roslynDiagnosticResponse.First().ResultId, diagnosticReport.ResultId);
             Assert.Collection(diagnosticReport.Diagnostics,
                 d =>
                 {
-                    Assert.Equal(ValidDiagnostic_UnknownName.Code, d.Code);
-                    Assert.Equal(ValidDiagnostic_UnknownName_MappedRange, d.Range);
+                    Assert.Equal(s_validDiagnostic_UnknownName.Code, d.Code);
+                    Assert.Equal(s_validDiagnostic_UnknownName_MappedRange, d.Range);
                 },
                 d =>
                 {
-                    Assert.Equal(ValidDiagnostic_InvalidExpression.Code, d.Code);
-                    Assert.Equal(ValidDiagnostic_InvalidExpression_MappedRange, d.Range);
+                    Assert.Equal(s_validDiagnostic_InvalidExpression.Code, d.Code);
+                    Assert.Equal(s_validDiagnostic_InvalidExpression_MappedRange, d.Range);
                 });
         }
 
@@ -181,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentManager = CreateDocumentManager();
 
             var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
-                RoslynDiagnosticResponse,
+                s_roslynDiagnosticResponse,
                 (method, serverContentType, diagnosticParams, ct) =>
                 {
                     Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
@@ -189,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     called = true;
                 });
 
-            var diagnosticsProvider = GetDiagnosticsProvider(ValidDiagnostic_UnknownName_MappedRange, ValidDiagnostic_InvalidExpression_MappedRange);
+            var diagnosticsProvider = GetDiagnosticsProvider(s_validDiagnostic_UnknownName_MappedRange, s_validDiagnostic_InvalidExpression_MappedRange);
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
@@ -357,7 +360,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentManager = CreateDocumentManager(hostDocumentVersion: 1);
 
             var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
-                RoslynDiagnosticResponse,
+                s_roslynDiagnosticResponse,
                 (method, serverContentType, diagnosticParams, ct) =>
                 {
                     Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
@@ -367,7 +370,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Note the HostDocumentVersion provided by the DiagnosticsProvider = 0,
             // which is different from document version (1) from the DocumentManager
-            var diagnosticsProvider = GetDiagnosticsProvider(ValidDiagnostic_UnknownName_MappedRange, ValidDiagnostic_InvalidExpression_MappedRange);
+            var diagnosticsProvider = GetDiagnosticsProvider(s_validDiagnostic_UnknownName_MappedRange, s_validDiagnostic_InvalidExpression_MappedRange);
             var documentSynchronizer = CreateDocumentSynchronizer();
 
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer, diagnosticsProvider, LoggerProvider);
@@ -383,7 +386,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Assert
             Assert.True(called);
             var returnedReport = Assert.Single(result);
-            Assert.Equal(RoslynDiagnosticResponse.First().ResultId, returnedReport.ResultId);
+            Assert.Equal(s_roslynDiagnosticResponse.First().ResultId, returnedReport.ResultId);
             Assert.Null(returnedReport.Diagnostics);
         }
 
@@ -395,7 +398,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentManager = CreateDocumentManager();
 
             var requestInvoker = GetRequestInvoker<DocumentDiagnosticsParams, DiagnosticReport[]>(
-                RoslynDiagnosticResponse,
+                s_roslynDiagnosticResponse,
                 (method, serverContentType, diagnosticParams, ct) =>
                 {
                     Assert.Equal(MSLSPMethods.DocumentPullDiagnosticName, method);
@@ -419,17 +422,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Assert
             Assert.True(called);
             var returnedReport = Assert.Single(result);
-            Assert.Equal(RoslynDiagnosticResponse.First().ResultId, returnedReport.ResultId);
+            Assert.Equal(s_roslynDiagnosticResponse.First().ResultId, returnedReport.ResultId);
             Assert.Null(returnedReport.Diagnostics);
         }
 
-        private LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, TParams, CancellationToken> callback)
+        private static LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, TParams, CancellationToken> callback)
         {
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnMultipleServersAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
                 .Callback(callback)
-                .Returns(Task.FromResult(new List<TResult>() { expectedResponse } as IEnumerable<TResult>));
+                .Returns(Task.FromResult(new List<ReinvokeResponse<TResult>>() { new ReinvokeResponse<TResult>(_languageClient, expectedResponse )} as IEnumerable<ReinvokeResponse<TResult>>));
 
             return requestInvoker.Object;
         }

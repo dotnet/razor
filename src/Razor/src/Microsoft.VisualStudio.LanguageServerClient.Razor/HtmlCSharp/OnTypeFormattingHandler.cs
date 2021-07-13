@@ -19,9 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName)]
     internal class OnTypeFormattingHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
-        private static readonly IReadOnlyList<string> CSharpTriggerCharacters = new[] { "}", ";" };
-        private static readonly IReadOnlyList<string> HtmlTriggerCharacters = Array.Empty<string>();
-        private static readonly IReadOnlyList<string> AllTriggerCharacters = CSharpTriggerCharacters.Concat(HtmlTriggerCharacters).ToArray();
+        private static readonly IReadOnlyList<string> s_cSharpTriggerCharacters = new[] { "}", ";" };
+        private static readonly IReadOnlyList<string> s_htmlTriggerCharacters = Array.Empty<string>();
+        private static readonly IReadOnlyList<string> s_allTriggerCharacters = s_cSharpTriggerCharacters.Concat(s_htmlTriggerCharacters).ToArray();
 
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPRequestInvoker _requestInvoker;
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            if (!AllTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
+            if (!s_allTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
             {
                 // Unexpected trigger character.
                 return null;
@@ -129,15 +129,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting formatting for {projectionResult.Uri}.");
 
             var languageServerName = triggerCharacterKind.Value.ToContainedLanguageServerName();
-            var contentType = triggerCharacterKind.Value.ToContainedLanguageContentType();
-            var textEdits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
                 Methods.TextDocumentOnTypeFormattingName,
                 languageServerName,
-                contentType,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
+            var textEdits = response.Result;
 
-            if (textEdits == null)
+            if (textEdits is null)
             {
                 _logger.LogInformation("Received no results.");
                 return null;
@@ -175,11 +174,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             if (languageKind == RazorLanguageKind.CSharp)
             {
-                return CSharpTriggerCharacters.Contains(triggerCharacter);
+                return s_cSharpTriggerCharacters.Contains(triggerCharacter);
             }
             else if (languageKind == RazorLanguageKind.Html)
             {
-                return HtmlTriggerCharacters.Contains(triggerCharacter);
+                return s_htmlTriggerCharacters.Contains(triggerCharacter);
             }
 
             // Unknown trigger character.

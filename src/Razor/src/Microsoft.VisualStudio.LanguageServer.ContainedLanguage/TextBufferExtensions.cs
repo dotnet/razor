@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.Text
 {
     internal static class TextBufferExtensions
     {
-        private static readonly string HostDocumentVersionMarked = "__MsLsp_HostDocumentVersionMarker__";
+        private const string HostDocumentVersionMarked = "__MsLsp_HostDocumentVersionMarker__";
 
         public static void SetHostDocumentSyncVersion(this ITextBuffer textBuffer, long hostDocumentVersion)
         {

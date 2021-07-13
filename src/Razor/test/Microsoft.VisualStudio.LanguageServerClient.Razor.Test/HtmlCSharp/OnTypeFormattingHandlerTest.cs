@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -21,6 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         private Uri Uri { get; }
+
+        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -196,17 +199,15 @@ public string _foo;
                 .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<DocumentOnTypeFormattingParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, DocumentOnTypeFormattingParams, CancellationToken>((method, clientName, serverContentType, onTypeFormattingParams, ct) =>
+                .Callback<string, string, DocumentOnTypeFormattingParams, CancellationToken>((method, clientName, onTypeFormattingParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentOnTypeFormattingName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 })
-                .Returns(Task.FromResult(new[] { expectedEdit }));
+                .Returns(Task.FromResult(new ReinvokeResponse<TextEdit[]>(_languageClient, new[] { expectedEdit })));
 
             var projectionResult = new ProjectionResult()
             {
@@ -249,15 +250,14 @@ public string _foo;
             documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(m => m.Snapshot == snapshot, MockBehavior.Strict));
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentOnTypeFormattingParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, DocumentOnTypeFormattingParams, CancellationToken>((method, clientName, serverContentType, onTypeFormattingParams, ct) =>
+                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentOnTypeFormattingParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, string, DocumentOnTypeFormattingParams, CancellationToken>((method, clientName, onTypeFormattingParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentOnTypeFormattingName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     invokedCSharpServer = true;
                 })
-                .Returns(Task.FromResult(new[] { expectedEdit }));
+                .Returns(Task.FromResult(new ReinvokeResponse<TextEdit[]>(_languageClient, new[] { expectedEdit })));
 
             var projectionResult = new ProjectionResult()
             {

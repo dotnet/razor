@@ -51,14 +51,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         {
             get
             {
-                if (IsInClassBody)
-                {
-                    return 2;
-                }
-                else
-                {
-                    return 3 + ComponentLambdaNestingLevel;
-                }
+                var baseIndent = IsInClassBody ? 2 : 3;
+
+                return baseIndent + ComponentLambdaNestingLevel;
             }
         }
     }

@@ -11,28 +11,26 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     internal abstract class LSPRequestInvoker
     {
-        public abstract Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
+        public abstract Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(
             string method,
             string languageServerName,
-            string contentType,
             TIn parameters,
             CancellationToken cancellationToken);
 
-        public abstract Task<TOut> ReinvokeRequestOnServerAsync<TIn, TOut>(
+        public abstract Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(
             string method,
             string languageServerName,
-            string contentType,
             Func<JToken, bool> capabilitiesFilter,
             TIn parameters,
             CancellationToken cancellationToken);
 
-        public abstract Task<IEnumerable<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
+        public abstract Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
             string method,
             string contentType,
             TIn parameters,
             CancellationToken cancellationToken);
 
-        public abstract Task<IEnumerable<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
+        public abstract Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
             string method,
             string contentType,
             Func<JToken, bool> capabilitiesFilter,

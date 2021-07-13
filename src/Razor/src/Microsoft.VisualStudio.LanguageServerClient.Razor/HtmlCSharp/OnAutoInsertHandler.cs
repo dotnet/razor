@@ -18,10 +18,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(MSLSPMethods.OnAutoInsertName)]
     internal class OnAutoInsertHandler : IRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>
     {
-        private static readonly HashSet<string> HTMLAllowedTriggerCharacters = new HashSet<string>();
-        private static readonly HashSet<string> CSharpAllowedTriggerCharacters = new() { "'", "/", "\n" };
-        private static readonly HashSet<string> AllAllowedTriggerCharacters = HTMLAllowedTriggerCharacters
-            .Concat(CSharpAllowedTriggerCharacters)
+        private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new HashSet<string>();
+        private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new() { "'", "/", "\n" };
+        private static readonly HashSet<string> s_allAllowedTriggerCharacters = s_htmlAllowedTriggerCharacters
+            .Concat(s_cSharpAllowedTriggerCharacters)
             .ToHashSet();
 
         private readonly LSPDocumentManager _documentManager;
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(request));
             }
 
-            if (!AllAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
+            if (!s_allAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
             {
                 // We haven't built support for this character yet.
                 return null;
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
                 return null;
@@ -103,13 +103,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
             else if (projectionResult.LanguageKind == RazorLanguageKind.Html &&
-                !HTMLAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
+                !s_htmlAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
             {
                 _logger.LogInformation("Inapplicable HTML trigger char.");
                 return null;
             }
             else if (projectionResult.LanguageKind == RazorLanguageKind.CSharp &&
-                !CSharpAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
+                !s_cSharpAllowedTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
             {
                 _logger.LogInformation("Inapplicable C# trigger char.");
                 return null;
@@ -126,15 +126,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting auto-insert for {projectionResult.Uri}.");
 
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
-            var contentType = projectionResult.LanguageKind.ToContainedLanguageContentType();
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
                 MSLSPMethods.OnAutoInsertName,
                 languageServerName,
-                contentType,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
+            var result = response.Result;
 
-            if (response == null)
+            if (result is null)
             {
                 _logger.LogInformation("Received no results.");
                 return null;
@@ -142,10 +141,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation("Received result, remapping.");
 
-            var containsSnippet = response.TextEditFormat == InsertTextFormat.Snippet;
+            var containsSnippet = result.TextEditFormat == InsertTextFormat.Snippet;
             var remappedEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(
                 projectionResult.Uri,
-                new[] { response.TextEdit },
+                new[] { result.TextEdit },
                 request.Options,
                 containsSnippet,
                 cancellationToken).ConfigureAwait(false);
@@ -160,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var remappedResponse = new DocumentOnAutoInsertResponseItem()
             {
                 TextEdit = remappedEdit,
-                TextEditFormat = response.TextEditFormat,
+                TextEditFormat = result.TextEditFormat,
             };
 
             _logger.LogInformation($"Returning edit.");

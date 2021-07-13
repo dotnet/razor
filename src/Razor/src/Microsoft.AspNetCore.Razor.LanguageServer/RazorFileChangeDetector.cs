@@ -15,10 +15,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorFileChangeDetector : IFileChangeDetector
     {
-        private static readonly IReadOnlyList<string> RazorFileExtensions = new[] { ".razor", ".cshtml" };
+        private static readonly IReadOnlyList<string> s_razorFileExtensions = new[] { ".razor", ".cshtml" };
 
         // Internal for testing
-        internal readonly Dictionary<string, DelayedFileChangeNotification> _pendingNotifications;
+        internal readonly Dictionary<string, DelayedFileChangeNotification> PendingNotifications;
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
@@ -49,8 +49,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
-            _watchers = new List<FileSystemWatcher>(RazorFileExtensions.Count);
-            _pendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
+            _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Count);
+            PendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
         }
 
         // Internal for testing
@@ -94,9 +94,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Start listening for project file changes (added/removed/renamed).
 
-            for (var i = 0; i < RazorFileExtensions.Count; i++)
+            for (var i = 0; i < s_razorFileExtensions.Count; i++)
             {
-                var extension = RazorFileExtensions[i];
+                var extension = s_razorFileExtensions[i];
                 var watcher = new RazorFileSystemWatcher(workspaceDirectory, "*" + extension)
                 {
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
@@ -149,9 +149,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         protected virtual IReadOnlyList<string> GetExistingRazorFiles(string workspaceDirectory)
         {
             var existingRazorFiles = Enumerable.Empty<string>();
-            for (var i = 0; i < RazorFileExtensions.Count; i++)
+            for (var i = 0; i < s_razorFileExtensions.Count; i++)
             {
-                var extension = RazorFileExtensions[i];
+                var extension = s_razorFileExtensions[i];
                 var existingFiles = Directory.GetFiles(workspaceDirectory, "*" + extension, SearchOption.AllDirectories);
                 existingRazorFiles = existingRazorFiles.Concat(existingFiles);
             }
@@ -164,10 +164,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             lock (_pendingNotificationsLock)
             {
-                if (!_pendingNotifications.TryGetValue(physicalFilePath, out var currentNotification))
+                if (!PendingNotifications.TryGetValue(physicalFilePath, out var currentNotification))
                 {
                     currentNotification = new DelayedFileChangeNotification();
-                    _pendingNotifications[physicalFilePath] = currentNotification;
+                    PendingNotifications[physicalFilePath] = currentNotification;
                 }
 
                 if (currentNotification.ChangeKind != null)
@@ -215,10 +215,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             lock (_pendingNotificationsLock)
             {
-                var result = _pendingNotifications.TryGetValue(physicalFilePath, out var notification);
+                var result = PendingNotifications.TryGetValue(physicalFilePath, out var notification);
                 Debug.Assert(result, "We should always have an associated notification after delaying an update.");
 
-                _pendingNotifications.Remove(physicalFilePath);
+                PendingNotifications.Remove(physicalFilePath);
 
                 if (notification.ChangeKind == null)
                 {

@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             publisher.ProjectManager_Changed(null, args);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value;
             Assert.True(serializationSuccessful);
         }
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             publisher.EnqueuePublish(secondSnapshot);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value;
             Assert.True(serializationSuccessful);
         }
@@ -160,7 +160,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 Action<OmniSharpProjectSnapshot, string> onSerializeToFile = null
             ) : base(loggerFactory)
             {
-                _onSerializeToFile = onSerializeToFile ?? ((_, __) => throw new XunitException("SerializeToFile should not have been called."));
+                _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
             }
 
             protected override void SerializeToFile(OmniSharpProjectSnapshot projectSnapshot, string publishFilePath) => _onSerializeToFile?.Invoke(projectSnapshot, publishFilePath);

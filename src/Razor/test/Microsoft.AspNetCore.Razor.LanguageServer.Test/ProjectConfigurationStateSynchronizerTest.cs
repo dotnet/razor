@@ -327,13 +327,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (hasTask)
             {
-                var kvp = Assert.Single(synchronizer._projectInfoMap);
+                var kvp = Assert.Single(synchronizer.ProjectInfoMap);
                 await Dispatcher.RunOnDispatcherThreadAsync(
                     () => kvp.Value.ProjectUpdateTask.Wait(), CancellationToken.None);
             }
             else
             {
-                Assert.Empty(synchronizer._projectInfoMap);
+                Assert.Empty(synchronizer.ProjectInfoMap);
             }
         }
 

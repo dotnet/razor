@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class AddUsingsCSharpCodeActionResolverTest : LanguageServerTestBase
     {
-        private static readonly CodeAction DefaultResolvedCodeAction = new CodeAction()
+        private static readonly CodeAction s_defaultResolvedCodeAction = new CodeAction()
         {
             Title = "@using System.Net",
             Data = JToken.FromObject(new object()),
@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
         };
 
-        private static readonly CodeAction DefaultUnresolvedCodeAction = new CodeAction()
+        private static readonly CodeAction s_defaultUnresolvedCodeAction = new CodeAction()
         {
             Title = "@using System.Net"
         };
@@ -56,11 +56,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver);
 
             // Act
-            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, DefaultUnresolvedCodeAction, default);
+            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
 
             // Assert
-            Assert.Equal(DefaultResolvedCodeAction.Title, returnedCodeAction.Title);
-            Assert.Equal(DefaultResolvedCodeAction.Data, returnedCodeAction.Data);
+            Assert.Equal(s_defaultResolvedCodeAction.Title, returnedCodeAction.Title);
+            Assert.Equal(s_defaultResolvedCodeAction.Data, returnedCodeAction.Data);
             var returnedEdits = Assert.Single(returnedCodeAction.Edit.DocumentChanges);
             Assert.True(returnedEdits.IsTextDocumentEdit);
             var returnedTextDocumentEdit = Assert.Single(returnedEdits.TextDocumentEdit.Edits);
@@ -86,10 +86,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, languageServer: languageServer);
 
             // Act
-            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, DefaultUnresolvedCodeAction, default);
+            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
 
             // Assert
-            Assert.Equal(DefaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
+            Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
         }
 
         [Fact]
@@ -133,10 +133,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, languageServer: languageServer);
 
             // Act
-            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, DefaultUnresolvedCodeAction, default);
+            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
 
             // Assert
-            Assert.Equal(DefaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
+            Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
         }
 
         [Fact]
@@ -164,10 +164,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             CreateCodeActionResolver(out var codeActionParams, out var csharpCodeActionResolver, languageServer: languageServer);
 
             // Act
-            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, DefaultUnresolvedCodeAction, default);
+            var returnedCodeAction = await csharpCodeActionResolver.ResolveAsync(codeActionParams, s_defaultUnresolvedCodeAction, default);
 
             // Assert
-            Assert.Equal(DefaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
+            Assert.Equal(s_defaultUnresolvedCodeAction.Title, returnedCodeAction.Title);
         }
 
         private void CreateCodeActionResolver(
@@ -209,7 +209,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
             responseRouterReturns
                 .Setup(l => l.Returning<CodeAction>(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(resolvedCodeAction ?? DefaultResolvedCodeAction));
+                .Returns(Task.FromResult(resolvedCodeAction ?? s_defaultResolvedCodeAction));
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer

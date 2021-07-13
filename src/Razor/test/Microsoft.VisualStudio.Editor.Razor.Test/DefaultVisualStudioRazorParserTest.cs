@@ -528,7 +528,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict))
             {
                 BlockBackgroundIdleWork = new ManualResetEventSlim(),
-                IdleDelay = TimeSpan.FromSeconds(5)
+                _idleDelay = TimeSpan.FromSeconds(5)
             })
             {
                 parser.StartIdleTimer();
@@ -558,7 +558,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict))
             {
                 BlockBackgroundIdleWork = new ManualResetEventSlim(),
-                IdleDelay = TimeSpan.FromSeconds(5)
+                _idleDelay = TimeSpan.FromSeconds(5)
             })
             {
                 parser.StartIdleTimer();

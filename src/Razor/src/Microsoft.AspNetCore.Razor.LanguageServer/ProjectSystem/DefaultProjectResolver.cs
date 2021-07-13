@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
     internal class DefaultProjectResolver : ProjectResolver
     {
         // Internal for testing
-        protected internal readonly HostProject _miscellaneousHostProject;
+        protected internal readonly HostProject MiscellaneousHostProject;
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
 
             var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
-            _miscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
+            MiscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
         }
 
         public override bool TryResolveProject(string documentFilePath, out ProjectSnapshot projectSnapshot, bool enforceDocumentInProject = true)
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             {
                 projectSnapshot = projects[i];
 
-                if (projectSnapshot.FilePath == _miscellaneousHostProject.FilePath)
+                if (projectSnapshot.FilePath == MiscellaneousHostProject.FilePath)
                 {
                     if (enforceDocumentInProject &&
                         IsDocumentInProject(projectSnapshot, documentFilePath))
@@ -93,11 +93,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(_miscellaneousHostProject.FilePath);
+            var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.FilePath);
             if (miscellaneousProject == null)
             {
-                _projectSnapshotManagerAccessor.Instance.ProjectAdded(_miscellaneousHostProject);
-                miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(_miscellaneousHostProject.FilePath);
+                _projectSnapshotManagerAccessor.Instance.ProjectAdded(MiscellaneousHostProject);
+                miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.FilePath);
             }
 
             return miscellaneousProject;

@@ -82,15 +82,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Uri = documentSnapshot.Uri
             };
 
-            var languageResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
                 LanguageServerConstants.RazorLanguageQueryEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
-                RazorLSPConstants.RazorLSPContentTypeName,
                 CheckRazorLanguageQueryCapability,
                 languageQueryParams,
                 cancellationToken).ConfigureAwait(false);
+            var languageResponse = response.Result;
 
-            if (languageResponse == null)
+            if (languageResponse is null)
             {
                 _logHubLogger.LogInformation("The language server is still being spun up. Could not resolve the projection.");
                 return null;

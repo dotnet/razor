@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         private JoinableTaskContext JoinableTaskContext { get; }
+        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public void UpdateCSharpBuffer_CannotLookupDocument_NoopsGracefully()
@@ -160,10 +162,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<DocumentRangeFormattingParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new[] { expectedEdit }));
+                .Returns(Task.FromResult(new ReinvokeResponse<TextEdit[]>(_languageClient, new[] { expectedEdit })));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
@@ -209,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
             var request = new CodeActionParams()
             {
-                TextDocument = new LanguageServer.Protocol.TextDocumentIdentifier()
+                TextDocument = new TextDocumentIdentifier()
                 {
                     Uri = new Uri("C:/path/to/file.razor")
                 }
@@ -266,7 +267,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var languageServer1Response = new[] { new VSCodeAction() { Title = "Response 1" } };
             var languageServer2Response = new[] { new VSCodeAction() { Title = "Response 2" } };
-            IEnumerable<VSCodeAction[]> expectedResults = new List<VSCodeAction[]>() { languageServer1Response, languageServer2Response };
+            IEnumerable<ReinvokeResponse<VSCodeAction[]>> expectedResults = new List<ReinvokeResponse<VSCodeAction[]>>() {
+                new ReinvokeResponse<VSCodeAction[]>(_languageClient, languageServer1Response),
+                new ReinvokeResponse<VSCodeAction[]>(_languageClient, languageServer2Response),
+            };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSCodeAction[]>(
                 Methods.TextDocumentCodeActionName,
@@ -274,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<CodeActionParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult(expectedResults));
+            )).Returns(Task.FromResult<IEnumerable<ReinvokeResponse<VSCodeAction[]>>>(expectedResults));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
@@ -301,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         [Fact]
-        public async void ResolveCodeActionsAsync_ReturnsSingleCodeAction()
+        public async Task ResolveCodeActionsAsync_ReturnsSingleCodeAction()
         {
             // Arrange
             var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
@@ -318,7 +322,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Title = "Something Else",
                 Data = new object()
             };
-            IEnumerable<VSCodeAction> expectedResponses = new List<VSCodeAction>() { expectedCodeAction, unexpectedCodeAction };
+            IEnumerable<ReinvokeResponse<VSCodeAction>> expectedResponses = new List<ReinvokeResponse<VSCodeAction>> () {
+                new ReinvokeResponse<VSCodeAction>(_languageClient, expectedCodeAction),
+                new ReinvokeResponse<VSCodeAction>(_languageClient, unexpectedCodeAction),
+            };
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSCodeAction, VSCodeAction>(
                 MSLSPMethods.TextDocumentCodeActionResolveName,
                 LanguageServerKind.CSharp.ToContentType(),
@@ -419,10 +426,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 LanguageServerKind.CSharp.ToLanguageServerName(),
-                LanguageServerKind.CSharp.ToContentType(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult(expectedcSharpResults));
+            )).Returns(Task.FromResult(new ReinvokeResponse<OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens>(_languageClient, expectedcSharpResults)));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
@@ -468,11 +474,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
                 LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                LanguageServerKind.CSharp.ToContentType(),
                 null,
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult(expectedResults));
+            )).Returns(Task.FromResult(new ReinvokeResponse<SemanticTokens>(_languageClient, expectedResults)));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             uIContextManager.Setup(m => m.SetUIContextAsync(RazorLSPConstants.RazorActiveUIContextGuid, true, It.IsAny<CancellationToken>()))

@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
@@ -21,6 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         private Uri Uri { get; }
+
+        private ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
@@ -86,17 +89,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<TextDocumentPositionParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, definitionParams, ct) =>
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, definitionParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentDefinitionName, method);
                     Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.HtmlLSPContentTypeName, serverContentType);
                     invokedLSPRequest = true;
                 })
-                .Returns(Task.FromResult(new[] { htmlLocation }));
+                .Returns(Task.FromResult(new ReinvokeResponse<Location[]>(_languageClient, new[] { htmlLocation })));
 
             var projectionResult = new ProjectionResult()
             {
@@ -149,16 +150,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, serverContentType, definitionParams, ct) =>
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, definitionParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentDefinitionName, method);
                     Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     invokedLSPRequest = true;
                 })
-                .Returns(Task.FromResult(new[] { csharpLocation }));
+                .Returns(Task.FromResult(new ReinvokeResponse<Location[]>(_languageClient, new[] { csharpLocation })));
 
             var projectionResult = new ProjectionResult()
             {
@@ -194,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Actual remapping behavior is tested elsewhere.
         }
 
-        private Location GetLocation(int startLine, int startCharacter, int endLine, int endCharacter, Uri uri)
+        private static Location GetLocation(int startLine, int startCharacter, int endLine, int endCharacter, Uri uri)
         {
             var location = new Location()
             {

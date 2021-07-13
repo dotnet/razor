@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class CodeActionResolutionEndpoint : IRazorCodeActionResolveHandler
     {
-        private static readonly string CodeActionsResolveProviderCapability = "codeActionsResolveProvider";
+        private const string CodeActionsResolveProviderCapability = "codeActionsResolveProvider";
 
         private readonly IReadOnlyDictionary<string, RazorCodeActionResolver> _razorCodeActionResolvers;
         private readonly IReadOnlyDictionary<string, CSharpCodeActionResolver> _csharpCodeActionResolvers;

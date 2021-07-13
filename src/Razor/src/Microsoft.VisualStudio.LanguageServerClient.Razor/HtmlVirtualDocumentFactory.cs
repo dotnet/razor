@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [Export(typeof(VirtualDocumentFactory))]
     internal class HtmlVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
-        private static IContentType _htmlLSPContentType;
+        private static IContentType s_htmlLSPContentType;
 
         [ImportingConstructor]
         public HtmlVirtualDocumentFactory(
@@ -29,12 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             get
             {
-                if (_htmlLSPContentType == null)
+                if (s_htmlLSPContentType == null)
                 {
-                    _htmlLSPContentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPContentTypeName);
+                    s_htmlLSPContentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPContentTypeName);
                 }
 
-                return _htmlLSPContentType;
+                return s_htmlLSPContentType;
             }
         }
 

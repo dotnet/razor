@@ -14,8 +14,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public override event EventHandler<EditorSettingsChangedEventArgs> Changed;
 
-        private readonly object SettingsAccessorLock = new object();
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private readonly object _settingsAccessorLock = new object();
         private EditorSettings _settings;
 
         [ImportingConstructor]
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             get
             {
-                lock (SettingsAccessorLock)
+                lock (_settingsAccessorLock)
                 {
                     return _settings;
                 }
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            lock (SettingsAccessorLock)
+            lock (_settingsAccessorLock)
             {
                 if (!_settings.Equals(updatedSettings))
                 {

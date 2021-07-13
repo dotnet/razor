@@ -12,15 +12,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
     {
-        private static RazorCompletionItem _transitionCompletionItem;
+        private static RazorCompletionItem s_transitionCompletionItem;
 
         public static RazorCompletionItem TransitionCompletionItem
         {
             get
             {
-                if (_transitionCompletionItem == null)
+                if (s_transitionCompletionItem == null)
                 {
-                    _transitionCompletionItem = new RazorCompletionItem(
+                    s_transitionCompletionItem = new RazorCompletionItem(
                         displayText: "@...",
                         insertText: "@",
                         kind: RazorCompletionItemKind.Directive,
@@ -32,14 +32,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                         // where this directive attribute transition character ("@...") gets provided and then typing
                         // `@` should re-trigger OR typing `/` should re-trigger.
                         commitCharacters: new[] { "@", "/", ">" });
-                    _transitionCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(RazorLS.Resources.Blazor_directive_attributes));
+                    s_transitionCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(RazorLS.Resources.Blazor_directive_attributes));
                 }
 
-                return _transitionCompletionItem;
+                return s_transitionCompletionItem;
             }
         }
 
-        private static readonly IReadOnlyList<RazorCompletionItem> Completions = new[] { TransitionCompletionItem };
+        private static readonly IReadOnlyList<RazorCompletionItem> s_completions = new[] { TransitionCompletionItem };
 
         public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
         {
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             if (attribute is MarkupMiscAttributeContentSyntax && attribute.ContainsOnlyWhitespace())
             {
                 // This represents a tag when there's no attribute content <InputText | />.
-                return Completions;
+                return s_completions;
             }
 
             if (!TryGetAttributeInfo(owner, out var prefixLocation, out var attributeName, out var attributeNameLocation, out _, out _))
@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             // This represents a tag when there's no attribute content <InputText | />.
-            return Completions;
+            return s_completions;
         }
 
         // Internal for testing

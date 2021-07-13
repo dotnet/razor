@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private ProjectSnapshotManagerBase _projectManager;
         private readonly Dictionary<string, HostDocument> _currentDocuments;
-        protected readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
+        protected readonly ProjectConfigurationFilePathStore ProjectConfigurationFilePathStore;
 
         internal const string BaseIntermediateOutputPathPropertyName = "BaseIntermediateOutputPath";
         internal const string IntermediateOutputPathPropertyName = "IntermediateOutputPath";
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             _lock = new AsyncSemaphore(initialCount: 1);
             _currentDocuments = new Dictionary<string, HostDocument>(FilePathComparer.Instance);
-            _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+            ProjectConfigurationFilePathStore = projectConfigurationFilePathStore;
         }
 
         // Internal for testing
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 Debug.Assert(_currentDocuments.Count == 0);
                 projectManager.ProjectRemoved(Current);
-                _projectConfigurationFilePathStore.Remove(Current.FilePath);
+                ProjectConfigurationFilePathStore.Remove(Current.FilePath);
             }
             else
             {

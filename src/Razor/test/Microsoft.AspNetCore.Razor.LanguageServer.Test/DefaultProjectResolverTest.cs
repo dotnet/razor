@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DefaultProjectResolver projectResolver = null;
             var miscProject = new Mock<ProjectSnapshot>(MockBehavior.Strict);
             miscProject.Setup(p => p.FilePath)
-                .Returns(() => projectResolver._miscellaneousHostProject.FilePath);
+                .Returns(() => projectResolver.MiscellaneousHostProject.FilePath);
             miscProject.Setup(p => p.GetDocument(documentFilePath))
                 .Returns((DocumentSnapshot)null);
             projectResolver = CreateProjectResolver(() => new[] { miscProject.Object });
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DefaultProjectResolver projectResolver = null;
             var miscProject = new Mock<ProjectSnapshot>(MockBehavior.Strict);
             miscProject.Setup(p => p.FilePath)
-                .Returns(() => projectResolver._miscellaneousHostProject.FilePath);
+                .Returns(() => projectResolver.MiscellaneousHostProject.FilePath);
             miscProject.Setup(p => p.GetDocument(documentFilePath)).Returns(Mock.Of<DocumentSnapshot>(MockBehavior.Strict));
             projectResolver = CreateProjectResolver(() => new[] { miscProject.Object });
 
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DefaultProjectResolver projectResolver = null;
             var miscProject = new Mock<ProjectSnapshot>(MockBehavior.Strict);
             miscProject.Setup(p => p.FilePath)
-                .Returns(() => projectResolver._miscellaneousHostProject.FilePath);
+                .Returns(() => projectResolver.MiscellaneousHostProject.FilePath);
             miscProject.Setup(p => p.GetDocument(documentFilePath)).Returns(Mock.Of<DocumentSnapshot>(MockBehavior.Strict));
             var ownerProject = Mock.Of<ProjectSnapshot>(
                 p => p.FilePath == "C:/path/to/project.csproj" &&
@@ -140,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DefaultProjectResolver projectResolver = null;
             var miscProject = new Mock<ProjectSnapshot>(MockBehavior.Strict);
             miscProject.Setup(p => p.FilePath)
-                .Returns(() => projectResolver._miscellaneousHostProject.FilePath);
+                .Returns(() => projectResolver.MiscellaneousHostProject.FilePath);
             miscProject.Setup(p => p.GetDocument(documentFilePath)).Returns(Mock.Of<DocumentSnapshot>(MockBehavior.Strict));
             var ownerProject = Mock.Of<ProjectSnapshot>(
                 p => p.FilePath == "C:/path/to/project.csproj" &&
@@ -182,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DefaultProjectResolver projectResolver = null;
             var miscProject = new Mock<ProjectSnapshot>(MockBehavior.Strict);
             miscProject.Setup(p => p.FilePath)
-                .Returns(() => projectResolver._miscellaneousHostProject.FilePath);
+                .Returns(() => projectResolver.MiscellaneousHostProject.FilePath);
             var expectedProject = miscProject.Object;
             projectResolver = CreateProjectResolver(() => new[] { expectedProject });
 
@@ -215,7 +215,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.Single(projects);
-            Assert.Equal(projectResolver._miscellaneousHostProject.FilePath, project.FilePath);
+            Assert.Equal(projectResolver.MiscellaneousHostProject.FilePath, project.FilePath);
         }
 
         private DefaultProjectResolver CreateProjectResolver(Func<ProjectSnapshot[]> projectFactory)

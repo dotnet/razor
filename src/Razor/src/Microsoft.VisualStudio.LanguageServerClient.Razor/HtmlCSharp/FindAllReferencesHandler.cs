@@ -137,14 +137,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting references for {projectionResult.Uri}.");
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
                 projectionResult.LanguageKind.ToContainedLanguageServerName(),
-                projectionResult.LanguageKind.ToContainedLanguageContentType(),
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
+            var result = response.Result;
 
-            if (result == null)
+            if (result is null)
             {
                 _logger.LogInformation("Received no results from initial request.");
                 return null;
@@ -261,18 +261,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static object FilterReferenceDisplayText(object referenceText)
         {
-            const string codeBehindObjectPrefix = "__o = ";
-            const string codeBehindBackingFieldSuffix = "k__BackingField";
+            const string CodeBehindObjectPrefix = "__o = ";
+            const string CodeBehindBackingFieldSuffix = "k__BackingField";
 
             if (referenceText is string text)
             {
-                if (text.StartsWith(codeBehindObjectPrefix, StringComparison.Ordinal))
+                if (text.StartsWith(CodeBehindObjectPrefix, StringComparison.Ordinal))
                 {
                     return text
-                        .Substring(codeBehindObjectPrefix.Length, text.Length - codeBehindObjectPrefix.Length - 1); // -1 for trailing `;`
+                        .Substring(CodeBehindObjectPrefix.Length, text.Length - CodeBehindObjectPrefix.Length - 1); // -1 for trailing `;`
                 }
 
-                return text.Replace(codeBehindBackingFieldSuffix, string.Empty);
+                return text.Replace(CodeBehindBackingFieldSuffix, string.Empty);
             }
 
             if (referenceText is ClassifiedTextElement textElement &&

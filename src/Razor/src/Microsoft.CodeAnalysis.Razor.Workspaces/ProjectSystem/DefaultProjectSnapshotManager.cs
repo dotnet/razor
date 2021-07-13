@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class Entry
         {
-            public ProjectSnapshot SnapshotUnsafe;
+            private ProjectSnapshot _snapshotUnsafe;
             public readonly ProjectState State;
 
             public Entry(ProjectState state)
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public ProjectSnapshot GetSnapshot()
             {
-                return SnapshotUnsafe ??= new DefaultProjectSnapshot(State);
+                return _snapshotUnsafe ??= new DefaultProjectSnapshot(State);
             }
         }
     }

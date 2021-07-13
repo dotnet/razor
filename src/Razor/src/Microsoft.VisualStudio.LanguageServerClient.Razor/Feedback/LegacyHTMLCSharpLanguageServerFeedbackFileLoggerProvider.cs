@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
     [Obsolete("Use the LogHub logging infrastructure instead.")]
     internal class LegacyHTMLCSharpLanguageServerFeedbackFileLoggerProvider : ILoggerProvider
     {
-        private static readonly string LogFileIdentifier = "HTMLCSharpLanguageServer";
+        private const string LogFileIdentifier = "HTMLCSharpLanguageServer";
 
         private readonly FeedbackFileLoggerProvider _loggerProvider;
 

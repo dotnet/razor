@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         }.ToImmutableArray();
 
         // Internal for testing
-        internal readonly VisualStudioRazorParser _parser;
+        internal readonly VisualStudioRazorParser Parser;
         private readonly RazorCompletionFactsService _completionFactsService;
 
         public RazorDirectiveCompletionSource(
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            _parser = parser;
+            Parser = parser;
             _completionFactsService = completionFactsService;
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         {
             try
             {
-                var codeDocument = await _parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);
+                var codeDocument = await Parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);
                 if (codeDocument == null)
                 {
                     return CompletionContext.Empty;

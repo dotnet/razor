@@ -60,14 +60,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var manager = new TestEditorSettingsManagerInternal(Dispatcher);
-            static void listener1(object caller, EditorSettingsChangedEventArgs args) { }
-            static void listener2(object caller, EditorSettingsChangedEventArgs args) { }
-            manager.Changed += listener1;
-            manager.Changed += listener2;
+            static void Listener1(object caller, EditorSettingsChangedEventArgs args) { }
+            static void Listener2(object caller, EditorSettingsChangedEventArgs args) { }
+            manager.Changed += Listener1;
+            manager.Changed += Listener2;
 
             // Act
-            manager.Changed -= listener1;
-            manager.Changed -= listener2;
+            manager.Changed -= Listener1;
+            manager.Changed -= Listener2;
 
             // Assert
             Assert.Equal(1, manager.DetachCount);

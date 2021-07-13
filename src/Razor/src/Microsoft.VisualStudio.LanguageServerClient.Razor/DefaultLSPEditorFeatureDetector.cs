@@ -18,8 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private const string DotNetCoreCSharpCapability = "CSharp&CPS";
         private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
-        private static readonly Guid LiveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
-        private static readonly Guid LiveShareGuestUIContextGuid = Guid.Parse("fd93f3eb-60da-49cd-af15-acda729e357e");
+        private static readonly Guid s_liveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
+        private static readonly Guid s_liveShareGuestUIContextGuid = Guid.Parse("fd93f3eb-60da-49cd-af15-acda729e357e");
 
         private readonly ProjectHierarchyInspector _projectHierarchyInspector;
         private readonly Lazy<IVsUIShellOpenDocument> _vsUIShellOpenDocument;
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public override bool IsLiveShareHost()
         {
-            var context = UIContext.FromUIContextGuid(LiveShareHostUIContextGuid);
+            var context = UIContext.FromUIContextGuid(s_liveShareHostUIContextGuid);
             return context.IsActive;
         }
 
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Private protected virtual for testing
         private protected virtual bool IsLiveShareGuest()
         {
-            var context = UIContext.FromUIContextGuid(LiveShareGuestUIContextGuid);
+            var context = UIContext.FromUIContextGuid(s_liveShareGuestUIContextGuid);
             return context.IsActive;
         }
     }

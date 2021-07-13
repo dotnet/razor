@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     public class DirectiveCompletionItemProviderTest
     {
-        private static readonly IReadOnlyList<DirectiveDescriptor> DefaultDirectives = new[]
+        private static readonly IReadOnlyList<DirectiveDescriptor> s_defaultDirectives = new[]
         {
             CSharpCodeParser.AddTagHelperDirectiveDescriptor,
             CSharpCodeParser.RemoveTagHelperDirectiveDescriptor,
@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Assert
             Assert.Collection(
                 completionItems,
-                item => AssertRazorCompletionItem(DefaultDirectives[0], item),
-                item => AssertRazorCompletionItem(DefaultDirectives[1], item),
-                item => AssertRazorCompletionItem(DefaultDirectives[2], item));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item));
         }
 
         [Fact]
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem(customDirective, item),
-                item => AssertRazorCompletionItem(DefaultDirectives[0], item),
-                item => AssertRazorCompletionItem(DefaultDirectives[1], item),
-                item => AssertRazorCompletionItem(DefaultDirectives[2], item));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item));
         }
 
         [Fact]
@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem("different", customDirective, item),
-                item => AssertRazorCompletionItem(DefaultDirectives[0], item),
-                item => AssertRazorCompletionItem(DefaultDirectives[1], item),
-                item => AssertRazorCompletionItem(DefaultDirectives[2], item));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item));
         }
 
         [Fact]
@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem("code", customDirective, item, DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters),
-                item => AssertRazorCompletionItem(DefaultDirectives[0], item),
-                item => AssertRazorCompletionItem(DefaultDirectives[1], item),
-                item => AssertRazorCompletionItem(DefaultDirectives[2], item));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item));
         }
 
         [Fact]
@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Collection(
                 completionItems,
                 item => AssertRazorCompletionItem("section", customDirective, item, DirectiveCompletionItemProvider.BlockDirectiveCommitCharacters),
-                item => AssertRazorCompletionItem(DefaultDirectives[0], item),
-                item => AssertRazorCompletionItem(DefaultDirectives[1], item),
-                item => AssertRazorCompletionItem(DefaultDirectives[2], item));
+                item => AssertRazorCompletionItem(s_defaultDirectives[0], item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[1], item),
+                item => AssertRazorCompletionItem(s_defaultDirectives[2], item));
         }
 
         [Fact]

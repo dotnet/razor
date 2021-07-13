@@ -26,14 +26,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public override event EventHandler<DocumentStructureChangedEventArgs> DocumentStructureChanged;
 
         // Internal for testing.
-        internal TimeSpan IdleDelay = TimeSpan.FromSeconds(3);
+        internal TimeSpan _idleDelay = TimeSpan.FromSeconds(3);
         internal Timer _idleTimer;
         internal BackgroundParser _parser;
         internal ChangeReference _latestChangeReference;
         internal RazorSyntaxTreePartialParser _partialParser;
 
-        private readonly object IdleLock = new object();
-        private readonly object UpdateStateLock = new object();
+        private readonly object _idleLock = new object();
+        private readonly object _updateStateLock = new object();
         private readonly VisualStudioCompletionBroker _completionBroker;
         private readonly VisualStudioDocumentTracker _documentTracker;
         private readonly JoinableTaskContext _joinableTaskContext;
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(atOrNewerSnapshot));
             }
 
-            lock (UpdateStateLock)
+            lock (_updateStateLock)
             {
                 if (_disposed ||
                     (_latestParsedSnapshot != null && atOrNewerSnapshot.Version.VersionNumber <= _latestParsedSnapshot.Version.VersionNumber))
@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             StopIdleTimer();
 
-            lock (UpdateStateLock)
+            lock (_updateStateLock)
             {
                 _disposed = true;
                 foreach (var request in _codeDocumentRequests)
@@ -248,12 +248,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
            _joinableTaskContext.AssertUIThread();
 
-            lock (IdleLock)
+            lock (_idleLock)
             {
                 if (_idleTimer == null)
                 {
                     // Timer will fire after a fixed delay, but only once.
-                    _idleTimer = NonCapturingTimer.Create(state => ((DefaultVisualStudioRazorParser)state).Timer_Tick(), this, IdleDelay, Timeout.InfiniteTimeSpan);
+                    _idleTimer = NonCapturingTimer.Create(state => ((DefaultVisualStudioRazorParser)state).Timer_Tick(), this, _idleDelay, Timeout.InfiniteTimeSpan);
                 }
             }
         }
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Can be called from any thread.
 
-            lock (IdleLock)
+            lock (_idleLock)
             {
                 if (_idleTimer != null)
                 {
@@ -485,7 +485,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void UpdateParserState(RazorCodeDocument codeDocument, ITextSnapshot snapshot)
         {
-            lock (UpdateStateLock)
+            lock (_updateStateLock)
             {
                 if (_snapshot != null && snapshot.Version.VersionNumber < _snapshot.Version.VersionNumber)
                 {
@@ -508,7 +508,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(snapshot));
             }
 
-            lock (UpdateStateLock)
+            lock (_updateStateLock)
             {
                 if (_latestParsedSnapshot == null ||
                     _latestParsedSnapshot.Version.VersionNumber < snapshot.Version.VersionNumber)
@@ -522,7 +522,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void CompleteCodeDocumentRequestsForSnapshot(RazorCodeDocument codeDocument, ITextSnapshot snapshot)
         {
-            lock (UpdateStateLock)
+            lock (_updateStateLock)
             {
                 if (_codeDocumentRequests.Count == 0)
                 {
@@ -588,7 +588,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal class CodeDocumentRequest
         {
-            private readonly object CompletionLock = new object();
+            private readonly object _completionLock = new object();
             private readonly TaskCompletionSource<RazorCodeDocument> _taskCompletionSource;
             private readonly CancellationTokenRegistration _cancellationTokenRegistration;
             private bool _done;
@@ -623,7 +623,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     throw new ArgumentNullException(nameof(codeDocument));
                 }
 
-                lock (CompletionLock)
+                lock (_completionLock)
                 {
                     if (_done)
                     {
@@ -640,7 +640,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             public void Cancel()
             {
-                lock (CompletionLock)
+                lock (_completionLock)
                 {
                     if (_done)
                     {

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
                         {
                             var projectRazorJson = Path.Combine(intermediatePath, "project.razor.json");
-                            _projectConfigurationFilePathStore.Set(hostProject.FilePath, projectRazorJson);
+                            ProjectConfigurationFilePathStore.Set(hostProject.FilePath, projectRazorJson);
                         }
 
                         UpdateProjectUnsafe(hostProject);

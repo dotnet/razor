@@ -20,22 +20,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : IRequestHandler<CompletionParams, SumType<CompletionItem[], CompletionList>?>
     {
-        private static readonly IReadOnlyList<string> RazorTriggerCharacters = new[] { "@" };
-        private static readonly IReadOnlyList<string> CSharpTriggerCharacters = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" };
-        private static readonly IReadOnlyList<string> HtmlTriggerCharacters = new[] { ":", "@", "#", ".", "!", "*", ",", "(", "[", "-", "<", "&", "\\", "/", "'", "\"", "=", ":", " ", "`" };
+        private static readonly IReadOnlyList<string> s_razorTriggerCharacters = new[] { "@" };
+        private static readonly IReadOnlyList<string> s_cSharpTriggerCharacters = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" };
+        private static readonly IReadOnlyList<string> s_htmlTriggerCharacters = new[] { ":", "@", "#", ".", "!", "*", ",", "(", "[", "-", "<", "&", "\\", "/", "'", "\"", "=", ":", " ", "`" };
 
         public static readonly IReadOnlyList<string> AllTriggerCharacters = new HashSet<string>(
-            CSharpTriggerCharacters
-                .Concat(HtmlTriggerCharacters)
-                .Concat(RazorTriggerCharacters))
+            s_cSharpTriggerCharacters
+                .Concat(s_htmlTriggerCharacters)
+                .Concat(s_razorTriggerCharacters))
             .ToArray();
 
-        private static readonly IReadOnlyCollection<string> Keywords = new string[] {
+        private static readonly IReadOnlyCollection<string> s_keywords = new string[] {
             "for", "foreach", "while", "switch", "lock",
             "case", "if", "try", "do", "using"
         };
 
-        private static readonly IReadOnlyCollection<string> DesignTimeHelpers = new string[]
+        private static readonly IReadOnlyCollection<string> s_designTimeHelpers = new string[]
         {
             "__builder",
             "__o",
@@ -47,8 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             "BuildRenderTree"
         };
 
-        private static readonly IReadOnlyCollection<CompletionItem> KeywordCompletionItems = GenerateCompletionItems(Keywords);
-        private static readonly IReadOnlyCollection<CompletionItem> DesignTimeHelpersCompletionItems = GenerateCompletionItems(DesignTimeHelpers);
+        private static readonly IReadOnlyCollection<CompletionItem> s_keywordCompletionItems = GenerateCompletionItems(s_keywords);
+        private static readonly IReadOnlyCollection<CompletionItem> s_designTimeHelpersCompletionItems = GenerateCompletionItems(s_designTimeHelpers);
 
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPRequestInvoker _requestInvoker;
@@ -188,12 +188,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 _logger.LogInformation($"Requesting non-provisional completions for {projectedDocumentUri}.");
 
-                result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
+                var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                     Methods.TextDocumentCompletionName,
                     languageServerName,
-                    serverKind.ToContentType(),
                     completionParams,
                     cancellationToken).ConfigureAwait(false);
+                result = response.Result;
 
                 _logger.LogInformation("Found non-provisional completion");
             }
@@ -321,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             TextExtent? wordExtent,
             CompletionList completionList)
         {
-            var filteredItems = completionList.Items.Except(DesignTimeHelpersCompletionItems, CompletionItemComparer.Instance).ToArray();
+            var filteredItems = completionList.Items.Except(s_designTimeHelpersCompletionItems, CompletionItemComparer.Instance).ToArray();
 
             // If the current identifier starts with "__", only trim out common design time helpers from the list.
             // In all other cases, trim out both common design time helpers and all completion items starting with "__".
@@ -368,13 +368,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return context;
             }
 
-            if (languageKind == RazorLanguageKind.CSharp && CSharpTriggerCharacters.Contains(context.TriggerCharacter))
+            if (languageKind == RazorLanguageKind.CSharp && s_cSharpTriggerCharacters.Contains(context.TriggerCharacter))
             {
                 // C# trigger character for C# content
                 return context;
             }
 
-            if (languageKind == RazorLanguageKind.Html && HtmlTriggerCharacters.Contains(context.TriggerCharacter))
+            if (languageKind == RazorLanguageKind.Html && s_htmlTriggerCharacters.Contains(context.TriggerCharacter))
             {
                 // HTML trigger character for HTML content
                 return context;
@@ -392,7 +392,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 rewrittenContext.InvokeKind = invokeKind.Value;
             }
 
-            if (languageKind == RazorLanguageKind.CSharp && RazorTriggerCharacters.Contains(context.TriggerCharacter))
+            if (languageKind == RazorLanguageKind.CSharp && s_razorTriggerCharacters.Contains(context.TriggerCharacter))
             {
                 // The C# language server will not return any completions for the '@' character unless we
                 // send the completion request explicitly.
@@ -469,12 +469,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting provisional completion for {previousCharacterProjection.Uri}.");
 
-            result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                 Methods.TextDocumentCompletionName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
-                RazorLSPConstants.CSharpContentTypeName,
                 provisionalCompletionParams,
                 cancellationToken).ConfigureAwait(true);
+            result = response.Result;
 
             // We have now obtained the necessary completion items. We no longer need the provisional change. Revert.
             var removeProvisionalDot = new VisualStudioTextChange(previousCharacterProjection.PositionIndex, 1, string.Empty);
@@ -505,7 +505,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // but once C# starts providing them their completion will be offered instead, at which point we should be able to remove this step.
         private static CompletionList IncludeCSharpKeywords(CompletionList completionList)
         {
-            var newList = completionList.Items.Union(KeywordCompletionItems, CompletionItemComparer.Instance);
+            var newList = completionList.Items.Union(s_keywordCompletionItems, CompletionItemComparer.Instance);
             completionList.Items = newList.ToArray();
 
             return completionList;
@@ -647,18 +647,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static bool IsApplicableTriggerCharacter(string triggerCharacter, RazorLanguageKind languageKind)
         {
-            if (RazorTriggerCharacters.Contains(triggerCharacter))
+            if (s_razorTriggerCharacters.Contains(triggerCharacter))
             {
                 // Razor trigger characters always transition into either C# or HTML, always note as "applicable".
                 return true;
             }
             else if (languageKind == RazorLanguageKind.CSharp)
             {
-                return CSharpTriggerCharacters.Contains(triggerCharacter);
+                return s_cSharpTriggerCharacters.Contains(triggerCharacter);
             }
             else if (languageKind == RazorLanguageKind.Html)
             {
-                return HtmlTriggerCharacters.Contains(triggerCharacter);
+                return s_htmlTriggerCharacters.Contains(triggerCharacter);
             }
 
             // Unknown trigger character.

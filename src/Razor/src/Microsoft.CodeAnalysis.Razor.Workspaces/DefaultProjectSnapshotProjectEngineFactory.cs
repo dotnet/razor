@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal class DefaultProjectSnapshotProjectEngineFactory : ProjectSnapshotProjectEngineFactory
     {
-        private readonly static RazorConfiguration DefaultConfiguration = FallbackRazorConfiguration.Latest;
+        private readonly static RazorConfiguration s_defaultConfiguration = FallbackRazorConfiguration.Latest;
 
         private readonly IFallbackProjectEngineFactory _fallback;
         private readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] _factories;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Razor
             //
             // We typically want this because the language adds features over time - we don't want to a bunch of errors
             // to show up when a document is first opened, and then go away when the configuration loads, we'd prefer the opposite.
-            configuration ??= DefaultConfiguration;
+            configuration ??= s_defaultConfiguration;
 
             // If there's no factory to handle the configuration then fall back to a very basic configuration.
             //
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return SelectFactory(project.Configuration ?? DefaultConfiguration, requireSerializable: false);
+            return SelectFactory(project.Configuration ?? s_defaultConfiguration, requireSerializable: false);
         }
 
         public override IProjectEngineFactory FindSerializableFactory(ProjectSnapshot project)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return SelectFactory(project.Configuration ?? DefaultConfiguration, requireSerializable: true);
+            return SelectFactory(project.Configuration ?? s_defaultConfiguration, requireSerializable: true);
         }
 
         private IProjectEngineFactory SelectFactory(RazorConfiguration configuration, bool requireSerializable = false)

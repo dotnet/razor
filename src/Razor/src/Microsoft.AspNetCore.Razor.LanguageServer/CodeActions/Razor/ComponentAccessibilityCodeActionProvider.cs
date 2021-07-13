@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvider
     {
-        private static readonly Task<IReadOnlyList<RazorCodeAction>> EmptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
+        private static readonly Task<IReadOnlyList<RazorCodeAction>> s_emptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
 
         private readonly TagHelperFactsService _tagHelperFactsService;
         private readonly FilePathNormalizer _filePathNormalizer;
@@ -43,25 +43,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var node = context.CodeDocument.GetSyntaxTree().Root.LocateOwner(change);
             if (node is null)
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             // Find start tag
             var startTag = (MarkupStartTagSyntax)node.Ancestors().FirstOrDefault(n => n is MarkupStartTagSyntax);
             if (startTag is null)
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             // Ignore if start tag has dots, as we only handle short tags
             if (startTag.Name.Content.Contains("."))
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             if (!IsApplicableTag(startTag))
             {
-                return EmptyResult;
+                return s_emptyResult;
             }
 
             if (IsTagUnknown(startTag, context))
@@ -131,12 +131,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // For all the matches, add options for add @using and fully qualify
             foreach (var tagHelperPair in matching.Values)
             {
-                if (tagHelperPair.FullyQualified is null)
+                if (tagHelperPair._fullyQualified is null)
                 {
                     continue;
                 }
 
-                var fullyQualifiedName = tagHelperPair.Short.Name;
+                var fullyQualifiedName = tagHelperPair._short.Name;
 
                 // Insert @using
                 var addUsingCodeAction = AddUsingsCodeActionProviderFactory.CreateAddUsingCodeAction(
@@ -178,7 +178,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 if (tagHelper.TagMatchingRules.All(rule => TagHelperMatchingConventions.SatisfiesRule(tagName, parentTagName, attributes, rule)))
                 {
-                    matching.Add(tagHelper.Name, new TagHelperPair { Short = tagHelper });
+                    matching.Add(tagHelper.Name, new TagHelperPair { _short = tagHelper });
                 }
             }
 
@@ -187,9 +187,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 if (matching.TryGetValue(tagHelper.Name, out var tagHelperPair))
                 {
-                    if (tagHelperPair != null && tagHelper != tagHelperPair.Short)
+                    if (tagHelperPair != null && tagHelper != tagHelperPair._short)
                     {
-                        tagHelperPair.FullyQualified = tagHelper;
+                        tagHelperPair._fullyQualified = tagHelper;
                     }
                 }
             }
@@ -257,8 +257,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private class TagHelperPair
         {
-            public TagHelperDescriptor Short = null;
-            public TagHelperDescriptor FullyQualified = null;
+            public TagHelperDescriptor _short = null;
+            public TagHelperDescriptor _fullyQualified = null;
         }
     }
 }

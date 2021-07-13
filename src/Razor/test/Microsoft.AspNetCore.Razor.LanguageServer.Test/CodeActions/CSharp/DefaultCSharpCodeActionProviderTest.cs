@@ -19,11 +19,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
     {
-        private readonly RazorCodeAction[] SupportedCodeActions;
+        private readonly RazorCodeAction[] _supportedCodeActions;
 
         public DefaultCSharpCodeActionProviderTest()
         {
-            SupportedCodeActions = DefaultCSharpCodeActionProvider
+            _supportedCodeActions = DefaultCSharpCodeActionProvider
                 .SupportedDefaultCodeActionNames
                 .Select(name => new RazorCodeAction() { Name = name })
                 .ToArray();
@@ -49,12 +49,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var provider = new DefaultCSharpCodeActionProvider();
 
             // Act
-            var providedCodeActions = await provider.ProvideAsync(context, SupportedCodeActions, default);
+            var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
             // Assert
-            Assert.Equal(SupportedCodeActions.Length, providedCodeActions.Count);
+            Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
             var providedNames = providedCodeActions.Select(action => action.Name);
-            var expectedNames = SupportedCodeActions.Select(action => action.Name);
+            var expectedNames = _supportedCodeActions.Select(action => action.Name);
             Assert.Equal(expectedNames, providedNames);
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var provider = new DefaultCSharpCodeActionProvider();
 
             // Act
-            var providedCodeActions = await provider.ProvideAsync(context, SupportedCodeActions, default);
+            var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
             // Assert
             Assert.Empty(providedCodeActions);
@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var provider = new DefaultCSharpCodeActionProvider();
 
             // Act
-            var providedCodeActions = await provider.ProvideAsync(context, SupportedCodeActions, default);
+            var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
             // Assert
             Assert.Empty(providedCodeActions);
