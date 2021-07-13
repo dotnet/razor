@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -27,15 +26,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly List<FileSystemWatcher> _watchers;
         private readonly object _pendingNotificationsLock = new();
 
-        private static readonly string[] _ignoredDirectories = new string[]{
+        private static readonly string[] s_ignoredDirectories = new string[]{
             "node_modules",
         };
 
         public RazorFileChangeDetector(
             ForegroundDispatcher foregroundDispatcher,
             FilePathNormalizer filePathNormalizer,
-            IEnumerable<IRazorFileChangeListener> listeners,
-            ILoggerFactory loggerFactory = null)
+            IEnumerable<IRazorFileChangeListener> listeners)
         {
             if (foregroundDispatcher is null)
             {
@@ -158,7 +156,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             for (var i = 0; i < s_razorFileExtensions.Count; i++)
             {
                 var extension = s_razorFileExtensions[i];
-                var existingFiles = DirectoryHelper.GetFilteredFiles(workspaceDirectory, "*" + extension, _ignoredDirectories);
+                var existingFiles = DirectoryHelper.GetFilteredFiles(workspaceDirectory, "*" + extension, s_ignoredDirectories);
                 existingRazorFiles = existingRazorFiles.Concat(existingFiles);
             }
 

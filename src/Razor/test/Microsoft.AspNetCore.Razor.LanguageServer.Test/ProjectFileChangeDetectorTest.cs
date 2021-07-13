@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 CancellationTokenSource cancellationTokenSource,
                 ForegroundDispatcher foregroundDispatcher,
                 IEnumerable<IProjectFileChangeListener> listeners,
-                IReadOnlyList<string> existingprojectFiles) : base(foregroundDispatcher, new FilePathNormalizer(), listeners, loggerFactory: null)
+                IReadOnlyList<string> existingprojectFiles) : base(foregroundDispatcher, new FilePathNormalizer(), listeners)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingProjectFiles = existingprojectFiles;
