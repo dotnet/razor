@@ -24,6 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             "node_modules",
             "bin",
+            ".vs",
         };
 
         public ProjectConfigurationFileChangeDetector(
@@ -126,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Protected virtual for testing
         protected virtual IEnumerable<string> GetExistingConfigurationFiles(string workspaceDirectory)
         {
-            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile, s_ignoredDirectories, _logger);
+            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile, s_ignoredDirectories, logger: _logger);
 
             return files;
         }

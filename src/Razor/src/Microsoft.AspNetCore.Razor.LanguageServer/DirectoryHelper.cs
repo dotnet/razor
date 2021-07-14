@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -19,10 +20,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// <param name="workspaceDirectory">The directory to be searched.</param>
         /// <param name="searchPattern">The pattern to apply when searching.</param>
         /// <param name="ignoredDirectories">List of directories to skip when recursing.</param>
+        /// <param name="fileSystem">Exists for tests only. DO NOT PROVIDE outside of tests.</param>
         /// <param name="logger">An optional logger to report on exceptional situations such as <see cref="PathTooLongException"/>.</param>
         /// <returns>A list of files within the given directory that meet the search criteria.</returns>
         /// <remarks>This method is needed to avoid problematic folders such as "node_modules" which are known not to yield the desired results or may cause performance issues.</remarks>
-        internal static IEnumerable<string> GetFilteredFiles(string workspaceDirectory, string searchPattern, IReadOnlyCollection<string> ignoredDirectories, ILogger? logger = null)
+        internal static IEnumerable<string> GetFilteredFiles(
+            string workspaceDirectory,
+            string searchPattern,
+            IReadOnlyCollection<string> ignoredDirectories,
+#pragma warning disable CS0618 // Type or member is obsolete
+            IFileSystem? fileSystem = null,
+#pragma warning restore CS0618 // Type or member is obsolete
+            ILogger? logger = null)
         {
             if (workspaceDirectory is null)
             {
@@ -39,10 +48,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(ignoredDirectories));
             }
 
+            if (fileSystem is null)
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                fileSystem = new DefaultFileSystem();
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
+
             IEnumerable<string> files;
             try
             {
-                files = Directory.EnumerateFiles(workspaceDirectory, searchPattern, SearchOption.TopDirectoryOnly);
+                files = fileSystem.GetFiles(workspaceDirectory, searchPattern, SearchOption.TopDirectoryOnly);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // The filesystem may have deleted the directory between us finding it and searching for files in it.
+                // This can also happen if the directory is too long for windows.
+                files = Array.Empty<string>();
             }
             catch (PathTooLongException ex)
             {
@@ -58,7 +80,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             IEnumerable<string> directories;
             try
             {
-                directories = Directory.EnumerateDirectories(workspaceDirectory);
+                directories = fileSystem.GetDirectories(workspaceDirectory);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // The filesystem may have deleted the directory between us finding it and searching for directories in it.
+                // This can also happen if the directory is too long for windows.
+                directories = Array.Empty<string>();
             }
             catch (PathTooLongException ex)
             {
@@ -68,14 +96,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             foreach (var path in directories)
             {
-                var directory = Path.GetDirectoryName(path);
-                if (!ignoredDirectories.Contains(directory, StringComparer.Ordinal))
+                var directory = Path.GetFileName(path);
+                if (!ignoredDirectories.Contains(directory, FilePathComparer.Instance))
                 {
-                    foreach (var result in GetFilteredFiles(path, searchPattern, ignoredDirectories, logger))
+                    foreach (var result in GetFilteredFiles(path, searchPattern, ignoredDirectories, fileSystem, logger))
                     {
                         yield return result;
                     }
                 }
+            }
+        }
+
+        [Obsolete("This only exists to enable testing, do not use it outside of tests for this class")]
+        internal interface IFileSystem
+        {
+            public IEnumerable<string> GetFiles(string workspaceDirectory, string searchPattern, SearchOption searchOption);
+
+            public IEnumerable<string> GetDirectories(string workspaceDirectory);
+        }
+
+        [Obsolete("This only exists to enable testing, do not use it outside of tests for this class")]
+        private class DefaultFileSystem : IFileSystem
+        {
+            public IEnumerable<string> GetFiles(string workspaceDirectory, string searchPattern, SearchOption searchOption)
+            {
+                return Directory.GetFiles(workspaceDirectory, searchPattern, searchOption);
+            }
+
+            public IEnumerable<string> GetDirectories(string workspaceDirectory)
+            {
+                return Directory.GetDirectories(workspaceDirectory);
             }
         }
     }
