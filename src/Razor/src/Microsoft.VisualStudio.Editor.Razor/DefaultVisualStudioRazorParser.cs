@@ -145,6 +145,32 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
+        // WebTools depends on this method. Do not remove until old editor is phased out
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        public async override void QueueReparse()
+#pragma warning restore VSTHRD100 // Avoid async void methods
+        {
+            // Can be called from any thread
+
+            try
+            {
+                if (_joinableTaskContext.IsOnMainThread)
+                {
+                    ReparseOnUIThread();
+                }
+                else
+                {
+                    await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+                    ReparseOnUIThread();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("DefaultVisualStudioRazorParser.QueueReparse threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
+        }
+
         public void Dispose()
         {
            _joinableTaskContext.AssertUIThread();
