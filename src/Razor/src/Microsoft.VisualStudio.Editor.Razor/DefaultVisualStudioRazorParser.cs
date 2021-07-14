@@ -145,6 +145,25 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
+        // WebTools depends on this method. Do not remove until old editor is phased out
+        public override void QueueReparse()
+        {
+            // Can be called from any thread
+
+            if (_joinableTaskContext.IsOnMainThread)
+            {
+                ReparseOnUIThread();
+            }
+            else
+            {
+                _ = Task.Factory.StartNew(
+                    () => ReparseOnUIThread(),
+                    CancellationToken.None,
+                    TaskCreationOptions.None,
+                    TaskScheduler.FromCurrentSynchronizationContext());
+            }
+        }
+
         public void Dispose()
         {
            _joinableTaskContext.AssertUIThread();
