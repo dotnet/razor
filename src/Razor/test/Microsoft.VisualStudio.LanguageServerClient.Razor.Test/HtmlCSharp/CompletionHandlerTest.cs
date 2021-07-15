@@ -1518,6 +1518,86 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Equal(expectedRange, actualRange);
         }
 
+        [Fact]
+        public void GetBaseIndentation_Spaces()
+        {
+            // Arrange
+            var snapshot = new StringTextSnapshot("    @i");
+            var snapshotSpan = new SnapshotSpan(snapshot, new Span(5, 1));
+            var wordExtent = new TextExtent(snapshotSpan, isSignificant: true);
+            var formattingOptions = new FormattingOptions()
+            {
+                InsertSpaces = true,
+                TabSize = 2,
+            };
+
+            // Assert
+            var indentation = CompletionHandler.GetBaseIndentation(wordExtent, formattingOptions);
+
+            // Act
+            Assert.Equal(5, indentation);
+        }
+
+        [Fact]
+        public void GetBaseIndentation_Tabs_ImplicitExpression()
+        {
+            // Arrange
+            var snapshot = new StringTextSnapshot("\t\t@i");
+            var snapshotSpan = new SnapshotSpan(snapshot, new Span(3, 1));
+            var wordExtent = new TextExtent(snapshotSpan, isSignificant: true);
+            var formattingOptions = new FormattingOptions()
+            {
+                InsertSpaces = false,
+                TabSize = 3,
+            };
+
+            // Assert
+            var indentation = CompletionHandler.GetBaseIndentation(wordExtent, formattingOptions);
+
+            // Act
+            Assert.Equal(7, indentation);
+        }
+
+        [Fact]
+        public void GetBaseIndentation_Tabs_Text()
+        {
+            // Arrange
+            var snapshot = new StringTextSnapshot("\t\ti");
+            var snapshotSpan = new SnapshotSpan(snapshot, new Span(2, 1));
+            var wordExtent = new TextExtent(snapshotSpan, isSignificant: true);
+            var formattingOptions = new FormattingOptions()
+            {
+                InsertSpaces = false,
+                TabSize = 3,
+            };
+
+            // Assert
+            var indentation = CompletionHandler.GetBaseIndentation(wordExtent, formattingOptions);
+
+            // Act
+            Assert.Equal(6, indentation);
+        }
+
+        [Fact]
+        public void GetBaseIndentation_Tabs_Mixed()
+        {
+            // Arrange
+            var snapshot = new StringTextSnapshot("\t\t  i");
+            var snapshotSpan = new SnapshotSpan(snapshot, new Span(4, 1));
+            var wordExtent = new TextExtent(snapshotSpan, isSignificant: true);
+            var formattingOptions = new FormattingOptions()
+            {
+                InsertSpaces = false,
+                TabSize = 3,
+            };
+
+            // Assert
+            var indentation = CompletionHandler.GetBaseIndentation(wordExtent, formattingOptions);
+
+            // Act
+            Assert.Equal(8, indentation);
+        }
+
         private static ITextStructureNavigatorSelectorService BuildNavigatorSelector(TextExtent wordRange)
         {
             var navigator = new Mock<ITextStructureNavigator>(MockBehavior.Strict);

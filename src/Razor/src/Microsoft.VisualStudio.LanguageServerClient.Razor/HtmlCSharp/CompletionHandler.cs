@@ -282,12 +282,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 completionList = IncludeCSharpKeywords(completionList);
 
                 // -1 is to account for the transition so base indentation is "|@if" instead of "@|if"
-                var baseIndentation = Math.Max(GetBaseIndentation(wordExtent) - 1, 0);
+                var baseIndentation = Math.Max(GetBaseIndentation(wordExtent.Value, formattingOptions) - 1, 0);
                 completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
             }
             else if (IsWordOnEmptyLine(wordExtent, documentSnapshot))
             {
-                var baseIndentation = GetBaseIndentation(wordExtent);
+                var baseIndentation = GetBaseIndentation(wordExtent.Value, formattingOptions);
                 completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
             }
 
@@ -794,11 +794,39 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return true;
         }
 
-        private static int GetBaseIndentation(TextExtent? wordExtent)
+        // Internal for testing
+        internal static int GetBaseIndentation(TextExtent wordExtent, FormattingOptions formattingOptions)
         {
-            var lineStart = wordExtent.Value.Span.Start.GetContainingLine().Start.Position;
-            var baseIndentation = wordExtent.Value.Span.Start.Position - lineStart;
-            return baseIndentation;
+            var line = wordExtent.Span.Start.GetContainingLine();
+            var lineStart = line.Start.Position;
+            var wordStart = wordExtent.Span.Start.Position;
+            
+            if (formattingOptions.InsertSpaces)
+            {
+                var baseIndentation = wordStart - lineStart;
+                return baseIndentation;
+            }
+            else
+            {
+                var leadingTabs = 0;
+                var firstNonTab = 0;
+                for (var i = lineStart; i < wordStart; i++)
+                {
+                    if (line.Snapshot[i] == '\t')
+                    {
+                        leadingTabs++;
+                    }
+                    else
+                    {
+                        firstNonTab = i;
+                        break;
+                    }
+                }
+                var nonTabIndentation = wordStart - firstNonTab;
+                var leadingIndentation = leadingTabs * formattingOptions.TabSize;
+                var baseIndentation = leadingIndentation + nonTabIndentation;
+                return baseIndentation;
+            }
         }
 
         private class CompletionItemComparer : IEqualityComparer<CompletionItem>
