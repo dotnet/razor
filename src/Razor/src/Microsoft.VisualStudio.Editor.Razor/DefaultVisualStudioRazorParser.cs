@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
         private readonly ErrorReporter _errorReporter;
         private readonly List<CodeDocumentRequest> _codeDocumentRequests;
+        private readonly TaskScheduler _uiThreadScheduler;
         private RazorProjectEngine _projectEngine;
         private RazorCodeDocument _codeDocument;
         private ITextSnapshot _snapshot;
@@ -92,6 +93,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _codeDocumentRequests = new List<CodeDocumentRequest>();
 
             _documentTracker.ContextChanged += DocumentTracker_ContextChanged;
+
+            _joinableTaskContext.AssertUIThread();
+            _uiThreadScheduler = TaskScheduler.FromCurrentSynchronizationContext();
         }
 
         public override string FilePath => _documentTracker.FilePath;
@@ -146,9 +150,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
         // WebTools depends on this method. Do not remove until old editor is phased out
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        public async override void QueueReparse()
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        public override void QueueReparse()
         {
             // Can be called from any thread
 
@@ -160,8 +162,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 }
                 else
                 {
-                    await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
-                    ReparseOnUIThread();
+                    _ = Task.Factory.StartNew(
+                        () => ReparseOnUIThread(), CancellationToken.None, TaskCreationOptions.None, _uiThreadScheduler);
                 }
             }
             catch (Exception ex)
