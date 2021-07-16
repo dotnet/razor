@@ -809,7 +809,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             else
             {
                 var leadingTabs = 0;
-                var firstNonTab = 0;
+                var firstNonTab = wordStart;
                 for (var i = lineStart; i < wordStart; i++)
                 {
                     if (line.Snapshot[i] == '\t')
