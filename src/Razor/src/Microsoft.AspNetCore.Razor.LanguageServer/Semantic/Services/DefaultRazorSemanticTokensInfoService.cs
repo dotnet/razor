@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -163,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             return await GetSemanticTokensEditsAsync(
                 documentSnapshot,
-                documentVersion,
+                documentVersion.Value,
                 textDocumentIdentifier,
                 previousResultId,
                 cancellationToken);
@@ -172,7 +173,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         // Internal for testing
         internal async Task<SemanticTokensFullOrDelta?> GetSemanticTokensEditsAsync(
             DocumentSnapshot documentSnapshot,
-            int? documentVersion,
+            long documentVersion,
             TextDocumentIdentifier textDocumentIdentifier,
             string? previousResultId,
             CancellationToken cancellationToken)
@@ -293,7 +294,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             RazorCodeDocument codeDocument,
             TextDocumentIdentifier textDocumentIdentifier,
             Range? range,
-            long? documentVersion,
+            long documentVersion,
             CancellationToken cancellationToken,
             string? previousResultId = null)
         {
@@ -361,12 +362,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private async Task<SemanticTokens?> GetMatchingCSharpResponseAsync(
             TextDocumentIdentifier textDocumentIdentifier,
-            long? documentVersion,
+            long documentVersion,
             CancellationToken cancellationToken)
         {
-            var parameter = new SemanticTokensParams
+            var parameter = new ProvideSemanticTokensParams
             {
                 TextDocument = textDocumentIdentifier,
+                RequiredHostDocumentVersion = documentVersion,
             };
             var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, parameter);
             var csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);
@@ -390,15 +392,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         private async Task<SemanticTokens?> GetMatchingCSharpEditsResponseAsync(
             TextDocumentIdentifier textDocumentIdentifier,
-            long? documentVersion,
+            long documentVersion,
             string previousResultId,
             IReadOnlyList<int> previousCSharpTokens,
             CancellationToken cancellationToken)
         {
-            var parameter = new SemanticTokensDeltaParams
+            var parameter = new ProvideSemanticTokensDeltaParams
             {
                 TextDocument = textDocumentIdentifier,
                 PreviousResultId = previousResultId,
+                RequiredHostDocumentVersion = documentVersion,
             };
             var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEditsEndpoint, parameter);
             var csharpResponse = await request.Returning<ProvideSemanticTokensEditsResponse>(cancellationToken);
