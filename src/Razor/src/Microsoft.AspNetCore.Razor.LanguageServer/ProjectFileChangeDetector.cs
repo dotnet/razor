@@ -20,6 +20,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly IEnumerable<IProjectFileChangeListener> _listeners;
         private FileSystemWatcher _watcher;
 
+        private static readonly string[] s_ignoredDirectories = new string[]
+        {
+            "node_modules",
+            "bin",
+            "obj",
+        };
+
         public ProjectFileChangeDetector(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             FilePathNormalizer filePathNormalizer,
@@ -118,9 +125,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Protected virtual for testing
-        protected virtual IReadOnlyList<string> GetExistingProjectFiles(string workspaceDirectory)
+        protected virtual IEnumerable<string> GetExistingProjectFiles(string workspaceDirectory)
         {
-            return Directory.GetFiles(workspaceDirectory, ProjectFileExtensionPattern, SearchOption.AllDirectories);
+            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, ProjectFileExtensionPattern, s_ignoredDirectories);
+
+            return files;
         }
 
         private void FileSystemWatcher_ProjectFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
