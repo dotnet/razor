@@ -91,7 +91,7 @@
     <Tooling_MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.21103.2</Tooling_MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.0.0-previews-1-31410-258</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.0.35-gdeb9415fdc</MicrosoftVisualStudioPackagesVersion>
-    <RoslynPackageVersion>3.11.0-1.21262.10</RoslynPackageVersion>
+    <RoslynPackageVersion>4.0.0-3.21361.5</RoslynPackageVersion>
   </PropertyGroup>
   <PropertyGroup Label="Manual">
     <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>5.0.0-preview.4.20205.1</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
@@ -130,6 +130,7 @@
     <Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.3.2</Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion>6.0.0-preview3.21158.1</Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion>
     <Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
+    <Tooling_MicrosoftCodeAnalysisExternalAccessOmniSharpCSharpPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisExternalAccessOmniSharpCSharpPackageVersion>
     <Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
     <Tooling_MicrosoftCodeAnalysisCSharpPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisCSharpPackageVersion>
     <Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>
