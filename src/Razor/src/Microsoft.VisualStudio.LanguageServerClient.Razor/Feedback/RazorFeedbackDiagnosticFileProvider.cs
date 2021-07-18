@@ -57,9 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
                 return Array.Empty<string>();
             }
 
-#pragma warning disable VSTHRD110 // Observe result of async calls
-            _joinableTaskFactory.RunAsync(() => ZipLogsAsync(logDirectory, zipFilePath));
-#pragma warning restore VSTHRD110 // Observe result of async calls
+            _ = _joinableTaskFactory.RunAsync(() => ZipLogsAsync(logDirectory, zipFilePath));
 
             return new[] { zipFilePath };
         }
