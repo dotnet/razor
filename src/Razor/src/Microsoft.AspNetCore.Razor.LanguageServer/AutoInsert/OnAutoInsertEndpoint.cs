@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public RegistrationExtensionResult GetRegistration()
         {
-            const string AssociatedServerCapability = "_ms_onAutoInsertProvider";
+            const string AssociatedServerCapability = "_vs_onAutoInsertProvider";
 
             var registrationOptions = new OnAutoInsertRegistrationOptions()
             {

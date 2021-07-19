@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
     }
   },
   ""textDocument"": {
-    ""_ms_onAutoInsert"": {
+    ""_vs_onAutoInsert"": {
       ""dynamicRegistration"": false
     },
     ""synchronization"": {

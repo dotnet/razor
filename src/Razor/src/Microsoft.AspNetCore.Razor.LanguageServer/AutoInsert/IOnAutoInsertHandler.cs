@@ -5,7 +5,7 @@ using OmniSharp.Extensions.JsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
-    [Parallel, Method("textDocument/_ms_onAutoInsert")]
+    [Parallel, Method("textDocument/_vs_onAutoInsert")]
     internal interface IOnAutoInsertHandler : IJsonRpcRequestHandler<OnAutoInsertParams, OnAutoInsertResponse>, IRegistrationExtension
     {
     }
