@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             // We need these converters so we don't lose information as part of the deserialization.
             _serializer = new JsonSerializer();
-            _serializer.AddVSExtensionConverters();
+            _serializer.AddVSInternalExtensionConverters();
         }
 
         public override Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, TIn parameters, CancellationToken cancellationToken)
