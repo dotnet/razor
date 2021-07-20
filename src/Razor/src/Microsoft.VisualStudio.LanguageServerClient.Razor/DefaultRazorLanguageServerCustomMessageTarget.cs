@@ -318,7 +318,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             semanticTokensEditsParams.TextDocument.Uri = csharpDoc.Uri;
 
-            var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensDeltaParams, SumType<LanguageServer.Protocol.SemanticTokens, SemanticTokens>>(
+            var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensDeltaParams, SumType<LanguageServer.Protocol.SemanticTokens, SemanticTokensDelta>>(
                 Methods.TextDocumentSemanticTokensFullDeltaName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 semanticTokensEditsParams,
