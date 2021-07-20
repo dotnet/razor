@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
     /// </summary>
     internal sealed class VSClassifiedTextRun
     {
-        [JsonProperty("type")]
+        [JsonProperty("_vs_type")]
         public static readonly string Type = "ClassifiedTextRun";
 
         public VSClassifiedTextRun(string classificationTypeName, string text)

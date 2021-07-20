@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
     /// </summary>
     internal sealed class VSClassifiedTextElement
     {
-        [JsonProperty("type")]
+        [JsonProperty("_vs_type")]
         public static readonly string Type = "ClassifiedTextElement";
 
         public const string TextClassificationTypeName = "text";

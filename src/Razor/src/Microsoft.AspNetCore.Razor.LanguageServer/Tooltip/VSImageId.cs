@@ -13,13 +13,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
     /// </summary>
     internal class VSImageId : IEquatable<VSImageId>
     {
-        [JsonProperty("type")]
+        [JsonProperty("_vs_type")]
         public static readonly string Type = "ImageId";
 
-        [JsonProperty("Guid")]
+        [JsonProperty("_vs_guid")]
         public readonly Guid Guid;
 
-        [JsonProperty("Id")]
+        [JsonProperty("_vs_id")]
         public readonly int Id;
 
         public VSImageId(Guid guid, int id)
