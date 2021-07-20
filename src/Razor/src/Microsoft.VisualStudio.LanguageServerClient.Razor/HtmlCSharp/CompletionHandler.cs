@@ -56,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly ITextStructureNavigatorSelectorService _textStructureNavigator;
         private readonly CompletionRequestContextCache _completionRequestContextCache;
+        private readonly FormattingOptionsProvider _formattingOptionsProvider;
         private readonly ILogger _logger;
 
         [ImportingConstructor]
@@ -66,6 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LSPProjectionProvider projectionProvider,
             ITextStructureNavigatorSelectorService textStructureNavigator,
             CompletionRequestContextCache completionRequestContextCache,
+            FormattingOptionsProvider formattingOptionsProvider,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (joinableTaskContext is null)
@@ -98,6 +100,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(completionRequestContextCache));
             }
 
+            if (formattingOptionsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(formattingOptionsProvider));
+            }
+
             if (loggerProvider is null)
             {
                 throw new ArgumentNullException(nameof(loggerProvider));
@@ -109,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _projectionProvider = projectionProvider;
             _textStructureNavigator = textStructureNavigator;
             _completionRequestContextCache = completionRequestContextCache;
-
+            _formattingOptionsProvider = formattingOptionsProvider;
             _logger = loggerProvider.CreateLogger(nameof(CompletionHandler));
         }
 
@@ -262,20 +269,88 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         //    This isn't an applicable scenario for C# to provide the "for" keyword; however, Razor still wants that to be applicable because if you type out the full @for keyword it will generate the
         //    appropriate C# code.
         // 3. Remove Razor intrinsic design time items. Razor adds all sorts of C# helpers like __o, __builder etc. to aid in C# compilation/understanding; however, these aren't useful in regards to C# completion.
-        private static CompletionList PostProcessCSharpCompletionList(
+        private CompletionList PostProcessCSharpCompletionList(
             CompletionParams request,
             LSPDocumentSnapshot documentSnapshot,
             TextExtent? wordExtent,
             CompletionList completionList)
         {
+            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot.Uri);
             if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {
                 completionList = RemovePreselection(completionList);
                 completionList = IncludeCSharpKeywords(completionList);
+
+                // -1 is to account for the transition so base indentation is "|@if" instead of "@|if"
+                var baseIndentation = Math.Max(GetBaseIndentation(wordExtent.Value, formattingOptions) - 1, 0);
+                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
+            }
+            else if (IsWordOnEmptyLine(wordExtent, documentSnapshot))
+            {
+                var baseIndentation = GetBaseIndentation(wordExtent.Value, formattingOptions);
+                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
             }
 
             completionList = RemoveDesignTimeItems(documentSnapshot, wordExtent, completionList);
 
+            return completionList;
+        }
+
+        private static CompletionList IncludeCSharpSnippets(int baseIndentation, CompletionList completionList, FormattingOptions formattingOptions)
+        {
+            var baseIndentationString = GetIndentationString(baseIndentation, formattingOptions);
+            var baseIndentationPlus1String = GetIndentationString(baseIndentation + formattingOptions.TabSize, formattingOptions);
+
+            var forSnippet = new CompletionItem()
+            {
+                Label = "for (...)",
+                InsertText =
+                    @$"for (var ${{1:i}} = 0; ${{1:i}} < ${{2:length}}; ${{1:i}})
+{baseIndentationString}{{
+{baseIndentationPlus1String}$0
+{baseIndentationString}}}",
+                InsertTextFormat = InsertTextFormat.Snippet,
+                Kind = CompletionItemKind.Snippet,
+            };
+            var foreachSnippet = new CompletionItem()
+            {
+                Label = "foreach (...)",
+                InsertText =
+                    @$"foreach (${{1:var}} ${{2:item}} in ${{3:collection}})
+{baseIndentationString}{{
+{baseIndentationPlus1String}$0
+{baseIndentationString}}}",
+                InsertTextFormat = InsertTextFormat.Snippet,
+                Kind = CompletionItemKind.Snippet,
+            };
+            var ifSnippet = new CompletionItem()
+            {
+                Label = "if (...)",
+                InsertText =
+                    @$"if (${{1:true}})
+{baseIndentationString}{{
+{baseIndentationPlus1String}$0
+{baseIndentationString}}}",
+                InsertTextFormat = InsertTextFormat.Snippet,
+                Kind = CompletionItemKind.Snippet,
+            };
+            var propSnippet = new CompletionItem()
+            {
+                Label = "prop",
+                InsertText = "public ${1:int} ${2:MyProperty} { get; set; }$0",
+                InsertTextFormat = InsertTextFormat.Snippet,
+                Kind = CompletionItemKind.Snippet,
+            };
+
+            var snippets = new[]
+            {
+                forSnippet,
+                foreachSnippet,
+                ifSnippet,
+                propSnippet,
+            };
+            var newList = completionList.Items.Union(snippets, CompletionItemComparer.Instance);
+            completionList.Items = newList.ToArray();
             return completionList;
         }
 
@@ -663,6 +738,95 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Unknown trigger character.
             return false;
+        }
+
+        private static string GetIndentationString(int indentation, FormattingOptions options)
+        {
+            if (options.InsertSpaces)
+            {
+                return new string(' ', indentation);
+            }
+            else
+            {
+                var tabs = indentation / options.TabSize;
+                var tabPrefix = new string('\t', (int)tabs);
+
+                var spaces = indentation % options.TabSize;
+                var spaceSuffix = new string(' ', (int)spaces);
+
+                var combined = string.Concat(tabPrefix, spaceSuffix);
+                return combined;
+            }
+        }
+
+        private bool IsWordOnEmptyLine(TextExtent? wordExtent, LSPDocumentSnapshot documentSnapshot)
+        {
+            if (wordExtent == null)
+            {
+                return false;
+            }
+
+            var line = wordExtent.Value.Span.Start.GetContainingLine();
+            var lineStart = line.Start.Position;
+            var wordStart = wordExtent.Value.Span.Start.Position;
+
+            // Is the word prefixed by whitespace?
+            for (var i = lineStart; i < wordStart; i++)
+            {
+                if (!char.IsWhiteSpace(documentSnapshot.Snapshot[i]))
+                {
+                    return false;
+                }
+            }
+
+            var lineEnd = line.End.Position;
+            var wordEnd = wordExtent.Value.Span.End.Position;
+
+            // Is the word suffixed by whitespace?
+            for (var i = wordEnd; i < lineEnd; i++)
+            {
+                if (!char.IsWhiteSpace(documentSnapshot.Snapshot[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Internal for testing
+        internal static int GetBaseIndentation(TextExtent wordExtent, FormattingOptions formattingOptions)
+        {
+            var line = wordExtent.Span.Start.GetContainingLine();
+            var lineStart = line.Start.Position;
+            var wordStart = wordExtent.Span.Start.Position;
+            
+            if (formattingOptions.InsertSpaces)
+            {
+                var baseIndentation = wordStart - lineStart;
+                return baseIndentation;
+            }
+            else
+            {
+                var leadingTabs = 0;
+                var firstNonTab = wordStart;
+                for (var i = lineStart; i < wordStart; i++)
+                {
+                    if (line.Snapshot[i] == '\t')
+                    {
+                        leadingTabs++;
+                    }
+                    else
+                    {
+                        firstNonTab = i;
+                        break;
+                    }
+                }
+                var nonTabIndentation = wordStart - firstNonTab;
+                var leadingIndentation = leadingTabs * formattingOptions.TabSize;
+                var baseIndentation = leadingIndentation + nonTabIndentation;
+                return baseIndentation;
+            }
         }
 
         private class CompletionItemComparer : IEqualityComparer<CompletionItem>

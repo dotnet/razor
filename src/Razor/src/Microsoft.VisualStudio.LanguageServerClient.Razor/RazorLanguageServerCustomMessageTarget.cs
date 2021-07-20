@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -41,11 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         // Called by the Razor Language Server to provide semantic tokens from the platform.
         [JsonRpcMethod(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken);
+#pragma warning disable CS0618 // Type or member is obsolete
+        public abstract Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(ProvideSemanticTokensParams semanticTokensParams, CancellationToken cancellationToken);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         // Called by the Razor Language Server to provide semantic tokens edits from the platform.
         [JsonRpcMethod(LanguageServerConstants.RazorProvideSemanticTokensEditsEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<ProvideSemanticTokensEditsResponse> ProvideSemanticTokensEditsAsync(SemanticTokensEditsParams semanticTokensParams, CancellationToken cancellationToken);
+        public abstract Task<ProvideSemanticTokensEditsResponse> ProvideSemanticTokensEditsAsync(ProvideSemanticTokensDeltaParams semanticTokensParams, CancellationToken cancellationToken);
 
         [JsonRpcMethod(LanguageServerConstants.RazorServerReadyEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task RazorServerReadyAsync(CancellationToken cancellationToken);

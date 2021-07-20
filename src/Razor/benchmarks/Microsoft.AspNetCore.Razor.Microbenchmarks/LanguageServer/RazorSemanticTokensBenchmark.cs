@@ -123,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 RazorCodeDocument codeDocument,
                 TextDocumentIdentifier textDocumentIdentifier,
                 Range range,
-                long? documentVersion,
+                long documentVersion,
                 CancellationToken cancellationToken,
                 string previousResultId = null)
             {
