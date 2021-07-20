@@ -7,21 +7,6 @@
         <target state="translated">El valor no puede ser nulo ni una cadena vacía.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertBackgroundThread">
-        <source>{0} must be called on a background thread.</source>
-        <target state="translated">{0} se debe llamar en un subproceso en segundo plano.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertForegroundThread">
-        <source>{0} must be called on the foreground thread.</source>
-        <target state="translated">{0} se debe llamar en el subproceso principal.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_NoMethodNamePlaceholder">
-        <source>The method</source>
-        <target state="translated">El método</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

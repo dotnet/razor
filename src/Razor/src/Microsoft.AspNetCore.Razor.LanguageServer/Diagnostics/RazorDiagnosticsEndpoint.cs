@@ -30,22 +30,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             "IDE0005_gen", // Using directive is unnecessary
         };
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger _logger;
 
         public RazorDiagnosticsEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             DocumentVersionCache documentVersionCache,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver == null)
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _documentVersionCache = documentVersionCache;
             _documentMappingService = documentMappingService;
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
 
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 {
                     documentVersion = null;
                 }
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (documentSnapshot is null)
             {

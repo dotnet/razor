@@ -379,7 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.True(serializationSuccessful);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectAdded_PublishesToCorrectFilePathAsync()
         {
             // Arrange
@@ -404,7 +404,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var projectWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), CodeAnalysis.CSharp.LanguageVersion.Default);
 
             // Act
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
             {
                 ProjectSnapshotManager.ProjectAdded(hostProject);
                 ProjectSnapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
@@ -416,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.True(serializationSuccessful);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectAdded_DoesNotPublishWithoutProjectWorkspaceStateAsync()
         {
             // Arrange
@@ -439,7 +439,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             ProjectConfigurationFilePathStore.Set(hostProject.FilePath, expectedConfigurationFilePath);
 
             // Act
-            await RunOnForegroundAsync(() => ProjectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => ProjectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
             Assert.Empty(publisher.DeferredPublishTasks);
 
@@ -447,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             Assert.False(serializationSuccessful);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectRemoved_UnSetPublishFilePath_NoopsAsync()
         {
             // Arrange
@@ -459,15 +459,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             };
             publisher.Initialize(ProjectSnapshotManager);
             var hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            await RunOnForegroundAsync(() => ProjectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => ProjectSnapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
             // Act & Assert
-            await RunOnForegroundAsync(() => ProjectSnapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
+            await RunOnDispatcherThreadAsync(() => ProjectSnapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
 
             Assert.Empty(publisher.DeferredPublishTasks);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ProjectAdded_DoesNotFireWhenNotReadyAsync()
         {
             // Arrange
@@ -493,7 +493,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             var projectWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), CodeAnalysis.CSharp.LanguageVersion.Default);
 
             // Act
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
             {
                 ProjectSnapshotManager.ProjectAdded(hostProject);
                 ProjectSnapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
@@ -532,31 +532,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             return snapshotManager;
         }
 
-        protected Task RunOnForegroundAsync(Action action)
+        protected Task RunOnDispatcherThreadAsync(Action action)
         {
-            return Task.Factory.StartNew(
+            return Dispatcher.RunOnDispatcherThreadAsync(
                 () => action(),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                CancellationToken.None);
         }
 
-        protected Task<TReturn> RunOnForegroundAsync<TReturn>(Func<TReturn> action)
+        protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> action)
         {
-            return Task.Factory.StartNew(
+            return Dispatcher.RunOnDispatcherThreadAsync(
                 () => action(),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                CancellationToken.None);
         }
 
-        protected Task RunOnForegroundAsync(Func<Task> action)
+        protected Task RunOnDispatcherThreadAsync(Func<Task> action)
         {
-            return Task.Factory.StartNew(
+            return Dispatcher.RunOnDispatcherThreadAsync(
                 async () => await action().ConfigureAwait(true),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                CancellationToken.None);
         }
 
         private class TestDefaultRazorProjectChangePublisher : DefaultRazorProjectChangePublisher

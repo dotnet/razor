@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -19,7 +18,6 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    [SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Requires execution on the foreground thread.")]
     public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
     {
 
@@ -330,7 +328,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (hasTask)
             {
                 var kvp = Assert.Single(synchronizer.ProjectInfoMap);
-                await Task.Factory.StartNew(() => kvp.Value.ProjectUpdateTask.Wait(), CancellationToken.None, TaskCreationOptions.None, Dispatcher.ForegroundScheduler);
+                await Dispatcher.RunOnDispatcherThreadAsync(
+                    () => kvp.Value.ProjectUpdateTask.Wait(), CancellationToken.None);
             }
             else
             {

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -15,12 +14,10 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 {
-    public class DefaultProjectSnapshotManagerProxyTest : ForegroundDispatcherTestBase, IDisposable
+    public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public DefaultProjectSnapshotManagerProxyTest()
         {
-            JoinableTaskContext = new JoinableTaskContext();
-            JoinableTaskFactory = new JoinableTaskFactory(JoinableTaskContext);
             Workspace = TestWorkspace.Create();
             var projectWorkspaceState1 = new ProjectWorkspaceState(new[]
             {
@@ -41,10 +38,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
                     new HostProject("/host/path/to/project2.csproj", RazorConfiguration.Default, "project2"),
                     projectWorkspaceState2));
         }
-
-        private JoinableTaskFactory JoinableTaskFactory { get; }
-
-        private JoinableTaskContext JoinableTaskContext { get; }
 
         private Workspace Workspace { get; }
 
@@ -195,12 +188,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
             // Assert
             Assert.Same(state1, state2);
-        }
-
-        [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "https://github.com/dotnet/roslyn-analyzers/issues/4801")]
-        public virtual void Dispose()
-        {
-            JoinableTaskContext.Dispose();
         }
 
         private class TestProjectSnapshotManager : ProjectSnapshotManager

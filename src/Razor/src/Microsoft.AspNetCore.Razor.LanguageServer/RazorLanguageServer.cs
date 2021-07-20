@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             .AddLanguageProtocolLogging(logLevel));
 
                         services.AddSingleton<FilePathNormalizer>();
-                        services.AddSingleton<ForegroundDispatcher, DefaultForegroundDispatcher>();
+                        services.AddSingleton<ProjectSnapshotManagerDispatcher, DefaultProjectSnapshotManagerDispatcher>();
                         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
                         services.AddSingleton<AdhocWorkspaceFactory, DefaultAdhocWorkspaceFactory>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());

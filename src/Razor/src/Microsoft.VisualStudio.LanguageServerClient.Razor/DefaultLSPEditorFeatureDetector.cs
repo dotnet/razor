@@ -16,7 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     internal class DefaultLSPEditorFeatureDetector : LSPEditorFeatureDetector
     {
         private const string DotNetCoreCSharpCapability = "CSharp&CPS";
-        private const string UseLegacyASPNETCoreEditorSettingTemp = "TextEditor.HTMLX.Specific.UseLegacyASPNETCoreRazorEditor";
         private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
         private static readonly Guid s_liveShareHostUIContextGuid = Guid.Parse("62de1aa5-70b0-4934-9324-680896466fe1");
@@ -49,12 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Assumes.Present(settingsManager);
 
                 var useLegacyEditor = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSetting);
-
-                // WebTools is in the process of renaming HTMLX -> HTML and this Temp setting represents the HTMLX variant of the setting.
-                // Once they've committed the fix we'll need to "do the right thing" for the point-in-time where things vary.
-                var useLegacyEditorTemp = settingsManager.GetValueOrDefault<bool>(UseLegacyASPNETCoreEditorSettingTemp);
-                var shouldUseLegacyEditor = useLegacyEditor || useLegacyEditorTemp;
-                return shouldUseLegacyEditor;
+                return useLegacyEditor;
             });
         }
 

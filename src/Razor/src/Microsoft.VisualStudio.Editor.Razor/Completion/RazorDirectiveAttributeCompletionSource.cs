@@ -39,36 +39,36 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly ICompletionBroker _completionBroker;
         private readonly VisualStudioDescriptionFactory _descriptionFactory;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
         public RazorDirectiveAttributeCompletionSource(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             VisualStudioRazorParser parser,
             RazorCompletionFactsService completionFactsService,
             ICompletionBroker completionBroker,
             VisualStudioDescriptionFactory descriptionFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (parser == null)
+            if (parser is null)
             {
                 throw new ArgumentNullException(nameof(parser));
             }
 
-            if (completionFactsService == null)
+            if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            if (descriptionFactory == null)
+            if (descriptionFactory is null)
             {
                 throw new ArgumentNullException(nameof(descriptionFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _parser = parser;
             _completionFactsService = completionFactsService;
             _completionBroker = completionBroker;
@@ -77,8 +77,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         public async Task<CompletionContext> GetCompletionContextAsync(IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             try
             {
                 var codeDocument = await _parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);
@@ -110,11 +108,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
                     // Legacy completion is also active, we need to dismiss it.
 
-                    _ = Task.Factory.StartNew(
+                    _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                         () => activeSession.Dismiss(),
-                        CancellationToken.None,
-                        TaskCreationOptions.None,
-                        _foregroundDispatcher.ForegroundScheduler);
+                        CancellationToken.None);
                 }
 
                 var completionItems = new List<CompletionItem>();

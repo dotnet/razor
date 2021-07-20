@@ -35,31 +35,22 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private const string RazorGenerateDesignTimeTargetName = "RazorGenerateDesignTime";
         private const string RazorGenerateComponentDesignTimeTargetName = "RazorGenerateComponentDesignTime";
         private static readonly IEnumerable<ILogger> s_emptyMSBuildLoggers = Enumerable.Empty<ILogger>();
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
         private readonly object _evaluationLock = new object();
 
         [ImportingConstructor]
-        public DefaultProjectInstanceEvaluator(OmniSharpForegroundDispatcher foregroundDispatcher)
+        public DefaultProjectInstanceEvaluator()
         {
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            _foregroundDispatcher = foregroundDispatcher;
         }
 
         public override ProjectInstance Evaluate(ProjectInstance projectInstance)
         {
-            if (projectInstance == null)
+            if (projectInstance is null)
             {
                 throw new ArgumentNullException(nameof(projectInstance));
             }
 
             lock (_evaluationLock)
             {
-                _foregroundDispatcher.AssertBackgroundThread();
-
                 var refreshTargets = new List<string>()
                 {
                     // These are the default targets for the project instance that OmniSharp runs.

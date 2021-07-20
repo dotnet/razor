@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class MonitorProjectConfigurationFilePathEndpoint : IMonitorProjectConfigurationFilePathHandler, IDisposable
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
@@ -25,14 +25,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private bool _disposed;
 
         public MonitorProjectConfigurationFilePathEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             FilePathNormalizer filePathNormalizer,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (filePathNormalizer is null)
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(listeners));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _workspaceDirectoryPathResolver = workspaceDirectoryPathResolver;
             _listeners = listeners;
@@ -191,6 +191,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Protected virtual for testing
-        protected virtual IFileChangeDetector CreateFileChangeDetector() => new ProjectConfigurationFileChangeDetector(_foregroundDispatcher, _filePathNormalizer, _listeners);
+        protected virtual IFileChangeDetector CreateFileChangeDetector() => new ProjectConfigurationFileChangeDetector(_projectSnapshotManagerDispatcher, _filePathNormalizer, _listeners);
     }
 }

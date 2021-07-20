@@ -17,36 +17,29 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         Role = ServiceRole.RemoteService)]
     internal class DefaultProjectHierarchyProxyFactory : ICollaborationServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
         public DefaultProjectHierarchyProxyFactory(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             JoinableTaskContext joinableTaskContext)
         {
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            if (joinableTaskContext == null)
+            if (joinableTaskContext is null)
             {
                 throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
             _joinableTaskContext = joinableTaskContext;
         }
 
         public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
         {
-            if (session == null)
+            if (session is null)
             {
                 throw new ArgumentNullException(nameof(session));
             }
 
-            var service = new DefaultProjectHierarchyProxy(session, _foregroundDispatcher, _joinableTaskContext.Factory);
+            var service = new DefaultProjectHierarchyProxy(session, _joinableTaskContext.Factory);
             return Task.FromResult<ICollaborationService>(service);
         }
     }

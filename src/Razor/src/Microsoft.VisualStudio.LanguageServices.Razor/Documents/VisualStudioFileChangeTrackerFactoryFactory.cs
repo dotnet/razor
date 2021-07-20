@@ -17,20 +17,23 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     internal class VisualStudioFileChangeTrackerFactoryFactory : IWorkspaceServiceFactory
     {
         private readonly IVsAsyncFileChangeEx _fileChangeService;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
-        public VisualStudioFileChangeTrackerFactoryFactory(ForegroundDispatcher foregroundDispatcher, SVsServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext)
+        public VisualStudioFileChangeTrackerFactoryFactory(
+            SVsServiceProvider serviceProvider,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext)
         {
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            if (serviceProvider == null)
+            if (serviceProvider is null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (joinableTaskContext is null)
@@ -38,9 +41,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
-            _joinableTaskContext = joinableTaskContext;
             _fileChangeService = serviceProvider.GetService(typeof(SVsFileChangeEx)) as IVsAsyncFileChangeEx;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _joinableTaskContext = joinableTaskContext;
         }
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -50,7 +53,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             var errorReporter = workspaceServices.GetRequiredService<ErrorReporter>();
-            return new VisualStudioFileChangeTrackerFactory(_foregroundDispatcher, errorReporter, _fileChangeService, _joinableTaskContext);
+            return new VisualStudioFileChangeTrackerFactory(errorReporter, _fileChangeService, _projectSnapshotManagerDispatcher, _joinableTaskContext);
         }
     }
 }

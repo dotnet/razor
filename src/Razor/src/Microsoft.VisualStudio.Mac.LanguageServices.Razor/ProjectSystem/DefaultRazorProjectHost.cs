@@ -30,16 +30,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public DefaultRazorProjectHost(
             DotNetProject project,
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)
-            : base(project, foregroundDispatcher, projectSnapshotManager)
+            : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager)
         {
         }
 
         protected override async Task OnProjectChangedAsync()
         {
-            ForegroundDispatcher.AssertBackgroundThread();
-
             await ExecuteWithLockAsync(async () =>
             {
                 var projectProperties = DotNetProject.MSBuildProject.EvaluatedProperties;
@@ -82,7 +80,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
             _currentRazorFilePaths = documentFilePaths;
 
-            _ = Task.Factory.StartNew(() =>
+            _ = ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
               {
                   foreach (var document in removedFiles)
                   {
@@ -95,9 +93,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                       AddDocument(hostProject, document, relativeFilePath);
                   }
               },
-            CancellationToken.None,
-            TaskCreationOptions.None,
-            ForegroundDispatcher.ForegroundScheduler);
+              CancellationToken.None);
         }
 
         // Internal for testing

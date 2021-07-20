@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -13,19 +12,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class DefaultGeneratedDocumentContainerStore : GeneratedDocumentContainerStore
     {
         private readonly ConcurrentDictionary<string, ReferenceOutputCapturingContainer> _store;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly GeneratedDocumentPublisher _generatedDocumentPublisher;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
         public DefaultGeneratedDocumentContainerStore(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentVersionCache documentVersionCache,
             GeneratedDocumentPublisher generatedDocumentPublisher)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentVersionCache == null)
@@ -38,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(generatedDocumentPublisher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentVersionCache = documentVersionCache;
             _generatedDocumentPublisher = generatedDocumentPublisher;
             _store = new ConcurrentDictionary<string, ReferenceOutputCapturingContainer>(FilePathComparer.Instance);
@@ -67,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -95,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var latestDocument = generatedDocumentContainer.LatestDocument;
 
-                _ = Task.Factory.StartNew(() =>
+                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     if (!_projectSnapshotManager.IsDocumentOpen(filePath))
                     {
@@ -111,7 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var hostDocumentVersion = nullableHostDocumentVersion.Value;
 
                     _generatedDocumentPublisher.PublishCSharp(filePath, args.NewText, hostDocumentVersion);
-                }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                }, CancellationToken.None);
             };
 
             documentContainer.GeneratedHtmlChanged += (sender, args) =>
@@ -120,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                 var latestDocument = generatedDocumentContainer.LatestDocument;
 
-                _ = Task.Factory.StartNew(() =>
+                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     if (!_projectSnapshotManager.IsDocumentOpen(filePath))
                     {
@@ -136,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var hostDocumentVersion = nullableHostDocumentVersion.Value;
 
                     _generatedDocumentPublisher.PublishHtml(filePath, args.NewText, hostDocumentVersion);
-                }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                }, CancellationToken.None);
             };
 
             return documentContainer;

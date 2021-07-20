@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             {
                 var projectHierarchyProxy = _proxyAccessor.GetProjectHierarchyProxy();
 
-                // We need to block the foreground thread to get a proper project path. However, this is only done once on opening thedocument.
+                // We need to block the UI thread to get a proper project path. However, this is only done once on opening the document.
                 return projectHierarchyProxy.GetProjectPathAsync(ownerPath, CancellationToken.None);
             });
 

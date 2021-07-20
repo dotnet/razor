@@ -15,13 +15,13 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
         private readonly BackgroundDocumentGenerator _backgroundDocumentGenerator;
 
         public OmniSharpBackgroundDocumentGenerator(
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (remoteTextLoaderFactory is null)
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             }
 
             var wrappedListeners = documentProcessedListeners.Select(listener => new WrappedDocumentProcessedListener(remoteTextLoaderFactory, listener));
-            _backgroundDocumentGenerator = new BackgroundDocumentGenerator(foregroundDispatcher.InternalDispatcher, wrappedListeners);
+            _backgroundDocumentGenerator = new BackgroundDocumentGenerator(projectSnapshotManagerDispatcher.InternalDispatcher, wrappedListeners);
         }
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
