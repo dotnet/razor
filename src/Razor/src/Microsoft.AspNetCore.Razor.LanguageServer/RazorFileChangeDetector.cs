@@ -24,7 +24,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IRazorFileChangeListener> _listeners;
         private readonly List<FileSystemWatcher> _watchers;
-        private readonly object _pendingNotificationsLock = new object();
+        private readonly object _pendingNotificationsLock = new();
+
+        private static readonly string[] s_ignoredDirectories = new string[]
+        {
+            "node_modules",
+        };
 
         public RazorFileChangeDetector(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -152,7 +157,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             for (var i = 0; i < s_razorFileExtensions.Count; i++)
             {
                 var extension = s_razorFileExtensions[i];
-                var existingFiles = Directory.GetFiles(workspaceDirectory, "*" + extension, SearchOption.AllDirectories);
+                var existingFiles = DirectoryHelper.GetFilteredFiles(workspaceDirectory, "*" + extension, s_ignoredDirectories);
                 existingRazorFiles = existingRazorFiles.Concat(existingFiles);
             }
 

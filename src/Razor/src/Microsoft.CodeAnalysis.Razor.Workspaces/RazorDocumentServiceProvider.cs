@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private readonly object _lock;
 
         private IRazorSpanMappingService _spanMappingService;
-        private IRazorDocumentExcerptService _excerptService;
+        private IRazorDocumentExcerptService _documentExcerptService;
         private IRazorDocumentPropertiesService _documentPropertiesService;
 
         public RazorDocumentServiceProvider()
@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 return this as TService;
             }
 
-            if (typeof(TService) == typeof(IRazorSpanMappingService))
+            var serviceType = typeof(TService);
+
+            if (serviceType == typeof(IRazorSpanMappingService))
             {
                 if (_spanMappingService == null)
                 {
@@ -53,23 +55,23 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 return (TService)_spanMappingService;
             }
 
-            if (typeof(TService) == typeof(IRazorDocumentExcerptService))
+            if (serviceType == typeof(IRazorDocumentExcerptService))
             {
-                if (_excerptService == null)
+                if (_documentExcerptService == null)
                 {
                     lock (_lock)
                     {
-                        if (_excerptService == null)
+                        if (_documentExcerptService == null)
                         {
-                            _excerptService = _documentContainer.GetExcerptService();
+                            _documentExcerptService = _documentContainer.GetExcerptService();
                         }
                     }
                 }
 
-                return (TService)_excerptService;
+                return (TService)_documentExcerptService;
             }
 
-            if (typeof(TService) == typeof(IRazorDocumentPropertiesService))
+            if (serviceType == typeof(IRazorDocumentPropertiesService))
             {
                 if (_documentPropertiesService == null)
                 {

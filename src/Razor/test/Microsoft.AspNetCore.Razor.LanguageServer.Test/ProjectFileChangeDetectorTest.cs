@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _cancellationTokenSource.Cancel();
             }
 
-            protected override IReadOnlyList<string> GetExistingProjectFiles(string workspaceDirectory)
+            protected override IEnumerable<string> GetExistingProjectFiles(string workspaceDirectory)
             {
                 return _existingProjectFiles;
             }
