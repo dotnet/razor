@@ -94,23 +94,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var onTypeRenameParams = new LinkedEditingRangeParams()
+            var linkedEditingRangeParams = new LinkedEditingRangeParams()
             {
                 Position = projectionResult.Position,
                 TextDocument = new TextDocumentIdentifier() { Uri = projectionResult.Uri }
             };
 
-            _logger.LogInformation($"Requesting OnTypeRename for {projectionResult.Uri}.");
+            _logger.LogInformation($"Requesting LinkedEditingRange for {projectionResult.Uri}.");
 
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
-            var onTypeResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<LinkedEditingRangeParams, LinkedEditingRanges>(
+            var linkedEditingRangeResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<LinkedEditingRangeParams, LinkedEditingRanges>(
                 Methods.TextDocumentLinkedEditingRangeName,
                 languageServerName,
-                onTypeRenameParams,
+                linkedEditingRangeParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var onTypeResult = onTypeResponse.Result;
-            if (onTypeResult is null)
+            var linkedEditingRangeResult = linkedEditingRangeResponse.Result;
+            if (linkedEditingRangeResult is null)
             {
                 _logger.LogInformation("Received no results.");
                 return null;
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
                 projectionResult.LanguageKind,
                 request.TextDocument.Uri,
-                onTypeResult.Ranges,
+                linkedEditingRangeResult.Ranges,
                 cancellationToken).ConfigureAwait(false);
 
             if (mappingResult is null ||
@@ -133,9 +133,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            onTypeResult.Ranges = mappingResult.Ranges;
+            linkedEditingRangeResult.Ranges = mappingResult.Ranges;
             _logger.LogInformation("Returned remapped result.");
-            return onTypeResult;
+            return linkedEditingRangeResult;
         }
     }
 }

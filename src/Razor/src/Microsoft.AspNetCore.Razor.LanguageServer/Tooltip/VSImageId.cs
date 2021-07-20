@@ -16,10 +16,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         [JsonProperty("_vs_type")]
         public static readonly string Type = "ImageId";
 
-        [JsonProperty("_vs_guid")]
+        [JsonProperty("Guid")]
         public readonly Guid Guid;
 
-        [JsonProperty("_vs_id")]
+        [JsonProperty("Id")]
         public readonly int Id;
 
         public VSImageId(Guid guid, int id)
