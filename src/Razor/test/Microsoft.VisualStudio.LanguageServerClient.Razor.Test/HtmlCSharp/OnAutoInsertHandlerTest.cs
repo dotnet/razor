@@ -37,19 +37,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var invokedServer = false;
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
+                .Setup(r => r.ReinvokeRequestOnServerAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<DocumentOnAutoInsertParams>(),
+                    It.IsAny<VSInternalDocumentOnAutoInsertParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, DocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
-                .Returns(Task.FromResult(new ReinvokeResponse<DocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() })));
+                .Callback<string, string, VSInternalDocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalDocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new VSInternalDocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() })));
 
             var projectionProvider = Mock.Of<LSPProjectionProvider>(MockBehavior.Strict);
             var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
 
             var handler = new OnAutoInsertHandler(documentManager, requestInvoker.Object, projectionProvider, documentMappingProvider, LoggerProvider);
-            var request = new DocumentOnAutoInsertParams()
+            var request = new VSInternalDocumentOnAutoInsertParams()
             {
                 Character = "?",
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -77,19 +77,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var invokedServer = false;
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
+                .Setup(r => r.ReinvokeRequestOnServerAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<DocumentOnAutoInsertParams>(),
+                    It.IsAny<VSInternalDocumentOnAutoInsertParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, DocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
-                .Returns(Task.FromResult(new ReinvokeResponse<DocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() })));
+                .Callback<string, string, VSInternalDocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalDocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new VSInternalDocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() })));
 
             var projectionProvider = Mock.Of<LSPProjectionProvider>(MockBehavior.Strict);
             var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
 
             var handler = new OnAutoInsertHandler(documentManager, requestInvoker.Object, projectionProvider, documentMappingProvider, LoggerProvider);
-            var request = new DocumentOnAutoInsertParams()
+            var request = new VSInternalDocumentOnAutoInsertParams()
             {
                 Character = ">",
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -118,9 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var invokedServer = false;
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentOnAutoInsertParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, DocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
-                .Returns(Task.FromResult(new ReinvokeResponse<DocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() })));
+                .Setup(r => r.ReinvokeRequestOnServerAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<VSInternalDocumentOnAutoInsertParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, string, VSInternalDocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalDocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new VSInternalDocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() })));
 
             var projectionResult = new ProjectionResult()
             {
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
 
             var handler = new OnAutoInsertHandler(documentManager, requestInvoker.Object, projectionProvider.Object, documentMappingProvider, LoggerProvider);
-            var request = new DocumentOnAutoInsertParams()
+            var request = new VSInternalDocumentOnAutoInsertParams()
             {
                 Character = ">",
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -161,15 +161,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var mappedTextEdits = false;
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
-                    MSLSPMethods.OnAutoInsertName,
+                .Setup(r => r.ReinvokeRequestOnServerAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(
+                    VSInternalMethods.OnAutoInsertName,
                     It.IsAny<string>(),
-                    It.IsAny<DocumentOnAutoInsertParams>(),
+                    It.IsAny<VSInternalDocumentOnAutoInsertParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, DocumentOnAutoInsertParams, CancellationToken>((method, serverContentType, formattingParams, ct) => invokedServer = true)
-                .Returns(Task.FromResult(new ReinvokeResponse<DocumentOnAutoInsertResponseItem>(
+                .Callback<string, string, VSInternalDocumentOnAutoInsertParams, CancellationToken>((method, serverContentType, formattingParams, ct) => invokedServer = true)
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalDocumentOnAutoInsertResponseItem>(
                     languageClient: _languageClient,
-                    new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() { Range = new Range(), NewText = "sometext" }, TextEditFormat = InsertTextFormat.Snippet })));
+                    new VSInternalDocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() { Range = new Range(), NewText = "sometext" }, TextEditFormat = InsertTextFormat.Snippet })));
 
             var projectionUri = new Uri(Uri.AbsoluteUri + "__virtual.html");
             var projectionResult = new ProjectionResult()
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Returns(Task.FromResult(new[] { new TextEdit() }));
 
             var handler = new OnAutoInsertHandler(documentManager, requestInvoker.Object, projectionProvider.Object, documentMappingProvider.Object, LoggerProvider);
-            var request = new DocumentOnAutoInsertParams()
+            var request = new VSInternalDocumentOnAutoInsertParams()
             {
                 Character = "=",
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -218,13 +218,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var mappedTextEdits = false;
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(
-                    MSLSPMethods.OnAutoInsertName,
+                .Setup(r => r.ReinvokeRequestOnServerAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(
+                    VSInternalMethods.OnAutoInsertName,
                     It.IsAny<string>(),
-                    It.IsAny<DocumentOnAutoInsertParams>(),
+                    It.IsAny<VSInternalDocumentOnAutoInsertParams>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, string, DocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
-                .Returns(Task.FromResult(new ReinvokeResponse<DocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new DocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() { Range = new Range(), NewText = "sometext" }, TextEditFormat = InsertTextFormat.Snippet })));
+                .Callback<string, string, VSInternalDocumentOnAutoInsertParams, CancellationToken>((method, clientName, formattingParams, ct) => invokedServer = true)
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalDocumentOnAutoInsertResponseItem>(languageClient: _languageClient, new VSInternalDocumentOnAutoInsertResponseItem() { TextEdit = new TextEdit() { Range = new Range(), NewText = "sometext" }, TextEditFormat = InsertTextFormat.Snippet })));
 
             var projectionUri = new Uri(Uri.AbsoluteUri + "__virtual.html");
             var projectionResult = new ProjectionResult()
@@ -242,7 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .Returns(Task.FromResult(new[] { new TextEdit() { NewText = "mapped-sometext" } }));
 
             var handler = new OnAutoInsertHandler(documentManager, requestInvoker.Object, projectionProvider.Object, documentMappingProvider.Object, LoggerProvider);
-            var request = new DocumentOnAutoInsertParams()
+            var request = new VSInternalDocumentOnAutoInsertParams()
             {
                 Character = "/",
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },

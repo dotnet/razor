@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
+using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -13,8 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public static readonly PlatformExtensionConverter<ClientCapabilities, PlatformAgnosticClientCapabilities> JsonConverter = new PlatformExtensionConverter<ClientCapabilities, PlatformAgnosticClientCapabilities>();
 
-        public bool SupportsCodeActionResolve { get; set; } = false;
-
+        [JsonProperty("_vs_supportsVisualStudioExtensions")]
         public bool SupportsVisualStudioExtensions { get; set; } = false;
     }
 }

@@ -65,7 +65,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     CodeActionKind.RefactorExtract,
                     CodeActionKind.QuickFix,
                     CodeActionKind.Refactor
-                }
+                },
+                ResolveProvider = true,
             };
         }
 
@@ -73,8 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             _capability = capability;
 
-            var extendableClientCapabilities = _languageServer.ClientSettings?.Capabilities as PlatformAgnosticClientCapabilities;
-            _supportsCodeActionResolve = extendableClientCapabilities?.SupportsCodeActionResolve ?? false;
+            _supportsCodeActionResolve = _capability.ResolveSupport != null;
         }
 
         public async Task<CommandOrCodeActionContainer> Handle(RazorCodeActionParams request, CancellationToken cancellationToken)

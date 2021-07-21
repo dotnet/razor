@@ -36,6 +36,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             TextDocumentSync = inner.TextDocumentSync;
             CodeLensProvider = inner.CodeLensProvider;
             Workspace = inner.Workspace;
+#pragma warning disable CS0618 // Type or member is obsolete
+            SemanticTokensProvider = inner.SemanticTokensProvider;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             RazorLanguageServerCapability.AddTo(this);
 

@@ -21,8 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [Shared]
     [ExportLspMethod(Methods.TextDocumentReferencesName)]
     internal class FindAllReferencesHandler :
-        LSPProgressListenerHandlerBase<ReferenceParams, VSReferenceItem[]>,
-        IRequestHandler<ReferenceParams, VSReferenceItem[]>
+        LSPProgressListenerHandlerBase<ReferenceParams, VSInternalReferenceItem[]>,
+        IRequestHandler<ReferenceParams, VSInternalReferenceItem[]>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal async override Task<VSReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
+        internal async override Task<VSInternalReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting references for {projectionResult.Uri}.");
 
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSInternalReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
                 projectionResult.LanguageKind.ToContainedLanguageServerName(),
                 referenceParams,
@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             IProgress<object> progress,
             CancellationToken cancellationToken)
         {
-            var result = value.ToObject<VSReferenceItem[]>();
+            var result = value.ToObject<VSInternalReferenceItem[]>();
 
             if (result == null || result.Length == 0)
             {
@@ -205,9 +205,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             progress.Report(remappedResults);
         }
 
-        private async Task<VSReferenceItem[]> RemapReferenceItemsAsync(VSReferenceItem[] result, CancellationToken cancellationToken)
+        private async Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(VSInternalReferenceItem[] result, CancellationToken cancellationToken)
         {
-            var remappedLocations = new List<VSReferenceItem>();
+            var remappedLocations = new List<VSInternalReferenceItem>();
 
             foreach (var referenceItem in result)
             {
@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 referenceItem.Text = FilterReferenceDisplayText(referenceItem.Text);
 
                 // Indicates the reference item is directly available in the code
-                referenceItem.Origin = ItemOrigin.Exact;
+                referenceItem.Origin = VSInternalItemOrigin.Exact;
 
                 if (!RazorLSPConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
                     !RazorLSPConventions.IsVirtualHtmlFile(referenceItem.Location.Uri))

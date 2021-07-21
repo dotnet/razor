@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // request is made any Parallel requests will be cancelled because the assumption is that Serial requests modify state, and that
                     // therefore any Parallel request is now invalid and should just try again. A specific instance of this can be seen when you
                     // hover over a TagHelper while the switch is set to true. Hover is parallel, and a lot of our endpoints like
-                    // textDocument/_ms_onAutoInsert, and razor/languageQuery are Serial. I BELIEVE that specifically what happened is the serial
+                    // textDocument/_vs_onAutoInsert, and razor/languageQuery are Serial. I BELIEVE that specifically what happened is the serial
                     // languageQuery event gets fired by our semantic tokens endpoint (which fires constantly), cancelling the hover, which red-bars.
                     // We can prevent that behavior entirely by doing WithContentModifiedSupport, at the possible expense of some delays due doing all requests in serial.
                     //
@@ -122,8 +122,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorConfigurationEndpoint>()
                     .WithHandler<RazorFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokensEndpoint>()
-                    .AddHandlerLink(LanguageServerConstants.RazorSemanticTokensEditEndpoint, LanguageServerConstants.LegacyRazorSemanticTokensEditEndpoint)
-                    .AddHandlerLink(LanguageServerConstants.RazorSemanticTokensEndpoint, LanguageServerConstants.LegacyRazorSemanticTokensEndpoint)
                     .WithHandler<RazorSemanticTokensLegendEndpoint>()
                     .WithHandler<OnAutoInsertEndpoint>()
                     .WithHandler<CodeActionEndpoint>()

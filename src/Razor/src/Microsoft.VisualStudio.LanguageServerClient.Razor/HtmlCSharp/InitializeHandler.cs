@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private static readonly InitializeResult s_initializeResult = new()
         {
-            Capabilities = new VSServerCapabilities
+            Capabilities = new VSInternalServerCapabilities
             {
                 CompletionProvider = new CompletionOptions()
                 {
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     ResolveProvider = true,
                     TriggerCharacters = CompletionHandler.AllTriggerCharacters.ToArray()
                 },
-                OnAutoInsertProvider = new DocumentOnAutoInsertOptions()
+                OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions()
                 {
                     TriggerCharacters = new[] { "'", "/", "\n" }
                 },
@@ -53,13 +53,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 },
                 ImplementationProvider = true,
                 SupportsDiagnosticRequests = true,
-                OnTypeRenameProvider = new DocumentOnTypeRenameOptions()
+                LinkedEditingRangeProvider = new LinkedEditingRangeOptions()
             }
         };
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly ILanguageClientBroker _languageClientBroker;
         private readonly ILanguageServiceBroker2 _languageServiceBroker;
-        private readonly List<(ILanguageClient Client, VSServerCapabilities Capabilities)> _serverCapabilities;
+        private readonly List<(ILanguageClient Client, VSInternalServerCapabilities Capabilities)> _serverCapabilities;
         private readonly JsonSerializer _serializer;
         private readonly ILogger _logger;
 
@@ -96,10 +96,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger = loggerProvider.CreateLogger(nameof(InitializeHandler));
 
-            _serverCapabilities = new List<(ILanguageClient, VSServerCapabilities)>();
+            _serverCapabilities = new List<(ILanguageClient, VSInternalServerCapabilities)>();
 
             _serializer = new JsonSerializer();
-            _serializer.AddVSExtensionConverters();
+            _serializer.AddVSInternalExtensionConverters();
         }
 
         public Task<InitializeResult> HandleRequestAsync(InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }).ConfigureAwait(false);
         }
 
-        private VSServerCapabilities GetMergedServerCapabilities(List<ILanguageClient> relevantLanguageClients)
+        private VSInternalServerCapabilities GetMergedServerCapabilities(List<ILanguageClient> relevantLanguageClients)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             foreach (var languageClientInstance in _languageServiceBroker.ActiveLanguageClients)
@@ -149,16 +149,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     var resultToken = languageClientInstance.InitializeResult;
                     var initializeResult = resultToken.ToObject<InitializeResult>(_serializer);
 
-                    _serverCapabilities.Add((languageClientInstance.Client, (initializeResult.Capabilities as VSServerCapabilities)!));
+                    _serverCapabilities.Add((languageClientInstance.Client, (initializeResult.Capabilities as VSInternalServerCapabilities)!));
                 }
             }
 
-            var serverCapabilities = new VSServerCapabilities
+            var serverCapabilities = new VSInternalServerCapabilities
             {
                 CompletionProvider = GetMergedCompletionOptions(),
                 TextDocumentSync = GetMergedTextDocumentSyncOptions(),
                 HoverProvider = GetMergedHoverProvider(),
-                OnAutoInsertProvider = GetMergedDocumentOnAutoInsertOptions(),
+                OnAutoInsertProvider = GetMergedVSInternalDocumentOnAutoInsertOptions(),
                 SignatureHelpProvider = GetMergedSignatureHelpOptions(),
                 DefinitionProvider = GetMergedDefinitionProvider(),
                 ReferencesProvider = GetMergedReferencesProvider(),
@@ -198,12 +198,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return _serverCapabilities.Any(s => s.Capabilities.HoverProvider?.Value is bool isHoverSupported && isHoverSupported);
         }
 
-        private DocumentOnAutoInsertOptions GetMergedDocumentOnAutoInsertOptions()
+        private VSInternalDocumentOnAutoInsertOptions GetMergedVSInternalDocumentOnAutoInsertOptions()
         {
-            var allDocumentOnAutoInsertOptions = _serverCapabilities.Where(s => s.Capabilities.OnAutoInsertProvider != null).Select(s => s.Capabilities.OnAutoInsertProvider!);
+            var allVSInternalDocumentOnAutoInsertOptions = _serverCapabilities.Where(s => s.Capabilities.OnAutoInsertProvider != null).Select(s => s.Capabilities.OnAutoInsertProvider!);
             var triggerChars = new HashSet<string>();
 
-            foreach (var documentOnAutoInsertOptions in allDocumentOnAutoInsertOptions)
+            foreach (var documentOnAutoInsertOptions in allVSInternalDocumentOnAutoInsertOptions)
             {
                 if (documentOnAutoInsertOptions.TriggerCharacters != null)
                 {
@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             }
 
-            return new DocumentOnAutoInsertOptions()
+            return new VSInternalDocumentOnAutoInsertOptions()
             {
                 TriggerCharacters = triggerChars.ToArray(),
             };
@@ -318,7 +318,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return _serverCapabilities.Any(s => s.Capabilities.RenameProvider?.Value is bool isRenameSupported && isRenameSupported);
         }
 
-        private async Task VerifyMergedOnAutoInsertAsync(VSServerCapabilities mergedCapabilities)
+        private async Task VerifyMergedOnAutoInsertAsync(VSInternalServerCapabilities mergedCapabilities)
         {
             var triggerCharEnumeration = mergedCapabilities.OnAutoInsertProvider?.TriggerCharacters ?? Enumerable.Empty<string>();
             var purposefullyRemovedTriggerCharacters = new[]

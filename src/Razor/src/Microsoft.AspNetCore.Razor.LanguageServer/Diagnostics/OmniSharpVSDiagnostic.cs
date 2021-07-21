@@ -20,46 +20,46 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         /// <summary>
         /// Gets or sets the project and context (e.g. Win32, MacOS, etc.) in which the diagnostic was generated.
         /// </summary>
-        [JsonProperty("_ms_projects")]
+        [JsonProperty("_vs_projects")]
         public OmniSharpVSProjectAndContext[]? Projects { get; set; }
 
         /// <summary>
         /// Gets or sets an expanded description of the diagnostic.
         /// </summary>
-        [JsonProperty("_ms_expandedMessage")]
+        [JsonProperty("_vs_expandedMessage")]
         public string? ExpandedMessage { get; set; }
 
         /// <summary>
         /// Gets or sets a message shown when the user hovers over an error. If null, then message
         /// is used (use <see cref="OmniSharpVSDiagnosticTags.SuppressEditorToolTip"/> to prevent a tool tip from being shown).
         /// </summary>
-        [JsonProperty("_ms_toolTip")]
+        [JsonProperty("_vs_toolTip")]
         public string? ToolTip { get; set; }
 
         /// <summary>
         /// Gets or sets some non-human readable identifier so that two diagnostics that are
         /// equivalent (e.g.a syntax error in both a build for Win32 and MacOs) can be consolidated.
         /// </summary>
-        [JsonProperty("_ms_identifier")]
+        [JsonProperty("_vs_identifier")]
         public string? Identifier { get; set; }
 
         /// <summary>
         /// Gets or sets a string describing the diagnostic types (e.g. Security, Performance, Style, ...).
         /// </summary>
-        [JsonProperty("_ms_diagnosticType")]
+        [JsonProperty("_vs_diagnosticType")]
         public string? DiagnosticType { get; set; }
 
         /// <summary>
         /// Gets or sets a rank associated with this diagnostic, used for the default sort.
         /// Default == 300 will be used if no rank is specified.
         /// </summary>
-        [JsonProperty("_ms_diagnosticRank")]
+        [JsonProperty("_vs_diagnosticRank")]
         public OmniSharpVSDiagnosticRank? DiagnosticRank { get; set; }
 
         /// <summary>
         /// Gets or sets an ID used to associate this diagnostic with a corresponding line in the output window.
         /// </summary>
-        [JsonProperty("_ms_outputId")]
+        [JsonProperty("_vs_outputId")]
         public int? OutputId { get; set; }
     }
 }
