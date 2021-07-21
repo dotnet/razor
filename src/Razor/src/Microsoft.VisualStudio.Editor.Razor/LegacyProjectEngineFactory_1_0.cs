@@ -4,8 +4,9 @@
 using System;
 using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces
+namespace Microsoft.VisualStudio.Editor.Razor
 {
     [ExportCustomProjectEngineFactory("MVC-1.0", SupportsSerialization = true)]
     internal class LegacyProjectEngineFactory_1_0 : IProjectEngineFactory

@@ -4,13 +4,15 @@
 using System;
 using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces
+namespace Microsoft.VisualStudio.Editor.Razor
 {
-    [ExportCustomProjectEngineFactory("MVC-2.0", SupportsSerialization = true)]
-    internal class LegacyProjectEngineFactory_2_0 : IProjectEngineFactory
+    [ExportCustomProjectEngineFactory("MVC-1.1", SupportsSerialization = true)]
+    internal class LegacyProjectEngineFactory_1_1 : IProjectEngineFactory
     {
-        private const string AssemblyName = "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X";
+        private const string AssemblyName = "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X";
+
         public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
         {
             // Rewrite the assembly name into a full name just like this one, but with the name of the MVC design time assembly.
