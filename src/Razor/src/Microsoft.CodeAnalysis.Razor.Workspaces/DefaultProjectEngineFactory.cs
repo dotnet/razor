@@ -3,9 +3,8 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     [ExportCustomProjectEngineFactory("Default", SupportsSerialization = true)]
     internal class DefaultProjectEngineFactory : IProjectEngineFactory
