@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var initializationFailureContext = new InitializationFailureContext();
             initializationFailureContext.FailureMessage = string.Format(VS.LSClientRazor.Resources.LanguageServer_Initialization_Failed,
                 Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
-            return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
+            return Task.FromResult<InitializationFailureContext>(initializationFailureContext);
         }
     }
 }
