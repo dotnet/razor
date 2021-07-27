@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         // Run after the C# formatter pass.
-        public override int Order => DefaultOrder - 3;
+        public override int Order => DefaultOrder - 4;
 
         public override bool IsValidationPass => false;
 
@@ -86,9 +86,170 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // being overly careful to only try to format syntax forms they care about.
                 TryFormatCSharpCodeBlock(context, edits, source, node);
                 TryFormatSingleLineDirective(context, edits, source, node);
+                TryFormatTransitionCodeBlock(context, edits, source, node);
             }
 
             return edits;
+        }
+
+        private static void TryFormatTransitionCodeBlock(FormattingContext context, IList<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
+        {
+            Range? openBraceRange = null;
+            Range? codeRange = null;
+            Range? closeBraceRange = null;
+            SyntaxNode? openBraceNode = null;
+            SyntaxNode? codeNode = null;
+            SyntaxNode? closeBraceNode = null;
+
+            // TODO: Split the if's into their own methods
+
+            // complex situations like
+            // @{
+            //  public void Method(){
+            //      @(DateTime.Now)
+            //  }
+            // }
+            if (node is CSharpRazorBlockSyntax csharpRazorBlock &&
+                csharpRazorBlock.Parent is CSharpCodeBlockSyntax firstCodeBlock &&
+                csharpRazorBlock.Parent.Parent is CSharpCodeBlockSyntax secondCodeBlock)
+            {
+                var csharpRazorRange = csharpRazorBlock.GetRange(source);
+                var childPosition = 0;
+                for (var i = 0; i < secondCodeBlock.Children.Count; i++)
+                {
+                    var child = secondCodeBlock.Children[i];
+                    if (ReferenceEquals(child, firstCodeBlock))
+                    {
+                        childPosition = i;
+                        break;
+                    }
+                }
+
+                codeNode = csharpRazorBlock;
+                codeRange = codeNode.GetRangeWithoutWhitespace(source);
+                if (childPosition == 0)
+                {
+                    openBraceNode = codeNode;
+                    openBraceRange = codeRange;
+                }
+                else
+                {
+                    var child = secondCodeBlock.Children[childPosition - 1];
+                    openBraceNode = child;
+                    openBraceRange = child.GetRangeWithoutWhitespace(source);
+                }
+
+                if (childPosition == secondCodeBlock.Children.Count - 1)
+                {
+                    closeBraceRange = codeRange;
+                }
+                else
+                {
+                    var child = secondCodeBlock.Children[childPosition + 1];
+                    closeBraceNode = child;
+                    closeBraceRange = child.GetRangeWithoutWhitespace(source);
+                }
+            }
+            // void Method()
+            // {
+            //     <div></div>
+            // }
+            else if (node is MarkupBlockSyntax markupBlockNode &&
+                markupBlockNode.Parent is CSharpCodeBlockSyntax cSharpCodeBlock)
+            {
+                for (var i = 0; i < cSharpCodeBlock.Children.Count; i++)
+                {
+                    var child = cSharpCodeBlock.Children[i];
+                    if (ReferenceEquals(child, markupBlockNode))
+                    {
+                        var previous = i == 0 ? 0 : i - 1;
+                        var next = i == cSharpCodeBlock.Children.Count - 1 ? i : i + 1;
+                        codeNode = markupBlockNode;
+                        codeRange = markupBlockNode.GetRangeWithoutWhitespace(source);
+                        var previousChild = cSharpCodeBlock.Children[previous];
+                        var nextChild = cSharpCodeBlock.Children[next];
+
+                        openBraceNode = previousChild;
+                        openBraceRange = previousChild.GetRangeWithoutWhitespace(source);
+                        closeBraceNode = nextChild;
+                        closeBraceRange = nextChild.GetRangeWithoutWhitespace(source);
+                    }
+                }
+            }
+            // We're looking for a code block like this:
+            //
+            // @{
+            //     var x = 1;
+            // }
+            else if (node is CSharpCodeBlockSyntax expliciteCode &&
+                expliciteCode.Children.First() is CSharpStatementSyntax statement &&
+                statement.Body is CSharpStatementBodySyntax csharpStatementBody)
+            {
+                openBraceNode = csharpStatementBody.OpenBrace;
+                openBraceRange = csharpStatementBody.OpenBrace.GetRange(source);
+                codeNode = csharpStatementBody.CSharpCode;
+                codeRange = csharpStatementBody.CSharpCode.GetRangeWithoutWhitespace(source);
+                closeBraceNode = csharpStatementBody.CloseBrace;
+                closeBraceRange = csharpStatementBody.CloseBrace.GetRange(source);
+            }
+            // @functions
+            // {
+            // }
+            else if (node is CSharpCodeBlockSyntax directiveCode &&
+                directiveCode.Children.Count == 1 && directiveCode.Children.First() is RazorDirectiveSyntax directive &&
+                directive.Body is RazorDirectiveBodySyntax directiveBody &&
+                directiveBody.Keyword.GetContent().Equals("functions"))
+            {
+                var cSharpCode = directiveBody.CSharpCode;
+                var openBrace = cSharpCode.Children.First(c => c.Kind == SyntaxKind.RazorMetaCode);
+                var closeBrace = cSharpCode.Children.Last(c => c.Kind == SyntaxKind.RazorMetaCode);
+                var code = cSharpCode.Children.First(c => c.Kind == SyntaxKind.CSharpCodeBlock) as CSharpCodeBlockSyntax;
+
+                openBraceNode = openBrace;
+                openBraceRange = openBrace.GetRange(source);
+                codeNode = code!;
+                codeRange = code.GetRangeWithoutWhitespace(source);
+                closeBraceNode = closeBrace;
+                closeBraceRange = closeBrace.GetRange(source);
+            }
+            else
+            {
+                // This isn't a node we care about
+                return;
+            }
+
+            if (openBraceRange is not null &&
+                codeRange is not null &&
+                openBraceRange.End.Line == codeRange.Start.Line)
+            {
+                var indentation = context.Indentations[openBraceRange.Start.Line];
+                var desiredIndentationLevel = (indentation.HtmlIndentationLevel * (int)context.Options.TabSize) + (indentation.RazorIndentationLevel * (int)context.Options.TabSize);
+                var currentIndentationLevel = codeNode.GetLeadingWhitespaceLength() + openBraceNode.GetTrailingWhitespaceLength();
+                var newText = context.NewLineString;
+                if (desiredIndentationLevel > 0)
+                {
+                    newText += context.GetIndentationString(desiredIndentationLevel - currentIndentationLevel);
+                }
+
+                var edit = new TextEdit
+                {
+                    NewText = newText,
+                    Range = new Range(openBraceRange.End, openBraceRange.End),
+                };
+                edits.Add(edit);
+            }
+
+            if (codeRange is not null &&
+                closeBraceRange is not null &&
+                codeRange.End.Line == closeBraceRange.Start.Line)
+            {
+                var edit = new TextEdit
+                {
+                    NewText = context.NewLineString,
+                    Range = new Range(codeRange.End, codeRange.End),
+                };
+                edits.Add(edit);
+            }
         }
 
         private static void TryFormatCSharpCodeBlock(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
@@ -165,8 +326,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // @attribute [Obsolete("old")]
             //
             // The CSharpCodeBlockSyntax covers everything from the end of "attribute" to the end of the line
-            SyntaxList<SyntaxNode>? children;
-            if (IsSingleLineDirective(node, out children) ||
+            if (IsSingleLineDirective(node, out var children) ||
                 IsUsingDirective(node, out children))
             {
                 // Shrink any block of C# that only has whitespace down to a single space.

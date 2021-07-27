@@ -70,7 +70,7 @@ expected: @"@functions {
     public class Foo
     {
         void Method()
-        { 
+        {
             <div></div>
         }
     }
@@ -93,7 +93,7 @@ expected: @"@code {
     public class Foo
     {
         void Method()
-        { 
+        {
             @DateTime.Now
         }
     }
@@ -116,7 +116,7 @@ expected: @"@functions {
     public class Foo
     {
         void Method()
-        { 
+        {
             @(DateTime.Now)
         }
     }
@@ -469,6 +469,29 @@ expected: @"@code {
 	}
 }
 ",
+insertSpaces: false);
+
+        }
+        [Fact]
+        public async Task CodeBlockDirective_UseTabsWithTabSize8_HTML()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@code {
+ public class Foo{}
+        void Method(  ) {<div></div>
+}
+}
+",
+expected: @"@code {
+	public class Foo { }
+	void Method()
+	{
+		<div></div>
+	}
+}
+",
+tabSize: 8,
 insertSpaces: false);
         }
 
