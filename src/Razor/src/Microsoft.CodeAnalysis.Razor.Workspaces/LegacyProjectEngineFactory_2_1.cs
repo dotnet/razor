@@ -4,9 +4,8 @@
 using System;
 using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     // Currently we provide a fixed configuration for 2.1, but this is a point-in-time issue. We plan
     // to make the 2.1 configuration more flexible and less hardcoded.
