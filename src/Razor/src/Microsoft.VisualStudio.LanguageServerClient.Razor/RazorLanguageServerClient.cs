@@ -231,11 +231,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
         }
 
-        public Task OnServerInitializeFailedAsync(Exception e)
-        {
-            return Task.CompletedTask;
-        }
-
         public Task OnServerInitializedAsync()
         {
             _serverShutdownDisposable = _server.OnShutdown.Subscribe((_) => ServerShutdown());
@@ -310,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
 
-        public Task<InitializationFailureContext> OnServerInitializeFailedAsync(LanguageClientInitializationInfoBase initializationState)
+        public Task<InitializationFailureContext> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
         {
             var initializationFailureContext = new InitializationFailureContext();
             initializationFailureContext.FailureMessage = string.Format(VS.LSClientRazor.Resources.LanguageServer_Initialization_Failed,

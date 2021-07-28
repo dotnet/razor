@@ -74,11 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return StartAsync.InvokeAsync(this, EventArgs.Empty);
         }
 
-        public Task OnServerInitializeFailedAsync(Exception e)
-        {
-            return Task.CompletedTask;
-        }
-
         public Task OnServerInitializedAsync()
         {
             return Task.CompletedTask;
@@ -89,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _languageServer?.Dispose();
         }
 
-        public Task<InitializationFailureContext> OnServerInitializeFailedAsync(LanguageClientInitializationInfoBase initializationState)
+        public Task<InitializationFailureContext> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
         {
             var initializationFailureContext = new InitializationFailureContext();
             initializationFailureContext.FailureMessage = string.Format(VS.LSClientRazor.Resources.LanguageServer_Initialization_Failed,
