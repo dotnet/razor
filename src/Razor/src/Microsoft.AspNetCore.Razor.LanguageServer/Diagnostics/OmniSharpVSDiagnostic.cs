@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         /// Gets or sets the project and context (e.g. Win32, MacOS, etc.) in which the diagnostic was generated.
         /// </summary>
         [JsonProperty("_vs_projects")]
-        public OmniSharpVSProjectAndContext[]? Projects { get; set; }
+        public OmniSharpVSDiagnosticProjectInformation[]? Projects { get; set; }
 
         /// <summary>
         /// Gets or sets an expanded description of the diagnostic.
