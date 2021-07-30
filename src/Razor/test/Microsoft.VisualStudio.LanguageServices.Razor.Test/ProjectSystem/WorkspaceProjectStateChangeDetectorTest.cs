@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var project2Reference = new ProjectReference(projectId2);
             var project3Reference = new ProjectReference(projectId3);
-            SolutionWithDependentProject = EmptySolution.GetIsolatedSolution()
+            SolutionWithDependentProject = Workspace.CurrentSolution
                 .AddProject(ProjectInfo.Create(
                     projectId1,
                     VersionStamp.Default,
@@ -129,30 +129,47 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public DocumentId PartialComponentClassDocumentId { get; }
 
         [UIFact]
-        public void WorkspaceChanged_ProjectEvents_EnqueuesUpdatesForDependentProjects()
+        public async Task WorkspaceChanged_ProjectEvents_EnqueuesUpdatesForDependentProjects()
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
-            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher);
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher)
+            {
+                NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
+            };
 
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            projectManager.ProjectAdded(HostProjectOne);
-            projectManager.ProjectAdded(HostProjectTwo);
-            projectManager.ProjectAdded(HostProjectThree);
+
+            await Dispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                projectManager.ProjectAdded(HostProjectOne);
+                projectManager.ProjectAdded(HostProjectTwo);
+                projectManager.ProjectAdded(HostProjectThree);
+            }, CancellationToken.None);
             var kind = WorkspaceChangeKind.ProjectChanged;
+
+            // Initialize with a project. This will get removed.
+            var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: EmptySolution, newSolution: SolutionWithOneProject);
+            detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
+
+            e = new WorkspaceChangeEventArgs(kind, oldSolution: SolutionWithOneProject, newSolution: SolutionWithDependentProject);
+            detector.NotifyWorkspaceChangedEventComplete.Reset();
 
             var solution = SolutionWithDependentProject.WithProjectAssemblyName(ProjectNumberThree.Id, "Changed");
 
-            var e = new WorkspaceChangeEventArgs(kind, oldSolution: SolutionWithDependentProject, newSolution: solution, projectId: ProjectNumberThree.Id);
+            e = new WorkspaceChangeEventArgs(kind, oldSolution: SolutionWithDependentProject, newSolution: solution, projectId: ProjectNumberThree.Id);
 
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
 
             // Assert
-            Assert.Equal(3, detector._deferredUpdates.Count);
-            Assert.NotNull(detector._deferredUpdates.Where(kvp => kvp.Key.Equals(ProjectNumberOne)));
-            Assert.NotNull(detector._deferredUpdates.Where(kvp => kvp.Key.Equals(ProjectNumberTwo)));
-            Assert.NotNull(detector._deferredUpdates.Where(kvp => kvp.Key.Equals(ProjectNumberThree)));
+            Assert.Collection(
+                detector._deferredUpdates,
+                p => Assert.Equal(ProjectNumberThree.Id, p.Key),
+                p => Assert.Equal(ProjectNumberTwo.Id, p.Key),
+                p => Assert.Equal(ProjectNumberOne.Id, p.Key));
         }
 
         [UITheory]
