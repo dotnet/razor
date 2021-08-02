@@ -117,8 +117,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 if (TryGetProjectSnapshot(project?.FilePath, out var _))
                                 {
                                     EnqueueUpdate(e.ProjectId);
-                                }
 
+                                    var dependencyGraph = e.NewSolution.GetProjectDependencyGraph();
+                                    var dependentProjectIds = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(e.ProjectId);
+                                    foreach (var dependentProjectId in dependentProjectIds)
+                                    {
+                                        EnqueueUpdate(dependentProjectId);
+                                    }
+                                }
                                 break;
                             }
 

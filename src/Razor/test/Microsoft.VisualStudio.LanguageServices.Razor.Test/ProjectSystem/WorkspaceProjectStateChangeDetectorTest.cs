@@ -63,6 +63,34 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     LanguageNames.CSharp,
                     filePath: "Three.csproj"));
 
+            var project2Reference = new ProjectReference(projectId2);
+            var project3Reference = new ProjectReference(projectId3);
+            SolutionWithDependentProject = Workspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(
+                    projectId1,
+                    VersionStamp.Default,
+                    "One",
+                    "One",
+                    LanguageNames.CSharp,
+                    filePath: "One.csproj",
+                    documents: new[] { cshtmlDocumentInfo, razorDocumentInfo, partialComponentClassDocumentInfo, backgroundDocumentInfo },
+                    projectReferences: new[] { project2Reference }))
+                .AddProject(ProjectInfo.Create(
+                    projectId2,
+                    VersionStamp.Default,
+                    "Two",
+                    "Two",
+                    LanguageNames.CSharp,
+                    filePath: "Two.csproj",
+                    projectReferences: new[] { project3Reference }))
+                .AddProject(ProjectInfo.Create(
+                    projectId3,
+                    VersionStamp.Default,
+                    "Three",
+                    "Three",
+                    LanguageNames.CSharp,
+                    filePath: "Three.csproj"));
+
             ProjectNumberOne = SolutionWithTwoProjects.GetProject(projectId1);
             ProjectNumberTwo = SolutionWithTwoProjects.GetProject(projectId2);
             ProjectNumberThree = SolutionWithOneProject.GetProject(projectId3);
@@ -84,6 +112,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private Solution SolutionWithTwoProjects { get; }
 
+        private Solution SolutionWithDependentProject { get; }
+
         private Project ProjectNumberOne { get; }
 
         private Project ProjectNumberTwo { get; }
@@ -97,6 +127,49 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public DocumentId BackgroundVirtualCSharpDocumentId { get; }
 
         public DocumentId PartialComponentClassDocumentId { get; }
+
+        [UIFact]
+        public async Task WorkspaceChanged_ProjectEvents_EnqueuesUpdatesForDependentProjects()
+        {
+            // Arrange
+            var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher)
+            {
+                NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
+            };
+
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+
+            await Dispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                projectManager.ProjectAdded(HostProjectOne);
+                projectManager.ProjectAdded(HostProjectTwo);
+                projectManager.ProjectAdded(HostProjectThree);
+            }, CancellationToken.None);
+            var kind = WorkspaceChangeKind.ProjectChanged;
+
+            // Initialize with a project. This will get removed.
+            var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: EmptySolution, newSolution: SolutionWithOneProject);
+            detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
+
+            e = new WorkspaceChangeEventArgs(kind, oldSolution: SolutionWithOneProject, newSolution: SolutionWithDependentProject);
+            detector.NotifyWorkspaceChangedEventComplete.Reset();
+
+            var solution = SolutionWithDependentProject.WithProjectAssemblyName(ProjectNumberThree.Id, "Changed");
+
+            e = new WorkspaceChangeEventArgs(kind, oldSolution: SolutionWithDependentProject, newSolution: solution, projectId: ProjectNumberThree.Id);
+
+            // Act
+            detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
+
+            // Assert
+            Assert.Equal(3, detector._deferredUpdates.Count);
+            Assert.Contains(detector._deferredUpdates, u => u.Key == ProjectNumberOne.Id);
+            Assert.Contains(detector._deferredUpdates, u => u.Key == ProjectNumberTwo.Id);
+            Assert.Contains(detector._deferredUpdates, u => u.Key == ProjectNumberThree.Id);
+        }
 
         [UITheory]
         [InlineData(WorkspaceChangeKind.SolutionAdded)]
@@ -365,7 +438,7 @@ namespace Microsoft.AspNetCore.Components
             await document.GetSemanticModelAsync();
 
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged, oldSolution: solution, newSolution: solution, projectId: ProjectNumberOne.Id, PartialComponentClassDocumentId);
-            
+
             // Act
             detector.Workspace_WorkspaceChanged(Workspace, e);
 
