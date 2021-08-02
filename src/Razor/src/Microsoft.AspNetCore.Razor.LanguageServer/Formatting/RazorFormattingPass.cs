@@ -165,20 +165,54 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // @attribute [Obsolete("old")]
             //
             // The CSharpCodeBlockSyntax covers everything from the end of "attribute" to the end of the line
-            if (node is CSharpCodeBlockSyntax content &&
-                node.Parent?.Parent is RazorDirectiveSyntax directive &&
-                directive.DirectiveDescriptor?.Kind == DirectiveKind.SingleLine)
+            SyntaxList<SyntaxNode>? children;
+            if (IsSingleLineDirective(node, out children) ||
+                IsUsingDirective(node, out children))
             {
                 // Shrink any block of C# that only has whitespace down to a single space.
                 // In the @attribute case above this would only be the whitespace between the directive and code
                 // but for @inject its also between the type and the field name.
-                foreach (var child in content.Children)
+                foreach (var child in children)
                 {
                     if (child.ContainsOnlyWhitespace(includingNewLines: false))
                     {
                         ShrinkToSingleSpace(child, edits, source);
                     }
                 }
+            }
+
+            static bool IsSingleLineDirective(SyntaxNode node, [NotNullWhen(true)] out SyntaxList<SyntaxNode>? children)
+            {
+                if (node is CSharpCodeBlockSyntax content &&
+                    node.Parent?.Parent is RazorDirectiveSyntax directive &&
+                    directive.DirectiveDescriptor?.Kind == DirectiveKind.SingleLine)
+                {
+                    children = content.Children;
+                    return true;
+                }
+
+                children = null;
+                return false;
+            }
+
+            static bool IsUsingDirective(SyntaxNode node, [NotNullWhen(true)] out SyntaxList<SyntaxNode>? children)
+            {
+                // Using directives are weird, because the directive keyword ("using") is part of the C# statement it represents
+                if (node is RazorDirectiveSyntax razorDirective &&
+                    razorDirective.DirectiveDescriptor is null &&
+                    razorDirective.Body is RazorDirectiveBodySyntax body &&
+                    body.Keyword is CSharpStatementLiteralSyntax literal &&
+                    literal.LiteralTokens.Count > 0)
+                {
+                    if (literal.LiteralTokens[0] is { Kind: SyntaxKind.Keyword, Content: "using" })
+                    {
+                        children = literal.LiteralTokens;
+                        return true;
+                    }
+                }
+
+                children = null;
+                return false;
             }
         }
 
