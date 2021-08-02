@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     "Two",
                     LanguageNames.CSharp,
                     filePath: "Two.csproj",
-                    projectReferences: new[]{ project3Reference }))
+                    projectReferences: new[] { project3Reference }))
                 .AddProject(ProjectInfo.Create(
                     projectId3,
                     VersionStamp.Default,
@@ -165,11 +165,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             detector.NotifyWorkspaceChangedEventComplete.Wait();
 
             // Assert
-            Assert.Collection(
-                detector._deferredUpdates,
-                p => Assert.Equal(ProjectNumberThree.Id, p.Key),
-                p => Assert.Equal(ProjectNumberTwo.Id, p.Key),
-                p => Assert.Equal(ProjectNumberOne.Id, p.Key));
+            Assert.Equal(3, detector._deferredUpdates.Count);
+            Assert.Contains(detector._deferredUpdates, u => u.Key == ProjectNumberOne.Id);
+            Assert.Contains(detector._deferredUpdates, u => u.Key == ProjectNumberTwo.Id);
+            Assert.Contains(detector._deferredUpdates, u => u.Key == ProjectNumberThree.Id);
         }
 
         [UITheory]
