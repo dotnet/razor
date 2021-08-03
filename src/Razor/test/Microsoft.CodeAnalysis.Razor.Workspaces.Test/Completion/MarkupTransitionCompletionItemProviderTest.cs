@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Equal(item.DisplayText, SyntaxConstants.TextTagName);
             Assert.Equal(item.InsertText, SyntaxConstants.TextTagName);
             var completionDescription = item.GetMarkupTransitionCompletionDescription();
-            Assert.Equal(Resources.MarkupTransition_Description, completionDescription.Description);
+            Assert.Equal(CodeAnalysisResources.MarkupTransition_Description, completionDescription.Description);
         }
 
         private static RazorSyntaxTree CreateSyntaxTree(string text, params DirectiveDescriptor[] directives)
