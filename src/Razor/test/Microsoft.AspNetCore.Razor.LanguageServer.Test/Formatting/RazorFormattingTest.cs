@@ -312,7 +312,7 @@ expected: @"@page ""MyPage""
 input: @"
 @using   System;
 ",
-expected: @"@using   System;
+expected: @"@using System;
 ");
         }
 
@@ -323,7 +323,18 @@ expected: @"@using   System;
 input: @"
 @using  static   System.Math;
 ",
-expected: @"@using  static   System.Math;
+expected: @"@using static System.Math;
+");
+        }
+
+        [Fact]
+        public async Task UsingAlias()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@using  M   =    System.Math;
+",
+expected: @"@using M = System.Math;
 ");
         }
 
