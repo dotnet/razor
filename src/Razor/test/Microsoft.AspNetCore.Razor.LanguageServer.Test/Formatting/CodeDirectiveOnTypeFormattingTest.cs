@@ -445,5 +445,31 @@ expected: @"
 </div>
 ");
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+        public async Task CodeBlock_SemiColon_MultiLine()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+<div></div>
+@{
+    var abc = 123$$;
+}
+<div></div>
+",
+afterCSharpFormatting: @"
+@{       var abc = 123;
+}
+<div></div>
+",
+expected: @"
+<div></div>
+@{
+    var abc = 123;
+}
+<div></div>
+");
+        }
     }
 }
