@@ -353,7 +353,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // so @{    throw null; } will be formatted to @{ throw null; }
                 // Ideally we'd put that across three lines, which is what normal formatting does, but since we
                 // can't control the cursor, that doesn't end well.
-                if (isOnType)
+                if (isOnType && sourceMappingRange.Start.Line == sourceMappingRange.End.Line)
                 {
                     changes.Add(new TextChange(spanToReplace, " "));
                     return;
