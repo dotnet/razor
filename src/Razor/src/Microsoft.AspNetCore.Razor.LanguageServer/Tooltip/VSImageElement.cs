@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
     /// </summary>
     internal class VSImageElement
     {
-        [JsonProperty("type")]
+        [JsonProperty("_vs_type")]
         public static readonly string Type = "ImageElement";
 
         public static readonly VSImageElement Empty = new(default, string.Empty);

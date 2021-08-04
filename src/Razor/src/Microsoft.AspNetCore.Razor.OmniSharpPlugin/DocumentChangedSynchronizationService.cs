@@ -4,7 +4,6 @@
 using System;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
@@ -14,18 +13,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
     [Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
     internal class DocumentChangedSynchronizationService : IRazorDocumentChangeListener, IOmniSharpProjectSnapshotManagerChangeTrigger
     {
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private OmniSharpProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public DocumentChangedSynchronizationService(OmniSharpForegroundDispatcher foregroundDispatcher)
+        public DocumentChangedSynchronizationService(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
@@ -53,9 +52,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var projectFilePath = args.UnevaluatedProjectInstance.ProjectFileLocation.File;
             var documentFilePath = args.FilePath;
 
-            _ = Task.Factory.StartNew(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.DocumentChanged(projectFilePath, documentFilePath),
-                CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
@@ -19,11 +20,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         /// <summary>
         /// Gets or sets the default <see cref="CompletionItem.CommitCharacters"/> used for completion items.
         /// </summary>
+        [JsonProperty("_vs_commitCharacters")]
         public Container<string> CommitCharacters { get; set; }
 
         /// <summary>
         /// Gets or sets the default <see cref="CompletionItem.Data"/> used for completion items.
         /// </summary>
+        [JsonProperty("_vs_data")]
         public object Data { get; set; }
 
         public static VSCompletionList Convert(CompletionList completionList, VSCompletionListCapability vsCompletionListCapability)

@@ -19,6 +19,7 @@ using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using System.Linq;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -202,7 +203,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             razorFormattingService ??= CreateRazorFormattingService(documentUri);
 
             csharpCodeActionResolver = new DefaultCSharpCodeActionResolver(
-                new DefaultForegroundDispatcher(),
+                new DefaultProjectSnapshotManagerDispatcher(),
                 CreateDocumentResolver(documentPath, codeDocument),
                 languageServer,
                 razorFormattingService,

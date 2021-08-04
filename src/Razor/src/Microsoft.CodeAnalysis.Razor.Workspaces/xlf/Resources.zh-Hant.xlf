@@ -7,21 +7,6 @@
         <target state="translated">值不能為 Null 或空字串。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertBackgroundThread">
-        <source>{0} must be called on a background thread.</source>
-        <target state="translated">{0} 必須在背景執行緒上呼叫。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertForegroundThread">
-        <source>{0} must be called on the foreground thread.</source>
-        <target state="translated">{0} 必須在前景執行緒上呼叫。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_NoMethodNamePlaceholder">
-        <source>The method</source>
-        <target state="translated">方法</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

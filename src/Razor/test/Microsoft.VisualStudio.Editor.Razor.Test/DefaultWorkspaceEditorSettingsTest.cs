@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultWorkspaceEditorSettingsTest : ForegroundDispatcherTestBase
+    public class DefaultWorkspaceEditorSettingsTest : ProjectSnapshotManagerDispatcherTestBase
     {
         [Fact]
         public void InitialSettingsAreEditorSettingsManagerDefault()
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private class TestEditorSettingsManagerInternal : DefaultWorkspaceEditorSettings
         {
-            public TestEditorSettingsManagerInternal(ForegroundDispatcher foregroundDispatcher) : base(foregroundDispatcher, Mock.Of<EditorSettingsManager>(MockBehavior.Strict))
+            public TestEditorSettingsManagerInternal(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(projectSnapshotManagerDispatcher, Mock.Of<EditorSettingsManager>(MockBehavior.Strict))
             {
             }
 

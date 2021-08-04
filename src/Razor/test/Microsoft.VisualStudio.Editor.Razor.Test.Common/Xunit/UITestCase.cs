@@ -11,15 +11,15 @@ using Xunit.Sdk;
 
 namespace Xunit
 {
-    internal class ForegroundTestCase : XunitTestCase
+    internal class UITestCase : XunitTestCase
     {
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Called by the de-serializer", error: true)]
-        public ForegroundTestCase()
+        public UITestCase()
         {
         }
 
-        public ForegroundTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, object[] testMethodArguments = null)
+        public UITestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, object[] testMethodArguments = null)
             : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
         {
         }

@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         public static readonly PlatformExtensionConverter<CompletionCapability, PlatformAgnosticCompletionCapability> JsonConverter = new PlatformExtensionConverter<CompletionCapability, PlatformAgnosticCompletionCapability>();
 
-        [JsonProperty("_ms_completionList")]
+        [JsonProperty("_vs_completionList")]
         public VSCompletionListCapability VSCompletionList { get; set; }
     }
 }

@@ -13,8 +13,8 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
-    [ExportLspMethod(MSLSPMethods.OnTypeRenameName)]
-    internal class OnTypeRenameHandler : IRequestHandler<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>
+    [ExportLspMethod(Methods.TextDocumentLinkedEditingRangeName)]
+    internal class LinkedEditingRangeHandler : IRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges>
     {
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPRequestInvoker _requestInvoker;
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly ILogger _logger;
 
         [ImportingConstructor]
-        public OnTypeRenameHandler(
+        public LinkedEditingRangeHandler(
             LSPDocumentManager documentManager,
             LSPRequestInvoker requestInvoker,
             LSPProjectionProvider projectionProvider,
@@ -60,10 +60,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
 
-            _logger = loggerProvider.CreateLogger(nameof(OnTypeRenameHandler));
+            _logger = loggerProvider.CreateLogger(nameof(LinkedEditingRangeHandler));
         }
 
-        public async Task<DocumentOnTypeRenameResponseItem> HandleRequestAsync(DocumentOnTypeRenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<LinkedEditingRanges> HandleRequestAsync(LinkedEditingRangeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -94,23 +94,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var onTypeRenameParams = new DocumentOnTypeRenameParams()
+            var linkedEditingRangeParams = new LinkedEditingRangeParams()
             {
                 Position = projectionResult.Position,
                 TextDocument = new TextDocumentIdentifier() { Uri = projectionResult.Uri }
             };
 
-            _logger.LogInformation($"Requesting OnTypeRename for {projectionResult.Uri}.");
+            _logger.LogInformation($"Requesting LinkedEditingRange for {projectionResult.Uri}.");
 
             var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
-            var onTypeResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>(
-                MSLSPMethods.OnTypeRenameName,
+            var linkedEditingRangeResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<LinkedEditingRangeParams, LinkedEditingRanges>(
+                Methods.TextDocumentLinkedEditingRangeName,
                 languageServerName,
-                onTypeRenameParams,
+                linkedEditingRangeParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var onTypeResult = onTypeResponse.Result;
-            if (onTypeResult is null)
+            var linkedEditingRangeResult = linkedEditingRangeResponse.Result;
+            if (linkedEditingRangeResult is null)
             {
                 _logger.LogInformation("Received no results.");
                 return null;
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
                 projectionResult.LanguageKind,
                 request.TextDocument.Uri,
-                onTypeResult.Ranges,
+                linkedEditingRangeResult.Ranges,
                 cancellationToken).ConfigureAwait(false);
 
             if (mappingResult is null ||
@@ -133,9 +133,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            onTypeResult.Ranges = mappingResult.Ranges;
+            linkedEditingRangeResult.Ranges = mappingResult.Ranges;
             _logger.LogInformation("Returned remapped result.");
-            return onTypeResult;
+            return linkedEditingRangeResult;
         }
     }
 }

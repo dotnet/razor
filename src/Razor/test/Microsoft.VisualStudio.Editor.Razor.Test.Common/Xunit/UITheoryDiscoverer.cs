@@ -7,9 +7,9 @@ using Xunit.Sdk;
 
 namespace Xunit
 {
-    internal class ForegroundTheoryDiscoverer : TheoryDiscoverer
+    internal class UITheoryDiscoverer : TheoryDiscoverer
     {
-        public ForegroundTheoryDiscoverer(IMessageSink diagnosticMessageSink)
+        public UITheoryDiscoverer(IMessageSink diagnosticMessageSink)
             : base(diagnosticMessageSink)
         {
         }
@@ -18,7 +18,7 @@ namespace Xunit
         {
             return new[]
             {
-                new ForegroundTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, dataRow),
+                new UITestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, dataRow),
             };
         }
     }

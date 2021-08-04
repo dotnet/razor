@@ -9,13 +9,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
     internal class OnAutoInsertParams : ITextDocumentIdentifierParams, IRequest<OnAutoInsertResponse>, IBaseRequest
     {
+        [JsonProperty("_vs_textDocument")]
         public TextDocumentIdentifier TextDocument { get; set; }
 
+        [JsonProperty("_vs_position")]
         public Position Position { get; set; }
 
-        [JsonProperty("ch")]
+        [JsonProperty("_vs_ch")]
         public string Character { get; set; }
 
+        [JsonProperty("_vs_options")]
         public FormattingOptions Options { get; set; }
     }
 }

@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal abstract class RazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
     {
         private readonly Workspace _workspace;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly AsyncSemaphore _lock;
 
         private ProjectSnapshotManagerBase _projectManager;
@@ -42,21 +43,28 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public RazorProjectHostBase(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
             : base(commonServices.ThreadingService.JoinableTaskContext)
         {
-            if (commonServices == null)
+            if (commonServices is null)
             {
                 throw new ArgumentNullException(nameof(commonServices));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
 
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
             CommonServices = commonServices;
             _workspace = workspace;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
             _lock = new AsyncSemaphore(initialCount: 1);
             _currentDocuments = new Dictionary<string, HostDocument>(FilePathComparer.Instance);
@@ -67,9 +75,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         protected RazorProjectHostBase(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             ProjectSnapshotManagerBase projectManager)
-            : this(commonServices, workspace, projectConfigurationFilePathStore)
+            : this(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
             if (projectManager == null)
             {
@@ -106,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 {
                     if (Current != null)
                     {
-                        await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                        await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                     }
                 }).ConfigureAwait(false);
             }
@@ -127,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     var old = Current;
                     var oldDocuments = _currentDocuments.Values.ToArray();
 
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
 
                     await UpdateAsync(() =>
                     {
@@ -139,15 +148,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         {
                             AddDocumentUnsafe(oldDocuments[i]);
                         }
-                    }).ConfigureAwait(false);
+                    }, CancellationToken.None).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
         }
 
-        // Should only be called from the UI thread.
+        // Should only be called from the project snapshot manager's specialized thread.
         private ProjectSnapshotManagerBase GetProjectManager()
         {
-            CommonServices.ThreadingService.VerifyOnUIThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projectManager == null)
             {
@@ -157,11 +166,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return _projectManager;
         }
 
-        protected async Task UpdateAsync(Action action)
-        {
-            await CommonServices.ThreadingService.SwitchToUIThread();
-            action();
-        }
+        protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
+            => _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
 
         protected void UninitializeProjectUnsafe()
         {

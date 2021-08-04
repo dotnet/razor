@@ -271,7 +271,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(uri);
                 remappedDocumentEdits.Add(new TextDocumentEdit()
                 {
-                    TextDocument = new VersionedTextDocumentIdentifier()
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier()
                     {
                         Uri = razorDocumentUri,
                         Version = documentSnapshot?.Version

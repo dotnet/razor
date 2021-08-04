@@ -15,9 +15,9 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
-    [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName)]
+    [ExportLspMethod(VSInternalMethods.DocumentPullDiagnosticName)]
     internal class DocumentPullDiagnosticsHandler :
-        IRequestHandler<DocumentDiagnosticsParams, DiagnosticReport[]>
+        IRequestHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        public async Task<DiagnosticReport[]> HandleRequestAsync(DocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<VSInternalDiagnosticReport[]> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -102,9 +102,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 _logger.LogInformation($"Failed to synchronize document {csharpDoc.Uri}.");
 
                 // Could not synchronize, report nothing changed
-                return new DiagnosticReport[]
+                return new VSInternalDiagnosticReport[]
                 {
-                    new DiagnosticReport()
+                    new VSInternalDiagnosticReport()
                     {
                         ResultId = request.PreviousResultId,
                         Diagnostics = null
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 };
             }
 
-            var referenceParams = new DocumentDiagnosticsParams()
+            var referenceParams = new VSInternalDocumentDiagnosticsParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -126,8 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // End goal is to transition this from ReinvokeRequestOnMultipleServersAsync -> ReinvokeRequestOnServerAsync
             // We can't do this right now as we don't have the ability to specify the language client name we'd like to make the call out to
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1246135
-            var resultsFromAllLanguageServers = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(
-                MSLSPMethods.DocumentPullDiagnosticName,
+            var resultsFromAllLanguageServers = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
+                VSInternalMethods.DocumentPullDiagnosticName,
                 RazorLSPConstants.CSharpContentTypeName,
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
@@ -153,8 +153,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return processedResults;
         }
 
-        private async Task<DiagnosticReport[]> RemapDocumentDiagnosticsAsync(
-            DiagnosticReport[] unmappedDiagnosticReports,
+        private async Task<VSInternalDiagnosticReport[]> RemapDocumentDiagnosticsAsync(
+            VSInternalDiagnosticReport[] unmappedDiagnosticReports,
             Uri razorDocumentUri,
             CancellationToken cancellationToken)
         {
@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return unmappedDiagnosticReports;
             }
 
-            var mappedDiagnosticReports = new List<DiagnosticReport>(unmappedDiagnosticReports.Length);
+            var mappedDiagnosticReports = new List<VSInternalDiagnosticReport>(unmappedDiagnosticReports.Length);
 
             foreach (var diagnosticReport in unmappedDiagnosticReports)
             {

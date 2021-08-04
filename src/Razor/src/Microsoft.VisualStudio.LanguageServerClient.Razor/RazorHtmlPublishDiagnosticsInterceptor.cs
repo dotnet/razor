@@ -66,13 +66,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Consequently, if we don't initialize the logger here, then the logger will be unavailable for logging.
             await InitializeLogHubLoggerAsync(cancellationToken).ConfigureAwait(false);
 
-            var diagnosticParams = token.ToObject<VSPublishDiagnosticParams>();
+            var diagnosticParams = token.ToObject<PublishDiagnosticParams>();
 
             if (diagnosticParams?.Uri is null)
             {
                 var exception = new ArgumentException("Conversion of token failed.");
 
-                _logger?.LogError(exception, $"Not a {nameof(VSPublishDiagnosticParams)}");
+                _logger?.LogError(exception, $"Not a {nameof(PublishDiagnosticParams)}");
 
                 throw exception;
             }
@@ -138,13 +138,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return new(token, changedDocumentUri: false);
             }
 
-            static InterceptionResult CreateEmptyDiagnosticsResponse(VSPublishDiagnosticParams diagnosticParams)
+            static InterceptionResult CreateEmptyDiagnosticsResponse(PublishDiagnosticParams diagnosticParams)
             {
                 diagnosticParams.Diagnostics = Array.Empty<Diagnostic>();
                 return CreateResponse(diagnosticParams);
             }
 
-            static InterceptionResult CreateResponse(VSPublishDiagnosticParams diagnosticParams)
+            static InterceptionResult CreateResponse(PublishDiagnosticParams diagnosticParams)
             {
                 var newToken = JToken.FromObject(diagnosticParams);
                 var interceptionResult = new InterceptionResult(newToken, changedDocumentUri: true);

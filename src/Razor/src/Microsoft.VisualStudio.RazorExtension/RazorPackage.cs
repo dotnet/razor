@@ -21,9 +21,11 @@ namespace Microsoft.VisualStudio.RazorExtension
     [AboutDialogInfo(PackageGuidString, "Razor (ASP.NET Core)", "#110", "#112", IconResourceID = "#400")]
     [ProvideService(typeof(RazorLanguageService))]
     [ProvideLanguageService(typeof(RazorLanguageService), RazorLSPConstants.RazorLSPContentTypeName, 110)]
-    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider", Audience = Shell.ServiceBroker.ServiceAudience.Local)]
-    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64", Audience = Shell.ServiceBroker.ServiceAudience.Local)]
-    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64S", Audience = Shell.ServiceBroker.ServiceAudience.Local)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider", Audience = ServiceAudience.Local)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64", Audience = ServiceAudience.Local)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64S", Audience = ServiceAudience.Local)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64S", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
     [Guid(PackageGuidString)]
     public sealed class RazorPackage : AsyncPackage
     {

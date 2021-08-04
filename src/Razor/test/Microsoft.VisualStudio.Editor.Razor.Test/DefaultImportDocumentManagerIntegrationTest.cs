@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class DefaultImportDocumentManagerIntegrationTest : ForegroundDispatcherTestBase
+    public class DefaultImportDocumentManagerIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public DefaultImportDocumentManagerIntegrationTest()
         {
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private RazorProjectEngine ProjectEngine { get; }
 
-        [ForegroundFact]
+        [UIFact]
         public void Changed_TrackerChanged_ResultsInChangedHavingCorrectArgs()
         {
             // Arrange

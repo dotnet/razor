@@ -10,21 +10,20 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
-    internal class SingleThreadedForegroundDispatcher : ForegroundDispatcher
+    internal class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
     {
-        public SingleThreadedForegroundDispatcher()
+        public TestProjectSnapshotManagerDispatcher()
         {
-            ForegroundScheduler = SynchronizationContext.Current == null ? new ThrowingTaskScheduler() : TaskScheduler.FromCurrentSynchronizationContext();
-            BackgroundScheduler = TaskScheduler.Default;
+            DispatcherScheduler = SynchronizationContext.Current == null
+                ? new ThrowingTaskScheduler()
+                : TaskScheduler.FromCurrentSynchronizationContext();
         }
 
-        public override TaskScheduler ForegroundScheduler { get; }
-
-        public override TaskScheduler BackgroundScheduler { get; }
+        public override TaskScheduler DispatcherScheduler { get; }
 
         private Thread Thread { get; } = Thread.CurrentThread;
 
-        public override bool IsForegroundThread => Thread.CurrentThread == Thread;
+        public override bool IsDispatcherThread => Thread.CurrentThread == Thread;
 
         private class ThrowingTaskScheduler : TaskScheduler
         {
@@ -35,12 +34,12 @@ namespace Microsoft.CodeAnalysis.Razor
 
             protected override void QueueTask(Task task)
             {
-                throw new InvalidOperationException($"Use [{nameof(ForegroundFactAttribute)}]");
+                throw new InvalidOperationException($"Use [{nameof(UIFactAttribute)}]");
             }
 
             protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
             {
-                throw new InvalidOperationException($"Use [{nameof(ForegroundFactAttribute)}]");
+                throw new InvalidOperationException($"Use [{nameof(UIFactAttribute)}]");
             }
         }
     }

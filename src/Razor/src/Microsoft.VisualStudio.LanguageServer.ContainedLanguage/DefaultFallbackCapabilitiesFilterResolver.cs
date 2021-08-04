@@ -58,22 +58,24 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 case Methods.TextDocumentDocumentHighlightName:
                     return CheckHighlightCapabilities;
                 case "textDocument/semanticTokens":
-                case "textDocument/semanticTokens/edits":
+                case Methods.TextDocumentSemanticTokensFullName:
+                case Methods.TextDocumentSemanticTokensFullDeltaName:
+                case Methods.TextDocumentSemanticTokensRangeName:
                     return CheckSemanticTokensCapabilities;
+                case Methods.TextDocumentLinkedEditingRangeName:
+                    return CheckLinkedEditingRangeCapabilities;
+                case Methods.CodeActionResolveName:
+                    return CheckCodeActionResolveCapabilities;
 
                 // VS LSP Expansion capabilities
-                case MSLSPMethods.DocumentReferencesName:
-                    return CheckMSReferencesCapabilities;
-                case MSLSPMethods.ProjectContextsName:
+                case VSMethods.GetProjectContextsName:
                     return CheckProjectContextsCapabilities;
-                case MSLSPMethods.TextDocumentCodeActionResolveName:
-                    return CheckCodeActionResolveCapabilities;
-                case MSLSPMethods.OnAutoInsertName:
+                case VSInternalMethods.DocumentReferencesName:
+                    return CheckMSReferencesCapabilities;
+                case VSInternalMethods.OnAutoInsertName:
                     return CheckOnAutoInsertCapabilities;
-                case MSLSPMethods.OnTypeRenameName:
-                    return CheckOnTypeRenameCapabilities;
-                case MSLSPMethods.DocumentPullDiagnosticName:
-                case MSLSPMethods.WorkspacePullDiagnosticName:
+                case VSInternalMethods.DocumentPullDiagnosticName:
+                case VSInternalMethods.WorkspacePullDiagnosticName:
                     return CheckPullDiagnosticCapabilities;
 
                 default:
@@ -85,9 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             var serverCapabilities = token.ToObject<VSServerCapabilities>();
 
-            return serverCapabilities?.SemanticTokensOptions?.DocumentProvider?.Match(
-                boolValue => boolValue,
-                options => options != null) ?? false;
+            return serverCapabilities?.SemanticTokensOptions != null;
         }
 
         private static bool CheckImplementationCapabilities(JToken token)
@@ -240,42 +240,48 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         private static bool CheckMSReferencesCapabilities(JToken token)
         {
-            var serverCapabilities = token.ToObject<VSServerCapabilities>();
+            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
             return serverCapabilities?.MSReferencesProvider == true;
         }
 
         private static bool CheckProjectContextsCapabilities(JToken token)
         {
-            var serverCapabilities = token.ToObject<VSServerCapabilities>();
+            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
             return serverCapabilities?.ProjectContextProvider == true;
         }
 
         private static bool CheckCodeActionResolveCapabilities(JToken token)
         {
-            var serverCapabilities = token.ToObject<VSServerCapabilities>();
+            var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.CodeActionsResolveProvider == true;
+            var resolvesCodeActions = serverCapabilities?.CodeActionProvider?.Match(
+                boolValue => false,
+                options => options.ResolveProvider) ?? false;
+
+            return resolvesCodeActions;
         }
 
         private static bool CheckOnAutoInsertCapabilities(JToken token)
         {
-            var serverCapabilities = token.ToObject<VSServerCapabilities>();
+            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
             return serverCapabilities?.OnAutoInsertProvider != null;
         }
 
-        private static bool CheckOnTypeRenameCapabilities(JToken token)
+        private static bool CheckLinkedEditingRangeCapabilities(JToken token)
         {
-            var serverCapabilities = token.ToObject<VSServerCapabilities>();
+            var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.OnTypeRenameProvider != null;
+            return serverCapabilities?.LinkedEditingRangeProvider?.Match(
+              boolValue => boolValue,
+              options => options != null) ?? false;
         }
 
         private static bool CheckPullDiagnosticCapabilities(JToken token)
         {
-            var serverCapabilities = token.ToObject<VSServerCapabilities>();
+            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
             return serverCapabilities?.SupportsDiagnosticRequests == true;
         }

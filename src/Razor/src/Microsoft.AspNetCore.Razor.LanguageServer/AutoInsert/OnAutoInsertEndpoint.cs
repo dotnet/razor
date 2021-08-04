@@ -16,21 +16,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
     internal class OnAutoInsertEndpoint : IOnAutoInsertHandler
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly AdhocWorkspaceFactory _workspaceFactory;
         private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
         private readonly Container<string> _onAutoInsertTriggerCharacters;
 
         public OnAutoInsertEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider,
             AdhocWorkspaceFactory workspaceFactory)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver is null)
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 throw new ArgumentNullException(nameof(workspaceFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _workspaceFactory = workspaceFactory;
             _onAutoInsertProviders = onAutoInsertProvider.ToList();
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public RegistrationExtensionResult GetRegistration()
         {
-            const string AssociatedServerCapability = "_ms_onAutoInsertProvider";
+            const string AssociatedServerCapability = "_vs_onAutoInsertProvider";
 
             var registrationOptions = new OnAutoInsertRegistrationOptions()
             {
@@ -70,12 +70,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public async Task<OnAutoInsertResponse> Handle(OnAutoInsertParams request, CancellationToken cancellationToken)
         {
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {

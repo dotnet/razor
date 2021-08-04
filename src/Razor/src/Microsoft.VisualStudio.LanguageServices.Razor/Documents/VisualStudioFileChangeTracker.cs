@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -14,10 +15,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     {
         private const _VSFILECHANGEFLAGS FileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Size | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Add;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly ErrorReporter _errorReporter;
         private readonly IVsAsyncFileChangeEx _fileChangeService;
-        private readonly JoinableTaskFactory _joinableTaskFactory;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
 
         // Internal for testing
         internal JoinableTask<uint> _fileChangeAdviseTask;
@@ -28,47 +29,52 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public VisualStudioFileChangeTracker(
             string filePath,
-            ForegroundDispatcher foregroundDispatcher,
             ErrorReporter errorReporter,
             IVsAsyncFileChangeEx fileChangeService,
-            JoinableTaskFactory joinableTaskFactory)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext)
         {
             if (string.IsNullOrEmpty(filePath))
             {
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
             }
 
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            if (errorReporter == null)
+            if (errorReporter is null)
             {
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            if (fileChangeService == null)
+            if (fileChangeService is null)
             {
                 throw new ArgumentNullException(nameof(fileChangeService));
             }
 
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             FilePath = filePath;
-            _foregroundDispatcher = foregroundDispatcher;
             _errorReporter = errorReporter;
             _fileChangeService = fileChangeService;
-            _joinableTaskFactory = joinableTaskFactory ?? throw new ArgumentNullException();
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _joinableTaskContext = joinableTaskContext;
         }
 
         public override string FilePath { get; }
 
         public override void StartListening()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_fileChangeUnadviseTask?.IsCompleted == false)
             {
-                // An unadvise operation is still processing, block the foreground thread until it completes.
+                // An unadvise operation is still processing, block the project snapshot manager's thread until it completes.
                 _fileChangeUnadviseTask.Join();
             }
 
@@ -78,7 +84,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 return;
             }
 
-            _fileChangeAdviseTask = _joinableTaskFactory.RunAsync(async () =>
+            _fileChangeAdviseTask = _joinableTaskContext.Factory.RunAsync(async () =>
             {
                 try
                 {
@@ -88,9 +94,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 {
                     // Don't report PathTooLongExceptions but don't fault either.
                 }
-#pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception exception)
-#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     // Don't explode on actual exceptions, just report gracefully.
                     _errorReporter.ReportError(exception);
@@ -102,7 +106,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public override void StopListening()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_fileChangeAdviseTask == null || _fileChangeUnadviseTask?.IsCompleted == false)
             {
@@ -110,7 +114,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 return;
             }
 
-            _fileChangeUnadviseTask = _joinableTaskFactory.RunAsync(async () =>
+            _fileChangeUnadviseTask = _joinableTaskContext.Factory.RunAsync(async () =>
             {
                 try
                 {
@@ -130,9 +134,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 {
                     // Don't report PathTooLongExceptions but don't fault either.
                 }
-#pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception exception)
-#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     // Don't explode on actual exceptions, just report gracefully.
                     _errorReporter.ReportError(exception);
@@ -143,9 +145,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         public int FilesChanged(uint fileCount, string[] filePaths, uint[] fileChangeFlags)
         {
             // Capturing task for testing purposes
-            _fileChangedTask = _joinableTaskFactory.RunAsync(async () =>
+            _fileChangedTask = _joinableTaskContext.Factory.RunAsync(async () =>
             {
-                await _joinableTaskFactory.SwitchToMainThreadAsync();
+                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
 
                 foreach (var fileChangeFlag in fileChangeFlags)
                 {
@@ -177,7 +179,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private void OnChanged(FileChangeKind changeKind)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             if (Changed == null)
             {

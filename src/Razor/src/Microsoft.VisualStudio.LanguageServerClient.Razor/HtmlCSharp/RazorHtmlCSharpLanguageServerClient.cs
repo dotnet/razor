@@ -49,6 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public IEnumerable<string> FilesToWatch => null;
 
+        public bool ShowNotificationOnInitializeFailed => true;
+
         public event AsyncEventHandler<EventArgs> StartAsync;
 
         public event AsyncEventHandler<EventArgs> StopAsync
@@ -72,11 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return StartAsync.InvokeAsync(this, EventArgs.Empty);
         }
 
-        public Task OnServerInitializeFailedAsync(Exception e)
-        {
-            return Task.CompletedTask;
-        }
-
         public Task OnServerInitializedAsync()
         {
             return Task.CompletedTask;
@@ -85,6 +82,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public void Dispose()
         {
             _languageServer?.Dispose();
+        }
+
+        public Task<InitializationFailureContext> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
+        {
+            var initializationFailureContext = new InitializationFailureContext();
+            initializationFailureContext.FailureMessage = string.Format(VS.LSClientRazor.Resources.LanguageServer_Initialization_Failed,
+                Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
+            return Task.FromResult<InitializationFailureContext>(initializationFailureContext);
         }
     }
 }

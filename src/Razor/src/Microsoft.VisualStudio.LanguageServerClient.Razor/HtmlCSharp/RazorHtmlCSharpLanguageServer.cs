@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private readonly JsonRpc _jsonRpc;
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
-        private VSClientCapabilities _clientCapabilities;
+        private VSInternalClientCapabilities _clientCapabilities;
 
         private RazorHtmlCSharpLanguageServer(
             Stream inputStream,
@@ -90,9 +89,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             // InitializeParams only references ClientCapabilities, but the VS LSP client
-            // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
+            // sends additional VS specific capabilities, so directly deserialize them into the VSInternalClientCapabilities
             // to avoid losing them.
-            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
+            _clientCapabilities = input["capabilities"].ToObject<VSInternalClientCapabilities>();
             var initializeParams = input.ToObject<InitializeParams>();
             return ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, initializeParams, _clientCapabilities, cancellationToken);
         }
@@ -146,15 +145,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<CompletionItem, CompletionItem>(Methods.TextDocumentCompletionResolveName, request, _clientCapabilities, cancellationToken);
         }
 
-        [JsonRpcMethod(MSLSPMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DocumentOnAutoInsertResponseItem> OnAutoInsertAsync(DocumentOnAutoInsertParams request, CancellationToken cancellationToken)
+        [JsonRpcMethod(VSInternalMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSInternalDocumentOnAutoInsertResponseItem> OnAutoInsertAsync(VSInternalDocumentOnAutoInsertParams request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(MSLSPMethods.OnAutoInsertName, request, _clientCapabilities, cancellationToken);
+            return ExecuteRequestAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(VSInternalMethods.OnAutoInsertName, request, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName, UseSingleObjectParameterDeserialization = true)]
@@ -168,15 +167,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(Methods.TextDocumentOnTypeFormattingName, request, _clientCapabilities, cancellationToken);
         }
 
-        [JsonRpcMethod(MSLSPMethods.OnTypeRenameName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DocumentOnTypeRenameResponseItem> OnTypeRenameAsync(DocumentOnTypeRenameParams request, CancellationToken cancellationToken)
+        [JsonRpcMethod(Methods.TextDocumentLinkedEditingRangeName, UseSingleObjectParameterDeserialization = true)]
+        public Task<LinkedEditingRanges> OnLinkedEditingRangeAsync(LinkedEditingRangeParams request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return ExecuteRequestAsync<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem>(MSLSPMethods.OnTypeRenameName, request, _clientCapabilities, cancellationToken);
+            return ExecuteRequestAsync<LinkedEditingRangeParams, LinkedEditingRanges>(Methods.TextDocumentLinkedEditingRangeName, request, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName, UseSingleObjectParameterDeserialization = true)]
@@ -191,14 +190,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentReferencesName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSReferenceItem[]> FindAllReferencesAsync(ReferenceParams referenceParams, CancellationToken cancellationToken)
+        public Task<VSInternalReferenceItem[]> FindAllReferencesAsync(VSInternalReferenceParams referenceParams, CancellationToken cancellationToken)
         {
             if (referenceParams is null)
             {
                 throw new ArgumentNullException(nameof(referenceParams));
             }
 
-            return ExecuteRequestAsync<ReferenceParams, VSReferenceItem[]>(Methods.TextDocumentReferencesName, referenceParams, _clientCapabilities, cancellationToken);
+            return ExecuteRequestAsync<ReferenceParams, VSInternalReferenceItem[]>(Methods.TextDocumentReferencesName, referenceParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentSignatureHelpName, UseSingleObjectParameterDeserialization = true)]
@@ -245,15 +244,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentImplementationName, positionParams, _clientCapabilities, cancellationToken);
         }
 
-        [JsonRpcMethod(MSLSPMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DiagnosticReport[]> DocumentPullDiagnosticsAsync(DocumentDiagnosticsParams documentDiagnosticsParams, CancellationToken cancellationToken)
+        [JsonRpcMethod(VSInternalMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSInternalDiagnosticReport[]> DocumentPullDiagnosticsAsync(VSInternalDocumentDiagnosticsParams documentDiagnosticsParams, CancellationToken cancellationToken)
         {
             if (documentDiagnosticsParams is null)
             {
                 throw new ArgumentNullException(nameof(documentDiagnosticsParams));
             }
 
-            return ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(MSLSPMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, cancellationToken);
+            return ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(VSInternalMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, cancellationToken);
         }
 
         // Razor tooling doesn't utilize workspace pull diagnostics as it doesn't really make sense for our use case. 
@@ -261,10 +260,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // triggered. Thus we add the following no-op handler until a server capability is available.
         // Having a server capability would reduce overhead of sending/receiving the request and the
         // associated serialization/deserialization.
-        [JsonRpcMethod(MSLSPMethods.WorkspacePullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
-        public static Task<WorkspaceDiagnosticReport> WorkspacePullDiagnosticsAsync(WorkspaceDocumentDiagnosticsParams workspaceDiagnosticsParams, CancellationToken cancellationToken)
+        [JsonRpcMethod(VSInternalMethods.WorkspacePullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public static Task<VSInternalWorkspaceDiagnosticReport> WorkspacePullDiagnosticsAsync(VSInternalWorkspaceDiagnosticsParams workspaceDiagnosticsParams, CancellationToken cancellationToken)
         {
-            return Task.FromResult<WorkspaceDiagnosticReport>(null);
+            return Task.FromResult<VSInternalWorkspaceDiagnosticReport>(null);
         }
 
         // Internal for testing
@@ -301,7 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
             var serializer = messageFormatter.JsonSerializer;
-            AddVSExtensionConverters(serializer);
+            serializer.AddVSInternalExtensionConverters();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var messageHandler = new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter);
@@ -310,24 +309,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // The JsonRpc object owns disposing the message handler which disposes the formatter.
             var jsonRpc = new JsonRpc(messageHandler, target);
             return jsonRpc;
-
-            // Can be removed for serializer.AddVSExtensionConverters() once we are able to update to a newer LSP protocol Extensions version.
-            static void AddVSExtensionConverters(JsonSerializer serializer)
-            {
-                serializer.Converters.Add(new VSExtensionConverter<ClientCapabilities, VSClientCapabilities>());
-                serializer.Converters.Add(new VSExtensionConverter<CodeAction, VSCodeAction>());
-                serializer.Converters.Add(new VSExtensionConverter<CodeActionContext, VSCodeActionContext>());
-                serializer.Converters.Add(new VSExtensionConverter<CompletionContext, VSCompletionContext>());
-                serializer.Converters.Add(new VSExtensionConverter<CompletionItem, VSCompletionItem>());
-                serializer.Converters.Add(new VSExtensionConverter<CompletionList, VSCompletionList>());
-                serializer.Converters.Add(new VSExtensionConverter<Diagnostic, VSDiagnostic>());
-                serializer.Converters.Add(new VSExtensionConverter<Hover, VSHover>());
-                serializer.Converters.Add(new VSExtensionConverter<ServerCapabilities, VSServerCapabilities>());
-                serializer.Converters.Add(new VSExtensionConverter<SignatureInformation, VSSignatureInformation>());
-                serializer.Converters.Add(new VSExtensionConverter<SymbolInformation, VSSymbolInformation>());
-                serializer.Converters.Add(new VSExtensionConverter<TextDocumentClientCapabilities, VSTextDocumentClientCapabilities>());
-                serializer.Converters.Add(new VSExtensionConverter<TextDocumentIdentifier, VSTextDocumentIdentifier>());
-            }
         }
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
