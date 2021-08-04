@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultEditorSettingsManagerTest : ForegroundDispatcherTestBase
+    public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         [Fact]
         public void InitialSettingsAreDefault()

@@ -29,13 +29,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                 if (vsCompletionList.CommitCharacters != null)
                 {
-                    writer.WritePropertyName("_vsext_commitCharacters");
+                    writer.WritePropertyName("_vs_commitCharacters");
                     serializer.Serialize(writer, vsCompletionList.CommitCharacters);
                 }
 
                 if (vsCompletionList.Data != null)
                 {
-                    writer.WritePropertyName("_vsext_data");
+                    writer.WritePropertyName("_vs_data");
                     serializer.Serialize(writer, vsCompletionList.Data);
                 }
 

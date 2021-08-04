@@ -5,26 +5,24 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
+namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    internal class DefaultForegroundDispatcher : ForegroundDispatcher
+    internal class DefaultProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
     {
-        public override bool IsForegroundThread => Thread.CurrentThread.ManagedThreadId == ForegroundTaskScheduler.Instance.ForegroundThreadId;
+        public override bool IsDispatcherThread
+            => Thread.CurrentThread.ManagedThreadId == ProjectSnapshotManagerTaskScheduler.Instance.ThreadId;
 
-        public override TaskScheduler ForegroundScheduler { get; } = ForegroundTaskScheduler.Instance;
+        public override TaskScheduler DispatcherScheduler { get; } = ProjectSnapshotManagerTaskScheduler.Instance;
 
-        public override TaskScheduler BackgroundScheduler { get; } = TaskScheduler.Default;
-
-        internal class ForegroundTaskScheduler : TaskScheduler
+        internal class ProjectSnapshotManagerTaskScheduler : TaskScheduler
         {
-            public static ForegroundTaskScheduler Instance = new ForegroundTaskScheduler();
+            public static ProjectSnapshotManagerTaskScheduler Instance = new();
 
             private readonly Thread _thread;
-            private readonly BlockingCollection<Task> _tasks = new BlockingCollection<Task>();
+            private readonly BlockingCollection<Task> _tasks = new();
 
-            private ForegroundTaskScheduler()
+            private ProjectSnapshotManagerTaskScheduler()
             {
                 _thread = new Thread(ThreadStart)
                 {
@@ -34,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 _thread.Start();
             }
 
-            public int ForegroundThreadId => _thread.ManagedThreadId;
+            public int ThreadId => _thread.ManagedThreadId;
 
             public override int MaximumConcurrencyLevel => 1;
 

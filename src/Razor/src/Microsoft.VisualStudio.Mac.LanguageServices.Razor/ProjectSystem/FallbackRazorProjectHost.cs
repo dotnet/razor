@@ -20,16 +20,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public FallbackRazorProjectHost(
             DotNetProject project,
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)
-            : base(project, foregroundDispatcher, projectSnapshotManager)
+            : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager)
         {
         }
 
         protected override async Task OnProjectChangedAsync()
         {
-            ForegroundDispatcher.AssertBackgroundThread();
-
             await ExecuteWithLockAsync(async () =>
             {
                 var referencedAssemblies = await DotNetProject.GetReferencedAssemblies(ConfigurationSelector.Default);

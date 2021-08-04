@@ -14,14 +14,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
     {
         public override event EventHandler<EditorSettingsChangedEventArgs> Changed;
 
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly object _settingsAccessorLock = new object();
-        private readonly ForegroundDispatcher _foregroundDispatcher;
         private EditorSettings _settings;
 
         [ImportingConstructor]
-        public DefaultEditorSettingsManager(ForegroundDispatcher foregroundDispatcher)
+        public DefaultEditorSettingsManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _settings = EditorSettings.Default;
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(updatedSettings));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_settingsAccessorLock)
             {
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void OnChanged()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var args = new EditorSettingsChangedEventArgs(Current);
             Changed?.Invoke(this, args);

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    public class DefaultProjectSnapshotManagerTest : ForegroundDispatcherWorkspaceTestBase
+    public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
         public DefaultProjectSnapshotManagerTest()
         {
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             services.Add(TagHelperResolver);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Initialize_DoneInCorrectOrderBasedOnInitializePriorityPriority()
         {
             // Arrange
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(new[] { "highPriority", "lowPriority" }, initializedOrder);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_AddsDocument()
         {
             // Arrange
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_AddsDocument_Legacy()
         {
             // Arrange
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_AddsDocument_Component()
         {
             // Arrange
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_IgnoresDuplicate()
         {
             // Arrange
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_IgnoresUnknownProject()
         {
             // Arrange
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(snapshot);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentAdded_NullLoader_HasEmptyText()
         {
             // Arrange
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(0, text.Length);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentAdded_WithLoader_LoadesText()
         {
             // Arrange
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(expected, actual);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_CachesTagHelpers()
         {
             // Arrange
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, newTagHelpers);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_CachesProjectEngine()
         {
             // Arrange
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(projectEngine, snapshot.GetProjectEngine());
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentRemoved_RemovesDocument()
         {
             // Arrange
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.DocumentRemoved, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentRemoved_IgnoresNotFoundDocument()
         {
             // Arrange
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentRemoved_IgnoresUnknownProject()
         {
             // Arrange
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(snapshot);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentRemoved_CachesTagHelpers()
         {
             // Arrange
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, newTagHelpers);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentRemoved_CachesProjectEngine()
         {
             // Arrange
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             snapshot = ProjectManager.GetSnapshot(HostProject);
             Assert.Same(projectEngine, snapshot.GetProjectEngine());
         }
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentOpened_UpdatesDocument()
         {
             // Arrange
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.True(ProjectManager.IsDocumentOpen(Documents[0].FilePath));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentClosed_UpdatesDocument()
         {
             // Arrange
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentClosed_AcceptsChange()
         {
             // Arrange
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(expected, text);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentChanged_Snapshot_UpdatesDocument()
         {
             // Arrange
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(expected, text);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentChanged_Loader_UpdatesDocument()
         {
             // Arrange
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(expected, text);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectAdded_WithoutWorkspaceProject_NotifiesListeners()
         {
             // Arrange
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectAdded, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectConfigurationChanged_ConfigurationChange_ProjectWorkspaceState_NotifiesListeners()
         {
             // Arrange
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectConfigurationChanged_ConfigurationChange_WithProjectWorkspaceState_NotifiesListeners()
         {
             // Arrange
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectConfigurationChanged_ConfigurationChange_DoesNotCacheProjectEngine()
         {
             // Arrange
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.NotSame(projectEngine, snapshot.GetProjectEngine());
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectConfigurationChanged_IgnoresUnknownProject()
         {
             // Arrange
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectRemoved_RemovesProject_NotifiesListeners()
         {
             // Arrange
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectRemoved, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectWorkspaceStateChanged_WithoutHostProject_IgnoresWorkspaceState()
         {
             // Arrange
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectWorkspaceStateChanged_WithHostProject_FirstTime_NotifiesListenters()
         {
             // Arrange
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void WorkspaceProjectChanged_WithHostProject_NotifiesListenters()
         {
             // Arrange
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void NestedNotifications_NotifiesListenersInCorrectOrder()
         {
             // Arrange
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(ForegroundDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
+            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
                 : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
             {
             }

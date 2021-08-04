@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -15,7 +14,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal class RazorSemanticTokensEndpoint : ISemanticTokensHandler, ISemanticTokensRangeHandler, ISemanticTokensDeltaHandler, IRegistrationExtension
+    internal class RazorSemanticTokensEndpoint : ISemanticTokensHandler, ISemanticTokensRangeHandler, ISemanticTokensDeltaHandler
     {
         private SemanticTokensCapability? _capability;
 
@@ -94,19 +93,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public void SetCapability(SemanticTokensCapability capability)
         {
             _capability = capability;
-        }
-
-        public RegistrationExtensionResult GetRegistration()
-        {
-            return new RegistrationExtensionResult(LanguageServerConstants.SemanticTokensProviderName, new LegacySemanticTokensOptions
-            {
-                DocumentProvider = new SemanticTokensDocumentProviderOptions
-                {
-                    Edits = true,
-                },
-                Legend = RazorSemanticTokensLegend.Instance,
-                RangeProvider = true,
-            });
         }
 
         private async Task<SemanticTokens?> HandleAsync(TextDocumentIdentifier textDocument, CancellationToken cancellationToken, Range? range = null)

@@ -18,7 +18,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             // Note this is a small subset of the actual ClientCapabilities provided
             // for use in basic validations.
             var rawJson = @"{
-  ""supportsCodeActionResolve"": true,
   ""workspace"": {
     ""applyEdit"": true,
     ""workspaceEdit"": {
@@ -26,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
     }
   },
   ""textDocument"": {
-    ""_ms_onAutoInsert"": {
+    ""_vs_onAutoInsert"": {
       ""dynamicRegistration"": false
     },
     ""synchronization"": {
@@ -83,7 +82,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
             var capabilities = serializer.Deserialize<PlatformAgnosticClientCapabilities>(new JsonTextReader(stringReader));
 
             // Assert
-            Assert.True(capabilities.SupportsCodeActionResolve);
             Assert.True(capabilities.Workspace.ApplyEdit);
             Assert.Equal(MarkupKind.PlainText, capabilities.TextDocument.Hover.Value.ContentFormat.First());
             Assert.Equal(CompletionItemKind.Function, capabilities.TextDocument.Completion.Value.CompletionItemKind.ValueSet.First());

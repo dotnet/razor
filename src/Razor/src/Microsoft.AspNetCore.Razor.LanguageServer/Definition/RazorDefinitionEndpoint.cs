@@ -21,16 +21,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
     internal class RazorDefinitionEndpoint : IDefinitionHandler
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
 
         public RazorDefinitionEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorComponentSearchEngine componentSearchEngine)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
         }
@@ -50,12 +50,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentSnapshot = await Task.Factory.StartNew(() =>
+            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (documentSnapshot is null)
             {

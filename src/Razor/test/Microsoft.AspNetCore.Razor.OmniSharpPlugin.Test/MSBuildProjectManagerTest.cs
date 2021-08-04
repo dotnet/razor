@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             {
                 new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Component),
             };
-            var projectSnapshot = await RunOnForegroundAsync(() =>
+            var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(hostProject);
                 var hostDocument = new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Legacy);
@@ -58,14 +58,14 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             });
 
             // Act
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
                 msbuildProjectManager.SynchronizeDocuments(
                     configuredHostDocuments,
                     projectSnapshot,
                     hostProject));
 
             // Assert
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
             {
                 var refreshedProject = projectManager.GetLoadedProject(hostProject.FilePath);
                 var documentFilePath = Assert.Single(refreshedProject.DocumentFilePaths);
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             var projectManager = CreateProjectSnapshotManager();
             msbuildProjectManager.Initialize(projectManager);
             var hostProject = new OmniSharpHostProject("/path/to/project.csproj", CustomConfiguration, "TestRootNamespace");
-            var projectSnapshot = await RunOnForegroundAsync(() =>
+            var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(hostProject);
                 var hostDocument = new OmniSharpHostDocument("file.razor", "file.razor", FileKinds.Component);
@@ -98,14 +98,14 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             });
 
             // Act
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
                 msbuildProjectManager.SynchronizeDocuments(
                     configuredHostDocuments: Array.Empty<OmniSharpHostDocument>(),
                     projectSnapshot,
                     hostProject));
 
             // Assert
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
             {
                 var refreshedProject = projectManager.GetLoadedProject(hostProject.FilePath);
                 Assert.Empty(refreshedProject.DocumentFilePaths);
@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             var projectManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
             msbuildProjectManager.Initialize(projectManager);
             var hostProject = new OmniSharpHostProject("/path/to/project.csproj", CustomConfiguration, "TestRootNamespace");
-            var projectSnapshot = await RunOnForegroundAsync(() =>
+            var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(hostProject);
                 projectManager.DocumentAdded(hostProject, hostDocument);
@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             projectManager.Changed += (sender, args) => throw new XunitException("Should not have been notified");
 
             // Act & Assert
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
                 msbuildProjectManager.SynchronizeDocuments(
                     configuredHostDocuments,
                     projectSnapshot,
@@ -159,21 +159,21 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             var projectManager = CreateProjectSnapshotManager();
             msbuildProjectManager.Initialize(projectManager);
             var hostProject = new OmniSharpHostProject("/path/to/project.csproj", CustomConfiguration, "TestRootNamespace");
-            var projectSnapshot = await RunOnForegroundAsync(() =>
+            var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(hostProject);
                 return projectManager.GetLoadedProject(hostProject.FilePath);
             });
 
             // Act
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
                 msbuildProjectManager.SynchronizeDocuments(
                     configuredHostDocuments,
                     projectSnapshot,
                     hostProject));
 
             // Assert
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
             {
                 var refreshedProject = projectManager.GetLoadedProject(hostProject.FilePath);
                 var document = refreshedProject.GetDocument("file.razor");
@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             await msbuildProjectManager.ProjectLoadedAsync(args);
 
             // Assert
-            var project = await RunOnForegroundAsync(() => Assert.Single(projectManager.Projects));
+            var project = await RunOnDispatcherThreadAsync(() => Assert.Single(projectManager.Projects));
             Assert.Equal(projectInstance.ProjectFileLocation.File, project.FilePath);
             Assert.Same(CustomConfiguration, project.Configuration);
             var document = project.GetDocument(hostDocument.FilePath);

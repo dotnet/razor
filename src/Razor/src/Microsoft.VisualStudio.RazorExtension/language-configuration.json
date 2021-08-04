@@ -25,8 +25,8 @@
     { "open": "<", "close": ">" }
   ],
   "indentationRules": {
-    "increaseIndentPattern": "(?:\\s<(?!(?:area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr))(\\w[\\w\\d]*)([^/>]*(?!/)>)\\s*$)|(?:\\{\\s*$)",
-    "decreaseIndentPattern": "(?:</([_:\\w][_:\\w-.\\d]*)\\s*>)|(?:\\})"
+    "increaseIndentPattern": "<(?!\\?|(?:area|base|br|col|frame|hr|html|img|input|keygen|link|menuitem|meta|param|source|track|wbr)\\b|[^>]*\\/>)([-_\\.A-Za-z0-9]+)(?=\\s|>)\\b[^>]*>(?!.*<\\/\\1>)|<!--(?!.*-->)|\\{[^}\"']*$",
+    "decreaseIndentPattern": "^\\s*(<\\/(?!html)[-_\\.A-Za-z0-9]+\\b[^>]*>|-->|\\})"
   },
   "onEnterRules": [
     {

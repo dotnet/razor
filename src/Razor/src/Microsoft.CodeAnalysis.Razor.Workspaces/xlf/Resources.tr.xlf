@@ -7,21 +7,6 @@
         <target state="translated">Değer null veya boş bir dize olamaz.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertBackgroundThread">
-        <source>{0} must be called on a background thread.</source>
-        <target state="translated">{0} arka plan iş parçacığında çağrılmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertForegroundThread">
-        <source>{0} must be called on the foreground thread.</source>
-        <target state="translated">{0} ön plan iş parçacığında çağrılmalıdır.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_NoMethodNamePlaceholder">
-        <source>The method</source>
-        <target state="translated">Yöntem</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

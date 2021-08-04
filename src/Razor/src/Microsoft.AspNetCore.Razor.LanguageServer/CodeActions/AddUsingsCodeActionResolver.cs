@@ -23,13 +23,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class AddUsingsCodeActionResolver : RazorCodeActionResolver
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
 
-        public AddUsingsCodeActionResolver(ForegroundDispatcher foregroundDispatcher, DocumentResolver documentResolver)
+        public AddUsingsCodeActionResolver(
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            DocumentResolver documentResolver)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (documentResolver is null)
+            {
+                throw new ArgumentNullException(nameof(documentResolver));
+            }
+
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _documentResolver = documentResolver;
         }
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
@@ -49,11 +61,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var path = actionParams.Uri.GetAbsoluteOrUNCPath();
 
-            var documentSnapshot = await Task.Factory.StartNew(() =>
+            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
             if (documentSnapshot is null)
             {
                 return null;

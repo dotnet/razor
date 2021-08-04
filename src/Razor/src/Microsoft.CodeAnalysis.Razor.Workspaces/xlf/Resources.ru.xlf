@@ -7,21 +7,6 @@
         <target state="translated">Значение не может быть NULL или пустой строкой.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertBackgroundThread">
-        <source>{0} must be called on a background thread.</source>
-        <target state="translated">{0} необходимо вызвать в фоновом потоке.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertForegroundThread">
-        <source>{0} must be called on the foreground thread.</source>
-        <target state="translated">{0} необходимо вызвать в потоке переднего плана.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_NoMethodNamePlaceholder">
-        <source>The method</source>
-        <target state="translated">Метод</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

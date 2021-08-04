@@ -7,21 +7,6 @@
         <target state="translated">Der Wert darf nicht NULL oder eine leere Zeichenfolge sein.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertBackgroundThread">
-        <source>{0} must be called on a background thread.</source>
-        <target state="translated">{0} muss für einen Hintergrundthread aufgerufen werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_AssertForegroundThread">
-        <source>{0} must be called on the foreground thread.</source>
-        <target state="translated">{0} muss im Vordergrundthread aufgerufen werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ForegroundDispatcher_NoMethodNamePlaceholder">
-        <source>The method</source>
-        <target state="translated">Die Methode</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

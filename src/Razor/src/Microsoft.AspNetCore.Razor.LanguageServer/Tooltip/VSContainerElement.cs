@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
     /// </summary>
     internal sealed class VSContainerElement
     {
-        [JsonProperty("type")]
+        [JsonProperty("_vs_type")]
         public static readonly string Type = "ContainerElement";
 
         public VSContainerElement(VSContainerElementStyle style, IEnumerable<object> elements)

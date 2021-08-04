@@ -6,16 +6,16 @@ using Xunit.Sdk;
 
 namespace Xunit
 {
-    internal class ForegroundFactDiscoverer : FactDiscoverer
+    internal class UIFactDiscoverer : FactDiscoverer
     {
-        public ForegroundFactDiscoverer(IMessageSink diagnosticMessageSink)
+        public UIFactDiscoverer(IMessageSink diagnosticMessageSink)
             : base(diagnosticMessageSink)
         {
         }
 
         protected override IXunitTestCase CreateTestCase(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
         {
-            return new ForegroundTestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
+            return new UITestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
         }
     }
 }

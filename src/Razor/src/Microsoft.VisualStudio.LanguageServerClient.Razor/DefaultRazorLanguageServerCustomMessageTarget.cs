@@ -9,7 +9,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -233,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
-        public override async Task<VSCodeAction[]> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
+        public override async Task<VSInternalCodeAction[]> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
         {
             if (codeActionParams is null)
             {
@@ -252,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             codeActionParams.TextDocument.Uri = csharpDoc.Uri;
 
-            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSCodeAction[]>(
+            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSInternalCodeAction[]>(
                 Methods.TextDocumentCodeActionName,
                 LanguageServerKind.CSharp.ToContentType(),
                 SupportsCSharpCodeActions,
@@ -262,15 +261,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return results.SelectMany(l => l.Result).ToArray();
         }
 
-        public override async Task<VSCodeAction> ResolveCodeActionsAsync(VSCodeAction codeAction, CancellationToken cancellationToken)
+        public override async Task<VSInternalCodeAction> ResolveCodeActionsAsync(VSInternalCodeAction codeAction, CancellationToken cancellationToken)
         {
             if (codeAction is null)
             {
                 throw new ArgumentNullException(nameof(codeAction));
             }
 
-            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSCodeAction, VSCodeAction>(
-                MSLSPMethods.TextDocumentCodeActionResolveName,
+            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
+                Methods.CodeActionResolveName,
                 LanguageServerKind.CSharp.ToContentType(),
                 SupportsCSharpCodeActions,
                 codeAction,
@@ -313,7 +312,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 PartialResultToken = semanticTokensParams.PartialResultToken,
             };
             var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
-                LanguageServerConstants.LegacyRazorSemanticTokensEndpoint,
+                Methods.TextDocumentSemanticTokensFullName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 newParams,
                 cancellationToken).ConfigureAwait(false);
@@ -347,7 +346,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return new ProvideSemanticTokensEditsResponse(tokens: null, edits: null, resultId: null, csharpDoc.HostDocumentSyncVersion);
             }
 
-            var newParams = new SemanticTokensEditsParams
+            var newParams = new SemanticTokensDeltaParams
             {
                 TextDocument = new TextDocumentIdentifier
                 {
@@ -356,8 +355,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 PreviousResultId = semanticTokensEditsParams.PreviousResultId,
             };
 
-            var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensEditsParams, SumType<LanguageServer.Protocol.SemanticTokens, SemanticTokensEdits>>(
-                LanguageServerConstants.LegacyRazorSemanticTokensEditEndpoint,
+            var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensDeltaParams, SumType<LanguageServer.Protocol.SemanticTokens, SemanticTokensDelta>>(
+                Methods.TextDocumentSemanticTokensFullDeltaName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 newParams,
                 cancellationToken).ConfigureAwait(false);
@@ -369,7 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 var response = new ProvideSemanticTokensEditsResponse(tokens.Data, edits: null, tokens.ResultId, semanticTokensEditsParams.RequiredHostDocumentVersion);
                 return response;
             }
-            else if (csharpResults.Value is SemanticTokensEdits edits)
+            else if (csharpResults.Value is SemanticTokensDelta edits)
             {
                 var results = new RazorSemanticTokensEdit[edits.Edits.Length];
                 for (var i = 0; i < edits.Edits.Length; i++)
@@ -414,13 +413,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private static bool SupportsCSharpCodeActions(JToken token)
         {
-            var serverCapabilities = token.ToObject<VSServerCapabilities>();
+            var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            var providesCodeActions = serverCapabilities?.CodeActionProvider?.Match(
-                boolValue => boolValue,
-                options => options != null) ?? false;
-
-            var resolvesCodeActions = serverCapabilities?.CodeActionsResolveProvider == true;
+            var (providesCodeActions, resolvesCodeActions) = serverCapabilities?.CodeActionProvider?.Match(
+                boolValue => (boolValue, false),
+                options => (true, options.ResolveProvider)) ?? (false, false);
 
             return providesCodeActions && resolvesCodeActions;
         }

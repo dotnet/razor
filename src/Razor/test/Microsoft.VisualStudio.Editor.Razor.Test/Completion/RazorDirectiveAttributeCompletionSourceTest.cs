@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
-    public class RazorDirectiveAttributeCompletionSourceTest : ForegroundDispatcherTestBase
+    public class RazorDirectiveAttributeCompletionSourceTest : ProjectSnapshotManagerDispatcherTestBase
     {
         [Fact]
         public async Task GetDescriptionAsync_NoDescriptionData_ReturnsEmptyString()

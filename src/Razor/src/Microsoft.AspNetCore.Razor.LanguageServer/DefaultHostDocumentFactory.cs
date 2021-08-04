@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -12,24 +11,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultHostDocumentFactory : HostDocumentFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly GeneratedDocumentContainerStore _generatedDocumentContainerStore;
 
-        public DefaultHostDocumentFactory(
-            ForegroundDispatcher foregroundDispatcher,
-            GeneratedDocumentContainerStore generatedDocumentContainerStore)
+        public DefaultHostDocumentFactory(GeneratedDocumentContainerStore generatedDocumentContainerStore)
         {
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            if (generatedDocumentContainerStore == null)
+            if (generatedDocumentContainerStore is null)
             {
                 throw new ArgumentNullException(nameof(generatedDocumentContainerStore));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
             _generatedDocumentContainerStore = generatedDocumentContainerStore;
         }
 
@@ -38,12 +28,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override HostDocument Create(string filePath, string targetFilePath, string fileKind)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            if (targetFilePath == null)
+            if (targetFilePath is null)
             {
                 throw new ArgumentNullException(nameof(targetFilePath));
             }
@@ -64,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     () => sharedContainer.SetOutputAndCaptureReferenceAsync(latestDocument),
                     CancellationToken.None,
                     TaskCreationOptions.None,
-                    _foregroundDispatcher.BackgroundScheduler);
+                    TaskScheduler.Default);
             }
         }
     }

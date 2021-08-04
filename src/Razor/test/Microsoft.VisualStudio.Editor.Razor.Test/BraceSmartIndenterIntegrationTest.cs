@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class BraceSmartIndenterIntegrationTest : BraceSmartIndenterTestBase
     {
-        [ForegroundFact]
+        [UIFact]
         public void TextBuffer_OnPostChanged_IndentsInbetweenBraces_BaseIndentation()
         {
             // Arrange
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
             var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
             var editorOperationsFactory = CreateOperationsFactoryService();
-            using var braceSmartIndenter = new BraceSmartIndenter(Dispatcher, documentTracker, codeDocumentProvider, editorOperationsFactory);
+            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
 
             // Act
             textBuffer.ApplyEdit(edit);
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(expectedIndentResult, ((StringTextSnapshot)textBuffer.CurrentSnapshot).Content);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TextBuffer_OnPostChanged_IndentsInbetweenBraces_OneLevelOfIndentation()
         {
             // Arrange
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
             var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
             var editorOperationsFactory = CreateOperationsFactoryService();
-            using var braceSmartIndenter = new BraceSmartIndenter(Dispatcher, documentTracker, codeDocumentProvider, editorOperationsFactory);
+            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
 
             // Act
             textBuffer.ApplyEdit(edit);
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(expectedIndentResult, ((StringTextSnapshot)textBuffer.CurrentSnapshot).Content);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TextBuffer_OnPostChanged_IndentsInbetweenDirectiveBlockBraces()
         {
             // Arrange
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
             var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
             var editorOperationsFactory = CreateOperationsFactoryService();
-            using var braceSmartIndenter = new BraceSmartIndenter(Dispatcher, documentTracker, codeDocumentProvider, editorOperationsFactory);
+            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
 
             // Act
             textBuffer.ApplyEdit(edit);
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(expectedIndentResult, ((StringTextSnapshot)textBuffer.CurrentSnapshot).Content);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TextBuffer_OnPostChanged_DoesNotIndentJavaScript()
         {
             // Arrange
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             textBuffer = CreateTextBuffer(initialSnapshot, documentTracker);
             var codeDocumentProvider = CreateCodeDocumentProvider(initialSnapshot.Content);
             var editorOperationsFactory = CreateOperationsFactoryService();
-            using var braceSmartIndenter = new BraceSmartIndenter(Dispatcher, documentTracker, codeDocumentProvider, editorOperationsFactory);
+            using var braceSmartIndenter = new BraceSmartIndenter(JoinableTaskFactory.Context, documentTracker, codeDocumentProvider, editorOperationsFactory);
 
             // Act
             textBuffer.ApplyEdit(edit);

@@ -15,14 +15,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
 
         public DefaultRazorComponentSearchEngine(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
         }
 
@@ -45,11 +45,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var @namespaceName, out var typeName);
             var lookupSymbolName = RemoveGenericContent(typeName);
 
-            var projects = await Task.Factory.StartNew(
+            var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectSnapshotManager.Projects.ToArray(),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                CancellationToken.None).ConfigureAwait(false);
 
             foreach (var project in projects)
             {

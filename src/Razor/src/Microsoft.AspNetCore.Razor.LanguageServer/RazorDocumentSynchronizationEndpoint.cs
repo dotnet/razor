@@ -22,37 +22,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private SynchronizationCapability _capability;
         private readonly ILogger _logger;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorProjectService _projectService;
 
         public RazorDocumentSynchronizationEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorProjectService projectService,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (documentResolver == null)
+            if (documentResolver is null)
             {
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _projectService = projectService;
             _logger = loggerFactory.CreateLogger<RazorDocumentSynchronizationEndpoint>();
@@ -67,14 +67,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<Unit> Handle(DidChangeTextDocumentParams notification, CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, CancellationToken.None);
 
             var sourceText = await document.GetTextAsync();
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
@@ -84,19 +82,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new InvalidOperationException(RazorLS.Resources.Version_Should_Not_Be_Null);
             }
 
-            await Task.Factory.StartNew(
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version.Value),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                CancellationToken.None);
 
             return Unit.Value;
         }
 
         public async Task<Unit> Handle(DidOpenTextDocumentParams notification, CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             var sourceText = SourceText.From(notification.TextDocument.Text);
 
             if (notification.TextDocument.Version is null)
@@ -104,24 +98,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new InvalidOperationException(RazorLS.Resources.Version_Should_Not_Be_Null);
             }
 
-            await Task.Factory.StartNew(
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version.Value),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                CancellationToken.None);
 
             return Unit.Value;
         }
 
         public async Task<Unit> Handle(DidCloseTextDocumentParams notification, CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
-            await Task.Factory.StartNew(
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.CloseDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath()),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+                CancellationToken.None);
 
             return Unit.Value;
         }

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public override event EventHandler<ProjectChangeEventArgs> Changed;
 
         private readonly ErrorReporter _errorReporter;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ProjectSnapshotChangeTrigger[] _triggers;
 
         // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
@@ -33,32 +33,32 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private readonly Queue<ProjectChangeEventArgs> _notificationWork;
 
         public DefaultProjectSnapshotManager(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ErrorReporter errorReporter,
             IEnumerable<ProjectSnapshotChangeTrigger> triggers,
             Workspace workspace)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (errorReporter == null)
+            if (errorReporter is null)
             {
                 throw new ArgumentNullException(nameof(errorReporter));
             }
 
-            if (triggers == null)
+            if (triggers is null)
             {
                 throw new ArgumentNullException(nameof(triggers));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _errorReporter = errorReporter;
             _triggers = triggers.OrderByDescending(trigger => trigger.InitializePriority).ToArray();
             Workspace = workspace;
@@ -67,9 +67,28 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _openDocuments = new HashSet<string>(FilePathComparer.Instance);
             _notificationWork = new Queue<ProjectChangeEventArgs>();
 
-            for (var i = 0; i < _triggers.Length; i++)
+            // All methods involving the project snapshot manager need to be run on the
+            // project snapshot manager's specialized thread. The LSP editor should already
+            // be on the specialized thread, however the old editor may be calling this
+            // constructor on the UI thread.
+            if (_projectSnapshotManagerDispatcher.IsDispatcherThread)
             {
-                _triggers[i].Initialize(this);
+                InitializeTriggers(this, _triggers);
+            }
+            else
+            {
+                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    () => InitializeTriggers(this, _triggers), CancellationToken.None);
+            }
+
+            static void InitializeTriggers(
+                DefaultProjectSnapshotManager snapshotManager,
+                ProjectSnapshotChangeTrigger[] triggers)
+            {
+                for (var i = 0; i < triggers.Length; i++)
+                {
+                    triggers[i].Initialize(snapshotManager);
+                }
             }
         }
 
@@ -77,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             get
             {
-                _foregroundDispatcher.AssertForegroundThread();
+                _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
                 var i = 0;
                 var projects = new ProjectSnapshot[_projects.Count];
@@ -94,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             get
             {
-                _foregroundDispatcher.AssertForegroundThread();
+                _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
                 return _openDocuments;
             }
@@ -109,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(filePath, out var entry))
             {
@@ -126,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             return GetLoadedProject(filePath) ?? new EphemeralProjectSnapshot(Workspace.Services, filePath);
         }
@@ -138,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             return _openDocuments.Contains(documentFilePath);
         }
@@ -155,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
@@ -187,7 +206,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
                 var state = entry.State.WithRemovedHostDocument(document);
@@ -220,7 +240,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
@@ -275,7 +296,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(textLoader));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
@@ -313,7 +335,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
@@ -366,7 +389,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(textLoader));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
@@ -392,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(hostProject));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             // We don't expect to see a HostProject initialized multiple times for the same path. Just ignore it.
             if (_projects.ContainsKey(hostProject.FilePath))
@@ -415,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(hostProject));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
@@ -444,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(projectWorkspaceState));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(projectFilePath, out var entry))
             {
@@ -468,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(hostProject));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
@@ -513,7 +537,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // virtual so it can be overridden in tests
         protected virtual void NotifyListeners(ProjectChangeEventArgs e)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             _notificationWork.Enqueue(e);
 
@@ -536,7 +560,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
                 while (_notificationWork.Count > 0);
             }
-
         }
 
         private class Entry

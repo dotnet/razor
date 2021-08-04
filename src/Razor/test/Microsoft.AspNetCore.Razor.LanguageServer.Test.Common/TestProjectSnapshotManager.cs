@@ -14,12 +14,12 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 {
     internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
     {
-        private TestProjectSnapshotManager(ForegroundDispatcher dispatcher, Workspace workspace)
+        private TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, Workspace workspace)
             : base(dispatcher, new DefaultErrorReporter(), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
         {
         }
 
-        public static TestProjectSnapshotManager Create(ForegroundDispatcher dispatcher)
+        public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher)
         {
             if (dispatcher == null)
             {

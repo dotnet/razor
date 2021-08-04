@@ -20,7 +20,7 @@ using SystemDebugger = System.Diagnostics.Debugger;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultVisualStudioRazorParserIntegrationTest : ForegroundDispatcherTestBase
+    public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
     {
         private const string TestLinePragmaFileName = "C:\\This\\Path\\Is\\Just\\For\\Line\\Pragmas.cshtml";
         private const string TestProjectPath = "C:\\This\\Path\\Is\\Just\\For\\Project.csproj";
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private CodeAnalysis.Workspace Workspace { get; }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task NoDocumentSnapshotParsesComponentFileCorrectly()
         {
             // Arrange
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task BufferChangeStartsFullReparseIfChangeOverlapsMultipleSpans()
         {
             // Arrange
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task AwaitPeriodInsertionAcceptedProvisionally()
         {
             // Arrange
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprAcceptsDCIInStmtBlkAfterIdentifiers()
         {
             // ImplicitExpressionAcceptsDotlessCommitInsertionsInStatementBlockAfterIdentifiers
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprAcceptsDCIInStatementBlock()
         {
             // ImpExprAcceptsDotlessCommitInsertionsInStatementBlock
@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprProvisionallyAcceptsDCI()
         {
             // ImpExprProvisionallyAcceptsDotlessCommitInsertions
@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact(Skip = "https://github.com/dotnet/aspnetcore/issues/17234")]
+        [UIFact(Skip = "https://github.com/dotnet/aspnetcore/issues/17234")]
         public async Task ImpExprProvisionallyAcceptsDCIAfterIdentifiers_CompletesSyntaxTreeRequest()
         {
             var original = new StringTextSnapshot("foo @DateTime baz", versionNumber: 0);
@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprProvisionallyAcceptsDCIAfterIdentifiers()
         {
             // ImplicitExpressionProvisionallyAcceptsDotlessCommitInsertionsAfterIdentifiers
@@ -292,7 +292,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprProvisionallyAccCaseInsensitiveDCI_NewRoslynIntegration()
         {
             // ImplicitExpressionProvisionallyAcceptsCaseInsensitiveDotlessCommitInsertions_NewRoslynIntegration
@@ -345,7 +345,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprRejectsAcceptableChangeIfPrevWasProvisionallyAccepted()
         {
             // ImplicitExpressionRejectsChangeWhichWouldHaveBeenAcceptedIfLastChangeWasProvisionallyAcceptedOnDifferentSpan
@@ -368,7 +368,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprAcceptsIdentifierTypedAfterDotIfLastChangeProvisional()
         {
             // ImplicitExpressionAcceptsIdentifierTypedAfterDotIfLastChangeWasProvisionalAcceptanceOfDot
@@ -391,7 +391,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExpr_AcceptsParenthesisAtEnd_SingleEdit()
         {
             // Arrange
@@ -410,7 +410,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExpr_AcceptsParenthesisAtEnd_TwoEdits()
         {
             // Arrange
@@ -432,85 +432,85 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfIfKeywordTyped()
         {
             await RunTypeKeywordTestAsync("if");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfDoKeywordTyped()
         {
             await RunTypeKeywordTestAsync("do");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfTryKeywordTyped()
         {
             await RunTypeKeywordTestAsync("try");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImplicitExpressionCorrectlyTriggersReparseIfForKeywordTyped()
         {
             await RunTypeKeywordTestAsync("for");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfForEachKeywordTyped()
         {
             await RunTypeKeywordTestAsync("foreach");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfWhileKeywordTyped()
         {
             await RunTypeKeywordTestAsync("while");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfSwitchKeywordTyped()
         {
             await RunTypeKeywordTestAsync("switch");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfLockKeywordTyped()
         {
             await RunTypeKeywordTestAsync("lock");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfUsingKeywordTyped()
         {
             await RunTypeKeywordTestAsync("using");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfSectionKeywordTyped()
         {
             await RunTypeKeywordTestAsync("section");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfInheritsKeywordTyped()
         {
             await RunTypeKeywordTestAsync("inherits");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfFunctionsKeywordTyped()
         {
             await RunTypeKeywordTestAsync("functions");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfNamespaceKeywordTyped()
         {
             await RunTypeKeywordTestAsync("namespace");
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task ImpExprCorrectlyTriggersReparseIfClassKeywordTyped()
         {
             await RunTypeKeywordTestAsync("class");
@@ -539,7 +539,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             var templateEngineFactory = CreateProjectEngineFactory();
             var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskFactory.Context,
                 documentTracker,
                 templateEngineFactory,
                 new DefaultErrorReporter(),
@@ -547,7 +547,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 // We block idle work with the below reset events. Therefore, make tests fast and have the idle timer fire as soon as possible.
                 _idleDelay = TimeSpan.FromMilliseconds(1),
-                NotifyForegroundIdleStart = new ManualResetEventSlim(),
+                NotifyUIIdleStart = new ManualResetEventSlim(),
                 BlockBackgroundIdleWork = new ManualResetEventSlim(),
             };
 
@@ -704,7 +704,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             public async Task WaitForParseAsync()
             {
-                // Get off of the foreground thread so we can wait for the document structure changed event to fire
+                // Get off of the UI thread so we can wait for the document structure changed event to fire
                 await Task.Run(() => DoWithTimeoutIfNotDebugging(_parserComplete.Wait));
 
                 _parserComplete.Reset();
@@ -717,17 +717,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 // Allow background idle work to continue
                 _parser.BlockBackgroundIdleWork.Set();
 
-                // Get off of the foreground thread so we can wait for the idle timer to fire
-                await Task.Run(() => DoWithTimeoutIfNotDebugging(_parser.NotifyForegroundIdleStart.Wait));
+                // Get off of the UI thread so we can wait for the idle timer to fire
+                await Task.Run(() => DoWithTimeoutIfNotDebugging(_parser.NotifyUIIdleStart.Wait));
 
                 Assert.Null(_parser._idleTimer);
 
-                // Get off of the foreground thread so we can wait for the document structure changed event to fire for reparse
+                // Get off of the UI thread so we can wait for the document structure changed event to fire for reparse
                 await Task.Run(() => DoWithTimeoutIfNotDebugging(_reparseComplete.Wait));
 
                 _reparseComplete.Reset();
                 _parser.BlockBackgroundIdleWork.Reset();
-                _parser.NotifyForegroundIdleStart.Reset();
+                _parser.NotifyUIIdleStart.Reset();
             }
 
             public void Dispose()
