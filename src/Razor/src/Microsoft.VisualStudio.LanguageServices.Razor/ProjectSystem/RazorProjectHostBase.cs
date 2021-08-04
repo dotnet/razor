@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             _currentDocuments.Clear();
         }
-        
+
         protected async Task ExecuteWithLockAsync(Func<Task> func)
         {
             using (JoinableCollection.Join())
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 //      in this case would be the C:/Windows/System path
                 // Because of the above two issues the joinedPath ends up looking like "C:\WINDOWS\system32\obj\Debug\netstandard2.0\" which doesn't actually exist and of course isn't writeable. The end-user effect of this
                 // quirk means that you don't get any component completions for Razor class libraries because we're unable to capture their project state information.
-                // 
+                //
                 // To workaround these inconsistencies with Razor class libraries we fall back to the MSBuildProjectDirectory and build what we think is the intermediate output path.
                 joinedPath = ResolveFallbackIntermediateOutputPath(rule, intermediateOutputPathValue);
                 if (joinedPath == null)

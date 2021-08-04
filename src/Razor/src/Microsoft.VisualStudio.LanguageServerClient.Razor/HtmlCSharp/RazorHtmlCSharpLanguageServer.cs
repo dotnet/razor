@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -255,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(VSInternalMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, cancellationToken);
         }
 
-        // Razor tooling doesn't utilize workspace pull diagnostics as it doesn't really make sense for our use case. 
+        // Razor tooling doesn't utilize workspace pull diagnostics as it doesn't really make sense for our use case.
         // However, without the workspace pull diagnostics endpoint, a bunch of unnecessary exceptions are
         // triggered. Thus we add the following no-op handler until a server capability is available.
         // Having a server capability would reduce overhead of sending/receiving the request and the

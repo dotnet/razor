@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             // When we're running in the editor, the editor provides a configure delegate that will include
             // the editor settings and tag helpers.
-            // 
+            //
             // This service is only used in process in Visual Studio, and any other callers should provide these
             // things also.
             configure ??= ((b) => { });

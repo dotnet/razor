@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -399,7 +399,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
         private static DocumentSnapshot CreateRazorDocumentSnapshot(RazorProjectEngine projectEngine, TestRazorProjectItem item, string rootNamespaceName, IReadOnlyList<TagHelperDescriptor> tagHelpers)
         {
             var codeDocument = projectEngine.ProcessDesignTime(item);
-            
+
             var namespaceNode = (NamespaceDeclarationIntermediateNode)codeDocument
                 .GetDocumentIntermediateNode()
                 .FindDescendantNodes<IntermediateNode>()
@@ -446,7 +446,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                 builder.AddDirective(NamespaceDirective.Directive);
                 builder.AddTagHelpers(tagHelperDescriptors);
             });
-            
+
             var component1 = CreateRazorDocumentSnapshot(projectEngine, item1, "First.Components", tagHelperDescriptors);
             var component2 = CreateRazorDocumentSnapshot(projectEngine, item2, "Test", tagHelperDescriptors);
             var component3 = CreateRazorDocumentSnapshot(projectEngine, item3, "Second.Components", tagHelperDescriptors);

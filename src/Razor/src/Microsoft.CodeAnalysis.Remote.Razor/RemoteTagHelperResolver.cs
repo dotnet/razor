@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 #nullable enable
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Razor
             // Most notably, we are going to find the Tag Helpers using a compilation, and we have
             // no editor settings.
             //
-            // The default configuration currently matches MVC-2.0. Beyond MVC-2.0 we added SDK support for 
+            // The default configuration currently matches MVC-2.0. Beyond MVC-2.0 we added SDK support for
             // properly detecting project versions, so that's a good version to assume when we can't find a
             // configuration.
             configuration ??= s_defaultConfiguration;

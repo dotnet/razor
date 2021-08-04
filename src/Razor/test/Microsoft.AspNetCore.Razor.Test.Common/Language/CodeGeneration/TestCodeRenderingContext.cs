@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
 
             if (source == null)
             {
-                source = TestRazorSourceDocument.Create(); 
+                source = TestRazorSourceDocument.Create();
             }
 
             var codeDocument = RazorCodeDocument.Create(source);

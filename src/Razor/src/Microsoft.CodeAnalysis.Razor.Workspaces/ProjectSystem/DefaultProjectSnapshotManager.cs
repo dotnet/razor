@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    // The implementation of project snapshot manager abstracts the host's underlying project system (HostProject), 
+    // The implementation of project snapshot manager abstracts the host's underlying project system (HostProject),
     // to provide a immutable view of the underlying project systems.
     //
     // The HostProject support all of the configuration that the Razor SDK exposes via the project system

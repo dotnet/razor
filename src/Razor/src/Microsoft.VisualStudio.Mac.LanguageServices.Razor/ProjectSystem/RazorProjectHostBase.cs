@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             var projectChanged = args.Any(arg => string.Equals(arg.Hint, ProjectChangedHint, StringComparison.Ordinal));
             if (projectChanged)
             {
-                // This method can be spammed for tons of project change events but all we really care about is "are we dirty?". 
+                // This method can be spammed for tons of project change events but all we really care about is "are we dirty?".
                 // Therefore, we re-dispatch here to allow any remaining project change events to fire and to then only have 1 host
                 // project change trigger; this way we don't spam our own system with re-configure calls.
                 _batchingProjectChanges = true;

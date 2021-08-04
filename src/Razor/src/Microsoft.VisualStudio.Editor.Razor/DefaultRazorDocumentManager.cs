@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             _joinableTaskContext.AssertUIThread();
 
-            // This means a Razor buffer has be detached from this ITextView or the ITextView is closing. Since we keep a 
+            // This means a Razor buffer has be detached from this ITextView or the ITextView is closing. Since we keep a
             // list of all of the open text views for each text buffer, we need to update the tracker.
             //
             // Notice that this method is called *after* changes are applied to the text buffer(s). We need to check every

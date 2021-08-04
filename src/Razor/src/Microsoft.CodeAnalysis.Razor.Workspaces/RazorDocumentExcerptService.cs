@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Razor
             TextSpan span,
             ExcerptModeInternal mode,
             CancellationToken cancellationToken)
-        { 
+        {
             if (_document is null)
             {
                 return null;
@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.Razor
             var output = await _document.GetGeneratedOutputAsync().ConfigureAwait(false);
             var mappings = output.GetCSharpDocument().SourceMappings;
             var classifiedSpans = await ClassifyPreviewAsync(
-                excerptSpan, 
-                generatedDocument, 
+                excerptSpan,
+                generatedDocument,
                 mappings,
                 cancellationToken).ConfigureAwait(false);
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Razor
             sorted.Sort((x, y) => x.OriginalSpan.AbsoluteIndex.CompareTo(y.OriginalSpan.AbsoluteIndex));
 
             // The algorithm here is to iterate through the source mappings (sorted) and use the C# classifier
-            // on the spans that are known to be C#. For the spans that are not known to be C# then 
+            // on the spans that are known to be C#. For the spans that are not known to be C# then
             // we just treat them as text since we'd don't currently have our own classifications.
 
             var remainingSpan = excerptSpan;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 var secondarySpan = sorted[i].GeneratedSpan.AsTextSpan();
                 secondarySpan = new TextSpan(secondarySpan.Start + intersection.Value.Start - primarySpan.Start, intersection.Value.Length);
                 primarySpan = intersection.Value;
-                
+
                 if (remainingSpan.Start < primarySpan.Start)
                 {
                     // The position is before the next C# span. Classify everything up to the C# start
@@ -131,20 +131,20 @@ namespace Microsoft.CodeAnalysis.Razor
                 // However, we'll have to translate it to the the generated document's coordinates to do that.
                 Debug.Assert(remainingSpan.Contains(primarySpan) && remainingSpan.Start == primarySpan.Start);
                 var classifiedSecondarySpans = await Classifier.GetClassifiedSpansAsync(
-                    generatedDocument, 
-                    secondarySpan, 
+                    generatedDocument,
+                    secondarySpan,
                     cancellationToken);
 
                 // NOTE: The Classifier will only returns spans for things that it understands. That means
-                // that whitespace is not classified. The preview expects us to provide contiguous spans, 
+                // that whitespace is not classified. The preview expects us to provide contiguous spans,
                 // so we are going to have to fill in the gaps.
-                
+
                 // Now we have to translate back to the primary document's coordinates.
                 var offset = primarySpan.Start - secondarySpan.Start;
                 foreach (var classifiedSecondarySpan in classifiedSecondarySpans)
                 {
                     Debug.Assert(secondarySpan.Contains(classifiedSecondarySpan.TextSpan));
-                    
+
                     var updated = new TextSpan(classifiedSecondarySpan.TextSpan.Start + offset, classifiedSecondarySpan.TextSpan.Length);
                     Debug.Assert(primarySpan.Contains(updated));
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Razor
                             new TextSpan(remainingSpan.Start, updated.Start - remainingSpan.Start)));
                         remainingSpan = new TextSpan(updated.Start, remainingSpan.Length - (updated.Start - remainingSpan.Start));
                     }
-                    
+
                     builder.Add(new ClassifiedSpan(classifiedSecondarySpan.ClassificationType, updated));
                     remainingSpan = new TextSpan(updated.End, remainingSpan.Length - (updated.End - remainingSpan.Start));
                 }
