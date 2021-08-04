@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         [ImportingConstructor]
         public DefaultBraceSmartIndenterFactoryFactory(
             JoinableTaskContext joinableTaskContext,
-            TextBufferCodeDocumentProvider codeDocumentProvider, 
+            TextBufferCodeDocumentProvider codeDocumentProvider,
             IEditorOperationsFactoryService editorOperationsFactory)
         {
             if (joinableTaskContext is null)

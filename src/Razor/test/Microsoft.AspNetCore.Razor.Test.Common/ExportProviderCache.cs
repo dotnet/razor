@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 #nullable enable
 
@@ -231,7 +231,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                     // use its ExportProvider in a consistent manner.
                     //
                     // A test that validates remote services is allowed to create a couple of ExportProviders:
-                    // one for local workspace and the other for the remote one. 
+                    // one for local workspace and the other for the remote one.
                     //
                     // When this exception is thrown by a test, it typically means one of the following occurred:
                     //

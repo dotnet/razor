@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             parameterName = default;
             parameterLocation = default;
 
-            // It's possible that the attribute looks like a directive attribute but is incomplete. 
+            // It's possible that the attribute looks like a directive attribute but is incomplete.
             // We should try and extract out the transition and parameter.
 
             if (!attributeName.StartsWith("@", StringComparison.Ordinal))

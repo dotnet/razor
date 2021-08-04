@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
                 case ProjectChangeKind.DocumentRemoved:
                     {
-                        // For removals use the old snapshot to find the removed document, so we can figure out 
+                        // For removals use the old snapshot to find the removed document, so we can figure out
                         // what the imports were in the new snapshot.
                         var document = e.Older.GetDocument(e.DocumentFilePath);
 

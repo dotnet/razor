@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             // Act
             var result = RazorSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(), generated, out var mappedLinePositionSpan, out var mappedSpan);
-            
+
             // Assert
             Assert.True(result);
             Assert.Equal(new LinePositionSpan(new LinePosition(1, 1), new LinePosition(1, 13)), mappedLinePositionSpan);

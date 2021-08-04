@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -38,10 +38,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var tracker = Mock.Of<VisualStudioDocumentTracker>(
-                t => t.FilePath == Path.Combine(DirectoryPath, "Views", "Home", "file.cshtml") && 
+                t => t.FilePath == Path.Combine(DirectoryPath, "Views", "Home", "file.cshtml") &&
                 t.ProjectPath == ProjectPath &&
                 t.ProjectSnapshot == Mock.Of<ProjectSnapshot>(p => p.GetProjectEngine() == ProjectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
-            
+
             var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
             var fileChangeTracker1 = new Mock<FileChangeTracker>(MockBehavior.Strict);
             fileChangeTracker1
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 t.ProjectSnapshot == Mock.Of<ProjectSnapshot>(p => p.GetProjectEngine() == ProjectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
             var anotherTracker = Mock.Of<VisualStudioDocumentTracker>(
-                t => t.FilePath == Path.Combine(DirectoryPath, "anotherFile.cshtml") && 
+                t => t.FilePath == Path.Combine(DirectoryPath, "anotherFile.cshtml") &&
                 t.ProjectPath == ProjectPath &&
                 t.ProjectSnapshot == Mock.Of<ProjectSnapshot>(p => p.GetProjectEngine() == ProjectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var tracker = Mock.Of<VisualStudioDocumentTracker>(
-                t => t.FilePath == Path.Combine(DirectoryPath, "file.cshtml") && 
+                t => t.FilePath == Path.Combine(DirectoryPath, "file.cshtml") &&
                 t.ProjectPath == ProjectPath &&
                 t.ProjectSnapshot == Mock.Of<ProjectSnapshot>(p => p.GetProjectEngine() == ProjectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 

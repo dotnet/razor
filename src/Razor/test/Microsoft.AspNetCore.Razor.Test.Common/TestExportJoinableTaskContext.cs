@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 #nullable enable
 
@@ -100,14 +100,14 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
 #if false
         /// <summary>
-        /// Reset the thread affinity, in particular the designated foreground thread, to the active 
-        /// thread.  
+        /// Reset the thread affinity, in particular the designated foreground thread, to the active
+        /// thread.
         /// </summary>
         internal static void ResetThreadAffinity(JoinableTaskFactory joinableTaskFactory)
         {
             // HACK: When the platform team took over several of our components they created a copy
             // of ForegroundThreadAffinitizedObject.  This needs to be reset in the same way as our copy
-            // does.  Reflection is the only choice at the moment. 
+            // does.  Reflection is the only choice at the moment.
             var thread = joinableTaskFactory.Context.MainThread;
             var taskScheduler = new JoinableTaskFactoryTaskScheduler(joinableTaskFactory);
 

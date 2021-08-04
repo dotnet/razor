@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -315,8 +315,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             // Ensure the rename action was invoked on the component name
-            // instead of a component parameter. This serves as an issue 
-            // mitigation till `textDocument/prepareRename` is supported 
+            // instead of a component parameter. This serves as an issue
+            // mitigation till `textDocument/prepareRename` is supported
             // and we can ensure renames aren't triggered in unsupported
             // contexts. (https://github.com/dotnet/aspnetcore/issues/26407)
             if (!tagHelperStartTag.Name.FullSpan.IntersectsWith(hostDocumentIndex))

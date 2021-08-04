@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         [UIFact]
         public void Dispose_MakesUpdateNoop()
         {
-            // Arrange  
+            // Arrange
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         [UIFact]
         public void Update_StartsUpdateTask()
         {
-            // Arrange  
+            // Arrange
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         [UIFact]
         public void Update_SoftCancelsIncompleteTaskForSameProject()
         {
-            // Arrange  
+            // Arrange
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         [UIFact]
         public async Task Update_NullWorkspaceProject_ClearsProjectWorkspaceState()
         {
-            // Arrange  
+            // Arrange
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         [UIFact]
         public async Task Update_ResolvesTagHelpersAndUpdatesWorkspaceState()
         {
-            // Arrange  
+            // Arrange
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);

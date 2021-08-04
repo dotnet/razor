@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 }
 
                 // We have to deal with some complications here due to renames and event ordering and such.
-                // We might see multiple documents open for a cookie (due to linked files), but only one of them 
+                // We might see multiple documents open for a cookie (due to linked files), but only one of them
                 // has been renamed. In that case, we just process the change that we know about.
                 var matchingFilePaths = documents.Select(d => d.DocumentFilePath);
                 var filePaths = new HashSet<string>(matchingFilePaths, FilePathComparer.Instance);

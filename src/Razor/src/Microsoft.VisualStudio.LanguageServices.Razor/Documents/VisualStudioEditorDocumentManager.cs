@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactory = editorAdaptersFactory;
-            
+
             var hr = runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out _);
             Marshal.ThrowExceptionForHR(hr);
 
@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 }
 
                 // We have to deal with some complications here due to renames and event ordering and such.
-                // We we might see multiple documents open for a cookie (due to linked files), but only one of them 
+                // We we might see multiple documents open for a cookie (due to linked files), but only one of them
                 // has been renamed. In that case, we just process the change that we know about.
                 var filePaths = new HashSet<string>(documents.Select(d => d.DocumentFilePath));
                 filePaths.Remove(exceptFilePath);

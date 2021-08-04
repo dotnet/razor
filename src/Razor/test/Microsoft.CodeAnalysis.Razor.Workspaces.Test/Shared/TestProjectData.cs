@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.IO;
 using System.Runtime.InteropServices;
@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     // Used to abstract away platform-specific file/directory path information.
     //
-    // The System.IO.Path methods don't processes Windows paths in a Windows way 
+    // The System.IO.Path methods don't processes Windows paths in a Windows way
     // on *nix (rightly so), so we need to use platform-specific paths.
     //
     // Target paths are always Windows style.

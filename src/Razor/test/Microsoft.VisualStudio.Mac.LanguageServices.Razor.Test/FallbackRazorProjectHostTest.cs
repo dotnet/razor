@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using MonoDevelop.Core;
 using MonoDevelop.Projects;
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         }
 
         // -------------------------------------------------------------------------------------------
-        // Purposefully do not have any more tests here because that would involve mocking MonoDevelop 
+        // Purposefully do not have any more tests here because that would involve mocking MonoDevelop
         // types. The default constructors for the Solution / DotNetProject MonoDevelop types change
         // static classes (they assume they're being created in an IDE).
         // -------------------------------------------------------------------------------------------

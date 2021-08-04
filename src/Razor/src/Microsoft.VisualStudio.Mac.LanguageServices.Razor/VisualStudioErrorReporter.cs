@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
 
             LoggingService.LogError(
-                Resources.RazorLanguageServiceGeneralError, 
+                Resources.RazorLanguageServiceGeneralError,
                 exception);
         }
 
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
 
             LoggingService.LogError(
-                Resources.FormatRazorLanguageServiceProjectError(project?.Name), 
+                Resources.FormatRazorLanguageServiceProjectError(project?.Name),
                 exception);
         }
 

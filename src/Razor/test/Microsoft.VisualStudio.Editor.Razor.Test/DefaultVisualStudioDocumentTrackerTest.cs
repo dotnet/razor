@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 TagHelperDescriptorBuilder.Create("test", "test").Build(),
             };
-            
+
             ProjectManager = new TestProjectSnapshotManager(Dispatcher, Workspace) { AllowNotifyListeners = true };
 
             HostProject = new HostProject(ProjectPath, FallbackRazorConfiguration.MVC_2_1, RootNamespace);
@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             ProjectManager.ProjectAdded(HostProject);
-            
+
             var e = new ProjectChangeEventArgs(null, ProjectManager.GetLoadedProject(HostProject.FilePath), ProjectChangeKind.ProjectChanged);
 
             var called = false;
@@ -471,7 +471,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var args = new List<ContextChangeEventArgs>();
             DocumentTracker.ContextChanged += (sender, e) => args.Add(e);
-            
+
             // Act
             ProjectManager.ProjectConfigurationChanged(UpdatedHostProject);
 

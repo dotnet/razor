@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             try
             {
                 // Method needs to be run on the project snapshot manager's specialized thread
-                // due to project snapshot manager access. 
+                // due to project snapshot manager access.
                 await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
                     Project project;
