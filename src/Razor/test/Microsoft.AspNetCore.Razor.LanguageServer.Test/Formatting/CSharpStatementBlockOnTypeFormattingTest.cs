@@ -115,5 +115,32 @@ foo"";
 }
 ");
         }
+
+        [Fact]
+        public async Task OverrideCompletion_CodeBlock()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+@code {
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }$$
+}",
+afterCSharpFormatting: @"
+@code { public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+}
+",
+expected: @"
+@code {
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+}");
+        }
     }
 }
