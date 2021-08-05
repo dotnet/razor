@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/dotnet/aspnetcore-tooling.git"
   },
-  "license": "Apache-2.0",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.52.0"
   },

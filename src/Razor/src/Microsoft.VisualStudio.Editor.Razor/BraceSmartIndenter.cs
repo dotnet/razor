@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Text;
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 InsertIndent(caret.Position, indent, textViewBuffer);
 
                 // @{
-                // 
+                //
                 // |}
 
                 // Place the caret inbetween the braces (before our indent).
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 // |
                 // }
 
-                // For Razor metacode cases the editor's smart indent wont kick in automatically. 
+                // For Razor metacode cases the editor's smart indent wont kick in automatically.
                 TriggerSmartIndent(textView);
 
                 // @{
@@ -245,7 +245,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal static bool AtApplicableRazorBlock(int changePosition, RazorSyntaxTree syntaxTree)
         {
-            // Our goal here is to return true when we're acting on code blocks that have all 
+            // Our goal here is to return true when we're acting on code blocks that have all
             // whitespace content and are surrounded by metacode.
             // Some examples:
             // @functions { |}

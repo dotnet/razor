@@ -51,7 +51,7 @@
   </ItemGroup>
 
   <PropertyGroup Label="Package and Assembly Metadata">
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft ASP.NET Core</Product>
   </PropertyGroup>
 

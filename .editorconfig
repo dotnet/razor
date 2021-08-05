@@ -15,7 +15,7 @@ indent_size = 4
 insert_final_newline = true
 encoding = utf-8-bom
 
-file_header_template = Copyright (c) .NET Foundation. All rights reserved.\nLicensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+file_header_template = Copyright (c) .NET Foundation. All rights reserved.\nLicensed under the MIT license. See License.txt in the project root for license information.
 
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]

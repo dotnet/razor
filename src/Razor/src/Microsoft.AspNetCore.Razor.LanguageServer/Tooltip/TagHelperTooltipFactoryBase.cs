@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -117,7 +117,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
         private static string ReduceFullName(string content, int reduceWhenDotCount)
         {
-            // Starts searching backwards and then substrings everything when it finds enough dots. i.e. 
+            // Starts searching backwards and then substrings everything when it finds enough dots. i.e.
             // ReduceFullName("Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName", 1) == "SomeTypeName"
             //
             // ReduceFullName("Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.AspAction", 2) == "SomeTypeName.AspAction"

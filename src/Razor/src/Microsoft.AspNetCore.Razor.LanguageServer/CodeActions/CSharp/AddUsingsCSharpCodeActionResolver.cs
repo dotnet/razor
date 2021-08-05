@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 // Invalid text edit, missing namespace
                 return codeAction;
             }
-            
+
             var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot);

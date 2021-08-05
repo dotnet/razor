@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Razor;
 using Xunit;
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         private class TestFileChangeTracker : VisualStudioMacFileChangeTracker
         {
             public TestFileChangeTracker(
-                string filePath, 
+                string filePath,
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(filePath, projectSnapshotManagerDispatcher)
             {
             }

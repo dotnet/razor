@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     /// <summary>
     /// The entire purpose of this class is to enable us to apply our TextView filter to Razor text views in order to work around lacking debugging support in the
-    /// LSP platform for default language servers. Ultimately this enables us to provide "hover" results 
+    /// LSP platform for default language servers. Ultimately this enables us to provide "hover" results
     /// </summary>
     [Export(typeof(ITextViewConnectionListener))]
     [TextViewRole(PredefinedTextViewRoles.Document)]

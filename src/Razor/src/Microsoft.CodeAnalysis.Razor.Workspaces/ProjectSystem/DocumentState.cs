@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -489,15 +489,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 // us to run code generation, but don't change the result.
                 //
                 // Note that we're talking about the effect on the generated C#/HTML here (not the other artifacts).
-                // This is the reason why we have three versions associated with the document. 
+                // This is the reason why we have three versions associated with the document.
                 //
                 // The INPUT version is related the .cshtml files and tag helpers
                 // The CSHARPOUTPUT version is related to the generated C#
                 // The HTMLOUTPUT version is related to the generated HTML
                 //
-                // Examples: 
-                // 
-                // A change to a tag helper not used by this document - updates the INPUT version, but not 
+                // Examples:
+                //
+                // A change to a tag helper not used by this document - updates the INPUT version, but not
                 // the OUTPUT version.
                 //
                 //

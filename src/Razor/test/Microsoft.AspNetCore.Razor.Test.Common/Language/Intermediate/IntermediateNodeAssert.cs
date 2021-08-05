@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
         public static void LiteralAttributeValue(string prefix, string expected, IntermediateNode node)
         {
             var attributeValue = Assert.IsType<HtmlAttributeValueIntermediateNode>(node);
-            
+
             try
             {
                 var content = new StringBuilder();
@@ -340,7 +340,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
                 throw new IntermediateNodeAssertException(propertyValueNode, e.Message);
             }
         }
-        
+
         internal static void TagHelper(string tagName, TagMode tagMode, IEnumerable<TagHelperDescriptor> tagHelpers, IntermediateNode node, params Action<IntermediateNode>[] childValidators)
         {
             var tagHelperNode = Assert.IsType<TagHelperIntermediateNode>(node);

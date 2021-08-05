@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             // Arrange
             var testImportsPath = Path.Combine(DirectoryPath, "_ViewImports.cshtml");
-            
+
             var tracker = Mock.Of<VisualStudioDocumentTracker>(
                 t => t.FilePath == Path.Combine(DirectoryPath, "Views", "Home", "_ViewImports.cshtml") &&
                 t.ProjectPath == ProjectPath &&
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             fileChangeTrackerFactory
                 .Setup(f => f.Create(testImportsPath))
                 .Returns(fileChangeTracker.Object);
-            
+
             var fileChangeTracker2 = new Mock<FileChangeTracker>(MockBehavior.Strict);
             fileChangeTracker2.Setup(f => f.StartListening()).Verifiable();
             fileChangeTrackerFactory

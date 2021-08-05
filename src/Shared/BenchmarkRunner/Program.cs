@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.BenchmarkDotNet.Runner
                 args = argsList.ToArray();
                 return;
             }
-            
+
             var index = argsList.IndexOf("--config");
             if (index >= 0 && index < argsList.Count -1)
             {

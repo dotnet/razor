@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -37,8 +37,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
 
             // We do a best effort approach in this method to get the workspace that belongs to the TextBuffer.
-            // Below we try and find the project and then the solution that contains the given text buffer. If 
-            // we're able to find both the project and solution then we use the solution to look up the corresponding 
+            // Below we try and find the project and then the solution that contains the given text buffer. If
+            // we're able to find both the project and solution then we use the solution to look up the corresponding
             // Workspace using MonoDevelops TypeSystemService.
 
             var hostProject = (DotNetProject)_projectService.GetHostProject(textBuffer);

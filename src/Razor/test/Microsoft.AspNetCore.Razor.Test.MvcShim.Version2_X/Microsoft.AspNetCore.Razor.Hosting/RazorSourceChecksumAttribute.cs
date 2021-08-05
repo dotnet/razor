@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 
@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// Gets the name of the algorithm used to create this checksum.
         /// </summary>
         public string ChecksumAlgorithm { get; }
-        
+
         /// <summary>
         /// Gets the identifier of the source file associated with this checksum.
         /// </summary>
