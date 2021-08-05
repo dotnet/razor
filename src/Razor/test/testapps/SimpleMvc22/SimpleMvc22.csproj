@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <!--
-    This project references a shipped version of MVC. It will reference the local build of Tasks but not the compiler or any test shims.
+    This project references a shipped version of MVC. It will reference the local build of Tasks and compiler but not the test shims.
   -->
   <PropertyGroup>
     <RazorSdkDirectoryRoot>$(RazorSdkArtifactsDirectory)$(Configuration)\sdk-output\</RazorSdkDirectoryRoot>

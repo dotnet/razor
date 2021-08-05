@@ -103,10 +103,10 @@ Copyright (c) .NET Foundation. All rights reserved.
       <_RazorComponentDeclarationManifest>$(IntermediateOutputPath)$(MSBuildProjectName).RazorComponents.declaration.json</_RazorComponentDeclarationManifest>
     </PropertyGroup>
 
-    <RazorGenerate
+    <SdkRazorGenerate
       Debug="$(_RazorDebugGenerateCodeTask)"
       DebugTool="$(_RazorDebugGenerateCodeTool)"
-      ToolAssembly="$(_RazorToolAssembly)"
+      ToolAssembly="$(_RazorSdkToolAssembly)"
       UseServer="$(UseRazorBuildServer)"
       ForceServer="$(_RazorForceBuildServer)"
       PipeName="$(_RazorBuildServerPipeName)"
