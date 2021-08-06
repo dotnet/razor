@@ -37,6 +37,36 @@ expected: @"@code {
         }
 
         [Fact]
+        public async Task Formats_MultipleBlocksInADirective()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@{
+void Method(){
+var x = ""foo"";
+@(DateTime.Now)
+    <p></p>
+var y= ""fooo"";
+}
+}
+<div>
+        </div>
+",
+expected: @"@{
+    void Method()
+    {
+        var x = ""foo"";
+        @(DateTime.Now)
+        <p></p>
+        var y = ""fooo"";
+    }
+}
+<div>
+</div>
+");
+        }
+
+        [Fact]
         public async Task Formats_NonCodeBlockDirectives()
         {
             await RunFormattingTestAsync(

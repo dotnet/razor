@@ -202,7 +202,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var tokens = node.GetTokens();
             for (var i = 0;  i < tokens.Count; i++)
             {
-                var token = tokens[(tokens.Count - 1) - i];
+                var token = tokens[tokens.Count - 1 - i];
                 if (!IsWhitespace(token))
                 {
                     return i;

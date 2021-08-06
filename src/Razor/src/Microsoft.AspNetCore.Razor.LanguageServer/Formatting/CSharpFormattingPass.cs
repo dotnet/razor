@@ -70,11 +70,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // We make an optimistic attempt at fixing corner cases.
-            changedContext = await changedContext.WithTextAsync(changedText);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
             var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken);
             if (indentationChanges.Count > 0)
             {

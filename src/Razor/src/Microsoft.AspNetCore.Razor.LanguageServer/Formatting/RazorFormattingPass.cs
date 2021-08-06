@@ -86,69 +86,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // being overly careful to only try to format syntax forms they care about.
                 TryFormatCSharpCodeBlock(context, edits, source, node);
                 TryFormatSingleLineDirective(context, edits, source, node);
-                TryFormatTransitionCodeBlock(context, edits, source, node);
+                TryFormatExplicitCodeBlock(context, edits, source, node);
             }
 
             return edits;
         }
 
-        private static void TryFormatTransitionCodeBlock(FormattingContext context, IList<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
+        private static void TryFormatExplicitCodeBlock(FormattingContext context, IList<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
         {
-            Range? openBraceRange = null;
-            Range? codeRange = null;
-            Range? closeBraceRange = null;
-            SyntaxNode? openBraceNode = null;
-            SyntaxNode? codeNode = null;
-            SyntaxNode? closeBraceNode = null;
+            SyntaxNode openBraceNode;
+            SyntaxNode codeNode;
+            SyntaxNode closeBraceNode;
+            var additionalIndentation = false;
 
             // TODO: Split the if's into their own methods
 
             // complex situations like
             // @{
-            //  public void Method(){
+            //  void Method(){
             //      @(DateTime.Now)
             //  }
             // }
             if (node is CSharpRazorBlockSyntax csharpRazorBlock &&
-                csharpRazorBlock.Parent is CSharpCodeBlockSyntax firstCodeBlock &&
-                csharpRazorBlock.Parent.Parent is CSharpCodeBlockSyntax secondCodeBlock)
+                csharpRazorBlock.Parent is CSharpCodeBlockSyntax innerCodeBlock &&
+                csharpRazorBlock.Parent.Parent is CSharpCodeBlockSyntax outerCodeBlock)
             {
                 var csharpRazorRange = csharpRazorBlock.GetRange(source);
-                var childPosition = 0;
-                for (var i = 0; i < secondCodeBlock.Children.Count; i++)
-                {
-                    var child = secondCodeBlock.Children[i];
-                    if (ReferenceEquals(child, firstCodeBlock))
-                    {
-                        childPosition = i;
-                        break;
-                    }
-                }
 
                 codeNode = csharpRazorBlock;
-                codeRange = codeNode.GetRangeWithoutWhitespace(source);
-                if (childPosition == 0)
-                {
-                    openBraceNode = codeNode;
-                    openBraceRange = codeRange;
-                }
-                else
-                {
-                    var child = secondCodeBlock.Children[childPosition - 1];
-                    openBraceNode = child;
-                    openBraceRange = child.GetRangeWithoutWhitespace(source);
-                }
-
-                if (childPosition == secondCodeBlock.Children.Count - 1)
-                {
-                    closeBraceRange = codeRange;
-                }
-                else
-                {
-                    var child = secondCodeBlock.Children[childPosition + 1];
-                    closeBraceNode = child;
-                    closeBraceRange = child.GetRangeWithoutWhitespace(source);
-                }
+                openBraceNode = outerCodeBlock.Children.PreviousSiblingOrSelf(innerCodeBlock);
+                closeBraceNode = outerCodeBlock.Children.NextSiblingOrSelf(innerCodeBlock);
             }
             // void Method()
             // {
@@ -157,24 +124,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             else if (node is MarkupBlockSyntax markupBlockNode &&
                 markupBlockNode.Parent is CSharpCodeBlockSyntax cSharpCodeBlock)
             {
-                for (var i = 0; i < cSharpCodeBlock.Children.Count; i++)
-                {
-                    var child = cSharpCodeBlock.Children[i];
-                    if (ReferenceEquals(child, markupBlockNode))
-                    {
-                        var previous = i == 0 ? 0 : i - 1;
-                        var next = i == cSharpCodeBlock.Children.Count - 1 ? i : i + 1;
-                        codeNode = markupBlockNode;
-                        codeRange = markupBlockNode.GetRangeWithoutWhitespace(source);
-                        var previousChild = cSharpCodeBlock.Children[previous];
-                        var nextChild = cSharpCodeBlock.Children[next];
+                var previousChild = cSharpCodeBlock.Children.PreviousSiblingOrSelf(markupBlockNode);
+                var nextChild = cSharpCodeBlock.Children.NextSiblingOrSelf(markupBlockNode);
 
-                        openBraceNode = previousChild;
-                        openBraceRange = previousChild.GetRangeWithoutWhitespace(source);
-                        closeBraceNode = nextChild;
-                        closeBraceRange = nextChild.GetRangeWithoutWhitespace(source);
-                    }
-                }
+                codeNode = markupBlockNode;
+                openBraceNode = previousChild;
+                closeBraceNode = nextChild;
             }
             // We're looking for a code block like this:
             //
@@ -186,11 +141,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 statement.Body is CSharpStatementBodySyntax csharpStatementBody)
             {
                 openBraceNode = csharpStatementBody.OpenBrace;
-                openBraceRange = csharpStatementBody.OpenBrace.GetRange(source);
                 codeNode = csharpStatementBody.CSharpCode;
-                codeRange = csharpStatementBody.CSharpCode.GetRangeWithoutWhitespace(source);
                 closeBraceNode = csharpStatementBody.CloseBrace;
-                closeBraceRange = csharpStatementBody.CloseBrace.GetRange(source);
+
+                additionalIndentation = true;
             }
             // @functions
             // {
@@ -206,11 +160,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var code = cSharpCode.Children.First(c => c.Kind == SyntaxKind.CSharpCodeBlock) as CSharpCodeBlockSyntax;
 
                 openBraceNode = openBrace;
-                openBraceRange = openBrace.GetRange(source);
                 codeNode = code!;
-                codeRange = code.GetRangeWithoutWhitespace(source);
                 closeBraceNode = closeBrace;
-                closeBraceRange = closeBrace.GetRange(source);
             }
             else
             {
@@ -218,17 +169,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return;
             }
 
+            var openBraceRange = openBraceNode.GetRangeWithoutWhitespace(source);
+            var codeRange = codeNode.GetRangeWithoutWhitespace(source);
             if (openBraceRange is not null &&
                 codeRange is not null &&
                 openBraceRange.End.Line == codeRange.Start.Line)
             {
-                var indentation = context.Indentations[openBraceRange.Start.Line];
-                var desiredIndentationLevel = (indentation.HtmlIndentationLevel * (int)context.Options.TabSize) + (indentation.RazorIndentationLevel * (int)context.Options.TabSize);
-                var currentIndentationLevel = codeNode.GetLeadingWhitespaceLength() + openBraceNode.GetTrailingWhitespaceLength();
+                var additionalIndentationLevel = GetAdditionalIndentationLevel(context, openBraceRange);
                 var newText = context.NewLineString;
-                if (desiredIndentationLevel > 0)
+                if (additionalIndentationLevel > 0)
                 {
-                    newText += context.GetIndentationString(desiredIndentationLevel - currentIndentationLevel);
+                    newText += context.GetIndentationString(additionalIndentationLevel);
                 }
 
                 var edit = new TextEdit
@@ -239,6 +190,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 edits.Add(edit);
             }
 
+            var closeBraceRange = closeBraceNode.GetRangeWithoutWhitespace(source);
             if (codeRange is not null &&
                 closeBraceRange is not null &&
                 codeRange.End.Line == closeBraceRange.Start.Line)
@@ -249,6 +201,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     Range = new Range(codeRange.End, codeRange.End),
                 };
                 edits.Add(edit);
+            }
+
+            int GetAdditionalIndentationLevel(FormattingContext context, Range range)
+            {
+                var indentation = context.Indentations[range.Start.Line];
+                var desiredIndentationLevel = (indentation.HtmlIndentationLevel * (int)context.Options.TabSize) + (indentation.RazorIndentationLevel * (int)context.Options.TabSize);
+                if(additionalIndentation)
+                {
+                    desiredIndentationLevel += (int)context.Options.TabSize;
+                }
+                var currentIndentationLevel = codeNode.GetLeadingWhitespaceLength() + openBraceNode.GetTrailingWhitespaceLength();
+
+                return desiredIndentationLevel - currentIndentationLevel;
             }
         }
 
