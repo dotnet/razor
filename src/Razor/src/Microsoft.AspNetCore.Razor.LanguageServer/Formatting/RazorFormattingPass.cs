@@ -173,7 +173,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var codeRange = codeNode.GetRangeWithoutWhitespace(source);
             if (openBraceRange is not null &&
                 codeRange is not null &&
-                openBraceRange.End.Line == codeRange.Start.Line)
+                openBraceRange.End.Line == codeRange.Start.Line &&
+                // Because we don't always know what kind of Razor object we're operating on we have to do this to avoid duplicate edits.
+                // The other way to accomplish this would be to apply the edits after every node and function, but that's not in scope for my current work.
+                !edits.Any(e => e.Range.End == codeRange.End))
             {
                 var additionalIndentationLevel = GetAdditionalIndentationLevel(context, openBraceRange);
                 var newText = context.NewLineString;
@@ -193,7 +196,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var closeBraceRange = closeBraceNode.GetRangeWithoutWhitespace(source);
             if (codeRange is not null &&
                 closeBraceRange is not null &&
-                codeRange.End.Line == closeBraceRange.Start.Line)
+                codeRange.End.Line == closeBraceRange.Start.Line &&
+                // Because we don't always know what kind of Razor object we're operating on we have to do this to avoid duplicate edits.
+                // The other way to accomplish this would be to apply the edits after every node and function, but that's not in scope for my current work.
+                !edits.Any(e => e.Range.End == codeRange.End))
             {
                 var edit = new TextEdit
                 {
