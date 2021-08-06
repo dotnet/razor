@@ -17,12 +17,12 @@ Copyright (c) .NET Foundation. All rights reserved.
   -->
 
   <UsingTask
-    TaskName="Microsoft.AspNetCore.Razor.Tasks.RazorGenerate"
+    TaskName="Microsoft.AspNetCore.Razor.Tasks.SdkRazorGenerate"
     AssemblyFile="$(RazorSdkBuildTasksAssembly)"
     Condition="'$(RazorSdkBuildTasksAssembly)' != ''" />
 
   <UsingTask
-    TaskName="Microsoft.AspNetCore.Razor.Tasks.RazorTagHelper"
+    TaskName="Microsoft.AspNetCore.Razor.Tasks.SdkRazorTagHelper"
     AssemblyFile="$(RazorSdkBuildTasksAssembly)"
     Condition="'$(RazorSdkBuildTasksAssembly)' != ''" />
 
@@ -38,8 +38,6 @@ Copyright (c) .NET Foundation. All rights reserved.
     <!-- Used to hash file inputs for RazorGenerate -->
     <_RazorGenerateInputsHash></_RazorGenerateInputsHash>
     <_RazorGenerateInputsHashFile>$(IntermediateOutputPath)$(MSBuildProjectName).RazorCoreGenerate.cache</_RazorGenerateInputsHashFile>
-
-    <_RazorToolAssembly Condition="'$(_RazorToolAssembly)'==''">$(RazorSdkDirectoryRoot)tools\netcoreapp3.0\rzc.dll</_RazorToolAssembly>
   </PropertyGroup>
 
   <!--
@@ -96,10 +94,10 @@ Copyright (c) .NET Foundation. All rights reserved.
       <FileWrites Include="$(_RazorTagHelperInputCache)" />
     </ItemGroup>
 
-    <RazorTagHelper
+    <SdkRazorTagHelper
       Debug="$(_RazorDebugTagHelperTask)"
       DebugTool="$(_RazorDebugTagHelperTool)"
-      ToolAssembly="$(_RazorToolAssembly)"
+      ToolAssembly="$(_RazorSdkToolAssembly)"
       UseServer="$(UseRazorBuildServer)"
       ForceServer="$(_RazorForceBuildServer)"
       PipeName="$(_RazorBuildServerPipeName)"
@@ -112,7 +110,7 @@ Copyright (c) .NET Foundation. All rights reserved.
       <Output
         TaskParameter="TagHelperManifest"
         ItemName="FileWrites"/>
-    </RazorTagHelper>
+    </SdkRazorTagHelper>
   </Target>
 
   <Target Name="_ResolveRazorGenerateOutputs" Condition="'@(RazorGenerateWithTargetPath)' != ''">
@@ -147,10 +145,10 @@ Copyright (c) .NET Foundation. All rights reserved.
       Directories="%(_RazorGenerateOutput.RelativeDir)"
       Condition="!Exists('%(_RazorGenerateOutput.RelativeDir)')" />
 
-    <RazorGenerate
+    <SdkRazorGenerate
       Debug="$(_RazorDebugGenerateCodeTask)"
       DebugTool="$(_RazorDebugGenerateCodeTool)"
-      ToolAssembly="$(_RazorToolAssembly)"
+      ToolAssembly="$(_RazorSdkToolAssembly)"
       UseServer="$(UseRazorBuildServer)"
       ForceServer="$(_RazorForceBuildServer)"
       PipeName="$(_RazorBuildServerPipeName)"
