@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -10,24 +9,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     [Shared]
     [Export(typeof(ProjectSnapshotChangeTrigger))]
-    internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigger
+    internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigger, IDisposable
     {
+        private static TimeSpan s_batchingDelay = TimeSpan.FromSeconds(1);
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private BatchingWorkQueue _workQueue;
         private ProjectSnapshotManagerBase _projectManager;
-
-        public int EnqueueDelay { get; set; } = 3 * 1000;
-
-        // We throttle updates to projects to prevent doing too much work while the projects
-        // are being initialized.
-        //
-        // Internal for testing
-        internal Dictionary<ProjectId, UpdateItem> _deferredUpdates;
 
         [ImportingConstructor]
         public WorkspaceProjectStateChangeDetector(
@@ -48,34 +42,34 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
-        // Used in unit tests to ensure we can control when background work starts.
-        public ManualResetEventSlim BlockDelayedUpdateWorkEnqueue { get; set; }
-
-        public ManualResetEventSlim BlockDelayedUpdateWorkAfterEnqueue { get; set; }
+        // Internal for testing
+        internal WorkspaceProjectStateChangeDetector(
+            ProjectWorkspaceStateGenerator workspaceStateGenerator,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            BatchingWorkQueue workQueue)
+        {
+            _workspaceStateGenerator = workspaceStateGenerator;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _workQueue = workQueue;
+        }
 
         public ManualResetEventSlim NotifyWorkspaceChangedEventComplete { get; set; }
 
-        private void OnStartingDelayedUpdate()
-        {
-            if (BlockDelayedUpdateWorkEnqueue != null)
-            {
-                BlockDelayedUpdateWorkEnqueue.Wait();
-                BlockDelayedUpdateWorkEnqueue.Reset();
-            }
-
-            if (BlockDelayedUpdateWorkAfterEnqueue != null)
-            {
-                BlockDelayedUpdateWorkAfterEnqueue.Set();
-            }
-        }
-
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
+            // Can be non-null only in tests
+            if (_workQueue == null)
+            {
+                var errorReporter = projectManager.Workspace.Services.GetRequiredService<ErrorReporter>();
+                _workQueue = new BatchingWorkQueue(
+                   s_batchingDelay,
+                   FilePathComparer.Instance,
+                   errorReporter);
+            }
+
             _projectManager = projectManager;
             _projectManager.Changed += ProjectManager_Changed;
             _projectManager.Workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
-
-            _deferredUpdates = new Dictionary<ProjectId, UpdateItem>();
 
             // This will usually no-op, in the case that another project snapshot change trigger immediately adds projects we want to be able to handle those projects
             InitializeSolution(_projectManager.Workspace.CurrentSolution);
@@ -103,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 if (TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
                                 {
-                                    _workspaceStateGenerator.Update(project, projectSnapshot, CancellationToken.None);
+                                    EnqueueUpdate(project, projectSnapshot);
                                 }
 
                                 break;
@@ -114,15 +108,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                             {
                                 project = e.NewSolution.GetProject(e.ProjectId);
 
-                                if (TryGetProjectSnapshot(project?.FilePath, out var _))
+                                if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
                                 {
-                                    EnqueueUpdate(e.ProjectId);
+                                    EnqueueUpdate(project, projectSnapshot);
 
                                     var dependencyGraph = e.NewSolution.GetProjectDependencyGraph();
                                     var dependentProjectIds = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(e.ProjectId);
                                     foreach (var dependentProjectId in dependentProjectIds)
                                     {
-                                        EnqueueUpdate(dependentProjectId);
+                                        var dependentProject = e.NewSolution.GetProject(dependentProjectId);
+
+                                        if (TryGetProjectSnapshot(dependentProject.FilePath, out var dependentProjectSnapshot))
+                                        {
+                                            EnqueueUpdate(dependentProject, dependentProjectSnapshot);
+                                        }
                                     }
                                 }
                                 break;
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
                                 {
-                                    _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot, CancellationToken.None);
+                                    EnqueueUpdate(project: null, projectSnapshot);
                                 }
 
                                 break;
@@ -165,7 +164,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                     // VSCode's background C# document
                                     document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal))
                                 {
-                                    EnqueueUpdate(e.ProjectId);
+                                    var newProject = e.NewSolution.GetProject(e.ProjectId);
+                                    if (TryGetProjectSnapshot(newProject.FilePath, out var projectSnapshot))
+                                    {
+                                        EnqueueUpdate(newProject, projectSnapshot);
+                                    }
                                     break;
                                 }
 
@@ -173,7 +176,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 if (IsPartialComponentClass(document))
                                 {
-                                    EnqueueUpdate(e.ProjectId);
+                                    var newProject = e.NewSolution.GetProject(e.ProjectId);
+                                    if (TryGetProjectSnapshot(newProject.FilePath, out var projectSnapshot))
+                                    {
+                                        EnqueueUpdate(newProject, projectSnapshot);
+                                    }
                                 }
 
                                 break;
@@ -189,10 +196,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                             {
                                 foreach (var p in e.OldSolution.Projects)
                                 {
-
                                     if (TryGetProjectSnapshot(p?.FilePath, out var projectSnapshot))
                                     {
-                                        _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot, CancellationToken.None);
+                                        EnqueueUpdate(project: null, projectSnapshot);
                                     }
                                 }
                             }
@@ -268,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
                 {
-                    _workspaceStateGenerator.Update(project, projectSnapshot, CancellationToken.None);
+                    EnqueueUpdate(project, projectSnapshot);
                 }
             }
         }
@@ -288,49 +294,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                     if (associatedWorkspaceProject != null)
                     {
-                        _workspaceStateGenerator.Update(associatedWorkspaceProject, args.Newer, CancellationToken.None);
+                        var projectSnapshot = args.Newer;
+                        EnqueueUpdate(associatedWorkspaceProject, projectSnapshot);
                     }
                     break;
             }
         }
 
-        private void EnqueueUpdate(ProjectId projectId)
+        private void EnqueueUpdate(Project project, ProjectSnapshot projectSnapshot)
         {
-            // A race is not possible here because we use the main thread to synchronize the updates
-            // by capturing the sync context.
-            if (_deferredUpdates.TryGetValue(projectId, out var deferredUpdate)
-                    && !deferredUpdate.Task.IsCompleted
-                    && !deferredUpdate.Task.IsCanceled
-                    && !deferredUpdate.Cts.IsCancellationRequested)
-            {
-                deferredUpdate.Cts.Cancel();
-            }
-
-            var cts = new CancellationTokenSource();
-            var updateTask = UpdateAfterDelayAsync(projectId, cts);
-            _deferredUpdates[projectId] = new UpdateItem(updateTask, cts);
-        }
-
-        private async Task UpdateAfterDelayAsync(ProjectId projectId, CancellationTokenSource cts)
-        {
-            try
-            {
-                await Task.Delay(EnqueueDelay, cts.Token);
-            }
-            catch (TaskCanceledException)
-            {
-                // Task cancelled, don't queue additional work.
-                return;
-            }
-
-            OnStartingDelayedUpdate();
-
-            var solution = _projectManager.Workspace.CurrentSolution;
-            var workspaceProject = solution.GetProject(projectId);
-            if (workspaceProject != null && TryGetProjectSnapshot(workspaceProject.FilePath, out var projectSnapshot))
-            {
-                _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, cts.Token);
-            }
+            var workItem = new UpdateWorkspaceWorkItem(project, projectSnapshot, _workspaceStateGenerator, _projectSnapshotManagerDispatcher);
+            _workQueue.Enqueue(projectSnapshot.FilePath, workItem);
         }
 
         private bool TryGetProjectSnapshot(string projectFilePath, out ProjectSnapshot projectSnapshot)
@@ -345,28 +319,53 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return projectSnapshot != null;
         }
 
-        // Internal for testing
-        internal class UpdateItem
+        public void Dispose()
         {
-            public UpdateItem(Task task, CancellationTokenSource cts)
+            _workQueue?.Dispose();
+        }
+
+        private class UpdateWorkspaceWorkItem : BatchableWorkItem
+        {
+            private readonly Project _workspaceProject;
+            private readonly ProjectSnapshot _projectSnapshot;
+            private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
+            private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+
+            public UpdateWorkspaceWorkItem(
+                Project workspaceProject,
+                ProjectSnapshot projectSnapshot,
+                ProjectWorkspaceStateGenerator workspaceStateGenerator,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
             {
-                if (task == null)
+                if (projectSnapshot is null)
                 {
-                    throw new ArgumentNullException(nameof(task));
+                    throw new ArgumentNullException(nameof(projectSnapshot));
                 }
 
-                if (cts == null)
+                if (workspaceStateGenerator is null)
                 {
-                    throw new ArgumentNullException(nameof(cts));
+                    throw new ArgumentNullException(nameof(workspaceStateGenerator));
                 }
 
-                Task = task;
-                Cts = cts;
+                if (projectSnapshotManagerDispatcher is null)
+                {
+                    throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+                }
+
+                _workspaceProject = workspaceProject;
+                _projectSnapshot = projectSnapshot;
+                _workspaceStateGenerator = workspaceStateGenerator;
+                _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             }
 
-            public Task Task { get; }
-
-            public CancellationTokenSource Cts { get; }
+            public override ValueTask ProcessAsync(CancellationToken cancellationToken)
+            {
+                var task = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                {
+                    _workspaceStateGenerator.Update(_workspaceProject, _projectSnapshot, cancellationToken);
+                }, cancellationToken);
+                return new ValueTask(task);
+            }
         }
     }
 }
