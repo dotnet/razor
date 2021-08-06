@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         {
             // Arrange
             var serializationSuccessful = false;
-            var projectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default));
+            var projectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.CSharp7_3));
             var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
             var publisher = new TestDefaultRazorProjectChangePublisher(
                 ProjectConfigurationFilePathStore,
@@ -192,6 +192,54 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             // Assert
             var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value.ConfigureAwait(false);
+            Assert.True(serializationSuccessful);
+        }
+
+        [Fact]
+        internal async Task ProjectManager_ChangedTagHelpers_PublishesImmediately()
+        {
+            // Arrange
+            var serializationSuccessful = false;
+            var projectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default));
+            var changedProjectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.CSharp8));
+            var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
+            var aboutToChange = false;
+            var publisher = new TestDefaultRazorProjectChangePublisher(
+                ProjectConfigurationFilePathStore,
+                _razorLogger,
+                onSerializeToFile: (snapshot, configurationFilePath) =>
+                {
+                    if (!aboutToChange)
+                    {
+                        return;
+                    }
+
+                    Assert.Same(changedProjectSnapshot, snapshot);
+                    Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
+                    serializationSuccessful = true;
+                })
+            {
+                EnqueueDelay = 10,
+                _active = true,
+            };
+            publisher.Initialize(ProjectSnapshotManager);
+            ProjectConfigurationFilePathStore.Set(projectSnapshot.FilePath, expectedConfigurationFilePath);
+            var args = ProjectChangeEventArgs.CreateTestInstance(projectSnapshot, projectSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
+            publisher.ProjectSnapshotManager_Changed(null, args);
+
+            // Flush publish task
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
+            await kvp.Value.ConfigureAwait(false);
+            aboutToChange = true;
+            publisher.DeferredPublishTasks.Clear();
+
+            var changedTagHelpersArgs = ProjectChangeEventArgs.CreateTestInstance(projectSnapshot, changedProjectSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
+
+            // Act
+            publisher.ProjectSnapshotManager_Changed(null, changedTagHelpersArgs);
+
+            // Assert
+            Assert.Empty(publisher.DeferredPublishTasks);
             Assert.True(serializationSuccessful);
         }
 
@@ -411,8 +459,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             }).ConfigureAwait(false);
 
             // Assert
-            var kvp = Assert.Single(publisher.DeferredPublishTasks);
-            await kvp.Value.ConfigureAwait(false);
             Assert.True(serializationSuccessful);
         }
 
@@ -500,8 +546,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
             }).ConfigureAwait(false);
 
             // Assert
-            var kvp = Assert.Single(publisher.DeferredPublishTasks);
-            await kvp.Value.ConfigureAwait(false);
             Assert.False(serializationSuccessful);
         }
 
