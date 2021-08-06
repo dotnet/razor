@@ -155,8 +155,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 directiveBody.Keyword.GetContent().Equals("functions"))
             {
                 var cSharpCode = directiveBody.CSharpCode;
-                var openBrace = cSharpCode.Children.First(c => c.Kind == SyntaxKind.RazorMetaCode);
-                var closeBrace = cSharpCode.Children.Last(c => c.Kind == SyntaxKind.RazorMetaCode);
+                var openBrace = cSharpCode.Children.FirstOrDefault(c => c.Kind == SyntaxKind.RazorMetaCode);
+                var closeBrace = cSharpCode.Children.LastOrDefault(c => c.Kind == SyntaxKind.RazorMetaCode);
                 var code = cSharpCode.Children.First(c => c.Kind == SyntaxKind.CSharpCodeBlock) as CSharpCodeBlockSyntax;
 
                 openBraceNode = openBrace;
@@ -212,14 +212,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             int GetAdditionalIndentationLevel(FormattingContext context, Range range)
             {
                 var indentation = context.Indentations[range.Start.Line];
-                var desiredIndentationLevel = (indentation.HtmlIndentationLevel * (int)context.Options.TabSize) + (indentation.RazorIndentationLevel * (int)context.Options.TabSize);
-                if(additionalIndentation)
+                var desiredIndentationLevel = indentation.HtmlIndentationLevel + indentation.RazorIndentationLevel;
+                if (additionalIndentation)
                 {
-                    desiredIndentationLevel += (int)context.Options.TabSize;
+                    desiredIndentationLevel++;
                 }
-                var currentIndentationLevel = codeNode.GetLeadingWhitespaceLength() + openBraceNode.GetTrailingWhitespaceLength();
+                var desiredIndentationOffset = context.GetIndentationOffsetForLevel(desiredIndentationLevel);
+                // TODO: This is not quite right as it would count a tab or \r\n as 1 length
+                var currentIndentationOffset = codeNode.GetLeadingWhitespaceLength() + openBraceNode.GetTrailingWhitespaceLength();
 
-                return desiredIndentationLevel - currentIndentationLevel;
+                return desiredIndentationOffset - currentIndentationOffset;
             }
         }
 
