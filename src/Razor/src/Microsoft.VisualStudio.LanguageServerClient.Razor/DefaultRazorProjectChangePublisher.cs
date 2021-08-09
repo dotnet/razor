@@ -151,9 +151,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // when they update repeatedly as they load.
             switch (args.Kind)
             {
+                case ProjectChangeKind.ProjectChanged:
+                    if (!ProjectWorkspacePublishable(args))
+                    {
+                        break;
+                    }
+
+                    if (!ReferenceEquals(args.Newer.ProjectWorkspaceState, args.Older.ProjectWorkspaceState))
+                    {
+                        // If our workspace state has changed since our last snapshot then this means pieces influencing
+                        // TagHelper resolution have also changed. Fast path the TagHelper publish.
+                        Publish(args.Newer);
+                    }
+                    else
+                    {
+                        // There was a project change that doesn't seem to be related to TagHelpers, we can be
+                        // less aggressive and do a delayed publish.
+                        EnqueuePublish(args.Newer);
+                    }
+                    break;
                 case ProjectChangeKind.DocumentRemoved:
                 case ProjectChangeKind.DocumentAdded:
-                case ProjectChangeKind.ProjectChanged:
 
                     if (ProjectWorkspacePublishable(args))
                     {
