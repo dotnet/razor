@@ -2,10 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServices.Razor.Test;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -16,6 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest
     {
+        private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new DefaultProjectSnapshotManagerDispatcher();
+
         public VsSolutionUpdatesProjectSnapshotChangeTriggerTest()
         {
             SomeProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
@@ -55,7 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
                 services.Object,
                 Mock.Of<TextBufferProjectService>(MockBehavior.Strict),
-                Mock.Of<ProjectWorkspaceStateGenerator>(MockBehavior.Strict));
+                Mock.Of<ProjectWorkspaceStateGenerator>(MockBehavior.Strict),
+                Dispatcher);
 
             // Act
             trigger.Initialize(Mock.Of<ProjectSnapshotManagerBase>(MockBehavior.Strict));
@@ -65,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         }
 
         [Fact]
-        public void UpdateProjectCfg_Done_KnownProject_EnqueuesProjectStateUpdate()
+        public async Task OnProjectBuiltAsync_KnownProject_EnqueuesProjectStateUpdate()
         {
             // Arrange
             var expectedProjectPath = SomeProject.FilePath;
@@ -95,11 +101,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 .Returns(projectSnapshots[0]);
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
-            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator);
+            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, Dispatcher);
             trigger.Initialize(projectManager.Object);
 
             // Act
-            trigger.UpdateProjectCfg_Done(Mock.Of<IVsHierarchy>(MockBehavior.Strict), Mock.Of<IVsCfg>(MockBehavior.Strict), Mock.Of<IVsCfg>(MockBehavior.Strict), 0, 0, 0);
+            await trigger.OnProjectBuiltAsync(Mock.Of<IVsHierarchy>(MockBehavior.Strict), CancellationToken.None);
 
             // Assert
             var (workspaceProject, projectSnapshot) = Assert.Single(workspaceStateGenerator.UpdateQueue);
@@ -108,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         }
 
         [Fact]
-        public void UpdateProjectCfg_Done_WithoutWorkspaceProject_DoesNotEnqueueUpdate()
+        public async Task OnProjectBuiltAsync_WithoutWorkspaceProject_DoesNotEnqueueUpdate()
         {
             // Arrange
             uint cookie;
@@ -135,18 +141,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 .Returns(projectSnapshot);
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
-            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator);
+            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, Dispatcher);
             trigger.Initialize(projectManager.Object);
 
             // Act
-            trigger.UpdateProjectCfg_Done(Mock.Of<IVsHierarchy>(MockBehavior.Strict), Mock.Of<IVsCfg>(MockBehavior.Strict), Mock.Of<IVsCfg>(MockBehavior.Strict), 0, 0, 0);
+            await trigger.OnProjectBuiltAsync(Mock.Of<IVsHierarchy>(MockBehavior.Strict), CancellationToken.None);
 
             // Assert
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
         }
 
         [Fact]
-        public void UpdateProjectCfg_Done_UnknownProject_DoesNotEnqueueUpdate()
+        public async Task OnProjectBuiltAsync_UnknownProject_DoesNotEnqueueUpdate()
         {
             // Arrange
             var expectedProjectPath = "Path/To/Project";
@@ -170,11 +176,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 .Returns((ProjectSnapshot)null);
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
-            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator);
+            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, Dispatcher);
             trigger.Initialize(projectManager.Object);
 
             // Act
-            trigger.UpdateProjectCfg_Done(Mock.Of<IVsHierarchy>(MockBehavior.Strict), Mock.Of<IVsCfg>(MockBehavior.Strict), Mock.Of<IVsCfg>(MockBehavior.Strict), 0, 0, 0);
+            await trigger.OnProjectBuiltAsync(Mock.Of<IVsHierarchy>(MockBehavior.Strict), CancellationToken.None);
 
             // Assert
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
