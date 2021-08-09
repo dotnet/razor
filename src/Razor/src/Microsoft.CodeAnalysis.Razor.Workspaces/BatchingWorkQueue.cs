@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal sealed class BatchingWorkQueue : IDisposable
     {
+        // Interactions with this collection should always take a lock on the collection and
+        // be careful about interactions it may have with the on-going timer. The reasons
+        // stem from the transactional manner that we use to modify the collection. For instance
+        // we'll capture workloads and then after processing a lot of work items we'll leave open
+        // the opportunity to re-start our processing loop to ensure things get processed at an
+        // efficient pace.
         private readonly Dictionary<string, BatchableWorkItem> _work;
         private readonly TimeSpan _batchingTimeSpan;
         private readonly ErrorReporter _errorReporter;
@@ -63,13 +69,19 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         // Used in unit tests to ensure we can know when errors are reported
         private ManualResetEventSlim? NotifyErrorBeingReported { get; set; }
 
+        /// <summary>
+        /// Adds the provided <paramref name="workItem"/> to a work queue under the specified <paramref name="key"/>.
+        /// Multiple enqueues under the same <paramref name="key"/> will use the last enqueued <paramref name="workItem"/>.
+        /// </summary>
+        /// <param name="key">An identifier used to track <paramref name="workItem"/>'s.</param>
+        /// <param name="workItem">An item to process</param>
         public void Enqueue(string key, BatchableWorkItem workItem)
         {
             lock (_work)
             {
                 if (_disposed)
                 {
-                    return;
+                    throw new ObjectDisposedException(nameof(BatchingWorkQueue));
                 }
 
                 // We only want to store the last 'seen' work item. That way when we pick one to process it's

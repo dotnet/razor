@@ -18,10 +18,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigger, IDisposable
     {
         private static TimeSpan s_batchingDelay = TimeSpan.FromSeconds(1);
+        private readonly object _disposeLock = new();
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private BatchingWorkQueue _workQueue;
         private ProjectSnapshotManagerBase _projectManager;
+        private bool _disposed;
 
         [ImportingConstructor]
         public WorkspaceProjectStateChangeDetector(
@@ -57,14 +59,22 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
-            // Can be non-null only in tests
-            if (_workQueue == null)
+            lock (_disposeLock)
             {
-                var errorReporter = projectManager.Workspace.Services.GetRequiredService<ErrorReporter>();
-                _workQueue = new BatchingWorkQueue(
-                   s_batchingDelay,
-                   FilePathComparer.Instance,
-                   errorReporter);
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(nameof(WorkspaceProjectStateChangeDetector));
+                }
+
+                // Can be non-null only in tests
+                if (_workQueue == null)
+                {
+                    var errorReporter = projectManager.Workspace.Services.GetRequiredService<ErrorReporter>();
+                    _workQueue = new BatchingWorkQueue(
+                       s_batchingDelay,
+                       FilePathComparer.Instance,
+                       errorReporter);
+                }
             }
 
             _projectManager = projectManager;
@@ -304,7 +314,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private void EnqueueUpdate(Project project, ProjectSnapshot projectSnapshot)
         {
             var workItem = new UpdateWorkspaceWorkItem(project, projectSnapshot, _workspaceStateGenerator, _projectSnapshotManagerDispatcher);
-            _workQueue.Enqueue(projectSnapshot.FilePath, workItem);
+            lock (_disposeLock)
+            {
+                _workQueue?.Enqueue(projectSnapshot.FilePath, workItem);
+            }
         }
 
         private bool TryGetProjectSnapshot(string projectFilePath, out ProjectSnapshot projectSnapshot)
@@ -321,7 +334,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public void Dispose()
         {
-            _workQueue?.Dispose();
+            lock (_disposeLock)
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+                _workQueue?.Dispose();
+                _workQueue = null;
+            }
         }
 
         private class UpdateWorkspaceWorkItem : BatchableWorkItem
