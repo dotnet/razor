@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
@@ -20,13 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly IServiceProvider _services;
         private readonly TextBufferProjectService _projectService;
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
         public VsSolutionUpdatesProjectSnapshotChangeTrigger(
             [Import(typeof(SVsServiceProvider))] IServiceProvider services,
             TextBufferProjectService projectService,
-            ProjectWorkspaceStateGenerator workspaceStateGenerator)
+            ProjectWorkspaceStateGenerator workspaceStateGenerator,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
             if (services == null)
             {
@@ -43,9 +46,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
             _services = services;
             _projectService = projectService;
             _workspaceStateGenerator = workspaceStateGenerator;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
@@ -94,21 +103,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         // This gets called when the project has finished building.
         public int UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
         {
-            var projectPath = _projectService.GetProjectPath(pHierProj);
-            var projectSnapshot = _projectManager.GetLoadedProject(projectPath);
-            if (projectSnapshot != null)
-            {
-                var workspaceProject = _projectManager.Workspace.CurrentSolution.Projects.FirstOrDefault(
-                    wp => FilePathComparer.Instance.Equals(wp.FilePath, projectSnapshot.FilePath));
-                if (workspaceProject != null)
-                {
-                    // Trigger a tag helper update by forcing the project manager to see the workspace Project
-                    // from the current solution.
-                    _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, CancellationToken.None);
-                }
-            }
+            _ = OnProjectBuiltAsync(pHierProj, CancellationToken.None);
 
             return VSConstants.S_OK;
+        }
+
+        // Internal for testing
+        internal Task OnProjectBuiltAsync(IVsHierarchy projectHierarchy, CancellationToken cancellationToken)
+        {
+            var projectFilePath = _projectService.GetProjectPath(projectHierarchy);
+            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                var projectSnapshot = _projectManager.GetLoadedProject(projectFilePath);
+                if (projectSnapshot != null)
+                {
+                    var workspaceProject = _projectManager.Workspace.CurrentSolution.Projects.FirstOrDefault(
+                        wp => FilePathComparer.Instance.Equals(wp.FilePath, projectSnapshot.FilePath));
+                    if (workspaceProject != null)
+                    {
+                        // Trigger a tag helper update by forcing the project manager to see the workspace Project
+                        // from the current solution.
+                        _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, cancellationToken);
+                    }
+                }
+            }, cancellationToken);
         }
     }
 }
