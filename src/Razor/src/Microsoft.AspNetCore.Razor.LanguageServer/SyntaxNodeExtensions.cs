@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
@@ -93,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return range;
         }
 
-        public static Range? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
+        public static Range GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
         {
             if (node is null)
             {
@@ -111,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             for (var i = 0; i < tokens.Count; i++)
             {
                 var token = tokens[i];
-                if (!IsWhitespace(token))
+                if (!token.IsWhitespace())
                 {
                     firstToken = token;
                     break;
@@ -122,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             for (var i = tokens.Count - 1; i >= 0; i--)
             {
                 var token = tokens[i];
-                if (!IsWhitespace(token))
+                if (!token.IsWhitespace())
                 {
                     lastToken = token;
                     break;
@@ -135,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
-            var endPositionSpan = GetLinePositionSpan(lastToken, source, node.Span.Start);
+            var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
 
             var range = new Range(
                 new Position(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
@@ -182,39 +183,68 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        public static int GetLeadingWhitespaceLength(this SyntaxNode node)
+        public static int GetLeadingWhitespaceLength(this SyntaxNode node, FormattingContext context)
         {
             var tokens = node.GetTokens();
-            for (var i = 0; i < tokens.Count; i++)
+            var whitespaceLength = 0;
+
+            foreach (var token in tokens)
+            {
+                if (token.IsWhitespace())
+                {
+                    if (token.Kind == SyntaxKind.NewLine)
+                    {
+                        // We need to reset when we move to a new line.
+                        whitespaceLength = 0;
+                    }
+                    else if (token.IsSpace())
+                    {
+                        whitespaceLength++;
+                    }
+                    else if (token.IsTab())
+                    {
+                        whitespaceLength += (int)context.Options.TabSize;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return whitespaceLength;
+        }
+
+        public static int GetTrailingWhitespaceLength(this SyntaxNode node, FormattingContext context)
+        {
+            var tokens = node.GetTokens();
+            var whitespaceLength = 0;
+
+            for (var i = tokens.Count - 1;  i >= 0; i--)
             {
                 var token = tokens[i];
-                if (!IsWhitespace(token))
+                if (token.IsWhitespace())
                 {
-                    return i;
+                    if (token.Kind == SyntaxKind.NewLine)
+                    {
+                        whitespaceLength = 0;
+                    }
+                    else if (token.IsSpace())
+                    {
+                        whitespaceLength++;
+                    }
+                    else if (token.IsTab())
+                    {
+                        whitespaceLength += (int)context.Options.TabSize;
+                    }
+                }
+                else
+                {
+                    break;
                 }
             }
 
-            return 0;
-        }
-
-        public static int GetTrailingWhitespaceLength(this SyntaxNode node)
-        {
-            var tokens = node.GetTokens();
-            for (var i = 0;  i < tokens.Count; i++)
-            {
-                var token = tokens[tokens.Count - 1 - i];
-                if (!IsWhitespace(token))
-                {
-                    return i;
-                }
-            }
-
-            return 0;
-        }
-
-        private static bool IsWhitespace(SyntaxToken token)
-        {
-            return token.Kind == SyntaxKind.Whitespace || token.Kind == SyntaxKind.NewLine;
+            return whitespaceLength;
         }
     }
 }

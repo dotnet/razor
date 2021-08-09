@@ -224,7 +224,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             // Examine the _end_ of the diagnostic to see if we're at the
             // start of an (im/ex)plicit expression. Looking at the start
             // of the diagnostic isn't sufficient.
-            if(d.Range is null)
+            if (d.Range is null)
             {
                 return false;
             }

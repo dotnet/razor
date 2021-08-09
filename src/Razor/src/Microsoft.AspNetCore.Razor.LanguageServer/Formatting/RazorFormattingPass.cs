@@ -84,15 +84,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 // Disclaimer: CSharpCodeBlockSyntax is used a _lot_ in razor so these methods are probably
                 // being overly careful to only try to format syntax forms they care about.
-                TryFormatCSharpCodeBlock(context, edits, source, node);
+                TryFormatCSharpBlockStructure(context, edits, source, node);
                 TryFormatSingleLineDirective(context, edits, source, node);
-                TryFormatExplicitCodeBlock(context, edits, source, node);
+                TryFormatCSharpBlockContent(context, edits, source, node);
             }
 
             return edits;
         }
 
-        private static void TryFormatExplicitCodeBlock(FormattingContext context, IList<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
+        private static void TryFormatCSharpBlockContent(FormattingContext context, IList<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
         {
             SyntaxNode openBraceNode;
             SyntaxNode codeNode;
@@ -155,9 +155,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 directiveBody.Keyword.GetContent().Equals("functions"))
             {
                 var cSharpCode = directiveBody.CSharpCode;
-                var openBrace = cSharpCode.Children.FirstOrDefault(c => c.Kind == SyntaxKind.RazorMetaCode);
-                var closeBrace = cSharpCode.Children.LastOrDefault(c => c.Kind == SyntaxKind.RazorMetaCode);
+                var openBrace = cSharpCode.Children.FirstOrDefault(c => c.Kind == SyntaxKind.RazorMetaCode && c.GetContent().Equals("{", StringComparison.Ordinal));
+                var closeBrace = cSharpCode.Children.LastOrDefault(c => c.Kind == SyntaxKind.RazorMetaCode && c.GetContent().Equals("}", StringComparison.Ordinal));
                 var code = cSharpCode.Children.First(c => c.Kind == SyntaxKind.CSharpCodeBlock) as CSharpCodeBlockSyntax;
+
+                if (openBrace is null || closeBrace is null)
+                {
+                    // Don't trust ourselves in an incomplete scenario.
+                    return;
+                }
 
                 openBraceNode = openBrace;
                 codeNode = code!;
@@ -178,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // The other way to accomplish this would be to apply the edits after every node and function, but that's not in scope for my current work.
                 !edits.Any(e => e.Range.End == codeRange.End))
             {
-                var additionalIndentationLevel = GetAdditionalIndentationLevel(context, openBraceRange);
+                var additionalIndentationLevel = GetAdditionalIndentationLevel(context, openBraceRange, openBraceNode, codeNode, additionalIndentation);
                 var newText = context.NewLineString;
                 if (additionalIndentationLevel > 0)
                 {
@@ -201,6 +207,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // The other way to accomplish this would be to apply the edits after every node and function, but that's not in scope for my current work.
                 !edits.Any(e => e.Range.End == codeRange.End))
             {
+                // Add a Newline between the content and the "}" if one doesn't already exist.
                 var edit = new TextEdit
                 {
                     NewText = context.NewLineString,
@@ -209,7 +216,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 edits.Add(edit);
             }
 
-            int GetAdditionalIndentationLevel(FormattingContext context, Range range)
+            static int GetAdditionalIndentationLevel(FormattingContext context, Range range, SyntaxNode openBraceNode, SyntaxNode codeNode, bool additionalIndentation)
             {
                 var indentation = context.Indentations[range.Start.Line];
                 var desiredIndentationLevel = indentation.HtmlIndentationLevel + indentation.RazorIndentationLevel;
@@ -218,14 +225,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     desiredIndentationLevel++;
                 }
                 var desiredIndentationOffset = context.GetIndentationOffsetForLevel(desiredIndentationLevel);
-                // TODO: This is not quite right as it would count a tab or \r\n as 1 length
-                var currentIndentationOffset = codeNode.GetLeadingWhitespaceLength() + openBraceNode.GetTrailingWhitespaceLength();
+                var currentIndentationOffset = openBraceNode.GetTrailingWhitespaceLength(context) + codeNode.GetLeadingWhitespaceLength(context);
 
                 return desiredIndentationOffset - currentIndentationOffset;
             }
         }
 
-        private static void TryFormatCSharpCodeBlock(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
+        private static void TryFormatCSharpBlockStructure(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
         {
             // We're looking for a code block like this:
             //
