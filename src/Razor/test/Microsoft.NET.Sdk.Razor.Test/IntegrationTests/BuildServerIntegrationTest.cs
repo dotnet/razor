@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Razor.Design.IntegrationTests
                 var toolAssembly = Path.Combine(publishDir, "rzc.dll");
                 var result = await DotnetMSBuild(
                     "Build",
-                    $"/p:_RazorForceBuildServer=true /p:_RazorToolAssembly={toolAssembly}",
+                    $"/p:_RazorForceBuildServer=true /p:_RazorSdkToolAssembly={toolAssembly}",
                     suppressBuildServer: true); // We don't want to specify a pipe name
 
                 Assert.BuildPassed(result);
