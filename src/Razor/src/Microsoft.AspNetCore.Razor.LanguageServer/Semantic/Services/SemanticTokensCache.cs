@@ -1,23 +1,50 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#pragma warning disable CS0618
 #nullable enable
 
 using Microsoft.CodeAnalysis.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using System.Collections.Generic;
 using System;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal abstract class SemanticTokensCacheBase<T>
+    /// <summary>
+    /// Cache used by <see cref="DefaultRazorSemanticTokensInfoService"/> to keep track of
+    /// previously computed tokens.
+    /// </summary>
+    internal class SemanticTokensCache<T> where T : SemanticTokens
     {
-        private readonly int _maxCachesPerDoc = 5;
+        /// <summary>
+        /// Number of cached token sets we store per document. Must be >= 1.
+        /// </summary>
+        /// <remarks>
+        /// Internal for testing only.
+        /// </remarks>
+        internal const int MaxCachesPerDoc = 5;
 
+        /// <summary>
+        /// Multiple cache requests or updates may be received concurrently. We need this lock to
+        /// ensure that we aren't making concurrent modifications to the _documentToTokenSets
+        /// dictionary.
+        /// </summary>
         private readonly object _lock = new();
 
+        #region protected by _lock
+        /// <summary>
+        /// Maps a document URI to its n most recently cached token sets.
+        /// </summary>
         private readonly MemoryCache<DocumentUri, List<T>> _documentToTokenSets = new();
+        #endregion
 
+        /// <summary>
+        /// Updates the given document's token set cache. Removes old cache results if the
+        /// document's cache is full.
+        /// </summary>
         public void UpdateCache(DocumentUri uri, T tokens)
         {
             if (uri is null)
@@ -42,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 // Case 2: Document already has the maximum number of token sets cached. Remove the
                 // oldest token set from the cache, and then add the new token set (see case 3).
-                if (tokenSets.Count >= _maxCachesPerDoc)
+                if (tokenSets.Count >= MaxCachesPerDoc)
                 {
                     tokenSets.RemoveAt(0);
                 }
@@ -53,6 +80,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
         }
 
+        /// <returns>
+        /// The cached tokens data for a given document URI and resultId, null if no match is found.
+        /// </returns>
         public T? GetCachedTokensData(DocumentUri uri, string resultId)
         {
             lock (_lock)
@@ -62,12 +92,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     return default;
                 }
 
-                // TO-DO: Update comment
-                var matchingTokenSet = GetMatchingTokenSet(tokenSets, resultId);
+                var matchingTokenSet = tokenSets.FirstOrDefault(t => t.ResultId == resultId);
                 return matchingTokenSet;
             }
         }
-
-        public abstract T? GetMatchingTokenSet(List<T> tokenSets, string resultId);
     }
 }
