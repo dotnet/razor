@@ -36,7 +36,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         #region protected by _lock
         /// <summary>
-        /// Maps a document URI to its n most recently cached token sets.
+        /// Maps a document URI to its n most recently cached token sets. We use an in-memory cache
+        /// to limit memory allocation.
         /// </summary>
         private readonly MemoryCache<DocumentUri, List<T>> _documentToTokenSets = new();
         #endregion
