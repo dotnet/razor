@@ -111,26 +111,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 directiveBody.Keyword.GetContent().Equals("functions"))
             {
                 var cSharpCode = directiveBody.CSharpCode;
-                var openBrace = cSharpCode.Children.FirstOrDefault(c => c.Kind == SyntaxKind.RazorMetaCode && c.GetContent().Equals("{", StringComparison.Ordinal));
-                var closeBrace = cSharpCode.Children.LastOrDefault(c => c.Kind == SyntaxKind.RazorMetaCode && c.GetContent().Equals("}", StringComparison.Ordinal));
-                var code = cSharpCode.Children.First(c => c.Kind == SyntaxKind.CSharpCodeBlock) as CSharpCodeBlockSyntax;
-
-                if (openBrace is null || closeBrace is null)
+                if (!cSharpCode.Children.TryGetOpenBraceNode(out var openBrace) || !cSharpCode.Children.TryGetCloseBraceNode(out var closeBrace))
                 {
                     // Don't trust ourselves in an incomplete scenario.
                     return false;
                 }
+                var code = cSharpCode.Children.PreviousSiblingOrSelf(closeBrace) as CSharpCodeBlockSyntax;
 
                 var openBraceNode = openBrace;
                 var codeNode = code!;
                 var closeBraceNode = closeBrace;
 
-                return FormatBlock(context, source, openBraceNode, codeNode, closeBraceNode, edits, additionalIndentation: false);
+                return FormatBlock(context, source, openBraceNode, codeNode, closeBraceNode, edits);
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         private static bool TryFormatCSharpExplicitTransition(FormattingContext context, IList<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
@@ -141,24 +136,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             //     var x = 1;
             // }
             if (node is CSharpCodeBlockSyntax expliciteCode &&
-                expliciteCode.Children.First() is CSharpStatementSyntax statement &&
+                expliciteCode.Children.FirstOrDefault() is CSharpStatementSyntax statement &&
                 statement.Body is CSharpStatementBodySyntax csharpStatementBody)
             {
                 var openBraceNode = csharpStatementBody.OpenBrace;
                 var codeNode = csharpStatementBody.CSharpCode;
                 var closeBraceNode = csharpStatementBody.CloseBrace;
 
-                // IndentationContext doesn't track the need for any additional indentation in this case (Both Razor and HTML desirred indentation would be "0" above).
-                // Probably because it thinks you're doing something like "@{ DateTime.Now }"
-                // Regardless we need to help things out and inform FormatBlock to give us an extra level.
-                var additionalIndentation = true;
+                return FormatBlock(context, source, openBraceNode, codeNode, closeBraceNode, edits);
+            }
 
-                return FormatBlock(context, source, openBraceNode, codeNode, closeBraceNode, edits, additionalIndentation);
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         private static bool TryFormatComplexCSharpBlock(FormattingContext context, IList<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
@@ -177,12 +165,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var openBraceNode = outerCodeBlock.Children.PreviousSiblingOrSelf(innerCodeBlock);
                 var closeBraceNode = outerCodeBlock.Children.NextSiblingOrSelf(innerCodeBlock);
 
-                return FormatBlock(context, source, openBraceNode, codeNode, closeBraceNode, edits, additionalIndentation: false);
+                return FormatBlock(context, source, openBraceNode, codeNode, closeBraceNode, edits);
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         private static bool TryFormatHtmlInCSharp(FormattingContext context, IList<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
@@ -194,19 +180,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (node is MarkupBlockSyntax markupBlockNode &&
                 markupBlockNode.Parent is CSharpCodeBlockSyntax cSharpCodeBlock)
             {
-                var previousChild = cSharpCodeBlock.Children.PreviousSiblingOrSelf(markupBlockNode);
-                var nextChild = cSharpCodeBlock.Children.NextSiblingOrSelf(markupBlockNode);
+                var openBraceNode = cSharpCodeBlock.Children.PreviousSiblingOrSelf(markupBlockNode);
+                var closeBraceNode = cSharpCodeBlock.Children.NextSiblingOrSelf(markupBlockNode);
 
-                var codeNode = markupBlockNode;
-                var openBraceNode = previousChild;
-                var closeBraceNode = nextChild;
+                return FormatBlock(context, source, openBraceNode, markupBlockNode, closeBraceNode, edits);
+            }
 
-                return FormatBlock(context, source, openBraceNode, codeNode, closeBraceNode, edits, additionalIndentation: false);
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         private static void TryFormatCSharpBlockStructure(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
@@ -234,7 +214,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // For whitespace we normalize it differently depending on if its multi-line or not
                     FormatWhitespaceBetweenDirectiveAndBrace(whitespace, directive, edits, source, context);
                 }
-                else if (TryGetOpenBrace(children, out var brace))
+                else if (children.TryGetOpenBraceToken(out var brace))
                 {
                     // If there is no whitespace at all we normalize to a single space
                     var start = brace.GetRange(source).Start;
@@ -260,19 +240,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 return whitespace != null;
-            }
-
-            static bool TryGetOpenBrace(SyntaxList<RazorSyntaxNode> children, [NotNullWhen(true)] out SyntaxToken? brace)
-            {
-                // If there is no whitespace between the directive and the brace then there will only be
-                // three children and the brace should be the first child
-                brace = null;
-                if (children.Count == 3 && children[0] is RazorMetaCodeSyntax metaCode)
-                {
-                    brace = metaCode.MetaCode.SingleOrDefault(m => m.Kind == SyntaxKind.LeftBrace);
-                }
-
-                return brace != null;
             }
         }
 
@@ -365,7 +332,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             edits.Add(edit);
         }
 
-        private static bool FormatBlock(FormattingContext context, RazorSourceDocument source, SyntaxNode openBraceNode, SyntaxNode codeNode, SyntaxNode closeBraceNode, IList<TextEdit> edits, bool additionalIndentation)
+        private static bool FormatBlock(FormattingContext context, RazorSourceDocument source, SyntaxNode openBraceNode, SyntaxNode codeNode, SyntaxNode closeBraceNode, IList<TextEdit> edits)
         {
             var didFormat = false;
 
@@ -374,11 +341,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (openBraceRange is not null &&
                 codeRange is not null &&
                 openBraceRange.End.Line == codeRange.Start.Line &&
-                // Because we don't always know what kind of Razor object we're operating on we have to do this to avoid duplicate edits.
-                // The other way to accomplish this would be to apply the edits after every node and function, but that's not in scope for my current work.
-                !edits.Any(e => e.Range.End == codeRange.End))
+                !RangeHasBeenModified(edits, codeRange))
             {
-                var additionalIndentationLevel = GetAdditionalIndentationLevel(context, openBraceRange, openBraceNode, codeNode, additionalIndentation);
+                var additionalIndentationLevel = GetAdditionalIndentationLevel(context, openBraceRange, openBraceNode, codeNode);
                 var newText = context.NewLineString;
                 if (additionalIndentationLevel > 0)
                 {
@@ -398,9 +363,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (codeRange is not null &&
                 closeBraceRange is not null &&
                 codeRange.End.Line == closeBraceRange.Start.Line &&
-                // Because we don't always know what kind of Razor object we're operating on we have to do this to avoid duplicate edits.
-                // The other way to accomplish this would be to apply the edits after every node and function, but that's not in scope for my current work.
-                !edits.Any(e => e.Range.End == codeRange.End))
+                !RangeHasBeenModified(edits, codeRange))
             {
                 // Add a Newline between the content and the "}" if one doesn't already exist.
                 var edit = new TextEdit
@@ -414,13 +377,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             return didFormat;
 
-            static int GetAdditionalIndentationLevel(FormattingContext context, Range range, SyntaxNode openBraceNode, SyntaxNode codeNode, bool additionalIndentation)
+            static bool RangeHasBeenModified(IList<TextEdit> edits, Range range)
             {
-                var indentation = context.Indentations[range.Start.Line];
-                var desiredIndentationLevel = indentation.HtmlIndentationLevel + indentation.RazorIndentationLevel;
-                if (additionalIndentation)
+                // Because we don't always know what kind of Razor object we're operating on we have to do this to avoid duplicate edits.
+                // The other way to accomplish this would be to apply the edits after every node and function, but that's not in scope for my current work.
+                var hasBeenModified = edits.Any(e => e.Range.End == range.End);
+
+                return hasBeenModified;
+            }
+
+            static int GetAdditionalIndentationLevel(FormattingContext context, Range range, SyntaxNode openBraceNode, SyntaxNode codeNode)
+            {
+                if (!context.TryGetIndentationLevel(codeNode.Position, out var desiredIndentationLevel))
                 {
-                    desiredIndentationLevel++;
+                    // If for some reason we don't match a particular span use the indentation for the whole line
+                    var indentation = context.Indentations[range.Start.Line];
+                    desiredIndentationLevel = indentation.HtmlIndentationLevel + indentation.RazorIndentationLevel;
                 }
                 var desiredIndentationOffset = context.GetIndentationOffsetForLevel(desiredIndentationLevel);
                 var currentIndentationOffset = openBraceNode.GetTrailingWhitespaceLength(context) + codeNode.GetLeadingWhitespaceLength(context);

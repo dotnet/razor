@@ -84,6 +84,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public Range Range { get; private set; } = null!;
 
+        /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
+        /// <remarks>
+        /// Don't use this to discover the indentation level you should have, use
+        /// <see cref="TryGetIndentationLevel(int, out int)"/> which operates on the position rather than just the line.
+        /// </remarks>
         public IReadOnlyDictionary<int, IndentationContext> Indentations { get; private set; } = null!;
 
         public IReadOnlyList<FormattingSpan> FormattingSpans { get; private set; } = null!;

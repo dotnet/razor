@@ -86,6 +86,31 @@ expected: @"@{
         }
 
         [Fact]
+        public async Task Formats_CodeBlockDirectiveWithMarkup_NonBraced()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@functions {
+ public class Foo{
+void Method() { var x = ""t""; <div></div> var y = ""t"";}
+}
+}
+",
+expected: @"@functions {
+    public class Foo
+    {
+        void Method()
+        {
+            var x = ""t"";
+            <div></div>
+            var y = ""t"";
+        }
+    }
+}
+");
+        }
+
+        [Fact]
         public async Task Formats_CodeBlockDirectiveWithMarkup()
         {
             await RunFormattingTestAsync(
