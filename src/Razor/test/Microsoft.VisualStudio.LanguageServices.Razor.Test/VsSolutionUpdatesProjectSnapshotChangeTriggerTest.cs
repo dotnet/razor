@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServices.Razor.Test;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 
@@ -19,6 +20,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest
     {
+        private static JoinableTaskFactory JoinableTaskFactory
+        {
+            get
+            {
+                var joinableTaskContext = new JoinableTaskContextNode(new JoinableTaskContext());
+                return new JoinableTaskFactory(joinableTaskContext.Context);
+            }
+        }
+
         private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new DefaultProjectSnapshotManagerDispatcher();
 
         public VsSolutionUpdatesProjectSnapshotChangeTriggerTest()
@@ -61,13 +71,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 services.Object,
                 Mock.Of<TextBufferProjectService>(MockBehavior.Strict),
                 Mock.Of<ProjectWorkspaceStateGenerator>(MockBehavior.Strict),
-                Dispatcher);
+                Dispatcher,
+                JoinableTaskFactory.Context);
 
             // Act
             trigger.Initialize(Mock.Of<ProjectSnapshotManagerBase>(MockBehavior.Strict));
 
             // Assert
             buildManager.Verify();
+        }
+
+        [Fact]
+        public async Task Initialize_SwitchesToMainThread()
+        {
+            // Arrange
+            uint cookie;
+            var buildManager = new Mock<IVsSolutionBuildManager>(MockBehavior.Strict);
+            buildManager
+                .Setup(b => b.AdviseUpdateSolutionEvents(It.IsAny<VsSolutionUpdatesProjectSnapshotChangeTrigger>(), out cookie))
+                .Returns(VSConstants.S_OK);
+
+            var context = JoinableTaskFactory.Context;
+
+            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
+            services.Setup(s => s.GetService(It.Is<Type>(f => f == typeof(SVsSolutionBuildManager)))).Callback(() => Assert.True(context.IsOnMainThread)).Returns(buildManager.Object);
+
+            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(
+                services.Object,
+                Mock.Of<TextBufferProjectService>(MockBehavior.Strict),
+                Mock.Of<ProjectWorkspaceStateGenerator>(MockBehavior.Strict),
+                Dispatcher,
+                context);
+
+            await Task.Run(() =>
+            {
+                Assert.False(context.IsOnMainThread);
+                trigger.Initialize(Mock.Of<ProjectSnapshotManagerBase>(MockBehavior.Strict));
+                return Task.CompletedTask;
+            });
         }
 
         [Fact]
@@ -101,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 .Returns(projectSnapshots[0]);
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
-            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, Dispatcher);
+            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, Dispatcher, JoinableTaskFactory.Context);
             trigger.Initialize(projectManager.Object);
 
             // Act
@@ -141,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 .Returns(projectSnapshot);
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
-            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, Dispatcher);
+            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, Dispatcher, JoinableTaskFactory.Context);
             trigger.Initialize(projectManager.Object);
 
             // Act
@@ -176,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 .Returns((ProjectSnapshot)null);
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
-            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, Dispatcher);
+            var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, Dispatcher, JoinableTaskFactory.Context);
             trigger.Initialize(projectManager.Object);
 
             // Act
