@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
@@ -23,13 +24,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private ProjectSnapshotManagerBase _projectManager;
+        private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
         public VsSolutionUpdatesProjectSnapshotChangeTrigger(
             [Import(typeof(SVsServiceProvider))] IServiceProvider services,
             TextBufferProjectService projectService,
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext)
         {
             if (services == null)
             {
@@ -51,23 +54,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             _services = services;
             _projectService = projectService;
             _workspaceStateGenerator = workspaceStateGenerator;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _joinableTaskContext = joinableTaskContext;
         }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
             _projectManager = projectManager;
 
-            // Attach the event sink to solution update events.
-            if (_services.GetService(typeof(SVsSolutionBuildManager)) is IVsSolutionBuildManager solutionBuildManager)
+            _ = _joinableTaskContext.Factory.RunAsync(async () =>
             {
-                // We expect this to be called only once. So we don't need to Unadvise.
-                var hr = solutionBuildManager.AdviseUpdateSolutionEvents(this, out _);
-                Marshal.ThrowExceptionForHR(hr);
-            }
+                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+
+                // Attach the event sink to solution update events.
+                if (_services.GetService(typeof(SVsSolutionBuildManager)) is IVsSolutionBuildManager solutionBuildManager)
+                {
+                    // We expect this to be called only once. So we don't need to Unadvise.
+                    var hr = solutionBuildManager.AdviseUpdateSolutionEvents(this, out _);
+                    Marshal.ThrowExceptionForHR(hr);
+                }
+            });
         }
 
         public int UpdateSolution_Begin(ref int pfCancelUpdate)
