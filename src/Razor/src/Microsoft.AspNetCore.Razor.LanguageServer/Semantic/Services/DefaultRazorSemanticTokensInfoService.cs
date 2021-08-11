@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
+using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
 
@@ -33,8 +34,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly ILogger _logger;
-        private readonly SemanticTokensCache<VersionedSemanticTokens> _razorDocTokensCache;
-        private readonly SemanticTokensCache<SemanticTokens> _csharpGeneratedDocTokensCache;
+
+        #region Caching constructs
+        // Maps (docURI -> (resultId -> tokens)). We cache per-doc instead of storing all tokens
+        // in one giant cache to improve colorization speeds when working with multiple files.
+        private const int MaxCachesPerDoc = 6;
+        private readonly MemoryCache<DocumentUri, MemoryCache<string, VersionedSemanticTokens>> _razorDocTokensCache = new();
+        private readonly MemoryCache<DocumentUri, MemoryCache<string, IReadOnlyList<int>>> _csharpGeneratedDocTokensCache = new();
+        #endregion
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
@@ -56,8 +63,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
-            _razorDocTokensCache = new SemanticTokensCache<VersionedSemanticTokens>();
-            _csharpGeneratedDocTokensCache = new SemanticTokensCache<SemanticTokens>();
         }
 
         public override Task<SemanticTokens?> GetSemanticTokensAsync(
@@ -138,15 +143,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, newResultId);
-
-            // Update the tokens cache associated with the given Razor doc.
-            _razorDocTokensCache.UpdateCache(
-                textDocumentIdentifier.Uri, new VersionedSemanticTokens
-                {
-                    SemanticVersion = semanticVersion,
-                    ResultId = newResultId,
-                    Data = razorSemanticTokens.Data
-                });
+            UpdateRazorDocCache(textDocumentIdentifier.Uri, semanticVersion, newResultId, razorSemanticTokens);
 
             return razorSemanticTokens;
         }
@@ -186,13 +183,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             VersionStamp? cachedSemanticVersion = null;
             IReadOnlyList<int>? previousResults = null;
-            if (previousResultId != null)
-            {
-                // Attempting to retrieve cached tokens for the Razor document.
-                var cachedTokens = _razorDocTokensCache.GetCachedTokensData(
-                    textDocumentIdentifier.Uri, previousResultId);
 
-                previousResults = cachedTokens?.Data;
+            // Attempting to retrieve cached tokens for the Razor document.
+            if (previousResultId != null &&
+                _razorDocTokensCache.TryGetValue(textDocumentIdentifier.Uri, out var documentCache) &&
+                documentCache.TryGetValue(previousResultId, out var cachedTokens))
+            {
+                previousResults = cachedTokens?.SemanticTokens;
                 cachedSemanticVersion = cachedTokens?.SemanticVersion;
             }
 
@@ -237,15 +234,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
 
                 var newTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, newResultId);
-
-                // Update the tokens cache associated with the given Razor doc.
-                _razorDocTokensCache.UpdateCache(
-                    textDocumentIdentifier.Uri, new VersionedSemanticTokens
-                    {
-                        SemanticVersion = semanticVersion,
-                        ResultId = newResultId,
-                        Data = newTokens.Data,
-                    });
+                UpdateRazorDocCache(textDocumentIdentifier.Uri, semanticVersion, newResultId, newTokens);
 
                 if (previousResults is null)
                 {
@@ -266,6 +255,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 return result;
             }
+        }
+
+        private void UpdateRazorDocCache(
+            DocumentUri documentUri,
+            VersionStamp semanticVersion,
+            string newResultId,
+            SemanticTokens newTokens)
+        {
+            // Update the tokens cache associated with the given Razor doc. If the doc has no
+            // associated cache, we will create one.
+            if (!_razorDocTokensCache.TryGetValue(documentUri, out var documentCache))
+            {
+                documentCache = new MemoryCache<string, VersionedSemanticTokens>(sizeLimit: MaxCachesPerDoc);
+                _razorDocTokensCache.Set(documentUri, documentCache);
+            }
+
+            documentCache.Set(newResultId, new VersionedSemanticTokens(semanticVersion, newTokens.Data));
         }
 
         private static async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(DocumentSnapshot documentSnapshot)
@@ -314,11 +320,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             string? previousResultId = null)
         {
             IReadOnlyList<int>? previousCSharpTokens = null;
-            if (previousResultId != null)
+
+            // Attempting to retrieve cached tokens for the C# generated document.
+            if (previousResultId != null &&
+                _csharpGeneratedDocTokensCache.TryGetValue(textDocumentIdentifier.Uri, out var documentCache) &&
+                documentCache.TryGetValue(previousResultId, out var cachedTokens))
             {
-                // Attempting to retrieve cached tokens for the C# generated document.
-                previousCSharpTokens = _csharpGeneratedDocTokensCache.GetCachedTokensData(
-                    textDocumentIdentifier.Uri, previousResultId)?.Data;
+                previousCSharpTokens = cachedTokens;
             }
 
             var csharpResponse = previousResultId == null || previousCSharpTokens == null
@@ -345,11 +353,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // Keep track of the tokens for the C# generated document so we can reference them
             // the next time we're called for edits. We only need to insert into the cache if
             // we receive new responses.
-            var cachedTokens = _csharpGeneratedDocTokensCache.GetCachedTokensData(
-                textDocumentIdentifier.Uri, csharpResponse.ResultId);
-            if (cachedTokens is null)
+            if (!_csharpGeneratedDocTokensCache.TryGetValue(
+                textDocumentIdentifier.Uri, out documentCache))
             {
-                _csharpGeneratedDocTokensCache.UpdateCache(textDocumentIdentifier.Uri, csharpResponse);
+                documentCache = new MemoryCache<string, IReadOnlyList<int>>();
+                _csharpGeneratedDocTokensCache.Set(textDocumentIdentifier.Uri, documentCache);
+            }
+
+            if (!documentCache.TryGetValue(csharpResponse.ResultId, out _))
+            {
+                documentCache.Set(csharpResponse.ResultId, csharpResponse.Data);
             }
 
             SemanticRange? previousSemanticRange = null;
@@ -595,9 +608,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             public static VersionedSemanticRange Default => new(null, null);
         }
 
-        private class VersionedSemanticTokens : SemanticTokens
-        {
-            public VersionStamp SemanticVersion { get; set; }
-        }
+        internal record VersionedSemanticTokens(VersionStamp? SemanticVersion, IReadOnlyList<int> SemanticTokens);
     }
 }
