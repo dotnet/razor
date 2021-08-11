@@ -722,7 +722,7 @@ slf*@";
 
             var (previousResultId, service, _, _) = await AssertSemanticTokensAsync(new string[] { txt, newTxt }, new bool[] { false, true });
 
-            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor: true, previousResultId: previousResultId, service: service);
+            var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor: false, previousResultId: previousResultId, service: service);
             Assert.NotEqual(previousResultId, newResultId);
         }
 
