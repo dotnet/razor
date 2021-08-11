@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal static bool TryGetCloseBraceNode(this SyntaxList<RazorSyntaxNode> children, [NotNullWhen(true)] out RazorMetaCodeSyntax? brace)
         {
             // If there is no whitespace between the directive and the brace then there will only be
-            // three children and the brace should be the first child
+            // three children and the brace should be the last child
             brace = null;
             if (children.LastOrDefault(c => c.Kind == Language.SyntaxKind.RazorMetaCode) is RazorMetaCodeSyntax metaCode)
             {
