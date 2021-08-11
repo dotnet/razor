@@ -819,6 +819,76 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         }
 
         [Fact]
+        public async Task Handle_ProcessDiagnostics_Html_Razor_UnbalancedTags_UnexpectedEndTagErrorCode()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.razor";
+            var codeDocument = CreateCodeDocument("<!body></body>", kind: FileKinds.Component);
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[]
+                {
+                    new OmniSharpVSDiagnostic()
+                    {
+                        Code = new DiagnosticCode(HtmlErrorCodes.UnexpectedEndTagErrorCode),
+                        Range = new Range(new Position(0, 7), new Position(0, 9))
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            var diagnostic = Assert.Single(response.Diagnostics);
+            Assert.Equal(HtmlErrorCodes.UnexpectedEndTagErrorCode, diagnostic.Code.Value.String);
+        }
+
+        [Fact]
+        public async Task Handle_ProcessDiagnostics_Html_Razor_BodyTag_UnexpectedEndTagErrorCode()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.razor";
+            var codeDocument = CreateCodeDocument("<html><!body><div></div></!body></html>", kind: FileKinds.Component);
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[]
+                {
+                    new OmniSharpVSDiagnostic()
+                    {
+                        Code = new DiagnosticCode(HtmlErrorCodes.UnexpectedEndTagErrorCode),
+                        Range = new Range(new Position(0, 7), new Position(0, 9))
+                    },
+                    new OmniSharpVSDiagnostic()
+                    {
+                        Code = new DiagnosticCode(HtmlErrorCodes.InvalidNestingErrorCode),
+                        Range = new Range(new Position(0, 14), new Position(0, 16)),
+                        Message = "'div' cannot be nested inside element 'html'.",
+                    },
+                    new OmniSharpVSDiagnostic()
+                    {
+                        Code = new DiagnosticCode(HtmlErrorCodes.TooFewElementsErrorCode),
+                        Range = new Range(new Position(0, 2),  new Position(0, 3)),
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(response.Diagnostics);
+        }
+
+        [Fact]
         public async Task Handle_ProcessDiagnostics_Html_Razor_UnexpectedEndTagErrorCode()
         {
             // Arrange
