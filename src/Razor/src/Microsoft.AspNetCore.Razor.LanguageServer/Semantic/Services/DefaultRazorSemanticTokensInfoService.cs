@@ -356,7 +356,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (!_csharpGeneratedDocTokensCache.TryGetValue(
                 textDocumentIdentifier.Uri, out documentCache))
             {
-                documentCache = new MemoryCache<string, IReadOnlyList<int>>();
+                documentCache = new MemoryCache<string, IReadOnlyList<int>>(sizeLimit: MaxCachesPerDoc);
                 _csharpGeneratedDocTokensCache.Set(textDocumentIdentifier.Uri, documentCache);
             }
 
