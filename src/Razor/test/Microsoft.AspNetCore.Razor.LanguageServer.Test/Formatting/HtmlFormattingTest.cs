@@ -394,6 +394,16 @@ tagHelpers: tagHelpers);
         }
 
         [Fact]
+        public async Task FormatsShortBlock()
+        {
+            await RunFormattingTestAsync(
+                input: @"@{<p></p>}",
+                expected: @"@{
+    <p></p>
+}");
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/26836")]
         public async Task FormatNestedBlock()
         {

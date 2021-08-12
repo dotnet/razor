@@ -35,8 +35,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _logger = loggerFactory.CreateLogger<CSharpFormattingPass>();
         }
 
-        // Run after the HTML formatter pass.
-        public override int Order => DefaultOrder - 4;
+        // Run after the HTML and Razor formatter pass.
+        public override int Order => DefaultOrder - 3;
 
         public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
         {
@@ -67,13 +67,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 changedText = changedText.WithChanges(csharpChanges);
                 changedContext = await changedContext.WithTextAsync(changedText);
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // We make an optimistic attempt at fixing corner cases.
-            var cleanupChanges = CleanupDocument(changedContext);
-            changedText = changedText.WithChanges(cleanupChanges);
-            changedContext = await changedContext.WithTextAsync(changedText);
 
             cancellationToken.ThrowIfCancellationRequested();
 

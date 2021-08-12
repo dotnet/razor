@@ -271,6 +271,41 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         }
 
         [Fact]
+        public async Task Handle_UnbalancedHtmlTags()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<p><</p>@DateTime.Now</p>",
+                "var __o = DateTime.Now",
+                new[] {
+                    new SourceMapping(
+                        new SourceSpan(4, 12),
+                        new SourceSpan(10, 12))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[] {
+                    new OmniSharpVSDiagnostic() {
+                        Code = RazorDiagnosticsEndpoint.CSharpDiagnosticsToIgnore.First(),
+                        Severity = DiagnosticSeverity.Error
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Null(response.Diagnostics[0].Range);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
         public async Task Handle_DoNotFilterErrorDiagnostics_CSharpError()
         {
             // Arrange
