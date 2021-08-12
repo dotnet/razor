@@ -37,6 +37,36 @@ expected: @"@code {
         }
 
         [Fact]
+        public async Task Formats_MultipleBlocksInADirective()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@{
+void Method(){
+var x = ""foo"";
+@(DateTime.Now)
+    <p></p>
+var y= ""fooo"";
+}
+}
+<div>
+        </div>
+",
+expected: @"@{
+    void Method()
+    {
+        var x = ""foo"";
+        @(DateTime.Now)
+        <p></p>
+        var y = ""fooo"";
+    }
+}
+<div>
+</div>
+");
+        }
+
+        [Fact]
         public async Task Formats_NonCodeBlockDirectives()
         {
             await RunFormattingTestAsync(
@@ -56,6 +86,31 @@ expected: @"@{
         }
 
         [Fact]
+        public async Task Formats_CodeBlockDirectiveWithMarkup_NonBraced()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@functions {
+ public class Foo{
+void Method() { var x = ""t""; <div></div> var y = ""t"";}
+}
+}
+",
+expected: @"@functions {
+    public class Foo
+    {
+        void Method()
+        {
+            var x = ""t"";
+            <div></div>
+            var y = ""t"";
+        }
+    }
+}
+");
+        }
+
+        [Fact]
         public async Task Formats_CodeBlockDirectiveWithMarkup()
         {
             await RunFormattingTestAsync(
@@ -70,7 +125,7 @@ expected: @"@functions {
     public class Foo
     {
         void Method()
-        { 
+        {
             <div></div>
         }
     }
@@ -93,7 +148,7 @@ expected: @"@code {
     public class Foo
     {
         void Method()
-        { 
+        {
             @DateTime.Now
         }
     }
@@ -116,7 +171,7 @@ expected: @"@functions {
     public class Foo
     {
         void Method()
-        { 
+        {
             @(DateTime.Now)
         }
     }
@@ -469,6 +524,29 @@ expected: @"@code {
 	}
 }
 ",
+insertSpaces: false);
+
+        }
+        [Fact]
+        public async Task CodeBlockDirective_UseTabsWithTabSize8_HTML()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@code {
+ public class Foo{}
+        void Method(  ) {<div></div>
+}
+}
+",
+expected: @"@code {
+	public class Foo { }
+	void Method()
+	{
+		<div></div>
+	}
+}
+",
+tabSize: 8,
 insertSpaces: false);
         }
 
