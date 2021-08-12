@@ -11,12 +11,15 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using DiagnosticSeverity = OmniSharp.Extensions.LanguageServer.Protocol.Models.DiagnosticSeverity;
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 using SourceText = Microsoft.CodeAnalysis.Text.SourceText;
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
@@ -174,6 +177,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             return filteredDiagnostics;
         }
 
+#nullable enable
         private static bool ShouldFilterHtmlDiagnosticBasedOnErrorCode(OmniSharpVSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
         {
             if (!diagnostic.Code.HasValue)
@@ -184,10 +188,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             return diagnostic.Code.Value.String switch
             {
                 HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree),
-                HtmlErrorCodes.InvalidNestingErrorCode => IsInvalidNestingWarningWithinComponent(diagnostic, sourceText, syntaxTree),
+                HtmlErrorCodes.InvalidNestingErrorCode => IsAnyFilteredInvalidNestingError(diagnostic, sourceText, syntaxTree),
                 HtmlErrorCodes.MissingEndTagErrorCode => FileKinds.IsComponent(syntaxTree.Options.FileKind), // Redundant with RZ9980 in Components
+                HtmlErrorCodes.TooFewElementsErrorCode => IsAnyFilteredTooFewElementsError(diagnostic, sourceText, syntaxTree),
                 _ => false,
             };
+
+            // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
+            // but we don't currently have a system to accomplish that
+            static bool IsAnyFilteredTooFewElementsError(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            {
+                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
+                var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
+
+                if (!element.StartTag.Name.Content.Equals("html", StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+                var bodyElement = (MarkupElementSyntax)element.ChildNodes().SingleOrDefault(c => c is MarkupElementSyntax tag && tag.StartTag.Name.Content.Equals("body", StringComparison.Ordinal));
+                return bodyElement is not null && bodyElement.StartTag.Bang is not null;
+            }
 
             // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
             // but we don't currently have a system to accomplish that
@@ -195,25 +216,57 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             {
                 var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
 
-                var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n is MarkupElementSyntax);
+                var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
                 var startNode = element.StartTag;
                 var endNode = element.EndTag;
+
+                if (startNode is null || endNode is null)
+                {
+                    // We only care about tags with a start and an end because we want to exclude diagnostics from their children
+                    return false;
+                }
+
                 var haveBang = startNode.Bang != null && endNode.Bang != null;
                 var namesEquivilant = startNode.Name.Content.Equals(endNode.Name.Content, StringComparison.Ordinal);
 
                 return haveBang && namesEquivilant;
             }
 
+            static bool IsAnyFilteredInvalidNestingError(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            {
+                return IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree) ||
+                    IsInvalidNestingFromBody(d, sourceText, syntaxTree);
+            }
+
             static bool IsInvalidNestingWarningWithinComponent(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
             {
                 var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
 
-                var taghelperNode = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(n =>
-                    n is MarkupTagHelperElementSyntax);
+                var taghelperNode = owner.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
 
                 return !(taghelperNode is null);
             }
+
+            // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
+            // but we don't currently have a system to accomplish that
+            static bool IsInvalidNestingFromBody(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            {
+                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
+                var body = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n.StartTag.Name.Content.Equals("body", StringComparison.Ordinal));
+
+                if (ReferenceEquals(body, owner))
+                {
+                    return false;
+                }
+
+                if (d.Message is null)
+                {
+                    return false;
+                }
+                return d.Message.EndsWith("cannot be nested inside element 'html'.") && body.StartTag.Bang != null;
+            }
         }
+#nullable disable
 
         private static bool InAttributeContainingCSharp(
                 OmniSharpVSDiagnostic d,
