@@ -234,6 +234,78 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         }
 
         [Fact]
+        public async Task Handle_FilterDiagnostics_CSharpInsideStyleBlockSpace()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<style> @DateTime.Now </style>",
+                "var __o = DateTime.Now",
+                new[] {
+                    new SourceMapping(
+                        new SourceSpan(4, 12),
+                        new SourceSpan(10, 12))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[] {
+                    new OmniSharpVSDiagnostic() {
+                        Range = new Range(new Position(0, 7), new Position(0, 7)),
+                        Code = CSSErrorCodes.MissingSelectorBeforeCombinatorCode,
+                        Severity = DiagnosticSeverity.Warning
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+            var expectedRange = new Range(new Position(0, 8), new Position(0, 15));
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(response.Diagnostics);
+        }
+
+        [Fact]
+        public async Task Handle_FilterDiagnostics_CSharpInsideStyleBlock()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<style> @DateTime.Now </style>",
+                "var __o = DateTime.Now",
+                new[] {
+                    new SourceMapping(
+                        new SourceSpan(4, 12),
+                        new SourceSpan(10, 12))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[] {
+                    new OmniSharpVSDiagnostic() {
+                        Range = new Range(new Position(0, 8), new Position(0, 15)),
+                        Code = CSSErrorCodes.MissingSelectorBeforeCombinatorCode,
+                        Severity = DiagnosticSeverity.Warning
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+            var expectedRange = new Range(new Position(0, 8), new Position(0, 15));
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(response.Diagnostics);
+        }
+
+        [Fact]
         public async Task Handle_FilterDiagnostics_CSharpWarning()
         {
             // Arrange

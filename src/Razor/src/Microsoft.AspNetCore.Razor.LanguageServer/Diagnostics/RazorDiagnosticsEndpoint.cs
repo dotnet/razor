@@ -183,11 +183,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             return diagnostic.Code.Value.String switch
             {
+                CSSErrorCodes.MissingOpeningBrace => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
+                CSSErrorCodes.MissingSelectorAfterCombinator => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
+                CSSErrorCodes.MissingSelectorBeforeCombinatorCode => IsCSharpInStyleBlock(diagnostic, sourceText, syntaxTree),
                 HtmlErrorCodes.UnexpectedEndTagErrorCode => IsHtmlWithBangAndMatchingTags(diagnostic, sourceText, syntaxTree),
                 HtmlErrorCodes.InvalidNestingErrorCode => IsInvalidNestingWarningWithinComponent(diagnostic, sourceText, syntaxTree),
                 HtmlErrorCodes.MissingEndTagErrorCode => FileKinds.IsComponent(syntaxTree.Options.FileKind), // Redundant with RZ9980 in Components
                 _ => false,
             };
+
+            static bool IsCSharpInStyleBlock(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+            {
+                // C# in a style block causes diagnostics because the HTML background document replaces C# with "~"
+                var owner = syntaxTree.GetOwner(sourceText, d.Range.Start);
+
+                var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(
+                    n => n.StartTag.Name.Content.Equals("style", StringComparison.Ordinal));
+                var cSharp = owner.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
+
+                return element.Body.Any(c => c is CSharpCodeBlockSyntax) || cSharp is not null;
+            }
 
             // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
             // but we don't currently have a system to accomplish that
