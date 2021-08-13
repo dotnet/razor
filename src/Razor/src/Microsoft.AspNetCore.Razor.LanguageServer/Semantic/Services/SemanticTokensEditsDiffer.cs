@@ -9,7 +9,7 @@ using System.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class SemanticTokensEditsDiffer : TextDiffer
     {
