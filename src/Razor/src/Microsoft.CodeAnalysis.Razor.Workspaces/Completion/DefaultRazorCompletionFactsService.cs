@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
             }
 
-                var completions = new List<RazorCompletionItem>();
+            var completions = new List<RazorCompletionItem>();
             for (var i = 0; i < _completionItemProviders.Count; i++)
             {
                 var completionItemProvider = _completionItemProviders[i];

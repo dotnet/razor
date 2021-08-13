@@ -13,4 +13,3 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         public abstract IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext razorCompletionContext, SourceSpan location);
     }
 }
-#nullable disable

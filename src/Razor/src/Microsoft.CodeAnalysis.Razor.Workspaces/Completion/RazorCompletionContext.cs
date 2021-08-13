@@ -3,30 +3,12 @@
 
 #nullable enable
 
-using System;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
-    internal class RazorCompletionContext
-    {
-        public RazorCompletionContext(
-            RazorSyntaxTree syntaxTree,
-            TagHelperDocumentContext? tagHelperDocumentContext = null,
-            bool isIncompleteRequest = false)
-        {
-            if (syntaxTree is null) throw new ArgumentNullException(nameof(syntaxTree));
-
-            SyntaxTree = syntaxTree;
-            TagHelperDocumentContext = tagHelperDocumentContext;
-            IsIncompleteRequest = isIncompleteRequest;
-        }
-
-        public bool IsIncompleteRequest { get; }
-
-        public RazorSyntaxTree SyntaxTree { get; }
-
-        public TagHelperDocumentContext? TagHelperDocumentContext { get; }
-    }
+    internal record RazorCompletionContext(
+            RazorSyntaxTree SyntaxTree,
+            TagHelperDocumentContext TagHelperDocumentContext,
+            CompletionReason CompletionRequestedReason = CompletionReason.Invoked);
 }
-#nullable disable

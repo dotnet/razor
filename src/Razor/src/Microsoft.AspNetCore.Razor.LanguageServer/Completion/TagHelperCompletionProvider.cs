@@ -61,11 +61,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (context.TagHelperDocumentContext is null)
-            {
-                throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
-            }
-
             var change = new SourceChange(location, string.Empty);
             var owner = context.SyntaxTree.Root.LocateOwner(change);
 

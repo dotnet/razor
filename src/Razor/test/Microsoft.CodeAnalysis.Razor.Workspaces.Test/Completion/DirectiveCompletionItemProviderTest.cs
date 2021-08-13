@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@");
             var location = new SourceSpan(2, 0);
-            var context = new RazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(context, location);
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{");
             var location = new SourceSpan(2, 0);
-            var context = new RazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(context, location);
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@DateTime.Now");
             var location = new SourceSpan(2, 0);
-            var context = new RazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(context, location);
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@(something)");
             var location = new SourceSpan(4, 0);
-            var context = new RazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(context, location);
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{ @ }");
             var location = new SourceSpan(4, 0);
-            var context = new RazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(context, location);
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("<p>@ </p>");
             var location = new SourceSpan(4, 0);
-            var context = new RazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(context, location);
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("<p @ >");
             var location = new SourceSpan(4, 0);
-            var context = new RazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(context, location);
@@ -248,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@functions { @  }", FunctionsDirective.Directive);
             var location = new SourceSpan(14, 0);
-            var context = new RazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(context, location);
@@ -263,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@m");
             var location = new SourceSpan(1, 0);
-            var context = new RazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(context, location);
@@ -278,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@mod");
             var location = new SourceSpan(2, 0);
-            var context = new RazorCompletionContext(syntaxTree);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
             var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(context, location);
@@ -337,6 +338,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
             // Assert
             Assert.False(result);
+        }
+
+        private static RazorCompletionContext CreateRazorCompletionContext(RazorSyntaxTree syntaxTree)
+        {
+            var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Array.Empty<TagHelperDescriptor>());
+
+            return new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
         }
 
         private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, RazorCompletionItem item, IReadOnlyCollection<string> commitCharacters = null)

@@ -66,10 +66,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return false;
             }
 
-            if (implicitExpression.FullWidth > 2 && !context.IsIncompleteRequest)
+            if (implicitExpression.FullWidth > 2 && context.CompletionRequestedReason != CompletionReason.Automated)
             {
                 // We only want to provide directive completions if the implicit expression is empty "@|" or at the beginning of a word "@i|", this ensures
-                // we're consistent with how C# typically provides completion items
+                // we're consistent with how C# typically provides completion items.
+                // We also need to return results if this request was made as part of an IncompleteRequest invokation
                 return false;
             }
 

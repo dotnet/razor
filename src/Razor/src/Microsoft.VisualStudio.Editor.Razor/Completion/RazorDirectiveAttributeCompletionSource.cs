@@ -91,7 +91,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 var location = new SourceSpan(triggerLocation.Position, 0);
 
                 var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
-
                 var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext, location);
 
                 if (razorCompletionItems.Count == 0)
