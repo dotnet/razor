@@ -70,7 +70,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 var location = new SourceSpan(triggerLocation.Position, 0);
                 var syntaxTree = codeDocument.GetSyntaxTree();
                 var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
-                var razorCompletionItems = _completionFactsService.GetCompletionItems(syntaxTree, tagHelperDocumentContext, location);
+                var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
+                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext, location);
 
                 var completionItems = new List<CompletionItem>();
                 foreach (var razorCompletionItem in razorCompletionItems)

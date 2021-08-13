@@ -518,6 +518,75 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Contains(completionList, item => item.InsertText == "tagHelperPrefix");
         }
 
+
+        [Fact]
+        public async Task Handle_DoesNotProvideInjectOnInvoked()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.razor";
+            var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+            builder.TagMatchingRule(rule => rule.TagName = "Test");
+            builder.SetTypeName("TestNamespace.TestTagHelper");
+            var tagHelper = builder.Build();
+            var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+            var codeDocument = CreateCodeDocument("@inje");
+            codeDocument.SetTagHelperContext(tagHelperContext);
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
+            var completionEndpoint = new RazorCompletionEndpoint(
+                Dispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+            var request = new CompletionParams()
+            {
+                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                Position = new Position(0, 1),
+                Context = new OmniSharpVSCompletionContext()
+                {
+                    TriggerKind = CompletionTriggerKind.Invoked,
+                },
+            };
+
+            // Act
+            var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(completionList);
+        }
+
+        [Fact]
+        public async Task Handle_ProvidesInjectOnIncomplete()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.razor";
+            var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+            builder.TagMatchingRule(rule => rule.TagName = "Test");
+            builder.SetTypeName("TestNamespace.TestTagHelper");
+            var tagHelper = builder.Build();
+            var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+            var codeDocument = CreateCodeDocument("@inje");
+            codeDocument.SetTagHelperContext(tagHelperContext);
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+            languageServer.Setup(ls => ls.ClientSettings).Returns(new InitializeParams());
+            var completionEndpoint = new RazorCompletionEndpoint(
+                Dispatcher, documentResolver, CompletionFactsService, LSPTagHelperTooltipFactory, VSLSPTagHelperTooltipFactory, languageServer.Object, LoggerFactory);
+            var request = new CompletionParams()
+            {
+                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                Position = new Position(0, 1),
+                Context = new OmniSharpVSCompletionContext()
+                {
+                    TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
+                },
+            };
+
+            // Act
+            var completionList = await Task.Run(() => completionEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Contains(completionList, item => item.InsertText == "addTagHelper");
+        }
+
         // This is more of an integration test to validate that all the pieces work together
         [Fact]
         public async Task Handle_ProvidesTagHelperElementCompletionItems()

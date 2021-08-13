@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal abstract class RazorCompletionItemProvider
     {
-        public abstract IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location);
+        public abstract IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location);
     }
 }

@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             _htmlFactsService = htmlFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
-            if (syntaxTree is null)
+            if (context is null)
             {
-                throw new ArgumentNullException(nameof(syntaxTree));
+                throw new ArgumentNullException(nameof(context));
             }
 
             var change = new SourceChange(location, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = context.SyntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
             {

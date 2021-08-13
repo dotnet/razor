@@ -25,17 +25,17 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             CSharpCodeParser.TagHelperPrefixDirectiveDescriptor,
         };
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
-            if (syntaxTree is null)
+            if (context is null)
             {
-                throw new ArgumentNullException(nameof(syntaxTree));
+                throw new ArgumentNullException(nameof(context));
             }
 
             var completions = new List<RazorCompletionItem>();
-            if (AtDirectiveCompletionPoint(syntaxTree, location))
+            if (AtDirectiveCompletionPoint(context, location))
             {
-                var directiveCompletions = GetDirectiveCompletionItems(syntaxTree);
+                var directiveCompletions = GetDirectiveCompletionItems(context.SyntaxTree);
                 completions.AddRange(directiveCompletions);
             }
 
@@ -43,15 +43,15 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         }
 
         // Internal for testing
-        internal static bool AtDirectiveCompletionPoint(RazorSyntaxTree syntaxTree, SourceSpan location)
+        internal static bool AtDirectiveCompletionPoint(RazorCompletionContext context, SourceSpan location)
         {
-            if (syntaxTree == null)
+            if (context is null)
             {
                 return false;
             }
 
             var change = new SourceChange(location, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = context.SyntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
             {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return false;
             }
 
-            if (implicitExpression.FullWidth > 2)
+            if (implicitExpression.FullWidth > 2 && !context.IsIncompleteRequest)
             {
                 // We only want to provide directive completions if the implicit expression is empty "@|" or at the beginning of a word "@i|", this ensures
                 // we're consistent with how C# typically provides completion items

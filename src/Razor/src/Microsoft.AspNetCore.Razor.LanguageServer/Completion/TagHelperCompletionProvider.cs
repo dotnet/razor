@@ -54,20 +54,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
-            if (syntaxTree is null)
+            if (context is null)
             {
-                throw new ArgumentNullException(nameof(syntaxTree));
+                throw new ArgumentNullException(nameof(context));
             }
 
-            if (tagHelperDocumentContext is null)
+            if (context.TagHelperDocumentContext is null)
             {
-                throw new ArgumentNullException(nameof(tagHelperDocumentContext));
+                throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
             }
 
             var change = new SourceChange(location, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = context.SyntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
             {
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 }
 
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
-                var elementCompletions = GetElementCompletions(parent, containingTagNameToken.Content, stringifiedAttributes, tagHelperDocumentContext);
+                var elementCompletions = GetElementCompletions(parent, containingTagNameToken.Content, stringifiedAttributes, context.TagHelperDocumentContext);
                 return elementCompletions;
             }
 
@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 }
 
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
-                var attributeCompletions = GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, tagHelperDocumentContext);
+                var attributeCompletions = GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, context.TagHelperDocumentContext);
                 return attributeCompletions;
             }
 
