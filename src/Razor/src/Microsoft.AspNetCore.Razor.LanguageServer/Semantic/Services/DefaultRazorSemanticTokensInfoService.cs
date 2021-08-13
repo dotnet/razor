@@ -441,7 +441,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Models.RazorSemanticTokensEdit[] edits)
         {
             var updatedTokens = previousCSharpTokens.ToList();
-            foreach (var edit in edits)
+
+            // C# returns edits that are expected to be applied in reverse order.
+            foreach (var edit in edits.Reverse())
             {
                 updatedTokens.RemoveRange(edit.Start, edit.DeleteCount);
 
