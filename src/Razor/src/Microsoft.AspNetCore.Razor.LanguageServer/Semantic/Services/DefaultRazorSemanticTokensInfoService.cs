@@ -35,13 +35,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly ILogger _logger;
 
-        #region Caching constructs
         // Maps (docURI -> (resultId -> tokens)). We cache per-doc instead of storing all tokens
         // in one giant cache to improve colorization speeds when working with multiple files.
         private const int MaxCachesPerDoc = 6;
         private readonly MemoryCache<DocumentUri, MemoryCache<string, VersionedSemanticTokens>> _razorDocTokensCache = new();
         private readonly MemoryCache<DocumentUri, MemoryCache<string, IReadOnlyList<int>>> _csharpGeneratedDocTokensCache = new();
-        #endregion
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
@@ -608,6 +606,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             public static VersionedSemanticRange Default => new(null, null);
         }
 
-        internal record VersionedSemanticTokens(VersionStamp? SemanticVersion, IReadOnlyList<int> SemanticTokens);
+        private record VersionedSemanticTokens(VersionStamp? SemanticVersion, IReadOnlyList<int> SemanticTokens);
     }
 }
