@@ -146,7 +146,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             return token.Kind == SyntaxKind.Identifier ||
                 // Marker symbol
-                token.Kind == SyntaxKind.Marker;
+                token.Kind == SyntaxKind.Marker ||
+                token.Kind == SyntaxKind.Keyword;
         }
     }
 }
