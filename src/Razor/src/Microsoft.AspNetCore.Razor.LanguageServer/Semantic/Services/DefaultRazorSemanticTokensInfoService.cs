@@ -441,12 +441,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Models.RazorSemanticTokensEdit[] edits)
         {
             var updatedTokens = previousCSharpTokens.ToList();
+            var previousStartIndex = int.MaxValue;
 
-            // C# returns edits that are expected to be applied in reverse order.
-            foreach (var edit in edits.Reverse())
+            // C# returns edits ordered from lowest -> highest start index. We need to
+            // apply these edits in reverse order since the returned C# start indices
+            // are absolute indices.
+            for (var i = edits.Length - 1; i >= 0; i--)
             {
-                updatedTokens.RemoveRange(edit.Start, edit.DeleteCount);
+                var edit = edits[i];
+                Debug.Assert(previousStartIndex > edit.Start);
+                previousStartIndex = edit.Start;
 
+                updatedTokens.RemoveRange(edit.Start, edit.DeleteCount);
                 if (edit.Data != null)
                 {
                     updatedTokens.InsertRange(edit.Start, edit.Data);
