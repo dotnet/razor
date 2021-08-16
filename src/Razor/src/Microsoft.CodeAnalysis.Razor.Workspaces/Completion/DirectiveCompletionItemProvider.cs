@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             }
 
             var completions = new List<RazorCompletionItem>();
-            if (AtDirectiveCompletionPoint(context, location))
+            if (ShouldProvideCompletions(context, location))
             {
                 var directiveCompletions = GetDirectiveCompletionItems(context.SyntaxTree);
                 completions.AddRange(directiveCompletions);
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         }
 
         // Internal for testing
-        internal static bool AtDirectiveCompletionPoint(RazorCompletionContext context, SourceSpan location)
+        internal static bool ShouldProvideCompletions(RazorCompletionContext context, SourceSpan location)
         {
             if (context is null)
             {
