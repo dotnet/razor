@@ -131,14 +131,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var sourceText = await document.GetTextAsync();
             var hostDocumentIndex = request.Position.GetAbsoluteIndex(sourceText);
             var location = new SourceSpan(hostDocumentIndex, 0);
-            var triggerForIsIncomplete = request.Context.TriggerKind switch
+            var reason = request.Context.TriggerKind switch
             {
-                CompletionTriggerKind.TriggerForIncompleteCompletions => CompletionReason.Automated,
+                CompletionTriggerKind.TriggerForIncompleteCompletions => CompletionReason.Invoked,
                 CompletionTriggerKind.Invoked => CompletionReason.Invoked,
                 CompletionTriggerKind.TriggerCharacter => CompletionReason.Typing,
                 _ => CompletionReason.Typing,
             };
-            var completionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext, triggerForIsIncomplete);
+            var completionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext, reason);
 
             var razorCompletionItems = _completionFactsService.GetCompletionItems(completionContext, location);
 

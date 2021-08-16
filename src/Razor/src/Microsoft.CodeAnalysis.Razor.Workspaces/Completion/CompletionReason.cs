@@ -9,6 +9,5 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     {
         Invoked,
         Typing,
-        Automated,
     }
 }

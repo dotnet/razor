@@ -10,5 +10,5 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     internal record RazorCompletionContext(
             RazorSyntaxTree SyntaxTree,
             TagHelperDocumentContext TagHelperDocumentContext,
-            CompletionReason CompletionRequestedReason = CompletionReason.Invoked);
+            CompletionReason Reason = CompletionReason.Invoked);
 }
