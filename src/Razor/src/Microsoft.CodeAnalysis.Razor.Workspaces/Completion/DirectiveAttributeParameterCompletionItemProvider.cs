@@ -29,26 +29,26 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
-            if (syntaxTree is null)
+            if (context is null)
             {
-                throw new ArgumentNullException(nameof(syntaxTree));
+                throw new ArgumentNullException(nameof(context));
             }
 
-            if (tagHelperDocumentContext is null)
+            if (context.TagHelperDocumentContext is null)
             {
-                throw new ArgumentNullException(nameof(tagHelperDocumentContext));
+                throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
             }
 
-            if (!FileKinds.IsComponent(syntaxTree.Options.FileKind))
+            if (!FileKinds.IsComponent(context.SyntaxTree.Options.FileKind))
             {
                 // Directive attribute parameters are only supported in components
                 return Array.Empty<RazorCompletionItem>();
             }
 
             var change = new SourceChange(location, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = context.SyntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
             {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return Array.Empty<RazorCompletionItem>();
             }
 
-            var completions = GetAttributeParameterCompletions(attributeName, parameterName, containingTagName, attributes, tagHelperDocumentContext);
+            var completions = GetAttributeParameterCompletions(attributeName, parameterName, containingTagName, attributes, context.TagHelperDocumentContext);
             return completions;
         }
 

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.IO;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.VisualStudio.Editor.Razor;
 using Newtonsoft.Json;
@@ -80,7 +80,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, DefaultTagHelpers);
 
             var completionQueryLocation = new SourceSpan(queryIndex, length: 0);
-            var razorCompletionItems = componentCompletionProvider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, completionQueryLocation);
+            var context = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
+
+            var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context, completionQueryLocation);
             var completionList = RazorCompletionEndpoint.CreateLSPCompletionList(
                 razorCompletionItems,
                 new CompletionListCache(),

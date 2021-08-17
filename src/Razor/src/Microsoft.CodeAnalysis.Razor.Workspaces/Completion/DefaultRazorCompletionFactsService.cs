@@ -26,23 +26,23 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             _completionItemProviders = completionItemProviders.ToArray();
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
-            if (syntaxTree is null)
+            if (context is null)
             {
-                throw new ArgumentNullException(nameof(syntaxTree));
+                throw new ArgumentNullException(nameof(context));
             }
 
-            if (tagHelperDocumentContext is null)
+            if (context.TagHelperDocumentContext is null)
             {
-                throw new ArgumentNullException(nameof(tagHelperDocumentContext));
+                throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
             }
 
             var completions = new List<RazorCompletionItem>();
             for (var i = 0; i < _completionItemProviders.Count; i++)
             {
                 var completionItemProvider = _completionItemProviders[i];
-                var items = completionItemProvider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, location);
+                var items = completionItemProvider.GetCompletionItems(context, location);
                 completions.AddRange(items);
             }
 

@@ -41,16 +41,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private static readonly IReadOnlyList<RazorCompletionItem> s_completions = new[] { TransitionCompletionItem };
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
-            if (!FileKinds.IsComponent(syntaxTree.Options.FileKind))
+            if (!FileKinds.IsComponent(context.SyntaxTree.Options.FileKind))
             {
                 // Directive attributes are only supported in components
                 return Array.Empty<RazorCompletionItem>();
             }
 
             var change = new SourceChange(location, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = context.SyntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
             {

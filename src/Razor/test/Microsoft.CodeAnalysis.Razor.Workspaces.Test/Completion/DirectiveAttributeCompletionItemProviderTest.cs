@@ -51,9 +51,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(30, 0);
+            var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(razorCompletionContext, span);
 
             // Assert
             Assert.Empty(completions);
@@ -67,9 +68,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(3, 0);
+            var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(razorCompletionContext, span);
 
             // Assert
             Assert.Empty(completions);
@@ -83,9 +85,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(14, 0);
+            var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(razorCompletionContext, span);
 
             // Assert
             Assert.Empty(completions);
@@ -99,9 +102,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(8, 0);
+            var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(razorCompletionContext, span);
 
             // Assert
             AssertContains(completions, "bind", "@bind", new[] { "=", ":" });
@@ -115,9 +119,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(8, 0);
+            var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(razorCompletionContext, span);
 
             // Assert
             AssertContains(completions, "attributes", "@attributes", new[] { "=" });
@@ -131,9 +136,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(16, 0);
+            var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(razorCompletionContext, span);
 
             // Assert
             Assert.Empty(completions);
@@ -147,9 +153,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(16, 0);
+            var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(razorCompletionContext, span);
 
             // Assert
             Assert.Empty(completions);
@@ -163,9 +170,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(7, 0);
+            var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(razorCompletionContext, span);
 
             // Assert
             Assert.Empty(completions);
@@ -179,9 +187,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(16, 0);
+            var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(razorCompletionContext, span);
 
             // Assert
             Assert.Empty(completions);
@@ -195,9 +204,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(9, 0);
+            var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(razorCompletionContext, span);
 
             // Assert
             Assert.Empty(completions);
