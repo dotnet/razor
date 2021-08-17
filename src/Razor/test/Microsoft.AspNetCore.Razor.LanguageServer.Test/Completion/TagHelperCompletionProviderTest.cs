@@ -96,9 +96,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Collection(
@@ -114,9 +115,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<br />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(33 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Empty(completions);
@@ -129,9 +131,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<br />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(32 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Empty(completions);
@@ -144,9 +147,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(35 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Empty(completions);
@@ -159,9 +163,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test1 />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(36 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Collection(
@@ -185,9 +190,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(36 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Collection(
@@ -221,9 +227,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test />", tagHelper.Build());
             var sourceSpan = new SourceSpan(35 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Collection(
@@ -257,9 +264,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test />", tagHelper.Build());
             var sourceSpan = new SourceSpan(35 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Collection(
@@ -283,9 +291,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 unbound />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Empty(completions);
@@ -298,9 +307,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 bool-val />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Empty(completions);
@@ -313,9 +323,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 class='' />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Empty(completions);
@@ -328,9 +339,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int-val='123' />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Empty(completions);
@@ -344,9 +356,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int-val='>";
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Empty(completions);
@@ -359,9 +372,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 int->", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(36 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             AssertBoolIntCompletions(completions);
@@ -374,9 +388,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
             var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2 class='' />", DefaultTagHelpers);
             var sourceSpan = new SourceSpan(43 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             Assert.Empty(completions);
@@ -390,9 +405,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test2        class=''>";
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var sourceSpan = new SourceSpan(38 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
 
             // Act
-            var completions = service.GetCompletionItems(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext(), sourceSpan);
+            var completions = service.GetCompletionItems(context, sourceSpan);
 
             // Assert
             AssertBoolIntCompletions(completions);

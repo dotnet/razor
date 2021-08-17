@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -138,153 +139,182 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsFalseIfSyntaxTreeNull()
-        {
-            // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree: null, location: new SourceSpan(0, 0));
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsFalseIfNoOwner()
+        public void ShouldProvideCompletions_ReturnsFalseIfNoOwner()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@");
             var location = new SourceSpan(2, 0);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
 
             // Assert
             Assert.False(result);
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsFalseWhenOwnerIsNotExpression()
+        public void ShouldProvideCompletions_ReturnsFalseWhenOwnerIsNotExpression()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{");
             var location = new SourceSpan(2, 0);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
 
             // Assert
             Assert.False(result);
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsFalseWhenOwnerIsComplexExpression()
+        public void ShouldProvideCompletions_ReturnsFalseWhenOwnerIsComplexExpression()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@DateTime.Now");
             var location = new SourceSpan(2, 0);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
 
             // Assert
             Assert.False(result);
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsFalseWhenOwnerIsExplicitExpression()
+        public void ShouldProvideCompletions_ReturnsFalseWhenOwnerIsExplicitExpression()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@(something)");
             var location = new SourceSpan(4, 0);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
 
             // Assert
             Assert.False(result);
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsFalseWhenInsideStatement()
+        public void ShouldProvideCompletions_ReturnsFalseWhenInsideStatement()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{ @ }");
             var location = new SourceSpan(4, 0);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
 
             // Assert
             Assert.False(result);
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsFalseWhenInsideMarkup()
+        public void ShouldProvideCompletions_ReturnsFalseWhenInsideMarkup()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("<p>@ </p>");
             var location = new SourceSpan(4, 0);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
 
             // Assert
             Assert.False(result);
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsFalseWhenInsideAttributeArea()
+        public void ShouldProvideCompletions_ReturnsFalseWhenInsideAttributeArea()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("<p @ >");
             var location = new SourceSpan(4, 0);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
 
             // Assert
             Assert.False(result);
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsFalseWhenInsideDirective()
+        public void ShouldProvideCompletions_ReturnsFalseWhenInsideDirective()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@functions { @  }", FunctionsDirective.Directive);
             var location = new SourceSpan(14, 0);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
 
             // Assert
             Assert.False(result);
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsTrueForSimpleImplicitExpressionsStartOfWord()
+        public void ShouldProvideCompletions_ReturnsTrueForSimpleImplicitExpressionsStartOfWord()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@m");
             var location = new SourceSpan(1, 0);
+            var context = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
 
             // Assert
             Assert.True(result);
         }
 
         [Fact]
-        public void AtDirectiveCompletionPoint_ReturnsFalseForSimpleImplicitExpressions()
+        public void ShouldProvideCompletions_ReturnsFalseForSimpleImplicitExpressions_WhenNotInvoked()
         {
             // Arrange
             var syntaxTree = CreateSyntaxTree("@mod");
             var location = new SourceSpan(2, 0);
+            var context = CreateRazorCompletionContext(syntaxTree, CompletionReason.Typing);
 
             // Act
-            var result = DirectiveCompletionItemProvider.AtDirectiveCompletionPoint(syntaxTree, location);
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
 
             // Assert
             Assert.False(result);
+        }
+
+        [Fact]
+        public void ShouldProvideCompletions_ReturnsTrueForSimpleImplicitExpressions_WhenInvoked()
+        {
+            // Arrange
+            var syntaxTree = CreateSyntaxTree("@mod");
+            var location = new SourceSpan(2, 0);
+            var context = CreateRazorCompletionContext(syntaxTree);
+
+            // Act
+            var result = DirectiveCompletionItemProvider.ShouldProvideCompletions(context, location);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsDirectiveCompletableToken_ReturnsTrueForCSharpKeywords()
+        {
+            // If you're typing `@inject` and stop at `@in` it will be parsed as a C# Keyword instead of an identifier, so we have to allow them too
+            // Arrange
+            var csharpToken = SyntaxFactory.Token(SyntaxKind.Keyword, "in");
+
+            // Act
+            var result = DirectiveCompletionItemProvider.IsDirectiveCompletableToken(csharpToken);
+
+            // Assert
+            Assert.True(result);
         }
 
         [Fact]
@@ -337,6 +367,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
             // Assert
             Assert.False(result);
+        }
+
+        private static RazorCompletionContext CreateRazorCompletionContext(RazorSyntaxTree syntaxTree, CompletionReason reason = CompletionReason.Invoked)
+        {
+            var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Array.Empty<TagHelperDescriptor>());
+
+            return new RazorCompletionContext(syntaxTree, tagHelperDocumentContext, reason);
         }
 
         private static void AssertRazorCompletionItem(string completionDisplayText, DirectiveDescriptor directive, RazorCompletionItem item, IReadOnlyCollection<string> commitCharacters = null)

@@ -11,9 +11,9 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
@@ -129,11 +129,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
 
             var sourceText = await document.GetTextAsync();
-            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+            var hostDocumentIndex = request.Position.GetAbsoluteIndex(sourceText);
             var location = new SourceSpan(hostDocumentIndex, 0);
+            var reason = request.Context.TriggerKind switch
+            {
+                CompletionTriggerKind.TriggerForIncompleteCompletions => CompletionReason.Invoked,
+                CompletionTriggerKind.Invoked => CompletionReason.Invoked,
+                CompletionTriggerKind.TriggerCharacter => CompletionReason.Typing,
+                _ => CompletionReason.Typing,
+            };
+            var completionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext, reason);
 
-            var razorCompletionItems = _completionFactsService.GetCompletionItems(syntaxTree, tagHelperDocumentContext, location);
+            var razorCompletionItems = _completionFactsService.GetCompletionItems(completionContext, location);
 
             _logger.LogTrace($"Resolved {razorCompletionItems.Count} completion items.");
 

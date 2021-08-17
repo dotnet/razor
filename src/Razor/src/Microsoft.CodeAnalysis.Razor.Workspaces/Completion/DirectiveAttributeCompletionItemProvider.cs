@@ -31,26 +31,26 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
-            if (syntaxTree is null)
+            if (context is null)
             {
-                throw new ArgumentNullException(nameof(syntaxTree));
+                throw new ArgumentNullException(nameof(context));
             }
 
-            if (tagHelperDocumentContext is null)
+            if (context.TagHelperDocumentContext is null)
             {
-                throw new ArgumentNullException(nameof(tagHelperDocumentContext));
+                throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
             }
 
-            if (!FileKinds.IsComponent(syntaxTree.Options.FileKind))
+            if (!FileKinds.IsComponent(context.SyntaxTree.Options.FileKind))
             {
                 // Directive attributes are only supported in components
                 return s_noDirectiveAttributeCompletionItems;
             }
 
             var change = new SourceChange(location, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = context.SyntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
             {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
             // At this point we've determined that completions have been requested for the name portion of the selected attribute.
 
-            var completionItems = GetAttributeCompletions(attributeName, containingTagName, attributes, tagHelperDocumentContext);
+            var completionItems = GetAttributeCompletions(attributeName, containingTagName, attributes, context.TagHelperDocumentContext);
 
             // We don't provide Directive Attribute completions when we're in the middle of
             // another unrelated (doesn't start with @) partially completed attribute.
