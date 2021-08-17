@@ -34,12 +34,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<RazorConfigurationEndpoint>();
         }
 
-        public object GetRegistrationOptions()
+        public void SetCapability(DidChangeConfigurationCapability capability, ClientCapabilities clientCapabilities)
         {
-            return new TextDocumentRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector
-            };
+            _capability = capability;
         }
 
         public async Task<Unit> Handle(DidChangeConfigurationParams request, CancellationToken cancellationToken)
@@ -49,11 +46,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             await _optionsMonitor.UpdateAsync(cancellationToken);
 
             return new Unit();
-        }
-
-        public void SetCapability(DidChangeConfigurationCapability capability)
-        {
-            _capability = capability;
         }
     }
 }

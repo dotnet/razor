@@ -83,11 +83,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = actionParams.Uri };
+            var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = actionParams.Uri };
             return CreateAddUsingWorkspaceEdit(actionParams.Namespace, codeDocument, codeDocumentIdentifier);
         }
 
-        internal static WorkspaceEdit CreateAddUsingWorkspaceEdit(string @namespace, RazorCodeDocument codeDocument, VersionedTextDocumentIdentifier codeDocumentIdentifier)
+        internal static WorkspaceEdit CreateAddUsingWorkspaceEdit(string @namespace, RazorCodeDocument codeDocument, OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier)
         {
             /* The heuristic is as follows:
              *
@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private static WorkspaceEditDocumentChange GenerateSingleUsingEditsInterpolated(
             RazorCodeDocument codeDocument,
-            VersionedTextDocumentIdentifier codeDocumentIdentifier,
+            OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
             string newUsingNamespace,
             List<RazorUsingDirective> existingUsingDirectives)
         {
@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private static WorkspaceEditDocumentChange GenerateSingleUsingEditsAtTop(
             RazorCodeDocument codeDocument,
-            VersionedTextDocumentIdentifier codeDocumentIdentifier,
+            OptionalVersionedTextDocumentIdentifier codeDocumentIdentifier,
             string newUsingNamespace)
         {
             var head = new Position(0, 0);

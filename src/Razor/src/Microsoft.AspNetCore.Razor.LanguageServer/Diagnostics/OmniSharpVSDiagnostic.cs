@@ -9,7 +9,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 {
-    internal class OmniSharpVSDiagnostic : Diagnostic
+    internal record OmniSharpVSDiagnostic : Diagnostic
     {
         public static readonly PlatformExtensionConverter<Diagnostic, OmniSharpVSDiagnostic> JsonConverter = new();
 

@@ -146,6 +146,7 @@
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
     <VSIXSourceItem Include="$(OutputPath)System.IO.Pipelines.dll" />
     <VSIXSourceItem Include="$(OutputPath)System.Reactive.dll" />
+    <VSIXSourceItem Include="$(OutputPath)System.Threading.Channels.dll" />
   </ItemGroup>
 
   <!-- Resources are a little bit special in a VSIX -->

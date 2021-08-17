@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
         }
 
-        public DefinitionRegistrationOptions GetRegistrationOptions()
+        public DefinitionRegistrationOptions GetRegistrationOptions(DefinitionCapability capability, ClientCapabilities clientCapabilities)
         {
             return new DefinitionRegistrationOptions
             {
@@ -106,10 +106,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                     Range = new Range(new Position(0, 0), new Position(0, 0)),
                 }),
             });
-        }
-
-        public void SetCapability(DefinitionCapability capability)
-        {
         }
 
         internal static async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(

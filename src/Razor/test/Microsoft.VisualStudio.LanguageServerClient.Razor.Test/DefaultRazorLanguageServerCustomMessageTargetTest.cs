@@ -428,14 +428,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(testDocUri, out testDocument))
                 .Returns(true);
 
-            var expectedcSharpResults = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens();
+            var expectedcSharpResults = new OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokens();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokensParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokens>(
                 Methods.TextDocumentSemanticTokensFullName,
                 LanguageServerKind.CSharp.ToLanguageServerName(),
-                It.IsAny<OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokensParams>(),
+                It.IsAny<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult(new ReinvokeResponse<OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens>(_languageClient, expectedcSharpResults)));
+            )).Returns(Task.FromResult(new ReinvokeResponse<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokens>(_languageClient, expectedcSharpResults)));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);

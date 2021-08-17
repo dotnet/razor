@@ -46,11 +46,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -79,11 +79,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -111,11 +111,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 _supportsCodeActionResolve = false
             };
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -146,11 +146,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -183,11 +183,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -218,11 +218,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -260,11 +260,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -302,11 +302,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -337,11 +337,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -380,11 +380,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -417,11 +417,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = true
             };
 
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -464,11 +464,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _supportsCodeActionResolve = false
             };
 
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = new Range(new Position(0, 1), new Position(0, 1)),
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             // Act
@@ -509,11 +509,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var initialRange = new Range(new Position(0, 1), new Position(0, 1));
             var selectionRange = new Range(new Position(0, 5), new Position(0, 5));
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = initialRange,
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
                 {
                     SelectionRange = selectionRange,
                 }
@@ -549,11 +549,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var initialRange = new Range(new Position(0, 1), new Position(0, 1));
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = initialRange,
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
                 {
                     SelectionRange = null
                 }
@@ -593,11 +593,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var initialRange = new Range(new Position(0, 1), new Position(0, 1));
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = initialRange,
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, default);
@@ -635,11 +635,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var initialRange = new Range(new Position(0, 1), new Position(0, 1));
-            var request = new RazorCodeActionParams()
+            var request = new CodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
                 Range = initialRange,
-                Context = new ExtendedCodeActionContext()
+                Context = new OmniSharpVSCodeActionContext()
             };
 
             var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, default);

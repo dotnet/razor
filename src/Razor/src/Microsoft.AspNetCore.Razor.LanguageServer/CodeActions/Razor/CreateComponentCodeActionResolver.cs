@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             if (namespaceDirective != null)
             {
-                var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newComponentUri };
+                var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
                 documentChanges.Add(new WorkspaceEditDocumentChange(new TextDocumentEdit
                 {
                     TextDocument = documentIdentifier,

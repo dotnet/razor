@@ -111,25 +111,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            textEdit.Range = originalRange;
+            textEdit = textEdit with { Range = originalRange };
 
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier()
+            var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
             {
                 Uri = csharpParams.RazorFileUri,
                 Version = documentVersion
             };
 
-            resolvedCodeAction.Edit = new WorkspaceEdit()
+            resolvedCodeAction = resolvedCodeAction with
             {
-                DocumentChanges = new[] {
+                Edit = new WorkspaceEdit()
+                {
+                    DocumentChanges = new[] {
                     new WorkspaceEditDocumentChange(
                         new TextDocumentEdit()
                         {
                             TextDocument = codeDocumentIdentifier,
                             Edits = new[] { textEdit },
-                        }
-                    )
+                        })
                 }
+                },
             };
 
             return resolvedCodeAction;

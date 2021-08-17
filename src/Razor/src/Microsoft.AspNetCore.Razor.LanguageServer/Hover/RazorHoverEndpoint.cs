@@ -19,7 +19,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
     internal class RazorHoverEndpoint : IHoverHandler
     {
-        private HoverCapability _capability;
         private readonly ILogger _logger;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -103,12 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             return hoverItem;
         }
 
-        public void SetCapability(HoverCapability capability)
-        {
-            _capability = capability;
-        }
-
-        public HoverRegistrationOptions GetRegistrationOptions()
+        public HoverRegistrationOptions GetRegistrationOptions(HoverCapability capability, ClientCapabilities clientCapabilities)
         {
             return new HoverRegistrationOptions
             {
