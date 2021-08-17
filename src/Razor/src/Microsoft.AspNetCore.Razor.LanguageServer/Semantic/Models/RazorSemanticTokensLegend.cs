@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
     internal class RazorSemanticTokensLegend
     {
         private const string RazorComponentElementString = "razorComponentElement";
-        private const string RazorComponentAttributeString = "razorComponentAttribute";
+        private const string RazorComponentAttributeString = "RazorComponentAttribute";
         private const string RazorTagHelperElementString = "razorTagHelperElement";
         private const string RazorTagHelperAttributeString = "razorTagHelperAttribute";
         private const string RazorTransitionString = "razorTransition";
