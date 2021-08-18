@@ -291,6 +291,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
         {
+            // Don't do any work if the solution is closing. Any work in the queue will be cancelled on disposal
+            if (args.SolutionIsClosing)
+            {
+                return;
+            }
+
             switch (args.Kind)
             {
                 case ProjectChangeKind.ProjectAdded:

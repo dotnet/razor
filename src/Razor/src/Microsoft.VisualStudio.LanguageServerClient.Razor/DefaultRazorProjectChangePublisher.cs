@@ -113,6 +113,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
+            // Don't do any work if the solution is closing
+            if (args.SolutionIsClosing)
+            {
+                return;
+            }
+
             if (!_lspEditorFeatureDetector.IsLSPEditorAvailable())
             {
                 return;
