@@ -34,11 +34,11 @@
   <Target Name="_CheckForInvalidConfiguration">
     <Error Text="Missing expected property: PackageId" Condition="'$(IsPackable)' != 'false' and '$(PackageId)' == ''" />
 
-    <Exec ContinueOnError="true" Command="node -v" StandardOutputImportance="Low">
+    <Exec ContinueOnError="true" Command="node -v" StandardOutputImportance="Low" Condition="'$(BuildNodeJs)' != 'false'">
        <Output TaskParameter="ExitCode" PropertyName="ErrorCode"/>
     </Exec>
 
-    <Error Text="Building *.npmproj but NodeJS was not detected on path. Ensure NodeJS is on path or disable building NodeJS projects with /p:BuildNodeJs=false. Skipping NodeJS projects will also skip managed projects depending on them, including Components, Mvc and Analysers." Condition="'$(ErrorCode)' != '0'"/>
+    <Error Text="Building *.npmproj but NodeJS was not detected on path. Ensure NodeJS is on path or disable building NodeJS projects with /p:BuildNodeJs=false. Skipping NodeJS projects will also skip managed projects depending on them, including Components, Mvc and Analysers." Condition="'$(BuildNodeJs)' != 'false' and '$(ErrorCode)' != '0'"/>
   </Target>
 
   <Target Name="Restore">
@@ -74,7 +74,7 @@
   </Target>
 
   <Target Name="_Build"
-    Condition="'$(IsBuildable)' != 'false'"
+    Condition="'$(IsBuildable)' != 'false' and '$(BuildNodeJs)' != 'false'"
     DependsOnTargets="GetBuildInputCacheFile"
     Inputs="@(TSFiles);$(BaseIntermediateOutputPath)tsfiles.cache"
     Outputs="@(BuildOutputFiles)">

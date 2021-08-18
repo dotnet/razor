@@ -3,13 +3,12 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
-    internal abstract class RazorCompletionFactsService
-    {
-        public abstract IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext razorCompletionContext, SourceSpan location);
-    }
+    internal record RazorCompletionContext(
+            RazorSyntaxTree SyntaxTree,
+            TagHelperDocumentContext TagHelperDocumentContext,
+            CompletionReason Reason = CompletionReason.Invoked);
 }
