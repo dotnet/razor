@@ -191,7 +191,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                 return _projectEngine;
             }
-
         }
 
         /// <summary>
