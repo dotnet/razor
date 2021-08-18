@@ -133,6 +133,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
+            // Add Razor's Tag Helper opt-out operator to the word pattern
+            linkedEditingRangeResult.WordPattern = linkedEditingRangeResult.WordPattern.Insert(0, "[!?]");
+
             linkedEditingRangeResult.Ranges = mappingResult.Ranges;
             _logger.LogInformation("Returned remapped result.");
             return linkedEditingRangeResult;

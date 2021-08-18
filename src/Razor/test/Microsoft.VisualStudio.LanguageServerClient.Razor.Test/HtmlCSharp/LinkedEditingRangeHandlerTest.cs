@@ -183,6 +183,49 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
+        public async Task HandleRequestAsync_HtmlProjection_ContainsTagHelperOptOutOperator()
+        {
+            // Arrange
+            var invokerCalled = false;
+            var expectedResponse = GetMatchingHTMLBracketRange(5);
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(s_uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 0, MockBehavior.Strict));
+
+            var htmlResponse = GetMatchingHTMLBracketRange(10);
+            var requestInvoker = GetRequestInvoker<LinkedEditingRangeParams, LinkedEditingRanges>(
+                htmlResponse,
+                (method, clientName, highlightParams, ct) =>
+                {
+                    Assert.Equal(Methods.TextDocumentLinkedEditingRangeName, method);
+                    Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
+                    invokerCalled = true;
+                });
+
+            var projectionResult = new ProjectionResult()
+            {
+                LanguageKind = RazorLanguageKind.Html,
+            };
+            var projectionProvider = GetProjectionProvider(projectionResult);
+
+            var documentMappingProvider = GetDocumentMappingProvider(expectedResponse.Ranges, 0, RazorLanguageKind.Html);
+
+            var onLinkedEditingRangeHandler = new LinkedEditingRangeHandler(documentManager, requestInvoker, projectionProvider, documentMappingProvider, LoggerProvider);
+            var onLinkedEditingRangeRequest = new LinkedEditingRangeParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = s_uri },
+                Position = new Position(10, 5)
+            };
+
+            // Act
+            var result = await onLinkedEditingRangeHandler.HandleRequestAsync(onLinkedEditingRangeRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.True(invokerCalled);
+            Assert.NotNull(result);
+            Assert.StartsWith("[!?]", result.WordPattern);
+        }
+
+        [Fact]
         public async Task HandleRequestAsync_RemapFailure_ReturnsNull()
         {
             // Arrange
@@ -274,7 +317,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         Start = new Position(line, 21),
                         End = new Position(line, 30)
                     }
-                }
+                },
+                WordPattern = ""
             };
         }
     }
