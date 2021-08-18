@@ -5,6 +5,16 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal class TestSolutionCloseTracker : SolutionCloseTracker
     {
-        public new bool IsClosing { get; set; }
+        public new bool IsClosing
+        {
+            get
+            {
+                return base.IsClosing;
+            }
+            set
+            {
+                base.IsClosing = value;
+            }
+        }
     }
 }
