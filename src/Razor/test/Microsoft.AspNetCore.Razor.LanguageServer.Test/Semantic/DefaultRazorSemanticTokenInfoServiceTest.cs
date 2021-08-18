@@ -497,7 +497,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         }
 
         [Fact]
-        public async Task GetSemanticTokens_Razor_CompoentAttributeAsync()
+        public async Task GetSemanticTokens_Razor_ComponentAttributeAsync()
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<Component1 bool-val=\"true\"></Component1>";
 
