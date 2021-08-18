@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new DefaultProjectSnapshotManagerDispatcher();
 
+        private static readonly SolutionCloseTracker SolutionCloseTracker = new TestSolutionCloseTracker();
+
         public WorkspaceProjectStateChangeDetectorTest()
         {
             EmptySolution = Workspace.CurrentSolution.GetIsolatedSolution();
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             };
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace, SolutionCloseTracker);
 
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace, SolutionCloseTracker);
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(HostProjectOne);
@@ -235,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
 
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace, SolutionCloseTracker);
 
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
@@ -278,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace, SolutionCloseTracker);
             await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
 
             var solution = SolutionWithTwoProjects.WithProjectAssemblyName(ProjectNumberOne.Id, "Changed");
@@ -309,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace, SolutionCloseTracker);
             await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
             workspaceStateGenerator.ClearQueue();
 
@@ -341,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace, SolutionCloseTracker);
             await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
             workspaceStateGenerator.ClearQueue();
 
@@ -373,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace, SolutionCloseTracker);
             await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
             workspaceStateGenerator.ClearQueue();
 
@@ -405,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace, SolutionCloseTracker);
             await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
             workspaceStateGenerator.ClearQueue();
 
@@ -455,7 +457,7 @@ namespace Microsoft.AspNetCore.Components
             {
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace, SolutionCloseTracker);
             await Dispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(HostProjectOne);
@@ -484,7 +486,7 @@ namespace Microsoft.AspNetCore.Components
             {
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace, SolutionCloseTracker);
             await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectThree), CancellationToken.None);
 
             var solution = SolutionWithOneProject;
@@ -720,8 +722,9 @@ namespace Microsoft.AspNetCore.Components
             public TestProjectSnapshotManager(
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<ProjectSnapshotChangeTrigger> triggers,
-                Workspace workspace)
-                : base(projectSnapshotManagerDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
+                Workspace workspace,
+                SolutionCloseTracker solutionCloseTracker)
+                : base(projectSnapshotManagerDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace, solutionCloseTracker)
             {
             }
         }

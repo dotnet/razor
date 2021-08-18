@@ -1,11 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
@@ -75,8 +70,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
                 new TestErrorReporter(),
                 Array.Empty<ProjectSnapshotChangeTrigger>(),
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                new AdhocWorkspace(services));
+                new AdhocWorkspace(services),
 #pragma warning restore CA2000 // Dispose objects before losing scope
+                new TestSolutionCloseTracker());
         }
 
         private static IReadOnlyList<TagHelperDescriptor> ReadTagHelpers(string filePath)
@@ -89,6 +85,10 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             {
                 return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
             }
+        }
+
+        private class TestSolutionCloseTracker : SolutionCloseTracker
+        {
         }
 
         private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher

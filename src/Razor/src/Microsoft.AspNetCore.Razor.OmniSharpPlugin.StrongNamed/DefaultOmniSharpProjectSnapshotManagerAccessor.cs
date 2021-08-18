@@ -57,11 +57,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             {
                 if (_instance == null)
                 {
+                    var solutionCloseTracker = new OmniSharpSolutionCloseTracker();
+
                     var projectSnapshotManager = new DefaultProjectSnapshotManager(
                         _projectSnapshotManagerDispatcher.InternalDispatcher,
                         new DefaultErrorReporter(),
                         Enumerable.Empty<ProjectSnapshotChangeTrigger>(),
-                        _workspace);
+                        _workspace,
+                        solutionCloseTracker);
 
                     var instance = new DefaultOmniSharpProjectSnapshotManager(projectSnapshotManager, _remoteTextLoaderFactory);
                     _instance = instance;

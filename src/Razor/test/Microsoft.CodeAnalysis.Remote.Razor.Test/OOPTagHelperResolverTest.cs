@@ -172,8 +172,16 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                       CreateProjectSnapshotManagerDispatcher(),
                       Mock.Of<ErrorReporter>(MockBehavior.Strict),
                       Enumerable.Empty<ProjectSnapshotChangeTrigger>(),
-                      workspace)
+                      workspace,
+                      CreateSolutionCloseTracker())
             {
+            }
+
+            private static SolutionCloseTracker CreateSolutionCloseTracker()
+            {
+                var tracker = new Mock<SolutionCloseTracker>(MockBehavior.Strict);
+                tracker.Setup(d => d.IsClosing).Returns(false);
+                return tracker.Object;
             }
 
             private static ProjectSnapshotManagerDispatcher CreateProjectSnapshotManagerDispatcher()

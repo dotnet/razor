@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     {
         public DefaultRazorProjectHostTest()
         {
-            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Workspace);
+            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Workspace, SolutionCloseTracker);
 
             var projectConfigurationFilePathStore = new Mock<ProjectConfigurationFilePathStore>(MockBehavior.Strict);
             projectConfigurationFilePathStore.Setup(s => s.Remove(It.IsAny<string>())).Verifiable();
@@ -1125,8 +1125,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, Workspace workspace)
-                : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Array.Empty<ProjectSnapshotChangeTrigger>(), workspace)
+            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, Workspace workspace, SolutionCloseTracker solutionCloseTracker)
+                : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Array.Empty<ProjectSnapshotChangeTrigger>(), workspace, solutionCloseTracker)
             {
             }
         }

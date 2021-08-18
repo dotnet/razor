@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             HostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
             HostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
 
-            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Enumerable.Empty<ProjectSnapshotChangeTrigger>(), Workspace);
+            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Enumerable.Empty<ProjectSnapshotChangeTrigger>(), Workspace, SolutionCloseTracker);
 
             ProjectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(TagHelperResolver.TagHelpers, default);
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var triggers = new[] { defaultPriorityTrigger, highPriorityTrigger };
 
             // Act
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, triggers, Workspace);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, triggers, Workspace, SolutionCloseTracker);
 
             // Assert
             Assert.Equal(new[] { "highPriority", "lowPriority" }, initializedOrder);
@@ -399,7 +399,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.False(ProjectManager.IsDocumentOpen(Documents[0].FilePath));
         }
 
-
         [UIFact]
         public async Task DocumentClosed_AcceptsChange()
         {
@@ -631,8 +630,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
-                : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
+            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace, SolutionCloseTracker solutionCloseTracker)
+                : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace, solutionCloseTracker)
             {
             }
 

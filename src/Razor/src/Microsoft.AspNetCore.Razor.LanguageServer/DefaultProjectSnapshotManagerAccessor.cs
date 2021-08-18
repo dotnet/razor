@@ -17,6 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
         private readonly AdhocWorkspaceFactory _workspaceFactory;
+        private readonly SolutionCloseTracker _solutionCloseTracker;
         private ProjectSnapshotManagerBase _instance;
         private bool _disposed;
 
@@ -25,7 +26,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             IEnumerable<ProjectSnapshotChangeTrigger> changeTriggers,
             FilePathNormalizer filePathNormalizer,
             IOptionsMonitor<RazorLSPOptions> optionsMonitor,
-            AdhocWorkspaceFactory workspaceFactory)
+            AdhocWorkspaceFactory workspaceFactory,
+            SolutionCloseTracker solutionCloseTracker)
         {
             if (projectSnapshotManagerDispatcher == null)
             {
@@ -52,11 +54,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(workspaceFactory));
             }
 
+            if (solutionCloseTracker is null)
+            {
+                throw new ArgumentNullException(nameof(solutionCloseTracker));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _changeTriggers = changeTriggers;
             _filePathNormalizer = filePathNormalizer;
             _optionsMonitor = optionsMonitor;
             _workspaceFactory = workspaceFactory;
+            _solutionCloseTracker = solutionCloseTracker;
         }
 
         public override ProjectSnapshotManagerBase Instance
@@ -74,7 +82,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         _projectSnapshotManagerDispatcher,
                         new DefaultErrorReporter(),
                         _changeTriggers,
-                        workspace);
+                        workspace,
+                        _solutionCloseTracker);
                 }
 
                 return _instance;
