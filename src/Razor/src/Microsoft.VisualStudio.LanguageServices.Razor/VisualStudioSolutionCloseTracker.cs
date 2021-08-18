@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
@@ -14,8 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
     [System.Composition.Shared]
     internal class VisualStudioSolutionCloseTracker : SolutionCloseTracker, IVsSolutionEvents, IDisposable
     {
+        private readonly IVsSolution? _solution;
         private uint _cookie;
-        private readonly IVsSolution _solution;
 
         [ImportingConstructor]
         public VisualStudioSolutionCloseTracker(
@@ -35,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public void Dispose()
         {
-            _solution.UnadviseSolutionEvents(_cookie);
+            _solution?.UnadviseSolutionEvents(_cookie);
         }
 
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
