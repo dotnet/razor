@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public string DocumentFilePath { get; }
 
         public ProjectChangeKind Kind { get; }
+
         public bool SolutionIsClosing { get; }
 
         public static ProjectChangeEventArgs CreateTestInstance(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind, bool solutionIsClosing = false) =>
