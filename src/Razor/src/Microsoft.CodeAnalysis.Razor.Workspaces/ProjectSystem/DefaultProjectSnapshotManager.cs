@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private readonly ErrorReporter _errorReporter;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ProjectSnapshotChangeTrigger[] _triggers;
+        private readonly SolutionCloseTracker _solutionCloseTracker;
 
         // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
         // created lazily.
@@ -36,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ErrorReporter errorReporter,
             IEnumerable<ProjectSnapshotChangeTrigger> triggers,
-            Workspace workspace)
+            Workspace workspace,
+            SolutionCloseTracker solutionCloseTracker)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
@@ -58,10 +60,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(workspace));
             }
 
+            if (solutionCloseTracker is null)
+            {
+                throw new ArgumentNullException(nameof(solutionCloseTracker));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _errorReporter = errorReporter;
             _triggers = triggers.OrderByDescending(trigger => trigger.InitializePriority).ToArray();
             Workspace = workspace;
+            _solutionCloseTracker = solutionCloseTracker;
 
             _projects = new Dictionary<string, Entry>(FilePathComparer.Instance);
             _openDocuments = new HashSet<string>(FilePathComparer.Instance);
@@ -532,6 +540,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var snapshot = hostProject?.FilePath == null ? null : GetLoadedProject(hostProject.FilePath);
             _errorReporter.ReportError(exception, snapshot);
+        }
+
+        private void NotifyListeners(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)
+        {
+            NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, _solutionCloseTracker.IsClosing));
         }
 
         // virtual so it can be overridden in tests
