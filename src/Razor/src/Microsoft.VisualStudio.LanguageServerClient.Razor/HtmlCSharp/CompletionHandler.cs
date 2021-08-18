@@ -305,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 Label = "for (...)",
                 InsertText =
-                    @$"for (var ${{1:i}} = 0; ${{1:i}} < ${{2:length}}; ${{1:i}})
+                    @$"for (var ${{1:i}} = 0; ${{1:i}} < ${{2:length}}; ${{1:i}}++)
 {baseIndentationString}{{
 {baseIndentationPlus1String}$0
 {baseIndentationString}}}",
