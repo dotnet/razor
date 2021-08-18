@@ -309,6 +309,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 _solutionIsClosing = true;
                 return;
             }
+            _solutionIsClosing = false;
 
             switch (e.Kind)
             {

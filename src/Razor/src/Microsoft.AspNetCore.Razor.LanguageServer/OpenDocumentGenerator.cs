@@ -253,6 +253,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _solutionIsClosing = true;
                 return;
             }
+            _solutionIsClosing = false;
 
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
