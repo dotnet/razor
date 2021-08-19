@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -210,7 +212,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
             {
-                AddSemanticRange(node.Name, RazorSemanticTokensLegend.RazorTagHelperElement);
+                var semanticKind = GetElementSemanticKind(node);
+                AddSemanticRange(node.Name, semanticKind);
             }
             else
             {
@@ -238,7 +241,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
             {
-                AddSemanticRange(node.Name, RazorSemanticTokensLegend.RazorTagHelperElement);
+                var semanticKind = GetElementSemanticKind(node);
+                AddSemanticRange(node.Name, semanticKind);
             }
             else
             {
@@ -254,7 +258,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (node.TagHelperAttributeInfo.Bound)
             {
-                AddSemanticRange(node.Name, RazorSemanticTokensLegend.RazorTagHelperAttribute);
+                var semanticKind = GetAttributeSemanticKind(node);
+                AddSemanticRange(node.Name, semanticKind);
             }
         }
 
@@ -263,7 +268,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Visit(node.NamePrefix);
             if (node.TagHelperAttributeInfo.Bound)
             {
-                AddSemanticRange(node.Name, RazorSemanticTokensLegend.RazorTagHelperAttribute);
+                var semanticKind = GetAttributeSemanticKind(node);
+                AddSemanticRange(node.Name, semanticKind);
             }
             else
             {
@@ -350,10 +356,51 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
         #endregion Razor
 
+        private static int GetElementSemanticKind(SyntaxNode node)
+        {
+            var semanticKind = IsComponent(node) ? RazorSemanticTokensLegend.RazorComponentElement : RazorSemanticTokensLegend.RazorTagHelperElement;
+            return semanticKind;
+        }
+
+        private static int GetAttributeSemanticKind(SyntaxNode node)
+        {
+            var semanticKind = IsComponent(node) ? RazorSemanticTokensLegend.RazorComponentAttribute : RazorSemanticTokensLegend.RazorTagHelperAttribute;
+            return semanticKind;
+        }
+
+        private static bool IsComponent(SyntaxNode node)
+        {
+            if (node is MarkupTagHelperElementSyntax element)
+            {
+                var componentDescriptor = element.TagHelperInfo.BindingResult.Descriptors.FirstOrDefault(d => d.IsComponentTagHelper());
+                return componentDescriptor is not null;
+            }
+            else if (node is MarkupTagHelperStartTagSyntax startTag)
+            {
+                return IsComponent(startTag.Parent);
+            }
+            else if (node is MarkupTagHelperEndTagSyntax endTag)
+            {
+                return IsComponent(endTag.Parent);
+            }
+            else if (node is MarkupTagHelperAttributeSyntax attribute)
+            {
+                return IsComponent(attribute.Parent.Parent);
+            }
+            else if (node is MarkupMinimizedTagHelperAttributeSyntax minimizedTagHelperAttribute)
+            {
+                return IsComponent(minimizedTagHelperAttribute.Parent.Parent);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         // We don't want to classify TagNames of well-known HTML
         // elements as TagHelpers (even if they are). So the 'input' in`<input @onclick='...' />`
         // needs to not be marked as a TagHelper, but `<Input @onclick='...' />` should be.
-        private bool ClassifyTagName(MarkupTagHelperElementSyntax node)
+        private static bool ClassifyTagName(MarkupTagHelperElementSyntax node)
         {
             if (node is null)
             {

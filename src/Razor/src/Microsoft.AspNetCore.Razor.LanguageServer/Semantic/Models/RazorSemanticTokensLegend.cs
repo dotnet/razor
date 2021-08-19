@@ -10,6 +10,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
     internal class RazorSemanticTokensLegend
     {
+        private const string RazorComponentElementString = "razorComponentElement";
+        private const string RazorComponentAttributeString = "RazorComponentAttribute";
         private const string RazorTagHelperElementString = "razorTagHelperElement";
         private const string RazorTagHelperAttributeString = "razorTagHelperAttribute";
         private const string RazorTransitionString = "razorTransition";
@@ -34,6 +36,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
         public static int RazorCommentStar => TokenTypesLegend[RazorCommentStarString];
         public static int RazorComment => TokenTypesLegend[RazorCommentString];
         public static int RazorTransition => TokenTypesLegend[RazorTransitionString];
+        public static int RazorComponentElement => TokenTypesLegend[RazorComponentElementString];
+        public static int RazorComponentAttribute => TokenTypesLegend[RazorComponentAttributeString];
         public static int RazorTagHelperElement => TokenTypesLegend[RazorTagHelperElementString];
         public static int RazorTagHelperAttribute => TokenTypesLegend[RazorTagHelperAttributeString];
         public static int MarkupTagDelimiter => TokenTypesLegend[MarkupTagDelimiterString];
@@ -157,6 +161,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
             MarkupCommentPunctuationString,
             MarkupCommentString,
             MarkupAttributeValueString,
+            RazorComponentElementString, // 100
+            RazorComponentAttributeString,
         };
 
         private static readonly string[] s_tokenModifiers = new string[] {
