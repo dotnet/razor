@@ -3,7 +3,7 @@
 
 namespace Microsoft.CodeAnalysis.Razor
 {
-    public abstract class SolutionCloseTracker
+    internal abstract class SolutionCloseTracker
     {
         public virtual bool IsClosing { get; protected set; }
     }
