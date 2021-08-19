@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _projects[hostProject.FilePath] = entry;
 
             // We need to notify listeners about every project add.
-            NotifyListeners(null, entry.GetSnapshot(), null, ProjectChangeKind.ProjectAdded);
+            NotifyListeners(older: null, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectAdded);
         }
 
         public override void ProjectConfigurationChanged(HostProject hostProject)
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (_solutionCloseTracker.IsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
-                    NotifyListeners(oldSnapshot, oldSnapshot, null, ProjectChangeKind.ProjectChanged);
+                    NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
                 }
                 else
                 {
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         var oldSnapshot = entry.GetSnapshot();
                         entry = new Entry(state);
                         _projects[hostProject.FilePath] = entry;
-                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), null, ProjectChangeKind.ProjectChanged);
+                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectChanged);
                     }
                 }
             }
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (_solutionCloseTracker.IsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
-                    NotifyListeners(oldSnapshot, oldSnapshot, null, ProjectChangeKind.ProjectChanged);
+                    NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
                 }
                 else
                 {
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         var oldSnapshot = entry.GetSnapshot();
                         entry = new Entry(state);
                         _projects[projectFilePath] = entry;
-                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), null, ProjectChangeKind.ProjectChanged);
+                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectChanged);
                     }
                 }
             }
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 // We need to notify listeners about every project removal.
                 var oldSnapshot = entry.GetSnapshot();
                 _projects.Remove(hostProject.FilePath);
-                NotifyListeners(oldSnapshot, null, null, ProjectChangeKind.ProjectRemoved);
+                NotifyListeners(oldSnapshot, newer: null, documentFilePath: null, ProjectChangeKind.ProjectRemoved);
             }
         }
 
