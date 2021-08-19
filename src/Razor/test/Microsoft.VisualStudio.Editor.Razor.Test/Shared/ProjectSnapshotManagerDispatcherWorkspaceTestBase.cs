@@ -10,8 +10,6 @@ namespace Xunit
     {
         internal ProjectSnapshotManagerDispatcher Dispatcher { get; } = new TestProjectSnapshotManagerDispatcher();
 
-        internal TestSolutionCloseTracker SolutionCloseTracker { get; } = new TestSolutionCloseTracker();
-
         internal static JoinableTaskFactory JoinableTaskFactory
         {
             get

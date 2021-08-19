@@ -14,14 +14,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class DefaultProjectSnapshotManagerFactory : ILanguageServiceFactory
     {
         private readonly IEnumerable<ProjectSnapshotChangeTrigger> _triggers;
-        private readonly SolutionCloseTracker _solutionCloseTracker;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
         [ImportingConstructor]
         public DefaultProjectSnapshotManagerFactory(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            [ImportMany] IEnumerable<ProjectSnapshotChangeTrigger> triggers,
-            SolutionCloseTracker solutionCloseTracker)
+            [ImportMany] IEnumerable<ProjectSnapshotChangeTrigger> triggers)
         {
             if (projectSnapshotManagerDispatcher == null)
             {
@@ -33,14 +31,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(triggers));
             }
 
-            if (solutionCloseTracker == null)
-            {
-                throw new ArgumentNullException(nameof(solutionCloseTracker));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _triggers = triggers;
-            _solutionCloseTracker = solutionCloseTracker;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
@@ -54,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 _projectSnapshotManagerDispatcher,
                 languageServices.WorkspaceServices.GetRequiredService<ErrorReporter>(),
                 _triggers,
-                languageServices.WorkspaceServices.Workspace,
-                _solutionCloseTracker);
+                languageServices.WorkspaceServices.Workspace);
         }
     }
 }

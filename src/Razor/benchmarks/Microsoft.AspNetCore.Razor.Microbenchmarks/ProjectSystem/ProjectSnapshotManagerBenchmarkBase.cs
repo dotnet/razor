@@ -70,9 +70,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
                 new TestErrorReporter(),
                 Array.Empty<ProjectSnapshotChangeTrigger>(),
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                new AdhocWorkspace(services),
+                new AdhocWorkspace(services));
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                new TestSolutionCloseTracker());
         }
 
         private static IReadOnlyList<TagHelperDescriptor> ReadTagHelpers(string filePath)
@@ -85,10 +84,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             {
                 return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader);
             }
-        }
-
-        private class TestSolutionCloseTracker : SolutionCloseTracker
-        {
         }
 
         private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher

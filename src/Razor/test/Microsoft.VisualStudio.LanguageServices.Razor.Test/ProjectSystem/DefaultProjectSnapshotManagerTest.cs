@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             HostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
             HostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
 
-            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Enumerable.Empty<ProjectSnapshotChangeTrigger>(), Workspace, SolutionCloseTracker);
+            ProjectManager = new TestProjectSnapshotManager(Dispatcher, Enumerable.Empty<ProjectSnapshotChangeTrigger>(), Workspace);
 
             ProjectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(TagHelperResolver.TagHelpers, default);
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var triggers = new[] { defaultPriorityTrigger, highPriorityTrigger };
 
             // Act
-            var projectManager = new TestProjectSnapshotManager(Dispatcher, triggers, Workspace, SolutionCloseTracker);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, triggers, Workspace);
 
             // Assert
             Assert.Equal(new[] { "highPriority", "lowPriority" }, initializedOrder);
@@ -636,8 +636,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectManager.ProjectAdded(HostProject);
             ProjectManager.Reset();
 
-            SolutionCloseTracker.IsClosing = true;
-
             ProjectManager.Changed += (sender, args) =>
             {
                 Assert.True(args.SolutionIsClosing);
@@ -647,6 +645,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
 
             // Act
+            ProjectManager.SolutionClosed();
             ProjectManager.DocumentAdded(HostProject, Documents[0], textLoader.Object);
 
             // Assert
@@ -656,8 +655,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace, SolutionCloseTracker solutionCloseTracker)
-                : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace, solutionCloseTracker)
+            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
+                : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
             {
             }
 

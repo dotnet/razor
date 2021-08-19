@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private readonly ErrorReporter _errorReporter;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ProjectSnapshotChangeTrigger[] _triggers;
-        private readonly SolutionCloseTracker _solutionCloseTracker;
 
         // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
         // created lazily.
@@ -33,12 +32,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
         private readonly Queue<ProjectChangeEventArgs> _notificationWork;
 
+        private bool _solutionIsClosing;
+
         public DefaultProjectSnapshotManager(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ErrorReporter errorReporter,
             IEnumerable<ProjectSnapshotChangeTrigger> triggers,
-            Workspace workspace,
-            SolutionCloseTracker solutionCloseTracker)
+            Workspace workspace)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
@@ -60,16 +60,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            if (solutionCloseTracker is null)
-            {
-                throw new ArgumentNullException(nameof(solutionCloseTracker));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _errorReporter = errorReporter;
             _triggers = triggers.OrderByDescending(trigger => trigger.InitializePriority).ToArray();
             Workspace = workspace;
-            _solutionCloseTracker = solutionCloseTracker;
 
             _projects = new Dictionary<string, Entry>(FilePathComparer.Instance);
             _openDocuments = new HashSet<string>(FilePathComparer.Instance);
@@ -187,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionCloseTracker.IsClosing)
+                if (_solutionIsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, document.FilePath, ProjectChangeKind.DocumentAdded);
@@ -228,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionCloseTracker.IsClosing)
+                if (_solutionIsClosing)
                 {
                     var snapshot = entry.GetSnapshot();
                     NotifyListeners(snapshot, snapshot, document.FilePath, ProjectChangeKind.DocumentRemoved);
@@ -272,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionCloseTracker.IsClosing)
+                if (_solutionIsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
@@ -337,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionCloseTracker.IsClosing)
+                if (_solutionIsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
@@ -389,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 var currentText = sourceText;
 
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionCloseTracker.IsClosing)
+                if (_solutionIsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
@@ -449,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionCloseTracker.IsClosing)
+                if (_solutionIsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
@@ -507,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionCloseTracker.IsClosing)
+                if (_solutionIsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
@@ -545,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(projectFilePath, out var entry))
             {
                 // if the solution is closing we don't need to bother computing new state
-                if (_solutionCloseTracker.IsClosing)
+                if (_solutionIsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
@@ -584,6 +578,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
+        public override void SolutionOpened()
+        {
+            _solutionIsClosing = false;
+        }
+
+        public override void SolutionClosed()
+        {
+            _solutionIsClosing = true;
+        }
+
         public override void ReportError(Exception exception)
         {
             if (exception == null)
@@ -617,7 +621,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         private void NotifyListeners(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)
         {
-            NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, _solutionCloseTracker.IsClosing));
+            NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, _solutionIsClosing));
         }
 
         // virtual so it can be overridden in tests

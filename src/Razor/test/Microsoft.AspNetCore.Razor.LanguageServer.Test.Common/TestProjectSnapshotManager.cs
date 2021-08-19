@@ -13,8 +13,8 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 {
     internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
     {
-        private TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, Workspace workspace, SolutionCloseTracker solutionCloseTracker)
-            : base(dispatcher, new DefaultErrorReporter(), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace, solutionCloseTracker)
+        private TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, Workspace workspace)
+            : base(dispatcher, new DefaultErrorReporter(), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
         {
         }
 
@@ -32,8 +32,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
                 },
                 razorLanguageServices: Enumerable.Empty<ILanguageService>());
             var workspace = TestWorkspace.Create(services);
-            var solutionCloseTracker = new TestSolutionCloseTracker();
-            var testProjectManager = new TestProjectSnapshotManager(dispatcher, workspace, solutionCloseTracker);
+            var testProjectManager = new TestProjectSnapshotManager(dispatcher, workspace);
 
             return testProjectManager;
         }

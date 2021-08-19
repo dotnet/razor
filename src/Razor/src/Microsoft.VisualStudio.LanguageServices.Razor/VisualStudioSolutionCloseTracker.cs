@@ -5,39 +5,66 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Razor;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    [Export(typeof(SolutionCloseTracker))]
+    [Export(typeof(ProjectSnapshotChangeTrigger))]
     [System.Composition.Shared]
-    internal class VisualStudioSolutionCloseTracker : SolutionCloseTracker, IVsSolutionEvents, IDisposable
+    internal class VisualStudioSolutionCloseTracker : ProjectSnapshotChangeTrigger, IVsSolutionEvents, IDisposable
     {
-        private readonly IVsSolution? _solution;
+        private IVsSolution? _solution;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly JoinableTaskContext _joinableTaskContext;
+
         private uint _cookie;
+        private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
         [ImportingConstructor]
         public VisualStudioSolutionCloseTracker(
-           [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+           [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+           JoinableTaskContext joinableTaskContext)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            if (serviceProvider.GetService(typeof(SVsSolution)) is IVsSolution solution)
+            if (joinableTaskContext == null)
             {
-                _solution = solution;
-                _solution.AdviseSolutionEvents(this, out _cookie);
+                throw new ArgumentNullException(nameof(joinableTaskContext));
             }
+
+            _serviceProvider = serviceProvider;
+            _joinableTaskContext = joinableTaskContext;
+        }
+
+        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+        {
+            _projectSnapshotManager = projectManager;
+
+            _ = _joinableTaskContext.Factory.RunAsync(async () =>
+            {
+                await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+
+                if (_serviceProvider.GetService(typeof(SVsSolution)) is IVsSolution solution)
+                {
+                    Debug.Assert(_solution == null);
+                    _solution = solution;
+                    _solution.AdviseSolutionEvents(this, out _cookie);
+                }
+            });
         }
 
         public void Dispose()
         {
             _solution?.UnadviseSolutionEvents(_cookie);
+            _solution = null;
         }
 
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
@@ -72,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
-            this.IsClosing = false;
+            _projectSnapshotManager?.SolutionOpened();
             return VSConstants.S_OK;
         }
 
@@ -83,14 +110,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public int OnBeforeCloseSolution(object pUnkReserved)
         {
-            this.IsClosing = true;
+            _projectSnapshotManager?.SolutionClosed();
             return VSConstants.S_OK;
         }
 
         public int OnAfterCloseSolution(object pUnkReserved)
         {
-            this.IsClosing = false;
-            return VSConstants.S_OK;
+            _projectSnapshotManager?.SolutionOpened();
+            return HResult.NotImplemented;
         }
     }
 }
