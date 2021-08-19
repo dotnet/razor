@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     [Export(typeof(ProjectSnapshotChangeTrigger))]
     [System.Composition.Shared]
-    internal class VisualStudioSolutionCloseTracker : ProjectSnapshotChangeTrigger, IVsSolutionEvents, IDisposable
+    internal class VisualStudioSolutionCloseChangeTrigger : ProjectSnapshotChangeTrigger, IVsSolutionEvents, IDisposable
     {
         private IVsSolution? _solution;
         private readonly IServiceProvider _serviceProvider;
@@ -26,20 +26,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
         [ImportingConstructor]
-        public VisualStudioSolutionCloseTracker(
+        public VisualStudioSolutionCloseChangeTrigger(
            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
            JoinableTaskContext joinableTaskContext)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (joinableTaskContext == null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
             _serviceProvider = serviceProvider;
             _joinableTaskContext = joinableTaskContext;
         }
@@ -54,7 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
                 if (_serviceProvider.GetService(typeof(SVsSolution)) is IVsSolution solution)
                 {
-                    Debug.Assert(_solution == null);
                     _solution = solution;
                     _solution.AdviseSolutionEvents(this, out _cookie);
                 }
@@ -64,7 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         public void Dispose()
         {
             _solution?.UnadviseSolutionEvents(_cookie);
-            _solution = null;
         }
 
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
