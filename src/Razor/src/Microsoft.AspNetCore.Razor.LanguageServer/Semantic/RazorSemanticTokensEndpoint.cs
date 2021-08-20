@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     Delta = true,
                 },
                 Legend = RazorSemanticTokensLegend.Instance,
-                Range = true,
+                Range = false,
             };
         }
 
