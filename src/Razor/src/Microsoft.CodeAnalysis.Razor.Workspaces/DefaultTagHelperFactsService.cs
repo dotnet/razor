@@ -229,5 +229,26 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             return (ancestorTagName: null, ancestorIsTagHelper: false);
         }
+
+        internal override bool TryGetNearestAncestorStartAndEndTags(
+            IEnumerable<SyntaxNode> ancestors,
+            out MarkupTagHelperStartTagSyntax startTag,
+            out MarkupTagHelperEndTagSyntax endTag)
+        {
+            foreach (var ancestor in ancestors)
+            {
+                if (ancestor is MarkupTagHelperElementSyntax tagHelperElement)
+                {
+                    // It's possible for start or end tag to be null in malformed cases.
+                    startTag = tagHelperElement.StartTag;
+                    endTag = tagHelperElement.EndTag;
+                    return startTag is not null && endTag is not null;
+                }
+            }
+
+            startTag = null;
+            endTag = null;
+            return false;
+        }
     }
 }

@@ -33,6 +33,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
+using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -129,6 +130,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<MonitorProjectConfigurationFilePathEndpoint>()
                     .WithHandler<RazorComponentRenameEndpoint>()
                     .WithHandler<RazorDefinitionEndpoint>()
+                    .WithHandler<LinkedEditingRangeEndpoint>()
                     .WithServices(services =>
                     {
                         services.AddLogging(builder => builder
