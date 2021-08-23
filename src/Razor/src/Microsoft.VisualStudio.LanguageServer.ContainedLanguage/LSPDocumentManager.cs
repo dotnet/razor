@@ -7,8 +7,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     public abstract class LSPDocumentManager
     {
-        public abstract event EventHandler<LSPDocumentChangeEventArgs> Changed;
-
         public abstract bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot);
     }
 }

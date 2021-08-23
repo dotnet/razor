@@ -266,8 +266,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = new Dictionary<Uri, LSPDocumentSnapshot>();
 
-            public override event EventHandler<LSPDocumentChangeEventArgs> Changed;
-
             public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
             {
                 return _documents.TryGetValue(uri, out lspDocumentSnapshot);
@@ -276,8 +274,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             public void AddDocument(Uri uri, LSPDocumentSnapshot documentSnapshot)
             {
                 _documents.Add(uri, documentSnapshot);
-
-                Changed?.Invoke(this, null);
             }
         }
     }

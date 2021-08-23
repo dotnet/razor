@@ -11,8 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     {
         private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = new Dictionary<Uri, LSPDocumentSnapshot>();
 
-        public override event EventHandler<LSPDocumentChangeEventArgs> Changed;
-
         public int UpdateVirtualDocumentCallCount { get; private set; }
 
         public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
@@ -23,8 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public void AddDocument(Uri uri, LSPDocumentSnapshot documentSnapshot)
         {
             _documents.Add(uri, documentSnapshot);
-
-            Changed?.Invoke(this, null);
         }
 
         public override void TrackDocument(ITextBuffer buffer)
