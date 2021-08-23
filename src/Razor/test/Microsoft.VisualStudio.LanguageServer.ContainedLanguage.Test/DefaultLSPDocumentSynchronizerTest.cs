@@ -203,14 +203,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         private static void NotifyLSPDocumentAdded(LSPDocumentSnapshot lspDocument, DefaultLSPDocumentSynchronizer synchronizer)
         {
-            var args = new LSPDocumentChangeEventArgs(old: null, @new: lspDocument, LSPDocumentChangeKind.Added);
-            synchronizer.DocumentManager_Changed(sender: null, args);
+            synchronizer.Changed(old: null, @new: lspDocument, virtualOld: null, virtualNew: null, LSPDocumentChangeKind.Added);
         }
 
         private static void NotifyLSPDocumentRemoved(LSPDocumentSnapshot lspDocument, DefaultLSPDocumentSynchronizer synchronizer)
         {
-            var args = new LSPDocumentChangeEventArgs(old: lspDocument, @new: null, LSPDocumentChangeKind.Removed);
-            synchronizer.DocumentManager_Changed(sender: null, args);
+            synchronizer.Changed(old: lspDocument, @new: null, virtualOld: null, virtualNew: null, LSPDocumentChangeKind.Removed);
         }
 
         private (TestLSPDocumentSnapshot, TestVirtualDocumentSnapshot) CreateDocuments(int lspDocumentVersion, long virtualDocumentSyncVersion)

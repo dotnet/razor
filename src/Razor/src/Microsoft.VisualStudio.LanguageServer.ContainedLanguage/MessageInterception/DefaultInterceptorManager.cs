@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
             _lazyInterceptors = lazyInterceptors.ToList().AsReadOnly();
         }
 
-        public override bool HasInterceptor(string methodName)
+        public override bool HasInterceptor(string methodName, string contentType)
         {
             if (string.IsNullOrEmpty(methodName))
             {
@@ -34,11 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
 
             foreach (var interceptor in _lazyInterceptors)
             {
-                foreach (var method in interceptor.Metadata.InterceptMethods)
+                if (interceptor.Metadata.ContentTypes.Any(ct => contentType.Equals(ct, StringComparison.Ordinal)))
                 {
-                    if (method.Equals(methodName, StringComparison.Ordinal))
+                    foreach (var method in interceptor.Metadata.InterceptMethods)
                     {
-                        return true;
+                        if (method.Equals(methodName, StringComparison.Ordinal))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -46,24 +49,24 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
             return false;
         }
 
-        public override async Task<JToken?> ProcessInterceptorsAsync(string methodName, JToken message, string sourceLanguageName, CancellationToken cancellationToken)
+        public override async Task<JToken?> ProcessInterceptorsAsync(string methodName, JToken message, string contentType, CancellationToken cancellationToken)
         {
             _ = message ?? throw new ArgumentNullException(nameof(message));
             if (string.IsNullOrEmpty(methodName))
             {
                 throw new ArgumentException("Cannot be empty", nameof(methodName));
             }
-            if (string.IsNullOrEmpty(sourceLanguageName))
+            if (string.IsNullOrEmpty(contentType))
             {
-                throw new ArgumentException("Cannot be empty", nameof(sourceLanguageName));
+                throw new ArgumentException("Cannot be empty", nameof(contentType));
             }
 
             for (var i = 0; i < _lazyInterceptors.Count; i++)
             {
                 var interceptor = _lazyInterceptors[i];
-                if (CanInterceptMessage(methodName, interceptor.Metadata.InterceptMethods))
+                if (CanInterceptMessage(methodName, contentType, interceptor.Metadata))
                 {
-                    var result = await interceptor.Value.ApplyChangesAsync(message, sourceLanguageName, cancellationToken);
+                    var result = await interceptor.Value.ApplyChangesAsync(message, contentType, cancellationToken);
                     cancellationToken.ThrowIfCancellationRequested();
                     if (result.UpdatedToken is null)
                     {
@@ -84,9 +87,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
 
             return message;
 
-            static bool CanInterceptMessage(string methodName, IEnumerable<string> handledMessages)
+            static bool CanInterceptMessage(string methodName, string contentType, IInterceptMethodMetadata metadata)
             {
-                return handledMessages.Any(m => methodName.Equals(m, StringComparison.Ordinal));
+                var handledMessages = metadata.InterceptMethods;
+                var contentTypes = metadata.ContentTypes;
+
+                return handledMessages.Any(m => methodName.Equals(m, StringComparison.Ordinal))
+                    && contentTypes.Any(ct => contentType.Equals(ct, StringComparison.Ordinal));
             }
         }
     }

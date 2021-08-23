@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -12,8 +12,8 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    [Shared]
     [Export(typeof(VirtualDocumentFactory))]
+    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
         public static readonly string CSharpClientName = "RazorCSharp";

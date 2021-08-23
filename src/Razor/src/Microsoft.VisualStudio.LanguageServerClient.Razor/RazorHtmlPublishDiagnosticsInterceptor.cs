@@ -12,12 +12,14 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterceptio
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(MessageInterceptor))]
     [InterceptMethod(Methods.TextDocumentPublishDiagnosticsName)]
+    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class RazorHtmlPublishDiagnosticsInterceptor : MessageInterceptor
     {
         private readonly LSPDocumentManager _documentManager;

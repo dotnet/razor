@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
 
@@ -15,13 +16,24 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     {
         public DefaultLSPDocumentManagerTest()
         {
-            ChangeTriggers = Enumerable.Empty<LSPDocumentManagerChangeTrigger>();
+            var contentType = Mock.Of<IContentType>(ct =>
+                ct.TypeName == "text" &&
+                ct.IsOfType("text"),
+                MockBehavior.Strict
+            );
+            var snapshot = Mock.Of<ITextSnapshot>(s =>
+                s.ContentType == contentType,
+                MockBehavior.Strict
+            );
+            ChangeListeners = Enumerable.Empty<Lazy<LSPDocumentChangeListener, IContentTypeMetadata>>();
             JoinableTaskContext = new JoinableTaskContext();
             TextBuffer = Mock.Of<ITextBuffer>(MockBehavior.Strict);
             Uri = new Uri("C:/path/to/file.razor");
             UriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(TextBuffer) == Uri, MockBehavior.Strict);
             Mock.Get(UriProvider).Setup(p => p.Remove(It.IsAny<ITextBuffer>())).Verifiable();
-            LSPDocumentSnapshot = Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict);
+            LSPDocumentSnapshot = Mock.Of<LSPDocumentSnapshot>(s =>
+                s.Snapshot == snapshot,
+                MockBehavior.Strict);
             LSPDocument = Mock.Of<LSPDocument>(document =>
                 document.Uri == Uri &&
                 document.CurrentSnapshot == LSPDocumentSnapshot &&
@@ -31,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             LSPDocumentFactory = Mock.Of<LSPDocumentFactory>(factory => factory.Create(TextBuffer) == LSPDocument, MockBehavior.Strict);
         }
 
-        private IEnumerable<LSPDocumentManagerChangeTrigger> ChangeTriggers { get; }
+        private IEnumerable<Lazy<LSPDocumentChangeListener, IContentTypeMetadata>> ChangeListeners { get; }
 
         private JoinableTaskContext JoinableTaskContext { get; }
 
@@ -51,106 +63,114 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public void TrackDocument_TriggersDocumentAdded()
         {
             // Arrange
-            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeTriggers);
-            var changedCalled = false;
-            manager.Changed += (sender, args) =>
-            {
-                changedCalled = true;
-                Assert.Null(args.Old);
-                Assert.Same(LSPDocumentSnapshot, args.New);
-                Assert.Equal(LSPDocumentChangeKind.Added, args.Kind);
-            };
+            var changeListenerLazy = CreateChangeListenerForContentTypes(new[] { LSPDocumentSnapshot.Snapshot.ContentType.TypeName });
+
+            var changeListenerMock = Mock.Get(changeListenerLazy.Value);
+            changeListenerMock.Setup(l => l.Changed(null, LSPDocumentSnapshot, It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.Added));
+
+            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, new[] { changeListenerLazy });
 
             // Act
             manager.TrackDocument(TextBuffer);
 
             // Assert
-            Assert.True(changedCalled);
+            changeListenerMock.Verify(l => l.Changed(null, LSPDocumentSnapshot, It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.Added),
+                                           Times.Once);
         }
 
         [Fact]
         public void UntrackDocument_TriggersDocumentRemoved()
         {
             // Arrange
-            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeTriggers);
+            var changeListenerLazy = CreateChangeListenerForContentTypes(new[] { LSPDocumentSnapshot.Snapshot.ContentType.TypeName });
+
+            var changeListenerMock = Mock.Get(changeListenerLazy.Value);
+            changeListenerMock.Setup(l => l.Changed(null, LSPDocumentSnapshot, It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.Added));
+            changeListenerMock.Setup(l => l.Changed(LSPDocumentSnapshot, null, It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.Removed));
+
+            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, new[] { changeListenerLazy });
+
             manager.TrackDocument(TextBuffer);
-            var changedCalled = false;
-            manager.Changed += (sender, args) =>
-            {
-                changedCalled = true;
-                Assert.Null(args.New);
-                Assert.Same(LSPDocumentSnapshot, args.Old);
-                Assert.Equal(LSPDocumentChangeKind.Removed, args.Kind);
-            };
 
             // Act
             manager.UntrackDocument(TextBuffer);
 
             // Assert
-            Assert.True(changedCalled);
+            changeListenerMock.Verify(l => l.Changed(LSPDocumentSnapshot, null, It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.Removed),
+                                           Times.Once);
         }
 
         [Fact]
         public void UpdateVirtualDocument_Noops_UnknownDocument()
         {
             // Arrange
-            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeTriggers);
-            var changedCalled = false;
-            manager.Changed += (sender, args) => changedCalled = true;
+            var changeListenerLazy = CreateChangeListenerForContentTypes(new[] { LSPDocumentSnapshot.Snapshot.ContentType.TypeName });
+
+            var changeListenerMock = Mock.Get(changeListenerLazy.Value);
+            changeListenerMock.Setup(l => l.Changed(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<LSPDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<LSPDocumentChangeKind>()));
+
+            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, new[] { changeListenerLazy });
             var changes = new[] { new VisualStudioTextChange(1, 1, string.Empty) };
 
             // Act
             manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123);
 
             // Assert
-            Assert.False(changedCalled);
+            changeListenerMock.Verify(l => l.Changed(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<LSPDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<LSPDocumentChangeKind>()),
+                                           Times.Never);
         }
 
         [Fact]
         public void UpdateVirtualDocument_Noops_NoChangesSameVersion()
         {
             // Arrange
-            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeTriggers);
+            var changeListenerLazy = CreateChangeListenerForContentTypes(new[] { LSPDocumentSnapshot.Snapshot.ContentType.TypeName });
+
+            var changeListenerMock = Mock.Get(changeListenerLazy.Value);
+            changeListenerMock.Setup(l => l.Changed(null, LSPDocumentSnapshot, It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.Added));
+            changeListenerMock.Setup(l => l.Changed(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<LSPDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.VirtualDocumentChanged));
+
+            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, new[] { changeListenerLazy });
             manager.TrackDocument(TextBuffer);
-            var changedCalled = false;
-            manager.Changed += (sender, args) => changedCalled = true;
+
             var changes = Array.Empty<ITextChange>();
 
             // Act
             manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123);
 
             // Assert
-            Assert.False(changedCalled);
+            changeListenerMock.Verify(l => l.Changed(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<LSPDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.VirtualDocumentChanged),
+                                           Times.Never);
         }
 
         [Fact]
         public void UpdateVirtualDocument_InvokesVirtualDocumentChanged()
         {
             // Arrange
-            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeTriggers);
+            var changeListenerLazy = CreateChangeListenerForContentTypes(new[] { LSPDocumentSnapshot.Snapshot.ContentType.TypeName });
+
+            var changeListenerMock = Mock.Get(changeListenerLazy.Value);
+            changeListenerMock.Setup(l => l.Changed(null, LSPDocumentSnapshot, It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.Added));
+            changeListenerMock.Setup(l => l.Changed(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<LSPDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.VirtualDocumentChanged));
+
+            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, new[] { changeListenerLazy });
             manager.TrackDocument(TextBuffer);
-            var changedCalled = false;
-            manager.Changed += (sender, args) =>
-            {
-                changedCalled = true;
-                Assert.Same(LSPDocumentSnapshot, args.Old);
-                Assert.NotSame(LSPDocumentSnapshot, args.New);
-                Assert.Equal(LSPDocumentChangeKind.VirtualDocumentChanged, args.Kind);
-            };
+
             var changes = new[] { new VisualStudioTextChange(1, 1, string.Empty) };
 
             // Act
             manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123);
 
             // Assert
-            Assert.True(changedCalled);
+            changeListenerMock.Verify(l => l.Changed(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<LSPDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.VirtualDocumentChanged),
+                                           Times.Once);
         }
 
         [Fact]
         public void TryGetDocument_TrackedDocument_ReturnsTrue()
         {
             // Arrange
-            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeTriggers);
+            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeListeners);
             manager.TrackDocument(TextBuffer);
 
             // Act
@@ -165,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public void TryGetDocument_UnknownDocument_ReturnsFalse()
         {
             // Arrange
-            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeTriggers);
+            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeListeners);
 
             // Act
             var result = manager.TryGetDocument(Uri, out var lspDocument);
@@ -179,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public void TryGetDocument_UntrackedDocument_ReturnsFalse()
         {
             // Arrange
-            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeTriggers);
+            var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, ChangeListeners);
             manager.TrackDocument(TextBuffer);
             manager.UntrackDocument(TextBuffer);
 
@@ -189,6 +209,17 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Assert
             Assert.False(result);
             Assert.Null(lspDocument);
+        }
+
+        private Lazy<LSPDocumentChangeListener, IContentTypeMetadata> CreateChangeListenerForContentTypes(IEnumerable<string> contentTypes)
+        {
+            var changeListenerObj = Mock.Of<LSPDocumentChangeListener>(MockBehavior.Strict);
+
+            var metadata = Mock.Of<IContentTypeMetadata>(md =>
+                md.ContentTypes == contentTypes,
+                MockBehavior.Strict);
+
+            return new Lazy<LSPDocumentChangeListener, IContentTypeMetadata>(() => changeListenerObj, metadata);
         }
 
         private class TestVirtualDocument : VirtualDocument

@@ -17,22 +17,22 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
     public class InterceptionMiddleLayer : ILanguageClientMiddleLayer
     {
         private readonly InterceptorManager _interceptorManager;
-        private readonly string _languageName;
+        private readonly string _contentType;
 
         /// <summary>
         /// Create the middle layer
         /// </summary>
         /// <param name="interceptorManager">Interception manager</param>
-        /// <param name="languageName">The content type name of the language for the ILanguageClient using this middle layer</param>
-        public InterceptionMiddleLayer(InterceptorManager interceptorManager, string languageName)
+        /// <param name="contentType">The content type name of the language for the ILanguageClient using this middle layer</param>
+        public InterceptionMiddleLayer(InterceptorManager interceptorManager, string contentType)
         {
             _interceptorManager = interceptorManager ?? throw new ArgumentNullException(nameof(interceptorManager));
-            _languageName = !string.IsNullOrEmpty(languageName) ? languageName : throw new ArgumentException("Cannot be empty", nameof(languageName));
+            _contentType = !string.IsNullOrEmpty(contentType) ? contentType : throw new ArgumentException("Cannot be empty", nameof(contentType));
         }
 
         public bool CanHandle(string methodName)
         {
-            return _interceptorManager.HasInterceptor(methodName);
+            return _interceptorManager.HasInterceptor(methodName, _contentType);
         }
 
         public async Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
             var payload = methodParam;
             if (CanHandle(methodName))
             {
-                payload = await _interceptorManager.ProcessInterceptorsAsync(methodName, methodParam, _languageName, CancellationToken.None);
+                payload = await _interceptorManager.ProcessInterceptorsAsync(methodName, methodParam, _contentType, CancellationToken.None);
             }
 
             if (!(payload is null))
