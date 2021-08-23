@@ -272,16 +272,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             if (newLineCount == 0)
             {
-                // If on type formatting is happening on a single line then we just clean up the start to one space
-                // so @{    throw null; } will be formatted to @{ throw null; }
-                // Ideally we'd put that across three lines, which is what normal formatting does, but since we
-                // can't control the cursor, that doesn't end well.
-                if (isOnType && sourceMappingRange.Start.Line == sourceMappingRange.End.Line)
-                {
-                    changes.Add(new TextChange(spanToReplace, " "));
-                    return;
-                }
-
                 newLineAdded = true;
                 newLineCount = 1;
             }
