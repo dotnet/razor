@@ -3,16 +3,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    [Shared]
-    [Export(typeof(LSPDocumentManagerChangeTrigger))]
+    [Export(typeof(LSPDocumentChangeListener))]
+    [ContentType(CodeRemoteContentDefinition.CodeRemoteContentTypeName)]
     [Export(typeof(LSPDocumentSynchronizer))]
     internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
     {
@@ -32,16 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             _fileUriProvider = fileUriProvider;
             _virtualDocumentContexts = new Dictionary<Uri, DocumentContext>();
-        }
-
-        public override void Initialize(LSPDocumentManager documentManager)
-        {
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            documentManager.Changed += DocumentManager_Changed;
         }
 
         public override Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, CancellationToken cancellationToken)
@@ -100,19 +92,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
         }
 
-        // Internal for testing
-        internal void DocumentManager_Changed(object sender, LSPDocumentChangeEventArgs args)
+        public override void Changed(LSPDocumentSnapshot old, LSPDocumentSnapshot @new, VirtualDocumentSnapshot virtualOld, VirtualDocumentSnapshot virtualNew, LSPDocumentChangeKind kind)
         {
-            if (args is null)
-            {
-                throw new ArgumentNullException(nameof(args));
-            }
-
             lock (_documentContextLock)
             {
-                if (args.Kind == LSPDocumentChangeKind.Added)
+                if (kind == LSPDocumentChangeKind.Added)
                 {
-                    var lspDocument = args.New;
+                    var lspDocument = @new;
                     for (var i = 0; i < lspDocument.VirtualDocuments.Count; i++)
                     {
                         var virtualDocument = lspDocument.VirtualDocuments[i];
@@ -124,9 +110,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                         _virtualDocumentContexts[virtualDocument.Uri] = new DocumentContext(_synchronizationTimeout);
                     }
                 }
-                else if (args.Kind == LSPDocumentChangeKind.Removed)
+                else if (kind == LSPDocumentChangeKind.Removed)
                 {
-                    var lspDocument = args.Old;
+                    var lspDocument = old;
                     for (var i = 0; i < lspDocument.VirtualDocuments.Count; i++)
                     {
                         var virtualDocument = lspDocument.VirtualDocuments[i];
@@ -144,15 +130,15 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                         _virtualDocumentContexts.Remove(virtualDocument.Uri);
                     }
                 }
-                else if (args.Kind == LSPDocumentChangeKind.VirtualDocumentChanged)
+                else if (kind == LSPDocumentChangeKind.VirtualDocumentChanged)
                 {
-                    if (args.VirtualOld.Snapshot.Version == args.VirtualNew.Snapshot.Version)
+                    if (virtualOld.Snapshot.Version == virtualNew.Snapshot.Version)
                     {
                         // UpdateDocumentContextVersionInternal is typically invoked through a buffer notification,
                         //   however in the case where VirtualDocumentBase.Update is called with a zero change edit,
                         //   there won't be such an edit to hook into. Instead, we'll detect that case here and
                         //   update the document context version appropriately.
-                        UpdateDocumentContextVersionInternal(args.VirtualNew.Snapshot.TextBuffer);
+                        UpdateDocumentContextVersionInternal(virtualNew.Snapshot.TextBuffer);
                     }
                 }
             }

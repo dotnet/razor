@@ -11,5 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
     {
         // this must match the name from InterceptMethodAttribute
         IEnumerable<string> InterceptMethods { get; }
+
+        // this must match the name from ContentTypeAttribute
+        IEnumerable<string> ContentTypes { get; }
     }
 }

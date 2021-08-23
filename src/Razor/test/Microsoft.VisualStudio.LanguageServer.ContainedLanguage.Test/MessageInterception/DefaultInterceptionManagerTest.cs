@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
         {
             var sut = new DefaultInterceptorManager(GenerateLazyInterceptors());
 
-            Assert.Throws<ArgumentException>(() => sut.HasInterceptor(input));
+            Assert.Throws<ArgumentException>(() => sut.HasInterceptor(input, "testContentType"));
         }
 
         [Fact]
@@ -37,25 +37,34 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
         {
             var sut = new DefaultInterceptorManager(GenerateLazyInterceptors());
 
-            Assert.False(sut.HasInterceptor("foo"));
+            Assert.False(sut.HasInterceptor("foo", "testContentType"));
         }
 
         [Fact]
         public void HasInterceptor_HasMatchingInterceptor_ReturnsTrue()
         {
             var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "expected")));
+            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "expected", "testContentType")));
 
-            Assert.True(sut.HasInterceptor("expected"));
+            Assert.True(sut.HasInterceptor("expected", "testContentType"));
         }
 
         [Fact]
         public void HasInterceptor_DoesNotHaveMatchingInterceptor_ReturnsFalse()
         {
             var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "unexpected")));
+            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "unexpected", "testContentType")));
 
-            Assert.False(sut.HasInterceptor("expected"));
+            Assert.False(sut.HasInterceptor("expected", "testContentType"));
+        }
+
+        [Fact]
+        public void HasInterceptor_HasMismatchedContentType_ReturnsFalse()
+        {
+            var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
+            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "expected", "testContentType")));
+
+            Assert.False(sut.HasInterceptor("expected", "unknownContentType"));
         }
 
         [Theory]
@@ -90,10 +99,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
         public async Task ProcessInterceptorsAsync_NoInterceptorMatches_NoChangesMadeToToken()
         {
             var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "unexpected")));
+            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "unexpected", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testLangauge", CancellationToken.None);
+            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
 
             Assert.Equal(testToken, result);
         }
@@ -105,10 +114,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
             var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
             Mock.Get(fakeInterceptor).Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                                      .Returns(Task.FromResult(new InterceptionResult(expected, false)));
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage")));
+            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testLangauge", CancellationToken.None);
+            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
 
             Assert.Equal(expected, result);
         }
@@ -121,13 +130,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
             Mock.Get(fakeInterceptor).Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                                      .Returns(Task.FromResult(new InterceptionResult(expected, false)));
             var mockSecondInterceptor = new Mock<MessageInterceptor>(MockBehavior.Strict);
-            mockSecondInterceptor.Setup(x => x.ApplyChangesAsync(new JArray(), "testLangauge", CancellationToken.None))
+            mockSecondInterceptor.Setup(x => x.ApplyChangesAsync(new JArray(), "testContentType", CancellationToken.None))
                 .Returns(Task.FromResult(new InterceptionResult(expected, false)));
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage"),
-                                                                             (mockSecondInterceptor.Object, "testMessage")));
+            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage", "testContentType"),
+                                                                             (mockSecondInterceptor.Object, "testMessage", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testLangauge", CancellationToken.None);
+            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
 
             mockSecondInterceptor.Verify(x => x.ApplyChangesAsync(It.Is<JToken>(t => t.Equals(expected)), It.IsAny<string>(), It.IsAny<CancellationToken>()));
             mockSecondInterceptor.Verify(x => x.ApplyChangesAsync(It.Is<JToken>(t => t.Equals(testToken)), It.IsAny<string>(), It.IsAny<CancellationToken>()),
@@ -142,10 +151,10 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
             mockInterceptor.SetupSequence(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                            .Returns(Task.FromResult(new InterceptionResult(expected, true)))
                            .Returns(Task.FromResult(new InterceptionResult(expected, false)));
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((mockInterceptor.Object, "testMessage")));
+            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((mockInterceptor.Object, "testMessage", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testLangauge", CancellationToken.None);
+            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
 
             mockInterceptor.Verify(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
                                    Times.Exactly(2));
@@ -158,11 +167,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
             Mock.Get(fakeInterceptor).Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                                      .Returns(Task.FromResult(new InterceptionResult(null, false)));
             var mockSecondInterceptor = new Mock<MessageInterceptor>(MockBehavior.Strict);
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage"),
-                                                                             (mockSecondInterceptor.Object, "testMessage")));
+            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage", "testContentType"),
+                                                                             (mockSecondInterceptor.Object, "testMessage", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testLangauge", CancellationToken.None);
+            _ = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
 
             mockSecondInterceptor.Verify(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
                                         Times.Never);
@@ -174,22 +183,24 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.MessageIn
             var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
             Mock.Get(fakeInterceptor).Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                                      .Returns(Task.FromResult(new InterceptionResult(null, false)));
-            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage")));
+            var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "testMessage", "testContentType")));
             var testToken = JToken.Parse("\"theToken\"");
 
-            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testLangauge", CancellationToken.None);
+            var result = await sut.ProcessInterceptorsAsync("testMessage", testToken, "testContentType", CancellationToken.None);
 
             Assert.Null(result);
         }
 
-        private static IEnumerable<Lazy<MessageInterceptor, IInterceptMethodMetadata>> GenerateLazyInterceptors(params (MessageInterceptor, string)[] fakeInterceptors)
+        private static IEnumerable<Lazy<MessageInterceptor, IInterceptMethodMetadata>> GenerateLazyInterceptors(params (MessageInterceptor, string, string)[] fakeInterceptors)
         {
             var result = new List<Lazy<MessageInterceptor, IInterceptMethodMetadata>>();
 
-            foreach ((var i, var metadataString) in fakeInterceptors)
+            foreach ((var i, var metadataString, var contentTypeName) in fakeInterceptors)
             {
-                var metadata = Mock.Of<IInterceptMethodMetadata>(MockBehavior.Strict);
-                Mock.Get(metadata).Setup(m => m.InterceptMethods).Returns(new string[] { metadataString });
+                var metadata = Mock.Of<IInterceptMethodMetadata>(m =>
+                    m.InterceptMethods == new string[] { metadataString } &&
+                    m.ContentTypes == new string[] { contentTypeName },
+                    MockBehavior.Strict);
                 result.Add(new Lazy<MessageInterceptor, IInterceptMethodMetadata>(() => i, metadata));
             }
 
