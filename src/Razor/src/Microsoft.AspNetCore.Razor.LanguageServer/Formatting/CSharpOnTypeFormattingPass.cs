@@ -174,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return delta;
         }
 
-        protected static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
+        private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
         {
             var isOnType = range is not null;
 
