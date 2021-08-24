@@ -8,9 +8,9 @@ using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
-    internal class VSHover : HoverModel
+    internal record OmniSharpVSHover : HoverModel
     {
         [JsonProperty("_vs_rawContent")]
-        public object? RawContent { get; set; }
+        public object? RawContent { get; init; }
     }
 }

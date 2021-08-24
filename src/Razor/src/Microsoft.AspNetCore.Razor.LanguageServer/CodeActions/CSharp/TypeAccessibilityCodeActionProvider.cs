@@ -191,8 +191,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 else if (codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
                     AddUsingsCodeActionProviderFactory.TryExtractNamespace(codeAction.Title, out var @namespace))
                 {
-                    codeAction.Title = $"@using {@namespace}";
-                    typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
+                    var newCodeAction = codeAction with { Title = $"@using {@namespace}" };
+                    typeAccessibilityCodeActions.Add(newCodeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
                 }
                 // Not a type accessibility code action
                 else
@@ -234,7 +234,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorCodeAction codeAction,
             string fullyQualifiedName)
         {
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
+            var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
             var fqnTextEdit = new TextEdit()
             {

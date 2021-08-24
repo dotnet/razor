@@ -197,7 +197,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 platformAgnosticClientCapabilities.SupportsVisualStudioExtensions;
             if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out VSContainerElement classifiedTextElement))
             {
-                var vsHover = new VSHover
+                var vsHover = new OmniSharpVSHover
                 {
                     Contents = new MarkedStringsOrMarkupContent(),
                     Range = range,
@@ -234,7 +234,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 platformAgnosticClientCapabilities.SupportsVisualStudioExtensions;
             if (isVSClient && _vsLspTagHelperTooltipFactory.TryCreateTooltip(elementDescriptionInfo, out VSContainerElement classifiedTextElement))
             {
-                var vsHover = new VSHover
+                var vsHover = new OmniSharpVSHover
                 {
                     Contents = new MarkedStringsOrMarkupContent(),
                     Range = range,

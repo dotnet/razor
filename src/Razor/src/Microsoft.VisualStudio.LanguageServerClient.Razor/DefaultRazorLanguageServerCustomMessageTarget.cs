@@ -18,8 +18,8 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
-using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokens;
-using SemanticTokensParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals.SemanticTokensParams;
+using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokens;
+using SemanticTokensParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -278,12 +278,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return results.FirstOrDefault(c => c.Result != null).Result;
         }
 
-        [Obsolete]
-#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
         public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(
             ProvideSemanticTokensParams semanticTokensParams,
             CancellationToken cancellationToken)
-#pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
         {
             if (semanticTokensParams is null)
             {
@@ -304,7 +301,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return new ProvideSemanticTokensResponse(result: null, csharpDoc.HostDocumentSyncVersion);
             }
 
-            semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
+            var csharpTextDocument = semanticTokensParams.TextDocument with { Uri = csharpDoc.Uri };
+            semanticTokensParams = semanticTokensParams with { TextDocument = csharpTextDocument };
 
             var newParams = new SemanticTokensParams
             {

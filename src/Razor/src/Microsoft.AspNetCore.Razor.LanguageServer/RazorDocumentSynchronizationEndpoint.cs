@@ -20,7 +20,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorDocumentSynchronizationEndpoint : ITextDocumentSyncHandler
     {
-        private SynchronizationCapability _capability;
         private readonly ILogger _logger;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -59,11 +58,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         public TextDocumentSyncKind Change { get; } = TextDocumentSyncKind.Incremental;
-
-        public void SetCapability(SynchronizationCapability capability)
-        {
-            _capability = capability;
-        }
 
         public async Task<Unit> Handle(DidChangeTextDocumentParams notification, CancellationToken token)
         {
@@ -121,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return Unit.Task;
         }
 
-        TextDocumentChangeRegistrationOptions IRegistration<TextDocumentChangeRegistrationOptions>.GetRegistrationOptions()
+        public TextDocumentChangeRegistrationOptions GetRegistrationOptions(SynchronizationCapability capability, ClientCapabilities clientCapabilities)
         {
             return new TextDocumentChangeRegistrationOptions()
             {
@@ -130,15 +124,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
         }
 
-        TextDocumentRegistrationOptions IRegistration<TextDocumentRegistrationOptions>.GetRegistrationOptions()
+        TextDocumentOpenRegistrationOptions IRegistration<TextDocumentOpenRegistrationOptions, SynchronizationCapability>.GetRegistrationOptions(SynchronizationCapability capability, ClientCapabilities clientCapabilities)
         {
-            return new TextDocumentRegistrationOptions()
+            return new TextDocumentOpenRegistrationOptions()
             {
-                DocumentSelector = RazorDefaults.Selector,
+                DocumentSelector = RazorDefaults.Selector
             };
         }
 
-        TextDocumentSaveRegistrationOptions IRegistration<TextDocumentSaveRegistrationOptions>.GetRegistrationOptions()
+        TextDocumentCloseRegistrationOptions IRegistration<TextDocumentCloseRegistrationOptions, SynchronizationCapability>.GetRegistrationOptions(SynchronizationCapability capability, ClientCapabilities clientCapabilities)
+        {
+            return new TextDocumentCloseRegistrationOptions()
+            {
+                DocumentSelector = RazorDefaults.Selector
+            };
+        }
+
+        TextDocumentSaveRegistrationOptions IRegistration<TextDocumentSaveRegistrationOptions, SynchronizationCapability>.GetRegistrationOptions(SynchronizationCapability capability, ClientCapabilities clientCapabilities)
         {
             return new TextDocumentSaveRegistrationOptions()
             {

@@ -104,8 +104,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new Position(start.LineIndex, start.CharacterIndex),
                 new Position(end.LineIndex, end.CharacterIndex));
 
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier { Uri = actionParams.Uri };
-            var codeBehindDocumentIdentifier = new VersionedTextDocumentIdentifier { Uri = codeBehindUri };
+            var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = actionParams.Uri };
+            var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = codeBehindUri };
 
             var documentChanges = new List<WorkspaceEditDocumentChange>
             {

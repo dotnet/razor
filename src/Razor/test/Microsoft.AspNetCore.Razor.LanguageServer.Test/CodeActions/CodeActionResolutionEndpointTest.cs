@@ -443,7 +443,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             public override Task<CodeAction> ResolveAsync(CSharpCodeActionParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
             {
-                codeAction.Edit = new WorkspaceEdit();
+                codeAction = codeAction with { Edit = new WorkspaceEdit() };
                 return Task.FromResult(codeAction);
             }
         }

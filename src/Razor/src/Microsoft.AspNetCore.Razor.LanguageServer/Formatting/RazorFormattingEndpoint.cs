@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -67,17 +66,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _logger = loggerFactory.CreateLogger<RazorFormattingEndpoint>();
         }
 
-        DocumentRangeFormattingRegistrationOptions IRegistration<DocumentRangeFormattingRegistrationOptions>.GetRegistrationOptions()
+        public DocumentFormattingRegistrationOptions GetRegistrationOptions(DocumentFormattingCapability capability, ClientCapabilities clientCapabilities)
         {
-            return new DocumentRangeFormattingRegistrationOptions
+            return new DocumentFormattingRegistrationOptions
             {
                 DocumentSelector = RazorDefaults.Selector,
             };
         }
 
-        DocumentFormattingRegistrationOptions IRegistration<DocumentFormattingRegistrationOptions>.GetRegistrationOptions()
+        public DocumentRangeFormattingRegistrationOptions GetRegistrationOptions(DocumentRangeFormattingCapability capability, ClientCapabilities clientCapabilities)
         {
-            return new DocumentFormattingRegistrationOptions
+            return new DocumentRangeFormattingRegistrationOptions
             {
                 DocumentSelector = RazorDefaults.Selector,
             };
@@ -148,13 +147,5 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return editContainer;
         }
 #nullable restore
-
-        public void SetCapability(DocumentFormattingCapability capability)
-        {
-        }
-
-        public void SetCapability(DocumentRangeFormattingCapability capability)
-        {
-        }
     }
 }

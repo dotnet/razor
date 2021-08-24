@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // as it does not support Command.Edit based code actions anymore.
             if (resolutionParams.Action == LanguageServerConstants.CodeActions.EditBasedCodeActionCommand)
             {
-                request.Edit = (resolutionParams.Data as JObject)?.ToObject<WorkspaceEdit>();
+                request = request with { Edit = (resolutionParams.Data as JObject)?.ToObject<WorkspaceEdit>() };
                 return request;
             }
 
@@ -101,8 +101,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Debug.Fail($"No resolver registered for {GetCodeActionId(resolutionParams)}.");
                 return codeAction;
             }
-
-            codeAction.Edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
+            var edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
+            codeAction = codeAction with { Edit = edit };
             return codeAction;
         }
 
@@ -119,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var csharpParams = csharpParamsObj.ToObject<CSharpCodeActionParams>();
-            codeAction.Data = csharpParams.Data as JToken;
+            codeAction = codeAction with { Data = csharpParams.Data as JToken };
 
             if (!_csharpCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
             {

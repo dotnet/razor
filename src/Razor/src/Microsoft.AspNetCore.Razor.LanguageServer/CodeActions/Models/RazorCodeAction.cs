@@ -10,7 +10,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 {
     [DebuggerDisplay("{Title,nq}")]
-    internal class RazorCodeAction : CodeAction, IRequest<RazorCodeAction>, IBaseRequest
+    internal record RazorCodeAction : CodeAction, IRequest<RazorCodeAction>, IBaseRequest
     {
         /// <summary>
         /// Typically null, only present in VS scenarios.

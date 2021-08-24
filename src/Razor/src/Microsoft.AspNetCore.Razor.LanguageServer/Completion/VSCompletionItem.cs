@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     /// <summary>
     /// VS-specific completion item based off of LSP's VSCompletionItem.
     /// </summary>
-    internal class VSCompletionItem : CompletionItem
+    internal record VSCompletionItem : CompletionItem
     {
         [JsonProperty("_vs_description")]
         public VSClassifiedTextElement Description { get; set; }

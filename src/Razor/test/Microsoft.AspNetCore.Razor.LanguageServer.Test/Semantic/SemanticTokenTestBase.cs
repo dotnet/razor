@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using Xunit.Sdk;
 
@@ -122,14 +122,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var semanticEdits = GetBaselineDeltaTokens(baselineFileName);
 
-            if (semanticEdits!.Value.IsDelta && edits.IsDelta)
+            if (semanticEdits!.IsDelta && edits.IsDelta)
             {
                 // We can't compare the ResultID because it's from a previous run
-                Assert.Equal(semanticEdits.Value.Delta?.Edits, edits.Delta?.Edits, SemanticEditComparer.Instance);
+                Assert.Equal(semanticEdits.Delta?.Edits, edits.Delta?.Edits, SemanticEditComparer.Instance);
             }
-            else if (semanticEdits.Value.IsFull && edits.IsFull)
+            else if (semanticEdits.IsFull && edits.IsFull)
             {
-                Assert.Equal(semanticEdits.Value.Full, edits.Full);
+                Assert.Equal(semanticEdits.Full, edits.Full);
             }
             else
             {
@@ -155,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         internal static RazorSemanticTokensEdit[] GetRazorEdits(SemanticTokensFullOrDelta? baselineDelta)
 #pragma warning restore CS0618 // Type or member is obsolete
         {
-            var edits = baselineDelta!.Value.Delta!.Edits.ToArray();
+            var edits = baselineDelta!.Delta!.Edits.ToArray();
             var razorSemanticTokenEdits = new RazorSemanticTokensEdit[edits.Length];
             for (var i = 0; i < edits.Length; i++)
             {
@@ -258,7 +258,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (strArray[0].Equals("Delta", StringComparison.Ordinal))
             {
-                var delta = new SemanticTokensDelta();
                 var edits = new List<SemanticTokensEdit>();
                 var i = 1;
                 while (i < strArray.Length - 1)
@@ -266,7 +265,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     var edit = new SemanticTokensEdit
                     {
                         Start = int.Parse(strArray[i], Thread.CurrentThread.CurrentCulture),
-                        DeleteCount = int.Parse(strArray[i + 1], Thread.CurrentThread.CurrentCulture)
+                        DeleteCount = int.Parse(strArray[i + 1], Thread.CurrentThread.CurrentCulture),
                     };
                     i += 3;
                     var inArray = true;
@@ -285,10 +284,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                         i++;
                     }
-                    edit.Data = data.ToImmutableArray();
+
+                    edit = edit with { Data = data.ToImmutableArray(), };
                     edits.Add(edit);
                 }
-                delta.Edits = edits;
+                var delta = new SemanticTokensDelta()
+                {
+                    Edits = edits,
+                };
 
                 return new SemanticTokensFullOrDelta(delta);
             }

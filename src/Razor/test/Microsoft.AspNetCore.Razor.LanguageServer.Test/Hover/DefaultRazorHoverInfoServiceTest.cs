@@ -360,7 +360,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             ((PlatformAgnosticClientCapabilities)clientCapabilities).SupportsVisualStudioExtensions = true;
 
             // Act
-            var vsHover = (VSHover)service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var vsHover = (OmniSharpVSHover)service.GetHoverInfo(codeDocument, location, clientCapabilities);
 
             // Assert
             Assert.False(vsHover.Contents.HasMarkupContent);
@@ -394,7 +394,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Hover
             ((PlatformAgnosticClientCapabilities)clientCapabilities).SupportsVisualStudioExtensions = true;
 
             // Act
-            var vsHover = (VSHover)service.GetHoverInfo(codeDocument, location, clientCapabilities);
+            var vsHover = (OmniSharpVSHover)service.GetHoverInfo(codeDocument, location, clientCapabilities);
 
             // Assert
             Assert.False(vsHover.Contents.HasMarkupContent);
