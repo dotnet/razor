@@ -2,15 +2,15 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    [Shared]
     [Export(typeof(VirtualDocumentFactory))]
+    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class HtmlVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
         private static IContentType s_htmlLSPContentType;
