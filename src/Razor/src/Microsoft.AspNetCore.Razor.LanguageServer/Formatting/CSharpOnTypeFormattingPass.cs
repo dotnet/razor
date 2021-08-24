@@ -7,8 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -170,6 +172,220 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             return delta;
+        }
+
+        private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
+        {
+            var isOnType = range is not null;
+
+            var text = context.SourceText;
+            range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
+            var csharpDocument = context.CodeDocument.GetCSharpDocument();
+
+            var changes = new List<TextChange>();
+            foreach (var mapping in csharpDocument.SourceMappings)
+            {
+                var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
+                var mappingRange = mappingSpan.AsRange(text);
+                if (!range.LineOverlapsWith(mappingRange))
+                {
+                    // We don't care about this range. It didn't change.
+                    continue;
+                }
+
+                CleanupSourceMappingStart(context, mappingRange, changes, isOnType, out var newLineAdded);
+
+                CleanupSourceMappingEnd(context, mappingRange, changes, newLineAdded);
+            }
+
+            return changes;
+        }
+
+        private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, bool isOnType, out bool newLineAdded)
+        {
+            newLineAdded = false;
+
+            //
+            // We look through every source mapping that intersects with the affected range and
+            // bring the first line to its own line and adjust its indentation,
+            //
+            // E.g,
+            //
+            // @{   public int x = 0;
+            // }
+            //
+            // becomes,
+            //
+            // @{
+            //    public int x  = 0;
+            // }
+            //
+
+            var text = context.SourceText;
+            var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
+            if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false))
+            {
+                // We don't want to run cleanup on this range.
+                return;
+            }
+
+            if (sourceMappingRange.Start.Character == 0)
+            {
+                // It already starts on a fresh new line which doesn't need cleanup.
+                // E.g, (The mapping starts at | in the below case)
+                // @{
+                //     @: Some html
+                // |   var x = 123;
+                // }
+                //
+
+                return;
+            }
+
+            // @{
+            //     if (true)
+            //     {
+            //         <div></div>|
+            //
+            //              |}
+            // }
+            // We want to return the length of the range marked by |...|
+            //
+            var whitespaceLength = text.GetFirstNonWhitespaceOffset(sourceMappingSpan, out var newLineCount);
+            if (whitespaceLength == null)
+            {
+                // There was no content after the start of this mapping. Meaning it already is clean.
+                // E.g,
+                // @{|
+                //    ...
+                // }
+
+                return;
+            }
+
+            var spanToReplace = new TextSpan(sourceMappingSpan.Start, whitespaceLength.Value);
+            if (!context.TryGetIndentationLevel(spanToReplace.End, out var contentIndentLevel))
+            {
+                // Can't find the correct indentation for this content. Leave it alone.
+                return;
+            }
+
+            if (newLineCount == 0)
+            {
+                newLineAdded = true;
+                newLineCount = 1;
+            }
+
+            // At this point, `contentIndentLevel` should contain the correct indentation level for `}` in the above example.
+            // Make sure to preserve the same number of blank lines as the original string had
+            var replacement = PrependLines(context.GetIndentationLevelString(contentIndentLevel), context.NewLineString, newLineCount);
+
+            // After the below change the above example should look like,
+            // @{
+            //     if (true)
+            //     {
+            //         <div></div>
+            //     }
+            // }
+            var change = new TextChange(spanToReplace, replacement);
+            changes.Add(change);
+        }
+
+        private static string PrependLines(string text, string newLine, int count)
+        {
+            var builder = new StringBuilder((newLine.Length * count) + text.Length);
+            for (var i = 0; i < count; i++)
+            {
+                builder.Append(newLine);
+            }
+
+            builder.Append(text);
+            return builder.ToString();
+        }
+
+        private static void CleanupSourceMappingEnd(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, bool newLineWasAddedAtStart)
+        {
+            //
+            // We look through every source mapping that intersects with the affected range and
+            // bring the content after the last line to its own line and adjust its indentation,
+            //
+            // E.g,
+            //
+            // @{
+            //     if (true)
+            //     {  <div></div>
+            //     }
+            // }
+            //
+            // becomes,
+            //
+            // @{
+            //    if (true)
+            //    {
+            //        </div></div>
+            //    }
+            // }
+            //
+
+            var text = context.SourceText;
+            var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
+            var mappingEndLineIndex = sourceMappingRange.End.Line;
+
+            var startsInCSharpContext = context.Indentations[mappingEndLineIndex].StartsInCSharpContext;
+
+            // If the span is on a single line, and we added a line, then end point is now on a line that does start in a C# context.
+            if (!startsInCSharpContext && newLineWasAddedAtStart && sourceMappingRange.Start.Line == mappingEndLineIndex)
+            {
+                startsInCSharpContext = true;
+            }
+
+            if (!startsInCSharpContext)
+            {
+                // For corner cases like (Position marked with |),
+                // It is already in a separate line. It doesn't need cleaning up.
+                // @{
+                //     if (true}
+                //     {
+                //         |<div></div>
+                //     }
+                // }
+                //
+                return;
+            }
+
+            var endSpan = TextSpan.FromBounds(sourceMappingSpan.End, sourceMappingSpan.End);
+            if (!ShouldFormat(context, endSpan, allowImplicitStatements: false))
+            {
+                // We don't want to run cleanup on this range.
+                return;
+            }
+
+            var contentStartOffset = text.Lines[mappingEndLineIndex].GetFirstNonWhitespaceOffset(sourceMappingRange.End.Character);
+            if (contentStartOffset == null)
+            {
+                // There is no content after the end of this source mapping. No need to clean up.
+                return;
+            }
+
+            var spanToReplace = new TextSpan(sourceMappingSpan.End, 0);
+            if (!context.TryGetIndentationLevel(spanToReplace.End, out var contentIndentLevel))
+            {
+                // Can't find the correct indentation for this content. Leave it alone.
+                return;
+            }
+
+            // At this point, `contentIndentLevel` should contain the correct indentation level for `}` in the above example.
+            var replacement = context.NewLineString + context.GetIndentationLevelString(contentIndentLevel);
+
+            // After the below change the above example should look like,
+            // @{
+            //     if (true)
+            //     {
+            //         <div></div>
+            //     }
+            // }
+            var change = new TextChange(spanToReplace, replacement);
+            changes.Add(change);
         }
     }
 }
