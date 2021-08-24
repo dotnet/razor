@@ -97,6 +97,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 {
                     case ProjectChangeKind.DocumentAdded:
                         {
+                            // Don't do any work if the solution is closing
+                            if (e.SolutionIsClosing)
+                            {
+                                return;
+                            }
+
                             var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
 
                             // GetOrCreateDocument needs to be run on the UI thread
@@ -114,6 +120,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
                     case ProjectChangeKind.DocumentRemoved:
                         {
+                            // Need to run this even if the solution is closing because document dispose cleans up file watchers etc.
+
                             // TryGetDocument and Dispose need to be run on the UI thread
                             await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
 

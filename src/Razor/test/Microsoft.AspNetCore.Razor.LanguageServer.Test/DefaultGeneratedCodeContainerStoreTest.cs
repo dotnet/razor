@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var container = Store.Get(documentFilePath);
             var oldProject = TestProjectSnapshot.Create(projectFilePath, new[] { documentFilePath });
             var newProjet = TestProjectSnapshot.Create(projectFilePath);
-            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentRemoved);
+            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentRemoved, false);
 
             // Act
             Store.ProjectSnapshotManager_Changed(null, args);
@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var container = Store.Get(documentFilePath);
             var oldProject = TestProjectSnapshot.Create(projectFilePath, new[] { documentFilePath });
             var newProjet = TestProjectSnapshot.Create(projectFilePath, new[] { documentFilePath });
-            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentChanged);
+            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentChanged, false);
 
             // Act
             Store.ProjectSnapshotManager_Changed(null, args);
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             ProjectManager.DocumentOpened(projectFilePath, documentFilePath, SourceText.From(string.Empty));
             var oldProject = TestProjectSnapshot.Create(projectFilePath, new[] { documentFilePath });
             var newProjet = TestProjectSnapshot.Create(projectFilePath, new[] { documentFilePath });
-            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentChanged);
+            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentChanged, false);
 
             // Act
             Store.ProjectSnapshotManager_Changed(null, args);

@@ -77,7 +77,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             return;
                         }
 
-
                         EnqueueUpdateProject(handle.FilePath, handle);
                         break;
                     }

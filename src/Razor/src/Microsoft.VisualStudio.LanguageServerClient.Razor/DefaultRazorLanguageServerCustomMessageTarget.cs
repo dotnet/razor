@@ -45,8 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             RazorUIContextManager uIContextManager,
             IRazorAsynchronousOperationListenerProviderAccessor asyncOpListenerProvider,
             RazorLSPClientOptionsMonitor clientOptionsMonitor,
-            LSPDocumentSynchronizer documentSynchronizer) :
-                this(
+            LSPDocumentSynchronizer documentSynchronizer)
+                : this(
                     documentManager,
                     joinableTaskContext,
                     requestInvoker,

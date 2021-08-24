@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
@@ -399,7 +400,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.False(ProjectManager.IsDocumentOpen(Documents[0].FilePath));
         }
 
-
         [UIFact]
         public async Task DocumentClosed_AcceptsChange()
         {
@@ -627,6 +627,30 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // Assert
             Assert.Equal(new[] { ProjectChangeKind.DocumentAdded, ProjectChangeKind.DocumentChanged, ProjectChangeKind.DocumentRemoved }, listenerNotifications);
+        }
+
+        [UIFact]
+        public void SolutionClosing_ProjectChangedEventsCorrect()
+        {
+            // Arrange
+            ProjectManager.ProjectAdded(HostProject);
+            ProjectManager.Reset();
+
+            ProjectManager.Changed += (sender, args) =>
+            {
+                Assert.True(args.SolutionIsClosing);
+            };
+            ProjectManager.NotifyChangedEvents = true;
+
+            var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
+
+            // Act
+            ProjectManager.SolutionClosed();
+            ProjectManager.DocumentAdded(HostProject, Documents[0], textLoader.Object);
+
+            // Assert
+            Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
+            textLoader.Verify(d => d.LoadTextAndVersionAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()), Times.Never());
         }
 
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager

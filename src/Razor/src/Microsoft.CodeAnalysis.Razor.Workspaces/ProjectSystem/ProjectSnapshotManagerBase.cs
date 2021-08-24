@@ -38,5 +38,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public abstract void ReportError(Exception exception, ProjectSnapshot project);
 
         public abstract void ReportError(Exception exception, HostProject hostProject);
+
+        public abstract void SolutionOpened();
+
+        public abstract void SolutionClosed();
     }
 }
