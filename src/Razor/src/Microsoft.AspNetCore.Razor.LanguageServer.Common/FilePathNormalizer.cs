@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 return "/";
             }
 
-            var decodedPath = WebUtility.UrlDecode(filePath);
+            var decodedPath = filePath.Contains("%") ? WebUtility.UrlDecode(filePath) : filePath;
             var normalized = decodedPath.Replace('\\', '/');
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
