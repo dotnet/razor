@@ -3,8 +3,10 @@
 
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
@@ -75,11 +77,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
   }
 }";
             var stringReader = new StringReader(rawJson);
-            var serializer = OmniSharp.Extensions.LanguageServer.Protocol.Serialization.Serializer.Instance.JsonSerializer;
-            serializer.Converters.Add(PlatformAgnosticClientCapabilities.JsonConverter);
+            var serializer = new LspSerializer();
+            serializer.RegisterRazorConverters();
 
             // Act
-            var capabilities = serializer.Deserialize<PlatformAgnosticClientCapabilities>(new JsonTextReader(stringReader));
+            var capabilities = serializer.JsonSerializer.Deserialize<PlatformAgnosticClientCapabilities>(new JsonTextReader(stringReader));
 
             // Assert
             Assert.True(capabilities.Workspace.ApplyEdit);

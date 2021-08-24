@@ -140,22 +140,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return version;
             }, cancellationToken).ConfigureAwait(false);
 
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier()
+            var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
             {
                 Uri = csharpParams.RazorFileUri,
                 Version = documentVersion.Value
             };
-
-            resolvedCodeAction.Edit = new WorkspaceEdit()
+            resolvedCodeAction = resolvedCodeAction with
             {
-                DocumentChanges = new[] {
-                    new WorkspaceEditDocumentChange(
-                        new TextDocumentEdit()
-                        {
-                            TextDocument = codeDocumentIdentifier,
-                            Edits = formattedEdits,
-                        }
-                    )
+                Edit = new WorkspaceEdit()
+                {
+                    DocumentChanges = new[] {
+                        new WorkspaceEditDocumentChange(
+                            new TextDocumentEdit()
+                            {
+                                TextDocument = codeDocumentIdentifier,
+                                Edits = formattedEdits,
+                            })
+                    }
                 }
             };
 

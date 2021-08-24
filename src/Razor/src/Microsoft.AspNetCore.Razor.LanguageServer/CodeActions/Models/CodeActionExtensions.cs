@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
                 Data = csharpParams
             };
-            razorCodeAction.Data = JToken.FromObject(resolutionParams);
+            razorCodeAction = razorCodeAction with { Data = JToken.FromObject(resolutionParams) };
 
             if (razorCodeAction.Children?.Length != 0)
             {

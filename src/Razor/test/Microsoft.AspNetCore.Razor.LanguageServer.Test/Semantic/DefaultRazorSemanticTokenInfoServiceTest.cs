@@ -22,7 +22,6 @@ using Moq;
 using Moq.Protected;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
 using Xunit;
 using OmniSharpRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
@@ -977,18 +976,18 @@ slf*@";
             var textDocumentIdentifier = GetIdentifier(isRazor);
 
             // Act
-            var edits = (await service.GetSemanticTokensEditsAsync(textDocumentIdentifier, previousResultId, CancellationToken.None)).Value;
+            var edits = await service.GetSemanticTokensEditsAsync(textDocumentIdentifier, previousResultId, CancellationToken.None);
 
             // Assert
             if (expectDelta)
             {
-                AssertSemanticTokensEditsMatchesBaseline(edits);
+                AssertSemanticTokensEditsMatchesBaseline(edits!);
 
-                return (edits.Delta!.ResultId, service, clientMock!);
+                return (edits!.Delta!.ResultId, service, clientMock!);
             }
             else
             {
-                AssertSemanticTokensMatchesBaseline(edits.Full!.Data);
+                AssertSemanticTokensMatchesBaseline(edits!.Full!.Data);
 
                 return (edits.Full.ResultId, service, clientMock!);
             }

@@ -397,7 +397,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                     continue;
                 }
 
-                diagnostic.Range = originalRange;
+                diagnostic = diagnostic with { Range = originalRange };
                 mappedDiagnostics.Add(diagnostic);
             }
 

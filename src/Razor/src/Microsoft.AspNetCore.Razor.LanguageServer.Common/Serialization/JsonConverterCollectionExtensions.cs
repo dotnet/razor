@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common.Serialization
             ProjectSnapshotJsonConverter.Instance,
         };
 
-        public static void RegisterRazorConverters(this JsonConverterCollection collection)
+        public static void RegisterRazorConverters(this IList<JsonConverter> collection)
         {
             if (collection == null)
             {

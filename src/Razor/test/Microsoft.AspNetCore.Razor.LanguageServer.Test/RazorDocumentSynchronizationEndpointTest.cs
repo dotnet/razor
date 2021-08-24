@@ -114,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var request = new DidChangeTextDocumentParams()
             {
                 ContentChanges = new Container<TextDocumentContentChangeEvent>(change),
-                TextDocument = new VersionedTextDocumentIdentifier()
+                TextDocument = new OptionalVersionedTextDocumentIdentifier()
                 {
                     Uri = new Uri(documentPath),
                     Version = 1337,

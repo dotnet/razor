@@ -13,19 +13,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         /// Gets or sets a human-readable identifier for the project in which the diagnostic was generated.
         /// </summary>
         [JsonProperty("_vs_projectName")]
-        public string? ProjectName { get; set; }
+        public string? ProjectName { get; init; }
 
         /// <summary>
         /// Gets or sets a human-readable identifier for the build context (e.g. Win32 or MacOS)
         /// in which the diagnostic was generated.
         /// </summary>
         [JsonProperty("_vs_context")]
-        public string? Context { get; set; }
+        public string? Context { get; init; }
 
         /// <summary>
         /// Gets or sets the unique identifier for the project in which the diagnostic was generated.
         /// </summary>
         [JsonProperty("_vs_projectIdentifier")]
-        public string? ProjectIdentifier { get; set; }
+        public string? ProjectIdentifier { get; init; }
     }
 }

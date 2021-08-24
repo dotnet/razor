@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static WorkspaceEdit CreateRenameTagEdit(RazorCodeActionContext context, MarkupStartTagSyntax startTag, string newTagName)
         {
             var textEdits = new List<TextEdit>();
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
+            var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
             var startTagTextEdit = new TextEdit
             {

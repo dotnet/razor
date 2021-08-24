@@ -115,13 +115,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return version;
             }, cancellationToken).ConfigureAwait(false);
 
-            var codeDocumentIdentifier = new VersionedTextDocumentIdentifier()
+            var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
             {
                 Uri = csharpParams.RazorFileUri,
                 Version = documentVersion.Value
             };
 
-            resolvedCodeAction.Edit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(@namespace, codeDocument, codeDocumentIdentifier);
+            var edit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(@namespace, codeDocument, codeDocumentIdentifier);
+            resolvedCodeAction = resolvedCodeAction with { Edit = edit };
 
             return resolvedCodeAction;
         }

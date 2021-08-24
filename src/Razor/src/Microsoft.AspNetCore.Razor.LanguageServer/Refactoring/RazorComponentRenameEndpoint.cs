@@ -32,7 +32,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
         private readonly ProjectSnapshotManager _projectSnapshotManager;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-        private RenameCapability _capability;
 
         public RazorComponentRenameEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -48,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         }
 
-        public RenameRegistrationOptions GetRegistrationOptions()
+        public RenameRegistrationOptions GetRegistrationOptions(RenameCapability capability, ClientCapabilities clientCapabilities)
         {
             return new RenameRegistrationOptions
             {
@@ -227,7 +226,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             DocumentUri uri,
             RazorCodeDocument codeDocument)
         {
-            var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = uri };
+            var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
             var tagHelperElements = codeDocument.GetSyntaxTree().Root
                 .DescendantNodes()
                 .Where(n => n.Kind == SyntaxKind.MarkupTagHelperElement)
@@ -379,11 +378,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring
             }
 
             return null;
-        }
-
-        public void SetCapability(RenameCapability capability)
-        {
-            _capability = capability;
         }
     }
 }

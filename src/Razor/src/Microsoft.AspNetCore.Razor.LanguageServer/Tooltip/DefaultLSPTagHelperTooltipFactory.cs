@@ -77,10 +77,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
             tooltipContent = new MarkupContent
             {
-                Kind = GetMarkupKind()
+                Kind = GetMarkupKind(),
+                Value = descriptionBuilder.ToString(),
             };
-
-            tooltipContent.Value = descriptionBuilder.ToString();
             return true;
         }
 
@@ -147,10 +146,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
             tooltipContent = new MarkupContent
             {
-                Kind = GetMarkupKind()
+                Kind = GetMarkupKind(),
+                Value = descriptionBuilder.ToString(),
             };
-
-            tooltipContent.Value = descriptionBuilder.ToString();
             return true;
         }
 
