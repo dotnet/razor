@@ -2,12 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
+using Newtonsoft.Json;
+using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
 {
@@ -27,16 +28,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
             serializer.Settings.Converters.RegisterRazorConverters();
             serializer.JsonSerializer.Converters.RegisterRazorConverters();
 
-            serializer.Settings.Converters.Add(PlatformAgnosticClientCapabilities.JsonConverter);
-            serializer.JsonSerializer.Converters.Add(PlatformAgnosticClientCapabilities.JsonConverter);
-            serializer.Settings.Converters.Add(PlatformAgnosticCompletionCapability.JsonConverter);
-            serializer.JsonSerializer.Converters.Add(PlatformAgnosticCompletionCapability.JsonConverter);
-            serializer.Settings.Converters.Add(OmniSharpVSCompletionContext.JsonConverter);
-            serializer.JsonSerializer.Converters.Add(OmniSharpVSCompletionContext.JsonConverter);
-            serializer.Settings.Converters.Add(OmniSharpVSDiagnostic.JsonConverter);
-            serializer.JsonSerializer.Converters.Add(OmniSharpVSDiagnostic.JsonConverter);
-            serializer.Settings.Converters.Add(OmniSharpVSCodeActionContext.JsonConverter);
-            serializer.JsonSerializer.Converters.Add(OmniSharpVSCodeActionContext.JsonConverter);
+            AddConverter(serializer, PlatformAgnosticClientCapabilities.JsonConverter);
+            AddConverter(serializer, PlatformAgnosticCompletionCapability.JsonConverter);
+            AddConverter(serializer, OmniSharpVSCompletionContext.JsonConverter);
+            AddConverter(serializer, OmniSharpVSDiagnostic.JsonConverter);
+            AddConverter(serializer, OmniSharpVSCodeActionContext.JsonConverter);
+
+            static void AddConverter(LspSerializer serializer, JsonConverter converter)
+            {
+                serializer.Settings.Converters.Add(converter);
+                serializer.JsonSerializer.Converters.Add(converter);
+            }
         }
     }
 }

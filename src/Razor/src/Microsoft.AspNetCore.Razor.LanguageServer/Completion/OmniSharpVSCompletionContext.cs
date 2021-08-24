@@ -12,6 +12,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         public static readonly PlatformExtensionConverter<CompletionContext, OmniSharpVSCompletionContext> JsonConverter = new PlatformExtensionConverter<CompletionContext, OmniSharpVSCompletionContext>();
 
         [JsonProperty("_vs_invokeKind")]
-        public OmniSharpVSCompletionInvokeKind InvokeKind { get; set; }
+        public OmniSharpVSCompletionInvokeKind InvokeKind { get; init; }
     }
 }

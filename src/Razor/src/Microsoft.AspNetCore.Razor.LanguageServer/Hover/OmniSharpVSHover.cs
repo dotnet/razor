@@ -11,6 +11,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
     internal record OmniSharpVSHover : HoverModel
     {
         [JsonProperty("_vs_rawContent")]
-        public object? RawContent { get; set; }
+        public object? RawContent { get; init; }
     }
 }

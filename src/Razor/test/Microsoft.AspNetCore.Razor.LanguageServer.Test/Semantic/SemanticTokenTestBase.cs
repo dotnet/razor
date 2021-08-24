@@ -262,6 +262,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 var i = 1;
                 while (i < strArray.Length - 1)
                 {
+                    var edit = new SemanticTokensEdit
+                    {
+                        Start = int.Parse(strArray[i], Thread.CurrentThread.CurrentCulture),
+                        DeleteCount = int.Parse(strArray[i + 1], Thread.CurrentThread.CurrentCulture),
+                    };
                     i += 3;
                     var inArray = true;
                     var data = new List<int>();
@@ -279,12 +284,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                         i++;
                     }
-                    var edit = new SemanticTokensEdit
-                    {
-                        Start = int.Parse(strArray[i], Thread.CurrentThread.CurrentCulture),
-                        DeleteCount = int.Parse(strArray[i + 1], Thread.CurrentThread.CurrentCulture),
-                        Data = data.ToImmutableArray(),
-                    };
+
+                    edit = edit with { Data = data.ToImmutableArray(), };
                     edits.Add(edit);
                 }
                 var delta = new SemanticTokensDelta()

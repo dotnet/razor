@@ -14,6 +14,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
 
         [Optional]
         [JsonProperty("_vs_selectionRange")]
-        public Range SelectionRange { get; set; }
+        public Range SelectionRange { get; init; }
     }
 }

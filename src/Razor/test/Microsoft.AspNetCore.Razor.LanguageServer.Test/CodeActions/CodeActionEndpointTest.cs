@@ -649,7 +649,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // Assert
             Assert.Single(results);
-            Assert.Equal(projectedRange, context.Request.Range);
         }
 
         private static DefaultRazorDocumentMappingService CreateDocumentMappingService(Range projectedRange = null)
