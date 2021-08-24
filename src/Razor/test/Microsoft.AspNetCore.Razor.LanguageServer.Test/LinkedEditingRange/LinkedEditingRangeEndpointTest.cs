@@ -22,14 +22,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
     public class LinkedEditingRangeEndpointTest : TagHelperServiceTestBase
     {
         [Fact]
-        public async Task Handle_StartTag_ReturnsCorrectRange()
+        public async Task Handle_DocumentNotFound_ReturnsNull()
+        {
+            // Arrange
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var uri = new Uri("file://path/test.razor");
+            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument, documentFound: false);
+            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var request = new LinkedEditingRangeParams
+            {
+                TextDocument = new TextDocumentIdentifier(uri),
+                Position = new Position { Line = 1, Character = 3 } // <te[||]st1></test1>
+            };
+
+            // Act
+            var result = await endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task Handle_TagHelperStartTag_ReturnsCorrectRange()
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver, TagHelperFactsService);
+            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -55,18 +77,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
-            Assert.Equal(endpoint._wordPattern, result.WordPattern);
+            Assert.Equal(LinkedEditingRangeEndpoint.WordPattern, result.WordPattern);
         }
 
         [Fact]
-        public async Task Handle_EndTag_ReturnsCorrectRange()
+        public async Task Handle_TagHelperEndTag_ReturnsCorrectRange()
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver, TagHelperFactsService);
+            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -92,18 +114,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
-            Assert.Equal(endpoint._wordPattern, result.WordPattern);
+            Assert.Equal(LinkedEditingRangeEndpoint.WordPattern, result.WordPattern);
         }
 
         [Fact]
-        public async Task Handle_NoTagHelper_ReturnsNull()
+        public async Task Handle_NoTag_ReturnsNull()
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver, TagHelperFactsService);
+            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -125,7 +147,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver, TagHelperFactsService);
+            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -140,14 +162,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
         }
 
         [Fact]
-        public async Task Handle_NestedStartTags_ReturnsCorrectRange()
+        public async Task Handle_NestedTagHelperStartTags_ReturnsCorrectRange()
         {
             // Arrange
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1><test1></test1></test1>";
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver, TagHelperFactsService);
+            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -173,33 +195,125 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
 
             // Assert
             Assert.Equal(expectedRanges, result.Ranges);
-            Assert.Equal(endpoint._wordPattern, result.WordPattern);
+            Assert.Equal(LinkedEditingRangeEndpoint.WordPattern, result.WordPattern);
+        }
+
+        [Fact]
+        public async Task Handle_HTMLStartTag_ReturnsCorrectRange()
+        {
+            // Arrange
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<body></body>";
+            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var uri = new Uri("file://path/test.razor");
+            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var request = new LinkedEditingRangeParams
+            {
+                TextDocument = new TextDocumentIdentifier(uri),
+                Position = new Position { Line = 1, Character = 3 } // <bo[||]dy></body>
+            };
+
+            var expectedRanges = new Range[]
+            {
+                new Range
+                {
+                    Start = new Position { Line = 1, Character = 1 },
+                    End = new Position { Line = 1, Character = 5 }
+                },
+                new Range
+                {
+                    Start = new Position { Line = 1, Character = 8 },
+                    End = new Position { Line = 1, Character = 12 }
+                }
+            };
+
+            // Act
+            var result = await endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(expectedRanges, result.Ranges);
+            Assert.Equal(LinkedEditingRangeEndpoint.WordPattern, result.WordPattern);
+        }
+
+        [Fact]
+        public async Task Handle_HTMLEndTag_ReturnsCorrectRange()
+        {
+            // Arrange
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<body></body>";
+            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var uri = new Uri("file://path/test.razor");
+            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var request = new LinkedEditingRangeParams
+            {
+                TextDocument = new TextDocumentIdentifier(uri),
+                Position = new Position { Line = 1, Character = 8 } // <body></[||]body>
+            };
+
+            var expectedRanges = new Range[]
+            {
+                new Range
+                {
+                    Start = new Position { Line = 1, Character = 1 },
+                    End = new Position { Line = 1, Character = 5 }
+                },
+                new Range
+                {
+                    Start = new Position { Line = 1, Character = 8 },
+                    End = new Position { Line = 1, Character = 12 }
+                }
+            };
+
+            // Act
+            var result = await endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(expectedRanges, result.Ranges);
+            Assert.Equal(LinkedEditingRangeEndpoint.WordPattern, result.WordPattern);
+        }
+
+        [Fact]
+        public async Task Handle_SelfClosingHTMLTag_ReturnsNull()
+        {
+            // Arrange
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<body />";
+            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var uri = new Uri("file://path/test.razor");
+            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var request = new LinkedEditingRangeParams
+            {
+                TextDocument = new TextDocumentIdentifier(uri),
+                Position = new Position { Line = 1, Character = 3 } // <bo[||]dy />
+            };
+
+            // Act
+            var result = await endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.Null(result);
         }
 
         [Fact]
         public void VerifyWordPatternCorrect()
         {
-            // Arrange
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
-            var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver, TagHelperFactsService);
-
             // Assert
-            Assert.True(Regex.Match("Test", endpoint._wordPattern).Length == 4);
-            Assert.True(Regex.Match("!Test", endpoint._wordPattern).Length == 5);
-            Assert.True(Regex.Match("!Test.Test2", endpoint._wordPattern).Length == 11);
+            Assert.True(Regex.Match("Test", LinkedEditingRangeEndpoint.WordPattern).Length == 4);
+            Assert.True(Regex.Match("!Test", LinkedEditingRangeEndpoint.WordPattern).Length == 5);
+            Assert.True(Regex.Match("!Test.Test2", LinkedEditingRangeEndpoint.WordPattern).Length == 11);
 
-            Assert.True(Regex.Match("Te>st", endpoint._wordPattern).Length != 5);
-            Assert.True(Regex.Match("Te/st", endpoint._wordPattern).Length != 5);
-            Assert.True(Regex.Match("Te\\st", endpoint._wordPattern).Length != 5);
-            Assert.True(Regex.Match("Te!st", endpoint._wordPattern).Length != 5);
+            Assert.True(Regex.Match("Te>st", LinkedEditingRangeEndpoint.WordPattern).Length != 5);
+            Assert.True(Regex.Match("Te/st", LinkedEditingRangeEndpoint.WordPattern).Length != 5);
+            Assert.True(Regex.Match("Te\\st", LinkedEditingRangeEndpoint.WordPattern).Length != 5);
+            Assert.True(Regex.Match("Te!st", LinkedEditingRangeEndpoint.WordPattern).Length != 5);
             Assert.True(Regex.Match("Te" + Environment.NewLine + "st",
-                endpoint._wordPattern).Length != 4 + Environment.NewLine.Length);
+                LinkedEditingRangeEndpoint.WordPattern).Length != 4 + Environment.NewLine.Length);
         }
 
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
+        private static DocumentResolver CreateDocumentResolver(
+            string documentPath,
+            RazorCodeDocument codeDocument,
+            bool documentFound = true)
         {
             var sourceTextChars = new char[codeDocument.Source.Length];
             codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
@@ -209,7 +323,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
                 document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
             var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
             documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
+                .Returns(documentFound);
+
             return documentResolver.Object;
         }
     }

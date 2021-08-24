@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -14,7 +16,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [Export(typeof(TagHelperFactsService))]
     internal class DefaultTagHelperFactsService : TagHelperFactsService
     {
-        public override TagHelperBinding GetTagHelperBinding(
+        public override TagHelperBinding? GetTagHelperBinding(
             TagHelperDocumentContext documentContext,
             string tagName,
             IEnumerable<KeyValuePair<string, string>> attributes,
@@ -104,12 +106,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var matchingDescriptors = new List<TagHelperDescriptor>();
             var descriptors = documentContext?.TagHelpers;
-            if (descriptors?.Count == 0)
+            if (descriptors is null || descriptors.Count == 0)
             {
                 return matchingDescriptors;
             }
 
-            var prefix = documentContext.Prefix ?? string.Empty;
+            var prefix = documentContext?.Prefix ?? string.Empty;
             if (!tagName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             {
                 // Can't possibly match TagHelpers, it doesn't start with the TagHelperPrefix.
@@ -143,7 +145,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var matchingDescriptors = new List<TagHelperDescriptor>();
             var descriptors = documentContext?.TagHelpers;
-            if (descriptors?.Count == 0)
+            if (descriptors is null || descriptors.Count == 0)
             {
                 return matchingDescriptors;
             }
@@ -209,7 +211,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             return stringifiedAttributes;
         }
 
-        internal override (string ancestorTagName, bool ancestorIsTagHelper) GetNearestAncestorTagInfo(IEnumerable<SyntaxNode> ancestors)
+        internal override (string? ancestorTagName, bool ancestorIsTagHelper) GetNearestAncestorTagInfo(IEnumerable<SyntaxNode> ancestors)
         {
             foreach (var ancestor in ancestors)
             {
@@ -228,27 +230,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
 
             return (ancestorTagName: null, ancestorIsTagHelper: false);
-        }
-
-        internal override bool TryGetNearestAncestorStartAndEndTags(
-            IEnumerable<SyntaxNode> ancestors,
-            out MarkupTagHelperStartTagSyntax startTag,
-            out MarkupTagHelperEndTagSyntax endTag)
-        {
-            foreach (var ancestor in ancestors)
-            {
-                if (ancestor is MarkupTagHelperElementSyntax tagHelperElement)
-                {
-                    // It's possible for start or end tag to be null in malformed cases.
-                    startTag = tagHelperElement.StartTag;
-                    endTag = tagHelperElement.EndTag;
-                    return startTag is not null && endTag is not null;
-                }
-            }
-
-            startTag = null;
-            endTag = null;
-            return false;
         }
     }
 }

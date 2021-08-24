@@ -1,21 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using System.Collections.Generic;
-using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 {
@@ -25,16 +26,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
         // This is loosely based off logic from the Razor compiler:
         // https://github.com/dotnet/aspnetcore/blob/main/src/Razor/Microsoft.AspNetCore.Razor.Language/src/Legacy/HtmlTokenizer.cs
         // Internal for testing only.
-        internal readonly string _wordPattern = @"!?[^ <>!\/\?\[\]=""\\@" + Environment.NewLine + "]+";
+        internal static readonly string WordPattern = @"!?[^ <>!\/\?\[\]=""\\@" + Environment.NewLine + "]+";
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
-        private readonly TagHelperFactsService _tagHelperFactsService;
 
         public LinkedEditingRangeEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            TagHelperFactsService tagHelperFactsService)
+            DocumentResolver documentResolver)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
@@ -46,14 +45,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (tagHelperFactsService is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelperFactsService));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
-            _tagHelperFactsService = tagHelperFactsService;
         }
 
         public RegistrationExtensionResult GetRegistration()
@@ -63,14 +56,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
         }
 
-        public async Task<LinkedEditingRanges> Handle(
+        public async Task<LinkedEditingRanges?> Handle(
             LinkedEditingRangeParams request,
             CancellationToken cancellationToken)
         {
             var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                _documentResolver.TryResolveDocument(
-                    request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
+                if (!_documentResolver.TryResolveDocument(
+                    request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot))
+                {
+                    return null;
+                }
 
                 return documentSnapshot;
             }, cancellationToken);
@@ -87,21 +83,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             }
 
             var location = await GetSourceLocation(request, document).ConfigureAwait(false);
-            var ancestors = GetAncestors(codeDocument, location);
 
-            // We only care if the user is within a TagHelper with a valid start and end tag.
-            if (_tagHelperFactsService.TryGetNearestAncestorStartAndEndTags(
-                    ancestors, out var startTag, out var endTag) &&
-                startTag.Name is not null && endTag.Name is not null)
+            // We only care if the user is within a TagHelper or HTML tag with a valid start and end tag.
+            if (TryGetMarkupNameTokens(codeDocument, location, out var startTagNameToken, out var endTagNameToken) &&
+                (startTagNameToken.Span.Contains(location.AbsoluteIndex) || endTagNameToken.Span.Contains(location.AbsoluteIndex)))
             {
-                var startSpan = startTag.Name.GetLinePositionSpan(codeDocument.Source);
-                var endSpan = endTag.Name.GetLinePositionSpan(codeDocument.Source);
+                var startSpan = startTagNameToken.GetLinePositionSpan(codeDocument.Source);
+                var endSpan = endTagNameToken.GetLinePositionSpan(codeDocument.Source);
                 var ranges = new Range[2] { startSpan.ToRange(), endSpan.ToRange() };
 
                 return new LinkedEditingRanges
                 {
                     Ranges = ranges,
-                    WordPattern = _wordPattern
+                    WordPattern = WordPattern
                 };
             }
 
@@ -119,14 +113,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
                 return location;
             }
 
-            static IEnumerable<SyntaxNode> GetAncestors(RazorCodeDocument codeDocument, SourceLocation location)
+            static bool TryGetMarkupNameTokens(
+                RazorCodeDocument codeDocument,
+                SourceLocation location,
+                [NotNullWhen(true)] out SyntaxToken? startTagNameToken,
+                [NotNullWhen(true)] out SyntaxToken? endTagNameToken)
             {
                 var syntaxTree = codeDocument.GetSyntaxTree();
                 var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: "");
                 var owner = syntaxTree.Root.LocateOwner(change);
-                var ancestors = owner.Ancestors();
+                var element = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(
+                    a => a.Kind is SyntaxKind.MarkupTagHelperElement || a.Kind is SyntaxKind.MarkupElement);
 
-                return ancestors;
+                if (element is null)
+                {
+                    startTagNameToken = null;
+                    endTagNameToken = null;
+                    return false;
+                }
+
+                switch (element)
+                {
+                    // Tag helper
+                    case MarkupTagHelperElementSyntax markupTagHelperElement:
+                        startTagNameToken = markupTagHelperElement.StartTag?.Name;
+                        endTagNameToken = markupTagHelperElement.EndTag?.Name;
+                        return startTagNameToken is not null && endTagNameToken is not null;
+                    // HTML
+                    case MarkupElementSyntax markupElement:
+                        startTagNameToken = markupElement.StartTag?.Name;
+                        endTagNameToken = markupElement.EndTag?.Name;
+                        return startTagNameToken is not null && endTagNameToken is not null;
+                    default:
+                        throw new InvalidOperationException("Element is expected to be a MarkupTagHelperElement or MarkupElement.");
+                }
             }
         }
     }
