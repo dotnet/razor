@@ -1027,7 +1027,6 @@ slf*@";
             var loggingFactory = new Mock<LoggerFactory>(MockBehavior.Strict);
             loggingFactory.Protected().Setup("CheckDisposed").CallBase();
 
-
             var projectSnapshotManagerDispatcher = new DefaultProjectSnapshotManagerDispatcher();
 
             var documentResolver = new TestDocumentResolver(documentSnapshots);

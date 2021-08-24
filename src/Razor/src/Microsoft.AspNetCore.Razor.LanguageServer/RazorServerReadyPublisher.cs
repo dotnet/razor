@@ -50,6 +50,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private async void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
+            // Don't do any work if the solution is closing
+            if (args.SolutionIsClosing)
+            {
+                return;
+            }
+
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var projectSnapshot = args.Newer;

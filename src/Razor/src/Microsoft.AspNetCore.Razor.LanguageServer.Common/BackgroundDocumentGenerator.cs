@@ -17,6 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
+        private bool _solutionIsClosing;
 
         public BackgroundDocumentGenerator(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -176,6 +177,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 for (var i = 0; i < work.Length; i++)
                 {
+                    if (_solutionIsClosing)
+                    {
+                        break;
+                    }
+
                     var document = work[i].Value;
                     try
                     {
@@ -189,9 +195,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 OnCompletingBackgroundWork();
 
-                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                    () => NotifyDocumentsProcessed(work),
-                    CancellationToken.None);
+                if (!_solutionIsClosing)
+                {
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                        () => NotifyDocumentsProcessed(work),
+                        CancellationToken.None);
+                }
 
                 lock (_work)
                 {
@@ -200,7 +209,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     _timer = null;
 
                     // If more work came in while we were running start the worker again.
-                    if (_work.Count > 0)
+                    if (_work.Count > 0 && !_solutionIsClosing)
                     {
                         StartWorker();
                     }
@@ -232,6 +241,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
+            // Don't do any work if the solution is closing
+            if (args.SolutionIsClosing)
+            {
+                _solutionIsClosing = true;
+                return;
+            }
+            _solutionIsClosing = false;
+
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)

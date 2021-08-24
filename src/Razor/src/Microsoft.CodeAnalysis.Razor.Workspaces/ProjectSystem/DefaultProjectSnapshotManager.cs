@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
         private readonly Queue<ProjectChangeEventArgs> _notificationWork;
 
+        private bool _solutionIsClosing;
+
         public DefaultProjectSnapshotManager(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ErrorReporter errorReporter,
@@ -178,18 +180,27 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
-                var loader = textLoader == null
-                    ? DocumentState.EmptyLoader
-                    : (() => textLoader.LoadTextAndVersionAsync(Workspace, null, CancellationToken.None));
-                var state = entry.State.WithAddedHostDocument(document, loader);
-
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+                // if the solution is closing we don't need to bother computing new state
+                if (_solutionIsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentAdded));
+                    NotifyListeners(oldSnapshot, oldSnapshot, document.FilePath, ProjectChangeKind.DocumentAdded);
+                }
+                else
+                {
+                    var loader = textLoader == null
+                    ? DocumentState.EmptyLoader
+                    : (() => textLoader.LoadTextAndVersionAsync(Workspace, null, CancellationToken.None));
+                    var state = entry.State.WithAddedHostDocument(document, loader);
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[hostProject.FilePath] = entry;
+                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentAdded);
+                    }
                 }
             }
         }
@@ -210,15 +221,24 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
-                var state = entry.State.WithRemovedHostDocument(document);
-
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+                // if the solution is closing we don't need to bother computing new state
+                if (_solutionIsClosing)
                 {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentRemoved));
+                    var snapshot = entry.GetSnapshot();
+                    NotifyListeners(snapshot, snapshot, document.FilePath, ProjectChangeKind.DocumentRemoved);
+                }
+                else
+                {
+                    var state = entry.State.WithRemovedHostDocument(document);
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[hostProject.FilePath] = entry;
+                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentRemoved);
+                    }
                 }
             }
         }
@@ -245,36 +265,45 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
-                ProjectState state;
-
-                var currentText = sourceText;
-                if (older.TryGetText(out var olderText) &&
-                    older.TryGetTextVersion(out var olderVersion))
+                // if the solution is closing we don't need to bother computing new state
+                if (_solutionIsClosing)
                 {
-                    var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                    state = entry.State.WithChangedHostDocument(older.HostDocument, currentText, version);
+                    var oldSnapshot = entry.GetSnapshot();
+                    NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
                 }
                 else
                 {
-                    state = entry.State.WithChangedHostDocument(older.HostDocument, async () =>
+                    ProjectState state;
+
+                    var currentText = sourceText;
+                    if (older.TryGetText(out var olderText) &&
+                        older.TryGetTextVersion(out var olderVersion))
                     {
-                        olderText = await older.GetTextAsync().ConfigureAwait(false);
-                        olderVersion = await older.GetTextVersionAsync().ConfigureAwait(false);
-
                         var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                        return TextAndVersion.Create(currentText, version, documentFilePath);
-                    });
-                }
+                        state = entry.State.WithChangedHostDocument(older.HostDocument, currentText, version);
+                    }
+                    else
+                    {
+                        state = entry.State.WithChangedHostDocument(older.HostDocument, async () =>
+                        {
+                            olderText = await older.GetTextAsync().ConfigureAwait(false);
+                            olderVersion = await older.GetTextVersionAsync().ConfigureAwait(false);
 
-                _openDocuments.Add(documentFilePath);
+                            var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
+                            return TextAndVersion.Create(currentText, version, documentFilePath);
+                        });
+                    }
 
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
-                {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                    _openDocuments.Add(documentFilePath);
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[projectFilePath] = entry;
+                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged);
+                    }
                 }
             }
         }
@@ -301,19 +330,28 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
-                var state = entry.State.WithChangedHostDocument(
+                // if the solution is closing we don't need to bother computing new state
+                if (_solutionIsClosing)
+                {
+                    var oldSnapshot = entry.GetSnapshot();
+                    NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
+                }
+                else
+                {
+                    var state = entry.State.WithChangedHostDocument(
                     older.HostDocument,
                     async () => await textLoader.LoadTextAndVersionAsync(Workspace, default, default));
 
-                _openDocuments.Remove(documentFilePath);
+                    _openDocuments.Remove(documentFilePath);
 
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
-                {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[projectFilePath] = entry;
+                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged);
+                    }
                 }
             }
         }
@@ -343,31 +381,41 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 ProjectState state;
 
                 var currentText = sourceText;
-                if (older.TryGetText(out var olderText) &&
-                    older.TryGetTextVersion(out var olderVersion))
+
+                // if the solution is closing we don't need to bother computing new state
+                if (_solutionIsClosing)
                 {
-                    var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                    state = entry.State.WithChangedHostDocument(older.HostDocument, currentText, version);
+                    var oldSnapshot = entry.GetSnapshot();
+                    NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
                 }
                 else
                 {
-                    state = entry.State.WithChangedHostDocument(older.HostDocument, async () =>
+                    if (older.TryGetText(out var olderText) &&
+                    older.TryGetTextVersion(out var olderVersion))
                     {
-                        olderText = await older.GetTextAsync().ConfigureAwait(false);
-                        olderVersion = await older.GetTextVersionAsync().ConfigureAwait(false);
-
                         var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
-                        return TextAndVersion.Create(currentText, version, documentFilePath);
-                    });
-                }
+                        state = entry.State.WithChangedHostDocument(older.HostDocument, currentText, version);
+                    }
+                    else
+                    {
+                        state = entry.State.WithChangedHostDocument(older.HostDocument, async () =>
+                        {
+                            olderText = await older.GetTextAsync().ConfigureAwait(false);
+                            olderVersion = await older.GetTextVersionAsync().ConfigureAwait(false);
 
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
-                {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                            var version = currentText.ContentEquals(olderText) ? olderVersion : olderVersion.GetNewerVersion();
+                            return TextAndVersion.Create(currentText, version, documentFilePath);
+                        });
+                    }
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[projectFilePath] = entry;
+                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged);
+                    }
                 }
             }
         }
@@ -394,17 +442,26 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             if (_projects.TryGetValue(projectFilePath, out var entry) &&
                 entry.State.Documents.TryGetValue(documentFilePath, out var older))
             {
-                var state = entry.State.WithChangedHostDocument(
+                // if the solution is closing we don't need to bother computing new state
+                if (_solutionIsClosing)
+                {
+                    var oldSnapshot = entry.GetSnapshot();
+                    NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath, ProjectChangeKind.DocumentChanged);
+                }
+                else
+                {
+                    var state = entry.State.WithChangedHostDocument(
                     older.HostDocument,
                     async () => await textLoader.LoadTextAndVersionAsync(Workspace, default, default));
 
-                // Document updates can no-op.
-                if (!ReferenceEquals(state, entry.State))
-                {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged));
+                    // Document updates can no-op.
+                    if (!ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[projectFilePath] = entry;
+                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged);
+                    }
                 }
             }
         }
@@ -429,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _projects[hostProject.FilePath] = entry;
 
             // We need to notify listeners about every project add.
-            NotifyListeners(new ProjectChangeEventArgs(null, entry.GetSnapshot(), ProjectChangeKind.ProjectAdded));
+            NotifyListeners(older: null, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectAdded);
         }
 
         public override void ProjectConfigurationChanged(HostProject hostProject)
@@ -443,15 +500,24 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             if (_projects.TryGetValue(hostProject.FilePath, out var entry))
             {
-                var state = entry.State.WithHostProject(hostProject);
-
-                // HostProject updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+                // if the solution is closing we don't need to bother computing new state
+                if (_solutionIsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), ProjectChangeKind.ProjectChanged));
+                    NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
+                }
+                else
+                {
+                    var state = entry.State.WithHostProject(hostProject);
+
+                    // HostProject updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[hostProject.FilePath] = entry;
+                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectChanged);
+                    }
                 }
             }
         }
@@ -472,15 +538,24 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             if (_projects.TryGetValue(projectFilePath, out var entry))
             {
-                var state = entry.State.WithProjectWorkspaceState(projectWorkspaceState);
-
-                // HostProject updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+                // if the solution is closing we don't need to bother computing new state
+                if (_solutionIsClosing)
                 {
                     var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, entry.GetSnapshot(), ProjectChangeKind.ProjectChanged));
+                    NotifyListeners(oldSnapshot, oldSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
+                }
+                else
+                {
+                    var state = entry.State.WithProjectWorkspaceState(projectWorkspaceState);
+
+                    // HostProject updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects[projectFilePath] = entry;
+                        NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectChanged);
+                    }
                 }
             }
         }
@@ -499,8 +574,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 // We need to notify listeners about every project removal.
                 var oldSnapshot = entry.GetSnapshot();
                 _projects.Remove(hostProject.FilePath);
-                NotifyListeners(new ProjectChangeEventArgs(oldSnapshot, null, ProjectChangeKind.ProjectRemoved));
+                NotifyListeners(oldSnapshot, newer: null, documentFilePath: null, ProjectChangeKind.ProjectRemoved);
             }
+        }
+
+        public override void SolutionOpened()
+        {
+            _solutionIsClosing = false;
+        }
+
+        public override void SolutionClosed()
+        {
+            _solutionIsClosing = true;
         }
 
         public override void ReportError(Exception exception)
@@ -534,6 +619,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             _errorReporter.ReportError(exception, snapshot);
         }
 
+        private void NotifyListeners(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)
+        {
+            NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, _solutionIsClosing));
+        }
+
         // virtual so it can be overridden in tests
         protected virtual void NotifyListeners(ProjectChangeEventArgs e)
         {
@@ -547,7 +637,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 // To ensure order we wont immediately re-invoke Changed here, we'll wait for the stack to unwind to notify others. This process still happens synchronously
                 // it just ensures that events happen in the correct order. For instance lets take the situation where a document is added to a project. That document will be
                 // added and then opened. However, if the result of "adding" causes an "open" to triger we want to ensure that "add" finishes prior to "open" being notified.
-
 
                 // Start unwinding the notification queue
                 do

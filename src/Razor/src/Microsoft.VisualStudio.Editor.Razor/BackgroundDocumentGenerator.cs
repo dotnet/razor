@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Razor
         private readonly HashSet<string> _suppressedDocuments;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
+        private bool _solutionIsClosing;
 
         [ImportingConstructor]
         public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorDynamicFileInfoProvider infoProvider)
@@ -210,6 +211,12 @@ namespace Microsoft.CodeAnalysis.Razor
 
                 for (var i = 0; i < work.Length; i++)
                 {
+                    // If the solution is closing, suspect any in-progress work
+                    if (_solutionIsClosing)
+                    {
+                        break;
+                    }
+
                     var (project, document) = work[i].Value;
                     try
                     {
@@ -238,8 +245,9 @@ namespace Microsoft.CodeAnalysis.Razor
                     _timer.Dispose();
                     _timer = null;
 
-                    // If more work came in while we were running start the worker again.
-                    if (Work.Count > 0)
+                    // If more work came in while we were running start the worker again, unless the solution
+                    // is being closed.
+                    if (Work.Count > 0 && !_solutionIsClosing)
                     {
                         StartWorker();
                     }
@@ -295,6 +303,14 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
         {
+            // We don't want to do any work on solution close
+            if (e.SolutionIsClosing)
+            {
+                _solutionIsClosing = true;
+                return;
+            }
+            _solutionIsClosing = false;
+
             switch (e.Kind)
             {
                 case ProjectChangeKind.ProjectAdded:
