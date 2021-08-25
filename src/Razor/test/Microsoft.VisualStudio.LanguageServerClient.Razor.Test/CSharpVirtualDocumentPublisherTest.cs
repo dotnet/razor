@@ -20,10 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var lspDocumentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             var fileInfoProvider = new Mock<RazorDynamicFileInfoProvider>(MockBehavior.Strict);
             var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, lspDocumentMappingProvider.Object);
-            var args = new LSPDocumentChangeEventArgs(old: null, @new: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict), LSPDocumentChangeKind.Added);
 
             // Act & Assert
-            publisher.DocumentManager_Changed(sender: null, args);
+            publisher.Changed(old: null, @new: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict), virtualOld: null, virtualNew: null, LSPDocumentChangeKind.Added);
         }
 
         [Fact]
@@ -33,10 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var lspDocumentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             var fileInfoProvider = new Mock<RazorDynamicFileInfoProvider>(MockBehavior.Strict);
             var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, lspDocumentMappingProvider.Object);
-            var args = new LSPDocumentChangeEventArgs(old: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict), @new: null, LSPDocumentChangeKind.Removed);
 
             // Act & Assert
-            publisher.DocumentManager_Changed(sender: null, args);
+            publisher.Changed(old: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict), @new: null, virtualOld: null, virtualNew: null, LSPDocumentChangeKind.Removed);
         }
 
         [Fact]
@@ -46,13 +44,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var lspDocumentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             var fileInfoProvider = new Mock<RazorDynamicFileInfoProvider>(MockBehavior.Strict);
             var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, lspDocumentMappingProvider.Object);
-            var args = new LSPDocumentChangeEventArgs(
-                old: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict), @new: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict),
-                virtualOld: Mock.Of<VirtualDocumentSnapshot>(MockBehavior.Strict), virtualNew: Mock.Of<VirtualDocumentSnapshot>(MockBehavior.Strict),
-                LSPDocumentChangeKind.VirtualDocumentChanged);
 
             // Act & Assert
-            publisher.DocumentManager_Changed(sender: null, args);
+            publisher.Changed(old: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict),
+                              @new: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict),
+                              virtualOld: Mock.Of<VirtualDocumentSnapshot>(MockBehavior.Strict),
+                              virtualNew: Mock.Of<VirtualDocumentSnapshot>(MockBehavior.Strict),
+                              LSPDocumentChangeKind.VirtualDocumentChanged);
         }
 
         [Fact]
@@ -66,13 +64,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             fileInfoProvider.Setup(provider => provider.UpdateLSPFileInfo(lspDocument.Uri, It.IsAny<DynamicDocumentContainer>()))
                 .Verifiable();
             var publisher = new CSharpVirtualDocumentPublisher(fileInfoProvider.Object, lspDocumentMappingProvider.Object);
-            var args = new LSPDocumentChangeEventArgs(
-                old: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict), @new: lspDocument,
-                virtualOld: Mock.Of<VirtualDocumentSnapshot>(MockBehavior.Strict), virtualNew: csharpSnapshot,
-                LSPDocumentChangeKind.VirtualDocumentChanged);
 
             // Act
-            publisher.DocumentManager_Changed(sender: null, args);
+            publisher.Changed(old: Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict),
+                              @new: lspDocument,
+                              virtualOld: Mock.Of<VirtualDocumentSnapshot>(MockBehavior.Strict),
+                              virtualNew: csharpSnapshot,
+                              LSPDocumentChangeKind.VirtualDocumentChanged);
 
             // Assert
             fileInfoProvider.VerifyAll();

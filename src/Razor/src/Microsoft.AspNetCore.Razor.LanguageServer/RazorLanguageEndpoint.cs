@@ -321,7 +321,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
                     // So, let's avoid the error by wrapping the cursor marker in a comment.
                     var wrappedText = snippetEdit.NewText?.Replace("$0", "/*$0*/");
-                    snippetEdit.NewText = wrappedText;
+                    snippetEdits[i] = snippetEdit with { NewText = wrappedText };
                 }
             }
 
@@ -333,7 +333,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                     // Unwrap the cursor marker.
                     var unwrappedText = snippetEdit.NewText?.Replace("/*$0*/", "$0");
-                    snippetEdit.NewText = unwrappedText;
+                    snippetEdits[i] = snippetEdit with { NewText = unwrappedText };
                 }
             }
         }

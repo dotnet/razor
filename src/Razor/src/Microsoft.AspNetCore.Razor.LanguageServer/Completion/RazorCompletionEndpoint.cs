@@ -23,7 +23,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal class RazorCompletionEndpoint : ICompletionHandler, ICompletionResolveHandler
     {
-        private PlatformAgnosticCompletionCapability _capability;
         private readonly ILogger _logger;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
@@ -37,8 +36,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Name = "editor.action.triggerSuggest",
             Title = RazorLS.Resources.ReTrigger_Completions_Title,
         };
-
+        private PlatformAgnosticCompletionCapability _capability;
         private IReadOnlyList<ExtendedCompletionItemKinds> _supportedItemKinds;
+
+        // Guid is magically generated and doesn't mean anything. O# magic.
+        public Guid Id => new Guid("011c77cc-f90e-4f2e-b32c-dafc6587ccd6");
 
         public RazorCompletionEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -94,10 +96,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             _completionListCache = new CompletionListCache();
         }
 
-        public void SetCapability(CompletionCapability capability)
+        public void SetCapability(CompletionCapability capability, ClientCapabilities clientCapabilities)
+        {
+        }
+
+        public CompletionRegistrationOptions GetRegistrationOptions(CompletionCapability capability, ClientCapabilities clientCapabilities)
         {
             _capability = (PlatformAgnosticCompletionCapability)capability;
             _supportedItemKinds = _capability.CompletionItemKind.ValueSet.Cast<ExtendedCompletionItemKinds>().ToList();
+            return new CompletionRegistrationOptions()
+            {
+                DocumentSelector = RazorDefaults.Selector,
+                ResolveProvider = true,
+                TriggerCharacters = new Container<string>("@", "<", ":"),
+
+                // NOTE: This property is *NOT* processed in O# versions < 0.16
+                // https://github.com/OmniSharp/csharp-language-server-protocol/blame/bdec4c73240be52fbb25a81f6ad7d409f77b5215/src/Protocol/Server/Capabilities/CompletionOptions.cs#L35-L44
+                AllCommitCharacters = new Container<string>(":", ">", " ", "="),
+            };
         }
 
         public async Task<CompletionList> Handle(CompletionParams request, CancellationToken cancellationToken)
@@ -149,20 +165,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             return completionList;
         }
 
-        public CompletionRegistrationOptions GetRegistrationOptions()
-        {
-            return new CompletionRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector,
-                ResolveProvider = true,
-                TriggerCharacters = new Container<string>("@", "<", ":"),
-
-                // NOTE: This property is *NOT* processed in O# versions < 0.16
-                // https://github.com/OmniSharp/csharp-language-server-protocol/blame/bdec4c73240be52fbb25a81f6ad7d409f77b5215/src/Protocol/Server/Capabilities/CompletionOptions.cs#L35-L44
-                AllCommitCharacters = new Container<string>(":", ">", " ", "="),
-            };
-        }
-
         public Task<CompletionItem> Handle(CompletionItem completionItem, CancellationToken cancellationToken)
         {
             if (!completionItem.TryGetCompletionListResultId(out var resultId))
@@ -196,13 +198,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 case RazorCompletionItemKind.Directive:
                     {
                         var descriptionInfo = associatedRazorCompletion.GetDirectiveCompletionDescription();
-                        completionItem.Documentation = descriptionInfo.Description;
+                        completionItem = completionItem with { Documentation = descriptionInfo.Description };
                         break;
                     }
                 case RazorCompletionItemKind.MarkupTransition:
                     {
                         var descriptionInfo = associatedRazorCompletion.GetMarkupTransitionCompletionDescription();
-                        completionItem.Documentation = descriptionInfo.Description;
+                        completionItem = completionItem with { Documentation = descriptionInfo.Description };
                         break;
                     }
                 case RazorCompletionItemKind.DirectiveAttribute:
@@ -240,13 +242,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             if (tagHelperMarkupTooltip != null)
             {
                 var documentation = new StringOrMarkupContent(tagHelperMarkupTooltip);
-                completionItem.Documentation = documentation;
+                completionItem = completionItem with { Documentation = documentation };
             }
 
             if (tagHelperClassifiedTextTooltip != null)
             {
                 var vsCompletionItem = completionItem.ToVSCompletionItem();
-                vsCompletionItem.Documentation = string.Empty;
+                completionItem = completionItem with { Documentation = string.Empty };
                 vsCompletionItem.Description = tagHelperClassifiedTextTooltip;
                 return Task.FromResult<CompletionItem>(vsCompletionItem);
             }
@@ -291,7 +293,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 if (TryConvert(razorCompletionItem, supportedItemKinds, out var completionItem))
                 {
                     // The completion items are cached and can be retrieved via this result id to enable the "resolve" completion functionality.
-                    completionItem.SetCompletionListResultId(resultId);
+                    completionItem = completionItem.CreateWithCompletionListResultId(resultId);
                     completionItems.Add(completionItem);
                 }
             }
@@ -348,13 +350,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                         if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)
                         {
-                            directiveCompletionItem.CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters);
+                            directiveCompletionItem = directiveCompletionItem with { CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters) };
                         }
 
                         if (razorCompletionItem == DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem)
                         {
-                            directiveCompletionItem.Command = s_retriggerCompletionCommand;
-                            directiveCompletionItem.Kind = tagHelperCompletionItemKind;
+                            directiveCompletionItem = directiveCompletionItem with
+                            {
+                                Command = s_retriggerCompletionCommand,
+                                Kind = tagHelperCompletionItemKind,
+                            };
                         }
 
                         completionItem = directiveCompletionItem;
@@ -373,7 +378,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                         if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)
                         {
-                            directiveAttributeCompletionItem.CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters);
+                            directiveAttributeCompletionItem = directiveAttributeCompletionItem with { CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters) };
                         }
 
                         completionItem = directiveAttributeCompletionItem;
@@ -406,7 +411,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                         if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)
                         {
-                            markupTransitionCompletionItem.CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters);
+                            markupTransitionCompletionItem = markupTransitionCompletionItem with { CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters) };
                         }
 
                         completionItem = markupTransitionCompletionItem;
@@ -425,7 +430,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                         if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)
                         {
-                            tagHelperElementCompletionItem.CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters);
+                            tagHelperElementCompletionItem = tagHelperElementCompletionItem with { CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters) };
                         }
 
                         completionItem = tagHelperElementCompletionItem;
@@ -444,7 +449,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                         if (razorCompletionItem.CommitCharacters != null && razorCompletionItem.CommitCharacters.Count > 0)
                         {
-                            tagHelperAttributeCompletionItem.CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters);
+                            tagHelperAttributeCompletionItem = tagHelperAttributeCompletionItem with { CommitCharacters = new Container<string>(razorCompletionItem.CommitCharacters) };
                         }
 
                         completionItem = tagHelperAttributeCompletionItem;

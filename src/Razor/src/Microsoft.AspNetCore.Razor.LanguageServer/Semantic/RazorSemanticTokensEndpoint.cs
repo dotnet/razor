@@ -1,23 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
-#pragma warning disable CS0618
+
 #nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document.Proposals;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal class RazorSemanticTokensEndpoint : ISemanticTokensHandler, ISemanticTokensRangeHandler, ISemanticTokensDeltaHandler
+    internal class RazorSemanticTokensEndpoint : ISemanticTokensFullHandler, ISemanticTokensRangeHandler, ISemanticTokensDeltaHandler
     {
-        private SemanticTokensCapability? _capability;
-
         private readonly ILogger _logger;
         private readonly RazorSemanticTokensInfoService _semanticTokensInfoService;
 
@@ -76,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return edits;
         }
 
-        public SemanticTokensRegistrationOptions GetRegistrationOptions()
+        public SemanticTokensRegistrationOptions GetRegistrationOptions(SemanticTokensCapability capability, ClientCapabilities clientCapabilities)
         {
             return new SemanticTokensRegistrationOptions
             {
@@ -86,13 +84,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     Delta = true,
                 },
                 Legend = RazorSemanticTokensLegend.Instance,
-                Range = true,
+                Range = false,
             };
-        }
-
-        public void SetCapability(SemanticTokensCapability capability)
-        {
-            _capability = capability;
         }
 
         private async Task<SemanticTokens?> HandleAsync(TextDocumentIdentifier textDocument, CancellationToken cancellationToken, Range? range = null)

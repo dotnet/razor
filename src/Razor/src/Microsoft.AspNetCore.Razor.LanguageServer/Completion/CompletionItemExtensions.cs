@@ -11,16 +11,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     {
         private const string ResultIdKey = "_resultId";
 
-        public static void SetCompletionListResultId(this CompletionItem completion, long resultId)
+        public static CompletionItem CreateWithCompletionListResultId(this CompletionItem completionItem, long resultId)
         {
-            if (completion is null)
+            if (completionItem is null)
             {
-                throw new ArgumentNullException(nameof(completion));
+                throw new ArgumentNullException(nameof(completionItem));
             }
 
-            var data = completion.Data ?? new JObject();
+            var data = completionItem.Data ?? new JObject();
             data[ResultIdKey] = resultId;
-            completion.Data = data;
+            completionItem = completionItem with { Data = data };
+            return completionItem;
         }
 
         public static bool TryGetCompletionListResultId(this CompletionItem completion, out int resultId)

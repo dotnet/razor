@@ -6,7 +6,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.VisualStudio.Editor.Razor;
 using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -30,8 +30,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             CompletionList = GenerateCompletionList(documentContent, queryIndex, tagHelperCompletionProvider);
             _completionListBuffer = GenerateBuffer(CompletionList);
 
-            Serializer.Instance.JsonSerializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
+            Serializer = new LspSerializer();
+            Serializer.RegisterRazorConverters();
         }
+
+        private LspSerializer Serializer { get; }
 
         private CompletionList CompletionList { get; }
 
@@ -43,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             using (originalStream = new MemoryStream())
             using (var writer = new StreamWriter(originalStream, Encoding.UTF8, bufferSize: 4096))
             {
-                Serializer.Instance.JsonSerializer.Serialize(writer, CompletionList);
+                Serializer.JsonSerializer.Serialize(writer, CompletionList);
             }
 
             CompletionList deserializedCompletions;
@@ -51,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             using (stream)
             using (var reader = new JsonTextReader(new StreamReader(stream)))
             {
-                deserializedCompletions = Serializer.Instance.JsonSerializer.Deserialize<CompletionList>(reader);
+                deserializedCompletions = Serializer.JsonSerializer.Deserialize<CompletionList>(reader);
             }
         }
 
@@ -60,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
         {
             using var stream = new MemoryStream();
             using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096);
-            Serializer.Instance.JsonSerializer.Serialize(writer, CompletionList);
+            Serializer.JsonSerializer.Serialize(writer, CompletionList);
         }
 
         [Benchmark(Description = "Component Completion List Deserialization")]
@@ -70,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             using var stream = new MemoryStream(_completionListBuffer);
             using var reader = new JsonTextReader(new StreamReader(stream));
             CompletionList deserializedCompletions;
-            deserializedCompletions = Serializer.Instance.JsonSerializer.Deserialize<CompletionList>(reader);
+            deserializedCompletions = Serializer.JsonSerializer.Deserialize<CompletionList>(reader);
         }
 
         private CompletionList GenerateCompletionList(string documentContent, int queryIndex, TagHelperCompletionProvider componentCompletionProvider)
@@ -98,11 +101,11 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             return completionList;
         }
 
-        private static byte[] GenerateBuffer(CompletionList completionList)
+        private byte[] GenerateBuffer(CompletionList completionList)
         {
             using var stream = new MemoryStream();
             using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096);
-            Serializer.Instance.JsonSerializer.Serialize(writer, completionList);
+            Serializer.JsonSerializer.Serialize(writer, completionList);
             var buffer = stream.GetBuffer();
 
             return buffer;

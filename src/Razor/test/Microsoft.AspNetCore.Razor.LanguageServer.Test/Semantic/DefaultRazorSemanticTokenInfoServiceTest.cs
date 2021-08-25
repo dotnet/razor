@@ -22,7 +22,6 @@ using Moq;
 using Moq.Protected;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models.Proposals;
 using Xunit;
 using OmniSharpRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
@@ -492,6 +491,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             // Capitalized, non-well-known-HTML elements should not be marked as TagHelpers
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<NotATagHelp @minimized:something /> ";
+
+            await AssertSemanticTokensAsync(txt, isRazor: true);
+        }
+
+        [Fact]
+        public async Task GetSemanticTokens_Razor_ComponentAttributeAsync()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<Component1 bool-val=\"true\"></Component1>";
 
             await AssertSemanticTokensAsync(txt, isRazor: true);
         }
@@ -969,18 +976,18 @@ slf*@";
             var textDocumentIdentifier = GetIdentifier(isRazor);
 
             // Act
-            var edits = (await service.GetSemanticTokensEditsAsync(textDocumentIdentifier, previousResultId, CancellationToken.None)).Value;
+            var edits = await service.GetSemanticTokensEditsAsync(textDocumentIdentifier, previousResultId, CancellationToken.None);
 
             // Assert
             if (expectDelta)
             {
-                AssertSemanticTokensEditsMatchesBaseline(edits);
+                AssertSemanticTokensEditsMatchesBaseline(edits!);
 
-                return (edits.Delta!.ResultId, service, clientMock!);
+                return (edits!.Delta!.ResultId, service, clientMock!);
             }
             else
             {
-                AssertSemanticTokensMatchesBaseline(edits.Full!.Data);
+                AssertSemanticTokensMatchesBaseline(edits!.Full!.Data);
 
                 return (edits.Full.ResultId, service, clientMock!);
             }
@@ -1018,7 +1025,6 @@ slf*@";
             }
             var loggingFactory = new Mock<LoggerFactory>(MockBehavior.Strict);
             loggingFactory.Protected().Setup("CheckDisposed").CallBase();
-
 
             var projectSnapshotManagerDispatcher = new DefaultProjectSnapshotManagerDispatcher();
 

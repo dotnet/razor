@@ -397,7 +397,9 @@ afterCSharpFormatting: @"
 ",
 expected: @"
 <div></div>
-@{ Debugger.Launch(); }
+@{
+    Debugger.Launch(); 
+}
 <div></div>
 ");
         }
@@ -419,7 +421,9 @@ afterCSharpFormatting: @"
 ",
 expected: @"
 <div></div>
-@{ Debugger.Launch(); }
+@{
+    Debugger.Launch(); 
+}
 <div></div>
 ");
         }
@@ -441,7 +445,9 @@ afterCSharpFormatting: @"
 ",
 expected: @"
 <div>
-    @{ Debugger.Launch(); }
+    @{
+        Debugger.Launch(); 
+    }
 </div>
 ");
         }

@@ -17,6 +17,8 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using System.Diagnostics.CodeAnalysis;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
+using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 {
@@ -49,14 +51,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             _documentResolver = documentResolver;
         }
 
-        public RegistrationExtensionResult GetRegistration()
+        public LinkedEditingRangeRegistrationOptions GetRegistrationOptions(
+            LinkedEditingRangeClientCapabilities capability,
+            ClientCapabilities clientCapabilities)
         {
-            const string AssociatedServerCapability = "linkedEditingRangeProvider";
-            var registrationOptions = new LinkedEditingRangeRegistrationOptions();
-            return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
+            return new LinkedEditingRangeRegistrationOptions
+            {
+                DocumentSelector = RazorDefaults.Selector
+            };
         }
 
+#pragma warning disable CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
+        // The return type of the handler should be nullable. O# tracking issue:
+        // https://github.com/OmniSharp/csharp-language-server-protocol/issues/644
         public async Task<LinkedEditingRanges?> Handle(
+#pragma warning restore CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
             LinkedEditingRangeParams request,
             CancellationToken cancellationToken)
         {

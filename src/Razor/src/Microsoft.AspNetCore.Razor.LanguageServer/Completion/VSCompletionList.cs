@@ -13,7 +13,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
     /// </summary>
     internal class VSCompletionList : CompletionList
     {
-        protected VSCompletionList(CompletionList innerCompletionList) : base (innerCompletionList.Items, innerCompletionList.IsIncomplete)
+        protected VSCompletionList(CompletionList innerCompletionList) : this(innerCompletionList.Items, innerCompletionList.IsIncomplete)
+        {
+        }
+
+        protected VSCompletionList(IEnumerable<CompletionItem> completionItems, bool isIncomplete) : base(completionItems, isIncomplete)
         {
         }
 
@@ -34,18 +38,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var vsCompletionList = new VSCompletionList(completionList);
             if (vsCompletionListCapability.CommitCharacters)
             {
-                PromoteCommonCommitCharactersOntoList(vsCompletionList);
+                vsCompletionList = PromoteCommonCommitCharactersOntoList(vsCompletionList);
             }
 
             if (vsCompletionListCapability.Data)
             {
-                PromotedDataOntoList(vsCompletionList);
+                vsCompletionList = PromotedDataOntoList(vsCompletionList);
             }
 
             return vsCompletionList;
         }
 
-        private static void PromoteCommonCommitCharactersOntoList(VSCompletionList completionList)
+        private static VSCompletionList PromoteCommonCommitCharactersOntoList(VSCompletionList completionList)
         {
             var commitCharacterReferences = new Dictionary<object, int>();
             var highestUsedCount = 0;
@@ -71,33 +75,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 commitCharacterReferences[commitCharacters] = existingCount;
             }
 
-            // Promoted the most used commit characters onto the list and then remove these from child items.
-            completionList.CommitCharacters = mostUsedCommitCharacters;
+            // Promote the most used commit characters onto the list and remove duplicates from child items.
+            var promotedCompletionItems = new List<CompletionItem>();
             foreach (var completionItem in completionList.Items)
             {
-                if (completionItem.CommitCharacters == completionList.CommitCharacters)
+                if (completionItem.CommitCharacters == mostUsedCommitCharacters)
                 {
-                    completionItem.CommitCharacters = null;
+                    var clearedCompletionItem = completionItem with { CommitCharacters = null };
+                    promotedCompletionItems.Add(clearedCompletionItem);
+                }
+                else
+                {
+                    promotedCompletionItems.Add(completionItem);
                 }
             }
+
+            var promotedCompletionList = new VSCompletionList(promotedCompletionItems, completionList.IsIncomplete)
+            {
+                CommitCharacters = mostUsedCommitCharacters,
+                Data = completionList.Data,
+            };
+            return promotedCompletionList;
         }
 
-        private static void PromotedDataOntoList(VSCompletionList completionList)
+        private static VSCompletionList PromotedDataOntoList(VSCompletionList completionList)
         {
             // This piece makes a massive assumption that all completion items will have a resultId associated with them and their
             // data properties will all be the same. Therefore, we can inspect the first item and empty out the rest.
             var commonDataItem = completionList.FirstOrDefault();
             if (commonDataItem is null)
             {
-                // Empty list
-                return;
+                // No common data items, nothing to do
+                return completionList;
             }
 
-            completionList.Data = commonDataItem.Data;
+            var promotedCompletionItems = new List<CompletionItem>();
             foreach (var completionItem in completionList.Items)
             {
-                completionItem.Data = null;
+                var clearedCompletionItem = completionItem with { Data = null };
+                promotedCompletionItems.Add(clearedCompletionItem);
             }
+
+            var promotedCompletionList = new VSCompletionList(promotedCompletionItems, completionList.IsIncomplete)
+            {
+                CommitCharacters = completionList.CommitCharacters,
+                Data = commonDataItem.Data,
+            };
+            return promotedCompletionList;
         }
     }
 }

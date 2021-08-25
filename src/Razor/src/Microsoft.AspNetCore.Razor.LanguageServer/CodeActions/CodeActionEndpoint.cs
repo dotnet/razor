@@ -16,11 +16,12 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal class CodeActionEndpoint : IRazorCodeActionHandler
+    internal class CodeActionEndpoint : ICodeActionHandler
     {
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly IEnumerable<RazorCodeActionProvider> _razorCodeActionProviders;
@@ -56,8 +57,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _allAvailableCodeActionNames = GetAllAvailableCodeActionNames();
         }
 
-        public CodeActionRegistrationOptions GetRegistrationOptions()
+        public CodeActionRegistrationOptions GetRegistrationOptions(CodeActionCapability capability, ClientCapabilities clientCapabilities)
         {
+            _capability = capability;
+            _supportsCodeActionResolve = _capability.ResolveSupport != null;
             return new CodeActionRegistrationOptions()
             {
                 DocumentSelector = RazorDefaults.Selector,
@@ -70,14 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
         }
 
-        public void SetCapability(CodeActionCapability capability)
-        {
-            _capability = capability;
-
-            _supportsCodeActionResolve = _capability.ResolveSupport != null;
-        }
-
-        public async Task<CommandOrCodeActionContainer> Handle(RazorCodeActionParams request, CancellationToken cancellationToken)
+        public async Task<CommandOrCodeActionContainer> Handle(CodeActionParams request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -119,7 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         // internal for testing
-        internal async Task<RazorCodeActionContext> GenerateRazorCodeActionContextAsync(RazorCodeActionParams request, CancellationToken cancellationToken)
+        internal async Task<RazorCodeActionContext> GenerateRazorCodeActionContextAsync(CodeActionParams request, CancellationToken cancellationToken)
         {
             var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
@@ -148,15 +144,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // context.
             //
             // Note: VS Code doesn't provide a `SelectionRange`.
-            if (request.Context.SelectionRange != null)
+            var vsCodeActionContext = (OmniSharpVSCodeActionContext)request.Context;
+            if (vsCodeActionContext.SelectionRange != null)
             {
-                request.Range = request.Context.SelectionRange;
+                request = request with { Range = vsCodeActionContext.SelectionRange };
             }
-
-            // We hide `CodeActionParams.CodeActionContext` in order to capture
-            // `RazorCodeActionParams.ExtendedCodeActionContext`, we must
-            // restore this context to access diagnostics.
-            (request as CodeActionParams).Context = request.Context;
 
             var linePosition = new LinePosition(
                 request.Range.Start.Line,
@@ -255,11 +247,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return Array.Empty<RazorCodeAction>();
             }
 
-            context.Request.Range = projectedRange;
+            var newRequest = context.Request with { Range = projectedRange };
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideCodeActionsEndpoint, context.Request);
+            var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideCodeActionsEndpoint, newRequest);
             return await response.Returning<RazorCodeAction[]>(cancellationToken);
         }
 

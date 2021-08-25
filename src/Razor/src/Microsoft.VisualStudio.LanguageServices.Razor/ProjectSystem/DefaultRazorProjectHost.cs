@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }).ConfigureAwait(false), registerFaultHandler: true);
         }
 
-
         #region Configuration Helpers
         // Internal for testing
         internal static bool TryGetConfiguration(

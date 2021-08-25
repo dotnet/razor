@@ -222,6 +222,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
         {
+            // Don't do any work if the solution is closing
+            if (e.SolutionIsClosing)
+            {
+                return;
+            }
+
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projectPath != null &&

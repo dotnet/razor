@@ -5,34 +5,35 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
+using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
+using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
+using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
-using System.Threading;
-using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
-using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
-using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -62,13 +63,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, Action<RazorLanguageServerBuilder> configure = null)
         {
-            Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
-
-            // Custom ClientCapabilities deserializer to extract platform specific capabilities
-            Serializer.Instance.JsonSerializer.Converters.Add(PlatformAgnosticClientCapabilities.JsonConverter);
-            Serializer.Instance.JsonSerializer.Converters.Add(PlatformAgnosticCompletionCapability.JsonConverter);
-            Serializer.Instance.JsonSerializer.Converters.Add(OmniSharpVSCompletionContext.JsonConverter);
-            Serializer.Instance.JsonSerializer.Converters.Add(OmniSharpVSDiagnostic.JsonConverter);
+            var serializer = new LspSerializer();
+            serializer.RegisterRazorConverters();
 
             ILanguageServer server = null;
             var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
@@ -89,17 +85,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // I recommend that we attempt to resolve this and switch back to WithContentModifiedSupport(true) in the future,
                     // I think that would mean either having 0 Serial Handlers in the whole LS, or making VSLanguageServerClient handle this more gracefully.
                     .WithContentModifiedSupport(false)
-                    .WithSerializer(Serializer.Instance)
+                    .WithSerializer(serializer)
                     .OnInitialized(async (s, request, response, cancellationToken) =>
                     {
                         var handlersManager = s.GetRequiredService<IHandlersManager>();
                         var jsonRpcHandlers = handlersManager.Descriptors.Select(d => d.Handler);
                         var registrationExtensions = jsonRpcHandlers.OfType<IRegistrationExtension>().Distinct();
-                        if (registrationExtensions.Any())
+                        foreach (var registrationExtension in registrationExtensions)
                         {
-                            var capabilities = new ExtendableServerCapabilities(response.Capabilities, registrationExtensions);
-                            response.Capabilities = capabilities;
+                            var optionsResult = registrationExtension.GetRegistration();
+                            response.Capabilities.ExtensionData[optionsResult.ServerCapability] = JObject.FromObject(optionsResult.Options);
                         }
+
+                        RazorLanguageServerCapability.AddTo(response.Capabilities);
+
                         var fileChangeDetectorManager = s.Services.GetRequiredService<RazorFileChangeDetectorManager>();
                         await fileChangeDetectorManager.InitializedAsync();
 
@@ -123,7 +122,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<RazorConfigurationEndpoint>()
                     .WithHandler<RazorFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokensEndpoint>()
-                    .WithHandler<RazorSemanticTokensLegendEndpoint>()
                     .WithHandler<OnAutoInsertEndpoint>()
                     .WithHandler<CodeActionEndpoint>()
                     .WithHandler<CodeActionResolutionEndpoint>()
@@ -135,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     {
                         services.AddLogging(builder => builder
                             .SetMinimumLevel(logLevel)
-                            .AddLanguageProtocolLogging(logLevel));
+                            .AddLanguageProtocolLogging());
 
                         services.AddSingleton<FilePathNormalizer>();
                         services.AddSingleton<ProjectSnapshotManagerDispatcher, DefaultProjectSnapshotManagerDispatcher>();
