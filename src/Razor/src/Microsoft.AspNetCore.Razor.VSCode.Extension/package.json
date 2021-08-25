@@ -304,6 +304,7 @@
           {
             "scopes": {
               "razorComponentElement": [ "entity.name.class.element.component" ],
+              "RazorComponentAttribute": [ "entity.name.class.attribute.component" ],
               "razorComponentAttribute": [ "entity.name.class.attribute.component" ],
               "razorTagHelperElement": [ "entity.name.class.element.taghelper" ],
               "razorTagHelperAttribute": [ "entity.name.class.attribute.taghelper" ],

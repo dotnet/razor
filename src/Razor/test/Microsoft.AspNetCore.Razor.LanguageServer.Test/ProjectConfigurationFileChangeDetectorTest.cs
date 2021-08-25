@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 existingConfigurationFiles);
 
             // Act
-            await detector.StartAsync("/some/workspacedirectory", cts.Token);
+            await detector.StartAsync("/some/workspace+directory", cts.Token);
 
             // Assert
             Assert.Collection(eventArgs1,
