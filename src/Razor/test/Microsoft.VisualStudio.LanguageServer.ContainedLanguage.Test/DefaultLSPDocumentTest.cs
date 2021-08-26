@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Xunit;
 
@@ -14,18 +16,59 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public DefaultLSPDocumentTest()
         {
             Uri = new Uri("C:/path/to/file.razor__virtual.cs");
+            NotInertContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType("inert") == false, MockBehavior.Strict);
         }
 
         private Uri Uri { get; }
+
+        private IContentType NotInertContentType { get; }
+
+        [Fact]
+        public void InertTextBuffer_DoesNotCreateSnapshot()
+        {
+            // Arrange
+            var textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
+            textBuffer.ChangeContentType(NotInertContentType, editTag: null);
+            using var document = new DefaultLSPDocument(Uri, textBuffer, virtualDocuments: Array.Empty<VirtualDocument>());
+            var originalSnapshot = document.CurrentSnapshot;
+            textBuffer.ChangeContentType(TestInertContentType.Instance, editTag: null);
+
+            // Act
+            var edit = textBuffer.CreateEdit();
+            edit.Insert(0, "New!");
+            edit.Apply();
+
+            // Assert
+            var newSnapshot = document.CurrentSnapshot;
+            Assert.Same(originalSnapshot, newSnapshot);
+        }
+
+        [Fact]
+        public void CurrentSnapshot_ChangesWhenTextBufferChanges()
+        {
+            // Arrange
+            var textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
+            textBuffer.ChangeContentType(NotInertContentType, editTag: null);
+            using var document = new DefaultLSPDocument(Uri, textBuffer, virtualDocuments: Array.Empty<VirtualDocument>());
+            var originalSnapshot = document.CurrentSnapshot;
+
+            // Act
+            var edit = textBuffer.CreateEdit();
+            edit.Insert(0, "New!");
+            edit.Apply();
+
+            // Assert
+            var newSnapshot = document.CurrentSnapshot;
+            Assert.NotSame(originalSnapshot, newSnapshot);
+            Assert.Equal(1, originalSnapshot.Version);
+            Assert.Equal(2, newSnapshot.Version);
+        }
 
         [Fact]
         public void UpdateVirtualDocument_UpdatesProvidedVirtualDocumentWithProvidedArgs_AndRecalcsSnapshot()
         {
             // Arrange
-            var textVersion = new Mock<ITextVersion>(MockBehavior.Strict);
-            textVersion.SetupGet(v => v.VersionNumber).Returns(0);
-            var snapshot = Mock.Of<ITextSnapshot>(s => s.Version == textVersion.Object, MockBehavior.Strict);
-            var textBuffer = Mock.Of<ITextBuffer>(buffer => buffer.CurrentSnapshot == snapshot, MockBehavior.Strict);
+            var textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
             var virtualDocument = new TestVirtualDocument();
             using var document = new DefaultLSPDocument(Uri, textBuffer, new[] { virtualDocument });
             var changes = Array.Empty<ITextChange>();
