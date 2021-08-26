@@ -4,6 +4,7 @@
 using System;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;

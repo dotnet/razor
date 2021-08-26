@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
+using System.IO;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks
 {
