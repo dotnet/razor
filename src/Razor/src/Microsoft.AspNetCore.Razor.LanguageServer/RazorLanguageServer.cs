@@ -34,6 +34,7 @@ using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
+using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -127,6 +128,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     .WithHandler<MonitorProjectConfigurationFilePathEndpoint>()
                     .WithHandler<RazorComponentRenameEndpoint>()
                     .WithHandler<RazorDefinitionEndpoint>()
+                    .WithHandler<LinkedEditingRangeEndpoint>()
                     .WithServices(services =>
                     {
                         services.AddLogging(builder => builder

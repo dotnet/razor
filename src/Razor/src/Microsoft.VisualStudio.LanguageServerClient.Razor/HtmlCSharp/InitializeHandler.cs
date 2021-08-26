@@ -53,7 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 },
                 ImplementationProvider = true,
                 SupportsDiagnosticRequests = true,
-                LinkedEditingRangeProvider = new LinkedEditingRangeOptions()
             }
         };
         private readonly JoinableTaskFactory _joinableTaskFactory;
