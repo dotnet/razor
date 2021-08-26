@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
     {
         // The regex below excludes characters that can never be valid in a TagHelper name.
         // This is loosely based off logic from the Razor compiler:
-        // https://github.com/dotnet/aspnetcore/blob/main/src/Razor/Microsoft.AspNetCore.Razor.Language/src/Legacy/HtmlTokenizer.cs
+        // https://github.com/dotnet/aspnetcore/blob/9da42b9fab4c61fe46627ac0c6877905ec845d5a/src/Razor/Microsoft.AspNetCore.Razor.Language/src/Legacy/HtmlTokenizer.cs
         // Internal for testing only.
         internal static readonly string WordPattern = @"!?[^ <>!\/\?\[\]=""\\@" + Environment.NewLine + "]+";
 
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             var location = await GetSourceLocation(request, document).ConfigureAwait(false);
 
             // We only care if the user is within a TagHelper or HTML tag with a valid start and end tag.
-            if (TryGetMarkupNameTokens(codeDocument, location, out var startTagNameToken, out var endTagNameToken) &&
+            if (TryGetNearestMarkupNameTokens(codeDocument, location, out var startTagNameToken, out var endTagNameToken) &&
                 (startTagNameToken.Span.Contains(location.AbsoluteIndex) || endTagNameToken.Span.Contains(location.AbsoluteIndex)))
             {
                 var startSpan = startTagNameToken.GetLinePositionSpan(codeDocument.Source);
@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
                 return location;
             }
 
-            static bool TryGetMarkupNameTokens(
+            static bool TryGetNearestMarkupNameTokens(
                 RazorCodeDocument codeDocument,
                 SourceLocation location,
                 [NotNullWhen(true)] out SyntaxToken? startTagNameToken,
