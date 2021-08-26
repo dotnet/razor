@@ -102,14 +102,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         case WorkspaceChangeKind.ProjectAdded:
                             {
                                 project = e.NewSolution.GetProject(e.ProjectId);
-
                                 Debug.Assert(project != null);
 
-                                if (TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
-                                {
-                                    EnqueueUpdate(project, projectSnapshot);
-                                }
-
+                                EnqueueUpdateOnProjectAndDependencies(project, e.NewSolution);
                                 break;
                             }
 
@@ -129,9 +124,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
                                 {
-                                    EnqueueUpdate(project: null, projectSnapshot);
-                                }
 
+                                    EnqueueUpdateOnProjectAndDependencies(e.ProjectId, project: null, e.OldSolution, projectSnapshot);
+                                }
                                 break;
                             }
 
@@ -172,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                             if (IsRazorFileOrRazorVirtual(removedDocument))
                             {
-                                EnqueueUpdateOnProjectAndDependencies(project,e.NewSolution);
+                                EnqueueUpdateOnProjectAndDependencies(project, e.NewSolution);
                                 break;
                             }
 
@@ -344,36 +339,39 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     if (associatedWorkspaceProject != null)
                     {
                         var projectSnapshot = args.Newer;
-                        EnqueueUpdateOnProjectAndDependencies(associatedWorkspaceProject, associatedWorkspaceProject.Solution, projectSnapshot);
+                        EnqueueUpdateOnProjectAndDependencies(associatedWorkspaceProject.Id, associatedWorkspaceProject, associatedWorkspaceProject.Solution, projectSnapshot);
                     }
                     break;
             }
         }
 
+#nullable enable
         private void EnqueueUpdateOnProjectAndDependencies(Project project, Solution solution)
         {
-            if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
+            if (TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
             {
-                EnqueueUpdateOnProjectAndDependencies(project, solution, projectSnapshot);
+                EnqueueUpdateOnProjectAndDependencies(project.Id, project, solution, projectSnapshot);
             }
         }
 
-        private void EnqueueUpdateOnProjectAndDependencies(Project project, Solution solution, ProjectSnapshot projectSnapshot)
+        private void EnqueueUpdateOnProjectAndDependencies(ProjectId projectId, Project? project, Solution solution, ProjectSnapshot projectSnapshot)
         {
             EnqueueUpdate(project, projectSnapshot);
 
             var dependencyGraph = solution.GetProjectDependencyGraph();
-            var dependentProjectIds = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(project.Id);
+
+            var dependentProjectIds = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
             foreach (var dependentProjectId in dependentProjectIds)
             {
                 var dependentProject = solution.GetProject(dependentProjectId);
 
-                if (TryGetProjectSnapshot(dependentProject.FilePath, out var dependentProjectSnapshot))
+                if (TryGetProjectSnapshot(dependentProject?.FilePath, out var dependentProjectSnapshot))
                 {
                     EnqueueUpdate(dependentProject, dependentProjectSnapshot);
                 }
             }
         }
+#nullable disable
 
         private void EnqueueUpdate(Project project, ProjectSnapshot projectSnapshot)
         {
