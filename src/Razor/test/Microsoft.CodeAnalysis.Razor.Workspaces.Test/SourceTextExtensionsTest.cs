@@ -3,6 +3,7 @@
 
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Text

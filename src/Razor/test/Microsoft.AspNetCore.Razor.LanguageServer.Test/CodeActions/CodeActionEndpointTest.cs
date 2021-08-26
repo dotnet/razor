@@ -20,6 +20,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using OmniSharp.Extensions.JsonRpc;
 using Xunit;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
