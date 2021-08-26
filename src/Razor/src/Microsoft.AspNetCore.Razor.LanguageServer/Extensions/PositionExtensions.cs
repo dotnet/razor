@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Razor.LanguageServer.RazorLS;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
@@ -24,9 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
             var linePosition = new LinePosition(position.Line, position.Character);
             if (linePosition.Line >= sourceText.Lines.Count)
             {
-                throw new ArgumentOutOfRangeException(
-                    AspNetCore.Razor.LanguageServer.RazorLS.Resources.FormatPositionIndex_Outside_Range(
-                        position.Line, nameof(sourceText), sourceText.Lines.Count));
+                throw new ArgumentOutOfRangeException(Resources.FormatPositionIndex_Outside_Range(
+                    position.Line, nameof(sourceText), sourceText.Lines.Count));
             }
             var index = sourceText.Lines.GetPosition(linePosition);
             return index;
