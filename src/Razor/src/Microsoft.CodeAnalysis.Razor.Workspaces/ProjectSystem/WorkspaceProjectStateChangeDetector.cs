@@ -118,22 +118,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                             {
                                 project = e.NewSolution.GetProject(e.ProjectId);
 
-                                if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
-                                {
-                                    EnqueueUpdate(project, projectSnapshot);
-
-                                    var dependencyGraph = e.NewSolution.GetProjectDependencyGraph();
-                                    var dependentProjectIds = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(e.ProjectId);
-                                    foreach (var dependentProjectId in dependentProjectIds)
-                                    {
-                                        var dependentProject = e.NewSolution.GetProject(dependentProjectId);
-
-                                        if (TryGetProjectSnapshot(dependentProject.FilePath, out var dependentProjectSnapshot))
-                                        {
-                                            EnqueueUpdate(dependentProject, dependentProjectSnapshot);
-                                        }
-                                    }
-                                }
+                                EnqueueUpdateOnProjectAndDependencies(project, e.NewSolution);
                                 break;
                             }
 
@@ -150,6 +135,55 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 break;
                             }
 
+                        case WorkspaceChangeKind.DocumentAdded:
+                            // This is the case when a component declaration file changes on disk. We have an MSBuild
+                            // generator configured by the SDK that will poke these files on disk when a component
+                            // is saved, or loses focus in the editor.
+                            project = e.NewSolution.GetProject(e.ProjectId);
+                            var newDocument = project.GetDocument(e.DocumentId);
+
+                            if (newDocument.FilePath is null)
+                            {
+                                break;
+                            }
+
+                            if (IsRazorFileOrRazorVirtual(newDocument))
+                            {
+                                EnqueueUpdateOnProjectAndDependencies(project, e.NewSolution);
+                                break;
+                            }
+
+                            // We now know we're not operating directly on a Razor file. However, it's possible the user is operating on a partial class that is associated with a Razor file.
+
+                            if (IsPartialComponentClass(newDocument))
+                            {
+                                EnqueueUpdateOnProjectAndDependencies(project, e.NewSolution);
+                            }
+
+                            break;
+                        case WorkspaceChangeKind.DocumentRemoved:
+                            project = e.OldSolution.GetProject(e.ProjectId);
+                            var removedDocument = project.GetDocument(e.DocumentId);
+
+                            if (removedDocument.FilePath is null)
+                            {
+                                break;
+                            }
+
+                            if (IsRazorFileOrRazorVirtual(removedDocument))
+                            {
+                                EnqueueUpdateOnProjectAndDependencies(project,e.NewSolution);
+                                break;
+                            }
+
+                            // We now know we're not operating directly on a Razor file. However, it's possible the user is operating on a partial class that is associated with a Razor file.
+
+                            if (IsPartialComponentClass(removedDocument))
+                            {
+                                EnqueueUpdateOnProjectAndDependencies(project, e.NewSolution);
+                            }
+
+                            break;
                         case WorkspaceChangeKind.DocumentChanged:
                         case WorkspaceChangeKind.DocumentReloaded:
                             {
@@ -164,21 +198,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                     break;
                                 }
 
-                                // Using EndsWith because Path.GetExtension will ignore everything before .cs
-                                // Using Ordinal because the SDK generates these filenames.
-                                // Stll have .cshtml.g.cs and .razor.g.cs for Razor.VSCode scenarios.
-                                if (document.FilePath.EndsWith(".cshtml.g.cs", StringComparison.Ordinal) ||
-                                    document.FilePath.EndsWith(".razor.g.cs", StringComparison.Ordinal) ||
-                                    document.FilePath.EndsWith(".razor", StringComparison.Ordinal) ||
-
-                                    // VSCode's background C# document
-                                    document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal))
+                                if (IsRazorFileOrRazorVirtual(document))
                                 {
                                     var newProject = e.NewSolution.GetProject(e.ProjectId);
-                                    if (TryGetProjectSnapshot(newProject.FilePath, out var projectSnapshot))
-                                    {
-                                        EnqueueUpdate(newProject, projectSnapshot);
-                                    }
+                                    EnqueueUpdateOnProjectAndDependencies(newProject, e.NewSolution);
                                     break;
                                 }
 
@@ -187,10 +210,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 if (IsPartialComponentClass(document))
                                 {
                                     var newProject = e.NewSolution.GetProject(e.ProjectId);
-                                    if (TryGetProjectSnapshot(newProject.FilePath, out var projectSnapshot))
-                                    {
-                                        EnqueueUpdate(newProject, projectSnapshot);
-                                    }
+                                    EnqueueUpdateOnProjectAndDependencies(newProject, e.NewSolution);
                                 }
 
                                 break;
@@ -228,6 +248,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 Debug.Fail("WorkspaceProjectStateChangeDetector.Workspace_WorkspaceChanged threw exception:" +
                     Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
+
+            static bool IsRazorFileOrRazorVirtual(Document document)
+            {
+                // Using EndsWith because Path.GetExtension will ignore everything before .cs
+                // Using Ordinal because the SDK generates these filenames.
+                // Stll have .cshtml.g.cs and .razor.g.cs for Razor.VSCode scenarios.
+                return document.FilePath.EndsWith(".cshtml.g.cs", StringComparison.Ordinal) ||
+                    document.FilePath.EndsWith(".razor.g.cs", StringComparison.Ordinal) ||
+                    document.FilePath.EndsWith(".razor", StringComparison.Ordinal) ||
+
+                    // VSCode's background C# document
+                    document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal);
             }
         }
 
@@ -311,9 +344,34 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     if (associatedWorkspaceProject != null)
                     {
                         var projectSnapshot = args.Newer;
-                        EnqueueUpdate(associatedWorkspaceProject, projectSnapshot);
+                        EnqueueUpdateOnProjectAndDependencies(associatedWorkspaceProject, associatedWorkspaceProject.Solution, projectSnapshot);
                     }
                     break;
+            }
+        }
+
+        private void EnqueueUpdateOnProjectAndDependencies(Project project, Solution solution)
+        {
+            if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
+            {
+                EnqueueUpdateOnProjectAndDependencies(project, solution, projectSnapshot);
+            }
+        }
+
+        private void EnqueueUpdateOnProjectAndDependencies(Project project, Solution solution, ProjectSnapshot projectSnapshot)
+        {
+            EnqueueUpdate(project, projectSnapshot);
+
+            var dependencyGraph = solution.GetProjectDependencyGraph();
+            var dependentProjectIds = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(project.Id);
+            foreach (var dependentProjectId in dependentProjectIds)
+            {
+                var dependentProject = solution.GetProject(dependentProjectId);
+
+                if (TryGetProjectSnapshot(dependentProject.FilePath, out var dependentProjectSnapshot))
+                {
+                    EnqueueUpdate(dependentProject, dependentProjectSnapshot);
+                }
             }
         }
 
