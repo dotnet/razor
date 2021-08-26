@@ -8,7 +8,7 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
-    public static class RangeExtensions
+    internal static class RangeExtensions
     {
         public static readonly Range UndefinedRange = new Range
         {
