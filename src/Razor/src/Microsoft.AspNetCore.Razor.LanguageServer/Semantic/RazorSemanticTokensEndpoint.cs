@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {

@@ -14,6 +14,7 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp.RazorMapToDocumentRangesResponse;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using System.Linq;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -122,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
             documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
             var sourceTextRazor = SourceText.From("");
-            var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { RangeExtensions.UndefinedRange } };
+            var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { Extensions.RangeExtensions.UndefinedRange } };
 
             // Act
             var results = RazorLSPSpanMappingService.GetMappedSpanResults(documentSnapshot.Object, sourceTextRazor, response);

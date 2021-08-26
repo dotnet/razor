@@ -7,7 +7,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -19,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using System.Diagnostics.CodeAnalysis;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 {
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             {
                 var startSpan = startTagNameToken.GetLinePositionSpan(codeDocument.Source);
                 var endSpan = endTagNameToken.GetLinePositionSpan(codeDocument.Source);
-                var ranges = new Range[2] { startSpan.ToRange(), endSpan.ToRange() };
+                var ranges = new Range[2] { startSpan.AsRange(), endSpan.AsRange() };
 
                 return new LinkedEditingRanges
                 {

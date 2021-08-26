@@ -3,6 +3,7 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {

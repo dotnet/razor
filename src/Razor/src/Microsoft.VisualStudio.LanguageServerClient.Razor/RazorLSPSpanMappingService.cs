@@ -13,6 +13,7 @@ using System.Collections.Immutable;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using System.Linq;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             foreach (var mappedRange in mappedResult.Ranges)
             {
-                if (RangeExtensions.IsUndefined(mappedRange))
+                if (Extensions.RangeExtensions.IsUndefined(mappedRange))
                 {
                     // Couldn't remap the range correctly. Add default placeholder to indicate to C# that there were issues.
                     results.Add(new RazorMappedSpanResult());
