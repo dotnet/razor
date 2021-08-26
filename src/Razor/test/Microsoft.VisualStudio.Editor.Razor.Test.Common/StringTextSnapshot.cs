@@ -14,6 +14,8 @@ namespace Microsoft.VisualStudio.Text
     public class StringTextSnapshot : ITextSnapshot2
     {
         private readonly List<ITextSnapshotLine> _lines;
+        private IContentType _contentType;
+        private ITextBuffer _textBuffer;
 
         public static readonly StringTextSnapshot Empty = new StringTextSnapshot(string.Empty);
 
@@ -65,9 +67,17 @@ namespace Microsoft.VisualStudio.Text
 
         public int Length => Content.Length;
 
-        public ITextBuffer TextBuffer { get; set; }
+        public ITextBuffer TextBuffer
+        {
+            get => _textBuffer;
+            set
+            {
+                _textBuffer = value;
+                _contentType = _textBuffer.ContentType;
+            }
+        }
 
-        public IContentType ContentType => throw new NotImplementedException();
+        public IContentType ContentType => _contentType;
 
         public int LineCount => _lines.Count;
 

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -16,30 +17,24 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     {
         public DefaultLSPDocumentManagerTest()
         {
-            var contentType = Mock.Of<IContentType>(ct =>
-                ct.TypeName == "text" &&
-                ct.IsOfType("text"),
-                MockBehavior.Strict
-            );
-            var snapshot = Mock.Of<ITextSnapshot>(s =>
-                s.ContentType == contentType,
-                MockBehavior.Strict
-            );
+            var contentType = Mock.Of<IContentType>(contentType =>
+                contentType.IsOfType("inert") == false &&
+                contentType.IsOfType("test") == true &&
+                contentType.TypeName == "test",
+                MockBehavior.Strict);
             ChangeListeners = Enumerable.Empty<Lazy<LSPDocumentChangeListener, IContentTypeMetadata>>();
             JoinableTaskContext = new JoinableTaskContext();
-            TextBuffer = Mock.Of<ITextBuffer>(MockBehavior.Strict);
+            TextBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
+            TextBuffer.ChangeContentType(contentType, editTag: null);
+            var snapshot = TextBuffer.CurrentSnapshot;
+
             Uri = new Uri("C:/path/to/file.razor");
             UriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(TextBuffer) == Uri, MockBehavior.Strict);
             Mock.Get(UriProvider).Setup(p => p.Remove(It.IsAny<ITextBuffer>())).Verifiable();
-            LSPDocumentSnapshot = Mock.Of<LSPDocumentSnapshot>(s =>
-                s.Snapshot == snapshot,
-                MockBehavior.Strict);
-            LSPDocument = Mock.Of<LSPDocument>(document =>
-                document.Uri == Uri &&
-                document.CurrentSnapshot == LSPDocumentSnapshot &&
-                document.VirtualDocuments == new[] { new TestVirtualDocument() } &&
-                document.UpdateVirtualDocument<TestVirtualDocument>(It.IsAny<IReadOnlyList<ITextChange>>(), It.IsAny<int>()) == Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict), MockBehavior.Strict);
-            Mock.Get(LSPDocument).Setup(document => document.Dispose()).Verifiable();
+            var testVirtualDocument = new TestVirtualDocument();
+            var lspDocument = new DefaultLSPDocument(Uri, TextBuffer, new[] { testVirtualDocument });
+            LSPDocumentSnapshot = lspDocument.CurrentSnapshot;
+            LSPDocument = lspDocument;
             LSPDocumentFactory = Mock.Of<LSPDocumentFactory>(factory => factory.Create(TextBuffer) == LSPDocument, MockBehavior.Strict);
         }
 
@@ -91,6 +86,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var manager = new DefaultLSPDocumentManager(JoinableTaskContext, UriProvider, LSPDocumentFactory, new[] { changeListenerLazy });
 
             manager.TrackDocument(TextBuffer);
+
+            // We're untracking which is typically paired with the buffer going to the inert content type, lets emulate that to ensure document removed happens.
+            TextBuffer.ChangeContentType(TestInertContentType.Instance, editTag: false);
 
             // Act
             manager.UntrackDocument(TextBuffer);
@@ -243,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion)
             {
-                throw new NotImplementedException();
+                return CurrentSnapshot;
             }
 
             public override void Dispose()

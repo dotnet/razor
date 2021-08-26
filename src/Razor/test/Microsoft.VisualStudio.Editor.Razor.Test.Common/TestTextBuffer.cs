@@ -11,9 +11,12 @@ namespace Microsoft.VisualStudio.Test
     public class TestTextBuffer : ITextBuffer
     {
         private readonly List<EventHandler<TextContentChangedEventArgs>> _attachedChangedEvents;
+        private IContentType _contentType;
 
         public TestTextBuffer(ITextSnapshot initialSnapshot)
         {
+            ChangeContentType(TestInertContentType.Instance, editTag: null);
+
             CurrentSnapshot = initialSnapshot;
             if (CurrentSnapshot is StringTextSnapshot testSnapshot)
             {
@@ -66,7 +69,6 @@ namespace Microsoft.VisualStudio.Test
             ChangedLowPriority?.Invoke(this, null);
             ChangedHighPriority?.Invoke(this, null);
             Changing?.Invoke(this, null);
-            ContentTypeChanged?.Invoke(this, null);
         }
 
         public IReadOnlyList<EventHandler<TextContentChangedEventArgs>> AttachedChangedEvents => _attachedChangedEvents;
@@ -98,11 +100,21 @@ namespace Microsoft.VisualStudio.Test
 
         public bool EditInProgress => throw new NotImplementedException();
 
-        public IContentType ContentType => throw new NotImplementedException();
+        public IContentType ContentType => _contentType;
 
         public ITextEdit CreateEdit() => new BufferEdit(this);
 
         public void ChangeContentType(IContentType newContentType, object editTag){
+            _contentType = newContentType;
+
+            if (CurrentSnapshot is StringTextSnapshot oldStringTextSnapshot)
+            {
+                var newStringTextSnapshot = new StringTextSnapshot(oldStringTextSnapshot.Content, oldStringTextSnapshot.Version.VersionNumber + 1);
+                newStringTextSnapshot.TextBuffer = this;
+                CurrentSnapshot = newStringTextSnapshot;
+            }
+
+            ContentTypeChanged?.Invoke(this, null);
         }
 
         public bool CheckEditAccess() => throw new NotImplementedException();
@@ -138,7 +150,7 @@ namespace Microsoft.VisualStudio.Test
             public BufferEdit(TestTextBuffer textBuffer)
             {
                 _textBuffer = textBuffer;
-                _editSnapshot = new StringTextSnapshot(_textBuffer.CurrentSnapshot.GetText());
+                _editSnapshot = new StringTextSnapshot(_textBuffer.CurrentSnapshot.GetText(), _textBuffer.CurrentSnapshot.Version.VersionNumber);
                 _edits = new List<TestEdit>();
             }
 
@@ -162,7 +174,8 @@ namespace Microsoft.VisualStudio.Test
             {
                 var initialSnapshot = _editSnapshot;
                 var newText = initialSnapshot.Content.Insert(position, text);
-                var changedSnapshot = new StringTextSnapshot(newText);
+                var initialVersionNumber = initialSnapshot.Version.VersionNumber;
+                var changedSnapshot = new StringTextSnapshot(newText, initialVersionNumber + 1);
                 var edit = new TestEdit(position, 0, initialSnapshot, changedSnapshot, text);
                 _edits.Add(edit);
 
@@ -191,7 +204,8 @@ namespace Microsoft.VisualStudio.Test
                 var preText = initialSnapshot.Content.Substring(0, startPosition);
                 var postText = initialSnapshot.Content.Substring(startPosition + charsToReplace);
                 var newText = preText + replaceWith + postText;
-                var changedSnapshot = new StringTextSnapshot(newText);
+                var initialVersionNumber = initialSnapshot.Version.VersionNumber;
+                var changedSnapshot = new StringTextSnapshot(newText, initialVersionNumber + 1);
                 var edit = new TestEdit(startPosition, charsToReplace, initialSnapshot, changedSnapshot, replaceWith);
                 _edits.Add(edit);
 

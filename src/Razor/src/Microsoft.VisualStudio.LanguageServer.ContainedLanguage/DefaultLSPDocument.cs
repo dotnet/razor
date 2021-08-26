@@ -48,7 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             get
             {
-                if (_currentSnapshot != TextBuffer.CurrentSnapshot)
+                if (TextBuffer.CurrentSnapshot.ContentType.IsOfType(InertContentType.Instance.TypeName))
+                {
+                    // TextBuffer is tearing itself down, return last known snapshot to avoid generating
+                    // a snapshot for an invalid TextBuffer
+                    return _currentSnapshot;
+                }
+
+                if (_currentSnapshot?.Snapshot != TextBuffer.CurrentSnapshot)
                 {
                     _currentSnapshot = UpdateSnapshot();
                 }
