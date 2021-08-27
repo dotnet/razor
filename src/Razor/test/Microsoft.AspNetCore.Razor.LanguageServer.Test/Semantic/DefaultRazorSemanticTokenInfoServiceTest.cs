@@ -43,10 +43,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     var d = ""t"";
 }}";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] { }.ToImmutableArray(),
                 ResultId = null,
+                IsPartial = false,
             };
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 1);
 
@@ -60,10 +61,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     var d = ""t"";
 }}";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] { }.ToImmutableArray(),
                 ResultId = null,
+                IsPartial = false,
             };
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
             var isRazor = true;
@@ -80,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
     <p>HTML @d</p>
 }}";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] {
                     14, 0, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
@@ -93,6 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     1, 0, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
                 }.ToImmutableArray(),
                 ResultId = 1.ToString(),
+                IsPartial = false,
             };
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
 
@@ -120,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 $"}}" +
                 $"-->";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] {
                     14, 0, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
@@ -132,6 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     1, 0, 1, RazorSemanticTokensLegend.CSharpPunctuation, 0,
                 }.ToImmutableArray(),
                 ResultId = 1.ToString(),
+                IsPartial = false,
             };
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
 
@@ -153,10 +157,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = ImmutableArray<int>.Empty,
                 ResultId = 1.ToString(),
+                IsPartial = false,
             };
 
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: null);
@@ -171,7 +176,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@(DateTime.Now)";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] {
                     14, 0, 8, RazorSemanticTokensLegend.CSharpVariable, 0,
@@ -179,6 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     1, 0, 3, RazorSemanticTokensLegend.CSharpVariable, 0,
                 }.ToImmutableArray(),
                 ResultId = "35",
+                IsPartial = false,
             };
 
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
@@ -198,7 +204,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = \"txt\";}}{Environment.NewLine}" +
                 $"@d";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] {
                     14, 0, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
@@ -211,6 +217,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     1, 0, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
                 }.ToImmutableArray(),
                 ResultId = "35",
+                IsPartial = false,
             };
 
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
@@ -234,7 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] {
                     14, 12, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
@@ -243,6 +250,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     11, 10, 25, RazorSemanticTokensLegend.CSharpKeyword, 0, // No mapping
                 }.ToImmutableArray(),
                 ResultId = "35",
+                IsPartial = false,
             };
 
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 42);
@@ -262,7 +270,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] {
                     14, 12, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
@@ -271,6 +279,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     11, 10, 25, RazorSemanticTokensLegend.CSharpKeyword, 0, // No mapping
                 }.ToImmutableArray(),
                 ResultId = "35",
+                IsPartial = false,
             };
 
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
@@ -290,7 +299,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] {
                     14, 12, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
@@ -299,6 +308,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     11, 10, 25, RazorSemanticTokensLegend.CSharpKeyword, 0, // No mapping
                 }.ToImmutableArray(),
                 ResultId = "35",
+                IsPartial = false,
             };
 
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
@@ -318,7 +328,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] {
                     14, 12, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
@@ -327,6 +337,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     11, 10, 25, RazorSemanticTokensLegend.CSharpKeyword, 0, // No mapping
                 }.ToImmutableArray(),
                 ResultId = "35",
+                IsPartial = false,
             };
 
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
@@ -360,7 +371,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<!-- @DateTime.Now -->";
 
-            var cSharpTokens = new SemanticTokens
+            var cSharpTokens = new SemanticTokensResponse
             {
                 Data = new int[] {
                     14, 12, 8, 1, 0, // CSharpType
@@ -368,6 +379,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                     0, 1, 3, 9, 0, // property
                 }.ToImmutableArray(),
                 ResultId = "35",
+                IsPartial = false,
             };
             var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
 
@@ -932,7 +944,7 @@ slf*@";
 
             if (csharpTokens is null)
             {
-                var semanticTokens = new SemanticTokens { };
+                var semanticTokens = new SemanticTokensResponse { };
                 csharpTokens = new ProvideSemanticTokensResponse(semanticTokens, documentVersion);
             }
 
@@ -965,7 +977,7 @@ slf*@";
             long? documentVersion = 0)
         {
             // Arrange
-            var semanticTokens = new SemanticTokens { };
+            var semanticTokens = new SemanticTokensResponse { };
             var cSharpTokens = new ProvideSemanticTokensResponse(semanticTokens, documentVersion);
 
             Mock<ClientNotifierServiceBase>? clientMock = null;

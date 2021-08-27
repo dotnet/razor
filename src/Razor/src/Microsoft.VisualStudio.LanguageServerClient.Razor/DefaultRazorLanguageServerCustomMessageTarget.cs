@@ -20,7 +20,6 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
-using SemanticTokens = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokens;
 using SemanticTokensParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams;
 using Task = System.Threading.Tasks.Task;
 
@@ -311,7 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 TextDocument = semanticTokensParams.TextDocument,
                 PartialResultToken = semanticTokensParams.PartialResultToken,
             };
-            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
+            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokensResponse>(
                 Methods.TextDocumentSemanticTokensFullName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 newParams,
@@ -343,7 +342,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             if (!synchronized)
             {
                 // If we're unable to synchronize we won't produce useful results
-                return new ProvideSemanticTokensEditsResponse(tokens: null, edits: null, resultId: null, csharpDoc.HostDocumentSyncVersion);
+                return new ProvideSemanticTokensEditsResponse(
+                    tokens: null, edits: null, resultId: null, isPartial: true, csharpDoc.HostDocumentSyncVersion);
             }
 
             var newParams = new SemanticTokensDeltaParams
@@ -355,7 +355,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 PreviousResultId = semanticTokensEditsParams.PreviousResultId,
             };
 
-            var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensDeltaParams, SumType<LanguageServer.Protocol.SemanticTokens, SemanticTokensDelta>>(
+            var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensDeltaParams, SumType<VSSemanticTokensResponse, SemanticTokensDelta>>(
                 Methods.TextDocumentSemanticTokensFullDeltaName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 newParams,
@@ -363,9 +363,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var csharpResults = csharpResponse.Result;
 
             // Converting from LSP to O# types
-            if (csharpResults.Value is LanguageServer.Protocol.SemanticTokens tokens)
+            if (csharpResults.Value is VSSemanticTokensResponse tokens)
             {
-                var response = new ProvideSemanticTokensEditsResponse(tokens.Data, edits: null, tokens.ResultId, semanticTokensEditsParams.RequiredHostDocumentVersion);
+                var response = new ProvideSemanticTokensEditsResponse(
+                    tokens.Data, edits: null, tokens.ResultId, tokens.IsPartial, semanticTokensEditsParams.RequiredHostDocumentVersion);
                 return response;
             }
             else if (csharpResults.Value is SemanticTokensDelta edits)
@@ -377,12 +378,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     results[i] = new RazorSemanticTokensEdit(currentEdit.Start, currentEdit.DeleteCount, currentEdit.Data);
                 }
 
-                var response = new ProvideSemanticTokensEditsResponse(tokens: null, results, edits.ResultId, semanticTokensEditsParams.RequiredHostDocumentVersion);
+                var response = new ProvideSemanticTokensEditsResponse(
+                    tokens: null, results, edits.ResultId, isPartial: false, semanticTokensEditsParams.RequiredHostDocumentVersion);
                 return response;
             }
             else
             {
-                throw new ArgumentException("Returned tokens should be of type SemanticTokens or SemanticTokensEdits.");
+                throw new ArgumentException("Returned tokens should be of type SemanticTokensResponse or SemanticTokensEdits.");
             }
         }
 

@@ -4,19 +4,19 @@
 #nullable enable
 
 using System;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class ProvideSemanticTokensResponse
     {
-        public ProvideSemanticTokensResponse(SemanticTokens result, long? hostDocumentSyncVersion)
+        public ProvideSemanticTokensResponse(SemanticTokensResponse result, long? hostDocumentSyncVersion)
         {
             Result = result;
             HostDocumentSyncVersion = hostDocumentSyncVersion;
         }
 
-        public SemanticTokens Result { get; }
+        public SemanticTokensResponse Result { get; }
 
         public long? HostDocumentSyncVersion { get; }
 

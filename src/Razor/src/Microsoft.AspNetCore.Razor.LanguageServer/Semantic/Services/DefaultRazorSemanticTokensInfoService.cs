@@ -110,10 +110,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
             IReadOnlyList<SemanticRange>? csharpSemanticRanges = null;
             string? newResultId = null;
+            var isPartialCSharp = false;
 
             try
             {
-                (csharpSemanticRanges, newResultId) = await GetCSharpSemanticRangesAsync(
+                (csharpSemanticRanges, newResultId, isPartialCSharp) = await GetCSharpSemanticRangesAsync(
                     codeDocument, textDocumentIdentifier, range, documentVersion, cancellationToken);
             }
             catch (Exception ex)
@@ -140,7 +141,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 newResultId = Guid.NewGuid().ToString();
             }
 
-            var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, newResultId);
+            var razorSemanticTokens = ConvertSemanticRangesToSemanticTokens(
+                combinedSemanticRanges, codeDocument, newResultId, isPartialCSharp);
             UpdateRazorDocCache(textDocumentIdentifier.Uri, semanticVersion, newResultId, razorSemanticTokens);
 
             return razorSemanticTokens;
@@ -181,6 +183,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             VersionStamp? cachedSemanticVersion = null;
             IReadOnlyList<int>? previousResults = null;
+            var csharpTokensIncomplete = false;
 
             // Attempting to retrieve cached tokens for the Razor document.
             if (previousResultId != null &&
@@ -189,13 +192,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 previousResults = cachedTokens?.SemanticTokens;
                 cachedSemanticVersion = cachedTokens?.SemanticVersion;
+
+                if (cachedTokens is not null)
+                {
+                    csharpTokensIncomplete = cachedTokens.IsPartialCSharp;
+                }
             }
 
             var semanticVersion = await GetDocumentSemanticVersionAsync(documentSnapshot);
             cancellationToken.ThrowIfCancellationRequested();
 
-            // SemanticVersion is different if there's been any text edits to the razor file or ProjectVersion has changed.
-            if (semanticVersion == default || cachedSemanticVersion != semanticVersion)
+            // We have to recompute tokens in two scenarios:
+            //     1) SemanticVersion is different. Occurs if there's been any text edits to the
+            //        Razor file or ProjectVersion has changed.
+            //     2) C# returned incomplete tokens to us the last time around. May occur if a
+            //        partial compilation was used to compute tokens.
+            if (semanticVersion == default || cachedSemanticVersion != semanticVersion || csharpTokensIncomplete)
             {
                 var codeDocument = await GetRazorCodeDocumentAsync(documentSnapshot);
                 if (codeDocument is null)
@@ -206,7 +218,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument);
 
-                var (csharpSemanticRanges, newResultId) = await GetCSharpSemanticRangesAsync(
+                var (csharpSemanticRanges, newResultId, isPartialCSharp) = await GetCSharpSemanticRangesAsync(
                     codeDocument,
                     textDocumentIdentifier,
                     range: null,
@@ -231,7 +243,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     newResultId = Guid.NewGuid().ToString();
                 }
 
-                var newTokens = ConvertSemanticRangesToSemanticTokens(combinedSemanticRanges, codeDocument, newResultId);
+                var newTokens = ConvertSemanticRangesToSemanticTokens(
+                    combinedSemanticRanges, codeDocument, newResultId, isPartialCSharp);
                 UpdateRazorDocCache(textDocumentIdentifier.Uri, semanticVersion, newResultId, newTokens);
 
                 if (previousResults is null)
@@ -259,7 +272,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             DocumentUri documentUri,
             VersionStamp semanticVersion,
             string newResultId,
-            SemanticTokens newTokens)
+            SemanticTokensResponse newTokens)
         {
             // Update the tokens cache associated with the given Razor doc. If the doc has no
             // associated cache, we will create one.
@@ -269,7 +282,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 _razorDocTokensCache.Set(documentUri, documentCache);
             }
 
-            documentCache.Set(newResultId, new VersionedSemanticTokens(semanticVersion, newTokens.Data));
+            documentCache.Set(newResultId, new VersionedSemanticTokens(semanticVersion, newTokens.Data, newTokens.IsPartial));
         }
 
         private static async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(DocumentSnapshot documentSnapshot)
@@ -345,7 +358,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // Indicates no C# code in Razor doc.
             if (csharpResponse.ResultId is null)
             {
-                return new VersionedSemanticRange(razorRanges, null);
+                return new VersionedSemanticRange(razorRanges, null, IsPartialCSharp: csharpResponse.IsPartial);
             }
 
             // Keep track of the tokens for the C# generated document so we can reference them
@@ -386,10 +399,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var result = razorRanges.ToImmutableList();
-            return new VersionedSemanticRange(result, csharpResponse.ResultId);
+            return new VersionedSemanticRange(result, csharpResponse.ResultId, csharpResponse.IsPartial);
         }
 
-        private async Task<SemanticTokens?> GetMatchingCSharpResponseAsync(
+        private async Task<SemanticTokensResponse?> GetMatchingCSharpResponseAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             long documentVersion,
             CancellationToken cancellationToken)
@@ -405,9 +418,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (csharpResponse is null)
             {
                 // C# isn't ready yet, don't make Razor wait for it
-                return new SemanticTokens
+                return new SemanticTokensResponse
                 {
-                    ResultId = null
+                    ResultId = null,
                 };
             }
             else if (csharpResponse.HostDocumentSyncVersion != null && csharpResponse.HostDocumentSyncVersion != documentVersion)
@@ -419,7 +432,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpResponse.Result;
         }
 
-        private async Task<SemanticTokens?> GetMatchingCSharpEditsResponseAsync(
+        private async Task<SemanticTokensResponse?> GetMatchingCSharpEditsResponseAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             long documentVersion,
             string previousResultId,
@@ -447,8 +460,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 Assumes.NotNull(csharpResponse.Tokens);
 
                 // C#'s edit handler returned to us a full token set, so we don't need to do any additional work.
-                // This should ideally happen rarely as it indicates C# had trouble with cache retrieval.
-                return new SemanticTokens { ResultId = csharpResponse.ResultId, Data = csharpResponse.Tokens.ToImmutableArray() };
+                // This may indicate that C# had trouble with cache retrieval, or that C# returned to us partial tokens.
+                return new SemanticTokensResponse
+                {
+                    ResultId = csharpResponse.ResultId,
+                    Data = csharpResponse.Tokens.ToImmutableArray(),
+                    IsPartial = csharpResponse.IsPartial
+                };
             }
 
             Assumes.NotNull(csharpResponse.Edits);
@@ -456,12 +474,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (!csharpResponse.Edits.Any())
             {
                 // If there aren't any edits, return the previous tokens with updated resultId.
-                return new SemanticTokens { Data = previousCSharpTokens.ToImmutableArray(), ResultId = csharpResponse.ResultId };
+                return new SemanticTokensResponse
+                {
+                    Data = previousCSharpTokens.ToImmutableArray(),
+                    ResultId = csharpResponse.ResultId,
+                    IsPartial = csharpResponse.IsPartial
+                };
             }
 
             var updatedTokens = ApplyEditsToPreviousCSharpDoc(previousCSharpTokens, csharpResponse.Edits);
 
-            return new SemanticTokens { Data = updatedTokens, ResultId = csharpResponse.ResultId };
+            return new SemanticTokensResponse
+            {
+                Data = updatedTokens,
+                ResultId = csharpResponse.ResultId,
+                IsPartial = csharpResponse.IsPartial
+            };
         }
 
         // Internal for testing
@@ -519,10 +547,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return semanticRange;
         }
 
-        private static SemanticTokens ConvertSemanticRangesToSemanticTokens(
+        private static SemanticTokensResponse ConvertSemanticRangesToSemanticTokens(
             IReadOnlyList<SemanticRange> semanticRanges,
             RazorCodeDocument razorCodeDocument,
-            string? resultId)
+            string? resultId,
+            bool isPartialCSharp)
         {
             SemanticRange? previousResult = null;
 
@@ -535,10 +564,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 previousResult = result;
             }
 
-            var tokensResult = new SemanticTokens
+            var tokensResult = new SemanticTokensResponse
             {
                 Data = data.ToImmutableArray(),
-                ResultId = resultId
+                ResultId = resultId,
+                IsPartial = isPartialCSharp,
             };
 
             return tokensResult;
@@ -609,11 +639,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return documentInfo;
         }
 
-        internal record VersionedSemanticRange(IReadOnlyList<SemanticRange>? SemanticRanges, string? ResultId)
+        internal record VersionedSemanticRange(IReadOnlyList<SemanticRange>? SemanticRanges, string? ResultId, bool IsPartialCSharp)
         {
-            public static VersionedSemanticRange Default => new(null, null);
+            public static VersionedSemanticRange Default => new(null, null, true);
         }
 
-        private record VersionedSemanticTokens(VersionStamp? SemanticVersion, IReadOnlyList<int> SemanticTokens);
+        private record VersionedSemanticTokens(VersionStamp? SemanticVersion, IReadOnlyList<int> SemanticTokens, bool IsPartialCSharp);
     }
 }

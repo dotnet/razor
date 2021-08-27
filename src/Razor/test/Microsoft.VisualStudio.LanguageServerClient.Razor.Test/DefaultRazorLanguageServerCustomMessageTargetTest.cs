@@ -428,7 +428,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(testDocUri, out testDocument))
                 .Returns(true);
 
-            var expectedcSharpResults = new OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokens();
+            var expectedcSharpResults = new SemanticTokensResponse();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokens>(
                 Methods.TextDocumentSemanticTokensFullName,

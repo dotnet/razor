@@ -13,11 +13,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             int[]? tokens,
             RazorSemanticTokensEdit[]? edits,
             string? resultId,
+            bool isPartial,
             long? hostDocumentSyncVersion)
         {
             Tokens = tokens;
             Edits = edits;
             ResultId = resultId;
+            IsPartial = isPartial;
             HostDocumentSyncVersion = hostDocumentSyncVersion;
         }
 
@@ -26,6 +28,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public RazorSemanticTokensEdit[]? Edits { get; }
 
         public string? ResultId { get; }
+
+        public bool IsPartial { get; }
 
         public long? HostDocumentSyncVersion { get; }
 
