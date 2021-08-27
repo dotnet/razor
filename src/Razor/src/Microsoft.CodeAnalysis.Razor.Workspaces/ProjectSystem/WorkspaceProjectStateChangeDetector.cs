@@ -94,12 +94,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 // Method needs to be run on the project snapshot manager's specialized thread
                 // due to project snapshot manager access.
-                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                Project project;
+                switch (e.Kind)
                 {
-                    Project project;
-                    switch (e.Kind)
-                    {
-                        case WorkspaceChangeKind.ProjectAdded:
+                    case WorkspaceChangeKind.ProjectAdded:
+                        {
+                            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                             {
                                 project = e.NewSolution.GetProject(e.ProjectId);
 
@@ -109,12 +109,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 {
                                     EnqueueUpdate(project, projectSnapshot);
                                 }
+                            }, CancellationToken.None);
 
-                                break;
-                            }
+                            break;
+                        }
 
-                        case WorkspaceChangeKind.ProjectChanged:
-                        case WorkspaceChangeKind.ProjectReloaded:
+                    case WorkspaceChangeKind.ProjectChanged:
+                    case WorkspaceChangeKind.ProjectReloaded:
+                        {
+                            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                             {
                                 project = e.NewSolution.GetProject(e.ProjectId);
 
@@ -134,10 +137,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                         }
                                     }
                                 }
-                                break;
-                            }
+                            }, CancellationToken.None);
 
-                        case WorkspaceChangeKind.ProjectRemoved:
+                            break;
+                        }
+
+                    case WorkspaceChangeKind.ProjectRemoved:
+                        {
+                            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                             {
                                 project = e.OldSolution.GetProject(e.ProjectId);
                                 Debug.Assert(project != null);
@@ -146,12 +153,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 {
                                     EnqueueUpdate(project: null, projectSnapshot);
                                 }
+                            }, CancellationToken.None);
 
-                                break;
-                            }
+                            break;
+                        }
 
-                        case WorkspaceChangeKind.DocumentChanged:
-                        case WorkspaceChangeKind.DocumentReloaded:
+                    case WorkspaceChangeKind.DocumentChanged:
+                    case WorkspaceChangeKind.DocumentReloaded:
+                        {
+                            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                             {
                                 // This is the case when a component declaration file changes on disk. We have an MSBuild
                                 // generator configured by the SDK that will poke these files on disk when a component
@@ -161,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 if (document.FilePath == null)
                                 {
-                                    break;
+                                    return;
                                 }
 
                                 // Using EndsWith because Path.GetExtension will ignore everything before .cs
@@ -179,7 +189,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                     {
                                         EnqueueUpdate(newProject, projectSnapshot);
                                     }
-                                    break;
+
+                                    return;
                                 }
 
                                 // We now know we're not operating directly on a Razor file. However, it's possible the user is operating on a partial class that is associated with a Razor file.
@@ -192,16 +203,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                         EnqueueUpdate(newProject, projectSnapshot);
                                     }
                                 }
+                            }, CancellationToken.None);
 
-                                break;
-                            }
+                            break;
+                        }
 
-                        case WorkspaceChangeKind.SolutionAdded:
-                        case WorkspaceChangeKind.SolutionChanged:
-                        case WorkspaceChangeKind.SolutionCleared:
-                        case WorkspaceChangeKind.SolutionReloaded:
-                        case WorkspaceChangeKind.SolutionRemoved:
-
+                    case WorkspaceChangeKind.SolutionAdded:
+                    case WorkspaceChangeKind.SolutionChanged:
+                    case WorkspaceChangeKind.SolutionCleared:
+                    case WorkspaceChangeKind.SolutionReloaded:
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                        {
                             if (e.OldSolution != null)
                             {
                                 foreach (var p in e.OldSolution.Projects)
@@ -214,15 +227,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                             }
 
                             InitializeSolution(e.NewSolution);
-                            break;
-                    }
+                        },
+                        CancellationToken.None);
 
-                    // Let tests know that this event has completed
-                    if (NotifyWorkspaceChangedEventComplete != null)
-                    {
-                        NotifyWorkspaceChangedEventComplete.Set();
-                    }
-                }, CancellationToken.None);
+                        break;
+                }
+
+                // Let tests know that this event has completed
+                NotifyWorkspaceChangedEventComplete?.Set();
             }
             catch (Exception ex)
             {
