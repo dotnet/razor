@@ -118,7 +118,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         case WorkspaceChangeKind.ProjectAdded:
                             {
                                 project = e.NewSolution.GetRequiredProject(e.ProjectId);
-
                                 EnqueueUpdateOnProjectAndDependencies(project, e.NewSolution);
                                 break;
                             }

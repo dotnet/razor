@@ -187,8 +187,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Empty(WorkQueueTestAccessor.Work);
         }
 
-        [UIFact]
-        public async Task WorkspaceChanged_ProjectEvents_EnqueuesUpdatesForDependentProjects()
+        [UITheory]
+        [InlineData(WorkspaceChangeKind.ProjectChanged)]
+        [InlineData(WorkspaceChangeKind.ProjectAdded)]
+        [InlineData(WorkspaceChangeKind.ProjectRemoved)]
+
+        public async Task WorkspaceChanged_ProjectEvents_EnqueuesUpdatesForDependentProjects(WorkspaceChangeKind kind)
         {
             // Arrange
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
@@ -206,7 +210,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 projectManager.ProjectAdded(HostProjectTwo);
                 projectManager.ProjectAdded(HostProjectThree);
             }, CancellationToken.None);
-            var kind = WorkspaceChangeKind.ProjectChanged;
 
             // Initialize with a project. This will get removed.
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: EmptySolution, newSolution: SolutionWithOneProject);
