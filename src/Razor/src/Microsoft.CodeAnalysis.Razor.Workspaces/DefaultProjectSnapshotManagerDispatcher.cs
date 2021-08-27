@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             {
                 _thread = new Thread(ThreadStart)
                 {
+                    Name = "Razor." + nameof(ProjectSnapshotManagerDispatcher),
                     IsBackground = true,
                 };
 
