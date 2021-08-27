@@ -428,6 +428,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
+            Assumes.NotNull(csharpResponse.Tokens);
+
             return new SemanticTokensResponse
             {
                 ResultId = csharpResponse.ResultId,
