@@ -382,6 +382,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public IReadOnlyDictionary<string, DynamicDocumentContainer> DynamicDocuments => _dynamicDocuments;
 
+            public override void Initialize(ProjectSnapshotManagerBase projectManager)
+            {
+            }
+
             public override void SuppressDocument(string projectFilePath, string documentFilePath)
             {
                 _dynamicDocuments[documentFilePath] = null;
