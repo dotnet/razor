@@ -89,7 +89,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     "Three",
                     "Three",
                     LanguageNames.CSharp,
-                    filePath: "Three.csproj"));
+                    filePath: "Three.csproj",
+                    documents: new[] { razorDocumentInfo }));
 
             ProjectNumberOne = SolutionWithTwoProjects.GetProject(projectId1);
             ProjectNumberTwo = SolutionWithTwoProjects.GetProject(projectId2);
@@ -135,6 +136,56 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public DocumentId BackgroundVirtualCSharpDocumentId { get; }
 
         public DocumentId PartialComponentClassDocumentId { get; }
+
+        [UITheory]
+        [InlineData(WorkspaceChangeKind.DocumentAdded)]
+        [InlineData(WorkspaceChangeKind.DocumentChanged)]
+        [InlineData(WorkspaceChangeKind.DocumentRemoved)]
+        public async Task WorkspaceChanged_DocumentEvents_EnqueuesUpdatesForDependentProjects(WorkspaceChangeKind kind)
+        {
+            // Arrange
+            var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue)
+            {
+                NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
+            };
+            WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+
+            await Dispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                projectManager.ProjectAdded(HostProjectOne);
+                projectManager.ProjectAdded(HostProjectTwo);
+                projectManager.ProjectAdded(HostProjectThree);
+            }, CancellationToken.None);
+
+            // Initialize with a project. This will get removed.
+            var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: EmptySolution, newSolution: SolutionWithOneProject);
+            detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
+            detector.NotifyWorkspaceChangedEventComplete.Reset();
+
+            e = new WorkspaceChangeEventArgs(kind, oldSolution: SolutionWithOneProject, newSolution: SolutionWithDependentProject);
+
+            var solution = SolutionWithDependentProject.WithProjectAssemblyName(ProjectNumberThree.Id, "Changed");
+
+            e = new WorkspaceChangeEventArgs(kind, oldSolution: SolutionWithDependentProject, newSolution: solution, projectId: ProjectNumberThree.Id, documentId: RazorDocumentId);
+
+            // Act
+            detector.Workspace_WorkspaceChanged(Workspace, e);
+            detector.NotifyWorkspaceChangedEventComplete.Wait();
+
+            // Assert
+            Assert.Equal(3, WorkQueueTestAccessor.Work.Count);
+            Assert.Contains(WorkQueueTestAccessor.Work, u => u.Key == ProjectNumberOne.FilePath);
+            Assert.Contains(WorkQueueTestAccessor.Work, u => u.Key == ProjectNumberTwo.FilePath);
+            Assert.Contains(WorkQueueTestAccessor.Work, u => u.Key == ProjectNumberThree.FilePath);
+
+            WorkQueueTestAccessor.BlockBackgroundWorkStart.Set();
+            WorkQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
+            Assert.Empty(WorkQueueTestAccessor.Work);
+        }
 
         [UIFact]
         public async Task WorkspaceChanged_ProjectEvents_EnqueuesUpdatesForDependentProjects()
