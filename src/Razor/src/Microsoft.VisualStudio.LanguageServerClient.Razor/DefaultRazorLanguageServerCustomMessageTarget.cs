@@ -390,7 +390,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
             else
             {
-                throw new ArgumentException("Returned tokens should be of type SemanticTokensResponse or SemanticTokensEdits.");
+                throw new ArgumentException("Returned tokens should be of type VSSemanticTokensResponse or VSSemanticTokensDeltaResponse.");
             }
         }
 
