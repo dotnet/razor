@@ -281,7 +281,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 _razorDocTokensCache.Set(documentUri, documentCache);
             }
 
-            documentCache.Set(newResultId, new VersionedSemanticTokens(semanticVersion, newTokens.Data, newTokens.IsPartial));
+            documentCache.Set(newResultId, new VersionedSemanticTokens(semanticVersion, newTokens.Data, newTokens.IsPartialCSharp));
         }
 
         private static async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(DocumentSnapshot documentSnapshot)
@@ -357,7 +357,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // Indicates no C# code in Razor doc.
             if (csharpResponse.ResultId is null)
             {
-                return new VersionedSemanticRange(razorRanges, null, IsPartialCSharp: csharpResponse.IsPartial);
+                return new VersionedSemanticRange(razorRanges, null, IsPartialCSharp: csharpResponse.IsPartialCSharp);
             }
 
             // Keep track of the tokens for the C# generated document so we can reference them
@@ -398,7 +398,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             }
 
             var result = razorRanges.ToImmutableList();
-            return new VersionedSemanticRange(result, csharpResponse.ResultId, csharpResponse.IsPartial);
+            return new VersionedSemanticRange(result, csharpResponse.ResultId, csharpResponse.IsPartialCSharp);
         }
 
         private async Task<SemanticTokensResponse?> GetMatchingCSharpResponseAsync(
@@ -623,7 +623,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         private record VersionedSemanticTokens(VersionStamp? SemanticVersion, IReadOnlyList<int> SemanticTokens, bool IsPartialCSharp);
 
         // Internal for testing
-        internal record SemanticTokensResponse(string? ResultId, int[] Data, bool IsPartial)
+        internal record SemanticTokensResponse(string? ResultId, int[] Data, bool IsPartialCSharp)
         {
             public static SemanticTokensResponse Default => new(null, Array.Empty<int>(), false);
         }
