@@ -160,9 +160,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public override void VisitCSharpExplicitExpressionBody(CSharpExplicitExpressionBodySyntax node)
         {
-            AddSemanticRange(node.OpenParen, RazorSemanticTokensLegend.CSharpPunctuation);
+            AddSemanticRange(node.OpenParen, RazorSemanticTokensLegend.RazorTransition);
             Visit(node.CSharpCode);
-            AddSemanticRange(node.CloseParen, RazorSemanticTokensLegend.CSharpPunctuation);
+            AddSemanticRange(node.CloseParen, RazorSemanticTokensLegend.RazorTransition);
         }
         #endregion C#
 
