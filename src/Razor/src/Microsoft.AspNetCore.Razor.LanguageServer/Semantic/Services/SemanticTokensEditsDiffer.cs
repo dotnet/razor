@@ -7,8 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using static Microsoft.AspNetCore.Razor.LanguageServer.Semantic.DefaultRazorSemanticTokensInfoService;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {

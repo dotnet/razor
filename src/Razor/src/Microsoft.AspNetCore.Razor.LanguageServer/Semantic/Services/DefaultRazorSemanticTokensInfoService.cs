@@ -417,10 +417,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (csharpResponse is null)
             {
                 // C# isn't ready yet, don't make Razor wait for it
-                return new SemanticTokensResponse
-                {
-                    ResultId = null,
-                };
+                return SemanticTokensResponse.Default;
             }
             else if (csharpResponse.HostDocumentSyncVersion != null && csharpResponse.HostDocumentSyncVersion != documentVersion)
             {
@@ -428,12 +425,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            return new SemanticTokensResponse
-            {
-                ResultId = csharpResponse.ResultId,
-                Data = csharpResponse.Tokens ?? Array.Empty<int>(),
-                IsPartial = csharpResponse.IsPartial
-            };
+            return new SemanticTokensResponse(csharpResponse.ResultId, csharpResponse.Tokens ?? Array.Empty<int>(), csharpResponse.IsPartial);
         }
 
         private async Task<SemanticTokensResponse?> GetMatchingCSharpEditsResponseAsync(
@@ -466,12 +458,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 // C#'s edits handler returned to us a full token set, so we don't need to do any additional work.
                 // This may indicate that C# had trouble with cache retrieval or that the previous tokens were
                 // 0-length, since C# doesn't cache 0-length token sets.
-                return new SemanticTokensResponse
-                {
-                    ResultId = csharpResponse.ResultId,
-                    Data = csharpResponse.Tokens.ToArray(),
-                    IsPartial = csharpResponse.IsPartial
-                };
+                return new SemanticTokensResponse(csharpResponse.ResultId, csharpResponse.Tokens.ToArray(), csharpResponse.IsPartial);
             }
 
             Assumes.NotNull(csharpResponse.Edits);
@@ -479,22 +466,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (!csharpResponse.Edits.Any())
             {
                 // If there aren't any edits, return the previous tokens with updated resultId.
-                return new SemanticTokensResponse
-                {
-                    ResultId = csharpResponse.ResultId,
-                    Data = previousCSharpTokens.ToArray(),
-                    IsPartial = csharpResponse.IsPartial
-                };
+                return new SemanticTokensResponse(csharpResponse.ResultId, previousCSharpTokens.ToArray(), csharpResponse.IsPartial);
             }
 
             var updatedTokens = ApplyEditsToPreviousCSharpDoc(previousCSharpTokens, csharpResponse.Edits);
-
-            return new SemanticTokensResponse
-            {
-                ResultId = csharpResponse.ResultId,
-                Data = updatedTokens.ToArray(),
-                IsPartial = csharpResponse.IsPartial
-            };
+            return new SemanticTokensResponse(csharpResponse.ResultId, updatedTokens.ToArray(), csharpResponse.IsPartial);
         }
 
         // Internal for testing
@@ -569,13 +545,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 previousResult = result;
             }
 
-            var tokensResult = new SemanticTokensResponse
-            {
-                Data = data.ToArray(),
-                ResultId = resultId,
-                IsPartial = isPartialCSharp,
-            };
-
+            var tokensResult = new SemanticTokensResponse(resultId, data.ToArray(), isPartialCSharp);
             return tokensResult;
         }
 
@@ -644,11 +614,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return documentInfo;
         }
 
+        // Internal for testing
         internal record VersionedSemanticRange(IReadOnlyList<SemanticRange>? SemanticRanges, string? ResultId, bool IsPartialCSharp)
         {
             public static VersionedSemanticRange Default => new(null, null, false);
         }
 
         private record VersionedSemanticTokens(VersionStamp? SemanticVersion, IReadOnlyList<int> SemanticTokens, bool IsPartialCSharp);
+
+        // Internal for testing
+        internal record SemanticTokensResponse(string? ResultId, int[] Data, bool IsPartial)
+        {
+            public static SemanticTokensResponse Default => new(null, Array.Empty<int>(), false);
+        }
     }
 }
