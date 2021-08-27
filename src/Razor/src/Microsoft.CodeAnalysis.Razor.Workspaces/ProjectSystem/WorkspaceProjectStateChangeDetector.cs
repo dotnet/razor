@@ -94,80 +94,80 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 // Method needs to be run on the project snapshot manager's specialized thread
                 // due to project snapshot manager access.
-                Project project;
                 switch (e.Kind)
                 {
                     case WorkspaceChangeKind.ProjectAdded:
-                        {
-                            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
                             {
-                                project = e.NewSolution.GetProject(e.ProjectId);
+                                var project = state.NewSolution.GetProject(state.ProjectId);
 
                                 Debug.Assert(project != null);
 
-                                if (TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
+                                if (state.self.TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
                                 {
-                                    EnqueueUpdate(project, projectSnapshot);
+                                    state.self.EnqueueUpdate(project, projectSnapshot);
                                 }
-                            }, CancellationToken.None);
+                            },
+                            (self: this, e.ProjectId, e.NewSolution),
+                            CancellationToken.None);
 
-                            break;
-                        }
+                        break;
 
                     case WorkspaceChangeKind.ProjectChanged:
                     case WorkspaceChangeKind.ProjectReloaded:
-                        {
-                            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
                             {
-                                project = e.NewSolution.GetProject(e.ProjectId);
+                                var project = state.NewSolution.GetProject(state.ProjectId);
 
-                                if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
+                                if (state.self.TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
                                 {
-                                    EnqueueUpdate(project, projectSnapshot);
+                                    state.self.EnqueueUpdate(project, projectSnapshot);
 
-                                    var dependencyGraph = e.NewSolution.GetProjectDependencyGraph();
-                                    var dependentProjectIds = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(e.ProjectId);
+                                    var dependencyGraph = state.NewSolution.GetProjectDependencyGraph();
+                                    var dependentProjectIds = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(state.ProjectId);
                                     foreach (var dependentProjectId in dependentProjectIds)
                                     {
-                                        var dependentProject = e.NewSolution.GetProject(dependentProjectId);
+                                        var dependentProject = state.NewSolution.GetProject(dependentProjectId);
 
-                                        if (TryGetProjectSnapshot(dependentProject.FilePath, out var dependentProjectSnapshot))
+                                        if (state.self.TryGetProjectSnapshot(dependentProject.FilePath, out var dependentProjectSnapshot))
                                         {
-                                            EnqueueUpdate(dependentProject, dependentProjectSnapshot);
+                                            state.self.EnqueueUpdate(dependentProject, dependentProjectSnapshot);
                                         }
                                     }
                                 }
-                            }, CancellationToken.None);
+                            },
+                            (self: this, e.ProjectId, e.NewSolution),
+                            CancellationToken.None);
 
-                            break;
-                        }
+                        break;
 
                     case WorkspaceChangeKind.ProjectRemoved:
-                        {
-                            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                        Debug.Assert(e.OldSolution.GetProject(e.ProjectId) is not null);
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
                             {
-                                project = e.OldSolution.GetProject(e.ProjectId);
-                                Debug.Assert(project != null);
-
-                                if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
+                                if (state.self.TryGetProjectSnapshot(state.FilePath, out var projectSnapshot))
                                 {
-                                    EnqueueUpdate(project: null, projectSnapshot);
+                                    state.self.EnqueueUpdate(project: null, projectSnapshot);
                                 }
-                            }, CancellationToken.None);
+                            },
+                            (self: this, e.OldSolution.GetProject(e.ProjectId).FilePath),
+                            CancellationToken.None);
 
-                            break;
-                        }
+                        break;
 
                     case WorkspaceChangeKind.DocumentChanged:
                     case WorkspaceChangeKind.DocumentReloaded:
-                        {
-                            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
                             {
                                 // This is the case when a component declaration file changes on disk. We have an MSBuild
                                 // generator configured by the SDK that will poke these files on disk when a component
                                 // is saved, or loses focus in the editor.
-                                project = e.OldSolution.GetProject(e.ProjectId);
-                                var document = project.GetDocument(e.DocumentId);
+                                var project = state.OldSolution.GetProject(state.ProjectId);
+                                var document = project.GetDocument(state.DocumentId);
 
                                 if (document.FilePath == null)
                                 {
@@ -184,10 +184,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                     // VSCode's background C# document
                                     document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal))
                                 {
-                                    var newProject = e.NewSolution.GetProject(e.ProjectId);
-                                    if (TryGetProjectSnapshot(newProject.FilePath, out var projectSnapshot))
+                                    var newProject = state.NewSolution.GetProject(state.ProjectId);
+                                    if (state.self.TryGetProjectSnapshot(newProject.FilePath, out var projectSnapshot))
                                     {
-                                        EnqueueUpdate(newProject, projectSnapshot);
+                                        state.self.EnqueueUpdate(newProject, projectSnapshot);
                                     }
 
                                     return;
@@ -195,40 +195,43 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                                 // We now know we're not operating directly on a Razor file. However, it's possible the user is operating on a partial class that is associated with a Razor file.
 
-                                if (IsPartialComponentClass(document))
+                                if (state.self.IsPartialComponentClass(document))
                                 {
-                                    var newProject = e.NewSolution.GetProject(e.ProjectId);
-                                    if (TryGetProjectSnapshot(newProject.FilePath, out var projectSnapshot))
+                                    var newProject = state.NewSolution.GetProject(state.ProjectId);
+                                    if (state.self.TryGetProjectSnapshot(newProject.FilePath, out var projectSnapshot))
                                     {
-                                        EnqueueUpdate(newProject, projectSnapshot);
+                                        state.self.EnqueueUpdate(newProject, projectSnapshot);
                                     }
                                 }
-                            }, CancellationToken.None);
+                            },
+                            (self: this, e.OldSolution, e.ProjectId, e.DocumentId, e.NewSolution),
+                            CancellationToken.None);
 
-                            break;
-                        }
+                        break;
 
                     case WorkspaceChangeKind.SolutionAdded:
                     case WorkspaceChangeKind.SolutionChanged:
                     case WorkspaceChangeKind.SolutionCleared:
                     case WorkspaceChangeKind.SolutionReloaded:
                     case WorkspaceChangeKind.SolutionRemoved:
-                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-                        {
-                            if (e.OldSolution != null)
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
                             {
-                                foreach (var p in e.OldSolution.Projects)
+                                if (state.oldProjectPaths != null)
                                 {
-                                    if (TryGetProjectSnapshot(p?.FilePath, out var projectSnapshot))
+                                    foreach (var p in state.oldProjectPaths)
                                     {
-                                        EnqueueUpdate(project: null, projectSnapshot);
+                                        if (state.self.TryGetProjectSnapshot(p, out var projectSnapshot))
+                                        {
+                                            state.self.EnqueueUpdate(project: null, projectSnapshot);
+                                        }
                                     }
                                 }
-                            }
 
-                            InitializeSolution(e.NewSolution);
-                        },
-                        CancellationToken.None);
+                                state.self.InitializeSolution(state.NewSolution);
+                            },
+                            (self: this, oldProjectPaths: e.OldSolution?.Projects.Select(p => p?.FilePath), e.NewSolution),
+                            CancellationToken.None);
 
                         break;
                 }
