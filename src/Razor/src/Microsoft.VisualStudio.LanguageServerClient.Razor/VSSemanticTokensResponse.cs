@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Runtime.Serialization;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
@@ -12,10 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     /// until the full compilation is available. Razor needs to know if the tokens
     /// are incomplete so we can continue to queue Roslyn for full tokens.
     /// </summary>
-    /// <remarks>
-    /// Note this differs from <see cref="SemanticTokensResponse"/> as it uses VS'
-    /// semantic tokens version instead of O#'s.
-    /// </remarks>
     internal class VSSemanticTokensResponse : SemanticTokens
     {
         [DataMember(Name = "isPartial")]

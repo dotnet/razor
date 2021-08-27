@@ -145,7 +145,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 combinedSemanticRanges, codeDocument, newResultId, isPartialCSharp);
             UpdateRazorDocCache(textDocumentIdentifier.Uri, semanticVersion, newResultId, razorSemanticTokens);
 
-            return razorSemanticTokens;
+            return new SemanticTokens { ResultId = razorSemanticTokens.ResultId, Data = razorSemanticTokens.Data.ToImmutableArray() };
         }
 
         public override async Task<SemanticTokensFullOrDelta?> GetSemanticTokensEditsAsync(
@@ -249,11 +249,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 if (previousResults is null)
                 {
-                    return newTokens;
+                    return new SemanticTokens { ResultId = newTokens.ResultId, Data = newTokens.Data.ToImmutableArray() };
                 }
 
                 var razorSemanticEdits = SemanticTokensEditsDiffer.ComputeSemanticTokensEdits(newTokens, previousResults);
-
                 return razorSemanticEdits;
             }
             else
@@ -429,7 +428,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            return csharpResponse.Result;
+            return new SemanticTokensResponse
+            {
+                ResultId = csharpResponse.ResultId,
+                Data = csharpResponse.Tokens,
+                IsPartial = csharpResponse.IsPartial
+            };
         }
 
         private async Task<SemanticTokensResponse?> GetMatchingCSharpEditsResponseAsync(
@@ -455,7 +459,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            if (csharpResponse.Edits == null)
+            if (csharpResponse.Edits is null)
             {
                 Assumes.NotNull(csharpResponse.Tokens);
 
@@ -464,7 +468,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return new SemanticTokensResponse
                 {
                     ResultId = csharpResponse.ResultId,
-                    Data = csharpResponse.Tokens.ToImmutableArray(),
+                    Data = csharpResponse.Tokens.ToArray(),
                     IsPartial = csharpResponse.IsPartial
                 };
             }
@@ -476,8 +480,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 // If there aren't any edits, return the previous tokens with updated resultId.
                 return new SemanticTokensResponse
                 {
-                    Data = previousCSharpTokens.ToImmutableArray(),
                     ResultId = csharpResponse.ResultId,
+                    Data = previousCSharpTokens.ToArray(),
                     IsPartial = csharpResponse.IsPartial
                 };
             }
@@ -486,14 +490,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             return new SemanticTokensResponse
             {
-                Data = updatedTokens,
                 ResultId = csharpResponse.ResultId,
+                Data = updatedTokens.ToArray(),
                 IsPartial = csharpResponse.IsPartial
             };
         }
 
         // Internal for testing
-        internal static ImmutableArray<int> ApplyEditsToPreviousCSharpDoc(
+        internal static int[] ApplyEditsToPreviousCSharpDoc(
             IReadOnlyList<int> previousCSharpTokens,
             Models.RazorSemanticTokensEdit[] edits)
         {
@@ -516,7 +520,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
             }
 
-            return updatedTokens.ToImmutableArray();
+            return updatedTokens.ToArray();
         }
 
         private static SemanticRange DataToSemanticRange(
@@ -566,7 +570,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var tokensResult = new SemanticTokensResponse
             {
-                Data = data.ToImmutableArray(),
+                Data = data.ToArray(),
                 ResultId = resultId,
                 IsPartial = isPartialCSharp,
             };

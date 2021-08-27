@@ -1,19 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Runtime.Serialization;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+#nullable enable
+
+using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
 {
-    /// <summary>
-    /// Roslyn supports frozen compilations and may only send us back partial tokens
-    /// until the full compilation is available. Razor needs to know if the tokens
-    /// are incomplete so we can continue to queue Roslyn for full tokens.
-    /// </summary>
-    internal record SemanticTokensResponse : SemanticTokens
+    internal record SemanticTokensResponse
     {
-        [DataMember(Name = "isPartial")]
+        public string? ResultId { get; set; }
+
+        public int[] Data { get; set; } = Array.Empty<int>();
+
         public bool IsPartial { get; set; }
     }
 }

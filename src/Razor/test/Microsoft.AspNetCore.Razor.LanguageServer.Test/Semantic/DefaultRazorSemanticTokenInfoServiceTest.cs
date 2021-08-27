@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 ResultId = null,
                 IsPartial = false,
             };
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 1);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 1);
 
             await AssertSemanticTokensAsync(txt, isRazor: false, csharpTokens: cSharpResponse, documentMappings: null, documentVersion: 1);
         }
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 ResultId = null,
                 IsPartial = false,
             };
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 0);
             var isRazor = true;
 
             var response = await AssertSemanticTokensAsync(txt, isRazor, csharpTokens: cSharpResponse, documentVersion: 0);
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 ResultId = 1.ToString(),
                 IsPartial = false,
             };
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 0);
 
             var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
                 (new OmniSharpRange(new Position(14, 0), new Position(14, 3)), new OmniSharpRange(new Position(1, 4), new Position(1, 7))),
@@ -137,7 +137,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 ResultId = 1.ToString(),
                 IsPartial = false,
             };
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 0);
 
             var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
                 (new OmniSharpRange(new Position(14, 0), new Position(14, 3)), new OmniSharpRange(new Position(1, 6), new Position(1, 9))),
@@ -164,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 IsPartial = false,
             };
 
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: null);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: null);
 
             var mappings = Array.Empty<(OmniSharpRange, OmniSharpRange?)>();
 
@@ -187,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 IsPartial = false,
             };
 
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 0);
 
             var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
                 (new OmniSharpRange(new Position(14, 0),new Position(14, 8)), new OmniSharpRange(new Position(1, 2), new Position(1, 10))),
@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 IsPartial = false,
             };
 
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 0);
 
             var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
                  (new OmniSharpRange(new Position(14, 0), new Position(14, 3)), new OmniSharpRange(new Position(1, 3), new Position(1, 6))),
@@ -253,7 +253,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 IsPartial = false,
             };
 
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 42);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 42);
 
             var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
                (new OmniSharpRange(new Position(14, 12), new Position(14, 15)), new OmniSharpRange(new Position(1, 3), new Position(1, 6))),
@@ -282,7 +282,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 IsPartial = false,
             };
 
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 0);
 
             var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
                (new OmniSharpRange(new Position(14, 12), new Position(14, 15)), new OmniSharpRange(new Position(1, 3), new Position(1, 6))),
@@ -311,7 +311,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 IsPartial = false,
             };
 
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 0);
 
             var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
                (new OmniSharpRange(new Position(14, 12), new Position(14, 15)), new OmniSharpRange(new Position(1, 3), new Position(1, 6))),
@@ -340,7 +340,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 IsPartial = false,
             };
 
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 0);
 
             var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
                (new OmniSharpRange(new Position(14, 12), new Position(14, 15)), new OmniSharpRange(new Position(1, 3), new Position(1, 6))),
@@ -381,7 +381,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
                 ResultId = "35",
                 IsPartial = false,
             };
-            var cSharpResponse = new ProvideSemanticTokensResponse(cSharpTokens, hostDocumentSyncVersion: 0);
+            var cSharpResponse = new ProvideSemanticTokensResponse(tokens: cSharpTokens, hostDocumentSyncVersion: 0);
 
             var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
                 (new OmniSharpRange(new Position(14, 12), new Position(14, 20)), new OmniSharpRange(new Position(1, 6), new Position(1, 14))),
@@ -945,7 +945,7 @@ slf*@";
             if (csharpTokens is null)
             {
                 var semanticTokens = new SemanticTokensResponse { };
-                csharpTokens = new ProvideSemanticTokensResponse(semanticTokens, documentVersion);
+                csharpTokens = new ProvideSemanticTokensResponse(documentVersion, semanticTokens);
             }
 
             Mock<ClientNotifierServiceBase>? serviceMock = null;
@@ -978,7 +978,7 @@ slf*@";
         {
             // Arrange
             var semanticTokens = new SemanticTokensResponse { };
-            var cSharpTokens = new ProvideSemanticTokensResponse(semanticTokens, documentVersion);
+            var cSharpTokens = new ProvideSemanticTokensResponse(documentVersion, semanticTokens);
 
             Mock<ClientNotifierServiceBase>? clientMock = null;
             if (service is null)
