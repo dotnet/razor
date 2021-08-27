@@ -463,8 +463,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             {
                 Assumes.NotNull(csharpResponse.Tokens);
 
-                // C#'s edit handler returned to us a full token set, so we don't need to do any additional work.
-                // This may indicate that C# had trouble with cache retrieval, or that C# returned to us partial tokens.
+                // C#'s edits handler returned to us a full token set, so we don't need to do any additional work.
+                // This may indicate that C# had trouble with cache retrieval or that the previous tokens were
+                // 0-length, since C# doesn't cache 0-length token sets.
                 return new SemanticTokensResponse
                 {
                     ResultId = csharpResponse.ResultId,
@@ -645,7 +646,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         internal record VersionedSemanticRange(IReadOnlyList<SemanticRange>? SemanticRanges, string? ResultId, bool IsPartialCSharp)
         {
-            public static VersionedSemanticRange Default => new(null, null, true);
+            public static VersionedSemanticRange Default => new(null, null, false);
         }
 
         private record VersionedSemanticTokens(VersionStamp? SemanticVersion, IReadOnlyList<int> SemanticTokens, bool IsPartialCSharp);

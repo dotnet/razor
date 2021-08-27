@@ -34,4 +34,9 @@
     <EmbeddedResource Include="Semantic\TestFiles\**\*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\GetSemanticTokens_CSharp_RequeueOnPartialTokens.semantic.txt" />
+    <None Remove="Semantic\TestFiles\DefaultRazorSemanticTokenInfoServiceTest\GetSemanticTokens_CSharp_RequeueOnPartialTokens.semanticedit.txt" />
+  </ItemGroup>
+
 </Project>
