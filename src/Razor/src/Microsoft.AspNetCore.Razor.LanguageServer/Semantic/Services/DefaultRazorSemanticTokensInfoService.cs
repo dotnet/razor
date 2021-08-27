@@ -428,12 +428,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            Assumes.NotNull(csharpResponse.Tokens);
-
             return new SemanticTokensResponse
             {
                 ResultId = csharpResponse.ResultId,
-                Data = csharpResponse.Tokens,
+                Data = csharpResponse.Tokens ?? Array.Empty<int>(),
                 IsPartial = csharpResponse.IsPartial
             };
         }

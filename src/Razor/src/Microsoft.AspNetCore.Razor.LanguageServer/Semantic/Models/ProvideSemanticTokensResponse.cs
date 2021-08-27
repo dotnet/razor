@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return false;
             }
 
-            if (Tokens is not null && other.Tokens is not null && other.Tokens.SequenceEqual(Tokens))
+            if (other.Tokens == Tokens || (other.Tokens is not null && Tokens is not null && other.Tokens.SequenceEqual(Tokens)))
             {
                 return true;
             }

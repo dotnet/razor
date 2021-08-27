@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return false;
             }
 
-            if (Edits is not null && other.Edits is not null && other.Edits.SequenceEqual(Edits))
+            if (other.Edits == Edits || (other.Edits is not null && Edits is not null && other.Edits.SequenceEqual(Edits)))
             {
                 return true;
             }
