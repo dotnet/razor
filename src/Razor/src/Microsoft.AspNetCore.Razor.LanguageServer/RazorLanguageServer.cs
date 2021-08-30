@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
+using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
@@ -134,6 +135,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddLogging(builder => builder
                             .SetMinimumLevel(logLevel)
                             .AddLanguageProtocolLogging());
+
+                        services.AddSingleton<RequestInvoker, RazorOmniSharpRequestInvoker>();
 
                         services.AddSingleton<FilePathNormalizer>();
                         services.AddSingleton<ProjectSnapshotManagerDispatcher, DefaultProjectSnapshotManagerDispatcher>();
