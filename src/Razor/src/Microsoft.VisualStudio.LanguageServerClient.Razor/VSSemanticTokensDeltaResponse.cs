@@ -7,13 +7,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     /// <summary>
-    /// Roslyn supports frozen compilations and may only send us back partial tokens
-    /// until the full compilation is available. Razor needs to know if the tokens
-    /// are incomplete so we can continue to queue Roslyn for full tokens.
+    /// Language servers such as Roslyn support multiple colorization passes and and
+    /// may only send us back inaccurate/incomplete tokens until the full token set is
+    /// available. Razor needs to know if the tokens are not finalized so we can continue
+    /// to queue language servers for tokens.
     /// </summary>
     internal class VSSemanticTokensDeltaResponse : SemanticTokensDelta
     {
-        [DataMember(Name = "isPartial")]
-        public bool IsPartial { get; set; }
+        [DataMember(Name = "isFinalized")]
+        public bool IsFinalized { get; set; }
     }
 }

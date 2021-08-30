@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 // If we're unable to synchronize we won't produce useful results, but we have to indicate
                 // it's due to out of sync by providing the old version
                 return new ProvideSemanticTokensResponse(
-                    resultId: null, tokens: null, isPartial: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+                    resultId: null, tokens: null, isFinalized: true, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
             }
 
             var csharpTextDocument = semanticTokensParams.TextDocument with { Uri = csharpDoc.Uri };
@@ -322,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var result = csharpResults.Result;
             var response = new ProvideSemanticTokensResponse(
-                result.ResultId, result.Data, result.IsPartial, semanticTokensParams.RequiredHostDocumentVersion);
+                result.ResultId, result.Data, result.IsFinalized, semanticTokensParams.RequiredHostDocumentVersion);
 
             return response;
         }
@@ -349,7 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 // If we're unable to synchronize we won't produce useful results
                 return new ProvideSemanticTokensEditsResponse(
-                    resultId: null, tokens: null, edits: null, isPartial: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+                    resultId: null, tokens: null, edits: null, isFinalized: true, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
             }
 
             var newParams = new SemanticTokensDeltaParams
@@ -372,7 +372,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             if (csharpResults.Value is VSSemanticTokensResponse tokens)
             {
                 var response = new ProvideSemanticTokensEditsResponse(
-                    tokens.ResultId, tokens.Data, edits: null, isPartial: tokens.IsPartial, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
+                    tokens.ResultId, tokens.Data, edits: null, isFinalized: tokens.IsFinalized, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
                 return response;
             }
             else if (csharpResults.Value is VSSemanticTokensDeltaResponse edits)
@@ -385,7 +385,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 }
 
                 var response = new ProvideSemanticTokensEditsResponse(
-                    edits.ResultId, tokens: null, edits: results, isPartial: edits.IsPartial, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
+                    edits.ResultId, tokens: null, edits: results, isFinalized: edits.IsFinalized, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
                 return response;
             }
             else

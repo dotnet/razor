@@ -21,9 +21,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             string? resultId,
             int[]? tokens,
             RazorSemanticTokensEdit[]? edits,
-            bool isPartial,
+            bool isFinalized,
             long? hostDocumentSyncVersion)
-            : base(resultId, tokens ?? Array.Empty<int>(), isPartial, hostDocumentSyncVersion)
+            : base(resultId, tokens ?? Array.Empty<int>(), isFinalized, hostDocumentSyncVersion)
         {
             Edits = edits;
         }

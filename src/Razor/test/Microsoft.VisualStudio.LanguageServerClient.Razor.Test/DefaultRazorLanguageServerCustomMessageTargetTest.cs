@@ -456,7 +456,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 RequiredHostDocumentVersion = 0,
             };
             var expectedResults = new ProvideSemanticTokensResponse(
-                expectedcSharpResults.ResultId, expectedcSharpResults.Data, expectedcSharpResults.IsPartial, documentVersion);
+                expectedcSharpResults.ResultId, expectedcSharpResults.Data, expectedcSharpResults.IsFinalized, documentVersion);
 
             // Act
             var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);

@@ -13,11 +13,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     /// </summary>
     internal class ProvideSemanticTokensResponse
     {
-        public ProvideSemanticTokensResponse(string? resultId, int[]? tokens, bool isPartial, long? hostDocumentSyncVersion)
+        public ProvideSemanticTokensResponse(string? resultId, int[]? tokens, bool isFinalized, long? hostDocumentSyncVersion)
         {
             ResultId = resultId;
             Tokens = tokens;
-            IsPartial = isPartial;
+            IsFinalized = isFinalized;
             HostDocumentSyncVersion = hostDocumentSyncVersion;
         }
 
@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         public int[]? Tokens { get; }
 
-        public bool IsPartial { get; }
+        public bool IsFinalized { get; }
 
         public long? HostDocumentSyncVersion { get; }
 
@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (obj is not ProvideSemanticTokensResponse other ||
                 other.ResultId != ResultId ||
-                other.IsPartial != IsPartial ||
+                other.IsFinalized != IsFinalized ||
                 other.HostDocumentSyncVersion != HostDocumentSyncVersion)
             {
                 return false;
