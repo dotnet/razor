@@ -151,26 +151,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc
             Assert.False(serialRequest2Called);
         }
 
-        [Fact]
-        public void Shutdown_PreventsScheduling()
-        {
-            // Arrange
-            var called = false;
-            var request = new ProcessSchedulerDelegate((cancellationToken) =>
-            {
-                called = true;
-                return Task.CompletedTask;
-            });
-            Scheduler.Dispose();
-
-            // Act
-            var scheduled = Scheduler.Schedule(RequestProcessType.Serial, "Request", request);
-
-            // Assert
-            Assert.False(scheduled);
-            Assert.False(called);
-        }
-
         public void Dispose()
         {
             Scheduler.Dispose();

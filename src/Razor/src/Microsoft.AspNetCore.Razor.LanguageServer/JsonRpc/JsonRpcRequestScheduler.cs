@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,15 +31,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc
 
         public bool Schedule(RequestProcessType type, string identifier, ProcessSchedulerDelegate processAsync)
         {
-            lock (_disposedCancellationTokenSource)
-            {
-                if (_disposedCancellationTokenSource.IsCancellationRequested)
-                {
-                    // Shutting down
-                    return false;
-                }
-            }
-
             var queueItem = new QueueItem(type, identifier, processAsync);
 
             // Try and enqueue item, if this fails it means we're tearing down.
@@ -47,15 +40,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc
 
         public void Dispose()
         {
-            lock (_disposedCancellationTokenSource)
+            if (_disposedCancellationTokenSource.IsCancellationRequested)
             {
-                if (_disposedCancellationTokenSource.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                _disposedCancellationTokenSource.Cancel();
+                return;
             }
+
+            _disposedCancellationTokenSource.Cancel();
         }
 
         private async Task ProcessQueueAsync()
