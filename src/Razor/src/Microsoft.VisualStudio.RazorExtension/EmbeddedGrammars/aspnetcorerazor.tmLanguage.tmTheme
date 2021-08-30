@@ -87,7 +87,7 @@
 
       <!-- Begin HTML specific colorization -->
 
-      <!-- [<]a href="Hello"[>]-->
+      <!-- [<]a href="Hello"[/>]-->
       <dict>
         <key>scope</key>
         <string>punctuation.definition.tag</string>
