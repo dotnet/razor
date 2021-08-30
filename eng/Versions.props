@@ -125,7 +125,7 @@
     <MonoDevelopSdkPackageVersion>1.0.15</MonoDevelopSdkPackageVersion>
     <MoqPackageVersion>4.16.0</MoqPackageVersion>
     <NerdbankStreamsPackageVersion>2.7.74</NerdbankStreamsPackageVersion>
-    <OmniSharpExtensionsLanguageServerPackageVersion>0.19.4</OmniSharpExtensionsLanguageServerPackageVersion>
+    <OmniSharpExtensionsLanguageServerPackageVersion>0.19.5</OmniSharpExtensionsLanguageServerPackageVersion>
     <OmniSharpMSBuildPackageVersion>1.37.13</OmniSharpMSBuildPackageVersion>
     <StreamJsonRpcPackageVersion>2.8.21</StreamJsonRpcPackageVersion>
     <Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.3.2</Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>
