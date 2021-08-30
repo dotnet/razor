@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Internal;
 
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
     [Shared]
     [Export(typeof(IRazorDynamicFileInfoProvider))]
     [Export(typeof(RazorDynamicFileInfoProvider))]
+    [Export(typeof(ProjectSnapshotChangeTrigger))]
     internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvider, IRazorDynamicFileInfoProvider
     {
         private readonly ConcurrentDictionary<Key, Entry> _entries;
@@ -44,6 +46,11 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         }
 
         public event EventHandler<string> Updated;
+
+        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+        {
+            projectManager.Changed += ProjectManager_Changed;
+        }
 
         // Called by us to update LSP document entries
         public override void UpdateLSPFileInfo(Uri documentUri, DynamicDocumentContainer documentContainer)
@@ -241,9 +248,52 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(filePath));
             }
 
+            // ---------------------------------------------------------- NOTE & CAUTION --------------------------------------------------------------
+            //
+            // For all intents and purposes this method should not exist. When projects get torn down we do not get told to remove any documents
+            // we've published. To workaround that issue this class hooks into ProjectSnapshotManager events to clear entry state on project / document
+            // removals and on solution closing events.
+            //
+            // Currently this method only ever gets called for deleted documents which we can detect in our ProjectManager_Changed event below.
+            //
+            // ----------------------------------------------------------------------------------------------------------------------------------------
+
             var key = new Key(projectFilePath, filePath);
             _entries.TryRemove(key, out _);
             return Task.CompletedTask;
+        }
+
+        public TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+        private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
+        {
+            if (args.SolutionIsClosing)
+            {
+                _entries.Clear();
+                return;
+            }
+
+            switch (args.Kind)
+            {
+                case ProjectChangeKind.ProjectRemoved:
+                    {
+                        var removedProject = args.Older;
+                        foreach (var documentFilePath in removedProject.DocumentFilePaths)
+                        {
+                            var key = new Key(removedProject.FilePath, documentFilePath);
+                            _entries.TryRemove(key, out _);
+                        }
+                        break;
+                    }
+                case ProjectChangeKind.DocumentRemoved:
+                    {
+                        var owningProject = args.Newer;
+
+                        var key = new Key(owningProject.FilePath, args.DocumentFilePath);
+                        _entries.TryRemove(key, out _);
+                        break;
+                    }
+            }
         }
 
         private RazorDynamicFileInfo CreateEmptyInfo(Key key)
@@ -403,6 +453,24 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             public override IRazorSpanMappingService GetMappingService() => _spanMappingService;
 
             public override TextLoader GetTextLoader(string filePath) => _textLoader;
+        }
+
+        public class TestAccessor
+        {
+            private readonly DefaultRazorDynamicFileInfoProvider _provider;
+
+            public TestAccessor(DefaultRazorDynamicFileInfoProvider provider)
+            {
+                _provider = provider;
+            }
+
+            public async Task<TestDynamicFileInfoResult> GetDynamicFileInfoAsync(string projectFilePath, string filePath, CancellationToken cancellationToken)
+            {
+                var result = await _provider.GetDynamicFileInfoAsync(ProjectId.CreateNewId(), projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+                return new TestDynamicFileInfoResult(result.FilePath, result.TextLoader);
+            }
+
+            public record TestDynamicFileInfoResult(string FilePath, TextLoader TextLoader);
         }
     }
 }

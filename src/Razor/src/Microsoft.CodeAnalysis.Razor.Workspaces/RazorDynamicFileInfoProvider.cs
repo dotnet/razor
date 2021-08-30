@@ -2,10 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    internal abstract class RazorDynamicFileInfoProvider
+    internal abstract class RazorDynamicFileInfoProvider : ProjectSnapshotChangeTrigger
     {
         public abstract void UpdateLSPFileInfo(Uri documentUri, DynamicDocumentContainer documentContainer);
 
