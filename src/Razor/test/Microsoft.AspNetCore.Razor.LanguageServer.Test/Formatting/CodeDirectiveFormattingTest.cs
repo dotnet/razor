@@ -690,6 +690,8 @@ expected: @"@code {
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/34320")]
         public async Task CodeBlock_ObjectCollectionArrayInitializers()
         {
+            // The C# Formatter doesn't touch these types of initializers, so nor to we. This test
+            // just verifies we don't regress things and start moving code around.
             await RunFormattingTestAsync(
 input: @"
 @code {
