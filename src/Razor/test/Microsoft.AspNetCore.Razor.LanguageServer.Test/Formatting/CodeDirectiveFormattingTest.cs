@@ -451,10 +451,7 @@ input: @"
             {
                 public Foo()
                 {
-                    var arr = new string[ ] {
-""One"", ""two"",
-""three""
-                    };
+                    var arr = new string[ ] { ""One"", ""two"",""three"" };
                     var str = @""
 This should
 not
@@ -478,10 +475,7 @@ expected: @"@using System.Buffers
     {
         public Foo()
         {
-            var arr = new string[] {
-""One"", ""two"",
-""three""
-                };
+            var arr = new string[] { ""One"", ""two"", ""three"" };
             var str = @""
 This should
 not
@@ -688,6 +682,54 @@ expected: @"@code {
         </Counter>
         forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
     }
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/34320")]
+        public async Task CodeBlock_ObjectCollectionArrayInitializers()
+        {
+            // The C# Formatter doesn't touch these types of initializers, so nor to we. This test
+            // just verifies we don't regress things and start moving code around.
+            await RunFormattingTestAsync(
+input: @"
+@code {
+    public List<object> AList = new List<object>()
+    {
+        new
+        {
+            Name = ""One"",
+            Goo = new
+            {
+                First = 1,
+                Second = 2
+            },
+            Bar = new string[] {
+                ""Hello"",
+                ""There""
+            }
+        }
+    };
+}
+",
+expected: @"@code {
+    public List<object> AList = new List<object>()
+    {
+        new
+        {
+            Name = ""One"",
+            Goo = new
+            {
+                First = 1,
+                Second = 2
+            },
+            Bar = new string[] {
+                ""Hello"",
+                ""There""
+            }
+        }
+    };
 }
 ");
         }

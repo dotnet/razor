@@ -233,11 +233,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         var line = formattedText.Lines.GetLineFromPosition(token.SpanStart + indentationMapData.CharacterOffset);
                         var offset = GetIndentationOffsetFromLine(context, line);
 
+                        // Every bit of C# in a Razor file is assumed to be indented by at least 2 levels (namespace and class)
+                        // and the Razor formatter works based on that assumption. For some specific C# nodes however, the C# formatter
+                        // will not indent them at all. When they happen to be indented more than 2 levels this causes a problem
+                        // because we essentially assume that we should always move them left by at least 2 levels. This means that these
+                        // nodes end up moving left with every format operation, until they hit the minimum of 2 indent levels.
+                        // We can't fix this, so we just work around it by ignoring those nodes compeletely, and leaving them where the
+                        // user put them. This is the same as what the C# formatter does.
+                        if (IsIgnoredByCSharpFormatter(token.Parent))
+                        {
+                            offset = -1;
+                        }
+
                         desiredIndentationMap[projectedIndex] = offset;
                     }
                 }
             }
         }
+
+        private static bool IsIgnoredByCSharpFormatter(SyntaxNode? parent)
+            => parent?.AncestorsAndSelf().Any(n => n.Kind() switch
+            {
+                CodeAnalysis.CSharp.SyntaxKind.ObjectInitializerExpression => true,
+                CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression => true,
+                CodeAnalysis.CSharp.SyntaxKind.CollectionInitializerExpression => true,
+                _ => false
+            }) ?? false;
 
         private static (Dictionary<int, IndentationMapData>, SyntaxTree) InitializeIndentationData(
             FormattingContext context,
