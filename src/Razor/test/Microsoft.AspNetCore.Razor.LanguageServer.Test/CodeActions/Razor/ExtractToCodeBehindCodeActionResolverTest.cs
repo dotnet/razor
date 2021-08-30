@@ -4,20 +4,19 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -35,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public async Task Handle_MissingFile()
         {
             // Arrange
-            var resolver = new ExtractToCodeBehindCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), _emptyDocumentResolver, FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(Dispatcher, _emptyDocumentResolver, FilePathNormalizer);
             var data = JObject.FromObject(new ExtractToCodeBehindCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
@@ -61,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetUnsupported();
 
-            var resolver = new ExtractToCodeBehindCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument), FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument), FilePathNormalizer);
             var data = JObject.FromObject(new ExtractToCodeBehindCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
@@ -87,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetFileKind(FileKinds.Legacy);
 
-            var resolver = new ExtractToCodeBehindCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument), FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument), FilePathNormalizer);
             var data = JObject.FromObject(new ExtractToCodeBehindCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
@@ -113,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@page \"/test\"{Environment.NewLine}@code {{ private var x = 1; }}";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new ExtractToCodeBehindCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument), FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument), FilePathNormalizer);
             var actionParams = new ExtractToCodeBehindCodeActionParams
             {
                 Uri = documentUri,
@@ -157,7 +156,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@page \"/test\"{Environment.NewLine}@functions {{ private var x = 1; }}";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new ExtractToCodeBehindCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument), FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument), FilePathNormalizer);
             var actionParams = new ExtractToCodeBehindCodeActionParams
             {
                 Uri = documentUri,
@@ -201,7 +200,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@page \"/test\"\n@using System.Diagnostics{Environment.NewLine}@code {{ private var x = 1; }}";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new ExtractToCodeBehindCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument), FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument), FilePathNormalizer);
             var actionParams = new ExtractToCodeBehindCodeActionParams
             {
                 Uri = documentUri,

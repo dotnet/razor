@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,25 +10,29 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    internal class DefaultProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
+    internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotManagerDispatcher
     {
-        public override bool IsDispatcherThread
-            => Thread.CurrentThread.ManagedThreadId == ProjectSnapshotManagerTaskScheduler.Instance.ThreadId;
+        private readonly ProjectSnapshotManagerTaskScheduler _dispatcherScheduler;
 
-        public override TaskScheduler DispatcherScheduler { get; } = ProjectSnapshotManagerTaskScheduler.Instance;
-
-        internal class ProjectSnapshotManagerTaskScheduler : TaskScheduler
+        public ProjectSnapshotManagerDispatcherBase(string threadName)
         {
-            public static ProjectSnapshotManagerTaskScheduler Instance = new();
+            _dispatcherScheduler = new ProjectSnapshotManagerTaskScheduler(threadName);
+        }
 
+        public override bool IsDispatcherThread => Thread.CurrentThread.ManagedThreadId == _dispatcherScheduler.ThreadId;
+
+        public override TaskScheduler DispatcherScheduler => _dispatcherScheduler;
+
+        private class ProjectSnapshotManagerTaskScheduler : TaskScheduler
+        {
             private readonly Thread _thread;
             private readonly BlockingCollection<Task> _tasks = new();
 
-            private ProjectSnapshotManagerTaskScheduler()
+            public ProjectSnapshotManagerTaskScheduler(string threadName)
             {
                 _thread = new Thread(ThreadStart)
                 {
-                    Name = "Razor." + nameof(ProjectSnapshotManagerDispatcher),
+                    Name = threadName,
                     IsBackground = true,
                 };
 
