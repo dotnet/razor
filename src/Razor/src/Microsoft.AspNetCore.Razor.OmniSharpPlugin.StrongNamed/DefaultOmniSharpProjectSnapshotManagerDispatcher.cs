@@ -11,11 +11,20 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     {
         public DefaultOmniSharpProjectSnapshotManagerDispatcher()
         {
-            InternalDispatcher = new DefaultProjectSnapshotManagerDispatcher();
+            InternalDispatcher = new OmniSharpProjectSnapshotManagerDispatcher();
         }
 
         public override TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
 
         public override void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
+
+        private class OmniSharpProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
+        {
+            private const string ThreadName = "Razor." + nameof(OmniSharpProjectSnapshotManagerDispatcher);
+
+            public OmniSharpProjectSnapshotManagerDispatcher() : base(ThreadName)
+            {
+            }
+        }
     }
 }

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServices.Razor.Test;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -29,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             }
         }
 
-        private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new DefaultProjectSnapshotManagerDispatcher();
+        private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new TestProjectSnapshotManagerDispatcher();
 
         public VsSolutionUpdatesProjectSnapshotChangeTriggerTest()
         {
