@@ -87,10 +87,21 @@
 
       <!-- Begin HTML specific colorization -->
 
-      <!-- [<]a[>] href[=]"Hello"> -->
+      <!-- [<]a href="Hello"[>]-->
       <dict>
         <key>scope</key>
-        <string>punctuation.definition.tag, punctuation.separator.key-value.html</string>
+        <string>punctuation.definition.tag</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>HTML Tag Delimiter</string>
+        </dict>
+      </dict>
+
+      <!-- <a href[=]"Hello"> -->
+      <dict>
+        <key>scope</key>
+        <string>punctuation.separator.key-value.html</string>
         <key>settings</key>
         <dict>
           <key>vsclassificationtype</key>
