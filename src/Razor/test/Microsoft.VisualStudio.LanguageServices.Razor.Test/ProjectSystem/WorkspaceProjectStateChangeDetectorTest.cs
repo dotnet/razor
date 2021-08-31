@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.Razor;
 using Microsoft.VisualStudio.LanguageServices.Razor.Test;
 using Microsoft.VisualStudio.Threading;
 using Moq;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase, IDisposable
     {
-        private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new TestProjectSnapshotManagerDispatcher();
+        private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new VisualStudioProjectSnapshotManagerDispatcher();
 
         public WorkspaceProjectStateChangeDetectorTest()
         {
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 projectManager.ProjectAdded(HostProjectOne);
                 projectManager.ProjectAdded(HostProjectTwo);
                 projectManager.ProjectAdded(HostProjectThree);
-            }, CancellationToken.None);
+            }, CancellationToken.None).ConfigureAwait(false);
 
             // Initialize with a project. This will get removed.
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: EmptySolution, newSolution: SolutionWithOneProject);
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 projectManager.ProjectAdded(HostProjectOne);
                 projectManager.ProjectAdded(HostProjectTwo);
                 projectManager.ProjectAdded(HostProjectThree);
-            }, CancellationToken.None);
+            }, CancellationToken.None).ConfigureAwait(false);
 
             // Initialize with a project. This will get removed.
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: EmptySolution, newSolution: SolutionWithOneProject);
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 projectManager.ProjectAdded(HostProjectOne);
                 projectManager.ProjectAdded(HostProjectTwo);
-            }, CancellationToken.None);
+            }, CancellationToken.None).ConfigureAwait(false);
 
             var e = new WorkspaceChangeEventArgs(kind, oldSolution: EmptySolution, newSolution: SolutionWithTwoProjects);
 
@@ -295,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 projectManager.ProjectAdded(HostProjectOne);
                 projectManager.ProjectAdded(HostProjectTwo);
                 projectManager.ProjectAdded(HostProjectThree);
-            }, CancellationToken.None);
+            }, CancellationToken.None).ConfigureAwait(false);
 
             // Initialize with a project. This will get removed.
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.SolutionAdded, oldSolution: EmptySolution, newSolution: SolutionWithOneProject);
@@ -332,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
 
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None).ConfigureAwait(false);
 
             var solution = SolutionWithTwoProjects.WithProjectAssemblyName(ProjectNumberOne.Id, "Changed");
             var e = new WorkspaceChangeEventArgs(kind, oldSolution: SolutionWithTwoProjects, newSolution: solution, projectId: ProjectNumberOne.Id);
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None).ConfigureAwait(false);
             workspaceStateGenerator.ClearQueue();
 
             var solution = SolutionWithTwoProjects.WithDocumentText(BackgroundVirtualCSharpDocumentId, SourceText.From("public class Foo{}"));
@@ -395,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None).ConfigureAwait(false);
             workspaceStateGenerator.ClearQueue();
 
             var solution = SolutionWithTwoProjects.WithDocumentText(CshtmlDocumentId, SourceText.From("Hello World"));
@@ -427,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None).ConfigureAwait(false);
             workspaceStateGenerator.ClearQueue();
 
             var solution = SolutionWithTwoProjects.WithDocumentText(RazorDocumentId, SourceText.From("Hello World"));
@@ -459,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             Workspace.TryApplyChanges(SolutionWithTwoProjects);
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None).ConfigureAwait(false);
             workspaceStateGenerator.ClearQueue();
 
             var sourceText = SourceText.From(
@@ -513,7 +514,7 @@ namespace Microsoft.AspNetCore.Components
             {
                 projectManager.ProjectAdded(HostProjectOne);
                 projectManager.ProjectAdded(HostProjectTwo);
-            }, CancellationToken.None);
+            }, CancellationToken.None).ConfigureAwait(false);
 
             var solution = SolutionWithTwoProjects.RemoveProject(ProjectNumberOne.Id);
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.ProjectRemoved, oldSolution: SolutionWithTwoProjects, newSolution: solution, projectId: ProjectNumberOne.Id);
@@ -538,7 +539,7 @@ namespace Microsoft.AspNetCore.Components
                 NotifyWorkspaceChangedEventComplete = new ManualResetEventSlim(initialState: false),
             };
             var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
-            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectThree), CancellationToken.None);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectThree), CancellationToken.None).ConfigureAwait(false);
 
             var solution = SolutionWithOneProject;
             var e = new WorkspaceChangeEventArgs(WorkspaceChangeKind.ProjectAdded, oldSolution: EmptySolution, newSolution: solution, projectId: ProjectNumberThree.Id);

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                             },
                             (self: this, e.ProjectId, e.NewSolution),
-                            CancellationToken.None);
+                            CancellationToken.None).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.ProjectChanged:
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
                             },
                             (self: this, e.ProjectId, e.NewSolution),
-                            CancellationToken.None);
+                            CancellationToken.None).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.ProjectRemoved:
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.ProjectId, e.OldSolution),
-                            CancellationToken.None);
+                            CancellationToken.None).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentAdded:
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.ProjectId, e.DocumentId, e.NewSolution),
-                            CancellationToken.None);
+                            CancellationToken.None).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentRemoved:
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.OldSolution, e.ProjectId, e.DocumentId, e.NewSolution),
-                            CancellationToken.None);
+                            CancellationToken.None).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentChanged:
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 }
                             },
                             (self: this, e.OldSolution, e.ProjectId, e.DocumentId, e.NewSolution),
-                            CancellationToken.None);
+                            CancellationToken.None).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.SolutionAdded:
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                                 state.self.InitializeSolution(state.NewSolution);
                             },
                             (self: this, oldProjectPaths: e.OldSolution?.Projects.Select(p => p?.FilePath), e.NewSolution),
-                            CancellationToken.None);
+                            CancellationToken.None).ConfigureAwait(false);
                         break;
                 }
 
