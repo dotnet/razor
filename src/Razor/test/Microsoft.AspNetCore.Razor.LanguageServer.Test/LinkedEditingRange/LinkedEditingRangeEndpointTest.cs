@@ -81,6 +81,43 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
         }
 
         [Fact]
+        public async Task Handle_TagHelperStartTag_ReturnsCorrectRange_EndSpan()
+        {
+            // Arrange
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
+            var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
+            var uri = new Uri("file://path/test.razor");
+            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var request = new LinkedEditingRangeParams
+            {
+                TextDocument = new TextDocumentIdentifier(uri),
+                Position = new Position { Line = 1, Character = 6 } // <test1[||]></test1>
+            };
+
+            var expectedRanges = new Range[]
+            {
+                new Range
+                {
+                    Start = new Position { Line = 1, Character = 1 },
+                    End = new Position { Line = 1, Character = 6 }
+                },
+                new Range
+                {
+                    Start = new Position { Line = 1, Character = 9 },
+                    End = new Position { Line = 1, Character = 14 }
+                }
+            };
+
+            // Act
+            var result = await endpoint.Handle(request, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(expectedRanges, result.Ranges);
+            Assert.Equal(LinkedEditingRangeEndpoint.WordPattern, result.WordPattern);
+        }
+
+        [Fact]
         public async Task Handle_TagHelperEndTag_ReturnsCorrectRange()
         {
             // Arrange

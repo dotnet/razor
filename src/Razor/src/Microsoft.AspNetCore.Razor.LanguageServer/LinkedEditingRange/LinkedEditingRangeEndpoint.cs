@@ -95,7 +95,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 
             // We only care if the user is within a TagHelper or HTML tag with a valid start and end tag.
             if (TryGetNearestMarkupNameTokens(codeDocument, location, out var startTagNameToken, out var endTagNameToken) &&
-                (startTagNameToken.Span.Contains(location.AbsoluteIndex) || endTagNameToken.Span.Contains(location.AbsoluteIndex)))
+                (startTagNameToken.Span.Contains(location.AbsoluteIndex) || endTagNameToken.Span.Contains(location.AbsoluteIndex) ||
+                startTagNameToken.Span.End == location.AbsoluteIndex || endTagNameToken.Span.End == location.AbsoluteIndex))
             {
                 var startSpan = startTagNameToken.GetLinePositionSpan(codeDocument.Source);
                 var endSpan = endTagNameToken.GetLinePositionSpan(codeDocument.Source);
