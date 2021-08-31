@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
 
                 return documentSnapshot;
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             var sourceText = await documentSnapshot.GetTextAsync();
@@ -167,7 +167,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     documentVersion = null;
                 }
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (request.Kind != RazorLanguageKind.CSharp)
             {
@@ -226,7 +226,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     documentVersion = null;
                 }
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             if (codeDocument.IsUnsupported())

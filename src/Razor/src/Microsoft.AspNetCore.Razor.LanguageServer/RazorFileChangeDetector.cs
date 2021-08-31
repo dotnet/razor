@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     FileSystemWatcher_RazorFileEvent(razorFilePath, RazorFileChangeKind.Added);
                 }
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             // This is an entry point for testing
             OnInitializationFinished();
@@ -213,7 +213,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => NotifyAfterDelay_ProjectSnapshotManagerDispatcher(physicalFilePath),
-                CancellationToken.None);
+                CancellationToken.None).ConfigureAwait(false);
         }
 
         private void NotifyAfterDelay_ProjectSnapshotManagerDispatcher(string physicalFilePath)

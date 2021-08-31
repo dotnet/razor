@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             projectInstance = _projectInstanceEvaluator.Evaluate(projectInstance);
 
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => UpdateProjectState(projectInstance), CancellationToken.None);
+                () => UpdateProjectState(projectInstance), CancellationToken.None).ConfigureAwait(false);
         }
 
         private void UpdateProjectState(ProjectInstance projectInstance)

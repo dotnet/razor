@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 {
                     FileSystemWatcher_ProjectFileEvent(projectFilePath, RazorFileChangeKind.Added);
                 }
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             // This is an entry point for testing
             OnInitializationFinished();

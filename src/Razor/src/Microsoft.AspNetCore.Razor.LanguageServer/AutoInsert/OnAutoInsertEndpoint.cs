@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {
