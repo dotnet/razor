@@ -139,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<RequestInvoker, RazorOmniSharpRequestInvoker>();
 
                         services.AddSingleton<FilePathNormalizer>();
-                        services.AddSingleton<ProjectSnapshotManagerDispatcher, DefaultProjectSnapshotManagerDispatcher>();
+                        services.AddSingleton<ProjectSnapshotManagerDispatcher, LSPProjectSnapshotManagerDispatcher>();
                         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
                         services.AddSingleton<AdhocWorkspaceFactory, DefaultAdhocWorkspaceFactory>();
                         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());

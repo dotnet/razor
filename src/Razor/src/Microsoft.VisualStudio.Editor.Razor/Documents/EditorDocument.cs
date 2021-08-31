@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             if (textBuffer == null)
             {
                 _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                    () => _fileTracker.StartListening(), CancellationToken.None);
+                    () => _fileTracker.StartListening(), CancellationToken.None).ConfigureAwait(false);
             }
             else
             {
@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => _fileTracker.StopListening(), CancellationToken.None);
+                () => _fileTracker.StopListening(), CancellationToken.None).ConfigureAwait(false);
 
             _snapshotTracker.StartTracking(textBuffer);
             EditorTextBuffer = textBuffer;

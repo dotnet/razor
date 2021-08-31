@@ -4,18 +4,17 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -27,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public async Task Handle_MissingFile()
         {
             // Arrange
-            var resolver = new CreateComponentCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), _emptyDocumentResolver);
+            var resolver = new CreateComponentCodeActionResolver(Dispatcher, _emptyDocumentResolver);
             var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
@@ -50,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetUnsupported();
 
-            var resolver = new CreateComponentCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
             var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri(documentPath),
@@ -73,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetFileKind(FileKinds.Legacy);
 
-            var resolver = new CreateComponentCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
             var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri(documentPath),
@@ -96,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@page \"/test\"";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new CreateComponentCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new CreateComponentCodeActionParams
             {
                 Uri = documentUri,
@@ -126,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = $"@page \"/test\"{Environment.NewLine}@namespace Another.Namespace";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new CreateComponentCodeActionResolver(new DefaultProjectSnapshotManagerDispatcher(), CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
             var actionParams = new CreateComponentCodeActionParams
             {
                 Uri = documentUri,

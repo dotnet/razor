@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _documentResolver.TryResolveDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, CancellationToken.None);
+            }, CancellationToken.None).ConfigureAwait(false);
 
             var sourceText = await document.GetTextAsync();
             sourceText = ApplyContentChanges(notification.ContentChanges, sourceText);
@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.UpdateDocument(document.FilePath, sourceText, notification.TextDocument.Version.Value),
-                CancellationToken.None);
+                CancellationToken.None).ConfigureAwait(false);
 
             return Unit.Value;
         }
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.OpenDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath(), sourceText, notification.TextDocument.Version.Value),
-                CancellationToken.None);
+                CancellationToken.None).ConfigureAwait(false);
 
             return Unit.Value;
         }
@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectService.CloseDocument(notification.TextDocument.Uri.GetAbsoluteOrUNCPath()),
-                CancellationToken.None);
+                CancellationToken.None).ConfigureAwait(false);
 
             return Unit.Value;
         }

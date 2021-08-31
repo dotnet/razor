@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -993,7 +992,7 @@ slf*@";
             }
         }
 
-        private static (RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>) GetDefaultRazorSemanticTokenInfoService(
+        private (RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>) GetDefaultRazorSemanticTokenInfoService(
             Queue<DocumentSnapshot> documentSnapshots,
             ProvideSemanticTokensResponse? csharpTokens = null,
             ProvideSemanticTokensEditsResponse? cSharpEdits = null,
@@ -1033,7 +1032,7 @@ slf*@";
             var loggingFactory = new Mock<LoggerFactory>(MockBehavior.Strict);
             loggingFactory.Protected().Setup("CheckDisposed").CallBase();
 
-            var projectSnapshotManagerDispatcher = new DefaultProjectSnapshotManagerDispatcher();
+            var projectSnapshotManagerDispatcher = Dispatcher;
 
             var documentResolver = new TestDocumentResolver(documentSnapshots);
 
