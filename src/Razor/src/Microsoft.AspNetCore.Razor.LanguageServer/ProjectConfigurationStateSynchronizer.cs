@@ -146,6 +146,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             void EnqueueUpdateProject(string projectFilePath, FullProjectSnapshotHandle snapshotHandle)
             {
+                projectFilePath = _filePathNormalizer.Normalize(projectFilePath);
                 if (!ProjectInfoMap.ContainsKey(projectFilePath))
                 {
                     ProjectInfoMap[projectFilePath] = new DelayedProjectInfo();
