@@ -90,11 +90,11 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         private void Project_Disposing(object sender, EventArgs e)
         {
+            _project.ProjectCapabilitiesChanged -= Project_ProjectCapabilitiesChanged;
+            _project.Disposing -= Project_Disposing;
+
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
                 {
-                    _project.ProjectCapabilitiesChanged -= Project_ProjectCapabilitiesChanged;
-                    _project.Disposing -= Project_Disposing;
-
                     DetachCurrentRazorProjectHost();
                 }, CancellationToken.None);
         }
