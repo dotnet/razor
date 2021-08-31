@@ -75,6 +75,47 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
         private ProjectConfigurationFilePathStore ProjectConfigurationFilePathStore { get; } = new DefaultProjectConfigurationFilePathStore();
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/35945")]
+        public async Task ProjectManager_Changed_Remove_Change_NoopsOnDelayedPublish()
+        {
+            // Arrange
+            var serializationSuccessful = false;
+            var tagHelpers = new TagHelperDescriptor[] {
+                new DefaultTagHelperDescriptor(FileKinds.Component, "Namespace.FileNameOther", "Assembly", "FileName", "FileName document", "FileName hint",
+                    caseSensitive: false,tagMatchingRules: null, attributeDescriptors: null,  allowedChildTags: null, metadata: null, diagnostics: null)
+            };
+            var initialProjectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.Preview));
+            var expectedProjectSnapshot = CreateProjectSnapshot("/path/to/project.csproj", new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Preview));
+            var expectedConfigurationFilePath = "/path/to/obj/bin/Debug/project.razor.json";
+            var publisher = new TestDefaultRazorProjectChangePublisher(
+                ProjectConfigurationFilePathStore,
+                _razorLogger,
+                onSerializeToFile: (snapshot, configurationFilePath) =>
+                {
+                    Assert.Same(expectedProjectSnapshot, snapshot);
+                    Assert.Equal(expectedConfigurationFilePath, configurationFilePath);
+                    serializationSuccessful = true;
+                })
+            {
+                EnqueueDelay = 10,
+                _active = true,
+            };
+            publisher.Initialize(ProjectSnapshotManager);
+            ProjectConfigurationFilePathStore.Set(expectedProjectSnapshot.FilePath, expectedConfigurationFilePath);
+            var documentRemovedArgs = ProjectChangeEventArgs.CreateTestInstance(initialProjectSnapshot, initialProjectSnapshot, documentFilePath: "/path/to/file.razor", ProjectChangeKind.DocumentRemoved);
+            var projectChangedArgs = ProjectChangeEventArgs.CreateTestInstance(initialProjectSnapshot, expectedProjectSnapshot, documentFilePath: null, ProjectChangeKind.ProjectChanged);
+
+            // Act
+            publisher.ProjectSnapshotManager_Changed(null, documentRemovedArgs);
+            publisher.ProjectSnapshotManager_Changed(null, projectChangedArgs);
+
+            // Assert
+            var stalePublishTask = Assert.Single(publisher.DeferredPublishTasks);
+            await stalePublishTask.Value.ConfigureAwait(false);
+            Assert.True(serializationSuccessful);
+        }
+
+        [Fact]
         public void ProjectManager_Changed_NotActive_Noops()
         {
             // Arrange

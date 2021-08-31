@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 using Shared = System.Composition.SharedAttribute;
 using Task = System.Threading.Tasks.Task;
@@ -37,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly IVsOperationProgressStatusService _operationProgressStatusService = null;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly Dictionary<string, ProjectSnapshot> _pendingProjectPublishes;
+        private readonly object _pendingProjectPublishesLock;
         private readonly object _publishLock;
 
         private readonly JsonSerializer _serializer = new();
@@ -72,6 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
             _pendingProjectPublishes = new Dictionary<string, ProjectSnapshot>(FilePathComparer.Instance);
+            _pendingProjectPublishesLock = new();
             _publishLock = new object();
 
             _lspEditorFeatureDetector = lSPEditorFeatureDetector;
@@ -101,9 +102,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void EnqueuePublish(ProjectSnapshot projectSnapshot)
         {
-            // A race is not possible here because we use the main thread to synchronize the updates
-            // by capturing the sync context.
-            _pendingProjectPublishes[projectSnapshot.FilePath] = projectSnapshot;
+            lock (_pendingProjectPublishesLock)
+            {
+                _pendingProjectPublishes[projectSnapshot.FilePath] = projectSnapshot;
+            }
 
             if (!DeferredPublishTasks.TryGetValue(projectSnapshot.FilePath, out var update) || update.IsCompleted)
             {
@@ -141,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     {
                         // Typically document open events don't result in us re-processing project state; however, given this is the first time a user opened a Razor document we should.
                         // Don't enqueue, just publish to get the most immediate result.
-                        Publish(args.Newer);
+                        ImmediatePublish(args.Newer);
                         return;
                     }
                 }
@@ -167,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     {
                         // If our workspace state has changed since our last snapshot then this means pieces influencing
                         // TagHelper resolution have also changed. Fast path the TagHelper publish.
-                        Publish(args.Newer);
+                        ImmediatePublish(args.Newer);
                     }
                     else
                     {
@@ -191,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                     if (ProjectWorkspacePublishable(args))
                     {
-                        Publish(args.Newer);
+                        ImmediatePublish(args.Newer);
                     }
                     break;
 
@@ -252,10 +254,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     return;
                 }
 
-                if (_pendingProjectPublishes.TryGetValue(oldProjectFilePath, out _))
+
+                lock (_pendingProjectPublishesLock)
                 {
-                    // Project was removed while a delayed publish was in flight. Clear the in-flight publish so it noops.
-                    _pendingProjectPublishes.Remove(oldProjectFilePath);
+                    if (_pendingProjectPublishes.TryGetValue(oldProjectFilePath, out _))
+                    {
+                        // Project was removed while a delayed publish was in flight. Clear the in-flight publish so it noops.
+                        _pendingProjectPublishes.Remove(oldProjectFilePath);
+                    }
                 }
             }
         }
@@ -341,17 +347,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return !status.IsInProgress && _documentsProcessed;
         }
 
+        private void ImmediatePublish(ProjectSnapshot projectSnapshot)
+        {
+            lock (_pendingProjectPublishesLock)
+            {
+                // Clear any pending publish
+                _pendingProjectPublishes.Remove(projectSnapshot.FilePath);
+            }
+
+            Publish(projectSnapshot);
+        }
+
         private async Task PublishAfterDelayAsync(string projectFilePath)
         {
             await Task.Delay(EnqueueDelay).ConfigureAwait(false);
 
-            if (!_pendingProjectPublishes.TryGetValue(projectFilePath, out var projectSnapshot))
+            ProjectSnapshot projectSnapshot;
+            lock (_pendingProjectPublishesLock)
             {
-                // Project was removed while waiting for the publish delay.
-                return;
-            }
+                if (!_pendingProjectPublishes.TryGetValue(projectFilePath, out projectSnapshot))
+                {
+                    // Project was removed while waiting for the publish delay.
+                    return;
+                }
 
-            _pendingProjectPublishes.Remove(projectFilePath);
+                _pendingProjectPublishes.Remove(projectFilePath);
+            }
 
             Publish(projectSnapshot);
         }
