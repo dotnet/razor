@@ -72,22 +72,25 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            if (_fileChangeUnadviseTask?.IsCompleted == false)
-            {
-                // An unadvise operation is still processing, block the project snapshot manager's thread until it completes.
-                _fileChangeUnadviseTask.Join();
-            }
-
             if (_fileChangeAdviseTask != null)
             {
                 // Already listening
                 return;
             }
 
+            if (_fileChangeUnadviseTask is not { IsCompleted: false } fileChangeUnadviseTaskToJoin)
+            {
+                fileChangeUnadviseTaskToJoin = null;
+            }
+
             _fileChangeAdviseTask = _joinableTaskContext.Factory.RunAsync(async () =>
             {
                 try
                 {
+                    // If an unadvise operation is still processing, we don't start listening until it completes.
+                    if (fileChangeUnadviseTaskToJoin is not null)
+                        await fileChangeUnadviseTaskToJoin.JoinAsync().ConfigureAwait(true);
+
                     return await _fileChangeService.AdviseFileChangeAsync(FilePath, FileChangeFlags, this).ConfigureAwait(true);
                 }
                 catch (PathTooLongException)

@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Razor
         public Task RunOnDispatcherThreadAsync(Action action, CancellationToken cancellationToken)
             => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, DispatcherScheduler);
 
+        public Task RunOnDispatcherThreadAsync<TParameter>(Action<TParameter, CancellationToken> action, TParameter state, CancellationToken cancellationToken)
+            => Task.Factory.StartNew(() => action(state, cancellationToken), cancellationToken, TaskCreationOptions.None, DispatcherScheduler);
+
         public Task<TResult> RunOnDispatcherThreadAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
             => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, DispatcherScheduler);
 
