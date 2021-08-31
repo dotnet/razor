@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 CancellationToken cancellationToken,
                 string previousResultId = null)
             {
-                return Task.FromResult(new VersionedSemanticRange(new List<SemanticRange>(), "0"));
+                return Task.FromResult(new VersionedSemanticRange(new List<SemanticRange>(), "0", IsFinalizedCSharp: false));
             }
         }
     }

@@ -1,49 +1,48 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
+
 #nullable enable
+
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
-    internal class ProvideSemanticTokensEditsResponse
+    /// <summary>
+    /// Transports C# semantic token edits responses from the Razor LS client to the Razor LS.
+    /// </summary>
+    /// <remarks>
+    /// Only one of Tokens or Edits should be populated except in error cases.
+    /// </remarks>
+    internal class ProvideSemanticTokensEditsResponse : ProvideSemanticTokensResponse
     {
         public ProvideSemanticTokensEditsResponse(
+            string? resultId,
             int[]? tokens,
             RazorSemanticTokensEdit[]? edits,
-            string? resultId,
+            bool isFinalized,
             long? hostDocumentSyncVersion)
+            : base(resultId, tokens ?? Array.Empty<int>(), isFinalized, hostDocumentSyncVersion)
         {
-            Tokens = tokens;
             Edits = edits;
-            ResultId = resultId;
-            HostDocumentSyncVersion = hostDocumentSyncVersion;
         }
-
-        public int[]? Tokens { get; }
 
         public RazorSemanticTokensEdit[]? Edits { get; }
 
-        public string? ResultId { get; }
-
-        public long? HostDocumentSyncVersion { get; }
-
         public override bool Equals(object obj)
         {
-            if (obj is not ProvideSemanticTokensEditsResponse other ||
-                other.HostDocumentSyncVersion != HostDocumentSyncVersion ||
-                other.ResultId != ResultId)
+            if (obj is not ProvideSemanticTokensEditsResponse other)
             {
                 return false;
             }
 
-            if (Tokens != null && other.Tokens != null && other.Tokens.SequenceEqual(Tokens))
+            if (!base.Equals(obj))
             {
-                return true;
+                return false;
             }
 
-            if (Edits != null && other.Edits != null && other.Edits.SequenceEqual(Edits))
+            if (other.Edits == Edits || (other.Edits is not null && Edits is not null && other.Edits.SequenceEqual(Edits)))
             {
                 return true;
             }

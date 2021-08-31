@@ -4,25 +4,48 @@
 #nullable enable
 
 using System;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
+    /// <summary>
+    /// Transports C# semantic token responses from the Razor LS client to the Razor LS.
+    /// </summary>
     internal class ProvideSemanticTokensResponse
     {
-        public ProvideSemanticTokensResponse(SemanticTokens result, long? hostDocumentSyncVersion)
+        public ProvideSemanticTokensResponse(string? resultId, int[]? tokens, bool isFinalized, long? hostDocumentSyncVersion)
         {
-            Result = result;
+            ResultId = resultId;
+            Tokens = tokens;
+            IsFinalized = isFinalized;
             HostDocumentSyncVersion = hostDocumentSyncVersion;
         }
 
-        public SemanticTokens Result { get; }
+        public string? ResultId { get; }
+
+        public int[]? Tokens { get; }
+
+        public bool IsFinalized { get; }
 
         public long? HostDocumentSyncVersion { get; }
 
-        public override bool Equals(object obj) =>
-            obj is ProvideSemanticTokensResponse other &&
-            other.HostDocumentSyncVersion.Equals(HostDocumentSyncVersion) && other.Result.Equals(Result);
+        public override bool Equals(object obj)
+        {
+            if (obj is not ProvideSemanticTokensResponse other ||
+                other.ResultId != ResultId ||
+                other.IsFinalized != IsFinalized ||
+                other.HostDocumentSyncVersion != HostDocumentSyncVersion)
+            {
+                return false;
+            }
+
+            if (other.Tokens == Tokens || (other.Tokens is not null && Tokens is not null && other.Tokens.SequenceEqual(Tokens)))
+            {
+                return true;
+            }
+
+            return false;
+        }
 
         public override int GetHashCode()
         {

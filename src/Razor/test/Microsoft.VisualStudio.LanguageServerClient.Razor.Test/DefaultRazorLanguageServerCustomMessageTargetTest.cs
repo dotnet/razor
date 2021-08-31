@@ -428,14 +428,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(testDocUri, out testDocument))
                 .Returns(true);
 
-            var expectedcSharpResults = new OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokens();
+            var expectedcSharpResults = new VSSemanticTokensResponse();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams, OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokens>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams, VSSemanticTokensResponse>(
                 Methods.TextDocumentSemanticTokensFullName,
                 LanguageServerKind.CSharp.ToLanguageServerName(),
                 It.IsAny<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult(new ReinvokeResponse<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokens>(_languageClient, expectedcSharpResults)));
+            )).Returns(Task.FromResult(new ReinvokeResponse<VSSemanticTokensResponse>(_languageClient, expectedcSharpResults)));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
@@ -455,7 +455,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 },
                 RequiredHostDocumentVersion = 0,
             };
-            var expectedResults = new ProvideSemanticTokensResponse(expectedcSharpResults, documentVersion);
+            var expectedResults = new ProvideSemanticTokensResponse(
+                expectedcSharpResults.ResultId, expectedcSharpResults.Data, expectedcSharpResults.IsFinalized, documentVersion);
 
             // Act
             var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
