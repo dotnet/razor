@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 ClearClosedDocuments,
-                CancellationToken.None);
+                CancellationToken.None).ConfigureAwait(false);
         }
 
         // Internal for testing

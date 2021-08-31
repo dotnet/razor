@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
                 }
 
                 return documentSnapshot;
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {

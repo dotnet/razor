@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 {
                     // tracker.Subscribe() accesses the project snapshot manager, which needs to be run on the
                     // project snapshot manager's specialized thread.
-                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => tracker.Subscribe(), CancellationToken.None);
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => tracker.Subscribe(), CancellationToken.None).ConfigureAwait(false);
                 }
             }
         }
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     {
                         // tracker.Unsubscribe() should be in sync with tracker.Subscribe(). The latter of needs to be run
                         // on the project snapshot manager's specialized thread, so we run both on it.
-                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => documentTracker.Unsubscribe(), CancellationToken.None);
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => documentTracker.Unsubscribe(), CancellationToken.None).ConfigureAwait(false);
                     }
                 }
             }

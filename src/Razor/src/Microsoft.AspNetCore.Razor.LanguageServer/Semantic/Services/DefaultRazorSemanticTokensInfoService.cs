@@ -604,7 +604,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
 
                 return (documentSnapshot, version);
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
 
             return documentInfo;
         }

@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 {
                     var document = (EditorDocument)sender;
                     _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
-                }, CancellationToken.None);
+                }, CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 {
                     var document = (EditorDocument)sender;
                     _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
-                }, CancellationToken.None);
+                }, CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 {
                     var document = (EditorDocument)sender;
                     _projectManager.DocumentOpened(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
-                }, CancellationToken.None);
+                }, CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 {
                     var document = (EditorDocument)sender;
                     _projectManager.DocumentClosed(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
-                }, CancellationToken.None);
+                }, CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                             Debug.Fail("Unexpected error when initializing solution: " + ex);
                         }
                     },
-                    CancellationToken.None);
+                    CancellationToken.None).ConfigureAwait(false);
             }
 
             // We override Workspace_WorkspaceChanged in order to enforce calls to this to be on the project snapshot manager's
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                             Debug.Fail("Unexpected error when handling a workspace changed event: " + ex);
                         }
                     },
-                    CancellationToken.None);
+                    CancellationToken.None).ConfigureAwait(false);
             }
         }
     }

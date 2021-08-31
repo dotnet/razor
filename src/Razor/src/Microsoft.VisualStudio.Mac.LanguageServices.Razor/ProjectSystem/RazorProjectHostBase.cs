@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         protected async Task UpdateHostProjectUnsafeAsync(HostProject newHostProject)
         {
             await ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => UpdateHostProjectProjectSnapshotManagerDispatcher(newHostProject), CancellationToken.None);
+                () => UpdateHostProjectProjectSnapshotManagerDispatcher(newHostProject), CancellationToken.None).ConfigureAwait(false);
         }
 
         protected async Task ExecuteWithLockAsync(Func<Task> func)

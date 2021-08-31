@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 {
                     await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                         () => NotifyDocumentsProcessed(work),
-                        CancellationToken.None);
+                        CancellationToken.None).ConfigureAwait(false);
                 }
 
                 lock (_work)
@@ -331,7 +331,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         {
             _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
-                CancellationToken.None);
+                CancellationToken.None).ConfigureAwait(false);
         }
     }
 }
