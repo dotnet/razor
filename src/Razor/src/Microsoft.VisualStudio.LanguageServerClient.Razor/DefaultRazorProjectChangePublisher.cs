@@ -102,8 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void EnqueuePublish(ProjectSnapshot projectSnapshot)
         {
-            // A race is not possible here because we use the main thread to synchronize the updates
-            // by capturing the sync context.
             lock (_pendingProjectPublishesLock)
             {
                 _pendingProjectPublishes[projectSnapshot.FilePath] = projectSnapshot;
