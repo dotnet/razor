@@ -78,7 +78,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 return;
             }
 
-            // If an unadvise operation is still processing, we don't start listening until it completes.
             if (_fileChangeUnadviseTask is not { IsCompleted: false } fileChangeUnadviseTaskToJoin)
             {
                 fileChangeUnadviseTaskToJoin = null;
@@ -88,6 +87,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             {
                 try
                 {
+                    // If an unadvise operation is still processing, we don't start listening until it completes.
                     if (fileChangeUnadviseTaskToJoin is not null)
                         await fileChangeUnadviseTaskToJoin.JoinAsync().ConfigureAwait(true);
 
