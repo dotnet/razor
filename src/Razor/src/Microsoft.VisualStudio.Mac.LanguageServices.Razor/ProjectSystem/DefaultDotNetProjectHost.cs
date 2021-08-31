@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -81,8 +82,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public override void Subscribe()
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
             UpdateRazorHostProject();
 
             _project.ProjectCapabilitiesChanged += Project_ProjectCapabilitiesChanged;
@@ -91,12 +90,13 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         private void Project_Disposing(object sender, EventArgs e)
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                {
+                    _project.ProjectCapabilitiesChanged -= Project_ProjectCapabilitiesChanged;
+                    _project.Disposing -= Project_Disposing;
 
-            _project.ProjectCapabilitiesChanged -= Project_ProjectCapabilitiesChanged;
-            _project.Disposing -= Project_Disposing;
-
-            DetachCurrentRazorProjectHost();
+                    DetachCurrentRazorProjectHost();
+                }, CancellationToken.None);
         }
 
         private void Project_ProjectCapabilitiesChanged(object sender, EventArgs e) => UpdateRazorHostProject();
@@ -104,31 +104,32 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Internal for testing
         internal void UpdateRazorHostProject()
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
-            DetachCurrentRazorProjectHost();
-
-            if (!_projectService.IsSupportedProject(_project))
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                // Not a Razor compatible project.
-                return;
-            }
+                DetachCurrentRazorProjectHost();
 
-            if (!TryGetProjectSnapshotManager(out var projectSnapshotManager))
-            {
-                // Could not get a ProjectSnapshotManager for the current project.
-                return;
-            }
+                if (!_projectService.IsSupportedProject(_project))
+                {
+                    // Not a Razor compatible project.
+                    return;
+                }
 
-            if (_project.IsCapabilityMatch(ExplicitRazorConfigurationCapability))
-            {
-                // SDK >= 2.1
-                _razorProjectHost = new DefaultRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
-                return;
-            }
+                if (!TryGetProjectSnapshotManager(out var projectSnapshotManager))
+                {
+                    // Could not get a ProjectSnapshotManager for the current project.
+                    return;
+                }
 
-            // We're an older version of Razor at this point, SDK < 2.1
-            _razorProjectHost = new FallbackRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
+                if (_project.IsCapabilityMatch(ExplicitRazorConfigurationCapability))
+                {
+                    // SDK >= 2.1
+                    _razorProjectHost = new DefaultRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
+                    return;
+                }
+
+                // We're an older version of Razor at this point, SDK < 2.1
+                _razorProjectHost = new FallbackRazorProjectHost(_project, _projectSnapshotManagerDispatcher, projectSnapshotManager);
+            }, CancellationToken.None);
         }
 
         private bool TryGetProjectSnapshotManager(out ProjectSnapshotManagerBase projectSnapshotManagerBase)
