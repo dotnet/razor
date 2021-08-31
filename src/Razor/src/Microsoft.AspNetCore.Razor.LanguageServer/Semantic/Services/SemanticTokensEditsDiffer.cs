@@ -8,12 +8,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using static Microsoft.AspNetCore.Razor.LanguageServer.Semantic.DefaultRazorSemanticTokensInfoService;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class SemanticTokensEditsDiffer : TextDiffer
     {
-        private SemanticTokensEditsDiffer(IReadOnlyList<int> oldArray, ImmutableArray<int> newArray)
+        private SemanticTokensEditsDiffer(IReadOnlyList<int> oldArray, int[] newArray)
         {
             if (oldArray is null)
             {
@@ -25,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         private IReadOnlyList<int> OldArray { get; }
-        private ImmutableArray<int> NewArray { get; }
+        private int[] NewArray { get; }
 
         protected override int OldTextLength => OldArray.Count;
         protected override int NewTextLength => NewArray.Length;
@@ -36,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         public static SemanticTokensFullOrDelta ComputeSemanticTokensEdits(
-            SemanticTokens newTokens,
+            SemanticTokensResponse newTokens,
             IReadOnlyList<int> previousResults)
         {
             var differ = new SemanticTokensEditsDiffer(previousResults, newTokens.Data);
