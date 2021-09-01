@@ -3,8 +3,10 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,11 +27,14 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         private class ProjectSnapshotManagerTaskScheduler : TaskScheduler
         {
+            private readonly string _threadName;
             private readonly Thread _thread;
             private readonly BlockingCollection<Task> _tasks = new();
 
             public ProjectSnapshotManagerTaskScheduler(string threadName)
             {
+                _threadName = threadName;
+
                 _thread = new Thread(ThreadStart)
                 {
                     Name = threadName,
@@ -66,11 +71,17 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                     try
                     {
                         var task = _tasks.Take();
-                        TryExecuteTask(task);
+                        if (!TryExecuteTask(task))
+                        {
+                            Debug.WriteLine("Task failed to execute on thread " + _thread + ".");
+                        }
                     }
-                    catch (ThreadAbortException)
+                    catch (ThreadAbortException e)
                     {
                         // Fires when things shut down or in tests. Swallow thread abort exceptions and bail out.
+                        Debug.WriteLine("Thread " + _threadName + " was aborted." + Environment.NewLine +
+                            "Stack trace:" + Environment.NewLine +
+                            e.StackTrace);
                         return;
                     }
                 }
