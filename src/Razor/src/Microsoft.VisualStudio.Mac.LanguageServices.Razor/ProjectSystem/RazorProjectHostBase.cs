@@ -119,23 +119,24 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(args));
             }
 
-            ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
-
-            if (_batchingProjectChanges)
+            _ = ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync((args, ct) =>
             {
-                // Already waiting to recompute host project, no need to do any more work to determine if we're dirty.
-                return;
-            }
+                if (_batchingProjectChanges)
+                {
+                    // Already waiting to recompute host project, no need to do any more work to determine if we're dirty.
+                    return;
+                }
 
-            var projectChanged = args.Any(arg => string.Equals(arg.Hint, ProjectChangedHint, StringComparison.Ordinal));
-            if (projectChanged)
-            {
-                // This method can be spammed for tons of project change events but all we really care about is "are we dirty?".
-                // Therefore, we re-dispatch here to allow any remaining project change events to fire and to then only have 1 host
-                // project change trigger; this way we don't spam our own system with re-configure calls.
-                _batchingProjectChanges = true;
-                _ = Task.Factory.StartNew(ProjectChangedBackgroundAsync, null, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
-            }
+                var projectChanged = args.Any(arg => string.Equals(arg.Hint, ProjectChangedHint, StringComparison.Ordinal));
+                if (projectChanged)
+                {
+                    // This method can be spammed for tons of project change events but all we really care about is "are we dirty?".
+                    // Therefore, we re-dispatch here to allow any remaining project change events to fire and to then only have 1 host
+                    // project change trigger; this way we don't spam our own system with re-configure calls.
+                    _batchingProjectChanges = true;
+                    _ = Task.Factory.StartNew(ProjectChangedBackgroundAsync, null, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+                }
+            }, args, CancellationToken.None);
         }
 
         private void UpdateHostProjectProjectSnapshotManagerDispatcher(object state)
