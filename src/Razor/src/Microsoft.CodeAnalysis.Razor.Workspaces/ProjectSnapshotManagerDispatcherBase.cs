@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                         var task = _tasks.Take();
                         if (!TryExecuteTask(task))
                         {
-                            Debug.WriteLine("Task failed to execute on thread " + _thread + ".");
+                            Debug.WriteLine("Task failed to execute on thread " + _threadName + ".");
                         }
                     }
                     catch (ThreadAbortException e)
