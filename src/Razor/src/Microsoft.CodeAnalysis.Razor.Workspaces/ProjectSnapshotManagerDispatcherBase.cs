@@ -78,11 +78,17 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                         var task = _tasks.Take();
                         TryExecuteTask(task);
                     }
-                    catch (Exception ex)
+                    catch (ThreadAbortException ex)
                     {
                         // Fires when things shut down or in tests. Log exception and bail out.
                         _logException(ex);
                         return;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Unexpected exception. Log and throw.
+                        _logException(ex);
+                        throw;
                     }
                 }
             }
