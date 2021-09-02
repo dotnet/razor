@@ -4,22 +4,23 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Razor;
 using Microsoft.VisualStudio.LanguageServices.Razor.Test;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase, IDisposable
     {
-        private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new VisualStudioProjectSnapshotManagerDispatcher();
+        private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new VisualStudioProjectSnapshotManagerDispatcher(new TestSVsServiceProvider());
 
         public WorkspaceProjectStateChangeDetectorTest()
         {
@@ -778,6 +779,11 @@ namespace Microsoft.AspNetCore.Components
                 : base(projectSnapshotManagerDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
             {
             }
+        }
+
+        private class TestSVsServiceProvider : SVsServiceProvider
+        {
+            public object GetService(Type serviceType) => null;
         }
     }
 }
