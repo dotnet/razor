@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
@@ -12,9 +14,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
     {
         private const string ThreadName = "Razor." + nameof(VisualStudioProjectSnapshotManagerDispatcher);
 
-        public VisualStudioProjectSnapshotManagerDispatcher() : base(ThreadName)
-        {
+        private readonly ErrorReporter _errorReporter;
 
+        [ImportingConstructor]
+        public VisualStudioProjectSnapshotManagerDispatcher(SVsServiceProvider serviceProvider) : base(ThreadName)
+        {
+            _errorReporter = new VisualStudioErrorReporter(serviceProvider);
         }
+
+        public override void LogException(Exception ex) => _errorReporter.ReportError(ex);
     }
 }

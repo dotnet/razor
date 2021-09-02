@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,8 +17,15 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public ProjectSnapshotManagerDispatcherBase(string threadName)
         {
-            _dispatcherScheduler = new ProjectSnapshotManagerTaskScheduler(threadName);
+            if (threadName is null)
+            {
+                throw new ArgumentNullException(nameof(threadName));
+            }
+
+            _dispatcherScheduler = new ProjectSnapshotManagerTaskScheduler(threadName, LogException);
         }
+
+        public abstract void LogException(Exception ex);
 
         public override bool IsDispatcherThread => Thread.CurrentThread.ManagedThreadId == _dispatcherScheduler.ThreadId;
 
@@ -27,14 +33,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         private class ProjectSnapshotManagerTaskScheduler : TaskScheduler
         {
-            private readonly string _threadName;
             private readonly Thread _thread;
             private readonly BlockingCollection<Task> _tasks = new();
+            private readonly Action<Exception> _logException;
 
-            public ProjectSnapshotManagerTaskScheduler(string threadName)
+            public ProjectSnapshotManagerTaskScheduler(string threadName, Action<Exception> logException)
             {
-                _threadName = threadName;
-
                 _thread = new Thread(ThreadStart)
                 {
                     Name = threadName,
@@ -42,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 };
 
                 _thread.Start();
+                _logException = logException;
             }
 
             public int ThreadId => _thread.ManagedThreadId;
@@ -71,17 +76,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                     try
                     {
                         var task = _tasks.Take();
-                        if (!TryExecuteTask(task))
-                        {
-                            Debug.WriteLine("Task failed to execute on thread " + _threadName + ".");
-                        }
+                        TryExecuteTask(task);
                     }
-                    catch (ThreadAbortException e)
+                    catch (ThreadAbortException ex)
                     {
-                        // Fires when things shut down or in tests. Swallow thread abort exceptions and bail out.
-                        Debug.WriteLine("Thread " + _threadName + " was aborted." + Environment.NewLine +
-                            "Stack trace:" + Environment.NewLine +
-                            e.StackTrace);
+                        // Fires when things shut down or in tests. Log exception and bail out.
+                        _logException(ex);
                         return;
                     }
                 }
