@@ -103,34 +103,34 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentNullException(nameof(args));
             }
 
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
             if (!args.Success)
             {
                 // Build failed
                 return;
             }
 
-            var projectItem = args.SolutionItem;
-            if (!_projectService.IsSupportedProject(projectItem))
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync((projectItem, ct) =>
             {
-                // We're hooked into all build events, it's possible to get called with an unsupported project item type.
-                return;
-            }
-
-            var projectPath = _projectService.GetProjectPath(projectItem);
-            var projectSnapshot = _projectManager.GetLoadedProject(projectPath);
-            if (projectSnapshot != null)
-            {
-                var workspaceProject = _projectManager.Workspace.CurrentSolution?.Projects.FirstOrDefault(
-                    project => FilePathComparer.Instance.Equals(project.FilePath, projectSnapshot.FilePath));
-                if (workspaceProject != null)
+                if (!_projectService.IsSupportedProject(projectItem))
                 {
-                    // Trigger a tag helper update by forcing the project manager to see the workspace Project
-                    // from the current solution.
-                    _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, CancellationToken.None);
+                    // We're hooked into all build events, it's possible to get called with an unsupported project item type.
+                    return;
                 }
-            }
+
+                var projectPath = _projectService.GetProjectPath(projectItem);
+                var projectSnapshot = _projectManager.GetLoadedProject(projectPath);
+                if (projectSnapshot != null)
+                {
+                    var workspaceProject = _projectManager.Workspace.CurrentSolution?.Projects.FirstOrDefault(
+                        project => FilePathComparer.Instance.Equals(project.FilePath, projectSnapshot.FilePath));
+                    if (workspaceProject != null)
+                    {
+                        // Trigger a tag helper update by forcing the project manager to see the workspace Project
+                        // from the current solution.
+                        _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, CancellationToken.None);
+                    }
+                }
+            }, args.SolutionItem, CancellationToken.None);
         }
     }
 }
