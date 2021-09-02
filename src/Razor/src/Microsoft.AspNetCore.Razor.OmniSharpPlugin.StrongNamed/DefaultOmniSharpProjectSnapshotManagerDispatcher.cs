@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
             public override void LogException(Exception ex)
             {
-                // ActivityLog and the LSP logger aren't applicable to O#. Do nothing.
+                // We don't currently have logging mechanisms in place for O#.
             }
         }
     }

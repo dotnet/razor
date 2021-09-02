@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase, IDisposable
     {
-        private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new VisualStudioProjectSnapshotManagerDispatcher(new TestSVsServiceProvider());
+        private static readonly ProjectSnapshotManagerDispatcher Dispatcher = new VisualStudioProjectSnapshotManagerDispatcher(
+            new VisualStudioErrorReporter(new TestSVsServiceProvider()));
 
         public WorkspaceProjectStateChangeDetectorTest()
         {

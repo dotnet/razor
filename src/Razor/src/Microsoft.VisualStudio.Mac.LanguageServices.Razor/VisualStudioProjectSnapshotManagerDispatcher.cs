@@ -14,9 +14,10 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         private const string ThreadName = "Razor." + nameof(VisualStudioProjectSnapshotManagerDispatcher);
         private readonly ErrorReporter _errorReporter;
 
-        public VisualStudioProjectSnapshotManagerDispatcher() : base(ThreadName)
+        [ImportingConstructor]
+        public VisualStudioProjectSnapshotManagerDispatcher(ErrorReporter errorReporter) : base(ThreadName)
         {
-            _errorReporter = new VisualStudioErrorReporter();
+            _errorReporter = errorReporter;
         }
 
         public override void LogException(Exception ex) => _errorReporter.ReportError(ex);

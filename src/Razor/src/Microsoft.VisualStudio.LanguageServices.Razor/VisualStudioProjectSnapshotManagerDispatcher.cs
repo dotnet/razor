@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
@@ -17,9 +16,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         private readonly ErrorReporter _errorReporter;
 
         [ImportingConstructor]
-        public VisualStudioProjectSnapshotManagerDispatcher(SVsServiceProvider serviceProvider) : base(ThreadName)
+        public VisualStudioProjectSnapshotManagerDispatcher(ErrorReporter errorReporter) : base(ThreadName)
         {
-            _errorReporter = new VisualStudioErrorReporter(serviceProvider);
+            _errorReporter = errorReporter;
         }
 
         public override void LogException(Exception ex) => _errorReporter.ReportError(ex);
