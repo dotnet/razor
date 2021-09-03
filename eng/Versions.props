@@ -49,13 +49,13 @@
 
   -->
   <PropertyGroup Label="Automated">
-    <MicrosoftCodeAnalysisRazorPackageVersion>6.0.0-rc.2.21453.19</MicrosoftCodeAnalysisRazorPackageVersion>
-    <MicrosoftAspNetCoreRazorInternalTransportPackageVersion>6.0.0-rc.2.21453.19</MicrosoftAspNetCoreRazorInternalTransportPackageVersion>
-    <MicrosoftAspNetCoreRazorLanguagePackageVersion>6.0.0-rc.2.21453.19</MicrosoftAspNetCoreRazorLanguagePackageVersion>
-    <MicrosoftAspNetCoreTestingPackageVersion>6.0.0-rc.2.21453.19</MicrosoftAspNetCoreTestingPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>6.0.0-rc.2.21453.19</MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>6.0.0-rc.2.21453.19</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>6.0.0-rc.2.21453.19</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>
+    <MicrosoftCodeAnalysisRazorPackageVersion>6.0.0-rc.2.21453.21</MicrosoftCodeAnalysisRazorPackageVersion>
+    <MicrosoftAspNetCoreRazorInternalTransportPackageVersion>6.0.0-rc.2.21453.21</MicrosoftAspNetCoreRazorInternalTransportPackageVersion>
+    <MicrosoftAspNetCoreRazorLanguagePackageVersion>6.0.0-rc.2.21453.21</MicrosoftAspNetCoreRazorLanguagePackageVersion>
+    <MicrosoftAspNetCoreTestingPackageVersion>6.0.0-rc.2.21453.21</MicrosoftAspNetCoreTestingPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>6.0.0-rc.2.21453.21</MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>6.0.0-rc.2.21453.21</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>6.0.0-rc.2.21453.21</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>
     <MicrosoftExtensionsConfigurationJsonPackageVersion>6.0.0-rc.2.21453.3</MicrosoftExtensionsConfigurationJsonPackageVersion>
     <MicrosoftExtensionsDependencyModelPackageVersion>6.0.0-rc.2.21453.3</MicrosoftExtensionsDependencyModelPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>6.0.0-rc.2.21453.3</MicrosoftExtensionsLoggingPackageVersion>
