@@ -2,18 +2,22 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
+    [Export(typeof(ErrorReporter))]
     internal class VisualStudioErrorReporter : ErrorReporter
     {
-        private readonly IServiceProvider _services;
+        private readonly SVsServiceProvider _services;
 
-        public VisualStudioErrorReporter(IServiceProvider services)
+        [ImportingConstructor]
+        public VisualStudioErrorReporter(SVsServiceProvider services)
         {
             if (services == null)
             {

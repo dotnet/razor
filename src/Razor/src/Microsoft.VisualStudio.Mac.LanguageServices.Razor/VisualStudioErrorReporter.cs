@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -10,6 +11,7 @@ using MonoDevelop.Core;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
+    [Export(typeof(ErrorReporter))]
     internal class VisualStudioErrorReporter : ErrorReporter
     {
         public override void ReportError(Exception exception)
