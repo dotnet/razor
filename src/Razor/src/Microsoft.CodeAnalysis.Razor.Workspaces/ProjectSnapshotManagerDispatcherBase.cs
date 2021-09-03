@@ -3,6 +3,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -16,8 +17,15 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public ProjectSnapshotManagerDispatcherBase(string threadName)
         {
-            _dispatcherScheduler = new ProjectSnapshotManagerTaskScheduler(threadName);
+            if (threadName is null)
+            {
+                throw new ArgumentNullException(nameof(threadName));
+            }
+
+            _dispatcherScheduler = new ProjectSnapshotManagerTaskScheduler(threadName, LogException);
         }
+
+        public abstract void LogException(Exception ex);
 
         public override bool IsDispatcherThread => Thread.CurrentThread.ManagedThreadId == _dispatcherScheduler.ThreadId;
 
@@ -27,8 +35,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         {
             private readonly Thread _thread;
             private readonly BlockingCollection<Task> _tasks = new();
+            private readonly Action<Exception> _logException;
 
-            public ProjectSnapshotManagerTaskScheduler(string threadName)
+            public ProjectSnapshotManagerTaskScheduler(string threadName, Action<Exception> logException)
             {
                 _thread = new Thread(ThreadStart)
                 {
@@ -37,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 };
 
                 _thread.Start();
+                _logException = logException;
             }
 
             public int ThreadId => _thread.ManagedThreadId;
@@ -68,10 +78,17 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                         var task = _tasks.Take();
                         TryExecuteTask(task);
                     }
-                    catch (ThreadAbortException)
+                    catch (ThreadAbortException ex)
                     {
-                        // Fires when things shut down or in tests. Swallow thread abort exceptions and bail out.
+                        // Fires when things shut down or in tests. Log exception and bail out.
+                        _logException(ex);
                         return;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Unexpected exception. Log and throw.
+                        _logException(ex);
+                        throw;
                     }
                 }
             }

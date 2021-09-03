@@ -5,7 +5,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.Shell;

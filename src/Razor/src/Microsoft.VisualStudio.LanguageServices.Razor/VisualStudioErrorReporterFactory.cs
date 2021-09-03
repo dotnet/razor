@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
     [ExportWorkspaceServiceFactory(typeof(ErrorReporter), ServiceLayer.Host)]
     internal class VisualStudioErrorReporterFactory : IWorkspaceServiceFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly SVsServiceProvider _serviceProvider;
 
         [ImportingConstructor]
         public VisualStudioErrorReporterFactory(SVsServiceProvider serviceProvider)
