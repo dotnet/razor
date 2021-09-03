@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 using MonoDevelop.Core;
@@ -89,8 +90,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         private void HandleFileChangeEvent(FileChangeKind changeKind, FileEventArgs args)
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
             if (Changed == null)
             {
                 return;
@@ -106,7 +105,10 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 var normalizedEventPath = NormalizePath(fileEvent.FileName.FullPath);
                 if (string.Equals(_normalizedFilePath, normalizedEventPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    OnChanged(changeKind);
+                    _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync((changeKind, ct) =>
+                    {
+                        OnChanged(changeKind);
+                    }, changeKind, CancellationToken.None);
                     return;
                 }
             }
