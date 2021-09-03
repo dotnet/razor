@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -40,7 +42,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         private Workspace Workspace { get; }
 
         [UIFact]
-        public void ProjectOperations_EndBuild_EnqueuesProjectStateUpdate()
+        public async Task ProjectOperations_EndBuild_EnqueuesProjectStateUpdate()
         {
             // Arrange
             var expectedProjectPath = SomeProject.FilePath;
@@ -58,7 +60,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService, workspaceStateGenerator, projectManager.Object);
 
             // Act
-            trigger.ProjectOperations_EndBuild(null, args);
+            await trigger.HandleEndBuildAsync(args);
+
+            Thread.Sleep(500);
 
             // Assert
             var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
@@ -66,7 +70,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         }
 
         [UIFact]
-        public void ProjectOperations_EndBuild_ProjectWithoutWorkspaceProject_Noops()
+        public async Task ProjectOperations_EndBuild_ProjectWithoutWorkspaceProject_Noops()
         {
             // Arrange
             var expectedPath = "Path/To/Project.csproj";
@@ -87,14 +91,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService, workspaceStateGenerator, projectManager.Object);
 
             // Act
-            trigger.ProjectOperations_EndBuild(null, args);
+            await trigger.HandleEndBuildAsync(args);
 
             // Assert
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
         }
 
         [UIFact]
-        public void ProjectOperations_EndBuild_UntrackedProject_Noops()
+        public async Task ProjectOperations_EndBuild_UntrackedProject_NoopsAsync()
         {
             // Arrange
             var projectService = CreateProjectService(SomeProject.FilePath);
@@ -110,14 +114,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService, workspaceStateGenerator, projectManager.Object);
 
             // Act
-            trigger.ProjectOperations_EndBuild(null, args);
+            await trigger.HandleEndBuildAsync(args);
 
             // Assert
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
         }
 
         [UIFact]
-        public void ProjectOperations_EndBuild_BuildFailed_Noops()
+        public async Task ProjectOperations_EndBuild_BuildFailed_Noops()
         {
             // Arrange
             var args = new BuildEventArgs(monitor: null, success: false);
@@ -129,14 +133,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService.Object, workspaceStateGenerator, projectManager.Object);
 
             // Act
-            trigger.ProjectOperations_EndBuild(null, args);
+            await trigger.HandleEndBuildAsync(args);
 
             // Assert
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
         }
 
         [UIFact]
-        public void ProjectOperations_EndBuild_UnsupportedProject_Noops()
+        public async Task ProjectOperations_EndBuild_UnsupportedProject_Noops()
         {
             // Arrange
             var args = new BuildEventArgs(monitor: null, success: true);
@@ -148,7 +152,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService.Object, workspaceStateGenerator, projectManager.Object);
 
             // Act
-            trigger.ProjectOperations_EndBuild(null, args);
+            await trigger.HandleEndBuildAsync(args);
 
             // Assert
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
