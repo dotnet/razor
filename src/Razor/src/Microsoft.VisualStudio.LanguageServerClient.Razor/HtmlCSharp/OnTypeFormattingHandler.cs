@@ -146,9 +146,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, request.Options.TabSize)
                 .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, !request.Options.InsertSpaces);
 
-            var position = projectionResult.Position.GetAbsoluteIndex(csharpSourceText);
             var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                document, typedChar: request.Character[0], position, documentOptions, cancellationToken).ConfigureAwait(false);
+                document, typedChar: request.Character[0], projectionResult.PositionIndex, documentOptions, cancellationToken).ConfigureAwait(false);
             if (formattingChanges.IsEmpty)
             {
                 _logger.LogInformation("Received no results.");
