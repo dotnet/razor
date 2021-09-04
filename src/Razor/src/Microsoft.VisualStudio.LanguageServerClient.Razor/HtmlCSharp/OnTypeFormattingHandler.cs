@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
@@ -31,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
-        private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
         private readonly VSHostServicesProvider _vsHostServicesProvider;
         private readonly ILogger _logger;
 
@@ -41,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LSPRequestInvoker requestInvoker,
             LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
-            RazorLSPClientOptionsMonitor clientOptionsMonitor,
             VSHostServicesProvider vSHostServicesProvider,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
@@ -65,11 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
-            if (clientOptionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(clientOptionsMonitor));
-            }
-
             if (vSHostServicesProvider is null)
             {
                 throw new ArgumentNullException(nameof(vSHostServicesProvider));
@@ -84,12 +78,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _requestInvoker = requestInvoker;
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
-            _clientOptionsMonitor = clientOptionsMonitor;
             _vsHostServicesProvider = vSHostServicesProvider;
             _logger = loggerProvider.CreateLogger(nameof(OnTypeFormattingHandler));
         }
 
-        public async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<TextEdit[]> HandleRequestAsync(
+            DocumentOnTypeFormattingParams request,
+            ClientCapabilities clientCapabilities,
+            CancellationToken cancellationToken)
         {
             if (!s_allTriggerCharacters.Contains(request.Character, StringComparer.Ordinal))
             {
@@ -140,31 +136,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            // to-do: refactor
             var workspace = new AdhocWorkspace(_vsHostServicesProvider.GetServices());
             var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
             var csharpSourceText = SourceText.From(virtualDocument.Snapshot.GetText());
             var document = workspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
 
-            // to-do; make correct
             var documentOptions = await document.GetOptionsAsync().ConfigureAwait(false);
+            documentOptions = documentOptions.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, request.Options.TabSize)
+                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, request.Options.TabSize)
+                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, !request.Options.InsertSpaces);
 
-            // We can byspass calling into C#'s LSP server to make a formatting request by instead calling into C#'s formatter directly
-            // via external access.
+            var position = projectionResult.Position.GetAbsoluteIndex(csharpSourceText);
             var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                document, typedChar: request.Character[0], projectionResult.PositionIndex, documentOptions, cancellationToken).ConfigureAwait(false);
+                document, typedChar: request.Character[0], position, documentOptions, cancellationToken).ConfigureAwait(false);
             if (formattingChanges.IsEmpty)
             {
                 _logger.LogInformation("Received no results.");
                 return null;
             }
 
-            var textEdits = formattingChanges.Select(change => TextChangeExtensions.AsTextEdit(change, csharpSourceText)).ToArray();
+            var textEdits = formattingChanges.Select(change => Extensions.TextChangeExtensions.AsTextEdit(change, csharpSourceText)).ToArray();
             _logger.LogInformation($"Received {textEdits.Length} results, remapping.");
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var remappedTextEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(projectionResult.Uri, textEdits, request.Options, containsSnippet: false, cancellationToken).ConfigureAwait(false);
+            var remappedTextEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(
+                projectionResult.Uri, textEdits, request.Options, containsSnippet: false, cancellationToken).ConfigureAwait(false);
             _logger.LogInformation($"Returning {remappedTextEdits?.Length} text edits.");
             return remappedTextEdits;
         }
