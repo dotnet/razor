@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.Text;
 
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private static readonly IReadOnlyList<string> s_allTriggerCharacters = s_cSharpTriggerCharacters.Concat(s_htmlTriggerCharacters).ToArray();
 
         private readonly LSPDocumentManager _documentManager;
-        private readonly LSPRequestInvoker _requestInvoker;
+        private readonly LSPDocumentSynchronizer _documentSynchronizer;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly VSHostServicesProvider _vsHostServicesProvider;
@@ -38,10 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         [ImportingConstructor]
         public OnTypeFormattingHandler(
             LSPDocumentManager documentManager,
-            LSPRequestInvoker requestInvoker,
+            LSPDocumentSynchronizer documentSynchronizer,
             LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
-            VSHostServicesProvider vSHostServicesProvider,
+            VSHostServicesProvider vsHostServicesProvider,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (documentManager is null)
@@ -49,9 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentManager));
             }
 
-            if (requestInvoker is null)
+            if (documentSynchronizer is null)
             {
-                throw new ArgumentNullException(nameof(requestInvoker));
+                throw new ArgumentNullException(nameof(documentSynchronizer));
             }
 
             if (projectionProvider is null)
@@ -64,9 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
-            if (vSHostServicesProvider is null)
+            if (vsHostServicesProvider is null)
             {
-                throw new ArgumentNullException(nameof(vSHostServicesProvider));
+                throw new ArgumentNullException(nameof(vsHostServicesProvider));
             }
 
             if (loggerProvider is null)
@@ -75,10 +75,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             _documentManager = documentManager;
-            _requestInvoker = requestInvoker;
+            _documentSynchronizer = documentSynchronizer;
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
-            _vsHostServicesProvider = vSHostServicesProvider;
+            _vsHostServicesProvider = vsHostServicesProvider;
             _logger = loggerProvider.CreateLogger(nameof(OnTypeFormattingHandler));
         }
 
@@ -102,12 +102,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var triggerCharacterKind = await GetTriggerCharacterLanguageKindAsync(documentSnapshot, request.Position, request.Character, cancellationToken).ConfigureAwait(false);
-            if (triggerCharacterKind == null)
+            if (triggerCharacterKind is null)
             {
                 _logger.LogInformation($"Failed to identify trigger character language context.");
                 return null;
             }
-            else if (triggerCharacterKind != RazorLanguageKind.CSharp)
+            else if (triggerCharacterKind is not RazorLanguageKind.CSharp)
             {
                 _logger.LogInformation($"Unsupported trigger character language {triggerCharacterKind:G}.");
                 return null;
@@ -126,28 +126,30 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 return null;
             }
 
-            if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var virtualDocument))
+            // There's a chance that the virtual document is not up to date. This can occur if the virtual document
+            // was not synchronized at the time TryGetDocument was called. To circumvent this, we wait until we have
+            // proper synchronization before proceeding.
+            var virtualDocument = await GetSynchronizedVirtualDocumentAsync(
+                request.TextDocument.Uri, documentSnapshot, cancellationToken).ConfigureAwait(false);
+            if (virtualDocument is null)
             {
                 return null;
             }
 
-            var workspace = new AdhocWorkspace(_vsHostServicesProvider.GetServices());
-            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
             var csharpSourceText = SourceText.From(virtualDocument.Snapshot.GetText());
-            var document = workspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
+            var document = GenerateRoslynCSharpDocument(csharpSourceText);
+            var documentOptions = await SetDocumentOptionsAsync(request, document).ConfigureAwait(false);
 
-            var documentOptions = await document.GetOptionsAsync().ConfigureAwait(false);
-            documentOptions = documentOptions.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, request.Options.TabSize)
-                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, request.Options.TabSize)
-                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, !request.Options.InsertSpaces);
-
+            // We call into Roslyn's formatting service directly via external access, which circumvents needing
+            // to send a request to the C# LSP server.
             var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
-                document, typedChar: request.Character[0], projectionResult.PositionIndex, documentOptions, cancellationToken).ConfigureAwait(false);
+                document, typedChar: request.Character[0], projectionResult.PositionIndex, documentOptions,
+                cancellationToken).ConfigureAwait(false);
             if (formattingChanges.IsEmpty)
             {
                 _logger.LogInformation("Received no results.");
@@ -197,6 +199,52 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             // Unknown trigger character.
             return false;
+        }
+
+        private async Task<CSharpVirtualDocumentSnapshot> GetSynchronizedVirtualDocumentAsync(
+            Uri razorDocUri,
+            LSPDocumentSnapshot documentSnapshot,
+            CancellationToken cancellationToken)
+        {
+            if (!documentSnapshot.TryGetVirtualDocument(out CSharpVirtualDocumentSnapshot virtualDocumentSnapshot))
+            {
+                return null;
+            }
+
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                documentSnapshot.Version, virtualDocumentSnapshot, cancellationToken).ConfigureAwait(false);
+
+            LSPDocumentSnapshot updatedSnapshot = null;
+            if (synchronized && _documentManager.TryGetDocument(razorDocUri, out updatedSnapshot))
+            {
+                if (!updatedSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var updatedVirtualSnapshot))
+                {
+                    return null;
+                }
+
+                return updatedVirtualSnapshot;
+            }
+
+            // Recursively call this method until we reach a synchronized state. We need to be synchronized
+            // to ensure our C# virtual document is up to date.
+            return await GetSynchronizedVirtualDocumentAsync(razorDocUri, updatedSnapshot, cancellationToken).ConfigureAwait(false);
+        }
+
+        private Document GenerateRoslynCSharpDocument(SourceText csharpSourceText)
+        {
+            var workspace = new AdhocWorkspace(_vsHostServicesProvider.GetServices());
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = workspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
+            return document;
+        }
+
+        private static async Task<DocumentOptionSet> SetDocumentOptionsAsync(DocumentOnTypeFormattingParams request, Document document)
+        {
+            var documentOptions = await document.GetOptionsAsync().ConfigureAwait(false);
+            documentOptions = documentOptions.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, request.Options.TabSize)
+                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, request.Options.TabSize)
+                .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, !request.Options.InsertSpaces);
+            return documentOptions;
         }
     }
 }
