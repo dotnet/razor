@@ -14,6 +14,9 @@ using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -99,66 +102,94 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             new XUnitVerifier().EqualOrDiff(expected, actual);
         }
 
-        protected Task RunOnTypeFormattingTestAsync(string input, string expected, int tabSize = 4, bool insertSpaces = true, string fileKind = null)
-        {
-            return RunOnTypeFormattingTestAsync(input, expected, expected, tabSize, insertSpaces, fileKind);
-        }
-
-        protected async Task RunOnTypeFormattingTestAsync(string input, string afterCSharpFormatting, string expected, int tabSize = 4, bool insertSpaces = true, string fileKind = null)
+        protected async Task RunOnTypeFormattingTestAsync(
+            string input,
+            string expected,
+            char triggerCharacter,
+            int tabSize = 4,
+            bool insertSpaces = true,
+            string fileKind = null)
         {
             // Arrange
             fileKind ??= FileKinds.Component;
 
-            TestFileMarkupParser.GetPosition(input, out input, out var beforeTrigger);
+            TestFileMarkupParser.GetPosition(input, out input, out var positionAfterTrigger);
 
-            var source = SourceText.From(input);
-
+            var razorSourceText = SourceText.From(input);
             var path = "file:///path/to/Document.razor";
             var uri = new Uri(path);
-            var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, fileKind: fileKind);
+            var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
+
+            var mappingService = new DefaultRazorDocumentMappingService();
+            var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger);
+
+            if (!mappingService.TryMapToProjectedDocumentPosition(codeDocument, positionAfterTrigger, out _, out var projectedIndex))
+            {
+                throw new InvalidOperationException("Could not map from Razor document to generated document");
+            }
+
+            var projectedEdits = Array.Empty<TextEdit>();
+            if (languageKind == RazorLanguageKind.CSharp)
+            {
+                projectedEdits = await GetFormattedCSharpEditsAsync(
+                    codeDocument, triggerCharacter, projectedIndex, insertSpaces, tabSize).ConfigureAwait(false);
+            }
+            else if (languageKind == RazorLanguageKind.Html)
+            {
+                throw new NotImplementedException("OnTypeFormatting is not yet supported for HTML in Razor.");
+            }
+
+            var formattingService = CreateFormattingService(codeDocument);
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,
                 InsertSpaces = insertSpaces,
             };
 
-            var formattingService = CreateFormattingService(codeDocument);
-            var (kind, projectedEdits) = GetFormattedEdits(codeDocument, afterCSharpFormatting, beforeTrigger);
-
             // Act
-            var edits = await formattingService.ApplyFormattedEditsAsync(uri, documentSnapshot, kind, projectedEdits, options, CancellationToken.None);
+            var edits = await formattingService.ApplyFormattedEditsAsync(
+                uri, documentSnapshot, languageKind, projectedEdits, options, CancellationToken.None);
 
             // Assert
-            var edited = ApplyEdits(source, edits);
+            var edited = ApplyEdits(razorSourceText, edits);
             var actual = edited.ToString();
 
             new XUnitVerifier().EqualOrDiff(expected, actual);
         }
 
-        private static (RazorLanguageKind, TextEdit[]) GetFormattedEdits(RazorCodeDocument codeDocument, string expected, int positionBeforeTriggerChar)
+        private static async Task<TextEdit[]> GetFormattedCSharpEditsAsync(
+            RazorCodeDocument codeDocument,
+            char typedChar,
+            int position,
+            bool insertSpaces,
+            int tabSize)
         {
-            var mappingService = new DefaultRazorDocumentMappingService();
-            var languageKind = mappingService.GetLanguageKind(codeDocument, positionBeforeTriggerChar);
+            var generatedCode = codeDocument.GetCSharpDocument().GeneratedCode;
+            var csharpSourceText = SourceText.From(generatedCode);
+            var document = GenerateRoslynCSharpDocument(csharpSourceText);
+            var documentOptions = await GetDocumentOptionsAsync(document, insertSpaces, tabSize);
+            var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
+                document, typedChar, position, documentOptions, CancellationToken.None).ConfigureAwait(false);
 
-            var expectedText = SourceText.From(expected);
-            var (expectedCodeDocument, _) = CreateCodeDocumentAndSnapshot(expectedText, codeDocument.Source.FilePath, fileKind: codeDocument.GetFileKind());
+            var textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpSourceText)).ToArray();
+            return textEdits;
 
-            var edits = Array.Empty<TextEdit>();
-
-            if (languageKind == RazorLanguageKind.CSharp)
+            Document GenerateRoslynCSharpDocument(SourceText csharpSourceText)
             {
-                var beforeCSharpText = SourceText.From(codeDocument.GetCSharpDocument().GeneratedCode);
-                var afterCSharpText = SourceText.From(expectedCodeDocument.GetCSharpDocument().GeneratedCode);
-                edits = SourceTextDiffer.GetMinimalTextChanges(beforeCSharpText, afterCSharpText, lineDiffOnly: false).Select(c => c.AsTextEdit(beforeCSharpText)).ToArray();
-            }
-            else if (languageKind == RazorLanguageKind.Html)
-            {
-                var beforeHtmlText = SourceText.From(codeDocument.GetHtmlDocument().GeneratedHtml);
-                var afterHtmlText = SourceText.From(expectedCodeDocument.GetHtmlDocument().GeneratedHtml);
-                edits = SourceTextDiffer.GetMinimalTextChanges(beforeHtmlText, afterHtmlText, lineDiffOnly: false).Select(c => c.AsTextEdit(beforeHtmlText)).ToArray();
+                var workspace = TestWorkspace.Create();
+                var project = workspace.CurrentSolution.AddProject("TestProject", "TestAssembly", LanguageNames.CSharp);
+                var document = project.AddDocument("TestDocument", csharpSourceText);
+                return document;
             }
 
-            return (languageKind, edits);
+            async Task<DocumentOptionSet> GetDocumentOptionsAsync(Document document, bool insertSpaces, int tabSize)
+            {
+                var documentOptions = await document.GetOptionsAsync().ConfigureAwait(false);
+                documentOptions = documentOptions.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, tabSize)
+                    .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, tabSize)
+                    .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, !insertSpaces);
+                return documentOptions;
+            }
         }
 
         private RazorFormattingService CreateFormattingService(RazorCodeDocument codeDocument)

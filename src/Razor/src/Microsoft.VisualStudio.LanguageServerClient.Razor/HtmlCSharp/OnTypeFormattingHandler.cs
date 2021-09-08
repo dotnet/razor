@@ -24,9 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName)]
     internal class OnTypeFormattingHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
-        private static readonly IReadOnlyList<string> s_cSharpTriggerCharacters = new[] { "}", ";" };
+        private static readonly IReadOnlyList<string> s_csharpTriggerCharacters = new[] { "}", ";" };
         private static readonly IReadOnlyList<string> s_htmlTriggerCharacters = Array.Empty<string>();
-        private static readonly IReadOnlyList<string> s_allTriggerCharacters = s_cSharpTriggerCharacters.Concat(s_htmlTriggerCharacters).ToArray();
+        private static readonly IReadOnlyList<string> s_allTriggerCharacters = s_csharpTriggerCharacters.Concat(s_htmlTriggerCharacters).ToArray();
 
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPDocumentSynchronizer _documentSynchronizer;
@@ -198,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             if (languageKind == RazorLanguageKind.CSharp)
             {
-                return s_cSharpTriggerCharacters.Contains(triggerCharacter);
+                return s_csharpTriggerCharacters.Contains(triggerCharacter);
             }
             else if (languageKind == RazorLanguageKind.Html)
             {
