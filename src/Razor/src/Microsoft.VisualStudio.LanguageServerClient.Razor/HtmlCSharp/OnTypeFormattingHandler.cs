@@ -101,7 +101,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var triggerCharacterKind = await GetTriggerCharacterLanguageKindAsync(documentSnapshot, request.Position, request.Character, cancellationToken).ConfigureAwait(false);
+            var triggerCharacterKind = await GetTriggerCharacterLanguageKindAsync(
+                documentSnapshot, request.Position, request.Character, cancellationToken).ConfigureAwait(false);
             if (triggerCharacterKind is null)
             {
                 _logger.LogInformation($"Failed to identify trigger character language context.");
@@ -142,8 +143,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var csharpSourceText = SourceText.From(virtualDocument.Snapshot.GetText());
-            var document = GenerateRoslynCSharpDocument(csharpSourceText);
-            var documentOptions = await SetDocumentOptionsAsync(request, document).ConfigureAwait(false);
+            var document = GenerateRoslynCSharpDocument(csharpSourceText, _vsHostServicesProvider);
+            var documentOptions = await GetDocumentOptionsAsync(request, document).ConfigureAwait(false);
 
             // We call into Roslyn's formatting service directly via external access, which circumvents needing
             // to send a request to the C# LSP server.
@@ -156,7 +157,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var textEdits = formattingChanges.Select(change => Extensions.TextChangeExtensions.AsTextEdit(change, csharpSourceText)).ToArray();
+            var textEdits = formattingChanges.Select(
+                change => Extensions.TextChangeExtensions.AsTextEdit(change, csharpSourceText)).ToArray();
             _logger.LogInformation($"Received {textEdits.Length} results, remapping.");
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -167,7 +169,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return remappedTextEdits;
         }
 
-        private async Task<RazorLanguageKind?> GetTriggerCharacterLanguageKindAsync(LSPDocumentSnapshot documentSnapshot, Position positionAfterTriggerChar, string triggerCharacter, CancellationToken cancellationToken)
+        private async Task<RazorLanguageKind?> GetTriggerCharacterLanguageKindAsync(
+            LSPDocumentSnapshot documentSnapshot,
+            Position positionAfterTriggerChar,
+            string triggerCharacter,
+            CancellationToken cancellationToken)
         {
             // request.Character will point to the position after the character that was inserted.
             // For onTypeFormatting, it makes more sense to look up the projection of the character that was inserted.
@@ -179,9 +185,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var triggerCharacterPoint = point.Subtract(triggerCharacter.Length);
 
             var triggerCharacterLine = documentSnapshot.Snapshot.GetLineFromPosition(triggerCharacterPoint.Position);
-            var triggerCharacterPosition = new Position(triggerCharacterLine.LineNumber, triggerCharacterPoint.Position - triggerCharacterLine.Start.Position);
+            var triggerCharacterPosition = new Position(
+                triggerCharacterLine.LineNumber, triggerCharacterPoint.Position - triggerCharacterLine.Start.Position);
 
-            var triggerCharacterProjectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, triggerCharacterPosition, cancellationToken).ConfigureAwait(false);
+            var triggerCharacterProjectionResult = await _projectionProvider.GetProjectionAsync(
+                documentSnapshot, triggerCharacterPosition, cancellationToken).ConfigureAwait(false);
 
             return triggerCharacterProjectionResult?.LanguageKind;
         }
@@ -230,15 +238,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return await GetSynchronizedVirtualDocumentAsync(razorDocUri, updatedSnapshot, cancellationToken).ConfigureAwait(false);
         }
 
-        private Document GenerateRoslynCSharpDocument(SourceText csharpSourceText)
+        // Internal for testing
+        internal static Document GenerateRoslynCSharpDocument(SourceText csharpSourceText, VSHostServicesProvider hostServicesProvider)
         {
-            var workspace = new AdhocWorkspace(_vsHostServicesProvider.GetServices());
+            var workspace = new AdhocWorkspace(hostServicesProvider.GetServices());
             var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
             var document = workspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
             return document;
         }
 
-        private static async Task<DocumentOptionSet> SetDocumentOptionsAsync(DocumentOnTypeFormattingParams request, Document document)
+        // Internal for testing
+        internal static async Task<DocumentOptionSet> GetDocumentOptionsAsync(DocumentOnTypeFormattingParams request, Document document)
         {
             var documentOptions = await document.GetOptionsAsync().ConfigureAwait(false);
             documentOptions = documentOptions.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, request.Options.TabSize)
