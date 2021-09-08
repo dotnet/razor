@@ -32,6 +32,38 @@ expected: @"
         }
 
         [Fact]
+        public async Task CloseCurly_Class_SingleLine_UseTabsAsync()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+@code {
+ public class Foo{}$$
+}
+",
+expected: @"
+@code {
+	public class Foo { }
+}
+", triggerCharacter: '}', insertSpaces: false);
+        }
+
+        [Fact]
+        public async Task CloseCurly_Class_SingleLine_AdjustTabSizeAsync()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+@code {
+ public class Foo{}$$
+}
+",
+expected: @"
+@code {
+      public class Foo { }
+}
+", triggerCharacter: '}', tabSize: 6);
+        }
+
+        [Fact]
         public async Task CloseCurly_Class_MultiLineAsync()
         {
             await RunOnTypeFormattingTestAsync(

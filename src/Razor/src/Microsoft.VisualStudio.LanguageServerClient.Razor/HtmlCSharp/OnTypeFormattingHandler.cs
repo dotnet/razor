@@ -79,6 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
             _vsHostServicesProvider = vsHostServicesProvider;
+
             _logger = loggerProvider.CreateLogger(nameof(OnTypeFormattingHandler));
         }
 
