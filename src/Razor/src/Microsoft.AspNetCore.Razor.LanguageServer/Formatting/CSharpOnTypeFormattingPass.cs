@@ -116,7 +116,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // $$}
             //
             // When typing that close brace, the changes would fix the previous close brace, but the line delta would be 0, so
-            // we'd format line 6 and call it a day, even though the foratter made an edit on line 3.
+            // we'd format line 6 and call it a day, even though the formatter made an edit on line 3. To fix this we use the
+            // first and last position of edits made above, and make sure our range encompasses them as well. For convenience
+            // we calculate these positions in the LineDelta method called above.
+            // This is essentially: rangeToAdjust = new Range(Math.Min(firstFormattingEdit, userEdit), Math.Max(lastFormattingEdit, userEdit))
             var start = rangeAfterFormatting.Start;
             if (firstPosition is not null && firstPosition < start)
             {
@@ -195,6 +198,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var range = change.Span.AsRange(text);
                 Debug.Assert(range.Start.Line <= range.End.Line, "Invalid range.");
 
+                // For convenience, since we're already iterating through things, we also find the extremes
+                // of the range of edits that were made.
                 if (firstPosition is null || firstPosition > range.Start)
                 {
                     firstPosition = range.Start;
