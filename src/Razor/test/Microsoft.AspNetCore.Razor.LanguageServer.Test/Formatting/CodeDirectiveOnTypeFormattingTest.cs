@@ -440,7 +440,8 @@ input: @"
                 <strong></strong>
             }
             else if (false)
-            {$$
+            {
+1.ToString();$$
             }
         </div>
         break;
@@ -457,12 +458,12 @@ expected: @"
             }
             else if (false)
             {
-
+                1.ToString();
             }
         </div>
         break;
 }
-");
+", triggerCharacter: ';');
         }
 
         [Fact]
@@ -479,7 +480,8 @@ input: @"
             <strong></strong>
         }
         else if (false)
-        {$$
+        {
+1.ToString();$$
         }
     </div>
 }
@@ -494,11 +496,11 @@ expected: @"
         }
         else if (false)
         {
-
+            1.ToString();
         }
     </div>
 }
-");
+", triggerCharacter: ';');
         }
 
         [Fact]
@@ -516,7 +518,7 @@ input: @"
         }
         else if (false)
         {
-            $$}
+            }$$
     </div>
 }
 ",
@@ -533,7 +535,7 @@ expected: @"
         }
     </div>
 }
-");
+", triggerCharacter: '}');
         }
 
         [Fact]
@@ -551,8 +553,8 @@ input: @"
         }
         else if (false)
         {
-            var x = ""asdf"";
-            $$}
+            ""asdf"".ToString();
+            }$$
     </div>
 }
 ",
@@ -566,11 +568,11 @@ expected: @"
         }
         else if (false)
         {
-            var x = ""asdf"";
+            ""asdf"".ToString();
         }
     </div>
 }
-");
+", triggerCharacter: '}');
         }
     }
 }
