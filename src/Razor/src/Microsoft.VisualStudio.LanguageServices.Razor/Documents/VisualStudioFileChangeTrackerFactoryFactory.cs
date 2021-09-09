@@ -45,6 +45,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
         }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             if (workspaceServices == null)

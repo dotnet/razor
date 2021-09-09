@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // We only want to adjust the range that was affected.
             // We need to take into account the lines affected by formatting as well as cleanup.
-            var lineDelta = LineDelta(formattedText, cleanupChanges);
+            var lineDelta = LineDelta(formattedText, cleanupChanges, out var firstPosition, out var lastPosition);
 
             // Okay hear me out, I know this looks lazy, but it totally makes sense.
             // This method is called with edits that the C# formatter wants to make, and from those edits we work out which
@@ -105,7 +105,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 lineDelta++;
             }
 
-            var rangeToAdjust = new Range(rangeAfterFormatting.Start, new Position(rangeAfterFormatting.End.Line + lineDelta, 0));
+            // Now we know how many lines were affected by the cleanup and formatting, but we don't know where those lines are. For example, given:
+            //
+            // @if (true)
+            // {
+            //      }
+            // else
+            // {
+            // $$}
+            //
+            // When typing that close brace, the changes would fix the previous close brace, but the line delta would be 0, so
+            // we'd format line 6 and call it a day, even though the formatter made an edit on line 3. To fix this we use the
+            // first and last position of edits made above, and make sure our range encompasses them as well. For convenience
+            // we calculate these positions in the LineDelta method called above.
+            // This is essentially: rangeToAdjust = new Range(Math.Min(firstFormattingEdit, userEdit), Math.Max(lastFormattingEdit, userEdit))
+            var start = rangeAfterFormatting.Start;
+            if (firstPosition is not null && firstPosition < start)
+            {
+                start = firstPosition;
+            }
+
+            var end = new Position(rangeAfterFormatting.End.Line + lineDelta, 0);
+            if (lastPosition is not null && lastPosition < start)
+            {
+                end = lastPosition;
+            }
+
+            var rangeToAdjust = new Range(start, end);
+
             Debug.Assert(rangeToAdjust.End.IsValid(cleanedText), "Invalid range. This is unexpected.");
 
             var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken, rangeToAdjust);
@@ -155,8 +182,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return filteredEdits;
         }
 
-        private static int LineDelta(SourceText text, IEnumerable<TextChange> changes)
+        private static int LineDelta(SourceText text, IEnumerable<TextChange> changes, out Position? firstPosition, out Position? lastPosition)
         {
+            firstPosition = null;
+            lastPosition = null;
+
             // Let's compute the number of newlines added/removed by the incoming changes.
             var delta = 0;
 
@@ -166,6 +196,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 var range = change.Span.AsRange(text);
                 Debug.Assert(range.Start.Line <= range.End.Line, "Invalid range.");
+
+                // For convenience, since we're already iterating through things, we also find the extremes
+                // of the range of edits that were made.
+                if (firstPosition is null || firstPosition > range.Start)
+                {
+                    firstPosition = range.Start;
+                }
+                if (lastPosition is null || lastPosition < range.End)
+                {
+                    lastPosition = range.End;
+                }
 
                 // The number of lines added/removed will be,
                 // the number of lines added by the change  - the number of lines the change span represents

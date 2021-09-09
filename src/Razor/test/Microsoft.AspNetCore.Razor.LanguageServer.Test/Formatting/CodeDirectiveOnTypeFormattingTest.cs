@@ -424,5 +424,153 @@ expected: @"
 <div></div>
 ", triggerCharacter: ';');
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
+        public async Task Switch_Statment_NestedHtml_NestedCodeBlock()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+@switch (""asdf"")
+{
+    case ""asdf"":
+        <div>
+            @if (true)
+            {
+                <strong></strong>
+            }
+            else if (false)
+            {$$
+            }
+        </div>
+        break;
+}
+",
+expected: @"
+@switch (""asdf"")
+{
+    case ""asdf"":
+        <div>
+            @if (true)
+            {
+                <strong></strong>
+            }
+            else if (false)
+            {
+
+            }
+        </div>
+        break;
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
+        public async Task NestedHtml_NestedCodeBlock()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+@if (true)
+{
+    <div>
+        @if (true)
+        {
+            <strong></strong>
+        }
+        else if (false)
+        {$$
+        }
+    </div>
+}
+",
+expected: @"
+@if (true)
+{
+    <div>
+        @if (true)
+        {
+            <strong></strong>
+        }
+        else if (false)
+        {
+
+        }
+    </div>
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
+        public async Task NestedHtml_NestedCodeBlock_EndingBrace()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+@if (true)
+{
+    <div>
+        @if (true)
+        {
+            <strong></strong>
+        }
+        else if (false)
+        {
+            $$}
+    </div>
+}
+",
+expected: @"
+@if (true)
+{
+    <div>
+        @if (true)
+        {
+            <strong></strong>
+        }
+        else if (false)
+        {
+        }
+    </div>
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
+        public async Task NestedHtml_NestedCodeBlock_EndingBrace_WithCode()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+@if (true)
+{
+    <div>
+        @if (true)
+        {
+            <strong></strong>
+        }
+        else if (false)
+        {
+            var x = ""asdf"";
+            $$}
+    </div>
+}
+",
+expected: @"
+@if (true)
+{
+    <div>
+        @if (true)
+        {
+            <strong></strong>
+        }
+        else if (false)
+        {
+            var x = ""asdf"";
+        }
+    </div>
+}
+");
+        }
     }
 }
