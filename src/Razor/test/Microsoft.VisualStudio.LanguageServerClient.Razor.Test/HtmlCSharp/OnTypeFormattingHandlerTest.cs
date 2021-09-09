@@ -306,6 +306,7 @@ class C
             // Act
             var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
                 document, typedChar: request.Character[0], positionIndex, documentOptions, CancellationToken.None).ConfigureAwait(false);
+            workspace.Dispose();
 
             // Assert
             Assert.Single(formattingChanges);

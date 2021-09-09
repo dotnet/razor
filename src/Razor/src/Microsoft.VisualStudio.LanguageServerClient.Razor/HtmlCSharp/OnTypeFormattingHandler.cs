@@ -152,6 +152,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
                 document, typedChar: request.Character[0], projectionResult.PositionIndex, documentOptions,
                 cancellationToken).ConfigureAwait(false);
+
+            document.Project.Solution.Workspace.Dispose();
+
             if (formattingChanges.IsEmpty)
             {
                 _logger.LogInformation("Received no results.");
@@ -242,7 +245,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // Internal for testing
         internal static Document GenerateRoslynCSharpDocument(SourceText csharpSourceText, VSHostServicesProvider hostServicesProvider)
         {
+            // We dispose of the workspace in the caller.
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var workspace = new AdhocWorkspace(hostServicesProvider.GetServices());
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
             var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
             var document = workspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
             return document;
