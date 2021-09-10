@@ -277,4 +277,10 @@ using Microsoft.VisualStudio.Shell;
       <InformationalVersion>$(VsixVersion)</InformationalVersion>
     </PropertyGroup>
   </Target>
+
+  <Target Name="_RemoveDuplicateSourceGenerator" AfterTargets="ResolvePackageAssets" Condition="'$(TargetFramework)' == '$(DefaultNetCoreTargetFramework)'">
+    <ItemGroup>
+      <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(ResolvedAnalyzers.NuGetPackageId)' == 'System.Text.Json'" />
+    </ItemGroup>
+  </Target>
 </Project>
