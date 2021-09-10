@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var csharpSourceText = SourceText.From(virtualDocument.Snapshot.GetText());
-            var document = GenerateRoslynCSharpDocument(csharpSourceText, _vsHostServicesProvider);
+            var (document, workspace) = GenerateRoslynCSharpDocument(csharpSourceText, _vsHostServicesProvider);
             var documentOptions = await GetDocumentOptionsAsync(request, document).ConfigureAwait(false);
 
             // We call into Roslyn's formatting service directly via external access, which circumvents needing
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 document, typedChar: request.Character[0], projectionResult.PositionIndex, documentOptions,
                 cancellationToken).ConfigureAwait(false);
 
-            document.Project.Solution.Workspace.Dispose();
+            workspace.Dispose();
 
             if (formattingChanges.IsEmpty)
             {
@@ -243,16 +243,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal static Document GenerateRoslynCSharpDocument(SourceText csharpSourceText, VSHostServicesProvider hostServicesProvider)
+        internal static (Document, CodeAnalysis.Workspace) GenerateRoslynCSharpDocument(
+            SourceText csharpSourceText,
+            VSHostServicesProvider hostServicesProvider)
         {
-            // We dispose of the workspace in the caller.
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var workspace = new AdhocWorkspace(hostServicesProvider.GetServices());
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
             var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
             var document = workspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
-            return document;
+            return (document, workspace);
         }
 
         // Internal for testing

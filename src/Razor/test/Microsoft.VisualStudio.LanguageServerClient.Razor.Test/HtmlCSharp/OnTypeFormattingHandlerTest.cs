@@ -287,7 +287,7 @@ class C
             var csharpSourceText = SourceText.From(csharpText);
             var workspace = TestWorkspace.Create();
             var hostServicesProvider = new VSHostServicesProvider(workspace);
-            var document = OnTypeFormattingHandler.GenerateRoslynCSharpDocument(csharpSourceText, hostServicesProvider);
+            var (document, _) = OnTypeFormattingHandler.GenerateRoslynCSharpDocument(csharpSourceText, hostServicesProvider);
 
             var request = new DocumentOnTypeFormattingParams()
             {
