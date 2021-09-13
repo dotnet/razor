@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(spans));
             }
 
-            var projectedRanges = spans.Select(span => span.AsLSPRange(sourceTextGenerated)).ToArray();
+            var projectedRanges = spans.Select(span => span.AsRange(sourceTextGenerated)).ToArray();
 
             var mappedResult = await _lspDocumentMappingProvider.MapToDocumentRangesAsync(
                 RazorLanguageKind.CSharp,

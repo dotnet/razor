@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.RazorLS;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class PositionExtensions
     {

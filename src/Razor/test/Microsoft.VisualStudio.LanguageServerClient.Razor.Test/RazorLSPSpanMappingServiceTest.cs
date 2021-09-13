@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
-            var textSpanAsRange = textSpan.AsLSPRange(_sourceTextGenerated);
+            var textSpanAsRange = textSpan.AsRange(_sourceTextGenerated);
             var mappedRange = new Range()
             {
                 Start = new Position(2, 1),
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
 
-            var textSpanAsRange = textSpan.AsLSPRange(_sourceTextGenerated);
+            var textSpanAsRange = textSpan.AsRange(_sourceTextGenerated);
 
             var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))

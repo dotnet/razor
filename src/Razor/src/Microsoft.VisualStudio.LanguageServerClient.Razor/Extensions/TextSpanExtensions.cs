@@ -2,28 +2,24 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
 {
-    internal static class VSLSPRangeExtensions
+    internal static class TextSpanExtensions
     {
-        public static TextSpan AsTextSpan(this Range range, SourceText sourceText)
+        public static Range AsRange(this TextSpan span, SourceText sourceText)
         {
-            if (range is null)
-            {
-                throw new ArgumentNullException(nameof(range));
-            }
-
             if (sourceText is null)
             {
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            var start = sourceText.Lines[range.Start.Line].Start + range.Start.Character;
-            var end = sourceText.Lines[range.End.Line].Start + range.End.Character;
-            return new TextSpan(start, end - start);
+            sourceText.GetLinesAndOffsets(span, out var startLine, out var startChar, out var endLine, out var endChar);
+            var range = new Range { Start = new Position(startLine, startChar), End = new Position(endLine, endChar) };
+            return range;
         }
     }
 }

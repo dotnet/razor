@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
