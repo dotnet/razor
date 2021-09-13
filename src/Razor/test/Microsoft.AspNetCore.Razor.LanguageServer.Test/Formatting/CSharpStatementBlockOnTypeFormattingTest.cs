@@ -15,30 +15,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         [Fact]
-        public async Task CloseCurly_IfBlock_SingleLine()
+        public async Task CloseCurly_IfBlock_SingleLineAsync()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
 @{
- if(true){$$}
+ if(true){}$$
 }
 ",
 expected: @"
 @{
     if (true) { }
 }
-");
+", triggerCharacter: '}');
         }
 
         [Fact]
-        public async Task CloseCurly_IfBlock_MultiLine()
+        public async Task CloseCurly_IfBlock_MultiLineAsync()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
 @{
  if(true)
 {
- $$}
+ }$$
 }
 ",
 expected: @"
@@ -47,11 +47,11 @@ expected: @"
     {
     }
 }
-");
+", triggerCharacter: '}');
         }
 
         [Fact]
-        public async Task CloseCurly_MultipleStatementBlocks()
+        public async Task CloseCurly_MultipleStatementBlocksAsync()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
@@ -64,13 +64,13 @@ input: @"
 @{
  if(true)
 {
- $$}
+ }$$
 }
 ",
 expected: @"
 <div>
     @{
-      if(true) { }
+        if(true) { }
     }
 </div>
 
@@ -79,33 +79,33 @@ expected: @"
     {
     }
 }
-");
+", triggerCharacter: '}');
         }
 
         [Fact]
-        public async Task Semicolon_Variable_SingleLine()
+        public async Task Semicolon_Variable_SingleLineAsync()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
 @{
- var x = 'foo'$$;
+ var x = 'foo';$$
 }
 ",
 expected: @"
 @{
     var x = 'foo';
 }
-");
+", triggerCharacter: ';');
         }
 
         [Fact]
-        public async Task Semicolon_Variable_MultiLine()
+        public async Task Semicolon_Variable_MultiLineAsync()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
 @{
  var x = @""
-foo""$$;
+foo"";$$
 }
 ",
 expected: @"
@@ -113,34 +113,7 @@ expected: @"
     var x = @""
 foo"";
 }
-");
-        }
-
-        [Fact]
-        public async Task OverrideCompletion_CodeBlock()
-        {
-            await RunOnTypeFormattingTestAsync(
-input: @"
-@code {
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);
-    }$$
-}",
-afterCSharpFormatting: @"
-@code { public override bool Equals(object obj)
-        {
-            return base.Equals(obj);
-        }
-}
-",
-expected: @"
-@code {
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);
-    }
-}");
+", triggerCharacter: ';');
         }
     }
 }

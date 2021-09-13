@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public WorkspaceProjectStateChangeDetectorTest()
         {
-            EmptySolution = Workspace.CurrentSolution.GetIsolatedSolution();
+            EmptySolution = Workspace.CurrentSolution;
 
             var projectId1 = ProjectId.CreateNewId("One");
             var projectId2 = ProjectId.CreateNewId("Two");
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     LanguageNames.CSharp,
                     filePath: "Two.csproj"));
 
-            SolutionWithOneProject = EmptySolution.GetIsolatedSolution()
+            SolutionWithOneProject = EmptySolution
                 .AddProject(ProjectInfo.Create(
                     projectId3,
                     VersionStamp.Default,
