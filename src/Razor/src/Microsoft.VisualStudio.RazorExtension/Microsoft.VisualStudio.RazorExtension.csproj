@@ -278,9 +278,9 @@ using Microsoft.VisualStudio.Shell;
     </PropertyGroup>
   </Target>
 
-  <Target Name="_RemoveDuplicateSourceGenerator" AfterTargets="ResolvePackageAssets" Condition="'$(TargetFramework)' == '$(DefaultNetCoreTargetFramework)'">
+  <Target Name="_RemoveFrameworkReferenceAnalyzers" AfterTargets="ResolveTargetingPackAssets">
     <ItemGroup>
-      <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(ResolvedAnalyzers.NuGetPackageId)' == 'System.Text.Json'" />
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.FrameworkReferenceName)' != ''" />
     </ItemGroup>
   </Target>
 </Project>
