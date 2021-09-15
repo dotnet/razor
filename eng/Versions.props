@@ -47,13 +47,13 @@
 
   -->
   <PropertyGroup Label="Automated">
-    <MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>3.1.20-servicing.21459.11</MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>
-    <MicrosoftAspNetCoreTestingPackageVersion>3.1.20-servicing.21459.11</MicrosoftAspNetCoreTestingPackageVersion>
-    <MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>3.1.20-servicing.21459.11</MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>
+    <MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>3.1.20-servicing.21464.2</MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>
+    <MicrosoftAspNetCoreTestingPackageVersion>3.1.20-servicing.21464.2</MicrosoftAspNetCoreTestingPackageVersion>
+    <MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>3.1.20-servicing.21464.2</MicrosoftExtensionsCommandLineUtilsSourcesPackageVersion>
     <MicrosoftExtensionsDependencyModelPackageVersion>3.1.6</MicrosoftExtensionsDependencyModelPackageVersion>
-    <MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>3.1.20-servicing.21459.11</MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>
+    <MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>3.1.20-servicing.21464.2</MicrosoftExtensionsHashCodeCombinerSourcesPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>3.1.20</MicrosoftExtensionsLoggingPackageVersion>
-    <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>3.1.20-servicing.21459.11</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
+    <MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>3.1.20-servicing.21464.2</MicrosoftExtensionsNonCapturingTimerSourcesPackageVersion>
     <MicrosoftNETCoreAppRefPackageVersion>3.1.0</MicrosoftNETCoreAppRefPackageVersion>
     <MicrosoftNETCoreAppRuntimewinx64PackageVersion>3.1.19</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNETCoreAppInternalPackageVersion>3.1.19-servicing.21416.14</MicrosoftNETCoreAppInternalPackageVersion>
