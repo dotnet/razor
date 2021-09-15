@@ -278,9 +278,9 @@ using Microsoft.VisualStudio.Shell;
     </PropertyGroup>
   </Target>
 
-  <Target Name="_RemoveFrameworkReferenceAnalyzers" AfterTargets="ResolveTargetingPackAssets">
+  <Target Name="_RemoveFrameworkReferenceAnalyzers" AfterTargets="ResolvePackageAssets">
     <ItemGroup>
-      <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.FrameworkReferenceName)' != ''" />
+      <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(ResolvedAnalyzers.NuGetPackageId)' == 'System.Text.Json'" />
     </ItemGroup>
   </Target>
 </Project>
