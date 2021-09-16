@@ -40,6 +40,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 attribute.TypeName = typeof(int).FullName;
             });
 
+            var builder1WithRequiredParent = TagHelperDescriptorBuilder.Create("Test1TagHelper.SomeChild", "TestAssembly");
+            builder1WithRequiredParent.TagMatchingRule(rule =>
+            {
+                rule.TagName = "SomeChild";
+                rule.ParentTag = "test1";
+            });
+            builder1WithRequiredParent.SetTypeName("Test1TagHelper.SomeChild");
+
             var builder2 = TagHelperDescriptorBuilder.Create("Test2TagHelper", "TestAssembly");
             builder2.TagMatchingRule(rule => rule.TagName = "test2");
             builder2.SetTypeName("Test2TagHelper");
@@ -149,7 +157,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             directiveAttribute2.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
             directiveAttribute2.SetTypeName("TestDirectiveAttribute");
 
-            DefaultTagHelpers = new[] { builder1.Build(), builder2.Build(), builder3.Build(), directiveAttribute1.Build(), directiveAttribute2.Build() };
+            DefaultTagHelpers = new[]
+            {
+                builder1.Build(),
+                builder1WithRequiredParent.Build(),
+                builder2.Build(),
+                builder3.Build(),
+                directiveAttribute1.Build(),
+                directiveAttribute2.Build()
+            };
 
             HtmlFactsService = new DefaultHtmlFactsService();
             TagHelperFactsService = new DefaultTagHelperFactsService();

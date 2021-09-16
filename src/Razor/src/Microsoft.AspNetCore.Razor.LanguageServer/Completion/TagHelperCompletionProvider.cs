@@ -83,7 +83,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 }
 
                 var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
-                var elementCompletions = GetElementCompletions(parent, containingTagNameToken.Content, stringifiedAttributes, context.TagHelperDocumentContext);
+                var containingElement = parent.Parent;
+                var elementCompletions = GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context.TagHelperDocumentContext);
                 return elementCompletions;
             }
 
@@ -188,12 +189,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         private IReadOnlyList<RazorCompletionItem> GetElementCompletions(
-            SyntaxNode containingTag,
+            SyntaxNode containingElement,
             string containingTagName,
             IEnumerable<KeyValuePair<string, string>> attributes,
             TagHelperDocumentContext tagHelperDocumentContext)
         {
-            var ancestors = containingTag.Ancestors();
+            var ancestors = containingElement.Ancestors();
             var (ancestorTagName, ancestorIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
             var elementCompletionContext = new ElementCompletionContext(
                 tagHelperDocumentContext,
