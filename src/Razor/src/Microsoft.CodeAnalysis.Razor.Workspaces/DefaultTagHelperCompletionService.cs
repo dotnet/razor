@@ -178,7 +178,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             var catchAllDescriptors = new HashSet<TagHelperDescriptor>();
             var prefix = completionContext.DocumentContext.Prefix ?? string.Empty;
-            var possibleChildDescriptors = _tagHelperFactsService.GetTagHelpersGivenParent(completionContext.DocumentContext, completionContext.ContainingTagName);
+            var possibleChildDescriptors = _tagHelperFactsService.GetTagHelpersGivenParent(completionContext.DocumentContext, completionContext.ContainingParentTagName);
             possibleChildDescriptors = FilterFullyQualifiedCompletions(possibleChildDescriptors);
             foreach (var possibleDescriptor in possibleChildDescriptors)
             {
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                 foreach (var rule in possibleDescriptor.TagMatchingRules)
                 {
-                    if (!TagHelperMatchingConventions.SatisfiesParentTag(completionContext.ContainingTagName, rule))
+                    if (!TagHelperMatchingConventions.SatisfiesParentTag(completionContext.ContainingParentTagName, rule))
                     {
                         continue;
                     }
