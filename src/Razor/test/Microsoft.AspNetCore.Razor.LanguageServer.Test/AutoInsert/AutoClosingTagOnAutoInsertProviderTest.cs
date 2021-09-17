@@ -13,6 +13,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
     {
         private RazorLSPOptions Options { get; set; } = RazorLSPOptions.Default;
 
+        private static TagHelperDescriptor UnspecifiedInputMirroringTagHelper
+        {
+            get
+            {
+                var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+                descriptor.SetTypeName("TestNamespace.TestTagHelper");
+                descriptor.TagMatchingRule(builder => builder.RequireTagName("Input").RequireTagStructure(TagStructure.Unspecified));
+
+                return descriptor.Build();
+            }
+        }
+
         private static TagHelperDescriptor UnspecifiedTagHelper
         {
             get
@@ -71,6 +83,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
                 return descriptor.Build();
             }
+        }
+
+        [Fact]
+        public void OnTypeCloseAngle_VoidElementMirroringTagHelper()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+<Input>$$
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+<Input>$0</Input>
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { UnspecifiedInputMirroringTagHelper });
         }
 
         [Fact]
