@@ -184,6 +184,60 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
         }
 
         [Fact]
+        public void GetCompletionAt_InBody_ReturnsCompletions()
+        {
+            // Arrange
+            var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test2><</test2>", DefaultTagHelpers);
+            var sourceSpan = new SourceSpan(37 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
+
+            // Act
+            var completions = service.GetCompletionItems(context, sourceSpan);
+
+            // Assert
+            Assert.Collection(
+                completions,
+                completion =>
+                {
+                    Assert.Equal("test1", completion.InsertText);
+                },
+                completion =>
+                {
+                    Assert.Equal("test2", completion.InsertText);
+                });
+        }
+
+        [Fact]
+        public void GetCompletionAt_InBody_ParentRequiring_ReturnsCompletions()
+        {
+            // Arrange
+            var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test1><</test1>", DefaultTagHelpers);
+            var sourceSpan = new SourceSpan(37 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
+
+            // Act
+            var completions = service.GetCompletionItems(context, sourceSpan);
+
+            // Assert
+            Assert.Collection(
+                completions,
+                completion =>
+                {
+                    Assert.Equal("test1", completion.InsertText);
+                },
+                completion =>
+                {
+                    Assert.Equal("SomeChild", completion.InsertText);
+                },
+                completion =>
+                {
+                    Assert.Equal("test2", completion.InsertText);
+                });
+        }
+
+        [Fact]
         public void GetCompletionAt_AtAttributeEdge_BoolAttribute_ReturnsCompletionsWithout()
         {
             // Arrange

@@ -277,4 +277,10 @@ using Microsoft.VisualStudio.Shell;
       <InformationalVersion>$(VsixVersion)</InformationalVersion>
     </PropertyGroup>
   </Target>
+
+  <Target Name="_RemoveFrameworkReferenceAnalyzers" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(ResolvedAnalyzers.NuGetPackageId)' == 'System.Text.Json'" />
+    </ItemGroup>
+  </Target>
 </Project>
