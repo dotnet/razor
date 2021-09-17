@@ -466,7 +466,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
 
                 if (IsCSharpApplicable(metadata) ||
-                    metadata.ContentTypes.Contains(RazorLSPConstants.HtmlLSPContentTypeName))
+                    metadata.ContentTypes.Contains(RazorLSPConstants.HtmlLSPDelegationContentTypeName))
                 {
                     relevantLanguageClients.Add(languageClientAndMetadata.Value);
 

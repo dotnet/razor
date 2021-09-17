@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
     internal static class RazorLanguageKindExtensions
     {
         public static string ToContainedLanguageContentType(this RazorLanguageKind razorLanguageKind) =>
-            razorLanguageKind == RazorLanguageKind.CSharp ? RazorLSPConstants.CSharpContentTypeName : RazorLSPConstants.HtmlLSPContentTypeName;
+            razorLanguageKind == RazorLanguageKind.CSharp ? RazorLSPConstants.CSharpContentTypeName : RazorLSPConstants.HtmlLSPDelegationContentTypeName;
 
         public static string ToContainedLanguageServerName(this RazorLanguageKind razorLanguageKind)
         {

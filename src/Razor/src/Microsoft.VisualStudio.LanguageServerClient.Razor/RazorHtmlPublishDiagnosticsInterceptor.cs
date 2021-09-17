@@ -19,7 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(MessageInterceptor))]
     [InterceptMethod(Methods.TextDocumentPublishDiagnosticsName)]
-    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    [ContentType(RazorLSPConstants.HtmlLSPContentTypeName)]
+    [ContentType(RazorLSPConstants.CssLSPContentTypeName)]
+    [ContentType(RazorLSPConstants.TypeScriptLSPContentTypeName)]
     internal class RazorHtmlPublishDiagnosticsInterceptor : MessageInterceptor
     {
         private readonly LSPDocumentManager _documentManager;
@@ -79,13 +81,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw exception;
             }
 
-            _logger?.LogInformation($"Received HTML Publish diagnostic request for {diagnosticParams.Uri} with {diagnosticParams.Diagnostics.Length} diagnostics.");
-
             // We only support interception of Virtual HTML Files
             if (!RazorLSPConventions.IsVirtualHtmlFile(diagnosticParams.Uri))
             {
                 return CreateDefaultResponse(token);
             }
+
+            _logger?.LogInformation($"Received HTML Publish diagnostic request for {diagnosticParams.Uri} with {diagnosticParams.Diagnostics.Length} diagnostics.");
 
             var htmlDocumentUri = diagnosticParams.Uri;
             var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(htmlDocumentUri);

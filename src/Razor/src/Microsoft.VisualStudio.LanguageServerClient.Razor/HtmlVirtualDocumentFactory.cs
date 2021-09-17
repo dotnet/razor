@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 if (s_htmlLSPContentType == null)
                 {
-                    s_htmlLSPContentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPContentTypeName);
+                    s_htmlLSPContentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPDelegationContentTypeName);
                 }
 
                 return s_htmlLSPContentType;
