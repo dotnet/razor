@@ -664,6 +664,64 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         }
 
         [Fact]
+        public async Task Handle_ProcessDiagnostics_Html_TagHelperStartTag()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
+            var codeDocument = CreateCodeDocument(
+                $"{addTagHelper}<button></button>",
+                new[]
+                {
+                    GetButtonTagHelperDescriptor().Build()
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(1, 1), new Position(1, 7)) } },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(response.Diagnostics);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
+        public async Task Handle_ProcessDiagnostics_Html_TagHelperEndTag()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var addTagHelper = $"@addTagHelper *, TestAssembly{Environment.NewLine}";
+            var codeDocument = CreateCodeDocument(
+                $"{addTagHelper}<button></button>",
+                new[]
+                {
+                    GetButtonTagHelperDescriptor().Build()
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(1, 10), new Position(1, 17)) } },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(response.Diagnostics);
+            Assert.Equal(1337, response.HostDocumentVersion);
+        }
+
+        [Fact]
         public async Task Handle_ProcessDiagnostics_Html_WithCSharpInAttribute_SingleDiagnostic()
         {
             // Arrange

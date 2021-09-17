@@ -172,10 +172,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var filteredDiagnostics = unmappedDiagnostics
                 .Where(d =>
                     !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes) &&
+                    !AppliesToTagHelperTagName(d, sourceText, syntaxTree) &&
                     !ShouldFilterHtmlDiagnosticBasedOnErrorCode(d, sourceText, syntaxTree))
                 .ToArray();
 
             return filteredDiagnostics;
+        }
+
+        private static bool AppliesToTagHelperTagName(OmniSharpVSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
+        {
+            // Goal of this method is to filter diagnostics that touch TagHelper tag names. Reason being is TagHelpers can output anything. Meaning
+            // If you have a TagHelper like:
+            //
+            // <Input>
+            // </Input>
+            //
+            // HTML would see this as an error because the input element can't have a body; however, a TagHelper could respect this in a totally valid
+            // way.
+
+            if (diagnostic.Range is null)
+            {
+                return false;
+            }
+
+            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.End);
+
+            var startOrEndTag = owner.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is MarkupTagHelperStartTagSyntax || n is MarkupTagHelperEndTagSyntax);
+            if (startOrEndTag == null)
+            {
+                return false;
+            }
+
+            var tagName = startOrEndTag is MarkupTagHelperStartTagSyntax startTag ? startTag.Name : ((MarkupTagHelperEndTagSyntax)startOrEndTag).Name;
+            var tagNameRange = tagName.GetRange(syntaxTree.Source);
+
+            if (!tagNameRange.IntersectsOrTouches(diagnostic.Range))
+            {
+                // The diagnostic doesn't touch the tag name
+                return false;
+            }
+
+            // Diagnostic is touching the start or end tag name range
+            return true;
         }
 
 #nullable enable
