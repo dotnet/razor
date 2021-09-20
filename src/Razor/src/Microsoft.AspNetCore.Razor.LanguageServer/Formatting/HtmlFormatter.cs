@@ -8,8 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -38,7 +38,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public async Task<TextEdit[]> FormatAsync(
             FormattingContext context,
-            Range rangeToFormat,
             CancellationToken cancellationToken)
         {
             if (context is null)
@@ -46,15 +45,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (rangeToFormat is null)
-            {
-                throw new ArgumentNullException(nameof(rangeToFormat));
-            }
+            var text = context.SourceText;
+            var range = TextSpan.FromBounds(0, text.Length).AsRange(text);
 
             var @params = new RazorDocumentRangeFormattingParams()
             {
                 Kind = RazorLanguageKind.Html,
-                ProjectedRange = rangeToFormat,
+                ProjectedRange = range,
                 HostDocumentFilePath = _filePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()),
                 Options = context.Options
             };
