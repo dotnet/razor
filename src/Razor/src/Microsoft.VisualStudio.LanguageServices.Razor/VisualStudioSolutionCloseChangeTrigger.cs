@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     [Export(typeof(ProjectSnapshotChangeTrigger))]
     [System.Composition.Shared]
-    internal class VisualStudioSolutionCloseChangeTrigger : ProjectSnapshotChangeTrigger, IVsSolutionEvents, IDisposable
+    internal class VisualStudioSolutionCloseChangeTrigger : ProjectSnapshotChangeTrigger, IVsSolutionEvents3, IDisposable
     {
         private IVsSolution? _solution;
         private readonly IServiceProvider _serviceProvider;
@@ -54,6 +54,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             _solution?.UnadviseSolutionEvents(_cookie);
         }
 
+        public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+        {
+            _projectSnapshotManager?.SolutionOpened();
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeCloseSolution(object pUnkReserved)
+        {
+            _projectSnapshotManager?.SolutionClosed();
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterCloseSolution(object pUnkReserved)
+        {
+            _projectSnapshotManager?.SolutionOpened();
+            return VSConstants.S_OK;
+        }
+
+        #region Events we're not interested in
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
         {
             return HResult.NotImplemented;
@@ -84,27 +103,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             return HResult.NotImplemented;
         }
 
-        public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
-        {
-            _projectSnapshotManager?.SolutionOpened();
-            return VSConstants.S_OK;
-        }
-
         public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
         {
             return HResult.NotImplemented;
         }
 
-        public int OnBeforeCloseSolution(object pUnkReserved)
+        public int OnAfterMergeSolution(object pUnkReserved)
         {
-            _projectSnapshotManager?.SolutionClosed();
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterCloseSolution(object pUnkReserved)
-        {
-            _projectSnapshotManager?.SolutionOpened();
             return HResult.NotImplemented;
         }
+
+        public int OnBeforeOpeningChildren(IVsHierarchy pHierarchy)
+        {
+            return HResult.NotImplemented;
+        }
+
+        public int OnAfterOpeningChildren(IVsHierarchy pHierarchy)
+        {
+            return HResult.NotImplemented;
+        }
+
+        public int OnBeforeClosingChildren(IVsHierarchy pHierarchy)
+        {
+            return HResult.NotImplemented;
+        }
+
+        public int OnAfterClosingChildren(IVsHierarchy pHierarchy)
+        {
+            return HResult.NotImplemented;
+        }
+
+        #endregion
     }
 }
