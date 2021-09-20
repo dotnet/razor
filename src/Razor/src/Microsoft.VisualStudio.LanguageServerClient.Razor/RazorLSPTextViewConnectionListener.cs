@@ -218,11 +218,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return;
             }
 
-            // Retrieve current space/tabs settings from from Tools->Options.
-            var settings = GetRazorEditorOptions(_textManager);
-
-            // Update settings in the actual editor.
-            UpdateEditorSettings(optionsTracker, settings);
+            // Retrieve current space/tabs settings from from Tools->Options and update options in
+            // the actual editor.
+            var settings = UpdateRazorEditorOptions(_textManager, optionsTracker);
 
             // Keep track of accurate settings on the client side so we can easily retrieve the
             // options later when the server sends us a workspace/configuration request.
@@ -242,40 +240,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 CancellationToken.None);
         }
 
-        private static void UpdateEditorSettings(RazorEditorOptionsTracker optionsTracker, EditorSettings settings)
-        {
-            // General
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.UseVirtualSpaceName, settings.UseVirtualSpace);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.WordWrapStyleName, settings.WordWrapStyle);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.LineNumberMarginName, settings.ShowLineNumbers);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.DisplayUrlsAsHyperlinksName, settings.DisplayUrlsAsHyperlinks);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.BraceCompletionEnabledOptionName, settings.BraceCompletionEnabled);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.CutOrCopyBlankLineIfNoSelectionName, settings.CutOrCopyBlankLineIfNoSelection);
-
-            // Scroll Bars
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarName, settings.ShowHorizontalScrollBar);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.VerticalScrollBarName, settings.ShowVerticalScrollBar);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowScrollBarAnnotationsOptionName, settings.ShowScrollBarAnnotations);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowChangeTrackingMarginOptionName, settings.ShowScrollBarChanges); //to-do: confirm correct option
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowMarksOptionName, settings.ShowScrollBarMarks);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowErrorsOptionName, settings.ShowScrollBarErrors);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowCaretPositionOptionName, settings.ShowScrollBarCaretPosition);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.InsertModeMarginOptionName, settings.InsertModeMargin);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowEnhancedScrollBarOptionName, settings.ShowEnchancedScrollBar); // to-do: confirm
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowPreviewOptionName, settings.ShowPreviewOption);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.PreviewSizeOptionName, settings.PreviewSize);
-
-            // Tabs
-            optionsTracker.ViewOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !settings.IndentWithTabs);
-            optionsTracker.ViewOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, settings.IndentSize);
-
-            // We need to update both the TextView and TextBuffer options for tabs/spaces settings. Updating the TextView
-            // is necessary so 'SPC'/'TABS' in the bottom right corner of the view displays the right setting. Updating the
-            // TextBuffer is necessary since it's where LSP pulls settings from when sending us requests.
-            optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !settings.IndentWithTabs);
-            optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, settings.IndentSize); ;
-        }
-
         private static bool CheckRazorServerCapability(JToken token)
         {
             // We're talking cross-language servers here. Given the workspace/didChangeConfiguration is a normal LSP message this will only fail
@@ -286,25 +250,60 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return isRazorLanguageServer;
         }
 
-        private static EditorSettings GetRazorEditorOptions(IVsTextManager4 textManager)
+        private static EditorSettings UpdateRazorEditorOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
         {
             var insertSpaces = RazorLSPOptions.Default.InsertSpaces;
             var tabSize = RazorLSPOptions.Default.TabSize;
-            var showLineNumbers = RazorLSPOptions.Default.ShowLineNumbers;
-            var showHorizontalScrollBar = RazorLSPOptions.Default.ShowHorizontalScrollBar;
-            var showVerticalScrollBar = RazorLSPOptions.Default.ShowVerticalScrollBar;
 
             var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorLSPConstants.RazorLanguageServiceGuid } };;
             if (VSConstants.S_OK == textManager.GetUserPreferences4(null, langPrefs3, null))
             {
-                insertSpaces = langPrefs3[0].fInsertTabs == 0;
+                // General options
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.UseVirtualSpaceName, Convert.ToBoolean(langPrefs3[0].fVirtualSpace));
+
+                var wordWrapStyle = WordWrapStyles.None;
+                if (Convert.ToBoolean(langPrefs3[0].fWordWrap))
+                {
+                    wordWrapStyle |= WordWrapStyles.WordWrap;
+                    if (Convert.ToBoolean(langPrefs3[0].fWordWrapGlyphs))
+                    {
+                        wordWrapStyle |= WordWrapStyles.VisibleGlyphs;
+                    }
+                }
+
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.WordWrapStyleName, wordWrapStyle);
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.LineNumberMarginName, Convert.ToBoolean(langPrefs3[0].fLineNumbers));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.DisplayUrlsAsHyperlinksName, Convert.ToBoolean(langPrefs3[0].fHotURLs));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.BraceCompletionEnabledOptionName, Convert.ToBoolean(langPrefs3[0].fBraceCompletion));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewOptions.CutOrCopyBlankLineIfNoSelectionName, Convert.ToBoolean(langPrefs3[0].fCutCopyBlanks));
+
+                // Scroll bar options
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarName, Convert.ToBoolean(langPrefs3[0].fShowHorizontalScrollBar));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.VerticalScrollBarName, Convert.ToBoolean(langPrefs3[0].fShowVerticalScrollBar));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowScrollBarAnnotationsOptionName, Convert.ToBoolean(langPrefs3[0].fShowAnnotations));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowChangeTrackingMarginOptionName, Convert.ToBoolean(langPrefs3[0].fShowChanges));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowMarksOptionName, Convert.ToBoolean(langPrefs3[0].fShowMarks));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowErrorsOptionName, Convert.ToBoolean(langPrefs3[0].fShowErrors));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowCaretPositionOptionName, Convert.ToBoolean(langPrefs3[0].fShowCaretPosition));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowEnhancedScrollBarOptionName, Convert.ToBoolean(langPrefs3[0].fUseMapMode));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowPreviewOptionName, Convert.ToBoolean(langPrefs3[0].fShowPreview));
+                optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.PreviewSizeOptionName, (int)langPrefs3[0].uOverviewWidth);
+
+                // Tabs options
+                insertSpaces = !Convert.ToBoolean(langPrefs3[0].fInsertTabs);
                 tabSize = (int)langPrefs3[0].uTabSize;
-                showLineNumbers = langPrefs3[0].fLineNumbers == 1;
-                showHorizontalScrollBar = langPrefs3[0].fShowHorizontalScrollBar == 1;
-                showVerticalScrollBar = langPrefs3[0].fShowVerticalScrollBar == 1;
+
+                optionsTracker.ViewOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
+                optionsTracker.ViewOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize);
+
+                // We need to update both the TextView and TextBuffer options for tabs/spaces settings. Updating the TextView
+                // is necessary so 'SPC'/'TABS' in the bottom right corner of the view displays the right setting. Updating the
+                // TextBuffer is necessary since it's where LSP pulls settings from when sending us requests.
+                optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
+                optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize);
             }
 
-            return new EditorSettings(indentWithTabs: !insertSpaces, tabSize, showLineNumbers: showLineNumbers, showHorizontalScrollBar, showVerticalScrollBar);
+            return new EditorSettings(indentWithTabs: !insertSpaces, tabSize);
         }
 
         private class RazorLSPTextViewFilter : IOleCommandTarget, IVsTextViewFilter

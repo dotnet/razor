@@ -87,10 +87,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal RazorLSPOptions BuildOptions(JObject[] result)
         {
             ExtractVSCodeOptions(result, out var trace, out var enableFormatting, out var autoClosingTags);
-            ExtractVSOptions(result, out var insertSpaces, out var tabSize, out var lineNumbers, out var horizontalScrollBar, out var verticalScrollBar);
+            ExtractVSOptions(result, out var insertSpaces, out var tabSize);
 
-            return new RazorLSPOptions(
-                trace, enableFormatting, autoClosingTags, insertSpaces, tabSize, lineNumbers, horizontalScrollBar, verticalScrollBar);
+            return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, insertSpaces, tabSize);
         }
 
         private void ExtractVSCodeOptions(
@@ -135,18 +134,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private void ExtractVSOptions(
             JObject[] result,
             out bool insertSpaces,
-            out int tabSize,
-            out bool lineNumbers,
-            out bool horizontalScrollBar,
-            out bool verticalScrollBar)
+            out int tabSize)
         {
             var vsEditor = result[2];
 
             insertSpaces = RazorLSPOptions.Default.InsertSpaces;
             tabSize = RazorLSPOptions.Default.TabSize;
-            lineNumbers = RazorLSPOptions.Default.ShowLineNumbers;
-            horizontalScrollBar = RazorLSPOptions.Default.ShowHorizontalScrollBar;
-            verticalScrollBar = RazorLSPOptions.Default.ShowVerticalScrollBar;
 
             if (vsEditor == null)
             {
@@ -161,21 +154,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (vsEditor.TryGetValue(nameof(EditorSettings.IndentSize), out var parsedTabSize))
             {
                 tabSize = GetObjectOrDefault(parsedTabSize, tabSize);
-            }
-
-            if (vsEditor.TryGetValue(nameof(EditorSettings.ShowLineNumbers), out var parsedLineNumbers))
-            {
-                lineNumbers = GetObjectOrDefault(parsedLineNumbers, lineNumbers);
-            }
-
-            if (vsEditor.TryGetValue(nameof(EditorSettings.ShowHorizontalScrollBar), out var parsedHorizontalScrollBar))
-            {
-                horizontalScrollBar = GetObjectOrDefault(parsedHorizontalScrollBar, horizontalScrollBar);
-            }
-
-            if (vsEditor.TryGetValue(nameof(EditorSettings.ShowVerticalScrollBar), out var parsedVerticalScrollBar))
-            {
-                verticalScrollBar = GetObjectOrDefault(parsedVerticalScrollBar, verticalScrollBar);
             }
         }
 

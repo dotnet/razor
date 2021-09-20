@@ -487,7 +487,7 @@ expected: @"
         public void OnTypeCloseAngle_AutoInsertDisabled_Noops()
         {
             Options = new RazorLSPOptions(
-                Trace.Off, enableFormatting: true, autoClosingTags: false, insertSpaces: true, tabSize: 4, lineNumbers: true);
+                Trace.Off, enableFormatting: true, autoClosingTags: false, insertSpaces: true, tabSize: 4);
             RunAutoInsertTest(
 input: @"
     <div>$$
