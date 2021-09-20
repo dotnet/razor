@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
                 _disposed = true;
                 _timer?.Dispose();
+                _timer = null;
                 _work.Clear();
                 _disposalCts.Cancel();
                 _disposalCts.Dispose();
@@ -127,8 +128,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         {
             try
             {
-                // Timer is stopped.
-                _timer!.Change(Timeout.Infinite, Timeout.Infinite);
+                _timer?.Change(Timeout.Infinite, Timeout.Infinite);
 
                 OnStartingBackgroundWork();
 
@@ -148,6 +148,10 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                     {
                         await workItem.ProcessAsync(_disposalCts.Token).ConfigureAwait(false);
                     }
+                    catch (OperationCanceledException) when (_disposalCts.IsCancellationRequested)
+                    {
+                        // Expected shutdown case, lets not log an error.
+                    }
                     catch (Exception ex)
                     {
                         // Work item failed to process, allow the other process events to continue.
@@ -160,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 lock (_work)
                 {
                     // Resetting the timer allows another batch of work to start.
-                    _timer.Dispose();
+                    _timer?.Dispose();
                     _timer = null;
 
                     // If more work came in while we were running start the worker again if we're still alive
@@ -182,15 +186,15 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         private void OnStartingBackgroundWork()
         {
+            if (NotifyBackgroundWorkStarting != null)
+            {
+                NotifyBackgroundWorkStarting.Set();
+            }
+
             if (BlockBackgroundWorkStart != null)
             {
                 BlockBackgroundWorkStart.Wait();
                 BlockBackgroundWorkStart.Reset();
-            }
-
-            if (NotifyBackgroundWorkStarting != null)
-            {
-                NotifyBackgroundWorkStarting.Set();
             }
         }
 
