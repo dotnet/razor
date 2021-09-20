@@ -9,12 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorLSPOptions : IEquatable<RazorLSPOptions>
     {
-        public RazorLSPOptions(
-            Trace trace,
-            bool enableFormatting,
-            bool autoClosingTags,
-            bool insertSpaces,
-            int tabSize)
+        public RazorLSPOptions(Trace trace, bool enableFormatting, bool autoClosingTags, bool insertSpaces, int tabSize)
         {
             Trace = trace;
             EnableFormatting = enableFormatting;
@@ -24,11 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         public static RazorLSPOptions Default =>
-            new(trace: default,
-                enableFormatting: true,
-                autoClosingTags: true,
-                insertSpaces: true,
-                tabSize: 4);
+            new(trace: default, enableFormatting: true, autoClosingTags: true, insertSpaces: true, tabSize: 4);
 
         public Trace Trace { get; }
 
