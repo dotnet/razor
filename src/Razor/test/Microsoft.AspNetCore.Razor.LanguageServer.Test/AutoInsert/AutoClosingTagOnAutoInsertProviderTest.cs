@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.Options;
@@ -86,6 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36568")]
         public void OnTypeCloseAngle_VoidElementMirroringTagHelper()
         {
             RunAutoInsertTest(
@@ -101,6 +103,17 @@ expected: @"
 ",
 fileKind: FileKinds.Legacy,
 tagHelpers: new[] { UnspecifiedInputMirroringTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36568")]
+        public void OnTypeCloseAngle_VoidHtmlElementCapitalized_SelfCloses()
+        {
+            RunAutoInsertTest(
+input: "<Input>$$",
+expected: "<Input />",
+fileKind: FileKinds.Legacy,
+tagHelpers: Array.Empty<TagHelperDescriptor>());
         }
 
         [Fact]
