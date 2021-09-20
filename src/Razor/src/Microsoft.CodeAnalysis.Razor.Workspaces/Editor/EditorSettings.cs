@@ -8,9 +8,14 @@ namespace Microsoft.CodeAnalysis.Razor.Editor
 {
     public sealed class EditorSettings : IEquatable<EditorSettings>
     {
-        public static readonly EditorSettings Default = new EditorSettings(indentWithTabs: false, indentSize: 4);
+        public static readonly EditorSettings Default = new(
+            indentWithTabs: false,
+            indentSize: 4,
+            showLineNumbers: true,
+            showHorizontalScrollBar: true,
+            showVerticalScrollBar: true);
 
-        public EditorSettings(bool indentWithTabs, int indentSize)
+        public EditorSettings(bool indentWithTabs, int indentSize, bool showLineNumbers, bool showHorizontalScrollBar, bool showVerticalScrollBar)
         {
             if (indentSize < 0)
             {
@@ -19,11 +24,20 @@ namespace Microsoft.CodeAnalysis.Razor.Editor
 
             IndentWithTabs = indentWithTabs;
             IndentSize = indentSize;
+            ShowLineNumbers = showLineNumbers;
+            ShowHorizontalScrollBar = showHorizontalScrollBar;
+            ShowVerticalScrollBar = showVerticalScrollBar;
         }
 
         public bool IndentWithTabs { get; }
 
         public int IndentSize { get; }
+
+        public bool ShowLineNumbers { get; }
+
+        public bool ShowHorizontalScrollBar { get; }
+
+        public bool ShowVerticalScrollBar { get; }
 
         public bool Equals(EditorSettings other)
         {
@@ -33,7 +47,10 @@ namespace Microsoft.CodeAnalysis.Razor.Editor
             }
 
             return IndentWithTabs == other.IndentWithTabs &&
-                IndentSize == other.IndentSize;
+                IndentSize == other.IndentSize &&
+                ShowLineNumbers == other.ShowLineNumbers &&
+                ShowHorizontalScrollBar == other.ShowHorizontalScrollBar &&
+                ShowVerticalScrollBar == other.ShowVerticalScrollBar;
         }
 
         public override bool Equals(object other)
@@ -46,6 +63,9 @@ namespace Microsoft.CodeAnalysis.Razor.Editor
             var combiner = HashCodeCombiner.Start();
             combiner.Add(IndentWithTabs);
             combiner.Add(IndentSize);
+            combiner.Add(ShowLineNumbers);
+            combiner.Add(ShowHorizontalScrollBar);
+            combiner.Add(ShowVerticalScrollBar);
 
             return combiner.CombinedHash;
         }

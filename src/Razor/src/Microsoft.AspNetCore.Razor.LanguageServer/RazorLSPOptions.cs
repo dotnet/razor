@@ -9,17 +9,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RazorLSPOptions : IEquatable<RazorLSPOptions>
     {
-        public RazorLSPOptions(Trace trace, bool enableFormatting, bool autoClosingTags, bool insertSpaces, int tabSize)
+        public RazorLSPOptions(
+            Trace trace,
+            bool enableFormatting,
+            bool autoClosingTags,
+            bool insertSpaces,
+            int tabSize,
+            bool showLineNumbers,
+            bool showHorizontalScrollBar,
+            bool showVerticalScrollBar)
         {
             Trace = trace;
             EnableFormatting = enableFormatting;
             AutoClosingTags = autoClosingTags;
             TabSize = tabSize;
             InsertSpaces = insertSpaces;
+            ShowLineNumbers = showLineNumbers;
+            ShowHorizontalScrollBar = showHorizontalScrollBar;
+            ShowVerticalScrollBar = showVerticalScrollBar;
         }
 
         public static RazorLSPOptions Default =>
-            new RazorLSPOptions(trace: default, enableFormatting: true, autoClosingTags: true, insertSpaces: true, tabSize: 4);
+            new(trace: default,
+                enableFormatting: true,
+                autoClosingTags: true,
+                insertSpaces: true,
+                tabSize: 4,
+                showLineNumbers: true,
+                showHorizontalScrollBar: true,
+                showVerticalScrollBar: true);
 
         public Trace Trace { get; }
 
@@ -32,6 +50,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public int TabSize { get; }
 
         public bool InsertSpaces { get; }
+
+        public bool ShowLineNumbers { get; }
+
+        public bool ShowHorizontalScrollBar { get; }
+
+        public bool ShowVerticalScrollBar { get; }
 
         public static LogLevel GetLogLevelForTrace(Trace trace)
         {
@@ -52,7 +76,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 EnableFormatting == other.EnableFormatting &&
                 AutoClosingTags == other.AutoClosingTags &&
                 InsertSpaces == other.InsertSpaces &&
-                TabSize == other.TabSize;
+                TabSize == other.TabSize &&
+                ShowLineNumbers == other.ShowLineNumbers &&
+                ShowHorizontalScrollBar == other.ShowHorizontalScrollBar &&
+                ShowVerticalScrollBar == other.ShowVerticalScrollBar;
         }
 
         public override bool Equals(object obj)
@@ -68,6 +95,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             hash.Add(AutoClosingTags);
             hash.Add(InsertSpaces);
             hash.Add(TabSize);
+            hash.Add(ShowLineNumbers);
+            hash.Add(ShowHorizontalScrollBar);
+            hash.Add(ShowVerticalScrollBar);
             return hash;
         }
     }
