@@ -94,6 +94,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
+        // internal for testing
+        internal bool IsSolutionClosing => _solutionIsClosing;
+
         public override IReadOnlyList<ProjectSnapshot> Projects
         {
             get

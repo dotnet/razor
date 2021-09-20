@@ -771,6 +771,52 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         [UIFact]
+        public async Task OnProjectChanged_UpdateProject_MarksSolutionOpen()
+        {
+            // Arrange
+            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorLangVersionProperty, "2.1");
+            RazorGeneralProperties.Property(Rules.RazorGeneral.RazorDefaultConfigurationProperty, "MVC-2.1");
+
+            ConfigurationItems.Item("MVC-2.1");
+            ConfigurationItems.Property("MVC-2.1", Rules.RazorConfiguration.ExtensionsProperty, "MVC-2.1;Another-Thing");
+
+            ExtensionItems.Item("MVC-2.1");
+            ExtensionItems.Item("Another-Thing");
+
+            RazorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath));
+            RazorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentFile1.TargetPath);
+
+            RazorComponentWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath));
+            RazorComponentWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectComponentImportFile1.FilePath), Rules.RazorComponentWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectComponentImportFile1.TargetPath);
+
+            RazorGenerateWithTargetPathItems.Item(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath));
+            RazorGenerateWithTargetPathItems.Property(Path.GetFileName(TestProjectData.SomeProjectFile1.FilePath), Rules.RazorGenerateWithTargetPath.TargetPathProperty, TestProjectData.SomeProjectFile1.TargetPath);
+
+            var changes = new TestProjectChangeDescription[]
+            {
+                 RazorGeneralProperties.ToChange(),
+                 ConfigurationItems.ToChange(),
+                 ExtensionItems.ToChange(),
+                 RazorComponentWithTargetPathItems.ToChange(),
+                 RazorGenerateWithTargetPathItems.ToChange(),
+            };
+
+            var services = new TestProjectSystemServices(TestProjectData.SomeProject.FilePath);
+            var host = new DefaultRazorProjectHost(services, Workspace, Dispatcher, ProjectConfigurationFilePathStore, ProjectManager);
+
+            await Task.Run(async () => await host.LoadAsync());
+            Assert.Empty(ProjectManager.Projects);
+
+            // Act - 1
+            ProjectManager.SolutionClosed();
+
+            await Task.Run(async () => await host.OnProjectChangedAsync(services.CreateUpdate(changes)));
+
+            // Assert - 1
+            Assert.False(ProjectManager.IsSolutionClosing);
+        }
+
+        [UIFact]
         public async Task OnProjectChanged_UpdateProject_Succeeds()
         {
             // Arrange
