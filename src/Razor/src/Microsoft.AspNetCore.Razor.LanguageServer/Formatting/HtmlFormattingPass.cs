@@ -57,7 +57,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var originalText = context.SourceText;
 
-            var htmlEdits = await HtmlFormatter.FormatAsync(context, context.Range, cancellationToken);
+            var range = TextSpan.FromBounds(0, originalText.Length).AsRange(originalText);
+            var htmlEdits = await HtmlFormatter.FormatAsync(context, range, cancellationToken);
             var normalizedEdits = NormalizeTextEdits(originalText, htmlEdits);
             var mappedEdits = RemapTextEdits(context.CodeDocument, normalizedEdits, RazorLanguageKind.Html);
             var changes = mappedEdits.Select(e => e.AsTextChange(originalText));
