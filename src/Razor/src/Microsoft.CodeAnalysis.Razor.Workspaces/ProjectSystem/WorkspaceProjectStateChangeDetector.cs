@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigger, IDisposable
     {
         private static readonly TimeSpan s_batchingDelay = TimeSpan.FromSeconds(1);
-        private readonly object _disposeLock = new();
+        private readonly object _disposedLock = new();
+        private readonly object _workQueueAccessLock = new();
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private BatchingWorkQueue? _workQueue;
@@ -75,30 +76,38 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
-            lock (_disposeLock)
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(nameof(WorkspaceProjectStateChangeDetector));
-                }
-
-                // Can be non-null only in tests
-                if (_workQueue == null)
-                {
-                    var errorReporter = projectManager.Workspace.Services.GetRequiredService<ErrorReporter>();
-                    _workQueue = new BatchingWorkQueue(
-                       s_batchingDelay,
-                       FilePathComparer.Instance,
-                       errorReporter);
-                }
-            }
-
             _projectManager = projectManager;
+
+            EnsureWorkQueue();
+
             _projectManager.Changed += ProjectManager_Changed;
             _projectManager.Workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
 
             // This will usually no-op, in the case that another project snapshot change trigger immediately adds projects we want to be able to handle those projects
             InitializeSolution(_projectManager.Workspace.CurrentSolution);
+        }
+
+        private void EnsureWorkQueue()
+        {
+            lock (_disposedLock)
+            {
+                lock (_workQueueAccessLock)
+                {
+                    if (_projectManager == null || _disposed)
+                    {
+                        return;
+                    }
+
+                    if (_workQueue == null)
+                    {
+                        var errorReporter = _projectManager.Workspace.Services.GetRequiredService<ErrorReporter>();
+                        _workQueue = new BatchingWorkQueue(
+                           s_batchingDelay,
+                           FilePathComparer.Instance,
+                           errorReporter);
+                    }
+                }
+            }
         }
 
         // Internal for testing, virtual for temporary VSCode workaround
@@ -358,6 +367,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Don't do any work if the solution is closing. Any work in the queue will be cancelled on disposal
             if (args.SolutionIsClosing)
             {
+                ClearWorkQueue();
                 return;
             }
 
@@ -410,10 +420,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         private void EnqueueUpdate(Project? project, ProjectSnapshot projectSnapshot)
         {
             var workItem = new UpdateWorkspaceWorkItem(project, projectSnapshot, _workspaceStateGenerator, _projectSnapshotManagerDispatcher);
-            lock (_disposeLock)
-            {
-                _workQueue?.Enqueue(projectSnapshot.FilePath, workItem);
-            }
+
+            EnsureWorkQueue();
+
+            _workQueue?.Enqueue(projectSnapshot.FilePath, workItem);
         }
 
         // TODO: [NotNullWhen] here when we move to netstandard2.1
@@ -431,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public void Dispose()
         {
-            lock (_disposeLock)
+            lock (_disposedLock)
             {
                 if (_disposed)
                 {
@@ -439,6 +449,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
 
                 _disposed = true;
+                ClearWorkQueue();
+            }
+        }
+
+        private void ClearWorkQueue()
+        {
+            lock (_workQueueAccessLock)
+            {
                 _workQueue?.Dispose();
                 _workQueue = null;
             }

@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -17,14 +18,17 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     [Export(typeof(ProjectSnapshotChangeTrigger))]
-    internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : ProjectSnapshotChangeTrigger, IVsUpdateSolutionEvents2
+    internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : ProjectSnapshotChangeTrigger, IVsUpdateSolutionEvents2, IDisposable
     {
         private readonly IServiceProvider _services;
         private readonly TextBufferProjectService _projectService;
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private ProjectSnapshotManagerBase _projectManager;
         private readonly JoinableTaskContext _joinableTaskContext;
+        private ProjectSnapshotManagerBase _projectManager;
+        private CancellationTokenSource _activeSolutionCancellationTokenSource;
+        private uint _updateCookie;
+        private IVsSolutionBuildManager _solutionBuildManager;
 
         [ImportingConstructor]
         public VsSolutionUpdatesProjectSnapshotChangeTrigger(
@@ -64,11 +68,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             _workspaceStateGenerator = workspaceStateGenerator;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _joinableTaskContext = joinableTaskContext;
+            _activeSolutionCancellationTokenSource = new CancellationTokenSource();
         }
+
+        internal Task CurrentUpdateTaskForTests { get; private set; }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
             _projectManager = projectManager;
+            _projectManager.Changed += ProjectManager_Changed;
 
             _ = _joinableTaskContext.Factory.RunAsync(async () =>
             {
@@ -77,49 +85,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 // Attach the event sink to solution update events.
                 if (_services.GetService(typeof(SVsSolutionBuildManager)) is IVsSolutionBuildManager solutionBuildManager)
                 {
+                    _solutionBuildManager = solutionBuildManager;
+
                     // We expect this to be called only once. So we don't need to Unadvise.
-                    var hr = solutionBuildManager.AdviseUpdateSolutionEvents(this, out _);
+                    var hr = _solutionBuildManager.AdviseUpdateSolutionEvents(this, out _updateCookie);
                     Marshal.ThrowExceptionForHR(hr);
                 }
             });
         }
 
-        public int UpdateSolution_Begin(ref int pfCancelUpdate)
-        {
-            return VSConstants.S_OK;
-        }
+        public int UpdateSolution_Begin(ref int pfCancelUpdate) => VSConstants.S_OK;
 
-        public int UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
-        {
-            return VSConstants.S_OK;
-        }
+        public int UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand) => VSConstants.S_OK;
 
-        public int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
-        {
-            return VSConstants.S_OK;
-        }
+        public int UpdateSolution_StartUpdate(ref int pfCancelUpdate) => VSConstants.S_OK;
 
-        public int UpdateSolution_Cancel()
-        {
-            return VSConstants.S_OK;
-        }
+        public int UpdateSolution_Cancel() => VSConstants.S_OK;
 
-        public int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
-        {
-            return VSConstants.S_OK;
-        }
+        public int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy) => VSConstants.S_OK;
 
-        public int UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
-        {
-            return VSConstants.S_OK;
-        }
+        public int UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel) => VSConstants.S_OK;
 
         // This gets called when the project has finished building.
         public int UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
         {
-            _ = OnProjectBuiltAsync(pHierProj, CancellationToken.None);
+            Debug.Assert(_activeSolutionCancellationTokenSource != null, "We should not get build events when there is no active solution");
+
+            CurrentUpdateTaskForTests = OnProjectBuiltAsync(pHierProj, _activeSolutionCancellationTokenSource?.Token ?? CancellationToken.None);
 
             return VSConstants.S_OK;
+        }
+
+        public void Dispose()
+        {
+            _solutionBuildManager?.UnadviseUpdateSolutionEvents(_updateCookie);
+            _activeSolutionCancellationTokenSource?.Cancel();
+            _activeSolutionCancellationTokenSource?.Dispose();
+            _activeSolutionCancellationTokenSource = null;
+        }
+
+        private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
+        {
+            if (args.SolutionIsClosing)
+            {
+                _activeSolutionCancellationTokenSource?.Cancel();
+                _activeSolutionCancellationTokenSource?.Dispose();
+                _activeSolutionCancellationTokenSource = null;
+            }
+            else if (_activeSolutionCancellationTokenSource == null)
+            {
+                _activeSolutionCancellationTokenSource = new CancellationTokenSource();
+            }
         }
 
         // Internal for testing

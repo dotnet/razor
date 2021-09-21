@@ -140,6 +140,41 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public DocumentId PartialComponentClassDocumentId { get; }
 
+        [UIFact]
+        public async Task SolutionClosing_StopsActiveWork()
+        {
+            // Arrange
+            var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
+            var detector = new WorkspaceProjectStateChangeDetector(workspaceStateGenerator, Dispatcher, WorkQueue);
+            WorkQueueTestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
+            WorkQueueTestAccessor.NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false);
+
+            Workspace.TryApplyChanges(SolutionWithTwoProjects);
+            var projectManager = new TestProjectSnapshotManager(Dispatcher, new[] { detector }, Workspace);
+            await Dispatcher.RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(HostProjectOne), CancellationToken.None).ConfigureAwait(false);
+            workspaceStateGenerator.ClearQueue();
+            WorkQueueTestAccessor.NotifyBackgroundWorkStarting.Wait();
+
+            // Act
+            await Dispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                projectManager.SolutionClosed();
+
+                // Trigger a project removed event while solution is closing to clear state.
+                projectManager.ProjectRemoved(HostProjectOne);
+            }, CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            //
+            // The change hasn't come through yet.
+            Assert.Empty(workspaceStateGenerator.UpdateQueue);
+
+            WorkQueueTestAccessor.BlockBackgroundWorkStart.Set();
+            WorkQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
+
+            Assert.Empty(workspaceStateGenerator.UpdateQueue);
+        }
+
         [UITheory]
         [InlineData(WorkspaceChangeKind.DocumentAdded)]
         [InlineData(WorkspaceChangeKind.DocumentChanged)]
@@ -272,8 +307,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Assert
             Assert.Collection(
                 workspaceStateGenerator.UpdateQueue,
-                p => Assert.Equal(ProjectNumberOne.Id, p.workspaceProject.Id),
-                p => Assert.Equal(ProjectNumberTwo.Id, p.workspaceProject.Id));
+                p => Assert.Equal(ProjectNumberOne.Id, p.WorkspaceProject.Id),
+                p => Assert.Equal(ProjectNumberTwo.Id, p.WorkspaceProject.Id));
         }
 
         [UITheory]
@@ -318,10 +353,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Assert
             Assert.Collection(
                 workspaceStateGenerator.UpdateQueue,
-                p => Assert.Equal(ProjectNumberThree.Id, p.workspaceProject.Id),
-                p => Assert.Null(p.workspaceProject),
-                p => Assert.Equal(ProjectNumberOne.Id, p.workspaceProject.Id),
-                p => Assert.Equal(ProjectNumberTwo.Id, p.workspaceProject.Id));
+                p => Assert.Equal(ProjectNumberThree.Id, p.WorkspaceProject.Id),
+                p => Assert.Null(p.WorkspaceProject),
+                p => Assert.Equal(ProjectNumberOne.Id, p.WorkspaceProject.Id),
+                p => Assert.Equal(ProjectNumberTwo.Id, p.WorkspaceProject.Id));
         }
 
         [UITheory]
@@ -351,9 +386,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             WorkQueueTestAccessor.BlockBackgroundWorkStart.Set();
             WorkQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
 
-            var (workspaceProject, projectSnapshot) = Assert.Single(workspaceStateGenerator.UpdateQueue);
-            Assert.Equal(workspaceProject.Id, ProjectNumberOne.Id);
-            Assert.Equal(projectSnapshot.FilePath, HostProjectOne.FilePath);
+            var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+            Assert.Equal(update.WorkspaceProject.Id, ProjectNumberOne.Id);
+            Assert.Equal(update.ProjectSnapshot.FilePath, HostProjectOne.FilePath);
         }
 
         [UIFact]
@@ -383,9 +418,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             WorkQueueTestAccessor.BlockBackgroundWorkStart.Set();
             WorkQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
 
-            var (workspaceProject, projectSnapshot) = Assert.Single(workspaceStateGenerator.UpdateQueue);
-            Assert.Equal(workspaceProject.Id, ProjectNumberOne.Id);
-            Assert.Equal(projectSnapshot.FilePath, HostProjectOne.FilePath);
+            var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+            Assert.Equal(update.WorkspaceProject.Id, ProjectNumberOne.Id);
+            Assert.Equal(update.ProjectSnapshot.FilePath, HostProjectOne.FilePath);
         }
 
         [UIFact]
@@ -415,9 +450,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             WorkQueueTestAccessor.BlockBackgroundWorkStart.Set();
             WorkQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
 
-            var (workspaceProject, projectSnapshot) = Assert.Single(workspaceStateGenerator.UpdateQueue);
-            Assert.Equal(workspaceProject.Id, ProjectNumberOne.Id);
-            Assert.Equal(projectSnapshot.FilePath, HostProjectOne.FilePath);
+            var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+            Assert.Equal(update.WorkspaceProject.Id, ProjectNumberOne.Id);
+            Assert.Equal(update.ProjectSnapshot.FilePath, HostProjectOne.FilePath);
         }
 
         [UIFact]
@@ -447,9 +482,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             WorkQueueTestAccessor.BlockBackgroundWorkStart.Set();
             WorkQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
 
-            var (workspaceProject, projectSnapshot) = Assert.Single(workspaceStateGenerator.UpdateQueue);
-            Assert.Equal(workspaceProject.Id, ProjectNumberOne.Id);
-            Assert.Equal(projectSnapshot.FilePath, HostProjectOne.FilePath);
+            var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+            Assert.Equal(update.WorkspaceProject.Id, ProjectNumberOne.Id);
+            Assert.Equal(update.ProjectSnapshot.FilePath, HostProjectOne.FilePath);
         }
 
         [UIFact]
@@ -497,9 +532,9 @@ namespace Microsoft.AspNetCore.Components
 
             WorkQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
 
-            var (workspaceProject, projectSnapshot) = Assert.Single(workspaceStateGenerator.UpdateQueue);
-            Assert.Equal(workspaceProject.Id, ProjectNumberOne.Id);
-            Assert.Equal(projectSnapshot.FilePath, HostProjectOne.FilePath);
+            var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
+            Assert.Equal(update.WorkspaceProject.Id, ProjectNumberOne.Id);
+            Assert.Equal(update.ProjectSnapshot.FilePath, HostProjectOne.FilePath);
         }
 
         [UIFact]
@@ -528,7 +563,7 @@ namespace Microsoft.AspNetCore.Components
             // Assert
             Assert.Collection(
                 workspaceStateGenerator.UpdateQueue,
-                p => Assert.Null(p.workspaceProject));
+                p => Assert.Null(p.WorkspaceProject));
         }
 
         [UIFact]
@@ -554,7 +589,7 @@ namespace Microsoft.AspNetCore.Components
             // Assert
             Assert.Collection(
                 workspaceStateGenerator.UpdateQueue,
-                p => Assert.Equal(ProjectNumberThree.Id, p.workspaceProject.Id));
+                p => Assert.Equal(ProjectNumberThree.Id, p.WorkspaceProject.Id));
         }
 
         [Fact]
