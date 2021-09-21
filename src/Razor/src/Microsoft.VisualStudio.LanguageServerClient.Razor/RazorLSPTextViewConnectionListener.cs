@@ -152,6 +152,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     var optionsTracker = new RazorEditorOptionsTracker(TrackedView: textView, viewOptions, bufferOptions);
                     _textBuffer.Properties[typeof(RazorEditorOptionsTracker)] = optionsTracker;
 
+                    // Initialize TextView options. We only need to do this once per TextView, as the options should
+                    // automatically update and they aren't options we care about keeping track of.
+                    InitializeRazorTextViewOptions(_textManager, optionsTracker);
+
                     // A change in Tools->Options settings only kicks off an options changed event in the view
                     // and not the buffer, i.e. even if we listened for TextBuffer option changes, we would never
                     // be notified. As a workaround, we listen purely for TextView changes, and update the
@@ -250,12 +254,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return isRazorLanguageServer;
         }
 
-        private static EditorSettings UpdateRazorEditorOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
+        private static EditorSettings InitializeRazorTextViewOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
         {
             var insertSpaces = RazorLSPOptions.Default.InsertSpaces;
             var tabSize = RazorLSPOptions.Default.TabSize;
 
-            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorLSPConstants.RazorLanguageServiceGuid } };;
+            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorLSPConstants.RazorLanguageServiceGuid } }; ;
             if (VSConstants.S_OK == textManager.GetUserPreferences4(null, langPrefs3, null))
             {
                 // General options
@@ -288,7 +292,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowEnhancedScrollBarOptionName, Convert.ToBoolean(langPrefs3[0].fUseMapMode));
                 optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.ShowPreviewOptionName, Convert.ToBoolean(langPrefs3[0].fShowPreview));
                 optionsTracker.ViewOptions.SetOptionValue(DefaultTextViewHostOptions.PreviewSizeOptionName, (int)langPrefs3[0].uOverviewWidth);
+            }
 
+            return new EditorSettings(indentWithTabs: !insertSpaces, tabSize);
+        }
+
+        private static EditorSettings UpdateRazorEditorOptions(IVsTextManager4 textManager, RazorEditorOptionsTracker optionsTracker)
+        {
+            var insertSpaces = RazorLSPOptions.Default.InsertSpaces;
+            var tabSize = RazorLSPOptions.Default.TabSize;
+
+            var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorLSPConstants.RazorLanguageServiceGuid } };;
+            if (VSConstants.S_OK == textManager.GetUserPreferences4(null, langPrefs3, null))
+            {
                 // Tabs options
                 insertSpaces = !Convert.ToBoolean(langPrefs3[0].fInsertTabs);
                 tabSize = (int)langPrefs3[0].uTabSize;
