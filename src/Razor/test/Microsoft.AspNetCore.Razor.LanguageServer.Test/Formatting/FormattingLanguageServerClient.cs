@@ -241,7 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return Task.FromResult(Convert(response));
             }
             else if (@params is DocumentFormattingParams formattingParams &&
-                        string.Equals(method, "textDocument/formatting", StringComparison.Ordinal))
+                string.Equals(method, "textDocument/formatting", StringComparison.Ordinal))
             {
                 var response = Format(formattingParams);
 
