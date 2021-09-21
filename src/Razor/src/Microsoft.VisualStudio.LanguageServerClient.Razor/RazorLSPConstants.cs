@@ -23,7 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public const string CSharpContentTypeName = "CSharp";
 
-        public const string HtmlLSPContentTypeName = "html-delegation";
+        public const string HtmlLSPDelegationContentTypeName = "html-delegation";
+
+        public const string HtmlLSPContentTypeName = "htmlLSPClient";
+
+        public const string CssLSPContentTypeName = "cssLSPClient";
+
+        public const string TypeScriptLSPContentTypeName = "JavaScript";
 
         public const string VirtualCSharpFileNameSuffix = ".g.cs";
 

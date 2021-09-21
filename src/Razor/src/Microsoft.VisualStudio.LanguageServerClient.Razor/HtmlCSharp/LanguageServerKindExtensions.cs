@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return languageServerKind switch
             {
                 LanguageServerKind.CSharp => RazorLSPConstants.CSharpContentTypeName,
-                LanguageServerKind.Html => RazorLSPConstants.HtmlLSPContentTypeName,
+                LanguageServerKind.Html => RazorLSPConstants.HtmlLSPDelegationContentTypeName,
                 _ => RazorLSPConstants.RazorLSPContentTypeName,
             };
         }
