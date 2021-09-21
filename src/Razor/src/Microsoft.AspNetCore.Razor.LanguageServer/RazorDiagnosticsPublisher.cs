@@ -114,9 +114,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private async void DocumentClosedTimer_Tick(object state)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                ClearClosedDocuments,
-                CancellationToken.None).ConfigureAwait(false);
+            try
+            {
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    ClearClosedDocuments,
+                    CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // Swallow exception to not crash VS (this is an async void method)
+                _logger.LogError(ex, "Background diagnostic publisher for Razor failed to publish diagnostics for an unexpected reason.");
+            }
         }
 
         // Internal for testing

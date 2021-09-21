@@ -50,24 +50,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private async void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            // Don't do any work if the solution is closing
-            if (args.SolutionIsClosing)
+            try
             {
-                return;
+                // Don't do any work if the solution is closing
+                if (args.SolutionIsClosing)
+                {
+                    return;
+                }
+
+                _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
+                var projectSnapshot = args.Newer;
+                if (projectSnapshot?.ProjectWorkspaceState != null && !_hasNotified)
+                {
+                    // Un-register this method, we only need to send this once.
+                    _projectManager.Changed -= ProjectSnapshotManager_Changed;
+
+                    var response = await _clientNotifierService.SendRequestAsync(LanguageServerConstants.RazorServerReadyEndpoint);
+                    await response.ReturningVoid(CancellationToken.None);
+
+                    _hasNotified = true;
+                }
             }
-
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
-            var projectSnapshot = args.Newer;
-            if (projectSnapshot?.ProjectWorkspaceState != null && !_hasNotified)
+            catch (Exception ex)
             {
-                // Un-register this method, we only need to send this once.
-                _projectManager.Changed -= ProjectSnapshotManager_Changed;
-
-                var response = await _clientNotifierService.SendRequestAsync(LanguageServerConstants.RazorServerReadyEndpoint);
-                await response.ReturningVoid(CancellationToken.None);
-
-                _hasNotified = true;
+                _projectManager.ReportError(ex);
             }
         }
     }
