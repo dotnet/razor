@@ -29,6 +29,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorCodeActionRunnerCommand = "razor/runCodeAction";
 
+        public const string RazorDocumentFormattingEndpoint = "textDocument/formatting";
+
         // RZLS Custom Message Targets
         public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
 

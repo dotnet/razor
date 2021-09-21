@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -38,7 +37,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public async Task<TextEdit[]> FormatAsync(
             FormattingContext context,
-            Range rangeToFormat,
             CancellationToken cancellationToken)
         {
             if (context is null)
@@ -46,21 +44,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (rangeToFormat is null)
+            var @params = new DocumentFormattingParams()
             {
-                throw new ArgumentNullException(nameof(rangeToFormat));
-            }
-
-            var @params = new RazorDocumentRangeFormattingParams()
-            {
-                Kind = RazorLanguageKind.Html,
-                ProjectedRange = rangeToFormat,
-                HostDocumentFilePath = _filePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()),
+                TextDocument = new TextDocumentIdentifier { Uri = _filePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
                 Options = context.Options
             };
 
-            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentRangeFormattingResponse>(cancellationToken);
+            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorDocumentFormattingEndpoint, @params);
+            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }
