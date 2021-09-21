@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.Options;
@@ -12,6 +13,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
     public class AutoClosingTagOnAutoInsertProviderTest : RazorOnAutoInsertProviderTestBase
     {
         private RazorLSPOptions Options { get; set; } = RazorLSPOptions.Default;
+
+        private static TagHelperDescriptor UnspecifiedInputMirroringTagHelper
+        {
+            get
+            {
+                var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+                descriptor.SetTypeName("TestNamespace.TestTagHelper");
+                descriptor.TagMatchingRule(builder => builder.RequireTagName("Input").RequireTagStructure(TagStructure.Unspecified));
+
+                return descriptor.Build();
+            }
+        }
 
         private static TagHelperDescriptor UnspecifiedTagHelper
         {
@@ -71,6 +84,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
                 return descriptor.Build();
             }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36568")]
+        public void OnTypeCloseAngle_VoidElementMirroringTagHelper()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+<Input>$$
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+<Input>$0</Input>
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { UnspecifiedInputMirroringTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36568")]
+        public void OnTypeCloseAngle_VoidHtmlElementCapitalized_SelfCloses()
+        {
+            RunAutoInsertTest(
+input: "<Input>$$",
+expected: "<Input />",
+fileKind: FileKinds.Legacy,
+tagHelpers: Array.Empty<TagHelperDescriptor>());
         }
 
         [Fact]
