@@ -194,32 +194,40 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private async void WorkTimer_Tick(object state)
 #pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            DocumentSnapshot[] documents;
-            lock (_work)
+            try
             {
-                documents = _work.Values.ToArray();
-                _work.Clear();
-            }
-
-            for (var i = 0; i < documents.Length; i++)
-            {
-                var document = documents[i];
-                await PublishDiagnosticsAsync(document);
-            }
-
-            OnCompletingBackgroundWork();
-
-            lock (_work)
-            {
-                // Resetting the timer allows another batch of work to start.
-                _workTimer.Dispose();
-                _workTimer = null;
-
-                // If more work came in while we were running start the timer again.
-                if (_work.Count > 0)
+                DocumentSnapshot[] documents;
+                lock (_work)
                 {
-                    StartWorkTimer();
+                    documents = _work.Values.ToArray();
+                    _work.Clear();
                 }
+
+                for (var i = 0; i < documents.Length; i++)
+                {
+                    var document = documents[i];
+                    await PublishDiagnosticsAsync(document);
+                }
+
+                OnCompletingBackgroundWork();
+
+                lock (_work)
+                {
+                    // Resetting the timer allows another batch of work to start.
+                    _workTimer.Dispose();
+                    _workTimer = null;
+
+                    // If more work came in while we were running start the timer again.
+                    if (_work.Count > 0)
+                    {
+                        StartWorkTimer();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Swallow exception to not crash VS (this is an async void method)
+                _logger.LogError(ex, "Background diagnostic publisher for Razor failed to publish diagnostics for an unexpected reason.");
             }
         }
 
