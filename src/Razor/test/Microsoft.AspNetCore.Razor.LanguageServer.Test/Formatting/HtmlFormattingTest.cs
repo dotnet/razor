@@ -48,6 +48,34 @@ expected: @"
         }
 
         [Fact]
+        public async Task FormatsSimpleHtmlTag_Range()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<html>
+<head>
+    <title>Hello</title>
+</head>
+<body>
+        [|<div>
+        </div>|]
+</body>
+</html>
+",
+expected: @"
+<html>
+<head>
+    <title>Hello</title>
+</head>
+<body>
+    <div>
+    </div>
+</body>
+</html>
+");
+        }
+
+        [Fact]
         public async Task FormatsRazorHtmlBlock()
         {
             await RunFormattingTestAsync(
@@ -639,6 +667,142 @@ expected: @"
     </ChildContent>
 </GridTable>
 ", tagHelpers: GetComponents());
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+        public async Task FormatNestedComponents2_Range()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<GridTable>
+<ChildContent>
+<GridRow>
+<ChildContent>
+<GridCell>
+<ChildContent>
+<strong></strong>
+@if (true)
+{
+[|<strong></strong>|]
+}
+<strong></strong>
+</ChildContent>
+</GridCell>
+</ChildContent>
+</GridRow>
+</ChildContent>
+</GridTable>
+",
+expected: @"
+<GridTable>
+<ChildContent>
+<GridRow>
+<ChildContent>
+<GridCell>
+<ChildContent>
+<strong></strong>
+@if (true)
+{
+                            <strong></strong>
+}
+<strong></strong>
+</ChildContent>
+</GridCell>
+</ChildContent>
+</GridRow>
+</ChildContent>
+</GridTable>
+", tagHelpers: GetComponents());
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
+        public async Task FormatHtmlInIf()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@if (true)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class=""table"">
+        <thead>
+            <tr>
+        <th>Date</th>
+        <th>Temp. (C)</th>
+        <th>Temp. (F)</th>
+        <th>Summary</th>
+            </tr>
+        </thead>
+    </table>
+}
+",
+expected: @"@if (true)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class=""table"">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+    </table>
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
+        public async Task FormatHtmlInIf_Range()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@if (true)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class=""table"">
+        <thead>
+            <tr>
+[|      <th>Date</th>
+        <th>Temp. (C)</th>
+        <th>Temp. (F)</th>
+        <th>Summary</th>|]
+            </tr>
+        </thead>
+    </table>
+}
+",
+expected: @"
+@if (true)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class=""table"">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+    </table>
+}
+");
         }
 
         private IReadOnlyList<TagHelperDescriptor> GetSurveyPrompt()

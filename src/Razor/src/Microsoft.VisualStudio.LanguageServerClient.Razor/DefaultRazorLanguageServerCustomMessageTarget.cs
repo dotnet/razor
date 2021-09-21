@@ -178,6 +178,48 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 request.HostDocumentVersion.Value);
         }
 
+        public override async Task<RazorDocumentRangeFormattingResponse> RazorDocumentFormattingAsync(DocumentFormattingParams request, CancellationToken cancellationToken)
+        {
+            var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
+
+            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var hostDocumentUri = request.TextDocument.Uri;
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return response;
+            }
+
+            string languageServerName;
+            Uri projectedUri;
+            if (documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                projectedUri = htmlDocument.Uri;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
+                return response;
+            }
+
+            var formattingParams = new DocumentFormattingParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = projectedUri },
+                Options = request.Options
+            };
+
+            var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentFormattingParams, TextEdit[]>(
+                Methods.TextDocumentFormattingName,
+                languageServerName,
+                formattingParams,
+                cancellationToken).ConfigureAwait(false);
+
+            response.Edits = edits.Result ?? Array.Empty<TextEdit>();
+
+            return response;
+        }
+
         public override async Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams request, CancellationToken cancellationToken)
         {
             var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
@@ -202,12 +244,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
                 projectedUri = csharpDocument.Uri;
-            }
-            else if (request.Kind == RazorLanguageKind.Html &&
-                documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
-            {
-                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
-                projectedUri = htmlDocument.Uri;
             }
             else
             {

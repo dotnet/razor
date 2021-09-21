@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             ValidateComponents(CodeDocument, codeDocument);
 
-            var newContext = Create(Uri, OriginalSnapshot, codeDocument, Options, _workspaceFactory, Range, IsFormatOnType);
+            var newContext = Create(Uri, OriginalSnapshot, codeDocument, Options, _workspaceFactory, IsFormatOnType);
             return newContext;
         }
 
@@ -248,7 +248,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorCodeDocument codeDocument,
             FormattingOptions options,
             AdhocWorkspaceFactory workspaceFactory,
-            Range? range = null,
             bool isFormatOnType = false)
         {
             if (uri is null)
@@ -276,9 +275,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(workspaceFactory));
             }
 
-            var text = codeDocument.GetSourceText();
-            range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
-
             var syntaxTree = codeDocument.GetSyntaxTree();
             var formattingSpans = syntaxTree.GetFormattingSpans();
 
@@ -287,7 +283,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Uri = uri,
                 OriginalSnapshot = originalSnapshot,
                 CodeDocument = codeDocument,
-                Range = range,
                 Options = options,
                 IsFormatOnType = isFormatOnType,
                 FormattingSpans = formattingSpans

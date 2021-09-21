@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory, range);
+            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
 
             var result = new FormattingResult(Array.Empty<TextEdit>());
             foreach (var pass in _formattingPasses)

@@ -65,10 +65,68 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public void AddCodeDocument(RazorCodeDocument codeDocument)
         {
             var path = _filePathNormalizer.Normalize(codeDocument.Source.FilePath);
-            _documents.TryAdd(path, codeDocument);
+            _documents.TryAdd("/" + path, codeDocument);
         }
 
-        private RazorDocumentRangeFormattingResponse Format(RazorDocumentRangeFormattingParams @params)
+        private RazorDocumentFormattingResponse Format(DocumentFormattingParams @params)
+        {
+            var options = @params.Options;
+            var response = new RazorDocumentFormattingResponse();
+
+            response.Edits = Array.Empty<TextEdit>();
+
+            var codeDocument = _documents[@params.TextDocument.Uri.GetAbsoluteOrUNCPath()];
+            var generatedHtml = codeDocument.GetHtmlDocument().GeneratedHtml;
+            generatedHtml = generatedHtml.Replace("\r", "", StringComparison.Ordinal).Replace("\n", "\r\n", StringComparison.Ordinal);
+            var generatedHtmlSource = SourceText.From(generatedHtml, Encoding.UTF8);
+
+            var editHandlerAssembly = Assembly.Load("Microsoft.WebTools.Languages.LanguageServer.Server, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+            var editHandlerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Html.OperationHandlers.ApplyFormatEditsHandler", throwOnError: true);
+            var bufferManagerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Shared.Buffer.BufferManager", throwOnError: true);
+
+            var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
+            var contentTypeService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
+
+            contentTypeService.AddContentType(HtmlContentTypeDefinition.HtmlContentType, new[] { StandardContentTypeNames.Text });
+
+            var textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
+            var textBufferListeners = Array.Empty<Lazy<IWebTextBufferListener, IOrderedComponentContentTypes>>();
+            var bufferManager = Activator.CreateInstance(bufferManagerType, new object[] { contentTypeService, textBufferFactoryService, textBufferListeners });
+            var joinableTaskFactoryThreadSwitcher = typeof(IdAttribute).Assembly.GetType("Microsoft.WebTools.Shared.Threading.JoinableTaskFactoryThreadSwitcher", throwOnError: true);
+            var threadSwitcher = (IThreadSwitcher)Activator.CreateInstance(joinableTaskFactoryThreadSwitcher, new object[] { new JoinableTaskContext().Factory });
+            var applyFormatEditsHandler = Activator.CreateInstance(editHandlerType, new object[] { bufferManager, threadSwitcher, textBufferFactoryService });
+
+            // Make sure the buffer manager knows about the source document
+            var documentUri = DocumentUri.From($"file:///{@params.TextDocument.Uri}");
+            var contentTypeName = HtmlContentTypeDefinition.HtmlContentType;
+            var initialContent = generatedHtml;
+            var snapshotVersionFromLSP = 0;
+            Assert.IsAssignableFrom<ITextSnapshot>(bufferManager.GetType().GetMethod("CreateBuffer").Invoke(bufferManager, new object[] { documentUri, contentTypeName, initialContent, snapshotVersionFromLSP }));
+
+            var requestType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.ContainedLanguage.ApplyFormatEditsParamForOmniSharp", throwOnError: true);
+            var serializedValue = $@"{{
+    ""Options"": {{
+        ""UseSpaces"": {(@params.Options.InsertSpaces ? "true" : "false")},
+        ""TabSize"": {@params.Options.TabSize},
+        ""IndentSize"": {@params.Options.TabSize}
+    }},
+    ""Uri"": ""file:///{@params.TextDocument.Uri}"",
+    ""GeneratedChanges"": [
+    ]
+}}
+";
+            var request = JsonConvert.DeserializeObject(serializedValue, requestType);
+            var resultTask = (Task)applyFormatEditsHandler.GetType().GetRuntimeMethod("Handle", new Type[] { requestType, typeof(CancellationToken) }).Invoke(applyFormatEditsHandler, new object[] { request, CancellationToken.None });
+            var result = resultTask.GetType().GetProperty(nameof(Task<int>.Result)).GetValue(resultTask);
+            var rawTextChanges = result.GetType().GetProperty("TextChanges").GetValue(result);
+            var serializedTextChanges = JsonConvert.SerializeObject(rawTextChanges, Newtonsoft.Json.Formatting.Indented);
+            var textChanges = JsonConvert.DeserializeObject<HtmlFormatterTextEdit[]>(serializedTextChanges);
+            response.Edits = textChanges.Select(change => change.AsTextEdit(SourceText.From(generatedHtml))).ToArray();
+
+            return response;
+        }
+
+        private RazorDocumentFormattingResponse Format(RazorDocumentRangeFormattingParams @params)
         {
             if (@params.Kind == RazorLanguageKind.Razor)
             {
@@ -76,7 +134,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var options = @params.Options;
-            var response = new RazorDocumentRangeFormattingResponse();
+            var response = new RazorDocumentFormattingResponse();
 
             if (@params.Kind == RazorLanguageKind.CSharp)
             {
@@ -93,61 +151,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 response.Edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
             }
-            else if (@params.Kind == RazorLanguageKind.Html)
+            else
             {
-                response.Edits = Array.Empty<TextEdit>();
-
-                var codeDocument = _documents[@params.HostDocumentFilePath];
-                var generatedHtml = codeDocument.GetHtmlDocument().GeneratedHtml;
-                generatedHtml = generatedHtml.Replace("\r", "", StringComparison.Ordinal).Replace("\n", "\r\n", StringComparison.Ordinal);
-                var generatedHtmlSource = SourceText.From(generatedHtml, Encoding.UTF8);
-
-                var editHandlerAssembly = Assembly.Load("Microsoft.WebTools.Languages.LanguageServer.Server, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
-                var editHandlerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Html.OperationHandlers.ApplyFormatEditsHandler", throwOnError: true);
-                var bufferManagerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Shared.Buffer.BufferManager", throwOnError: true);
-
-                var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
-                var contentTypeService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
-
-                contentTypeService.AddContentType(HtmlContentTypeDefinition.HtmlContentType, new[] { StandardContentTypeNames.Text });
-
-                var textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
-                var textBufferListeners = Array.Empty<Lazy<IWebTextBufferListener, IOrderedComponentContentTypes>>();
-                var bufferManager = Activator.CreateInstance(bufferManagerType, new object[] { contentTypeService, textBufferFactoryService, textBufferListeners });
-                var joinableTaskFactoryThreadSwitcher = typeof(IdAttribute).Assembly.GetType("Microsoft.WebTools.Shared.Threading.JoinableTaskFactoryThreadSwitcher", throwOnError: true);
-                var threadSwitcher = (IThreadSwitcher)Activator.CreateInstance(joinableTaskFactoryThreadSwitcher, new object[] { new JoinableTaskContext().Factory });
-                var applyFormatEditsHandler = Activator.CreateInstance(editHandlerType, new object[] { bufferManager, threadSwitcher, textBufferFactoryService });
-
-                // Make sure the buffer manager knows about the source document
-                var documentUri = DocumentUri.From($"file:///{@params.HostDocumentFilePath}");
-                var contentTypeName = HtmlContentTypeDefinition.HtmlContentType;
-                var initialContent = generatedHtml;
-                var snapshotVersionFromLSP = 0;
-                Assert.IsAssignableFrom<ITextSnapshot>(bufferManager.GetType().GetMethod("CreateBuffer").Invoke(bufferManager, new object[] { documentUri, contentTypeName, initialContent, snapshotVersionFromLSP }));
-
-                var requestType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.ContainedLanguage.ApplyFormatEditsParamForOmniSharp", throwOnError: true);
-                var serializedValue = $@"{{
-    ""Options"": {{
-        ""UseSpaces"": {(@params.Options.InsertSpaces ? "true" : "false")},
-        ""TabSize"": {@params.Options.TabSize},
-        ""IndentSize"": {@params.Options.TabSize}
-    }},
-    ""SpanToFormat"": {{
-        ""start"": {@params.ProjectedRange.AsTextSpan(generatedHtmlSource).Start},
-        ""length"": {@params.ProjectedRange.AsTextSpan(generatedHtmlSource).Length},
-    }},
-    ""Uri"": ""file:///{@params.HostDocumentFilePath}"",
-    ""GeneratedChanges"": [
-    ]
-}}
-";
-                var request = JsonConvert.DeserializeObject(serializedValue, requestType);
-                var resultTask = (Task)applyFormatEditsHandler.GetType().GetRuntimeMethod("Handle", new Type[] { requestType, typeof(CancellationToken) }).Invoke(applyFormatEditsHandler, new object[] { request, CancellationToken.None });
-                var result = resultTask.GetType().GetProperty(nameof(Task<int>.Result)).GetValue(resultTask);
-                var rawTextChanges = result.GetType().GetProperty("TextChanges").GetValue(result);
-                var serializedTextChanges = JsonConvert.SerializeObject(rawTextChanges, Newtonsoft.Json.Formatting.Indented);
-                var textChanges = JsonConvert.DeserializeObject<HtmlFormatterTextEdit[]>(serializedTextChanges);
-                response.Edits = textChanges.Select(change => change.AsTextEdit(SourceText.From(generatedHtml))).ToArray();
+                throw new InvalidOperationException($"We shouldn't be asked to format {@params.Kind} language kind.");
             }
 
             return response;
@@ -227,15 +233,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
         {
-            if (!(@params is RazorDocumentRangeFormattingParams formattingParams) ||
-                !string.Equals(method, "razor/rangeFormatting", StringComparison.Ordinal))
+            if (@params is RazorDocumentRangeFormattingParams rangeFormattingParams &&
+               string.Equals(method, "razor/rangeFormatting", StringComparison.Ordinal))
             {
-                throw new NotImplementedException();
+                var response = Format(rangeFormattingParams);
+
+                return Task.FromResult(Convert(response));
             }
+            else if (@params is DocumentFormattingParams formattingParams &&
+                string.Equals(method, "textDocument/formatting", StringComparison.Ordinal))
+            {
+                var response = Format(formattingParams);
 
-            var response = Format(formattingParams);
-
-            return Task.FromResult(Convert<RazorDocumentRangeFormattingResponse>(response));
+                return Task.FromResult(Convert(response));
+            }
+            throw new NotImplementedException();
         }
 
         public override Task<IResponseRouterReturns> SendRequestAsync(string method)
