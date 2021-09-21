@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class RazorFileChangeDetectorManager : IDisposable
     {
         private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
-        private readonly IEnumerable<IFileChangeDetector> _fileChangeDetectors;
+        private readonly IReadOnlyList<IFileChangeDetector> _fileChangeDetectors;
         private readonly object _disposeLock = new object();
         private bool _disposed;
 
@@ -30,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             _workspaceDirectoryPathResolver = workspaceDirectoryPathResolver;
-            _fileChangeDetectors = fileChangeDetectors;
+            _fileChangeDetectors = fileChangeDetectors.ToArray();
         }
 
         public async Task InitializedAsync()
