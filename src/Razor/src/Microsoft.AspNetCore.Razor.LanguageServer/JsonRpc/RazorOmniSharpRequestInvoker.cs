@@ -88,8 +88,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc
 
             async Task<ErrorResponse> InvokeRequestAsync(CancellationToken cancellationToken)
             {
-                var timeoutCts = new CancellationTokenSource(_requestTimeout);
-                var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(handle.CancellationTokenSource.Token, timeoutCts.Token, cancellationToken);
+                using var timeoutCts = new CancellationTokenSource(_requestTimeout);
+                using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(handle.CancellationTokenSource.Token, timeoutCts.Token, cancellationToken);
 
                 using var timer = _logger.TimeDebug("Processing request {Method}:{Id}", request.Method, request.Id);
                 try
@@ -128,8 +128,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc
         {
             return async (cancellationToken) =>
             {
-                var timeoutCts = new CancellationTokenSource(_requestTimeout);
-                var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+                using var timeoutCts = new CancellationTokenSource(_requestTimeout);
+                using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
                 using var timer = _logger.TimeDebug("Processing notification {Method}", notification.Method);
                 try
