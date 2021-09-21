@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -45,19 +44,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var text = context.SourceText;
-            var range = TextSpan.FromBounds(0, text.Length).AsRange(text);
-
-            var @params = new RazorDocumentRangeFormattingParams()
+            var @params = new DocumentFormattingParams()
             {
-                Kind = RazorLanguageKind.Html,
-                ProjectedRange = range,
-                HostDocumentFilePath = _filePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()),
+                TextDocument = new TextDocumentIdentifier { Uri = _filePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
                 Options = context.Options
             };
 
-            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentRangeFormattingResponse>(cancellationToken);
+            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorDocumentFormattingEndpoint, @params);
+            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }

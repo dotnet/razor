@@ -27,6 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         [JsonRpcMethod(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
         public abstract Task UpdateHtmlBufferAsync(UpdateBufferRequest token, CancellationToken cancellationToken);
 
+        // Called by the Razor Language Server to invoke a textDocument/formatting request
+        // on the virtual Html/CSharp buffer.
+        [JsonRpcMethod(LanguageServerConstants.RazorDocumentFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<RazorDocumentRangeFormattingResponse> RazorDocumentFormattingAsync(DocumentFormattingParams token, CancellationToken cancellationToken);
+
         // Called by the Razor Language Server to invoke a textDocument/rangeFormatting request
         // on the virtual Html/CSharp buffer.
         [JsonRpcMethod(LanguageServerConstants.RazorRangeFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]

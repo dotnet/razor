@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
 
             var response = await _server.SendRequestAsync(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentRangeFormattingResponse>(cancellationToken);
+            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }
