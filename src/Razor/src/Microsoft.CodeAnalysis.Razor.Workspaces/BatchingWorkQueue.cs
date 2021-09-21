@@ -186,10 +186,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         private void OnStartingBackgroundWork()
         {
-            if (NotifyBackgroundWorkStarting != null)
-            {
-                NotifyBackgroundWorkStarting.Set();
-            }
+            NotifyBackgroundWorkStarting?.Set();
 
             if (BlockBackgroundWorkStart != null)
             {
@@ -209,18 +206,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         private void OnCompletedBackgroundWork()
         {
-            if (NotifyBackgroundWorkCompleted != null)
-            {
-                NotifyBackgroundWorkCompleted.Set();
-            }
+            NotifyBackgroundWorkCompleted?.Set();
         }
 
         private void OnBackgroundCapturedWorkload()
         {
-            if (NotifyBackgroundCapturedWorkload != null)
-            {
-                NotifyBackgroundCapturedWorkload.Set();
-            }
+            NotifyBackgroundCapturedWorkload?.Set();
         }
 
         internal TestAccessor GetTestAccessor()
