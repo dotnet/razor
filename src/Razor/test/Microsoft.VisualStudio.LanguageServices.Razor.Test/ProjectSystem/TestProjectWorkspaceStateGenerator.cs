@@ -11,14 +11,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Test
 {
     internal class TestProjectWorkspaceStateGenerator : ProjectWorkspaceStateGenerator
     {
-        private readonly List<(Project workspaceProject, ProjectSnapshot projectSnapshot)> _updates;
+        private readonly List<TestUpdate> _updates;
 
         public TestProjectWorkspaceStateGenerator()
         {
-            _updates = new List<(Project workspaceProject, ProjectSnapshot projectSnapshot)>();
+            _updates = new List<TestUpdate>();
         }
 
-        public IReadOnlyList<(Project workspaceProject, ProjectSnapshot projectSnapshot)> UpdateQueue => _updates;
+        public IReadOnlyList<TestUpdate> UpdateQueue => _updates;
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Test
 
         public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
         {
-            var update = (workspaceProject, projectSnapshot);
+            var update = new TestUpdate(workspaceProject, projectSnapshot, cancellationToken);
             _updates.Add(update);
         }
 
@@ -34,5 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Test
         {
             _updates.Clear();
         }
+
+        public record TestUpdate(Project WorkspaceProject, ProjectSnapshot ProjectSnapshot, CancellationToken CancellationToken);
     }
 }

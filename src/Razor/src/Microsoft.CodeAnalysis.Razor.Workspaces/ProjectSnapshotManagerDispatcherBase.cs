@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotManagerDispatcher
+    internal abstract class ProjectSnapshotManagerDispatcherBase : ProjectSnapshotManagerDispatcher, IDisposable
     {
         private readonly ProjectSnapshotManagerTaskScheduler _dispatcherScheduler;
 
@@ -27,15 +27,22 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public abstract void LogException(Exception ex);
 
+        public void Dispose()
+        {
+            _dispatcherScheduler.Dispose();
+        }
+
         public override bool IsDispatcherThread => Thread.CurrentThread.ManagedThreadId == _dispatcherScheduler.ThreadId;
 
         public override TaskScheduler DispatcherScheduler => _dispatcherScheduler;
 
-        private class ProjectSnapshotManagerTaskScheduler : TaskScheduler
+        private class ProjectSnapshotManagerTaskScheduler : TaskScheduler, IDisposable
         {
             private readonly Thread _thread;
             private readonly BlockingCollection<Task> _tasks = new();
             private readonly Action<Exception> _logException;
+            private bool _disposed;
+            private object _disposalLock = new();
 
             public ProjectSnapshotManagerTaskScheduler(string threadName, Action<Exception> logException)
             {
@@ -53,7 +60,18 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             public override int MaximumConcurrencyLevel => 1;
 
-            protected override void QueueTask(Task task) => _tasks.Add(task);
+            protected override void QueueTask(Task task)
+            {
+                lock (_disposalLock)
+                {
+                    if (_disposed)
+                    {
+                        return;
+                    }
+                }
+
+                _tasks.Add(task);
+            }
 
             protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
             {
@@ -71,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             private void ThreadStart()
             {
-                while (true)
+                while (!_disposed)
                 {
                     try
                     {
@@ -86,10 +104,33 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                     }
                     catch (Exception ex)
                     {
+                        lock (_disposalLock)
+                        {
+                            if (_disposed)
+                            {
+                                // Graceful teardown
+                                return;
+                            }
+                        }
+
                         // Unexpected exception. Log and throw.
                         _logException(ex);
                         throw;
                     }
+                }
+            }
+
+            public void Dispose()
+            {
+                lock (_disposalLock)
+                {
+                    if (_disposed)
+                    {
+                        return;
+                    }
+
+                    _disposed = true;
+                    _tasks.CompleteAdding();
                 }
             }
         }
