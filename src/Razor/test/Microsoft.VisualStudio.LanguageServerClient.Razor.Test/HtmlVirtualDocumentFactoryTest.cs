@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             var htmlContentType = Mock.Of<IContentType>(MockBehavior.Strict);
             ContentTypeRegistry = Mock.Of<IContentTypeRegistryService>(
-                registry => registry.GetContentType(RazorLSPConstants.HtmlLSPContentTypeName) == htmlContentType, MockBehavior.Strict);
+                registry => registry.GetContentType(RazorLSPConstants.HtmlLSPDelegationContentTypeName) == htmlContentType, MockBehavior.Strict);
             var textBufferFactory = new Mock<ITextBufferFactoryService>(MockBehavior.Strict);
             var factoryBuffer = Mock.Of<ITextBuffer>(buffer => buffer.CurrentSnapshot == Mock.Of<ITextSnapshot>(MockBehavior.Strict) && buffer.Properties == new PropertyCollection(), MockBehavior.Strict);
             Mock.Get(factoryBuffer).Setup(b => b.ChangeContentType(It.IsAny<IContentType>(), It.IsAny<object>())).Verifiable();
