@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -18,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
     internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
     {
         // From http://dev.w3.org/html5/spec/Overview.html#elements-0
-        public static readonly HashSet<string> VoidElements = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly IReadOnlyList<string> VoidElements = new[]
         {
             "area",
             "base",
@@ -145,7 +146,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
                 if (!TryGetTagHelperAutoClosingBehavior(tagHelperElement.TagHelperInfo.BindingResult, out autoClosingBehavior))
                 {
-                    autoClosingBehavior = InferAutoClosingBehavior(name);
+                    autoClosingBehavior = InferAutoClosingBehavior(name, tagNameComparer: StringComparer.Ordinal);
                 }
 
                 return true;
@@ -238,9 +239,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return true;
         }
 
-        private static AutoClosingBehavior InferAutoClosingBehavior(string name)
+        private static AutoClosingBehavior InferAutoClosingBehavior(string name, StringComparer tagNameComparer = null)
         {
-            if (VoidElements.Contains(name))
+            tagNameComparer ??= StringComparer.OrdinalIgnoreCase;
+
+            if (VoidElements.Contains(name, tagNameComparer))
             {
                 return AutoClosingBehavior.SelfClosing;
             }
