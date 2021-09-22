@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.Editor
 {
     public sealed class EditorSettings : IEquatable<EditorSettings>
     {
-        public static readonly EditorSettings Default = new EditorSettings(indentWithTabs: false, indentSize: 4);
+        public static readonly EditorSettings Default = new(indentWithTabs: false, indentSize: 4);
 
         public EditorSettings(bool indentWithTabs, int indentSize)
         {

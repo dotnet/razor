@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         public static RazorLSPOptions Default =>
-            new RazorLSPOptions(trace: default, enableFormatting: true, autoClosingTags: true, insertSpaces: true, tabSize: 4);
+            new(trace: default, enableFormatting: true, autoClosingTags: true, insertSpaces: true, tabSize: 4);
 
         public Trace Trace { get; }
 
