@@ -345,7 +345,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             Label = razorCompletionItem.DisplayText,
                             InsertText = razorCompletionItem.InsertText,
                             FilterText = razorCompletionItem.DisplayText,
-                            SortText = razorCompletionItem.DisplayText,
+                            SortText = razorCompletionItem.SortText,
                             Kind = CompletionItemKind.Struct,
                         };
 
@@ -373,7 +373,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             Label = razorCompletionItem.DisplayText,
                             InsertText = razorCompletionItem.InsertText,
                             FilterText = razorCompletionItem.InsertText,
-                            SortText = razorCompletionItem.InsertText,
+                            SortText = razorCompletionItem.SortText,
                             Kind = tagHelperCompletionItemKind,
                         };
 
@@ -392,7 +392,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             Label = razorCompletionItem.DisplayText,
                             InsertText = razorCompletionItem.InsertText,
                             FilterText = razorCompletionItem.InsertText,
-                            SortText = razorCompletionItem.InsertText,
+                            SortText = razorCompletionItem.SortText,
                             Kind = tagHelperCompletionItemKind,
                         };
 
@@ -406,7 +406,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             Label = razorCompletionItem.DisplayText,
                             InsertText = razorCompletionItem.InsertText,
                             FilterText = razorCompletionItem.DisplayText,
-                            SortText = razorCompletionItem.DisplayText,
+                            SortText = razorCompletionItem.SortText,
                             Kind = tagHelperCompletionItemKind,
                         };
 
@@ -425,7 +425,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             Label = razorCompletionItem.DisplayText,
                             InsertText = razorCompletionItem.InsertText,
                             FilterText = razorCompletionItem.InsertText,
-                            SortText = razorCompletionItem.InsertText,
+                            SortText = razorCompletionItem.SortText,
                             Kind = tagHelperCompletionItemKind,
                         };
 
@@ -444,7 +444,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                             Label = razorCompletionItem.DisplayText,
                             InsertText = razorCompletionItem.InsertText,
                             FilterText = razorCompletionItem.InsertText,
-                            SortText = razorCompletionItem.InsertText,
+                            SortText = razorCompletionItem.SortText,
                             Kind = tagHelperCompletionItemKind,
                         };
 

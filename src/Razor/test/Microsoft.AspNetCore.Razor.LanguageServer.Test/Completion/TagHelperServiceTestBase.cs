@@ -157,6 +157,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             directiveAttribute2.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
             directiveAttribute2.SetTypeName("TestDirectiveAttribute");
 
+            var htmlTagMutator = TagHelperDescriptorBuilder.Create("HtmlMutator", "TestAssembly");
+            htmlTagMutator.TagMatchingRule(rule =>
+            {
+                rule.TagName = "*";
+                rule.RequireAttributeDescriptor(attributeRule =>
+                {
+                    attributeRule.Name = "mutator";
+                });
+            });
+            htmlTagMutator.SetTypeName("HtmlMutator");
+            htmlTagMutator.BindAttribute(attribute =>
+            {
+                attribute.Name = "Extra";
+                attribute.SetPropertyName("Extra");
+                attribute.TypeName = typeof(bool).FullName;
+            });
+
             DefaultTagHelpers = new[]
             {
                 builder1.Build(),
@@ -164,7 +181,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 builder2.Build(),
                 builder3.Build(),
                 directiveAttribute1.Build(),
-                directiveAttribute2.Build()
+                directiveAttribute2.Build(),
+                htmlTagMutator.Build()
             };
 
             HtmlFactsService = new DefaultHtmlFactsService();
