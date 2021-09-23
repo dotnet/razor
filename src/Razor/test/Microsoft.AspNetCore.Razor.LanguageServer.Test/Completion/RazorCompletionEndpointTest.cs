@@ -217,7 +217,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             Assert.Equal(completionItem.DisplayText, converted.Label);
             Assert.Equal(completionItem.InsertText, converted.InsertText);
             Assert.Equal(completionItem.InsertText, converted.FilterText);
-            Assert.Equal(completionItem.InsertText, converted.SortText);
+            Assert.Equal(completionItem.DisplayText, converted.SortText);
             Assert.Equal(completionItem.CommitCharacters, converted.CommitCharacters);
             Assert.Null(converted.Detail);
             Assert.Null(converted.Documentation);
