@@ -313,7 +313,7 @@ repository:
   #>>>>> @page <<<<<
 
   page-directive:
-    name: 'meta.directive.page.cshtml'
+    name: 'meta.directive'
     match: '(@)(page)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -323,7 +323,7 @@ repository:
   #>>>>> @addTagHelper, @removeTagHelper and @tagHelperPrefix <<<<<
 
   addTagHelper-directive:
-    name: 'meta.directive.addTagHelper.razor'
+    name: 'meta.directive'
     match: '(@)(addTagHelper)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -331,7 +331,7 @@ repository:
       3: { patterns: [ include: '#tagHelper-directive-argument' ] }
 
   removeTagHelper-directive:
-    name: 'meta.directive.removeTagHelper.razor'
+    name: 'meta.directive'
     match: '(@)(removeTagHelper)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -339,7 +339,7 @@ repository:
       3: { patterns: [ include: '#tagHelper-directive-argument' ] }
 
   tagHelperPrefix-directive:
-    name: 'meta.directive.tagHelperPrefix.razor'
+    name: 'meta.directive'
     match: '(@)(tagHelperPrefix)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -358,7 +358,7 @@ repository:
   #>>>>> @model, layout, @implements and @inherits <<<<<
 
   model-directive:
-    name: 'meta.directive.model.cshtml'
+    name: 'meta.directive'
     match: '(@)(model)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -366,7 +366,7 @@ repository:
       3: { patterns: [ include: 'source.cs#type' ] }
 
   inherits-directive:
-    name: 'meta.directive.inherits.cshtml'
+    name: 'meta.directive'
     match: '(@)(inherits)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -374,7 +374,7 @@ repository:
       3: { patterns: [ include: 'source.cs#type' ] }
 
   implements-directive:
-    name: 'meta.directive.implements.razor'
+    name: 'meta.directive'
     match: '(@)(implements)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -382,7 +382,7 @@ repository:
       3: { patterns: [ include: 'source.cs#type' ] }
 
   layout-directive:
-    name: 'meta.directive.layout.razor'
+    name: 'meta.directive'
     match: '(@)(layout)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -392,7 +392,7 @@ repository:
   #>>>>> @namespace <<<<<
 
   namespace-directive:
-    name: 'meta.directive.namespace.razor'
+    name: 'meta.directive'
     match: '(@)(namespace)\s+([^\s]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -408,7 +408,7 @@ repository:
   #>>>>> @inject <<<<<
 
   inject-directive:
-    name: 'meta.directive.inject.cshtml'
+    name: 'meta.directive'
     match: '(@)(inject)\s*([\S\s]+?)?\s*([_[:alpha:]][_[:alnum:]]*)?\s*(?=$)'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -419,7 +419,7 @@ repository:
   #>>>>> @attribute <<<<<
 
   attribute-directive:
-    name: 'meta.directive.attribute.razor'
+    name: 'meta.directive'
     begin: '(@)(attribute)\b\s+'
     beginCaptures:
       1: { patterns: [ include: '#transition' ] }
@@ -431,7 +431,7 @@ repository:
   #>>>>> @section <<<<<
 
   section-directive:
-    name: 'meta.directive.section.razor'
+    name: 'meta.directive.block'
     begin: '(@)(section)\b\s+([_[:alpha:]][_[:alnum:]]*)?'
     beginCaptures:
       1: { patterns: [ include: '#transition' ] }
@@ -455,7 +455,7 @@ repository:
   #>>>>> @using <<<<<
 
   using-directive:
-    name: 'meta.directive.using.cshtml'
+    name: 'meta.directive'
     match: '(@)(using)\b\s+(?!\(|\s)(.+?)?(;)?$'
     captures:
       1: { patterns: [ include: '#transition' ] }

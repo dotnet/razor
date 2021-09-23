@@ -15,6 +15,7 @@
 "source.js"="$PackageFolder$\javascript-language-configuration.json"
 "source.css"="$PackageFolder$\css-language-configuration.json"
 "source.cs"="$PackageFolder$\csharp-language-configuration.json"
+"meta.directive"="$PackageFolder$\razordirective-language-configuration.json"
 
 // Sets up Razor's default settings in Tools->Options.
 // Razor's default settings can be found in the VS repo at:
