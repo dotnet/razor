@@ -160,7 +160,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             var htmlTagMutator = TagHelperDescriptorBuilder.Create("HtmlMutator", "TestAssembly");
             htmlTagMutator.TagMatchingRule(rule =>
             {
-                rule.TagName = "*";
+                rule.TagName = "title";
                 rule.RequireAttributeDescriptor(attributeRule =>
                 {
                     attributeRule.Name = "mutator";
