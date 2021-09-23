@@ -237,6 +237,32 @@ expected: @"
 fileKind: FileKinds.Legacy,
 tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36906")]
+        public void OnTypeCloseAngle_TagHelperNextToTagHelper_NestedStatement()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<test>$$<input>
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<test></test><input />
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
+        }
+
         [Fact]
         public void OnTypeCloseAngle_NormalOrSelfClosingTagHelperTagStructure_CodeBlock()
         {
@@ -423,6 +449,26 @@ expected: @"
 @if (true)
 {
     <div><p>$0</p></div>
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36906")]
+        public void OnTypeCloseAngle_TagNextToTag_NestedStatement()
+        {
+
+            RunAutoInsertTest(
+input: @"
+@if (true)
+{
+    <p>$$<div></div>
+}
+",
+expected: @"
+@if (true)
+{
+    <p>$0</p><div></div>
 }
 ");
         }
