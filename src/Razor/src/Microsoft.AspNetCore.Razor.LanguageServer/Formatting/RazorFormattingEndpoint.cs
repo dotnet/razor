@@ -223,7 +223,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
             var hostDocumentIndex = request.Position.GetAbsoluteIndex(sourceText);
             var triggerCharacterKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
