@@ -240,6 +240,31 @@ tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
 
         [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/36906")]
+        public void OnTypeCloseAngle_TagHelperNextToVoidTagHelper_NestedStatement()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<test>$$<input />
+}
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+@if (true)
+{
+<test>$0</test><input />
+}
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36906")]
         public void OnTypeCloseAngle_TagHelperNextToTagHelper_NestedStatement()
         {
             RunAutoInsertTest(
@@ -248,7 +273,7 @@ input: @"
 
 @if (true)
 {
-<test>$$<input>
+<test>$$<input></input>
 }
 ",
 expected: @"
@@ -256,11 +281,11 @@ expected: @"
 
 @if (true)
 {
-<test></test><input />
+<test>$0</test><input></input>
 }
 ",
 fileKind: FileKinds.Legacy,
-tagHelpers: new[] { NormalOrSelfClosingTagHelper, UnspecifiedInputTagHelper });
+tagHelpers: new[] { NormalOrSelfClosingTagHelper, NormalOrSelfclosingInputTagHelper });
         }
 
         [Fact]
@@ -457,7 +482,6 @@ expected: @"
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/36906")]
         public void OnTypeCloseAngle_TagNextToTag_NestedStatement()
         {
-
             RunAutoInsertTest(
 input: @"
 @if (true)
@@ -469,6 +493,25 @@ expected: @"
 @if (true)
 {
     <p>$0</p><div></div>
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36906")]
+        public void OnTypeCloseAngle_TagNextToVoidTag_NestedStatement()
+        {
+            RunAutoInsertTest(
+input: @"
+@if (true)
+{
+    <p>$$<input />
+}
+",
+expected: @"
+@if (true)
+{
+    <p>$0</p><input />
 }
 ");
         }
