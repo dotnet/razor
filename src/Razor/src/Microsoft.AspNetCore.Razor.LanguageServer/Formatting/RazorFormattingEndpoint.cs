@@ -245,16 +245,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var formattingContext = FormattingContext.Create(
+            using var formattingContext = FormattingContext.Create(
                 request.TextDocument.Uri, documentSnapshot, codeDocument, request.Options, _adhocWorkspaceFactory, isFormatOnType: true);
             var documentOptions = await GetDocumentOptionsAsync(request, formattingContext.CSharpWorkspaceDocument).ConfigureAwait(false);
 
             // Ask C# for formatting changes.
             var formattingChanges = await RazorCSharpFormattingInteractionService.GetFormattingChangesAsync(
                 formattingContext.CSharpWorkspaceDocument, typedChar: request.Character[0], projectedIndex, documentOptions, cancellationToken).ConfigureAwait(false);
-
-            formattingContext.Dispose();
-
             if (formattingChanges.IsEmpty)
             {
                 _logger.LogInformation("Received no results.");
