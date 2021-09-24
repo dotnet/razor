@@ -14,3 +14,4 @@ Sometimes it may be necessary to make changes in [`dotnet/roslyn`](https://githu
 - If you're familiar with _Visual Studio Hives_ the `dotnet/roslyn` project uses the `RoslynDev` root suffix .
 - [Building Roslyn on Windows](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Building,%20Debugging,%20and%20Testing%20on%20Windows.md)
 - [Building Roslyn on Linux and Mac](https://github.com/dotnet/roslyn/blob/main/docs/infrastructure/cross-platform.md)
+- If you find the old packages are still being used after this change, purge the nuget cache here: `~\.nuget\packages`
