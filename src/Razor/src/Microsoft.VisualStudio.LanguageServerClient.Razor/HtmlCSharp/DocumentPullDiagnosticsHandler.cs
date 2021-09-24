@@ -83,8 +83,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
-                return null;
+                _logger.LogInformation($"Document {request.TextDocument.Uri} closed or deleted, clearing diagnostics.");
+
+                var clearedDiagnosticReport = new VSInternalDiagnosticReport[]
+                {
+                    new VSInternalDiagnosticReport()
+                    {
+                        ResultId = null,
+                        Diagnostics = null
+                    }
+                };
+                return clearedDiagnosticReport;
             }
 
             if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
