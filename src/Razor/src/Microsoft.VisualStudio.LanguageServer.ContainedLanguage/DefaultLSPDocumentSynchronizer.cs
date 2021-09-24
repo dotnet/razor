@@ -48,7 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             {
                 if (!_virtualDocumentContexts.TryGetValue(virtualDocument.Uri, out var documentContext))
                 {
-                    throw new InvalidOperationException("Document context should never be null here.");
+                    // Document was deleted/removed in mid-synchronization
+                    return Task.FromResult(false);
                 }
 
                 if (requiredHostDocumentVersion == documentContext.SeenHostDocumentVersion)
