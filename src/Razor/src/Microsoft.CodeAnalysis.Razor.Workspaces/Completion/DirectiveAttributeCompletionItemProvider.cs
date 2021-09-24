@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                     completion.Key,
                     insertText,
                     RazorCompletionItemKind.DirectiveAttribute,
-                    commitCharacters);
+                    commitCharacters: commitCharacters);
                 var completionDescription = new AggregateBoundAttributeDescription(attributeDescriptionInfos.ToArray());
                 razorCompletionItem.SetAttributeCompletionDescription(completionDescription);
 

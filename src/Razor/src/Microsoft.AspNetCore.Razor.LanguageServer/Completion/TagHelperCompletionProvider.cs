@@ -167,11 +167,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
                 var attributeCommitCharacters = ResolveAttributeCommitCharacters(completion.Value, indexerCompletion);
 
+                // We change the sort text depending on the tag name due to TagHelper/non-TagHelper concerns. For instance lets say you have a TagHelper that binds to `input`.
+                // Chances are you're expecting to get every other `input` completion item in addition to the TagHelper completion items and the sort order should be the default
+                // because HTML completion items are 100% as applicable as other items.
+                //
+                // Next assume that we have a TagHelper that binds `custom` (or even `Custom`); this is a special scenario where the user has effectively created a new HTML tag
+                // meaning they're probably expecting to provide all of the attributes necessary for that tag to operate. Meaning, HTML attribute completions are less important.
+                // To make sure we prioritize our attribute completions above all other types of completions we set the priority to high so they're showed in the completion list
+                // above all other completion items.
+                var sortText = HtmlFactsService.IsHtmlTagName(containingTagName) ? CompletionSortTextHelper.DefaultSortPriority : CompletionSortTextHelper.HighSortPriority;
                 var razorCompletionItem = new RazorCompletionItem(
                     displayText: completion.Key,
                     insertText: filterText,
-                    RazorCompletionItemKind.TagHelperAttribute,
-                    attributeCommitCharacters);
+                    sortText: sortText,
+                    kind: RazorCompletionItemKind.TagHelperAttribute,
+                    commitCharacters: attributeCommitCharacters);
 
                 var attributeDescriptions = completion.Value.Select(boundAttribute =>
                 {
@@ -212,8 +222,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 var razorCompletionItem = new RazorCompletionItem(
                     displayText: completion.Key,
                     insertText: completion.Key,
-                    RazorCompletionItemKind.TagHelperElement,
-                    s_elementCommitCharacters);
+                    kind: RazorCompletionItemKind.TagHelperElement,
+                    commitCharacters: s_elementCommitCharacters);
 
                 var tagHelperDescriptions = completion.Value.Select(tagHelper => BoundElementDescriptionInfo.From(tagHelper));
                 var elementDescription = new AggregateBoundElementDescription(tagHelperDescriptions.ToList());

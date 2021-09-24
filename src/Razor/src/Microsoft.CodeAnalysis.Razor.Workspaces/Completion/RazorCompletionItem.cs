@@ -13,10 +13,20 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     {
         private ItemCollection _items;
 
+        /// <summary>
+        /// Creates a new Razor completion item
+        /// </summary>
+        /// <param name="displayText">The text to display in the completion list</param>
+        /// <param name="insertText">Content to insert when completion item is committed</param>
+        /// <param name="kind">The type of completion item this is. Used for icons and resolving extra information like tooltip text.</param>
+        /// <param name="sortText">A string that is used to alphabetically sort the completion item. If omitted defaults to <paramref name="displayText"/>.</param>
+        /// <param name="commitCharacters">Characters that can be used to commit the completion item.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="displayText"/> or <paramref name="insertText"/> are <c>null</c>.</exception>
         public RazorCompletionItem(
             string displayText,
             string insertText,
             RazorCompletionItemKind kind,
+            string sortText = null,
             IReadOnlyCollection<string> commitCharacters = null)
         {
             if (displayText == null)
@@ -33,11 +43,17 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             InsertText = insertText;
             Kind = kind;
             CommitCharacters = commitCharacters;
+            SortText = sortText ?? displayText;
         }
 
         public string DisplayText { get; }
 
         public string InsertText { get; }
+
+        /// <summary>
+        /// A string that is used to alphabetically sort the completion item.
+        /// </summary>
+        public string SortText { get; }
 
         public RazorCompletionItemKind Kind { get; }
 
