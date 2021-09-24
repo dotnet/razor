@@ -87,6 +87,91 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
+        public void OnTypeCloseAngle_TagHelperAlreadyHasEndTag()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+<test>$$<test></test></test>
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+<test><test></test></test>
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { NormalOrSelfClosingTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
+        public void OnTypeCloseAngle_VoidTagHelperHasEndTag_ShouldStillAutoClose()
+        {
+            RunAutoInsertTest(
+input: @"
+@addTagHelper *, TestAssembly
+
+<input>$$<input></input></input>
+",
+expected: @"
+@addTagHelper *, TestAssembly
+
+<input /><input></input></input>
+",
+fileKind: FileKinds.Legacy,
+tagHelpers: new[] { UnspecifiedInputTagHelper });
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
+        public void OnTypeCloseAngle_TagAlreadyHasEndTag()
+        {
+            RunAutoInsertTest(
+input: @"
+<div>$$<div></div></div>
+",
+expected: @"
+<div><div></div></div>
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
+        public void OnTypeCloseAngle_TagDoesNotAutoCloseOutOfScope()
+        {
+            RunAutoInsertTest(
+input: @"
+<div>
+    @if (true)
+    {
+        <div>$$</div>
+    }
+",
+expected: @"
+<div>
+    @if (true)
+    {
+        <div></div>
+    }
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/36125")]
+        public void OnTypeCloseAngle_VoidTagHasEndTag_ShouldStillAutoClose()
+        {
+            RunAutoInsertTest(
+input: @"
+<input>$$<input></input></input>
+",
+expected: @"
+<input /><input></input></input>
+");
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/36568")]
         public void OnTypeCloseAngle_VoidElementMirroringTagHelper()
         {

@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             var afterCloseAngleIndex = position.GetAbsoluteIndex(context.SourceText);
-            if (!TryGetTagInformation(context, afterCloseAngleIndex, out var tagName, out var autoClosingBehavior))
+            if (!TryResolveAutoClosingBehavior(context, afterCloseAngleIndex, out var tagName, out var autoClosingBehavior))
             {
                 format = default;
                 edit = default;
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             return true;
         }
 
-        private static bool TryGetTagInformation(FormattingContext context, int afterCloseAngleIndex, out string name, out AutoClosingBehavior autoClosingBehavior)
+        private static bool TryResolveAutoClosingBehavior(FormattingContext context, int afterCloseAngleIndex, out string name, out AutoClosingBehavior autoClosingBehavior)
         {
             var change = new SourceChange(afterCloseAngleIndex, 0, string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
@@ -128,10 +128,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
             if (owner.Parent is MarkupStartTagSyntax startTag &&
                 startTag.ForwardSlash == null &&
-                startTag.Parent is MarkupElementSyntax)
+                startTag.Parent is MarkupElementSyntax htmlElement)
             {
                 var unescapedTagName = startTag.Name.Content;
                 autoClosingBehavior = InferAutoClosingBehavior(unescapedTagName);
+
+                if (autoClosingBehavior == AutoClosingBehavior.EndTag && !CouldAutoCloseParentOrSelf(unescapedTagName, htmlElement))
+                {
+                    // Auto-closing behavior is end-tag; however, we already have and end-tag therefore we don't need to do anything!
+                    autoClosingBehavior = default;
+                    name = null;
+                    return false;
+                }
 
                 // Finally capture the entire tag name with the potential escape operator.
                 name = startTag.GetTagNameWithOptionalBang();
@@ -147,6 +155,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 if (!TryGetTagHelperAutoClosingBehavior(tagHelperElement.TagHelperInfo.BindingResult, out autoClosingBehavior))
                 {
                     autoClosingBehavior = InferAutoClosingBehavior(name, tagNameComparer: StringComparer.Ordinal);
+                }
+
+                if (autoClosingBehavior == AutoClosingBehavior.EndTag && !CouldAutoCloseParentOrSelf(name, tagHelperElement))
+                {
+                    // Auto-closing behavior is end-tag; however, we already have and end-tag therefore we don't need to do anything!
+                    autoClosingBehavior = default;
+                    name = null;
+                    return false;
                 }
 
                 return true;
@@ -283,6 +299,63 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             autoClosingBehavior = default;
+            return false;
+        }
+
+        private static bool CouldAutoCloseParentOrSelf(string currentTagName, SyntaxNode node)
+        {
+            do
+            {
+                string potentialStartTagName = null;
+                RazorSyntaxNode endTag = null;
+                if (node is MarkupTagHelperElementSyntax parentTagHelper)
+                {
+                    potentialStartTagName = parentTagHelper.StartTag.Name.Content;
+                    endTag = parentTagHelper.EndTag;
+                }
+                else if (node is MarkupElementSyntax parentElement)
+                {
+                    potentialStartTagName = parentElement.StartTag.Name.Content;
+                    endTag = parentElement.EndTag;
+                }
+
+                var isNonTagStructure = potentialStartTagName == null;
+                if (isNonTagStructure)
+                {
+                    // We don't want to look outside of our immediate parent for potential parents that we could auto-close because
+                    // auto-closing one of those parents wouldn't actually auto-close them. For instance:
+                    //
+                    // <div>
+                    //     @if (true)
+                    //     {
+                    //         <div>|</div>
+                    //     }
+                    //
+                    // If we re-type the `>` in the inner-div we don't want to add another </div> because it would be out of scope
+                    // for the parent <div>
+                    return false;
+                }
+
+                if (string.Equals(potentialStartTagName, currentTagName, StringComparison.Ordinal))
+                {
+                    // Tag names equal, if the parent is missing an end-tag it could apply to that
+                    // i.e. <div><div>|</div>
+                    if (endTag == null)
+                    {
+                        return true;
+                    }
+
+                    // Has an end-tag; however, it could be another level of parent which is OK lets keep going up
+                }
+                else
+                {
+                    // Different tag name, can't apply
+                    return false;
+                }
+
+                node = node.Parent;
+            } while (node != null);
+
             return false;
         }
 
