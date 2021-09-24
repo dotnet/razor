@@ -28,6 +28,24 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private ITextBuffer VirtualDocumentTextBuffer { get; }
 
         [Fact]
+        public async Task TrySynchronizeVirtualDocumentAsync_RemovedDocument_ReturnsFalse()
+        {
+            // Arrange
+            var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 123, virtualDocumentSyncVersion: 123);
+            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider);
+            NotifyLSPDocumentAdded(lspDocument, synchronizer);
+            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, virtualDocument.HostDocumentSyncVersion.Value);
+            NotifyLSPDocumentRemoved(lspDocument, synchronizer);
+
+            // Act
+            var result = await synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
         public async Task TrySynchronizeVirtualDocumentAsync_SynchronizedDocument_ReturnsTrue()
         {
             // Arrange
