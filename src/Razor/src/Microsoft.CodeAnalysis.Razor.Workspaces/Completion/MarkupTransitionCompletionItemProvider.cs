@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                         completionDisplayText,
                         completionDisplayText,
                         RazorCompletionItemKind.MarkupTransition,
-                        s_elementCommitCharacters);
+                        commitCharacters: s_elementCommitCharacters);
                     var completionDescription = new MarkupTransitionCompletionDescription(CodeAnalysisResources.MarkupTransition_Description);
                     s_markupTransitionCompletionItem.SetMarkupTransitionCompletionDescription(completionDescription);
                 }

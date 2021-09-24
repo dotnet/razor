@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                     completionDisplayText,
                     directive.Directive,
                     RazorCompletionItemKind.Directive,
-                    commitCharacters);
+                    commitCharacters: commitCharacters);
                 var completionDescription = new DirectiveCompletionDescription(directive.Description);
                 completionItem.SetDirectiveCompletionDescription(completionDescription);
                 completionItems.Add(completionItem);

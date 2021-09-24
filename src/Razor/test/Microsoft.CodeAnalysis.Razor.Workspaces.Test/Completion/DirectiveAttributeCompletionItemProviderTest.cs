@@ -317,10 +317,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         {
             displayText ??= insertText;
 
-            Assert.Contains(completions, completion => insertText == completion.InsertText &&
-                    displayText == completion.DisplayText &&
-                    commitCharacters.SequenceEqual(completion.CommitCharacters) &&
-                    RazorCompletionItemKind.DirectiveAttribute == completion.Kind);
+            Assert.Contains(completions, completion =>
+                insertText == completion.InsertText &&
+                displayText == completion.DisplayText &&
+                commitCharacters.SequenceEqual(completion.CommitCharacters) &&
+                RazorCompletionItemKind.DirectiveAttribute == completion.Kind);
         }
 
         private static void AssertDoesNotContain(IReadOnlyList<RazorCompletionItem> completions, string insertText, string displayText)

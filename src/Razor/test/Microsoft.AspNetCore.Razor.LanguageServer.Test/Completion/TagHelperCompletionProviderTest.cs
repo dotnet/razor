@@ -175,11 +175,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 {
                     Assert.Equal("bool-val", completion.InsertText);
                     Assert.Equal(TagHelperCompletionProvider.MinimizedAttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
                 },
                 completion =>
                 {
                     Assert.Equal("int-val", completion.InsertText);
                     Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
+                });
+        }
+
+        [Fact]
+        public void GetCompletionAt_KnownHtmlElement_ReturnsCompletions_DefaultPriority()
+        {
+            // Arrange
+            var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<title  mutator />", DefaultTagHelpers);
+            var sourceSpan = new SourceSpan(36 + Environment.NewLine.Length, 0);
+            var context = new RazorCompletionContext(codeDocument.GetSyntaxTree(), codeDocument.GetTagHelperContext());
+
+            // Act
+            var completions = service.GetCompletionItems(context, sourceSpan);
+
+            // Assert
+            Assert.Collection(
+                completions,
+                completion =>
+                {
+                    Assert.Equal("Extra", completion.InsertText);
+                    Assert.Equal(TagHelperCompletionProvider.MinimizedAttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal("Extra", completion.SortText);
                 });
         }
 
@@ -256,11 +281,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 {
                     Assert.Equal("bool-val", completion.InsertText);
                     Assert.Equal(TagHelperCompletionProvider.MinimizedAttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
                 },
                 completion =>
                 {
                     Assert.Equal("int-val", completion.InsertText);
                     Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
                 });
         }
 
@@ -293,11 +320,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 {
                     Assert.Equal("bool-val", completion.InsertText);
                     Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
                 },
                 completion =>
                 {
                     Assert.Equal("bool-val-", completion.InsertText);
                     Assert.Empty(completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
                 });
         }
 
@@ -330,11 +359,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 {
                     Assert.Equal("int-val", completion.InsertText);
                     Assert.Equal(TagHelperCompletionProvider.AttributeCommitCharacters, completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
                 },
                 completion =>
                 {
                     Assert.Equal("int-val-", completion.InsertText);
                     Assert.Empty(completion.CommitCharacters);
+                    Assert.Equal(CompletionSortTextHelper.HighSortPriority, completion.SortText);
                 });
         }
 
