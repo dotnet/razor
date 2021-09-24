@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private HTMLCSharpLanguageServerLogHubLoggerProvider LoggerProvider { get; }
 
         [Fact]
-        public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
+        public async Task HandleRequestAsync_DocumentNotFound_ClearsDiagnostics()
         {
             // Arrange
             var documentManager = new TestDocumentManager();
@@ -128,7 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var result = await documentDiagnosticsHandler.HandleRequestAsync(diagnosticRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Null(result);
+            var report = Assert.Single(result);
+            Assert.Null(report.Diagnostics);
+            Assert.Null(report.ResultId);
         }
 
         [Fact]
