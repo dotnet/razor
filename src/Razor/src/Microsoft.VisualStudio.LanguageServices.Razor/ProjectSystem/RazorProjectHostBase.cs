@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 return;
             }
 
-            projectManager.DocumentAdded(Current, document, new FileTextLoader(document.FilePath, null));
+            projectManager.DocumentAdded(Current, document, new CachedFileTextLoader(document.FilePath, null));
             _currentDocuments.Add(document.FilePath, document);
         }
 
@@ -336,6 +336,38 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
 
             return joinedPath;
+        }
+
+        private class CachedFileTextLoader : FileTextLoader
+        {
+            private record TextAndVersionCache(DateTime LastModified, Task<TextAndVersion> TextAndVersionTask);
+
+            private string _filePath;
+
+            private static Dictionary<string, TextAndVersionCache> _cache = new Dictionary<string, TextAndVersionCache>();
+
+            public CachedFileTextLoader(string filePath, System.Text.Encoding? defaultEncoding) : base(filePath, defaultEncoding)
+            {
+                _filePath = filePath;
+            }
+
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                var lastModified = File.GetLastWriteTimeUtc(_filePath);
+
+                Task<TextAndVersion> textAndVersionTask;
+                if (_cache.TryGetValue(_filePath, out var textAndVersionCache) && textAndVersionCache.LastModified == lastModified)
+                {
+                    textAndVersionTask = textAndVersionCache.TextAndVersionTask;
+                }
+                else
+                {
+                    textAndVersionTask = base.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
+                    _cache[_filePath] = new TextAndVersionCache(lastModified, textAndVersionTask);
+                }
+
+                return textAndVersionTask;
+            }
         }
     }
 }
