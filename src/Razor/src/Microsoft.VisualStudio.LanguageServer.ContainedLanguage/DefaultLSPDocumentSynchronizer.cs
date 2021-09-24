@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             {
                 if (!_virtualDocumentContexts.TryGetValue(virtualDocument.Uri, out var documentContext))
                 {
-                    // Document was delted/removed in mid-synchronization
+                    // Document was deleted/removed in mid-synchronization
                     return Task.FromResult(false);
                 }
 
