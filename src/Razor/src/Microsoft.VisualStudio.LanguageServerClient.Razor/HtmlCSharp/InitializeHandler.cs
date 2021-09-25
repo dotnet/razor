@@ -35,12 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 {
                     TriggerCharacters = new[] { "'", "/", "\n" }
                 },
-                DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions()
-                {
-                    // These trigger characters cannot overlap with OnAutoInsert trigger characters or they will be ignored.
-                    FirstTriggerCharacter = "}",
-                    MoreTriggerCharacter = new[] { ";" }
-                },
                 HoverProvider = true,
                 DefinitionProvider = true,
                 DocumentHighlightProvider = true,
@@ -132,8 +126,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 await VerifyMergedReferencesProviderAsync(mergedCapabilities);
 
                 await VerifyMergedRenameProviderAsync(mergedCapabilities);
-
-                await VerifyMergedOnTypeFormattingProviderAsync(mergedCapabilities);
             }).ConfigureAwait(false);
         }
 
@@ -416,31 +408,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 await _joinableTaskFactory.SwitchToMainThreadAsync();
 
                 Debug.Fail("rename provider contained langauge server capabilities mismatch");
-            }
-        }
-
-        private async Task VerifyMergedOnTypeFormattingProviderAsync(VSServerCapabilities mergedCapabilities)
-        {
-            var mergedTriggerCharacters = mergedCapabilities.DocumentOnTypeFormattingProvider.MoreTriggerCharacter;
-            var purposefullyRemovedTriggerCharacters = new[]
-            {
-                "\n" // https://github.com/dotnet/aspnetcore/issues/28002
-            };
-            var filteredMergedTriggerCharacters = mergedTriggerCharacters.Except(purposefullyRemovedTriggerCharacters);
-            var mergedTriggerChars = new HashSet<string>(filteredMergedTriggerCharacters);
-
-            var razorOnTypeFormattingOptions = s_initializeResult.Capabilities.DocumentOnTypeFormattingProvider;
-            var razorTriggerCharacters = new HashSet<string>
-            {
-                razorOnTypeFormattingOptions.FirstTriggerCharacter
-            };
-            razorTriggerCharacters.UnionWith(razorOnTypeFormattingOptions.MoreTriggerCharacter);
-
-            if (!mergedTriggerChars.SetEquals(razorTriggerCharacters))
-            {
-                await _joinableTaskFactory.SwitchToMainThreadAsync();
-
-                Debug.Fail("OnTypeFormatting trigger characters capabilities mismatch");
             }
         }
 
