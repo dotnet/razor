@@ -419,6 +419,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 {
                     builder.SetRootNamespace(HostProject.RootNamespace);
                     builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                    builder.SetSupportLocalizedComponentNames();
                 });
         }
 
