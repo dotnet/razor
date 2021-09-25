@@ -1,33 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.CodeAnalysis.Razor" Version="6.0.0-rc.2.21474.23">
+    <Dependency Name="Microsoft.CodeAnalysis.Razor" Version="6.0.0-rc.2.21475.4">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>cc2f397a4d09e5f812334846ddb62d06190a30d7</Sha>
+      <Sha>ac78d54e81fc36b0780c0a9f40be0821cfd156c3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Razor.Internal.Transport" Version="6.0.0-rc.2.21474.23">
+    <Dependency Name="Microsoft.AspNetCore.Razor.Internal.Transport" Version="6.0.0-rc.2.21475.4">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>cc2f397a4d09e5f812334846ddb62d06190a30d7</Sha>
+      <Sha>ac78d54e81fc36b0780c0a9f40be0821cfd156c3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Razor.Language" Version="6.0.0-rc.2.21474.23">
+    <Dependency Name="Microsoft.AspNetCore.Razor.Language" Version="6.0.0-rc.2.21475.4">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>cc2f397a4d09e5f812334846ddb62d06190a30d7</Sha>
+      <Sha>ac78d54e81fc36b0780c0a9f40be0821cfd156c3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Testing" Version="6.0.0-rc.2.21474.23">
+    <Dependency Name="Microsoft.AspNetCore.Testing" Version="6.0.0-rc.2.21475.4">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>cc2f397a4d09e5f812334846ddb62d06190a30d7</Sha>
+      <Sha>ac78d54e81fc36b0780c0a9f40be0821cfd156c3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions" Version="6.0.0-rc.2.21474.23">
+    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions" Version="6.0.0-rc.2.21475.4">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>cc2f397a4d09e5f812334846ddb62d06190a30d7</Sha>
+      <Sha>ac78d54e81fc36b0780c0a9f40be0821cfd156c3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X" Version="6.0.0-rc.2.21474.23">
+    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X" Version="6.0.0-rc.2.21475.4">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>cc2f397a4d09e5f812334846ddb62d06190a30d7</Sha>
+      <Sha>ac78d54e81fc36b0780c0a9f40be0821cfd156c3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X" Version="6.0.0-rc.2.21474.23">
+    <Dependency Name="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X" Version="6.0.0-rc.2.21475.4">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>cc2f397a4d09e5f812334846ddb62d06190a30d7</Sha>
+      <Sha>ac78d54e81fc36b0780c0a9f40be0821cfd156c3</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Extensions.Configuration.Json" Version="6.0.0-rc.2.21470.23" CoherentParentDependency="Microsoft.CodeAnalysis.Razor">
       <Uri>https://github.com/dotnet/runtime</Uri>
