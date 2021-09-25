@@ -13,8 +13,13 @@ Sometimes it may be necessary to make changes in [`dotnet/aspnetcore`](https://g
 
 7. Open `aspnetcore-tooling/eng/Versions.props` and note the version for `MicrosoftCodeAnalysisRazorPackageVersion`. Ex. `5.0.0-rc.1.20380.7`.
 8. Do a find in `Versions.props` for the version in step 7 and replace with `x.0.0-dev`.
+9. Get the assembly version of the `aspnetcore` packages.
+   1.  Assembly version can be found by openning the `.dll` in `ILSpy`
+       1.  Ex. `~/.nuget\packages\microsoft.aspnetcore.razor.language\6.0.0-dev\lib\netstandard2.0.nuget\packages\microsoft.aspnetcore.razor.language\{VERSION}.0.0-dev\lib\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll`
+       2.  This is likely going to be the dev version `42.42.42.42`
+10. Update the `OldVersionUpperBound` and `NewVersion`, of the Razor assemblies in `src\Razor\src\Microsoft.VisualStudio.RazorExtension\AssemblyBindingRedirects.cs` with the assembly version from the step above.
 
 ## Notes:
 - ⚠️ Ensure you do not commit the changes to `aspnetcore-tooling/NuGet.config` & `aspnetcore-tooling/eng/Versions.props`!
-- If you're still seeing build errors after performing the above steps, you may have to temporarily modify `OldVersionUpperBound` and `NewVersion` of the first five assemblies in [AssemblyBindingRedirects.cs](https://github.com/dotnet/aspnetcore-tooling/blob/main/src/Razor/src/Microsoft.VisualStudio.RazorExtension/AssemblyBindingRedirects.cs) to match the assembly version of the aspnetcore packages above. You can find the assembly version by opening one of the packages with [ILSpy](https://github.com/icsharpcode/ILSpy/releases) or similar tool. 
+- If you're still seeing build errors after performing the above steps, you may have to temporarily modify `OldVersionUpperBound` and `NewVersion` of the first five assemblies in [AssemblyBindingRedirects.cs](https://github.com/dotnet/aspnetcore-tooling/blob/main/src/Razor/src/Microsoft.VisualStudio.RazorExtension/AssemblyBindingRedirects.cs) to match the assembly version of the aspnetcore packages above. You can find the assembly version by opening one of the packages with [ILSpy](https://github.com/icsharpcode/ILSpy/releases) or similar tool.
 - If you find the old packages are still being used after this change, purge the nuget cache here: `~\.nuget\packages`
