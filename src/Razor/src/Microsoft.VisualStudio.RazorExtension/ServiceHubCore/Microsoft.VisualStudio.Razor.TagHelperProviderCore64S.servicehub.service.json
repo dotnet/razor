@@ -4,8 +4,7 @@
   "hostGroupAllowed": true,
   "entryPoint": {
     "assemblyPath": "Microsoft.CodeAnalysis.Remote.Razor.dll",
-    "fullClassName": "Microsoft.CodeAnalysis.Remote.Razor.RemoteTagHelperProviderServiceFactory",
-    "AssemblySearchPathsConfig": "Microsoft.VisualStudio.Razor.TagHelperProvider.AssemblySearchPathsConfig.json"
+    "fullClassName": "Microsoft.CodeAnalysis.Remote.Razor.RemoteTagHelperProviderServiceFactory"
   },
-  "friendServices": [ "roslynRemoteHostCore64S" ]
+  "friendServices": [ "Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzerCore64S" ]
 }
