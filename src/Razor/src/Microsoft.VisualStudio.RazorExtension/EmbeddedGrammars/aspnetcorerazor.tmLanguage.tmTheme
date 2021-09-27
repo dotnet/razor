@@ -121,7 +121,7 @@
       </dict>
 
       <!-- <a> [href]="Hello"> -->
-      <dict>
+      <!-- <dict>
         <key>scope</key>
         <string>entity.other.attribute-name</string>
         <key>settings</key>
@@ -129,10 +129,10 @@
           <key>vsclassificationtype</key>
           <string>HTML Attribute Name</string>
         </dict>
-      </dict>
+      </dict> -->
 
       <!-- <a> href=["Hello"]> -->
-      <dict>
+      <!-- <dict>
         <key>scope</key>
         <string>meta.attribute, meta.attribute string.quoted</string>
         <key>settings</key>
@@ -140,7 +140,7 @@
           <key>vsclassificationtype</key>
           <string>HTML Attribute Value</string>
         </dict>
-      </dict>
+      </dict> -->
 
       <dict>
         <key>scope</key>
