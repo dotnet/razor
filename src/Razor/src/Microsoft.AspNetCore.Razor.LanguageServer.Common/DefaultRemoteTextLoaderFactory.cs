@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
@@ -33,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             }
 
             var normalizedPath = _filePathNormalizer.Normalize(filePath);
-            return new RemoteTextLoader(normalizedPath);
+            return new CachedTextLoader(normalizedPath, new RemoteTextLoader(normalizedPath));
         }
 
         private class RemoteTextLoader : TextLoader
@@ -52,7 +53,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-
                 TextAndVersion textAndVersion;
 
                 try

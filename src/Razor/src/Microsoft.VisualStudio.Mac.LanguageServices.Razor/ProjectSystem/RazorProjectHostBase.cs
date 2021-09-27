@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Threading;
 using MonoDevelop.Projects;
 
@@ -175,7 +176,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             }
 
             var hostDocument = new HostDocument(filePath, relativeFilePath);
-            _projectSnapshotManager.DocumentAdded(hostProject, hostDocument, new FileTextLoader(filePath, defaultEncoding: null));
+            _projectSnapshotManager.DocumentAdded(hostProject, hostDocument, new CachedTextLoader(filePath));
 
             _currentDocuments[filePath] = hostDocument;
         }

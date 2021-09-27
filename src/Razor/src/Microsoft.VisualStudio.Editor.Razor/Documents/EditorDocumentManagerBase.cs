@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                     JoinableTaskContext,
                     key.ProjectFilePath,
                     key.DocumentFilePath,
-                    new FileTextLoader(key.DocumentFilePath, defaultEncoding: null),
+                    new CachedTextLoader(key.DocumentFilePath),
                     _fileChangeTrackerFactory.Create(key.DocumentFilePath),
                     textBuffer,
                     changedOnDisk,
