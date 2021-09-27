@@ -7,5 +7,5 @@
     "fullClassName": "Microsoft.CodeAnalysis.Remote.Razor.RemoteTagHelperProviderServiceFactory",
     "AssemblySearchPathsConfig": "Microsoft.VisualStudio.Razor.TagHelperProvider.AssemblySearchPathsConfig.json"
   },
-  "friendServices": [ "roslynRemoteHostCore64S" ]
+  "friendServices": [ "Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzerCore64S" ]
 }
