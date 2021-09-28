@@ -95,6 +95,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="razordirective-language-configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="csharp-language-configuration.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -119,30 +123,33 @@
       NOTE: Adding OSS components to this list must be reviewed against our component governance standards. For now this is a curated list. You can read more about the CG process at https://aka.ms/component-governance
     ***************************************************************************************************************************************
     -->
-    <VSIXSourceItem Include="$(OutputPath)MediatR.dll" />
-    <VSIXSourceItem Include="$(OutputPath)OmniSharp.Extensions.JsonRpc.dll" />
-    <VSIXSourceItem Include="$(OutputPath)OmniSharp.Extensions.LanguageProtocol.dll" />
-    <VSIXSourceItem Include="$(OutputPath)OmniSharp.Extensions.LanguageServer.dll" />
-    <VSIXSourceItem Include="$(OutputPath)OmniSharp.Extensions.LanguageServer.Shared.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Options.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Primitives.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.DependencyInjection.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.Json.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.FileExtensions.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.Abstractions.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Logging.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Logging.Abstractions.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.FileSystemGlobbing.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.FileProviders.Abstractions.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.FileProviders.Physical.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)MediatR.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)OmniSharp.Extensions.JsonRpc.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)OmniSharp.Extensions.LanguageProtocol.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)OmniSharp.Extensions.LanguageServer.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)OmniSharp.Extensions.LanguageServer.Shared.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Options.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Primitives.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.DependencyInjection.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.FileExtensions.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.Abstractions.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.Binder.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Logging.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Logging.Abstractions.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.FileSystemGlobbing.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.FileProviders.Abstractions.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.FileProviders.Physical.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)System.IO.Pipelines.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)System.Reactive.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)System.Runtime.CompilerServices.Unsafe.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)System.Threading.Channels.dll" />
+
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
-    <VSIXSourceItem Include="$(OutputPath)System.IO.Pipelines.dll" />
-    <VSIXSourceItem Include="$(OutputPath)System.Reactive.dll" />
-    <VSIXSourceItem Include="$(OutputPath)System.Threading.Channels.dll" />
   </ItemGroup>
 
   <!-- Resources are a little bit special in a VSIX -->
