@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal static class DirectoryHelper
     {
         /// <summary>
-        /// Finds all the files in  a directory which meet the given criteria.
+        /// Finds all the files in a directory which meet the given criteria.
         /// </summary>
         /// <param name="workspaceDirectory">The directory to be searched.</param>
         /// <param name="searchPattern">The pattern to apply when searching.</param>
@@ -67,6 +67,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 files = Array.Empty<string>();
             }
             catch (PathTooLongException ex)
+            {
+                logger?.LogWarning(ex.Message);
+                yield break;
+            }
+            catch (IOException ex)
             {
                 logger?.LogWarning(ex.Message);
                 yield break;
