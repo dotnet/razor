@@ -228,6 +228,54 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
                 currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
             }
+            else if (currentOwner.Parent is MarkupStartTagSyntax startTag &&
+                startTag.OpenAngle.Position == afterCloseAngleIndex)
+            {
+                // We found the wrong owner. We really need a SyntaxTree API which is "get me the token at position x" :(
+                // This can happen when you are at the following:
+                //
+                // @if (true)
+                // {
+                //     <em>|<div></div>
+                // }
+                //
+                // It's picking up the trailing <div> as the owner
+
+                var startElement = startTag.Parent;
+                if (startElement.TryGetPreviousSibling(out var previousSibling))
+                {
+                    var potentialCloseAngle = previousSibling.GetLastToken();
+                    if (potentialCloseAngle.Kind == SyntaxKind.CloseAngle &&
+                        potentialCloseAngle.Position == afterCloseAngleIndex - 1)
+                    {
+                        currentOwner = potentialCloseAngle;
+                    }
+                }
+            }
+            else if (currentOwner.Parent is MarkupTagHelperStartTagSyntax startTagHelperSyntax &&
+                startTagHelperSyntax.OpenAngle.Position == afterCloseAngleIndex)
+            {
+                // We found the wrong owner. We really need a SyntaxTree API which is "get me the token at position x" :(
+                // This can happen when you are at the following:
+                //
+                // @if (true)
+                // {
+                //     <em>|<th2></th2>
+                // }
+                //
+                // It's picking up the trailing <th2> as the owner
+
+                var startTagHelperElement = startTagHelperSyntax.Parent;
+                if (startTagHelperElement.TryGetPreviousSibling(out var previousSibling))
+                {
+                    var potentialCloseAngle = previousSibling.GetLastToken();
+                    if (potentialCloseAngle.Kind == SyntaxKind.CloseAngle &&
+                        potentialCloseAngle.Position == afterCloseAngleIndex - 1)
+                    {
+                        currentOwner = potentialCloseAngle;
+                    }
+                }
+            }
 
             if (currentOwner?.Parent == null)
             {

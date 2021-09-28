@@ -14,6 +14,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class SyntaxNodeExtensions
     {
+        internal static bool TryGetPreviousSibling(this SyntaxNode syntaxNode, out SyntaxNode previousSibling)
+        {
+            var syntaxNodeParent = syntaxNode.Parent;
+            if (syntaxNodeParent == null)
+            {
+                previousSibling = default;
+                return false;
+            }
+
+            var nodes = syntaxNodeParent.ChildNodes();
+            for (var i = 0; i < nodes.Count; i++)
+            {
+                if (nodes[i] == syntaxNode)
+                {
+                    if (i == 0)
+                    {
+                        previousSibling = default;
+                        return false;
+                    }
+                    else
+                    {
+                        previousSibling = nodes[i - 1];
+                        return true;
+                    }
+                }
+            }
+
+            previousSibling = default;
+            return false;
+        }
+
         public static bool ContainsOnlyWhitespace(this SyntaxNode node, bool includingNewLines = true)
         {
             if (node is null)
