@@ -17,24 +17,16 @@
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
 
-      <!-- We're only targeting netcoreapp3.1 to ensure the SDK consumes all transitive dependencies, we don't actually need an executable -->
-      <_PublishedFiles Include="$(PublishDir)**\*.*" Exclude="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.*"/>      
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
+      <!--
+        We're only targeting netcoreapp3.1 to ensure the SDK consumes all transitive dependencies, we don't actually need an executable.
+        Also only include dependencies exclusive to Razor. For any common dependencies between Roslyn and Razor, we want to share the ones
+        loaded in Roslyn's ALC at runtime.
+      -->
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Razor.*" />
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.*" />
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.AspNetCore.*" />
 
-      <!-- Exclude dependencies that are guaranteed to be in our host / could cause trouble otherwise -->
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'MessagePack.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'MessagePack.Annotations.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.AnalyzerUtilities.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.CSharp.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.CSharp.Features.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.CSharp.Workspaces.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.Features.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.Remote.Workspaces.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.Scripting.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.Workspaces.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.CodeAnalysis.ExternalAccess.Razor.dll'" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.Win32.Registry.dll'" />
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
 
       <!-- Set TargetPath -->
       <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
