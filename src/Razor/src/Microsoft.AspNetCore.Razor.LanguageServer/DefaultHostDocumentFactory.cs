@@ -1,11 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,24 +11,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultHostDocumentFactory : HostDocumentFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly GeneratedDocumentContainerStore _generatedDocumentContainerStore;
 
-        public DefaultHostDocumentFactory(
-            ForegroundDispatcher foregroundDispatcher,
-            GeneratedDocumentContainerStore generatedDocumentContainerStore)
+        public DefaultHostDocumentFactory(GeneratedDocumentContainerStore generatedDocumentContainerStore)
         {
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            if (generatedDocumentContainerStore == null)
+            if (generatedDocumentContainerStore is null)
             {
                 throw new ArgumentNullException(nameof(generatedDocumentContainerStore));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
             _generatedDocumentContainerStore = generatedDocumentContainerStore;
         }
 
@@ -39,12 +28,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override HostDocument Create(string filePath, string targetFilePath, string fileKind)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            if (targetFilePath == null)
+            if (targetFilePath is null)
             {
                 throw new ArgumentNullException(nameof(targetFilePath));
             }
@@ -60,18 +49,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var sharedContainer = _generatedDocumentContainerStore.Get(filePath);
                 var container = (GeneratedDocumentContainer)sender;
                 var latestDocument = (DefaultDocumentSnapshot)container.LatestDocument;
-                Task.Factory.StartNew(async () =>
-                {
-                    var codeDocument = await latestDocument.GetGeneratedOutputAsync();
 
-                    sharedContainer.SetOutput(
-                        latestDocument,
-                        codeDocument.GetCSharpDocument(),
-                        codeDocument.GetHtmlDocument(),
-                        container.InputVersion,
-                        container.OutputCSharpVersion,
-                        container.OutputHtmlVersion);
-                }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.BackgroundScheduler);
+                _ = Task.Factory.StartNew(
+                    () => sharedContainer.SetOutputAndCaptureReferenceAsync(latestDocument),
+                    CancellationToken.None,
+                    TaskCreationOptions.None,
+                    TaskScheduler.Default);
             }
         }
     }

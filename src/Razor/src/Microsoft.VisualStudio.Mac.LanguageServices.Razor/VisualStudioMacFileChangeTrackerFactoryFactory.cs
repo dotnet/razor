@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -14,17 +14,17 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     [ExportWorkspaceServiceFactory(typeof(FileChangeTrackerFactory), ServiceLayer.Host)]
     internal class VisualStudioMacFileChangeTrackerFactoryFactory : IWorkspaceServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
         [ImportingConstructor]
-        public VisualStudioMacFileChangeTrackerFactoryFactory(ForegroundDispatcher foregroundDispatcher)
+        public VisualStudioMacFileChangeTrackerFactoryFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentNullException(nameof(workspaceServices));
             }
 
-            return new VisualStudioMacFileChangeTrackerFactory(_foregroundDispatcher);
+            return new VisualStudioMacFileChangeTrackerFactory(_projectSnapshotManagerDispatcher);
         }
     }
 }

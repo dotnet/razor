@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -13,28 +13,20 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class VisualStudioFileChangeTrackerTest : ForegroundDispatcherTestBase
+    public class VisualStudioFileChangeTrackerTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        public VisualStudioFileChangeTrackerTest()
-        {
-            var joinableTaskContext = new JoinableTaskContextNode(new JoinableTaskContext());
-            JoinableTaskFactory = new JoinableTaskFactory(joinableTaskContext.Context);
-        }
-
         private ErrorReporter ErrorReporter { get; } = new DefaultErrorReporter();
 
-        private JoinableTaskFactory JoinableTaskFactory { get; }
-
-        [ForegroundFact]
+        [UIFact]
         public async Task StartListening_AdvisesForFileChange()
         {
             // Arrange
-            var fileChangeService = new Mock<IVsAsyncFileChangeEx>();
+            var fileChangeService = new Mock<IVsAsyncFileChangeEx>(MockBehavior.Strict);
             fileChangeService
                 .Setup(f => f.AdviseFileChangeAsync(It.IsAny<string>(), It.IsAny<_VSFILECHANGEFLAGS>(), It.IsAny<IVsFreeThreadedFileChangeEvents2>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<uint>(123))
                 .Verifiable();
-            var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, Dispatcher, ErrorReporter, fileChangeService.Object, JoinableTaskFactory);
+            var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
 
             // Act
             tracker.StartListening();
@@ -44,17 +36,17 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             fileChangeService.Verify();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task StartListening_AlreadyListening_DoesNothing()
         {
             // Arrange
             var callCount = 0;
-            var fileChangeService = new Mock<IVsAsyncFileChangeEx>();
+            var fileChangeService = new Mock<IVsAsyncFileChangeEx>(MockBehavior.Strict);
             fileChangeService
                 .Setup(f => f.AdviseFileChangeAsync(It.IsAny<string>(), It.IsAny<_VSFILECHANGEFLAGS>(), It.IsAny<IVsFreeThreadedFileChangeEvents2>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<uint>(123))
                 .Callback(() => callCount++);
-            var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, Dispatcher, ErrorReporter, fileChangeService.Object, JoinableTaskFactory);
+            var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
             tracker.StartListening();
 
             // Act
@@ -65,7 +57,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             Assert.Equal(1, callCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task StopListening_UnadvisesForFileChange()
         {
             // Arrange
@@ -77,7 +69,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             fileChangeService
                 .Setup(f => f.UnadviseFileChangeAsync(123, It.IsAny<CancellationToken>()))
                 .Verifiable();
-            var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, Dispatcher, ErrorReporter, fileChangeService.Object, JoinableTaskFactory);
+            var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
             tracker.StartListening(); // Start listening for changes.
             await tracker._fileChangeAdviseTask;
 
@@ -89,7 +81,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             fileChangeService.Verify();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StopListening_NotListening_DoesNothing()
         {
             // Arrange
@@ -97,7 +89,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             fileChangeService
                 .Setup(f => f.UnadviseFileChangeAsync(123, It.IsAny<CancellationToken>()))
                 .Throws(new InvalidOperationException());
-            var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, Dispatcher, ErrorReporter, fileChangeService.Object, JoinableTaskFactory);
+            var tracker = new VisualStudioFileChangeTracker(TestProjectData.SomeProjectImportFile.FilePath, ErrorReporter, fileChangeService.Object, Dispatcher, JoinableTaskFactory.Context);
 
             // Act
             tracker.StopListening();
@@ -106,7 +98,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             Assert.Null(tracker._fileChangeUnadviseTask);
         }
 
-        [ForegroundTheory]
+        [UITheory]
         [InlineData((uint)_VSFILECHANGEFLAGS.VSFILECHG_Size, (int)FileChangeKind.Changed)]
         [InlineData((uint)_VSFILECHANGEFLAGS.VSFILECHG_Time, (int)FileChangeKind.Changed)]
         [InlineData((uint)_VSFILECHANGEFLAGS.VSFILECHG_Add, (int)FileChangeKind.Added)]
@@ -115,8 +107,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             // Arrange
             var filePath = TestProjectData.SomeProjectImportFile.FilePath;
-            var fileChangeService = Mock.Of<IVsAsyncFileChangeEx>();
-            var tracker = new VisualStudioFileChangeTracker(filePath, Dispatcher, ErrorReporter, fileChangeService, JoinableTaskFactory);
+            var fileChangeService = Mock.Of<IVsAsyncFileChangeEx>(MockBehavior.Strict);
+            var tracker = new VisualStudioFileChangeTracker(filePath, ErrorReporter, fileChangeService, Dispatcher, JoinableTaskFactory.Context);
 
             var called = false;
             tracker.Changed += (sender, args) =>

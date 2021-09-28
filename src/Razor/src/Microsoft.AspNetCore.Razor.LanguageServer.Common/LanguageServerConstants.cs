@@ -1,25 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     public static class LanguageServerConstants
     {
+        public const int VSCompletionItemKindOffset = 118115;
+
         public const string ProjectConfigurationFile = "project.razor.json";
 
-        public const string RazorSemanticTokensEndpoint = "textDocument/semanticTokens";
+        public const string RazorSemanticTokensLegendEndpoint = "_vs_/textDocument/semanticTokensLegend";
 
-        public const string RazorSemanticTokensEditEndpoint = "textDocument/semanticTokens/edits";
+        public const string RazorSemanticTokensEditEndpoint = "textDocument/semanticTokens/full/delta";
 
-        public const string RazorSemanticTokensRangeEndpoint = "textDocument/semanticTokens/range";
+        public const string RazorSemanticTokensEndpoint = "textDocument/semanticTokens/full";
 
-        public const string RazorSemanticTokensLegendEndpoint = "_ms_/textDocument/semanticTokensLegend";
-
-        public const string RazorRangeFormattingEndpoint = "razor/rangeFormatting";
-
-        public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
-
-        public const string RazorUpdateHtmlBufferEndpoint = "razor/updateHtmlBuffer";
+        public const string SemanticTokensProviderName = "semanticTokensProvider";
 
         public const string RazorLanguageQueryEndpoint = "razor/languageQuery";
 
@@ -27,21 +23,59 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         public const string RazorMapToDocumentRangesEndpoint = "razor/mapToDocumentRanges";
 
-        public const string RazorMapToDocumentEditsEndpoint = "razor/mapToDocumentEdits";
+        public const string RazorTranslateDiagnosticsEndpoint = "razor/translateDiagnostics";
 
-        public const string SemanticTokensProviderName = "semanticTokensProvider";
+        public const string RazorMapToDocumentEditsEndpoint = "razor/mapToDocumentEdits";
 
         public const string RazorCodeActionRunnerCommand = "razor/runCodeAction";
 
-        public const string RazorCodeActionResolutionEndpoint = "razor/resolveCodeAction";
+        public const string RazorDocumentFormattingEndpoint = "textDocument/formatting";
+
+        // RZLS Custom Message Targets
+        public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
+
+        public const string RazorUpdateHtmlBufferEndpoint = "razor/updateHtmlBuffer";
+
+        public const string RazorRangeFormattingEndpoint = "razor/rangeFormatting";
+
+        public const string RazorProvideCodeActionsEndpoint = "razor/provideCodeActions";
+
+        public const string RazorResolveCodeActionsEndpoint = "razor/resolveCodeActions";
+
+        public const string RazorProvideSemanticTokensEndpoint = "razor/provideSemanticTokens";
+
+        public const string RazorProvideSemanticTokensEditsEndpoint = "razor/provideSemanticTokensEdits";
+
+        public const string RazorServerReadyEndpoint = "razor/serverReady";
 
         public static class CodeActions
         {
+            public const string EditBasedCodeActionCommand = "EditBasedCodeActionCommand";
+
             public const string ExtractToCodeBehindAction = "ExtractToCodeBehind";
 
             public const string CreateComponentFromTag = "CreateComponentFromTag";
 
             public const string AddUsing = "AddUsing";
+
+            public const string CodeActionFromVSCode = "CodeActionFromVSCode";
+
+            /// <summary>
+            /// Remaps without formatting the resolved code action edit
+            /// </summary>
+            public const string UnformattedRemap = "UnformattedRemap";
+
+            /// <summary>
+            /// Remaps and formats the resolved code action edit
+            /// </summary>
+            public const string Default = "Default";
+
+            public static class Languages
+            {
+                public const string CSharp = "CSharp";
+
+                public const string Razor = "Razor";
+            }
         }
     }
 }

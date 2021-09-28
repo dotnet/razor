@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Text.Adornments;
 
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             new ClassifiedTextElement(
                 new ClassifiedTextRun(PredefinedClassificationNames.Comment, "------------")));
 
-        private static readonly IReadOnlyDictionary<string, string> KeywordTypeNameLookups = new Dictionary<string, string>(StringComparer.Ordinal)
+        private static readonly IReadOnlyDictionary<string, string> s_keywordTypeNameLookups = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             [typeof(byte).FullName] = "byte",
             [typeof(sbyte).FullName] = "sbyte",
@@ -41,14 +41,14 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         // Hardcoding the Guid here to avoid a reference to Microsoft.VisualStudio.ImageCatalog.dll
         // that is not present in Visual Studio for Mac
-        private static readonly Guid ImageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
-        private static readonly ImageElement PropertyGlyph = new ImageElement(
-            new ImageId(ImageCatalogGuid, 2429), // KnownImageIds.Type = 2429
+        private static readonly Guid s_imageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+        private static readonly ImageElement s_propertyGlyph = new ImageElement(
+            new ImageId(s_imageCatalogGuid, 2429), // KnownImageIds.Type = 2429
             "Razor Attribute Glyph");
-        private static readonly ClassifiedTextRun SpaceLiteral = new ClassifiedTextRun(PredefinedClassificationNames.Literal, " ");
-        private static readonly ClassifiedTextRun DotLiteral = new ClassifiedTextRun(PredefinedClassificationNames.Literal, ".");
+        private static readonly ClassifiedTextRun s_spaceLiteral = new ClassifiedTextRun(PredefinedClassificationNames.Literal, " ");
+        private static readonly ClassifiedTextRun s_dotLiteral = new ClassifiedTextRun(PredefinedClassificationNames.Literal, ".");
 
-        public override ContainerElement CreateClassifiedDescription(AttributeCompletionDescription completionDescription)
+        public override ContainerElement CreateClassifiedDescription(AggregateBoundAttributeDescription completionDescription)
         {
             if (completionDescription is null)
             {
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 }
 
                 var returnTypeClassification = PredefinedClassificationNames.Type;
-                if (KeywordTypeNameLookups.TryGetValue(descriptionInfo.ReturnTypeName, out var returnTypeName))
+                if (TypeNameStringResolver.TryGetSimpleName(descriptionInfo.ReturnTypeName, out var returnTypeName))
                 {
                     returnTypeClassification = PredefinedClassificationNames.Keyword;
                 }
@@ -94,13 +94,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 descriptionElements.Add(
                     new ContainerElement(
                         ContainerElementStyle.Wrapped,
-                        PropertyGlyph,
+                        s_propertyGlyph,
                         new ClassifiedTextElement(
                             new ClassifiedTextRun(returnTypeClassification, returnTypeName),
-                            SpaceLiteral,
+                            s_spaceLiteral,
                             new ClassifiedTextRun(PredefinedClassificationNames.Literal, tagHelperTypeNamePrefix),
                             new ClassifiedTextRun(PredefinedClassificationNames.Type, tagHelperTypeNameProper),
-                            DotLiteral,
+                            s_dotLiteral,
                             new ClassifiedTextRun(PredefinedClassificationNames.Identifier, descriptionInfo.PropertyName))));
 
                 if (descriptionInfo.Documentation != null)

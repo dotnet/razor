@@ -1,9 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -28,8 +26,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             HostProject1 = new HostProject("c:/Test1/Test1.csproj", RazorConfiguration.Default, "TestRootNamespace");
             HostProject2 = new HostProject("c:/Test2/Test2.csproj", RazorConfiguration.Default, "TestRootNamespace");
         }
-
-        private IEnumerable<DocumentProcessedListener> Listeners => Enumerable.Empty<DocumentProcessedListener>();
 
         private HostDocument[] Documents { get; }
 
@@ -136,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private class TestBackgroundDocumentGenerator : BackgroundDocumentGenerator
         {
-            public TestBackgroundDocumentGenerator(ForegroundDispatcher foregroundDispatcher) : base(foregroundDispatcher)
+            public TestBackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(projectSnapshotManagerDispatcher)
             {
             }
         }

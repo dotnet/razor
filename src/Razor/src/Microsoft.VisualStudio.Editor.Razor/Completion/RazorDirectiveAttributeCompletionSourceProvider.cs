@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -18,24 +18,25 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     [Export(typeof(IAsyncCompletionSourceProvider))]
     [Name("Razor directive attribute completion provider.")]
     [ContentType(RazorLanguage.CoreContentType)]
+    [ContentType(RazorConstants.LegacyCoreContentType)]
     internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletionSourceProvider
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly ICompletionBroker _completionBroker;
         private readonly VisualStudioDescriptionFactory _descriptionFactory;
 
         [ImportingConstructor]
         public RazorDirectiveAttributeCompletionSourceProvider(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             RazorCompletionFactsService completionFactsService,
             IAsyncCompletionBroker asyncCoompletionBroker,
             ICompletionBroker completionBroker,
             VisualStudioDescriptionFactory descriptionFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (completionFactsService == null)
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 throw new ArgumentNullException(nameof(descriptionFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _completionFactsService = completionFactsService;
             _completionBroker = completionBroker;
             _descriptionFactory = descriptionFactory;
@@ -86,7 +87,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 return null;
             }
 
-            var completionSource = new RazorDirectiveAttributeCompletionSource(_foregroundDispatcher, parser, _completionFactsService, _completionBroker, _descriptionFactory);
+            var completionSource = new RazorDirectiveAttributeCompletionSource(_projectSnapshotManagerDispatcher, parser, _completionFactsService, _completionBroker, _descriptionFactory);
             return completionSource;
         }
     }

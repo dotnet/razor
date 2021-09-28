@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
             {
                 var projectHierarchyProxy = _proxyAccessor.GetProjectHierarchyProxy();
 
-                // We need to block the foreground thread to get a proper project path. However, this is only done once on opening thedocument.
+                // We need to block the UI thread to get a proper project path. However, this is only done once on opening the document.
                 return projectHierarchyProxy.GetProjectPathAsync(ownerPath, CancellationToken.None);
             });
 

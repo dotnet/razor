@@ -1,16 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using Xunit;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
@@ -19,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     public class FormattingContentValidationPassTest : LanguageServerTestBase
     {
         [Fact]
-        public void Execute_LanguageKindCSharp_Noops()
+        public async Task Execute_LanguageKindCSharp_Noops()
         {
             // Arrange
             var source = SourceText.From(@"
@@ -27,19 +29,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     public class Foo { }
 }
 ");
-            var context = CreateFormattingContext(source);
+            using var context = CreateFormattingContext(source);
             var input = new FormattingResult(Array.Empty<TextEdit>(), RazorLanguageKind.CSharp);
-            var pass = GetPass(context.CodeDocument);
+            var pass = GetPass();
 
             // Act
-            var result = pass.Execute(context, input);
+            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
 
             // Assert
             Assert.Equal(input, result);
         }
 
         [Fact]
-        public void Execute_LanguageKindHtml_Noops()
+        public async Task Execute_LanguageKindHtml_Noops()
         {
             // Arrange
             var source = SourceText.From(@"
@@ -47,19 +49,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
     public class Foo { }
 }
 ");
-            var context = CreateFormattingContext(source);
+            using var context = CreateFormattingContext(source);
             var input = new FormattingResult(Array.Empty<TextEdit>(), RazorLanguageKind.Html);
-            var pass = GetPass(context.CodeDocument);
+            var pass = GetPass();
 
             // Act
-            var result = pass.Execute(context, input);
+            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
 
             // Assert
             Assert.Equal(input, result);
         }
 
         [Fact]
-        public void Execute_NonDestructiveEdit_Allowed()
+        public async Task Execute_NonDestructiveEdit_Allowed()
         {
             // Arrange
             var source = SourceText.From(@"
@@ -67,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 public class Foo { }
 }
 ");
-            var context = CreateFormattingContext(source);
+            using var context = CreateFormattingContext(source);
             var edits = new[]
             {
                 new TextEdit()
@@ -77,17 +79,17 @@ public class Foo { }
                 }
             };
             var input = new FormattingResult(edits, RazorLanguageKind.Razor);
-            var pass = GetPass(context.CodeDocument);
+            var pass = GetPass();
 
             // Act
-            var result = pass.Execute(context, input);
+            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
 
             // Assert
             Assert.Equal(input, result);
         }
 
         [Fact]
-        public void Execute_DestructiveEdit_Rejected()
+        public async Task Execute_DestructiveEdit_Rejected()
         {
             // Arrange
             var source = SourceText.From(@"
@@ -95,7 +97,7 @@ public class Foo { }
 public class Foo { }
 }
 ");
-            var context = CreateFormattingContext(source);
+            using var context = CreateFormattingContext(source);
             var edits = new[]
             {
                 new TextEdit()
@@ -105,29 +107,29 @@ public class Foo { }
                 }
             };
             var input = new FormattingResult(edits, RazorLanguageKind.Razor);
-            var pass = GetPass(context.CodeDocument);
+            var pass = GetPass();
 
             // Act
-            var result = pass.Execute(context, input);
+            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
 
             // Assert
             Assert.Empty(result.Edits);
         }
 
-        private FormattingContentValidationPass GetPass(RazorCodeDocument codeDocument)
+        private FormattingContentValidationPass GetPass()
         {
             var mappingService = new DefaultRazorDocumentMappingService();
 
-            var client = new FormattingLanguageServerClient();
-            client.AddCodeDocument(codeDocument);
-            var languageServer = Mock.Of<ILanguageServer>(ls => ls.Client == client);
-            var pass = new FormattingContentValidationPass(mappingService, FilePathNormalizer, languageServer, LoggerFactory);
-            pass.DebugAssertsEnabled = false;
+            var client = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
+            var pass = new FormattingContentValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory)
+            {
+                DebugAssertsEnabled = false
+            };
 
             return pass;
         }
 
-        private FormattingContext CreateFormattingContext(SourceText source, int tabSize = 4, bool insertSpaces = true, string fileKind = null)
+        private static FormattingContext CreateFormattingContext(SourceText source, int tabSize = 4, bool insertSpaces = true, string fileKind = null)
         {
             var path = "file:///path/to/document.razor";
             var uri = new Uri(path);
@@ -138,7 +140,7 @@ public class Foo { }
                 InsertSpaces = insertSpaces,
             };
 
-            var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options);
+            var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, TestAdhocWorkspaceFactory.Instance);
             return context;
         }
 
@@ -147,10 +149,10 @@ public class Foo { }
             fileKind ??= FileKinds.Component;
             tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = text.GetRazorSourceDocument(path, path);
-            var projectEngine = RazorProjectEngine.Create(builder => { builder.SetRootNamespace("Test"); });
+            var projectEngine = RazorProjectEngine.Create(builder => builder.SetRootNamespace("Test"));
             var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, Array.Empty<RazorSourceDocument>(), tagHelpers);
 
-            var documentSnapshot = new Mock<DocumentSnapshot>();
+            var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
             documentSnapshot.Setup(d => d.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
             documentSnapshot.Setup(d => d.Project.GetProjectEngine()).Returns(projectEngine);
             documentSnapshot.Setup(d => d.TargetPath).Returns(path);

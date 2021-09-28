@@ -1,5 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -8,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal abstract class RazorCompletionFactsService
     {
-        public abstract IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location);
+        public abstract IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext razorCompletionContext, SourceSpan location);
     }
 }

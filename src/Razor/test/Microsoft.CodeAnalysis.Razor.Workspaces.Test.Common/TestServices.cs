@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Host
             return new TestWorkspaceServices(this, _workspaceServices, _razorLanguageServices, workspace);
         }
 
-        public static HostServices Create(IEnumerable<ILanguageService> razorLanguageServices) 
+        public static HostServices Create(IEnumerable<ILanguageService> razorLanguageServices)
             => Create(Enumerable.Empty<IWorkspaceService>(), razorLanguageServices);
 
-        public static HostServices Create(IEnumerable<IWorkspaceService> workspaceServices, IEnumerable<ILanguageService> razorLanguageServices) 
+        public static HostServices Create(IEnumerable<IWorkspaceService> workspaceServices, IEnumerable<ILanguageService> razorLanguageServices)
             => new TestServices(workspaceServices, razorLanguageServices);
     }
 }

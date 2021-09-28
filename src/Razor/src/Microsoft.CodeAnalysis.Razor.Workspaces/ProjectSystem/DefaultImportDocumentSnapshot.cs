@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class DefaultImportDocumentSnapshot : DocumentSnapshot
     {
-        private ProjectSnapshot _project;
-        private RazorProjectItem _importItem;
+        private readonly ProjectSnapshot _project;
+        private readonly RazorProjectItem _importItem;
         private SourceText _sourceText;
-        private VersionStamp _version;
+        private readonly VersionStamp _version;
 
         public DefaultImportDocumentSnapshot(ProjectSnapshot project, RazorProjectItem item)
         {
@@ -94,12 +94,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             throw new NotSupportedException();
         }
 
-        public override bool TryGetGeneratedCSharpOutputVersionAsync(out VersionStamp result)
+        public override bool TryGetGeneratedCSharpOutputVersion(out VersionStamp result)
         {
             throw new NotSupportedException();
         }
 
-        public override bool TryGetGeneratedHtmlOutputVersionAsync(out VersionStamp result)
+        public override bool TryGetGeneratedHtmlOutputVersion(out VersionStamp result)
         {
             throw new NotSupportedException();
         }

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -69,9 +69,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestProjectFileChangeDetector(
                 CancellationTokenSource cancellationTokenSource,
-                ForegroundDispatcher foregroundDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IProjectFileChangeListener> listeners,
-                IReadOnlyList<string> existingprojectFiles) : base(foregroundDispatcher, new FilePathNormalizer(), listeners)
+                IReadOnlyList<string> existingprojectFiles) : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingProjectFiles = existingprojectFiles;
@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _cancellationTokenSource.Cancel();
             }
 
-            protected override IReadOnlyList<string> GetExistingProjectFiles(string workspaceDirectory)
+            protected override IEnumerable<string> GetExistingProjectFiles(string workspaceDirectory)
             {
                 return _existingProjectFiles;
             }

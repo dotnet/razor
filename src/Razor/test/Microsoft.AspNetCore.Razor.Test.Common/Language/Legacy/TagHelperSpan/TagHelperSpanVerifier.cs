@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             private class TagHelperSpanBaselineException : XunitException
             {
                 public TagHelperSpanBaselineException(TagHelperSpanInternal span, string expected, string actual, string userMessage)
-                    : base(Format(span, expected, actual, userMessage))
+                    : base(Format(expected, actual, userMessage))
                 {
                     Span = span;
                     Expected = expected;
@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
                 public string Expected { get; }
 
-                private static string Format(TagHelperSpanInternal span, string expected, string actual, string userMessage)
+                private static string Format(string expected, string actual, string userMessage)
                 {
                     var builder = new StringBuilder();
                     builder.AppendLine(userMessage);

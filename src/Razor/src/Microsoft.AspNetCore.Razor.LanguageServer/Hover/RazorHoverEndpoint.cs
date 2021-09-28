@@ -1,40 +1,41 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
     internal class RazorHoverEndpoint : IHoverHandler
     {
-        private HoverCapability _capability;
         private readonly ILogger _logger;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorHoverInfoService _hoverInfoService;
+        private readonly ClientNotifierServiceBase _languageServer;
 
         public RazorHoverEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorHoverInfoService hoverInfoService,
+            ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver is null)
@@ -47,23 +48,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 throw new ArgumentNullException(nameof(hoverInfoService));
             }
 
+            if (languageServer is null)
+            {
+                throw new ArgumentNullException(nameof(languageServer));
+            }
+
             if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _hoverInfoService = hoverInfoService;
+            _languageServer = languageServer;
             _logger = loggerFactory.CreateLogger<RazorHoverEndpoint>();
-        }
-
-        public TextDocumentRegistrationOptions GetRegistrationOptions()
-        {
-            return new TextDocumentRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector
-            };
         }
 
         public async Task<HoverModel> Handle(HoverParams request, CancellationToken cancellationToken)
@@ -73,12 +72,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (document is null)
             {
@@ -95,32 +94,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var location = new SourceLocation(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character);
+            var clientCapabilities = _languageServer.ClientSettings.Capabilities;
 
-            var hoverItem = _hoverInfoService.GetHoverInfo(codeDocument, location);
+            var hoverItem = _hoverInfoService.GetHoverInfo(codeDocument, location, clientCapabilities);
 
             _logger.LogTrace($"Found hover info items.");
 
             return hoverItem;
         }
 
-        public RegistrationExtensionResult GetRegistration()
+        public HoverRegistrationOptions GetRegistrationOptions(HoverCapability capability, ClientCapabilities clientCapabilities)
         {
-            var semanticTokensOptions = new SemanticTokensOptions
+            return new HoverRegistrationOptions
             {
-                DocumentProvider = new SemanticTokensDocumentProviderOptions
-                {
-                    Edits = false,
-                },
-                Legend = SemanticTokensLegend.Instance,
-                RangeProvider = false,
+                DocumentSelector = RazorDefaults.Selector,
             };
-
-            return new RegistrationExtensionResult(LanguageServerConstants.SemanticTokensProviderName, semanticTokensOptions);
-        }
-
-        public void SetCapability(HoverCapability capability)
-        {
-            _capability = capability;
         }
     }
 }

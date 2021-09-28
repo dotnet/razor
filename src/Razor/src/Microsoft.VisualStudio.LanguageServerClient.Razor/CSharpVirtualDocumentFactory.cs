@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -12,16 +12,17 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    [Shared]
     [Export(typeof(VirtualDocumentFactory))]
+    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
-        private static readonly IReadOnlyDictionary<object, object> _languageBufferProperties = new Dictionary<object, object>
+        public static readonly string CSharpClientName = "RazorCSharp";
+        private static readonly IReadOnlyDictionary<object, object> s_languageBufferProperties = new Dictionary<object, object>
         {
-            { LanguageClientConstants.ClientNamePropertyKey, "RazorCSharp" }
+            { LanguageClientConstants.ClientNamePropertyKey, CSharpClientName }
         };
 
-        private static IContentType _csharpContentType;
+        private static IContentType s_csharpContentType;
 
         [ImportingConstructor]
         public CSharpVirtualDocumentFactory(
@@ -37,24 +38,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             get
             {
-                if (_csharpContentType == null)
+                if (s_csharpContentType == null)
                 {
                     var contentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.CSharpContentTypeName);
-                    _csharpContentType = new RemoteContentDefinitionType(contentType);
+                    s_csharpContentType = new RemoteContentDefinitionType(contentType);
                 }
 
-                return _csharpContentType;
+                return s_csharpContentType;
             }
         }
 
         protected override string HostDocumentContentTypeName => RazorLSPConstants.RazorLSPContentTypeName;
         protected override string LanguageFileNameSuffix => RazorLSPConstants.VirtualCSharpFileNameSuffix;
-        protected override IReadOnlyDictionary<object, object> LanguageBufferProperties => _languageBufferProperties;
+        protected override IReadOnlyDictionary<object, object> LanguageBufferProperties => s_languageBufferProperties;
         protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer) => new CSharpVirtualDocument(uri, textBuffer);
 
         private class RemoteContentDefinitionType : IContentType
         {
-            private static readonly IReadOnlyList<string> ExtendedBaseContentTypes = new[]
+            private static readonly IReadOnlyList<string> s_extendedBaseContentTypes = new[]
             {
                 "code-languageserver-base",
                 CodeRemoteContentDefinition.CodeRemoteContentTypeName
@@ -82,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public bool IsOfType(string type)
             {
-                return ExtendedBaseContentTypes.Contains(type) || _innerContentType.IsOfType(type);
+                return s_extendedBaseContentTypes.Contains(type) || _innerContentType.IsOfType(type);
             }
         }
     }

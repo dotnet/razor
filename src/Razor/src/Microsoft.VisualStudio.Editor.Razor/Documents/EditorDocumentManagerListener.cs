@@ -1,10 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
@@ -15,6 +18,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
     [Export(typeof(ProjectSnapshotChangeTrigger))]
     internal class EditorDocumentManagerListener : ProjectSnapshotChangeTrigger
     {
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly EventHandler _onChangedOnDisk;
         private readonly EventHandler _onChangedInEditor;
         private readonly EventHandler _onOpened;
@@ -24,8 +29,20 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private ProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public EditorDocumentManagerListener()
+        public EditorDocumentManagerListener(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, JoinableTaskContext joinableTaskContext)
         {
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _onChangedOnDisk = Document_ChangedOnDisk;
             _onChangedInEditor = Document_ChangedInEditor;
             _onOpened = Document_Opened;
@@ -33,8 +50,17 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         // For testing purposes only.
-        internal EditorDocumentManagerListener(EditorDocumentManager documentManager, EventHandler onChangedOnDisk, EventHandler onChangedInEditor, EventHandler onOpened, EventHandler onClosed)
+        internal EditorDocumentManagerListener(
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext,
+            EditorDocumentManager documentManager,
+            EventHandler onChangedOnDisk,
+            EventHandler onChangedInEditor,
+            EventHandler onOpened,
+            EventHandler onClosed)
         {
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _documentManager = documentManager;
             _onChangedOnDisk = onChangedOnDisk;
             _onChangedInEditor = onChangedInEditor;
@@ -61,56 +87,150 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         }
 
         // Internal for testing.
-        internal void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        internal async void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            switch (e.Kind)
+            try
             {
-                case ProjectChangeKind.DocumentAdded:
-                    {
-                        var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
-                        var document = _documentManager.GetOrCreateDocument(key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
-                        if (document.IsOpenInEditor)
+                switch (e.Kind)
+                {
+                    case ProjectChangeKind.DocumentAdded:
                         {
-                            _onOpened(document, EventArgs.Empty);
+                            // Don't do any work if the solution is closing
+                            if (e.SolutionIsClosing)
+                            {
+                                return;
+                            }
+
+                            var key = new DocumentKey(e.ProjectFilePath, e.DocumentFilePath);
+
+                            // GetOrCreateDocument needs to be run on the UI thread
+                            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+
+                            var document = _documentManager.GetOrCreateDocument(
+                                key, _onChangedOnDisk, _onChangedInEditor, _onOpened, _onClosed);
+                            if (document.IsOpenInEditor)
+                            {
+                                _onOpened(document, EventArgs.Empty);
+                            }
+
+                            break;
                         }
 
-                        break;
-                    }
-
-                case ProjectChangeKind.DocumentRemoved:
-                    {
-                        // This class 'owns' the document entry so it's safe for us to dispose it.
-                        if (_documentManager.TryGetDocument(new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document))
+                    case ProjectChangeKind.DocumentRemoved:
                         {
-                            document.Dispose();
+                            // Need to run this even if the solution is closing because document dispose cleans up file watchers etc.
+
+                            // TryGetDocument and Dispose need to be run on the UI thread
+                            await _joinableTaskContext.Factory.SwitchToMainThreadAsync();
+
+                            var documentFound = _documentManager.TryGetDocument(
+                                new DocumentKey(e.ProjectFilePath, e.DocumentFilePath), out var document);
+
+                            // This class 'owns' the document entry so it's safe for us to dispose it.
+                            if (documentFound)
+                            {
+                                document.Dispose();
+                            }
+
+                            break;
                         }
-                        break;
-                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("EditorDocumentManagerListener.ProjectManager_Changed threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
             }
         }
 
-        private void Document_ChangedOnDisk(object sender, EventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void Document_ChangedOnDisk(object sender, EventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            var document = (EditorDocument)sender;
-            _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+            try
+            {
+                // This event is called by the EditorDocumentManager, which runs on the UI thread.
+                // However, due to accessing the project snapshot manager, we need to switch to
+                // running on the project snapshot manager's specialized thread.
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                {
+                    var document = (EditorDocument)sender;
+                    _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+                }, CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("EditorDocumentManagerListener.Document_ChangedOnDisk threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
         }
 
-        private void Document_ChangedInEditor(object sender, EventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void Document_ChangedInEditor(object sender, EventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            var document = (EditorDocument)sender;
-            _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+            try
+            {
+                // This event is called by the EditorDocumentManager, which runs on the UI thread.
+                // However, due to accessing the project snapshot manager, we need to switch to
+                // running on the project snapshot manager's specialized thread.
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                {
+                    var document = (EditorDocument)sender;
+                    _projectManager.DocumentChanged(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+                }, CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("EditorDocumentManagerListener.Document_ChangedInEditor threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
         }
 
-        private void Document_Opened(object sender, EventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void Document_Opened(object sender, EventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            var document = (EditorDocument)sender;
-            _projectManager.DocumentOpened(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+            try
+            {
+                // This event is called by the EditorDocumentManager, which runs on the UI thread.
+                // However, due to accessing the project snapshot manager, we need to switch to
+                // running on the project snapshot manager's specialized thread.
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                {
+                    var document = (EditorDocument)sender;
+                    _projectManager.DocumentOpened(document.ProjectFilePath, document.DocumentFilePath, document.EditorTextContainer.CurrentText);
+                }, CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("EditorDocumentManagerListener.Document_Opened threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
         }
 
-        private void Document_Closed(object sender, EventArgs e)
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        private async void Document_Closed(object sender, EventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            var document = (EditorDocument)sender;
-            _projectManager.DocumentClosed(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+            try
+            {
+                // This event is called by the EditorDocumentManager, which runs on the UI thread.
+                // However, due to accessing the project snapshot manager, we need to switch to
+                // running on the project snapshot manager's specialized thread.
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                {
+                    var document = (EditorDocument)sender;
+                    _projectManager.DocumentClosed(document.ProjectFilePath, document.DocumentFilePath, document.TextLoader);
+                }, CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("EditorDocumentManagerListener.Document_Closed threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
         }
     }
 }

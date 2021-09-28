@@ -1,5 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 {
     internal abstract class HtmlFactsService
     {
-        private static readonly HashSet<string> _htmlSchemaTagNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> s_htmlSchemaTagNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "DOCTYPE",
             "a",
@@ -148,7 +150,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public static bool IsHtmlTagName(string name)
         {
-            return _htmlSchemaTagNames.Contains(name);
+            return s_htmlSchemaTagNames.Contains(name);
         }
     }
 }

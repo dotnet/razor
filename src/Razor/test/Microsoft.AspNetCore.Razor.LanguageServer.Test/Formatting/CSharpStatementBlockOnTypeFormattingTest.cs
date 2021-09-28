@@ -1,39 +1,44 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class CSharpStatementBlockOnTypeFormattingTest : FormattingTestBase
     {
+        public CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
-        public async Task CloseCurly_IfBlock_SingleLine()
+        public async Task CloseCurly_IfBlock_SingleLineAsync()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
 @{
- if(true){|}|
+ if(true){}$$
 }
 ",
 expected: @"
 @{
     if (true) { }
 }
-",
-triggerCharacter: "}");
+", triggerCharacter: '}');
         }
 
         [Fact]
-        public async Task CloseCurly_IfBlock_MultiLine()
+        public async Task CloseCurly_IfBlock_MultiLineAsync()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
 @{
  if(true)
 {
- |}|
+ }$$
 }
 ",
 expected: @"
@@ -42,12 +47,11 @@ expected: @"
     {
     }
 }
-",
-triggerCharacter: "}");
+", triggerCharacter: '}');
         }
 
         [Fact]
-        public async Task CloseCurly_MultipleStatementBlocks()
+        public async Task CloseCurly_MultipleStatementBlocksAsync()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
@@ -60,13 +64,13 @@ input: @"
 @{
  if(true)
 {
- |}|
+ }$$
 }
 ",
 expected: @"
 <div>
     @{
-      if(true) { }
+        if(true) { }
     }
 </div>
 
@@ -75,35 +79,33 @@ expected: @"
     {
     }
 }
-",
-triggerCharacter: "}");
+", triggerCharacter: '}');
         }
 
         [Fact]
-        public async Task Semicolon_Variable_SingleLine()
+        public async Task Semicolon_Variable_SingleLineAsync()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
 @{
- var x = 'foo'|;|
+ var x = 'foo';$$
 }
 ",
 expected: @"
 @{
     var x = 'foo';
 }
-",
-triggerCharacter: ";");
+", triggerCharacter: ';');
         }
 
         [Fact]
-        public async Task Semicolon_Variable_MultiLine()
+        public async Task Semicolon_Variable_MultiLineAsync()
         {
             await RunOnTypeFormattingTestAsync(
 input: @"
 @{
  var x = @""
-foo""|;|
+foo"";$$
 }
 ",
 expected: @"
@@ -111,8 +113,7 @@ expected: @"
     var x = @""
 foo"";
 }
-",
-triggerCharacter: ";");
+", triggerCharacter: ';');
         }
     }
 }

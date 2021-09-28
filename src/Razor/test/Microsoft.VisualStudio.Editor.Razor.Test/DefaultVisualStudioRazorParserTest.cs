@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -10,12 +10,13 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultVisualStudioRazorParserTest : ForegroundDispatcherTestBase
+    public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public DefaultVisualStudioRazorParserTest()
         {
@@ -27,8 +28,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 f => f.Create(
                     It.IsAny<RazorConfiguration>(),
                     It.IsAny<RazorProjectFileSystem>(),
-                    It.IsAny<Action<RazorProjectEngineBuilder>>()) == engine);
+                    It.IsAny<Action<RazorProjectEngineBuilder>>()) == engine, MockBehavior.Strict);
         }
+
+        private JoinableTaskContext JoinableTaskContext => JoinableTaskFactory.Context;
 
         private ProjectSnapshot ProjectSnapshot { get; }
 
@@ -43,22 +46,22 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 tracker.ProjectPath == "c:\\SomeProject.csproj" &&
                 tracker.ProjectSnapshot == ProjectSnapshot &&
                 tracker.FilePath == "c:\\SomeFilePath.cshtml" &&
-                tracker.IsSupportedProject == isSupportedProject);
+                tracker.IsSupportedProject == isSupportedProject, MockBehavior.Strict);
 
             return documentTracker;
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task GetLatestCodeDocumentAsync_WaitsForParse()
         {
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 var latestChange = new SourceChange(0, 0, string.Empty);
                 var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
@@ -90,17 +93,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task GetLatestCodeDocumentAsync_NoPendingChangesReturnsImmediately()
         {
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 var latestChange = new SourceChange(0, 0, string.Empty);
                 var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
@@ -129,17 +132,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void GetLatestCodeDocumentAsync_MultipleCallsSameSnapshotMemoizesReturnedTasks()
         {
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 var latestChange = new SourceChange(0, 0, string.Empty);
                 var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
@@ -155,17 +158,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void GetLatestCodeDocumentAsync_MultipleCallsDifferentSnapshotsReturnDifferentTasks()
         {
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 var latestChange = new SourceChange(0, 0, string.Empty);
                 var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
@@ -182,18 +185,18 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task GetLatestCodeDocumentAsync_LatestChangeIsNewerThenRequested_ReturnsImmediately()
         {
             // Arrange
             var documentTracker = CreateDocumentTracker(versionNumber: 1337);
             var olderSnapshot = new StringTextSnapshot("Older", versionNumber: 910);
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 var latestChange = new SourceChange(0, 0, string.Empty);
                 var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
@@ -222,7 +225,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task GetLatestCodeDocumentAsync_ParserDisposed_ReturnsImmediately()
         {
             // Arrange
@@ -232,11 +235,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
             DefaultVisualStudioRazorParser parser;
             codeDocument.SetSyntaxTree(syntaxTree);
             using (parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 var latestChange = new SourceChange(0, 0, string.Empty);
                 var latestSnapshot = documentTracker.TextBuffer.CurrentSnapshot;
@@ -263,7 +266,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Same(latestCodeDocument, codeDocument);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_Complete_CanBeCalledMultipleTimes()
         {
             // Arrange
@@ -276,7 +279,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             request.Complete(codeDocument);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task CodeDocumentRequest_Complete_FinishesTask()
         {
             // Arrange
@@ -292,7 +295,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Same(codeDocument, resolvedSyntaxTree);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_Cancel_CanBeCalledMultipleTimes()
         {
             // Arrange
@@ -304,7 +307,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             request.Cancel();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_Cancel_CancelsTask()
         {
             // Arrange
@@ -317,7 +320,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(request.Task.IsCanceled);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_LinkedTokenCancel_CancelsTask()
         {
             // Arrange
@@ -331,7 +334,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(request.Task.IsCanceled);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_CompleteToCancelNoops()
         {
             // Arrange
@@ -351,7 +354,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.False(request.Task.IsCanceled);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void CodeDocumentRequest_CancelToCompleteNoops()
         {
             // Arrange
@@ -368,64 +371,64 @@ namespace Microsoft.VisualStudio.Editor.Razor
             request.Complete(codeDocument);
         }
 
-        [ForegroundFact]
-        public void ReparseOnForeground_NoopsIfDisposed()
+        [UIFact]
+        public void ReparseOnUIThread_NoopsIfDisposed()
         {
             // Arrange
             var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>());
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict));
             parser.Dispose();
 
             // Act & Assert
-            parser.ReparseOnForeground(null);
+            parser.ReparseOnUIThread();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnIdle_NoopsIfDisposed()
         {
             // Arrange
             var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>());
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict));
             parser.Dispose();
 
             // Act & Assert
-            parser.OnIdle(null);
+            parser.OnIdle();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnDocumentStructureChanged_NoopsIfDisposed()
         {
             // Arrange
             var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>());
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict));
             parser.Dispose();
 
             // Act & Assert
             parser.OnDocumentStructureChanged(new object());
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnDocumentStructureChanged_IgnoresEditsThatAreOld()
         {
             // Arrange
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 var called = false;
                 parser.DocumentStructureChanged += (sender, e) => called = true;
@@ -442,17 +445,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnDocumentStructureChanged_FiresForLatestTextBufferEdit()
         {
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 var called = false;
                 parser.DocumentStructureChanged += (sender, e) => called = true;
@@ -473,17 +476,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void OnDocumentStructureChanged_FiresForOnlyLatestTextBufferReparseEdit()
         {
             // Arrange
             var documentTracker = CreateDocumentTracker();
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 var called = false;
                 parser.DocumentStructureChanged += (sender, e) => called = true;
@@ -513,19 +516,19 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StartIdleTimer_DoesNotRestartTimerWhenAlreadyRunning()
         {
             // Arrange
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>())
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict))
             {
                 BlockBackgroundIdleWork = new ManualResetEventSlim(),
-                IdleDelay = TimeSpan.FromSeconds(5)
+                _idleDelay = TimeSpan.FromSeconds(5)
             })
             {
                 parser.StartIdleTimer();
@@ -543,19 +546,19 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StopIdleTimer_StopsTimer()
         {
             // Arrange
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>())
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict))
             {
                 BlockBackgroundIdleWork = new ManualResetEventSlim(),
-                IdleDelay = TimeSpan.FromSeconds(5)
+                _idleDelay = TimeSpan.FromSeconds(5)
             })
             {
                 parser.StartIdleTimer();
@@ -570,18 +573,18 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StopParser_DetachesFromTextBufferChangeLoop()
         {
             // Arrange
             var documentTracker = CreateDocumentTracker();
             var textBuffer = (TestTextBuffer)documentTracker.TextBuffer;
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 parser.StartParser();
 
@@ -594,18 +597,18 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StartParser_AttachesToTextBufferChangeLoop()
         {
             // Arrange
             var documentTracker = CreateDocumentTracker();
             var textBuffer = (TestTextBuffer)documentTracker.TextBuffer;
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 documentTracker,
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 // Act
                 parser.StartParser();
@@ -616,16 +619,16 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TryReinitializeParser_ReturnsTrue_IfProjectIsSupported()
         {
             // Arrange
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(isSupportedProject: true),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 // Act
                 var result = parser.TryReinitializeParser();
@@ -635,16 +638,16 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void TryReinitializeParser_ReturnsFalse_IfProjectIsNotSupported()
         {
             // Arrange
             using (var parser = new DefaultVisualStudioRazorParser(
-                Dispatcher,
+                JoinableTaskContext,
                 CreateDocumentTracker(isSupportedProject: false),
                 ProjectEngineFactory,
                 new DefaultErrorReporter(),
-                Mock.Of<VisualStudioCompletionBroker>()))
+                Mock.Of<VisualStudioCompletionBroker>(MockBehavior.Strict)))
             {
                 // Act
                 var result = parser.TryReinitializeParser();

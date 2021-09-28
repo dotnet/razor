@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -15,14 +16,14 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
-    public class RazorDirectiveAttributeCompletionSourceTest : ForegroundDispatcherTestBase
+    public class RazorDirectiveAttributeCompletionSourceTest : ProjectSnapshotManagerDispatcherTestBase
     {
         [Fact]
         public async Task GetDescriptionAsync_NoDescriptionData_ReturnsEmptyString()
         {
             // Arrange
             var source = CreateCompletionSource();
-            var completionSessionSource = Mock.Of<IAsyncCompletionSource>();
+            var completionSessionSource = Mock.Of<IAsyncCompletionSource>(MockBehavior.Strict);
             var completionItem = new CompletionItem("@random", completionSessionSource);
 
             // Act
@@ -37,15 +38,15 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         {
             // Arrange
             var expectedResult = new ContainerElement(ContainerElementStyle.Wrapped);
-            var description = new AttributeCompletionDescription(Array.Empty<AttributeDescriptionInfo>());
-            var descriptionFactory = Mock.Of<VisualStudioDescriptionFactory>(factory => factory.CreateClassifiedDescription(description) == expectedResult);
+            var description = new AggregateBoundAttributeDescription(Array.Empty<BoundAttributeDescriptionInfo>());
+            var descriptionFactory = Mock.Of<VisualStudioDescriptionFactory>(factory => factory.CreateClassifiedDescription(description) == expectedResult, MockBehavior.Strict);
             var source = new RazorDirectiveAttributeCompletionSource(
                 Dispatcher,
-                Mock.Of<VisualStudioRazorParser>(),
-                Mock.Of<RazorCompletionFactsService>(),
-                Mock.Of<ICompletionBroker>(),
+                Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict),
+                Mock.Of<RazorCompletionFactsService>(MockBehavior.Strict),
+                Mock.Of<ICompletionBroker>(MockBehavior.Strict),
                 descriptionFactory);
-            var completionSessionSource = Mock.Of<IAsyncCompletionSource>();
+            var completionSessionSource = Mock.Of<IAsyncCompletionSource>(MockBehavior.Strict);
             var completionItem = new CompletionItem("@random", completionSessionSource);
             completionItem.Properties.AddProperty(RazorDirectiveAttributeCompletionSource.DescriptionKey, description);
 
@@ -230,10 +231,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         {
             var source = new RazorDirectiveAttributeCompletionSource(
                 Dispatcher,
-                Mock.Of<VisualStudioRazorParser>(),
-                Mock.Of<RazorCompletionFactsService>(),
-                Mock.Of<ICompletionBroker>(),
-                Mock.Of<VisualStudioDescriptionFactory>());
+                Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict),
+                Mock.Of<RazorCompletionFactsService>(MockBehavior.Strict),
+                Mock.Of<ICompletionBroker>(MockBehavior.Strict),
+                Mock.Of<VisualStudioDescriptionFactory>(MockBehavior.Strict));
             return source;
         }
     }

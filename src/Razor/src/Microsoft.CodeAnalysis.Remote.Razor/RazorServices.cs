@@ -1,5 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.Razor
 {
@@ -7,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Razor
     //
     // Since we don't have access to the workspace we only have access to some specific things
     // that we can construct directly.
-    internal class RazorServices
+    internal sealed class RazorServices
     {
         public RazorServices()
         {

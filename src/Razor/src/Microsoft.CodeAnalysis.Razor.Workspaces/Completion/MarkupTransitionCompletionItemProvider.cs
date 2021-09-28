@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -14,28 +14,28 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvider
     {
-        private static readonly IReadOnlyCollection<string> ElementCommitCharacters = new HashSet<string>{ ">" };
+        private static readonly IReadOnlyCollection<string> s_elementCommitCharacters = new HashSet<string>{ ">" };
 
         private readonly HtmlFactsService _htmlFactsService;
 
-        private static RazorCompletionItem _markupTransitionCompletionItem;
+        private static RazorCompletionItem s_markupTransitionCompletionItem;
         public static RazorCompletionItem MarkupTransitionCompletionItem
         {
             get
             {
-                if (_markupTransitionCompletionItem == null)
+                if (s_markupTransitionCompletionItem == null)
                 {
                     var completionDisplayText = SyntaxConstants.TextTagName;
-                    _markupTransitionCompletionItem = new RazorCompletionItem(
+                    s_markupTransitionCompletionItem = new RazorCompletionItem(
                         completionDisplayText,
                         completionDisplayText,
                         RazorCompletionItemKind.MarkupTransition,
-                        ElementCommitCharacters);
-                    var completionDescription = new MarkupTransitionCompletionDescription(Resources.MarkupTransition_Description);
-                    _markupTransitionCompletionItem.SetMarkupTransitionCompletionDescription(completionDescription);
+                        commitCharacters: s_elementCommitCharacters);
+                    var completionDescription = new MarkupTransitionCompletionDescription(CodeAnalysisResources.MarkupTransition_Description);
+                    s_markupTransitionCompletionItem.SetMarkupTransitionCompletionDescription(completionDescription);
                 }
 
-                return _markupTransitionCompletionItem;
+                return s_markupTransitionCompletionItem;
             }
         }
 
@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             _htmlFactsService = htmlFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
-            if (syntaxTree is null)
+            if (context is null)
             {
-                throw new ArgumentNullException(nameof(syntaxTree));
+                throw new ArgumentNullException(nameof(context));
             }
 
             var change = new SourceChange(location, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = context.SyntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
             {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
             // Also helps filter out edge cases like `< te` and `< te=""`
             // (see comment in AtMarkupTransitionCompletionPoint)
-            if (!_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) ||
+            if (!_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out _) ||
                 !containingTagNameToken.Span.IntersectsWith(location.AbsoluteIndex))
             {
                 return Array.Empty<RazorCompletionItem>();

@@ -1,35 +1,34 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using static Microsoft.AspNetCore.Razor.LanguageServer.Semantic.DefaultRazorSemanticTokensInfoService;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal class SemanticTokensEditsDiffer : TextDiffer
     {
-        private SemanticTokensEditsDiffer(uint[] oldArray, uint[] newArray)
+        private SemanticTokensEditsDiffer(IReadOnlyList<int> oldArray, int[] newArray)
         {
             if (oldArray is null)
             {
                 throw new ArgumentNullException(nameof(oldArray));
             }
 
-            if (newArray is null)
-            {
-                throw new ArgumentNullException(nameof(newArray));
-            }
-
             OldArray = oldArray;
             NewArray = newArray;
         }
 
-        private uint[] OldArray { get; }
-        private uint[] NewArray { get; }
+        private IReadOnlyList<int> OldArray { get; }
+        private int[] NewArray { get; }
 
-        protected override int OldTextLength => OldArray.Length;
+        protected override int OldTextLength => OldArray.Count;
         protected override int NewTextLength => NewArray.Length;
 
         protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
@@ -37,14 +36,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
             return OldArray[oldTextIndex] == NewArray[newTextIndex];
         }
 
-        public static SemanticTokensOrSemanticTokensEdits ComputeSemanticTokensEdits(
-            SemanticTokens newTokens,
-            IReadOnlyList<uint> previousResults)
+        public static SemanticTokensFullOrDelta ComputeSemanticTokensEdits(
+            SemanticTokensResponse newTokens,
+            IReadOnlyList<int> previousResults)
         {
-            var differ = new SemanticTokensEditsDiffer(previousResults.ToArray(), newTokens.Data);
+            var differ = new SemanticTokensEditsDiffer(previousResults, newTokens.Data);
             var diffs = differ.ComputeDiff();
             var edits = differ.ProcessEdits(diffs);
-            var result = new SemanticTokensEditCollection
+            var result = new SemanticTokensDelta
             {
                 ResultId = newTokens.ResultId,
                 Edits = edits,
@@ -53,12 +52,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
             return result;
         }
 
-        private IReadOnlyList<SemanticTokensEdit> ProcessEdits(IReadOnlyList<DiffEdit> diffs)
+        private Container<SemanticTokensEdit> ProcessEdits(IReadOnlyList<DiffEdit> diffs)
         {
-            var results = new List<SemanticTokensEdit>();
+            var razorResults = new List<RazorSemanticTokensEdit>();
             foreach (var diff in diffs)
             {
-                var current = results.Count > 0 ? results[results.Count - 1] : null;
+                var current = razorResults.Count > 0 ? razorResults[razorResults.Count - 1] : null;
                 switch (diff.Operation)
                 {
                     case DiffEdit.Type.Delete:
@@ -69,35 +68,60 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Services
                         }
                         else
                         {
-                            results.Add(new SemanticTokensEdit
+                            razorResults.Add(new RazorSemanticTokensEdit
                             {
                                 Start = diff.Position,
-                                Data = Array.Empty<uint>(),
                                 DeleteCount = 1,
                             });
                         }
                         break;
                     case DiffEdit.Type.Insert:
                         if (current != null &&
-                            current.Data.Any() &&
+                            current.Data != null &&
+                            current.Data.Count > 0 &&
                             current.Start == diff.Position)
                         {
-                            current.Data = current.Data.Append(NewArray[diff.NewTextPosition.Value]);
+                            current.Data.Add(NewArray[diff.NewTextPosition!.Value]);
                         }
                         else
                         {
-                            results.Add(new SemanticTokensEdit
+                            var semanticTokensEdit = new RazorSemanticTokensEdit
                             {
                                 Start = diff.Position,
-                                Data = new uint[] { NewArray[diff.NewTextPosition.Value] },
+                                Data = new List<int>
+                                {
+                                    NewArray[diff.NewTextPosition!.Value],
+                                },
                                 DeleteCount = 0,
-                            });
+                            };
+                            razorResults.Add(semanticTokensEdit);
                         }
                         break;
                 }
             }
 
-            return results;
+            var results = razorResults.Select(e => e.ToSemanticTokensEdit());
+            return results.ToList();
+        }
+
+        // We need to have a shim class because SemanticTokensEdit.Data is Immutable, so if we operate on it directly then every time we append an element we're allocating an entire new array.
+        // In some large (but not implausibly so) copy-paste scenarios that can cause long delays and large allocations.
+        private class RazorSemanticTokensEdit
+        {
+            public int Start { get; set; }
+            public int DeleteCount { get; set; }
+            public IList<int>? Data { get; set; }
+
+            // Since we need to add to the Data object during ProcessEdits but return an "ImmutableArray" in the end lets wait until the end to convert.
+            public SemanticTokensEdit ToSemanticTokensEdit()
+            {
+                return new SemanticTokensEdit
+                {
+                    Data = Data?.ToImmutableArray(),
+                    Start = Start,
+                    DeleteCount = DeleteCount,
+                };
+            }
         }
     }
 }

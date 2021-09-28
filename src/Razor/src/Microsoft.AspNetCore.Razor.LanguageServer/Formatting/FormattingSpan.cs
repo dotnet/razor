@@ -1,5 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -7,14 +9,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class FormattingSpan
     {
-        public FormattingSpan(TextSpan span, TextSpan blockSpan, FormattingSpanKind spanKind, FormattingBlockKind blockKind, int indentationLevel, bool isInClassBody = false)
+        public FormattingSpan(
+            TextSpan span,
+            TextSpan blockSpan,
+            FormattingSpanKind spanKind,
+            FormattingBlockKind blockKind,
+            int razorIndentationLevel,
+            int htmlIndentationLevel,
+            bool isInClassBody = false,
+            int componentLambdaNestingLevel = 0)
         {
             Span = span;
             BlockSpan = blockSpan;
             Kind = spanKind;
             BlockKind = blockKind;
-            IndentationLevel = indentationLevel;
+            RazorIndentationLevel = razorIndentationLevel;
+            HtmlIndentationLevel = htmlIndentationLevel;
             IsInClassBody = isInClassBody;
+            ComponentLambdaNestingLevel = componentLambdaNestingLevel;
         }
 
         public TextSpan Span { get; }
@@ -25,8 +37,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public FormattingSpanKind Kind { get; }
 
-        public int IndentationLevel { get; }
+        public int RazorIndentationLevel { get; }
+
+        public int HtmlIndentationLevel { get; }
+
+        public int IndentationLevel => RazorIndentationLevel + HtmlIndentationLevel;
 
         public bool IsInClassBody { get; }
+
+        public int ComponentLambdaNestingLevel { get; }
+
+        public int MinCSharpIndentLevel
+        {
+            get
+            {
+                var baseIndent = IsInClassBody ? 2 : 3;
+
+                return baseIndent + ComponentLambdaNestingLevel;
+            }
+        }
     }
 }

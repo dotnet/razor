@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -50,9 +50,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(30, 0);
+            var context = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(context, span);
 
             // Assert
             Assert.Empty(completions);
@@ -66,9 +67,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(3, 0);
+            var context = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(context, span);
 
             // Assert
             Assert.Empty(completions);
@@ -82,9 +84,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(8, 0);
+            var context = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(context, span);
 
             // Assert
             Assert.Empty(completions);
@@ -98,9 +101,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var syntaxTree = codeDocument.GetSyntaxTree();
             var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
             var span = new SourceSpan(14, 0);
+            var context = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
 
             // Act
-            var completions = Provider.GetCompletionItems(syntaxTree, tagHelperDocumentContext, span);
+            var completions = Provider.GetCompletionItems(context, span);
 
             // Assert
             Assert.Equal(3, completions.Count);
@@ -185,23 +189,17 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         private static void AssertContains(IReadOnlyList<RazorCompletionItem> completions, string insertText)
         {
-            Assert.Contains(completions, completion =>
-            {
-                return insertText == completion.InsertText &&
+            Assert.Contains(completions, completion => insertText == completion.InsertText &&
                     insertText == completion.DisplayText &&
-                    RazorCompletionItemKind.DirectiveAttributeParameter == completion.Kind;
-            });
+                    RazorCompletionItemKind.DirectiveAttributeParameter == completion.Kind);
         }
 
         private static void AssertDoesNotContain(IReadOnlyList<RazorCompletionItem> completions, string insertText)
         {
 
-            Assert.DoesNotContain(completions, completion =>
-            {
-                return insertText == completion.InsertText &&
+            Assert.DoesNotContain(completions, completion => insertText == completion.InsertText &&
                    insertText == completion.DisplayText &&
-                   RazorCompletionItemKind.DirectiveAttributeParameter == completion.Kind;
-            });
+                   RazorCompletionItemKind.DirectiveAttributeParameter == completion.Kind);
         }
     }
 }

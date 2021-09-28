@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     //
     // Note: Some variable names in this class are not be fully compliant with the C# naming guidelines
     // in the interest of using the same terminology discussed in the paper for ease of understanding.
-    // 
+    //
     internal abstract class TextDiffer
     {
         protected abstract int OldTextLength { get; }
@@ -26,16 +26,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var edits = new List<DiffEdit>();
 
             // Initialize the vectors to use for forward and reverse searches.
-            var MAX = NewTextLength + OldTextLength;
-            var Vf = new int[(2 * MAX) + 1];
-            var Vr = new int[(2 * MAX) + 1];
+            var max = NewTextLength + OldTextLength;
+            var vf = new int[(2 * max) + 1];
+            var vr = new int[(2 * max) + 1];
 
-            ComputeDiffRecursive(edits, 0, OldTextLength, 0, NewTextLength, Vf, Vr);
+            ComputeDiffRecursive(edits, 0, OldTextLength, 0, NewTextLength, vf, vr);
 
             return edits;
         }
 
-        private void ComputeDiffRecursive(List<DiffEdit> edits, int lowA, int highA, int lowB, int highB, int[] Vf, int[] Vr)
+        private void ComputeDiffRecursive(List<DiffEdit> edits, int lowA, int highA, int lowB, int highB, int[] vf, int[] vr)
         {
             while (lowA < highA && lowB < highB && ContentEquals(lowA, lowB))
             {
@@ -72,55 +72,55 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             else
             {
                 // Find the midpoint of the optimal path.
-                var (middleX, middleY) = FindMiddleSnake(lowA, highA, lowB, highB, Vf, Vr);
+                var (middleX, middleY) = FindMiddleSnake(lowA, highA, lowB, highB, vf, vr);
 
                 // Recursively find the midpoint of the left half.
-                ComputeDiffRecursive(edits, lowA, middleX, lowB, middleY, Vf, Vr);
+                ComputeDiffRecursive(edits, lowA, middleX, lowB, middleY, vf, vr);
 
                 // Recursively find the midpoint of the right half.
-                ComputeDiffRecursive(edits, middleX, highA, middleY, highB, Vf, Vr);
+                ComputeDiffRecursive(edits, middleX, highA, middleY, highB, vf, vr);
             }
         }
 
-        private (int, int) FindMiddleSnake(int lowA, int highA, int lowB, int highB, int[] Vf, int[] Vr)
+        private (int, int) FindMiddleSnake(int lowA, int highA, int lowB, int highB, int[] vf, int[] vr)
         {
-            var N = highA - lowA;
-            var M = highB - lowB;
-            var delta = N - M;
+            var n = highA - lowA;
+            var m = highB - lowB;
+            var delta = n - m;
             var deltaIsEven = delta % 2 == 0;
 
-            var MAX = N + M;
+            var max = n + m;
 
             // Compute the k-line to start the forward and reverse searches.
             var forwardK = lowA - lowB;
             var reverseK = highA - highB;
 
             // The paper uses negative indexes but we can't do that here. So we'll add an offset.
-            var forwardOffset = MAX - forwardK;
-            var reverseOffset = MAX - reverseK;
+            var forwardOffset = max - forwardK;
+            var reverseOffset = max - reverseK;
 
             // Initialize the vector
-            Vf[forwardOffset + forwardK + 1] = lowA;
-            Vr[reverseOffset + reverseK - 1] = highA;
+            vf[forwardOffset + forwardK + 1] = lowA;
+            vr[reverseOffset + reverseK - 1] = highA;
 
-            var maxD = Math.Ceiling((double)(M + N) / 2);
-            for (var D = 0; D <= maxD; D++) // For D ← 0 to ceil((M + N)/2) Do
+            var maxD = Math.Ceiling((double)(m + n) / 2);
+            for (var d = 0; d <= maxD; d++) // For D ← 0 to ceil((M + N)/2) Do
             {
                 // Run the algorithm in forward direction.
-                for (var k = forwardK - D; k <= forwardK + D; k += 2) // For k ← −D to D in steps of 2 Do
+                for (var k = forwardK - d; k <= forwardK + d; k += 2) // For k ← −D to D in steps of 2 Do
                 {
                     // Find the end of the furthest reaching forward D-path in diagonal k.
                     int x;
-                    if (k == forwardK - D ||
-                        (k != forwardK + D && Vf[forwardOffset + k - 1] < Vf[forwardOffset + k + 1]))
+                    if (k == forwardK - d ||
+                        (k != forwardK + d && vf[forwardOffset + k - 1] < vf[forwardOffset + k + 1]))
                     {
                         // Down
-                        x = Vf[forwardOffset + k + 1];
+                        x = vf[forwardOffset + k + 1];
                     }
                     else
                     {
                         // Right
-                        x = Vf[forwardOffset + k - 1] + 1;
+                        x = vf[forwardOffset + k - 1] + 1;
                     }
 
                     var y = x - k;
@@ -132,17 +132,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         y++;
                     }
 
-                    Vf[forwardOffset + k] = x;
+                    vf[forwardOffset + k] = x;
                     if (deltaIsEven)
                     {
                         // Can't have overlap here.
                     }
-                    else if (k > reverseK - D && k < reverseK + D) // If ∆ is odd and k ∈ [∆ − (D − 1) , ∆ + (D − 1)] Then
+                    else if (k > reverseK - d && k < reverseK + d) // If ∆ is odd and k ∈ [∆ − (D − 1) , ∆ + (D − 1)] Then
                     {
-                        if (Vr[reverseOffset + k] <= Vf[forwardOffset + k]) // If the path overlaps the furthest reaching reverse (D − 1)-path in diagonal k Then
+                        if (vr[reverseOffset + k] <= vf[forwardOffset + k]) // If the path overlaps the furthest reaching reverse (D − 1)-path in diagonal k Then
                         {
                             // The last snake of the forward path is the middle snake.
-                            x = Vf[forwardOffset + k];
+                            x = vf[forwardOffset + k];
                             y = x - k;
                             return (x, y);
                         }
@@ -150,20 +150,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
 
                 // Run the algorithm in reverse direction.
-                for (var k = reverseK - D; k <= reverseK + D; k += 2) // For k ← −D to D in steps of 2 Do
+                for (var k = reverseK - d; k <= reverseK + d; k += 2) // For k ← −D to D in steps of 2 Do
                 {
                     // Find the end of the furthest reaching reverse D-path in diagonal k+∆.
                     int x;
-                    if (k == reverseK + D ||
-                        (k != reverseK - D && Vr[reverseOffset + k - 1] < Vr[reverseOffset + k + 1] - 1))
+                    if (k == reverseK + d ||
+                        (k != reverseK - d && vr[reverseOffset + k - 1] < vr[reverseOffset + k + 1] - 1))
                     {
                         // Up
-                        x = Vr[reverseOffset + k - 1];
+                        x = vr[reverseOffset + k - 1];
                     }
                     else
                     {
                         // Left
-                        x = Vr[reverseOffset + k + 1] - 1;
+                        x = vr[reverseOffset + k + 1] - 1;
                     }
 
                     var y = x - k;
@@ -175,17 +175,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         y--;
                     }
 
-                    Vr[reverseOffset + k] = x;
+                    vr[reverseOffset + k] = x;
                     if (!deltaIsEven)
                     {
                         // Can't have overlap here.
                     }
-                    else if (k >= forwardK - D && k <= forwardK + D) // If ∆ is even and k + ∆ ∈ [−D, D] Then
+                    else if (k >= forwardK - d && k <= forwardK + d) // If ∆ is even and k + ∆ ∈ [−D, D] Then
                     {
-                        if (Vr[reverseOffset + k] <= Vf[forwardOffset + k]) // If the path overlaps the furthest reaching forward D-path in diagonal k+∆ Then
+                        if (vr[reverseOffset + k] <= vf[forwardOffset + k]) // If the path overlaps the furthest reaching forward D-path in diagonal k+∆ Then
                         {
                             // The last snake of the reverse path is the middle snake.
-                            x = Vf[forwardOffset + k];
+                            x = vf[forwardOffset + k];
                             y = x - k;
                             return (x, y);
                         }

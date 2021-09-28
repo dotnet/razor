@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
@@ -18,6 +19,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 {
+    [UseExportProvider]
     public class RazorIntegrationTestBase
     {
         internal const string ArbitraryWindowsPath = "x:\\dir\\subdir\\Test";
@@ -214,7 +216,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 // Result of doing 'temp' compilation
                 var tempAssembly = CompileToAssembly(declaration, throwOnFailure);
 
-                // Add the 'temp' compilation as a metadata reference 
+                // Add the 'temp' compilation as a metadata reference
                 var references = BaseCompilation.References.Concat(new[] { tempAssembly.Compilation.ToMetadataReference() }).ToArray();
                 projectEngine = CreateProjectEngine(RazorConfiguration.Default, references);
 
@@ -254,13 +256,9 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 {
                     codeDocument = projectEngine.ProcessDeclarationOnly(projectItem);
                 }
-                else if (DesignTime)
-                {
-                    codeDocument = projectEngine.ProcessDesignTime(projectItem);
-                }
                 else
                 {
-                    codeDocument = projectEngine.Process(projectItem);
+                    codeDocument = DesignTime ? projectEngine.ProcessDesignTime(projectItem) : projectEngine.Process(projectItem);
                 }
 
                 return new CompileToCSharpResult
@@ -463,7 +461,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
         private class TestImportProjectFeature : IImportProjectFeature
         {
-            private List<RazorProjectItem> _imports;
+            private readonly List<RazorProjectItem> _imports;
 
             public TestImportProjectFeature(List<RazorProjectItem> imports)
             {

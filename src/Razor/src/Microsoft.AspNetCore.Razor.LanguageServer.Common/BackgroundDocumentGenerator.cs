@@ -1,11 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -13,36 +12,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly IEnumerable<DocumentProcessedListener> _documentProcessedListeners;
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
+        private bool _solutionIsClosing;
 
         public BackgroundDocumentGenerator(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             IEnumerable<DocumentProcessedListener> documentProcessedListeners)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (documentProcessedListeners == null)
+            if (documentProcessedListeners is null)
             {
                 throw new ArgumentNullException(nameof(documentProcessedListeners));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentProcessedListeners = documentProcessedListeners;
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
         }
 
         // For testing only
         protected BackgroundDocumentGenerator(
-            ForegroundDispatcher foregroundDispatcher)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
             _documentProcessedListeners = Enumerable.Empty<DocumentProcessedListener>();
         }
@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         // Internal for testing
         internal void Enqueue(DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_work)
             {
@@ -158,12 +158,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             }
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void Timer_Tick(object state)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             try
             {
-                _foregroundDispatcher.AssertBackgroundThread();
-
                 OnStartingBackgroundWork();
 
                 KeyValuePair<string, DocumentSnapshot>[] work;
@@ -177,6 +177,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 for (var i = 0; i < work.Length; i++)
                 {
+                    if (_solutionIsClosing)
+                    {
+                        break;
+                    }
+
                     var document = work[i].Value;
                     try
                     {
@@ -190,14 +195,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
                 OnCompletingBackgroundWork();
 
-                await Task.Factory.StartNew(
-                    () =>
-                    {
-                        NotifyDocumentsProcessed(work);
-                    },
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler);
+                if (!_solutionIsClosing)
+                {
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                        () => NotifyDocumentsProcessed(work),
+                        CancellationToken.None).ConfigureAwait(false);
+                }
 
                 lock (_work)
                 {
@@ -206,7 +209,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     _timer = null;
 
                     // If more work came in while we were running start the worker again.
-                    if (_work.Count > 0)
+                    if (_work.Count > 0 && !_solutionIsClosing)
                     {
                         StartWorker();
                     }
@@ -238,7 +241,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            // Don't do any work if the solution is closing
+            if (args.SolutionIsClosing)
+            {
+                _solutionIsClosing = true;
+                return;
+            }
+            _solutionIsClosing = false;
+
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -312,17 +323,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     }
 
                 default:
-                    throw new InvalidOperationException($"Unknown ProjectChangeKind {args.Kind}");
+                    throw new InvalidOperationException(RazorLSCommon.Resources.FormatUnknown_ProjectChangeKind(args.Kind));
             }
         }
 
         private void ReportError(Exception ex)
         {
-            GC.KeepAlive(Task.Factory.StartNew(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler));
+                CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

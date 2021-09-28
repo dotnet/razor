@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,19 +15,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private const string ProjectFileExtension = ".csproj";
         private const string ProjectFileExtensionPattern = "*" + ProjectFileExtension;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectFileChangeListener> _listeners;
         private FileSystemWatcher _watcher;
 
+        private static readonly string[] s_ignoredDirectories = new string[]
+        {
+            "node_modules",
+            "bin",
+            "obj",
+        };
+
         public ProjectFileChangeDetector(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             FilePathNormalizer filePathNormalizer,
             IEnumerable<IProjectFileChangeListener> listeners)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (filePathNormalizer is null)
@@ -40,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(listeners));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
         }
@@ -57,13 +64,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             workspaceDirectory = _filePathNormalizer.Normalize(workspaceDirectory);
             var existingProjectFiles = GetExistingProjectFiles(workspaceDirectory);
 
-            await Task.Factory.StartNew(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 foreach (var projectFilePath in existingProjectFiles)
                 {
                     FileSystemWatcher_ProjectFileEvent(projectFilePath, RazorFileChangeKind.Added);
                 }
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken).ConfigureAwait(false);
 
             // This is an entry point for testing
             OnInitializationFinished();
@@ -118,16 +125,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Protected virtual for testing
-        protected virtual IReadOnlyList<string> GetExistingProjectFiles(string workspaceDirectory)
+        protected virtual IEnumerable<string> GetExistingProjectFiles(string workspaceDirectory)
         {
-            return Directory.GetFiles(workspaceDirectory, ProjectFileExtensionPattern, SearchOption.AllDirectories);
+            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, ProjectFileExtensionPattern, s_ignoredDirectories);
+
+            return files;
         }
 
         private void FileSystemWatcher_ProjectFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
         {
-            Task.Factory.StartNew(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => FileSystemWatcher_ProjectFileEvent(physicalFilePath, kind),
-                CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                CancellationToken.None);
         }
 
         private void FileSystemWatcher_ProjectFileEvent(string physicalFilePath, RazorFileChangeKind kind)

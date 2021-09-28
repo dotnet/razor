@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -19,39 +19,42 @@ namespace Microsoft.CodeAnalysis.Razor
     internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     {
         // Internal for testing
-        internal readonly Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)> _work;
+        internal readonly Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)> Work;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly RazorDynamicFileInfoProvider _infoProvider;
+        private readonly HashSet<string> _suppressedDocuments;
         private ProjectSnapshotManagerBase _projectManager;
         private Timer _timer;
+        private bool _solutionIsClosing;
 
         [ImportingConstructor]
-        public BackgroundDocumentGenerator(ForegroundDispatcher foregroundDispatcher, RazorDynamicFileInfoProvider infoProvider)
+        public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorDynamicFileInfoProvider infoProvider)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (infoProvider == null)
+            if (infoProvider is null)
             {
                 throw new ArgumentNullException(nameof(infoProvider));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _infoProvider = infoProvider;
+            _suppressedDocuments = new HashSet<string>(FilePathComparer.Instance);
 
-            _work = new Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>();
+            Work = new Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>();
         }
 
         public bool HasPendingNotifications
         {
             get
             {
-                lock (_work)
+                lock (Work)
                 {
-                    return _work.Count > 0;
+                    return Work.Count > 0;
                 }
             }
         }
@@ -128,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -137,38 +140,37 @@ namespace Microsoft.CodeAnalysis.Razor
             _projectManager.Changed += ProjectManager_Changed;
         }
 
-        protected virtual async Task ProcessDocument(ProjectSnapshot project, DocumentSnapshot document)
+        protected virtual async Task ProcessDocumentAsync(ProjectSnapshot project, DocumentSnapshot document)
         {
             await document.GetGeneratedOutputAsync().ConfigureAwait(false);
-            var container = new DefaultDynamicDocumentContainer(document);
-            _infoProvider.UpdateFileInfo(project.FilePath, container);
+
+            UpdateFileInfo(project, document);
         }
 
         public void Enqueue(ProjectSnapshot project, DocumentSnapshot document)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            lock (_work)
+            lock (Work)
             {
-                if (_projectManager.IsDocumentOpen(document.FilePath))
+                if (Suppressed(project, document))
                 {
-                    _infoProvider.SuppressDocument(project.FilePath, document.FilePath);
                     return;
                 }
 
                 // We only want to store the last 'seen' version of any given document. That way when we pick one to process
                 // it's always the best version to use.
-                _work[new DocumentKey(project.FilePath, document.FilePath)] = (project, document);
+                Work[new DocumentKey(project.FilePath, document.FilePath)] = (project, document);
 
                 StartWorker();
             }
@@ -179,7 +181,6 @@ namespace Microsoft.CodeAnalysis.Razor
             // Access to the timer is protected by the lock in Enqueue and in Timer_Tick
             if (_timer == null)
             {
-
                 // Timer will fire after a fixed delay, but only once.
                 _timer = NonCapturingTimer.Create(state => ((BackgroundDocumentGenerator)state).Timer_Tick(), this, Delay, Timeout.InfiniteTimeSpan);
             }
@@ -187,35 +188,39 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private void Timer_Tick()
         {
-            _ = TimerTick();
+            _ = TimerTickAsync();
         }
 
-        private async Task TimerTick()
+        private async Task TimerTickAsync()
         {
             try
             {
-                _foregroundDispatcher.AssertBackgroundThread();
-
                 // Timer is stopped.
                 _timer.Change(Timeout.Infinite, Timeout.Infinite);
 
                 OnStartingBackgroundWork();
 
                 KeyValuePair<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>[] work;
-                lock (_work)
+                lock (Work)
                 {
-                    work = _work.ToArray();
-                    _work.Clear();
+                    work = Work.ToArray();
+                    Work.Clear();
                 }
 
                 OnBackgroundCapturedWorkload();
 
                 for (var i = 0; i < work.Length; i++)
                 {
+                    // If the solution is closing, suspect any in-progress work
+                    if (_solutionIsClosing)
+                    {
+                        break;
+                    }
+
                     var (project, document) = work[i].Value;
                     try
                     {
-                        await ProcessDocument(project, document).ConfigureAwait(false);
+                        await ProcessDocumentAsync(project, document).ConfigureAwait(false);
                     }
                     catch (UnauthorizedAccessException)
                     {
@@ -234,14 +239,15 @@ namespace Microsoft.CodeAnalysis.Razor
 
                 OnCompletingBackgroundWork();
 
-                lock (_work)
+                lock (Work)
                 {
                     // Resetting the timer allows another batch of work to start.
                     _timer.Dispose();
                     _timer = null;
 
-                    // If more work came in while we were running start the worker again.
-                    if (_work.Count > 0)
+                    // If more work came in while we were running start the worker again, unless the solution
+                    // is being closed.
+                    if (Work.Count > 0 && !_solutionIsClosing)
                     {
                         StartWorker();
                     }
@@ -252,12 +258,9 @@ namespace Microsoft.CodeAnalysis.Razor
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the workspace.
-                await Task.Factory.StartNew(
-                    (p) => ((ProjectSnapshotManagerBase)p).ReportError(ex),
-                    _projectManager,
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    () => _projectManager.ReportError(ex),
+                    CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -265,16 +268,49 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             OnErrorBeingReported();
 
-            GC.KeepAlive(Task.Factory.StartNew(
-                (p) => ((ProjectSnapshotManagerBase)p).ReportError(ex, project),
-                _projectManager,
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler));
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () => _projectManager.ReportError(ex, project),
+                CancellationToken.None);
+        }
+
+        private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)
+        {
+            lock (_suppressedDocuments)
+            {
+                if (_projectManager.IsDocumentOpen(document.FilePath))
+                {
+                    _suppressedDocuments.Add(document.FilePath);
+                    _infoProvider.SuppressDocument(project.FilePath, document.FilePath);
+                    return true;
+                }
+
+                _suppressedDocuments.Remove(document.FilePath);
+                return false;
+            }
+        }
+
+        private void UpdateFileInfo(ProjectSnapshot project, DocumentSnapshot document)
+        {
+            lock (_suppressedDocuments)
+            {
+                if (!_suppressedDocuments.Contains(document.FilePath))
+                {
+                    var container = new DefaultDynamicDocumentContainer(document);
+                    _infoProvider.UpdateFileInfo(project.FilePath, container);
+                }
+            }
         }
 
         private void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
         {
+            // We don't want to do any work on solution close
+            if (e.SolutionIsClosing)
+            {
+                _solutionIsClosing = true;
+                return;
+            }
+            _solutionIsClosing = false;
+
             switch (e.Kind)
             {
                 case ProjectChangeKind.ProjectAdded:
@@ -315,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
                 case ProjectChangeKind.DocumentRemoved:
                     {
-                        // For removals use the old snapshot to find the removed document, so we can figure out 
+                        // For removals use the old snapshot to find the removed document, so we can figure out
                         // what the imports were in the new snapshot.
                         var document = e.Older.GetDocument(e.DocumentFilePath);
 

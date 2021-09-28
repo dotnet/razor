@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public abstract bool TryGetGeneratedOutput(out RazorCodeDocument result);
 
-        public abstract bool TryGetGeneratedCSharpOutputVersionAsync(out VersionStamp result);
+        public abstract bool TryGetGeneratedCSharpOutputVersion(out VersionStamp result);
 
-        public abstract bool TryGetGeneratedHtmlOutputVersionAsync(out VersionStamp result);
+        public abstract bool TryGetGeneratedHtmlOutputVersion(out VersionStamp result);
     }
 }

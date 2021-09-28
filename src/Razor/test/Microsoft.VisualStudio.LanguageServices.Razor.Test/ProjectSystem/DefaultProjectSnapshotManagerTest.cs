@@ -1,9 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
@@ -13,12 +14,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
-    public class DefaultProjectSnapshotManagerTest : ForegroundDispatcherWorkspaceTestBase
+    public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
         public DefaultProjectSnapshotManagerTest()
         {
-            var someTagHelpers = new List<TagHelperDescriptor>();
-            someTagHelpers.Add(TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build());
+            var someTagHelpers = new List<TagHelperDescriptor>
+            {
+                TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build()
+            };
             TagHelperResolver = new TestTagHelperResolver()
             {
                 TagHelpers = someTagHelpers,
@@ -62,10 +65,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             services.Add(TagHelperResolver);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Initialize_DoneInCorrectOrderBasedOnInitializePriorityPriority()
         {
             // Arrange
@@ -83,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(new[] { "highPriority", "lowPriority" }, initializedOrder);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_AddsDocument()
         {
             // Arrange
@@ -100,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_AddsDocument_Legacy()
         {
             // Arrange
@@ -123,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_AddsDocument_Component()
         {
             // Arrange
@@ -146,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_IgnoresDuplicate()
         {
             // Arrange
@@ -164,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_IgnoresUnknownProject()
         {
             // Arrange
@@ -177,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(snapshot);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentAdded_NullLoader_HasEmptyText()
         {
             // Arrange
@@ -195,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(0, text.Length);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentAdded_WithLoader_LoadesText()
         {
             // Arrange
@@ -215,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(expected, actual);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_CachesTagHelpers()
         {
             // Arrange
@@ -233,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, newTagHelpers);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentAdded_CachesProjectEngine()
         {
             // Arrange
@@ -251,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(projectEngine, snapshot.GetProjectEngine());
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentRemoved_RemovesDocument()
         {
             // Arrange
@@ -274,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.DocumentRemoved, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentRemoved_IgnoresNotFoundDocument()
         {
             // Arrange
@@ -291,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentRemoved_IgnoresUnknownProject()
         {
             // Arrange
@@ -304,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(snapshot);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentRemoved_CachesTagHelpers()
         {
             // Arrange
@@ -325,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(originalTagHelpers, newTagHelpers);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void DocumentRemoved_CachesProjectEngine()
         {
             // Arrange
@@ -345,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             snapshot = ProjectManager.GetSnapshot(HostProject);
             Assert.Same(projectEngine, snapshot.GetProjectEngine());
         }
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentOpened_UpdatesDocument()
         {
             // Arrange
@@ -366,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.True(ProjectManager.IsDocumentOpen(Documents[0].FilePath));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentClosed_UpdatesDocument()
         {
             // Arrange
@@ -392,8 +400,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.False(ProjectManager.IsDocumentOpen(Documents[0].FilePath));
         }
 
-
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentClosed_AcceptsChange()
         {
             // Arrange
@@ -415,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(expected, text);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentChanged_Snapshot_UpdatesDocument()
         {
             // Arrange
@@ -437,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(expected, text);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task DocumentChanged_Loader_UpdatesDocument()
         {
             // Arrange
@@ -460,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Same(expected, text);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectAdded_WithoutWorkspaceProject_NotifiesListeners()
         {
             // Arrange
@@ -472,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectAdded, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectConfigurationChanged_ConfigurationChange_ProjectWorkspaceState_NotifiesListeners()
         {
             // Arrange
@@ -483,11 +490,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectManager.ProjectConfigurationChanged(HostProjectWithConfigurationChange);
 
             // Assert
-            var snapshot = ProjectManager.GetSnapshot(HostProjectWithConfigurationChange);
             Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectConfigurationChanged_ConfigurationChange_WithProjectWorkspaceState_NotifiesListeners()
         {
             // Arrange
@@ -502,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectConfigurationChanged_ConfigurationChange_DoesNotCacheProjectEngine()
         {
             // Arrange
@@ -520,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.NotSame(projectEngine, snapshot.GetProjectEngine());
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectConfigurationChanged_IgnoresUnknownProject()
         {
             // Arrange
@@ -534,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectRemoved_RemovesProject_NotifiesListeners()
         {
             // Arrange
@@ -550,7 +556,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectRemoved, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectWorkspaceStateChanged_WithoutHostProject_IgnoresWorkspaceState()
         {
             // Arrange
@@ -564,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Null(ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectWorkspaceStateChanged_WithHostProject_FirstTime_NotifiesListenters()
         {
             // Arrange
@@ -578,7 +584,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void WorkspaceProjectChanged_WithHostProject_NotifiesListenters()
         {
             // Arrange
@@ -593,14 +599,70 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Assert.Equal(ProjectChangeKind.ProjectChanged, ProjectManager.ListenersNotifiedOf);
         }
 
+        [UIFact]
+        public void NestedNotifications_NotifiesListenersInCorrectOrder()
+        {
+            // Arrange
+            var listenerNotifications = new List<ProjectChangeKind>();
+            ProjectManager.ProjectAdded(HostProject);
+            ProjectManager.Reset();
+            ProjectManager.Changed += (sender, args) =>
+            {
+                // These conditions will result in a triply nested change notification of Add -> Change -> Remove all within the .Change chain.
+
+                if (args.Kind == ProjectChangeKind.DocumentAdded)
+                {
+                    ProjectManager.DocumentOpened(HostProject.FilePath, Documents[0].FilePath, SourceText);
+                }
+                else if (args.Kind == ProjectChangeKind.DocumentChanged)
+                {
+                    ProjectManager.DocumentRemoved(HostProject, Documents[0]);
+                }
+            };
+            ProjectManager.Changed += (sender, args) => listenerNotifications.Add(args.Kind);
+            ProjectManager.NotifyChangedEvents = true;
+
+            // Act
+            ProjectManager.DocumentAdded(HostProject, Documents[0], null);
+
+            // Assert
+            Assert.Equal(new[] { ProjectChangeKind.DocumentAdded, ProjectChangeKind.DocumentChanged, ProjectChangeKind.DocumentRemoved }, listenerNotifications);
+        }
+
+        [UIFact]
+        public void SolutionClosing_ProjectChangedEventsCorrect()
+        {
+            // Arrange
+            ProjectManager.ProjectAdded(HostProject);
+            ProjectManager.Reset();
+
+            ProjectManager.Changed += (sender, args) =>
+            {
+                Assert.True(args.SolutionIsClosing);
+            };
+            ProjectManager.NotifyChangedEvents = true;
+
+            var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
+
+            // Act
+            ProjectManager.SolutionClosed();
+            ProjectManager.DocumentAdded(HostProject, Documents[0], textLoader.Object);
+
+            // Assert
+            Assert.Equal(ProjectChangeKind.DocumentAdded, ProjectManager.ListenersNotifiedOf);
+            textLoader.Verify(d => d.LoadTextAndVersionAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()), Times.Never());
+        }
+
         private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
-            public TestProjectSnapshotManager(ForegroundDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
-                : base(dispatcher, Mock.Of<ErrorReporter>(), triggers, workspace)
+            public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
+                : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
             {
             }
 
             public ProjectChangeKind? ListenersNotifiedOf { get; private set; }
+
+            public bool NotifyChangedEvents { get; set; }
 
             public DefaultProjectSnapshot GetSnapshot(HostProject hostProject)
             {
@@ -620,6 +682,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             protected override void NotifyListeners(ProjectChangeEventArgs e)
             {
                 ListenersNotifiedOf = e.Kind;
+
+                if (NotifyChangedEvents)
+                {
+                    base.NotifyListeners(e);
+                }
             }
         }
 

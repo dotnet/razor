@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Text;
 
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         {
             builder
                 .AppendLine(location.ToString())
-                .Append("|");
+                .Append('|');
 
             for (var i = 0; i < location.Length; i++)
             {

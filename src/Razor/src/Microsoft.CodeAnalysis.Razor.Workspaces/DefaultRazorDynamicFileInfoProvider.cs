@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Internal;
 
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
     [Shared]
     [Export(typeof(IRazorDynamicFileInfoProvider))]
     [Export(typeof(RazorDynamicFileInfoProvider))]
+    [Export(typeof(ProjectSnapshotChangeTrigger))]
     internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvider, IRazorDynamicFileInfoProvider
     {
         private readonly ConcurrentDictionary<Key, Entry> _entries;
@@ -45,6 +47,11 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public event EventHandler<string> Updated;
 
+        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+        {
+            projectManager.Changed += ProjectManager_Changed;
+        }
+
         // Called by us to update LSP document entries
         public override void UpdateLSPFileInfo(Uri documentUri, DynamicDocumentContainer documentContainer)
         {
@@ -58,18 +65,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(documentContainer));
             }
 
-            var filePath = documentUri.GetAbsoluteOrUNCPath().Replace('/', '\\');
-            KeyValuePair<Key, Entry>? associatedKvp = null;
-            foreach (var entry in _entries)
-            {
-                if (FilePathComparer.Instance.Equals(filePath, entry.Key.FilePath))
-                {
-                    associatedKvp = entry;
-                    break;
-                }
-            }
+            // This endpoint is only called in LSP cases when the file is open(ed)
+            // We report diagnostics are supported to Roslyn in this case
+            documentContainer.SupportsDiagnostics = true;
 
-            if (associatedKvp == null)
+            var filePath = documentUri.GetAbsoluteOrUNCPath().Replace('/', '\\');
+            if (!TryGetKeyAndEntry(filePath, out var associatedKvp))
             {
                 return;
             }
@@ -98,6 +99,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(documentContainer));
             }
 
+            // This endpoint is called either when:
+            //  1. LSP: File is closed
+            //  2. Non-LSP: File is Supressed
+            // We report, diagnostics are not supported, to Roslyn in these cases
+            documentContainer.SupportsDiagnostics = false;
+
             // There's a possible race condition here where we're processing an update
             // and the project is getting unloaded. So if we don't find an entry we can
             // just ignore it.
@@ -113,6 +120,64 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
         }
 
+        // Called by us to promote a background document (i.e. assign to a client name). Promoting a background
+        // document will allow it to be recognized by the C# server.
+        public void PromoteBackgroundDocument(Uri documentUri, IRazorDocumentPropertiesService propertiesService)
+        {
+            if (documentUri is null)
+            {
+                throw new ArgumentNullException(nameof(documentUri));
+            }
+
+            if (propertiesService is null)
+            {
+                throw new ArgumentNullException(nameof(propertiesService));
+            }
+
+            var filePath = documentUri.GetAbsoluteOrUNCPath().Replace('/', '\\');
+            if (!TryGetKeyAndEntry(filePath, out var associatedKvp))
+            {
+                return;
+            }
+
+            var associatedKey = associatedKvp.Value.Key;
+            var associatedEntry = associatedKvp.Value.Value;
+
+            var filename = associatedKey.FilePath + ".g.cs";
+
+            // To promote the background document, we just need to add the passed in properties service to
+            // the dynamic file info. The properties service contains the client name and allows the C#
+            // server to recognize the document.
+            var documentServiceProvider = associatedEntry.Current.DocumentServiceProvider;
+            var excerptService = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
+            var mappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
+            var emptyContainer = new PromotedDynamicDocumentContainer(
+                documentUri, propertiesService, excerptService, mappingService, associatedEntry.Current.TextLoader);
+
+            lock (associatedEntry.Lock)
+            {
+                associatedEntry.Current = new RazorDynamicFileInfo(
+                    filename, associatedEntry.Current.SourceCodeKind, associatedEntry.Current.TextLoader, _factory.Create(emptyContainer));
+            }
+
+            Updated?.Invoke(this, filePath);
+        }
+
+        private bool TryGetKeyAndEntry(string filePath, out KeyValuePair<Key, Entry>? associatedKvp)
+        {
+            associatedKvp = null;
+            foreach (var entry in _entries)
+            {
+                if (FilePathComparer.Instance.Equals(filePath, entry.Key.FilePath))
+                {
+                    associatedKvp = entry;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // Called by us when a document opens in the editor
         public override void SuppressDocument(string projectFilePath, string documentFilePath)
         {
@@ -126,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            if (_lspEditorFeatureDetector.IsLSPEditorFeatureEnabled())
+            if (_lspEditorFeatureDetector.IsLSPEditorAvailable())
             {
                 return;
             }
@@ -183,9 +248,52 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(filePath));
             }
 
+            // ---------------------------------------------------------- NOTE & CAUTION --------------------------------------------------------------
+            //
+            // For all intents and purposes this method should not exist. When projects get torn down we do not get told to remove any documents
+            // we've published. To workaround that issue this class hooks into ProjectSnapshotManager events to clear entry state on project / document
+            // removals and on solution closing events.
+            //
+            // Currently this method only ever gets called for deleted documents which we can detect in our ProjectManager_Changed event below.
+            //
+            // ----------------------------------------------------------------------------------------------------------------------------------------
+
             var key = new Key(projectFilePath, filePath);
             _entries.TryRemove(key, out _);
             return Task.CompletedTask;
+        }
+
+        public TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+        private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
+        {
+            if (args.SolutionIsClosing)
+            {
+                _entries.Clear();
+                return;
+            }
+
+            switch (args.Kind)
+            {
+                case ProjectChangeKind.ProjectRemoved:
+                    {
+                        var removedProject = args.Older;
+                        foreach (var documentFilePath in removedProject.DocumentFilePaths)
+                        {
+                            var key = new Key(removedProject.FilePath, documentFilePath);
+                            _entries.TryRemove(key, out _);
+                        }
+                        break;
+                    }
+                case ProjectChangeKind.DocumentRemoved:
+                    {
+                        var owningProject = args.Newer;
+
+                        var key = new Key(owningProject.FilePath, args.DocumentFilePath);
+                        _entries.TryRemove(key, out _);
+                        break;
+                    }
+            }
         }
 
         private RazorDynamicFileInfo CreateEmptyInfo(Key key)
@@ -265,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             public override bool Equals(object obj)
             {
-                return obj is Key other ? Equals(other) : false;
+                return obj is Key other && Equals(other);
             }
 
             public override int GetHashCode()
@@ -294,6 +402,75 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 // won't work for projects with Razor files.
                 return Task.FromResult(TextAndVersion.Create(SourceText.From("", Encoding.UTF8), _version, _filePath));
             }
+        }
+
+        private class PromotedDynamicDocumentContainer : DynamicDocumentContainer
+        {
+            private readonly Uri _documentUri;
+            private readonly IRazorDocumentPropertiesService _documentPropertiesService;
+            private readonly IRazorDocumentExcerptService _documentExcerptService;
+            private readonly IRazorSpanMappingService _spanMappingService;
+            private readonly TextLoader _textLoader;
+
+            public PromotedDynamicDocumentContainer(
+                Uri documentUri,
+                IRazorDocumentPropertiesService documentPropertiesService,
+                IRazorDocumentExcerptService documentExcerptService,
+                IRazorSpanMappingService spanMappingService,
+                TextLoader textLoader)
+            {
+                // It's valid for the excerpt service and span mapping service to be null in this class,
+                // so we purposefully don't null check them below.
+
+                if (documentUri is null)
+                {
+                    throw new ArgumentNullException(nameof(documentUri));
+                }
+
+                if (documentPropertiesService is null)
+                {
+                    throw new ArgumentNullException(nameof(documentPropertiesService));
+                }
+
+                if (textLoader is null)
+                {
+                    throw new ArgumentNullException(nameof(textLoader));
+                }
+
+                _documentUri = documentUri;
+                _documentPropertiesService = documentPropertiesService;
+                _documentExcerptService = documentExcerptService;
+                _spanMappingService = spanMappingService;
+                _textLoader = textLoader;
+            }
+
+            public override string FilePath => _documentUri.LocalPath;
+
+            public override IRazorDocumentPropertiesService GetDocumentPropertiesService() => _documentPropertiesService;
+
+            public override IRazorDocumentExcerptService GetExcerptService() => _documentExcerptService;
+
+            public override IRazorSpanMappingService GetMappingService() => _spanMappingService;
+
+            public override TextLoader GetTextLoader(string filePath) => _textLoader;
+        }
+
+        public class TestAccessor
+        {
+            private readonly DefaultRazorDynamicFileInfoProvider _provider;
+
+            public TestAccessor(DefaultRazorDynamicFileInfoProvider provider)
+            {
+                _provider = provider;
+            }
+
+            public async Task<TestDynamicFileInfoResult> GetDynamicFileInfoAsync(string projectFilePath, string filePath, CancellationToken cancellationToken)
+            {
+                var result = await _provider.GetDynamicFileInfoAsync(ProjectId.CreateNewId(), projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+                return new TestDynamicFileInfoResult(result.FilePath, result.TextLoader);
+            }
+
+            public record TestDynamicFileInfoResult(string FilePath, TextLoader TextLoader);
         }
     }
 }

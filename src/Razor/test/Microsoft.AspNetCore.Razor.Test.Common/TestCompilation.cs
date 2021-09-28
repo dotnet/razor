@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
 {
     public static class TestCompilation
     {
-        private static readonly ConcurrentDictionary<Assembly, IEnumerable<MetadataReference>> _referenceCache =
+        private static readonly ConcurrentDictionary<Assembly, IEnumerable<MetadataReference>> s_referenceCache =
             new ConcurrentDictionary<Assembly, IEnumerable<MetadataReference>>();
 
         public static IEnumerable<MetadataReference> GetMetadataReferences(Assembly assembly)
@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis
                 syntaxTrees = new[] { syntaxTree };
             }
 
-            if (!_referenceCache.TryGetValue(assembly, out IEnumerable<MetadataReference> metadataReferences))
+            if (!s_referenceCache.TryGetValue(assembly, out var metadataReferences))
             {
                 metadataReferences = GetMetadataReferences(assembly);
-                _referenceCache.TryAdd(assembly, metadataReferences);
+                s_referenceCache.TryAdd(assembly, metadataReferences);
             }
 
             var compilation = CSharpCompilation.Create(AssemblyName, syntaxTrees, metadataReferences, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

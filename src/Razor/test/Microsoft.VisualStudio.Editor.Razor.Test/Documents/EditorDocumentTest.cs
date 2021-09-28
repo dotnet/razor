@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -11,11 +11,12 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class EditorDocumentTest
+    public class EditorDocumentTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public EditorDocumentTest()
         {
-            DocumentManager = Mock.Of<EditorDocumentManager>();
+            DocumentManager = new Mock<EditorDocumentManager>(MockBehavior.Strict).Object;
+            Mock.Get(DocumentManager).Setup(m => m.RemoveDocument(It.IsAny<EditorDocument>())).Verifiable();
             ProjectFilePath = TestProjectData.SomeProject.FilePath;
             DocumentFilePath = TestProjectData.SomeProjectFile1.FilePath;
             TextLoader = TextLoader.From(TextAndVersion.Create(SourceText.From("FILE"), VersionStamp.Default));
@@ -42,6 +43,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             // Arrange & Act
             using (var document = new EditorDocument(
                 DocumentManager,
+                Dispatcher,
+                JoinableTaskFactory.Context,
                 ProjectFilePath,
                 DocumentFilePath,
                 TextLoader,
@@ -65,6 +68,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             // Arrange & Act
             using (var document = new EditorDocument(
                 DocumentManager,
+                Dispatcher,
+                JoinableTaskFactory.Context,
                 ProjectFilePath,
                 DocumentFilePath,
                 TextLoader,

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
         private readonly IEnumerable<ProjectConfigurationProvider> _projectConfigurationProviders;
         private readonly ProjectInstanceEvaluator _projectInstanceEvaluator;
         private readonly ProjectChangePublisher _projectConfigurationPublisher;
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private OmniSharpProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
@@ -42,30 +42,30 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             [ImportMany] IEnumerable<ProjectConfigurationProvider> projectConfigurationProviders,
             ProjectInstanceEvaluator projectInstanceEvaluator,
             ProjectChangePublisher projectConfigurationPublisher,
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ILoggerFactory loggerFactory)
         {
-            if (projectConfigurationProviders == null)
+            if (projectConfigurationProviders is null)
             {
                 throw new ArgumentNullException(nameof(projectConfigurationProviders));
             }
 
-            if (projectInstanceEvaluator == null)
+            if (projectInstanceEvaluator is null)
             {
                 throw new ArgumentNullException(nameof(projectInstanceEvaluator));
             }
 
-            if (projectConfigurationPublisher == null)
+            if (projectConfigurationPublisher is null)
             {
                 throw new ArgumentNullException(nameof(projectConfigurationPublisher));
             }
 
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             _projectConfigurationProviders = projectConfigurationProviders;
             _projectInstanceEvaluator = projectInstanceEvaluator;
             _projectConfigurationPublisher = projectConfigurationPublisher;
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
@@ -87,7 +87,9 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             _projectManager = projectManager;
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         public async void ProjectLoaded(ProjectLoadedEventArgs args)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             try
             {
@@ -101,19 +103,14 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
 
         public void RazorDocumentChanged(RazorFileChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             if (args.Kind == RazorFileChangeKind.Added ||
                 args.Kind == RazorFileChangeKind.Removed)
             {
                 // When documents get added or removed we need to refresh project state to properly reflect the host documents in the project.
 
                 var evaluatedProjectInstance = _projectInstanceEvaluator.Evaluate(args.UnevaluatedProjectInstance);
-                Task.Factory.StartNew(
-                    () => UpdateProjectState(evaluatedProjectInstance),
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler);
+                _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    () => UpdateProjectState(evaluatedProjectInstance), CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -140,16 +137,13 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             // Force project instance evaluation to ensure that all Razor specific targets have run.
             projectInstance = _projectInstanceEvaluator.Evaluate(projectInstance);
 
-            await Task.Factory.StartNew(() =>
-            {
-                UpdateProjectState(projectInstance);
-            },
-            CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () => UpdateProjectState(projectInstance), CancellationToken.None).ConfigureAwait(false);
         }
 
         private void UpdateProjectState(ProjectInstance projectInstance)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var projectFilePath = projectInstance.GetPropertyValue(MSBuildProjectFullPathPropertyName);
             if (string.IsNullOrEmpty(projectFilePath))
@@ -190,8 +184,8 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
 
         // Internal for testing
         internal void SynchronizeDocuments(
-            IReadOnlyList<OmniSharpHostDocument> configuredHostDocuments, 
-            OmniSharpProjectSnapshot projectSnapshot, 
+            IReadOnlyList<OmniSharpHostDocument> configuredHostDocuments,
+            OmniSharpProjectSnapshot projectSnapshot,
             OmniSharpHostProject hostProject)
         {
             // Remove any documents that need to be removed
@@ -269,7 +263,7 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin
             return null;
         }
 
-        private void HandleDebug(ProjectInstance projectInstance)
+        private static void HandleDebug(ProjectInstance projectInstance)
         {
             var debugPlugin = projectInstance.GetPropertyValue(DebugRazorOmnisharpPluginPropertyName);
             if (!string.IsNullOrEmpty(debugPlugin) && string.Equals(debugPlugin, "true", StringComparison.OrdinalIgnoreCase))

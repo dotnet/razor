@@ -1,24 +1,25 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using CodeAnalysisWorkspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    [Shared]
-    [Export(typeof(LSPDocumentManagerChangeTrigger))]
-    internal class CSharpVirtualDocumentPublisher : LSPDocumentManagerChangeTrigger
+    [Export(typeof(LSPDocumentChangeListener))]
+    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
+    internal class CSharpVirtualDocumentPublisher : LSPDocumentChangeListener
     {
         private readonly RazorDynamicFileInfoProvider _dynamicFileInfoProvider;
         private readonly LSPDocumentMappingProvider _lspDocumentMappingProvider;
@@ -31,32 +32,39 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(dynamicFileInfoProvider));
             }
 
+            if (lspDocumentMappingProvider is null)
+            {
+                throw new ArgumentNullException(nameof(lspDocumentMappingProvider));
+            }
+
             _dynamicFileInfoProvider = dynamicFileInfoProvider;
             _lspDocumentMappingProvider = lspDocumentMappingProvider;
         }
 
-        public override void Initialize(LSPDocumentManager documentManager)
+        // Internal for testing
+        public override void Changed(LSPDocumentSnapshot old, LSPDocumentSnapshot @new, VirtualDocumentSnapshot virtualOld, VirtualDocumentSnapshot virtualNew, LSPDocumentChangeKind kind)
         {
-            if (documentManager is null)
+            // We need the below check to address a race condition between when a request is sent to the C# server
+            // for a generated document and when the C# server receives a document/didOpen notification. This race
+            // condition may occur when the Razor server finishes initializing before C# receives and processes the
+            // document open request.
+            // This workaround adds the Razor client name to the generated document so the C# server will recognize
+            // it, despite the document not being formally opened. Note this is meant to only be a temporary
+            // workaround until a longer-term solution is implemented in the future.
+            if (kind == LSPDocumentChangeKind.Added && _dynamicFileInfoProvider is DefaultRazorDynamicFileInfoProvider defaultProvider)
             {
-                throw new ArgumentNullException(nameof(documentManager));
+                defaultProvider.PromoteBackgroundDocument(@new.Uri, CSharpDocumentPropertiesService.Instance);
             }
 
-            documentManager.Changed += DocumentManager_Changed;
-        }
-
-        // Internal for testing
-        internal void DocumentManager_Changed(object sender, LSPDocumentChangeEventArgs args)
-        {
-            if (args.Kind != LSPDocumentChangeKind.VirtualDocumentChanged)
+            if (kind != LSPDocumentChangeKind.VirtualDocumentChanged)
             {
                 return;
             }
 
-            if (args.VirtualNew is CSharpVirtualDocumentSnapshot)
+            if (virtualNew is CSharpVirtualDocumentSnapshot)
             {
-                var csharpContainer = new CSharpVirtualDocumentContainer(_lspDocumentMappingProvider, args.New, args.VirtualNew.Snapshot);
-                _dynamicFileInfoProvider.UpdateLSPFileInfo(args.New.Uri, csharpContainer);
+                var csharpContainer = new CSharpVirtualDocumentContainer(_lspDocumentMappingProvider, @new, virtualNew.Snapshot);
+                _dynamicFileInfoProvider.UpdateLSPFileInfo(@new.Uri, csharpContainer);
             }
         }
 
@@ -69,6 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             private IRazorDocumentExcerptService _excerptService;
 
             public override string FilePath => _documentSnapshot.Uri.LocalPath;
+
+            public override bool SupportsDiagnostics => true;
 
             public CSharpVirtualDocumentContainer(LSPDocumentMappingProvider lspDocumentMappingProvider, LSPDocumentSnapshot documentSnapshot, ITextSnapshot textSnapshot)
             {
@@ -108,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 if (_mappingService == null)
                 {
-                    _mappingService = new CSharpSpanMappingService(_lspDocumentMappingProvider, _documentSnapshot, _textSnapshot);
+                    _mappingService = new RazorLSPSpanMappingService(_lspDocumentMappingProvider, _documentSnapshot, _textSnapshot);
                 }
 
                 return _mappingService;

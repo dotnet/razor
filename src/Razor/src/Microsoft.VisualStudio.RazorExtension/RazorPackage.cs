@@ -1,22 +1,35 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServerClient.Razor;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
+using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.RazorExtension
 {
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [AboutDialogInfo(PackageGuidString, "ASP.NET Core Razor Language Services", "#110", "#112", IconResourceID = "#400")]
+    [AboutDialogInfo(PackageGuidString, "Razor (ASP.NET Core)", "#110", "#112", IconResourceID = "#400")]
+    [ProvideService(typeof(RazorLanguageService))]
+    [ProvideLanguageService(typeof(RazorLanguageService), RazorLSPConstants.RazorLSPContentTypeName, 110)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider", Audience = ServiceAudience.Local)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64", Audience = ServiceAudience.Local)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64S", Audience = ServiceAudience.Local)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
+    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64S", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
     [Guid(PackageGuidString)]
     public sealed class RazorPackage : AsyncPackage
     {
         public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";
-        public const string CSharpPackageGuidString = "13c3bbb4-f18f-4111-9f54-a0fb010d9194";
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -24,9 +37,18 @@ namespace Microsoft.VisualStudio.RazorExtension
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Explicitly trigger the load of the CSharp package. This ensures that UI-bound services are appropriately prefetched. Ideally, we shouldn't need this but until Roslyn fixes it on their side, we have to live with it.
-            var shellService = (IVsShell7)AsyncPackage.GetGlobalService(typeof(SVsShell));
-            await shellService.LoadPackageAsync(new Guid(CSharpPackageGuidString));
+            var container = this as IServiceContainer;
+            container.AddService(typeof(RazorLanguageService), (container, type) =>
+            {
+                var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
+                var breakpointResolver = componentModel.GetService<RazorBreakpointResolver>();
+                var proximityExpressionResolver = componentModel.GetService<RazorProximityExpressionResolver>();
+                var uiThreadOperationExecutor = componentModel.GetService<IUIThreadOperationExecutor>();
+                var editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+                var joinableTaskContext = componentModel.GetService<JoinableTaskContext>();
+
+                return new RazorLanguageService(breakpointResolver, proximityExpressionResolver, uiThreadOperationExecutor, editorAdaptersFactory, joinableTaskContext.Factory);
+            }, promote: true);
         }
     }
 }

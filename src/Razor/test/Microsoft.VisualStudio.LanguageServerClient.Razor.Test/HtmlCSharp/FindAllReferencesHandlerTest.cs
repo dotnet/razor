@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -18,7 +18,7 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class FindAllReferencesHandlerTest
+    public class FindAllReferencesHandlerTest : HandlerTestBase
     {
         public FindAllReferencesHandlerTest()
         {
@@ -31,17 +31,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private Uri Uri { get; }
         private TimeSpan TestWaitForProgressNotificationTimeout { get; }
 
+        private static readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
+
         [Fact]
         public async Task HandleRequestAsync_DocumentNotFound_ReturnsNull()
         {
             // Arrange
             var documentManager = new TestDocumentManager();
-            var requestInvoker = Mock.Of<LSPRequestInvoker>();
-            var projectionProvider = Mock.Of<LSPProjectionProvider>();
-            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
-            var progressListener = Mock.Of<LSPProgressListener>();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            var requestInvoker = Mock.Of<LSPRequestInvoker>(MockBehavior.Strict);
+            var projectionProvider = Mock.Of<LSPProjectionProvider>(MockBehavior.Strict);
+            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
+            var progressListener = Mock.Of<LSPProgressListener>(MockBehavior.Strict);
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, progressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -60,13 +64,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
-            var requestInvoker = Mock.Of<LSPRequestInvoker>();
-            var projectionProvider = Mock.Of<LSPProjectionProvider>();
-            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
-            var progressListener = Mock.Of<LSPProgressListener>();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
+            var requestInvoker = Mock.Of<LSPRequestInvoker>(MockBehavior.Strict);
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict).Object;
+            Mock.Get(projectionProvider).Setup(projectionProvider => projectionProvider.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), CancellationToken.None))
+                .Returns(Task.FromResult<ProjectionResult>(null));
+            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
+            var progressListener = Mock.Of<LSPProgressListener>(MockBehavior.Strict);
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider, documentMappingProvider, progressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -81,35 +89,97 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [Fact]
-        public async Task HandleRequestAsync_HtmlProjection_ReturnsNull()
+        public async Task HandleRequestAsync_HtmlProjection_InvokesHtmlLanguageServer()
         {
             // Arrange
+            var lspFarEndpointCalled = false;
+            var progressReported = false;
+            var expectedUri1 = new Uri("C:/path/to/file1.razor");
+            var expectedUri2 = new Uri("C:/path/to/file2.razor");
+            var expectedLocation1 = GetReferenceItem(5, expectedUri1);
+            var expectedLocation2 = GetReferenceItem(10, expectedUri2);
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
-            var requestInvoker = Mock.Of<LSPRequestInvoker>();
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
+
+            var virtualHtmlUri1 = new Uri("C:/path/to/file1.razor__virtual.html");
+            var virtualHtmlUri2 = new Uri("C:/path/to/file2.razor__virtual.html");
+            var htmlLocation1 = GetReferenceItem(100, virtualHtmlUri1);
+            var htmlLocation2 = GetReferenceItem(200, virtualHtmlUri2);
+
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
+            using var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
+
+            var token = Guid.NewGuid().ToString();
+            var parameterToken = new JObject
+            {
+                { "token", token },
+                { "value", JArray.FromObject(new[] { htmlLocation1, htmlLocation2 }) }
+            };
+
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+            requestInvoker
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalReferenceItem[]>(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<TextDocumentPositionParams>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, definitionParams, ct) =>
+                {
+                    Assert.Equal(Methods.TextDocumentReferencesName, method);
+                    Assert.Equal(RazorLSPConstants.HtmlLanguageServerName, clientName);
+                    lspFarEndpointCalled = true;
+
+                    _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
+                })
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
                 LanguageKind = RazorLanguageKind.Html,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
-            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
-            var progressListener = Mock.Of<LSPProgressListener>();
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            var remappingResult1 = new RazorMapToDocumentRangesResponse()
+            {
+                Ranges = new[] { expectedLocation1.Location.Range }
+            };
+            var remappingResult2 = new RazorMapToDocumentRangesResponse()
+            {
+                Ranges = new[] { expectedLocation2.Location.Range }
+            };
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
+            documentMappingProvider
+                .Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.Html, It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
+                .Returns<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) => Task.FromResult(uri.LocalPath.Contains("file1") ? remappingResult1 : remappingResult2));
+
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
+
+            var progressToken = new ProgressWithCompletion<object>((val) =>
+            {
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
+                Assert.Collection(results,
+                    a => AssertVSInternalReferenceItem(expectedLocation1, a),
+                    b => AssertVSInternalReferenceItem(expectedLocation2, b));
+                progressReported = true;
+                completedTokenSource.CancelAfter(0);
+            });
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
-                Position = new Position(0, 1)
+                Position = new Position(10, 5),
+                PartialResultToken = progressToken
             };
 
             // Act
-            var result = await referencesHandler.HandleRequestAsync(referenceRequest, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
+            var result = await referencesHandler.HandleRequestAsync(referenceRequest, new ClientCapabilities(), token, CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            Assert.Null(result);
+            Assert.True(lspFarEndpointCalled);
+            Assert.True(progressReported);
         }
 
         [Fact]
@@ -117,28 +187,30 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             // Arrange
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
-            var requestInvoker = Mock.Of<LSPRequestInvoker>();
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
+            var requestInvoker = Mock.Of<LSPRequestInvoker>(MockBehavior.Strict);
 
             var projectionResult = new ProjectionResult()
             {
                 LanguageKind = RazorLanguageKind.CSharp,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
             Task onCompleted = null;
-            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
+            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
             var progressListener = Mock.Of<LSPProgressListener>(l =>
                 l.TryListenForProgress(
                     It.IsAny<string>(),
                     It.IsAny<Func<JToken, CancellationToken, Task>>(),
-                    It.IsAny<TimeSpan>(),
+                    It.IsAny<Func<CancellationToken, Task>>(),
                     It.IsAny<CancellationToken>(),
-                    out onCompleted) == false);
+                    out onCompleted) == false, MockBehavior.Strict);
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider, progressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
             var referenceRequest = new ReferenceParams()
             {
                 TextDocument = new TextDocumentIdentifier() { Uri = Uri },
@@ -163,14 +235,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var expectedLocation1 = GetReferenceItem(5, expectedUri1);
             var expectedLocation2 = GetReferenceItem(10, expectedUri2);
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
 
             var virtualCSharpUri1 = new Uri("C:/path/to/file1.razor.g.cs");
             var virtualCSharpUri2 = new Uri("C:/path/to/file2.razor.g.cs");
             var csharpLocation1 = GetReferenceItem(100, virtualCSharpUri1);
             var csharpLocation2 = GetReferenceItem(200, virtualCSharpUri2);
 
-            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
             using var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
 
             var token = Guid.NewGuid().ToString();
@@ -180,24 +252,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 { "value", JArray.FromObject(new[] { csharpLocation1, csharpLocation2 }) }
             };
 
-            var requestInvoker = new Mock<LSPRequestInvoker>();
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSReferenceItem[]>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, LanguageServerKind, TextDocumentPositionParams, CancellationToken>((method, serverKind, definitionParams, ct) =>
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalReferenceItem[]>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, definitionParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentReferencesName, method);
-                    Assert.Equal(LanguageServerKind.CSharp, serverKind);
+                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     lspFarEndpointCalled = true;
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(Array.Empty<VSReferenceItem>()));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
                 LanguageKind = RazorLanguageKind.CSharp,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
             var remappingResult1 = new RazorMapToDocumentRangesResponse()
@@ -208,21 +280,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 Ranges = new[] { expectedLocation2.Location.Range }
             };
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider
                 .Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
                 .Returns<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) => Task.FromResult(uri.LocalPath.Contains("file1") ? remappingResult1 : remappingResult2));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Collection(results,
-                    a => AssertVSReferenceItem(expectedLocation1, a),
-                    b => AssertVSReferenceItem(expectedLocation2, b));
+                    a => AssertVSInternalReferenceItem(expectedLocation1, a),
+                    b => AssertVSInternalReferenceItem(expectedLocation2, b));
                 progressReported = true;
+                completedTokenSource.CancelAfter(0);
             });
             var referenceRequest = new ReferenceParams()
             {
@@ -247,8 +322,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var externalUri = new Uri("C:/path/to/someotherfile.razor");
             var expectedLocation = GetReferenceItem(5, externalUri);
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2));
-            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5));
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2, MockBehavior.Strict));
+            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5, MockBehavior.Strict));
 
             var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
             var csharpLocation = GetReferenceItem(100, virtualCSharpUri);
@@ -258,7 +333,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 LanguageKind = RazorLanguageKind.CSharp,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
             var remappingResult = new RazorMapToDocumentRangesResponse()
@@ -266,19 +341,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Ranges = new[] { expectedLocation.Location.Range },
                 HostDocumentVersion = 5
             };
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, externalUri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(remappingResult));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 var actualLocation = Assert.Single(results);
-                AssertVSReferenceItem(expectedLocation, actualLocation);
+                AssertVSInternalReferenceItem(expectedLocation, actualLocation);
                 progressReported = true;
+                completedTokenSource.CancelAfter(0);
             });
             var referenceRequest = new ReferenceParams()
             {
@@ -304,8 +382,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var externalUri = new Uri("C:/path/to/someotherfile.razor");
             var expectedReferenceItem = GetReferenceItem(5, 5, 5, 5, externalUri, text: filteredText);
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2));
-            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5));
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2, MockBehavior.Strict));
+            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5, MockBehavior.Strict));
 
             var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
             var csharpLocation = GetReferenceItem(100, 100, 100, 100, virtualCSharpUri, text: rawText);
@@ -315,7 +393,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 LanguageKind = RazorLanguageKind.CSharp,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
             var remappingResult = new RazorMapToDocumentRangesResponse()
@@ -323,19 +401,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Ranges = new[] { expectedReferenceItem.Location.Range },
                 HostDocumentVersion = 5
             };
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, externalUri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(remappingResult));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 var actualReferenceItem = Assert.Single(results);
-                AssertVSReferenceItem(expectedReferenceItem, actualReferenceItem);
+                AssertVSInternalReferenceItem(expectedReferenceItem, actualReferenceItem);
                 progressReported = true;
+                completedTokenSource.CancelAfter(0);
             });
             var referenceRequest = new ReferenceParams()
             {
@@ -364,8 +445,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             });
             var expectedReferenceItem = GetReferenceItem(5, 5, 5, 5, externalUri, text: expectedClassifiedRun);
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2));
-            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5));
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2, MockBehavior.Strict));
+            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5, MockBehavior.Strict));
 
             var virtualClassifiedRun = new ClassifiedTextElement(new ClassifiedTextRun[]
             {
@@ -384,7 +465,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 LanguageKind = RazorLanguageKind.CSharp,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
             var remappingResult = new RazorMapToDocumentRangesResponse()
@@ -392,19 +473,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Ranges = new[] { expectedReferenceItem.Location.Range },
                 HostDocumentVersion = 5
             };
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, externalUri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(remappingResult));
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 var actualReferenceItem = Assert.Single(results);
-                AssertVSReferenceItem(expectedReferenceItem, actualReferenceItem);
+                AssertVSInternalReferenceItem(expectedReferenceItem, actualReferenceItem);
                 progressReported = true;
+                completedTokenSource.CancelAfter(0);
             });
             var referenceRequest = new ReferenceParams()
             {
@@ -426,7 +510,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var progressReported = false;
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
 
             var externalCSharpUri = new Uri("C:/path/to/someotherfile.cs");
             var externalCsharpLocation = GetReferenceItem(100, externalCSharpUri);
@@ -436,21 +520,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 LanguageKind = RazorLanguageKind.CSharp,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
-            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>();
-            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+            var documentMappingProvider = Mock.Of<LSPDocumentMappingProvider>(MockBehavior.Strict);
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider, progressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 var actualLocation = Assert.Single(results);
-                AssertVSReferenceItem(externalCsharpLocation, actualLocation);
+                AssertVSInternalReferenceItem(externalCsharpLocation, actualLocation);
                 progressReported = true;
+                completedTokenSource.CancelAfter(0);
             });
             var referenceRequest = new ReferenceParams()
             {
@@ -473,7 +560,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var progressReported = false;
             var expectedLocation = GetReferenceItem(5, Uri);
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 123));
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 123, MockBehavior.Strict));
 
             var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
             var csharpLocation = GetReferenceItem(100, virtualCSharpUri);
@@ -483,7 +570,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 LanguageKind = RazorLanguageKind.CSharp,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
             var remappingResult = new RazorMapToDocumentRangesResponse()
@@ -491,20 +578,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Ranges = new[] { expectedLocation.Location.Range },
                 HostDocumentVersion = 122 // Different from document version (123)
             };
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, Uri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(remappingResult));
 
-            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Empty(results);
                 progressReported = true;
+                completedTokenSource.CancelAfter(0);
             });
             var referenceRequest = new ReferenceParams()
             {
@@ -529,8 +619,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var externalUri = new Uri("C:/path/to/someotherfile.razor");
             var expectedLocation = GetReferenceItem(5, externalUri);
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2));
-            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5));
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 2, MockBehavior.Strict));
+            documentManager.AddDocument(externalUri, Mock.Of<LSPDocumentSnapshot>(d => d.Version == 5, MockBehavior.Strict));
 
             var virtualCSharpUri = new Uri("C:/path/to/someotherfile.razor.g.cs");
             var csharpLocation = GetReferenceItem(100, virtualCSharpUri);
@@ -540,7 +630,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 LanguageKind = RazorLanguageKind.CSharp,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
             var remappingResult = new RazorMapToDocumentRangesResponse()
@@ -548,20 +638,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Ranges = new[] { expectedLocation.Location.Range },
                 HostDocumentVersion = 6
             };
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, externalUri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(remappingResult));
 
-            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Empty(results);
                 progressReported = true;
+                completedTokenSource.CancelAfter(0);
             });
             var referenceRequest = new ReferenceParams()
             {
@@ -584,7 +677,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Arrange
             var progressReported = false;
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
 
             var virtualCSharpUri = new Uri("C:/path/to/file.razor.g.cs");
             var csharpLocation = GetReferenceItem(100, virtualCSharpUri);
@@ -594,23 +687,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 LanguageKind = RazorLanguageKind.CSharp,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider.Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, Uri, new[] { csharpLocation.Location.Range }, It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult<RazorMapToDocumentRangesResponse>(null));
 
-            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker, documentManager, projectionProvider.Object, documentMappingProvider.Object, progressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Empty(results);
                 progressReported = true;
+                completedTokenSource.CancelAfter(0);
             });
             var referenceRequest = new ReferenceParams()
             {
@@ -642,8 +738,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var expectedUris = new Uri[NUM_DOCUMENTS];
             var virtualUris = new Uri[NUM_DOCUMENTS];
-            var expectedReferences = new VSReferenceItem[NUM_BATCHES][];
-            var csharpUnmappedReferences = new VSReferenceItem[NUM_BATCHES][];
+            var expectedReferences = new VSInternalReferenceItem[NUM_BATCHES][];
+            var csharpUnmappedReferences = new VSInternalReferenceItem[NUM_BATCHES][];
             var parameterTokens = new JObject[NUM_BATCHES];
 
             var token = Guid.NewGuid().ToString();
@@ -651,8 +747,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentNumber = 0;
             for (var batch = 0; batch < NUM_BATCHES; ++batch)
             {
-                expectedReferences[batch] = new VSReferenceItem[BATCH_SIZE];
-                csharpUnmappedReferences[batch] = new VSReferenceItem[BATCH_SIZE];
+                expectedReferences[batch] = new VSInternalReferenceItem[BATCH_SIZE];
+                csharpUnmappedReferences[batch] = new VSInternalReferenceItem[BATCH_SIZE];
 
                 for (var documentInBatch = 0; documentInBatch < BATCH_SIZE; ++documentInBatch)
                 {
@@ -673,18 +769,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var documentManager = new TestDocumentManager();
-            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>());
+            documentManager.AddDocument(Uri, Mock.Of<LSPDocumentSnapshot>(MockBehavior.Strict));
 
-            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
             using var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
 
-            var requestInvoker = new Mock<LSPRequestInvoker>();
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSReferenceItem[]>(It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, LanguageServerKind, TextDocumentPositionParams, CancellationToken>((method, serverKind, definitionParams, ct) =>
+                .Setup(r => r.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalReferenceItem[]>(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<TextDocumentPositionParams>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, definitionParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentReferencesName, method);
-                    Assert.Equal(LanguageServerKind.CSharp, serverKind);
+                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
                     lspFarEndpointCalled = true;
 
                     for (var i = 0; i < NUM_BATCHES; ++i)
@@ -692,16 +792,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                         _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterTokens[i]);
                     }
                 })
-                .Returns(Task.FromResult(Array.Empty<VSReferenceItem>()));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             var projectionResult = new ProjectionResult()
             {
                 LanguageKind = RazorLanguageKind.CSharp,
             };
-            var projectionProvider = new Mock<LSPProjectionProvider>();
+            var projectionProvider = new Mock<LSPProjectionProvider>(MockBehavior.Strict);
             projectionProvider.Setup(p => p.GetProjectionAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(projectionResult));
 
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>();
+            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
             documentMappingProvider
                 .Setup(d => d.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
                 .Returns<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
@@ -723,15 +823,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     return Task.FromResult(response);
                 });
 
-            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener);
-            referencesHandler.WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            using var completedTokenSource = new CancellationTokenSource();
+            var referencesHandler = new FindAllReferencesHandler(requestInvoker.Object, documentManager, projectionProvider.Object, documentMappingProvider.Object, lspProgressListener, LoggerProvider);
+            referencesHandler.GetTestAccessor().WaitForProgressNotificationTimeout = TestWaitForProgressNotificationTimeout;
+            referencesHandler.GetTestAccessor().ImmediateNotificationTimeout = completedTokenSource.Token;
 
-            var progressBatchesReported = new ConcurrentBag<VSReferenceItem[]>();
+            var progressBatchesReported = new ConcurrentBag<VSInternalReferenceItem[]>();
             var progressToken = new ProgressWithCompletion<object>((val) =>
             {
-                var results = Assert.IsType<VSReferenceItem[]>(val);
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
                 Assert.Equal(BATCH_SIZE, results.Length);
                 progressBatchesReported.Add(results);
+                if (progressBatchesReported.Count == NUM_BATCHES)
+                {
+                    // All expected results were received
+                    completedTokenSource.CancelAfter(0);
+                }
             });
             var referenceRequest = new ReferenceParams()
             {
@@ -747,7 +854,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.True(lspFarEndpointCalled);
 
             var sortedBatchesReported = progressBatchesReported.ToList();
-            sortedBatchesReported.Sort((VSReferenceItem[] a, VSReferenceItem[] b) =>
+            sortedBatchesReported.Sort((VSInternalReferenceItem[] a, VSInternalReferenceItem[] b) =>
             {
                 var indexA = a[0].Location.Range.Start.Character;
                 var indexB = b[0].Location.Range.Start.Character;
@@ -760,14 +867,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 for (var documentInBatch = 0; documentInBatch < BATCH_SIZE; ++documentInBatch)
                 {
-                    AssertVSReferenceItem(
+                    AssertVSInternalReferenceItem(
                         expectedReferences[batch][documentInBatch],
                         sortedBatchesReported[batch][documentInBatch]);
                 }
             }
         }
 
-        private bool AssertVSReferenceItem(VSReferenceItem expected, VSReferenceItem actual)
+        private static bool AssertVSInternalReferenceItem(VSInternalReferenceItem expected, VSInternalReferenceItem actual)
         {
             Assert.Equal(expected.Location, actual.Location);
             Assert.Equal(expected.DisplayPath, actual.DisplayPath);
@@ -792,11 +899,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return true;
         }
 
-        private (LSPRequestInvoker, LSPProgressListener) MockServices(VSReferenceItem csharpLocation, out string token)
+        private static (LSPRequestInvoker, LSPProgressListener) MockServices(VSInternalReferenceItem csharpLocation, out string token)
         {
-            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>();
+            var languageServiceBroker = Mock.Of<ILanguageServiceBroker2>(MockBehavior.Strict);
             var lspProgressListener = new DefaultLSPProgressListener(languageServiceBroker);
-            var requestInvoker = new Mock<LSPRequestInvoker>();
+            var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
 
             token = Guid.NewGuid().ToString();
             var parameterToken = new JObject
@@ -805,26 +912,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 { "value", JArray.FromObject(new[] { csharpLocation }) }
             };
 
-            requestInvoker.Setup(i => i.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSReferenceItem[]>(
-                It.IsAny<string>(), It.IsAny<LanguageServerKind>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
-                .Callback<string, LanguageServerKind, TextDocumentPositionParams, CancellationToken>((method, serverKind, definitionParams, ct) =>
+            requestInvoker.Setup(i => i.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, VSInternalReferenceItem[]>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextDocumentPositionParams>(), It.IsAny<CancellationToken>()))
+                .Callback<string, string, TextDocumentPositionParams, CancellationToken>((method, clientName, definitionParams, ct) =>
                 {
                     Assert.Equal(Methods.TextDocumentReferencesName, method);
-                    Assert.Equal(LanguageServerKind.CSharp, serverKind);
+                    Assert.Equal(RazorLSPConstants.RazorCSharpLanguageServerName, clientName);
 
                     _ = lspProgressListener.ProcessProgressNotificationAsync(Methods.ProgressNotificationName, parameterToken);
                 })
-                .Returns(Task.FromResult(Array.Empty<VSReferenceItem>()));
+                .Returns(Task.FromResult(new ReinvokeResponse<VSInternalReferenceItem[]>(_languageClient, Array.Empty<VSInternalReferenceItem>())));
 
             return (requestInvoker.Object, lspProgressListener);
         }
 
-        private VSReferenceItem GetReferenceItem(int position, Uri uri, string text = "text")
+        private static VSInternalReferenceItem GetReferenceItem(int position, Uri uri, string text = "text")
         {
             return GetReferenceItem(position, position, position, position, uri, text);
         }
 
-        private VSReferenceItem GetReferenceItem(
+        private static VSInternalReferenceItem GetReferenceItem(
             int startLine,
             int startCharacter,
             int endLine,
@@ -834,7 +941,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             string documentName = "document",
             string projectName = "project")
         {
-            return new VSReferenceItem()
+            return new VSInternalReferenceItem()
             {
                 Location = new Location()
                 {

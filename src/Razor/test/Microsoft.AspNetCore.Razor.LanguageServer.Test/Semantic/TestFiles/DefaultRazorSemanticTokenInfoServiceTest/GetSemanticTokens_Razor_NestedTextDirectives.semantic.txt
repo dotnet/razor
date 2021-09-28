@@ -1,0 +1,20 @@
+//line,characterPos,length,tokenType,modifier
+0 0 1 84 0 //razorTransition
+0 1 9 87 0 //razorDirective
+0 10 1 84 0 //razorTransition
+5 24 1 91 0 //markupTagDelimiter
+0 1 1 92 0 //markupElement
+0 2 5 94 0 //markupAttribute
+0 5 1 93 0 //markupOperator
+0 1 1 95 0 //markupAttributeQuote
+0 1 5 95 0 //markupAttributeQuote
+0 5 1 95 0 //markupAttributeQuote
+0 1 1 91 0 //markupTagDelimiter
+1 28 1 84 0 //razorTransition
+2 32 6 87 0 //razorDirective
+0 6 1 84 0 //razorTransition
+0 13 7 87 0 //razorDirective
+2 24 1 91 0 //markupTagDelimiter
+0 1 1 91 0 //markupTagDelimiter
+0 1 1 92 0 //markupElement
+0 1 1 91 0 //markupTagDelimiter

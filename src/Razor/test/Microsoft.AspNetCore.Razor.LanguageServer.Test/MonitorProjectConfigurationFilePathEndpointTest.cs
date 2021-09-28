@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public MonitorProjectConfigurationFilePathEndpointTest()
         {
-            DirectoryPathResolver = Mock.Of<WorkspaceDirectoryPathResolver>(resolver => resolver.Resolve() == "C:/dir");
+            DirectoryPathResolver = Mock.Of<WorkspaceDirectoryPathResolver>(resolver => resolver.Resolve() == "C:/dir", MockBehavior.Strict);
         }
 
         private WorkspaceDirectoryPathResolver DirectoryPathResolver { get; }
@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_Disposed_Noops()
         {
             // Arrange
-            var directoryPathResolver = new Mock<WorkspaceDirectoryPathResolver>();
+            var directoryPathResolver = new Mock<WorkspaceDirectoryPathResolver>(MockBehavior.Strict);
             directoryPathResolver.Setup(resolver => resolver.Resolve())
                 .Throws<XunitException>();
             var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task Handle_ConfigurationFilePath_UntrackedMonitorNoops()
         {
             // Arrange
-            var directoryPathResolver = new Mock<WorkspaceDirectoryPathResolver>();
+            var directoryPathResolver = new Mock<WorkspaceDirectoryPathResolver>(MockBehavior.Strict);
             directoryPathResolver.Setup(resolver => resolver.Resolve())
                 .Throws<XunitException>();
             var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
@@ -257,12 +257,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             private readonly Func<IFileChangeDetector> _fileChangeDetectorFactory;
 
             public TestMonitorProjectConfigurationFilePathEndpoint(
-                ForegroundDispatcher foregroundDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners) : this(
                     fileChangeDetectorFactory: null,
-                    foregroundDispatcher,
+                    projectSnapshotManagerDispatcher,
                     filePathNormalizer,
                     workspaceDirectoryPathResolver,
                     listeners)
@@ -271,16 +271,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestMonitorProjectConfigurationFilePathEndpoint(
                 Func<IFileChangeDetector> fileChangeDetectorFactory,
-                ForegroundDispatcher foregroundDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners) : base(
-                    foregroundDispatcher,
+                    projectSnapshotManagerDispatcher,
                     filePathNormalizer,
                     workspaceDirectoryPathResolver,
                     listeners)
             {
-                _fileChangeDetectorFactory = fileChangeDetectorFactory ?? (() => Mock.Of<IFileChangeDetector>());
+                _fileChangeDetectorFactory = fileChangeDetectorFactory ?? (() => Mock.Of<IFileChangeDetector>(MockBehavior.Strict));
             }
 
             protected override IFileChangeDetector CreateFileChangeDetector() => _fileChangeDetectorFactory();

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 {
-    public class DefaultTagHelperFactsServiceTest : DefaultTagHelperServiceTestBase
+    public class DefaultTagHelperFactsServiceTest : TagHelperServiceTestBase
     {
         [Fact]
         public void StringifyAttributes_DirectiveAttribute()
@@ -118,7 +118,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
                 attribute.TypeName = typeof(bool).FullName;
             });
             tagHelper.SetTypeName("WithBoundAttribute");
-            var codeDocument = DefaultTagHelperCompletionServiceTest.CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound='true' />", tagHelper.Build());
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound='true' />", tagHelper.Build());
             var syntaxTree = codeDocument.GetSyntaxTree();
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
             var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
                 attribute.TypeName = typeof(bool).FullName;
             });
             tagHelper.SetTypeName("WithBoundAttribute");
-            var codeDocument = DefaultTagHelperCompletionServiceTest.CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound />", tagHelper.Build());
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound />", tagHelper.Build());
             var syntaxTree = codeDocument.GetSyntaxTree();
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
             var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
@@ -173,7 +173,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         public void StringifyAttributes_UnboundAttribute()
         {
             // Arrange
-            var codeDocument = DefaultTagHelperCompletionServiceTest.CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound='hello world' />", DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound='hello world' />", DefaultTagHelpers);
             var syntaxTree = codeDocument.GetSyntaxTree();
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
             var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
@@ -196,7 +196,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         public void StringifyAttributes_UnboundMinimizedAttribute()
         {
             // Arrange
-            var codeDocument = DefaultTagHelperCompletionServiceTest.CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound />", DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound />", DefaultTagHelpers);
             var syntaxTree = codeDocument.GetSyntaxTree();
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
             var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
@@ -219,7 +219,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
         public void StringifyAttributes_IgnoresMiscContent()
         {
             // Arrange
-            var codeDocument = DefaultTagHelperCompletionServiceTest.CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound @DateTime.Now />", DefaultTagHelpers);
+            var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<input unbound @DateTime.Now />", DefaultTagHelpers);
             var syntaxTree = codeDocument.GetSyntaxTree();
             var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
             var sourceChangeLocation = new SourceChange(sourceSpan, string.Empty);
@@ -240,7 +240,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
 
         private static RazorCodeDocument CreateComponentDocument(string text, params TagHelperDescriptor[] tagHelpers)
         {
-            tagHelpers = tagHelpers ?? Array.Empty<TagHelperDescriptor>();
+            tagHelpers ??= Array.Empty<TagHelperDescriptor>();
             var sourceDocument = TestRazorSourceDocument.Create(text);
             var projectEngine = RazorProjectEngine.Create(builder => { });
             var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), tagHelpers);

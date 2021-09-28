@@ -1,7 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Moq;
@@ -9,18 +10,19 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class RazorTextViewConnectionListenerTest : ForegroundDispatcherTestBase
+    public class RazorTextViewConnectionListenerTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        [ForegroundFact]
+        [UIFact]
         public void SubjectBuffersConnected_CallsRazorDocumentManager_OnTextViewOpened()
         {
             // Arrange
-            var textView = Mock.Of<ITextView>();
+
+            var textView = Mock.Of<ITextView>(MockBehavior.Strict);
             var buffers = new Collection<ITextBuffer>();
             var documentManager = new Mock<RazorDocumentManager>(MockBehavior.Strict);
-            documentManager.Setup(d => d.OnTextViewOpened(textView, buffers)).Verifiable();
+            documentManager.Setup(d => d.OnTextViewOpenedAsync(textView, buffers)).Returns(Task.CompletedTask).Verifiable();
 
-            var listener = new RazorTextViewConnectionListener(Dispatcher, documentManager.Object);
+            var listener = new RazorTextViewConnectionListener(JoinableTaskFactory.Context, documentManager.Object);
 
             // Act
             listener.SubjectBuffersConnected(textView, ConnectionReason.BufferGraphChange, buffers);
@@ -29,16 +31,16 @@ namespace Microsoft.VisualStudio.Editor.Razor
             documentManager.Verify();
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void SubjectBuffersDisonnected_CallsRazorDocumentManager_OnTextViewClosed()
         {
             // Arrange
-            var textView = Mock.Of<ITextView>();
+            var textView = Mock.Of<ITextView>(MockBehavior.Strict);
             var buffers = new Collection<ITextBuffer>();
             var documentManager = new Mock<RazorDocumentManager>(MockBehavior.Strict);
-            documentManager.Setup(d => d.OnTextViewClosed(textView, buffers)).Verifiable();
+            documentManager.Setup(d => d.OnTextViewClosedAsync(textView, buffers)).Returns(Task.CompletedTask).Verifiable();
 
-            var listener = new RazorTextViewConnectionListener(Dispatcher, documentManager.Object);
+            var listener = new RazorTextViewConnectionListener(JoinableTaskFactory.Context, documentManager.Object);
 
             // Act
             listener.SubjectBuffersDisconnected(textView, ConnectionReason.BufferGraphChange, buffers);

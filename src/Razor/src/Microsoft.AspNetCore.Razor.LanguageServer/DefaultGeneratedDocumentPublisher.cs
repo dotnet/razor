@@ -1,13 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
@@ -16,17 +18,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly Dictionary<string, PublishData> _publishedCSharpData;
         private readonly Dictionary<string, PublishData> _publishedHtmlData;
-        private readonly Lazy<ILanguageServer> _server;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly IClientLanguageServer _server;
+        private readonly ILogger _logger;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private ProjectSnapshotManagerBase _projectSnapshotManager;
 
         public DefaultGeneratedDocumentPublisher(
-            ForegroundDispatcher foregroundDispatcher,
-            Lazy<ILanguageServer> server)
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            IClientLanguageServer server,
+            ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (server is null)
@@ -34,8 +38,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(server));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _server = server;
+            _logger = loggerFactory.CreateLogger<DefaultGeneratedDocumentPublisher>();
             _publishedCSharpData = new Dictionary<string, PublishData>(FilePathComparer.Instance);
             _publishedHtmlData = new Dictionary<string, PublishData>(FilePathComparer.Instance);
         }
@@ -46,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
 
-        public override void PublishCSharp(string filePath, SourceText sourceText, long hostDocumentVersion)
+        public override void PublishCSharp(string filePath, SourceText sourceText, int hostDocumentVersion)
         {
             if (filePath is null)
             {
@@ -58,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_publishedCSharpData.TryGetValue(filePath, out var previouslyPublishedData))
             {
@@ -72,6 +82,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return;
             }
 
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
+                var previousDocumentLength = previouslyPublishedData.SourceText.Length;
+                var currentDocumentLength = sourceText.Length;
+                var documentLengthDelta = sourceText.Length - previousDocumentLength;
+                _logger.LogTrace(
+                    "Updating C# buffer of {0} to correspond with host document version {1}. {2} -> {3} = Change delta of {4} via {5} text changes.",
+                    filePath,
+                    hostDocumentVersion,
+                    previousDocumentLength,
+                    currentDocumentLength,
+                    documentLengthDelta,
+                    textChanges.Count);
+            }
+
             _publishedCSharpData[filePath] = new PublishData(sourceText, hostDocumentVersion);
 
             var request = new UpdateBufferRequest()
@@ -81,10 +106,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 HostDocumentVersion = hostDocumentVersion,
             };
 
-            _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
+            var result = _server.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
+            // This is the call that actually makes the request, any SendRequest without a .Returning* after it will do nothing.
+            _ = result.ReturningVoid(CancellationToken.None);
         }
 
-        public override void PublishHtml(string filePath, SourceText sourceText, long hostDocumentVersion)
+        public override void PublishHtml(string filePath, SourceText sourceText, int hostDocumentVersion)
         {
             if (filePath is null)
             {
@@ -96,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_publishedHtmlData.TryGetValue(filePath, out var previouslyPublishedData))
             {
@@ -110,6 +137,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return;
             }
 
+            if (_logger.IsEnabled(LogLevel.Trace))
+            {
+                var previousDocumentLength = previouslyPublishedData.SourceText.Length;
+                var currentDocumentLength = sourceText.Length;
+                var documentLengthDelta = sourceText.Length - previousDocumentLength;
+                _logger.LogTrace(
+                    "Updating HTML buffer of {0} to correspond with host document version {1}. {2} -> {3} = Change delta of {4} via {5} text changes.",
+                    filePath,
+                    hostDocumentVersion,
+                    previousDocumentLength,
+                    currentDocumentLength,
+                    documentLengthDelta,
+                    textChanges.Count);
+            }
+
             _publishedHtmlData[filePath] = new PublishData(sourceText, hostDocumentVersion);
 
             var request = new UpdateBufferRequest()
@@ -119,12 +161,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 HostDocumentVersion = hostDocumentVersion,
             };
 
-            _server.Value.Client.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);
+            var result = _server.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);
+            _ = result.ReturningVoid(CancellationToken.None);
         }
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            // Don't do any work if the solution is closing
+            if (args.SolutionIsClosing)
+            {
+                return;
+            }
+
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -135,12 +184,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         if (_publishedCSharpData.ContainsKey(args.DocumentFilePath))
                         {
                             var removed = _publishedCSharpData.Remove(args.DocumentFilePath);
-                            Debug.Assert(removed, "Published data should be protected by the foreground thread and should never fail to remove.");
+                            Debug.Assert(removed, "Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
                         }
                         if (_publishedHtmlData.ContainsKey(args.DocumentFilePath))
                         {
                             var removed = _publishedHtmlData.Remove(args.DocumentFilePath);
-                            Debug.Assert(removed, "Published data should be protected by the foreground thread and should never fail to remove.");
+                            Debug.Assert(removed, "Published data should be protected by the project snapshot manager's thread and should never fail to remove.");
                         }
                     }
                     break;
@@ -149,9 +198,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private sealed class PublishData
         {
-            public static readonly PublishData Default = new PublishData(SourceText.From(string.Empty), -1);
+            public static readonly PublishData Default = new PublishData(SourceText.From(string.Empty), null);
 
-            public PublishData(SourceText sourceText, long hostDocumentVersion)
+            public PublishData(SourceText sourceText, int? hostDocumentVersion)
             {
                 SourceText = sourceText;
                 HostDocumentVersion = hostDocumentVersion;
@@ -159,7 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public SourceText SourceText { get; }
 
-            public long HostDocumentVersion { get; }
+            public int? HostDocumentVersion { get; }
         }
     }
 }

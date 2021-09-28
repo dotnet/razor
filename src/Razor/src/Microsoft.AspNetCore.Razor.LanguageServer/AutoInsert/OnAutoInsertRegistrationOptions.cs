@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
+using Newtonsoft.Json;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
@@ -9,6 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
     {
         public DocumentSelector DocumentSelector { get; set; }
 
+        [JsonProperty("_vs_triggerCharacters")]
         public Container<string> TriggerCharacters { get; set; }
     }
 }

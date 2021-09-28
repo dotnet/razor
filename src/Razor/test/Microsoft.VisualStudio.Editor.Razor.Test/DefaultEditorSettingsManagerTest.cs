@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultEditorSettingsManagerTest : ForegroundDispatcherTestBase
+    public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         [Fact]
         public void InitialSettingsAreDefault()
@@ -24,10 +24,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var manager = new DefaultEditorSettingsManager(Dispatcher);
             var called = false;
-            manager.Changed += (caller, args) =>
-            {
-                called = true;
-            };
+            manager.Changed += (caller, args) => called = true;
             var settings = new EditorSettings(indentWithTabs: true, indentSize: 7);
 
             // Act
@@ -44,10 +41,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             // Arrange
             var manager = new DefaultEditorSettingsManager(Dispatcher);
             var called = false;
-            manager.Changed += (caller, args) =>
-            {
-                called = true;
-            };
+            manager.Changed += (caller, args) => called = true;
             var originalSettings = manager.Current;
 
             // Act

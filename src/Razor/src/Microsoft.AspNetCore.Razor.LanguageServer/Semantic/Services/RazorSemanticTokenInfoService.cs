@@ -1,18 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+#nullable enable
+
+using System.Threading;
+using System.Threading.Tasks;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     internal abstract class RazorSemanticTokensInfoService
     {
-        public abstract SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument);
+        public abstract Task<SemanticTokens?> GetSemanticTokensAsync(TextDocumentIdentifier textDocumentIdentifier, CancellationToken cancellationToken);
 
-        public abstract SemanticTokens GetSemanticTokens(RazorCodeDocument codeDocument, Range range);
+        public abstract Task<SemanticTokens?> GetSemanticTokensAsync(TextDocumentIdentifier textDocumentIdentifier, Range? range, CancellationToken cancellationToken);
 
-        public abstract SemanticTokensOrSemanticTokensEdits GetSemanticTokensEdits(RazorCodeDocument codeDocument, string previousId);
+        public abstract Task<SemanticTokensFullOrDelta?> GetSemanticTokensEditsAsync(TextDocumentIdentifier textDocumentIdentifier, string? previousId, CancellationToken cancellationToken);
     }
 }

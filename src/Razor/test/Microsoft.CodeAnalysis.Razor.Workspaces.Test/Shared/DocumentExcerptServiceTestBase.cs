@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using TestFileMarkupParser = Microsoft.CodeAnalysis.Testing.TestFileMarkupParser;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
@@ -25,21 +26,18 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public (SourceText sourceText, TextSpan span) CreateText(string text)
         {
+            if (text is null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
             // Since we're using positions, normalize to Windows style
 #pragma warning disable CA1307 // Specify StringComparison
             text = text.Replace("\r", "").Replace("\n", "\r\n");
-
-            var start = text.IndexOf('|');
-            var length = text.IndexOf('|', start + 1) - start - 1;
-            text = text.Replace("|", "");
 #pragma warning restore CA1307 // Specify StringComparison
 
-            if (start < 0 || length < 0)
-            {
-                throw new InvalidOperationException("Could not find delimited text.");
-            }
-
-            return (SourceText.From(text), new TextSpan(start, length));
+            TestFileMarkupParser.GetSpan(text, out text, out var span);
+            return (SourceText.From(text), span);
         }
 
         // Adds the text to a ProjectSnapshot, generates code, and updates the workspace.
@@ -47,10 +45,7 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             var project = new DefaultProjectSnapshot(
                 ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () =>
-                {
-                    return Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()));
-                }));
+                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
             var primary = project.GetDocument(HostDocument.FilePath);
 

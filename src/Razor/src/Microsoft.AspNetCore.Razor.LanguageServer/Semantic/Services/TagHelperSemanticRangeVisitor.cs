@@ -1,13 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
-using Microsoft.VisualStudio.Editor.Razor;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
@@ -16,16 +19,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private readonly List<SemanticRange> _semanticRanges;
         private readonly RazorCodeDocument _razorCodeDocument;
-        private readonly Range _range;
+        private readonly Range? _range;
 
-        private TagHelperSemanticRangeVisitor(RazorCodeDocument razorCodeDocument, Range range)
+        private TagHelperSemanticRangeVisitor(RazorCodeDocument razorCodeDocument, Range? range)
         {
             _semanticRanges = new List<SemanticRange>();
             _razorCodeDocument = razorCodeDocument;
             _range = range;
         }
 
-        public static IReadOnlyList<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range range = null)
+        public static IReadOnlyList<SemanticRange> VisitAllNodes(RazorCodeDocument razorCodeDocument, Range? range = null)
         {
             var visitor = new TagHelperSemanticRangeVisitor(razorCodeDocument, range);
 
@@ -34,113 +37,371 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return visitor._semanticRanges;
         }
 
+        private void Visit(SyntaxList<RazorSyntaxNode> syntaxNodes)
+        {
+            for (var i = 0; i < syntaxNodes.Count; i++)
+            {
+                Visit(syntaxNodes[i]);
+            }
+        }
+
+        #region HTML
+        public override void VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
+        {
+            if (!node.ContainsOnlyWhitespace())
+            {
+                AddSemanticRange(node, RazorSemanticTokensLegend.MarkupTextLiteral);
+            }
+        }
+
+        public override void VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
+        {
+            AddSemanticRange(node, RazorSemanticTokensLegend.MarkupAttributeQuote);
+        }
+
+        public override void VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)
+        {
+            Visit(node.NamePrefix);
+            AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupAttribute);
+            Visit(node.NameSuffix);
+            AddSemanticRange(node.EqualsToken, RazorSemanticTokensLegend.MarkupOperator);
+
+            AddSemanticRange(node.ValuePrefix, RazorSemanticTokensLegend.MarkupAttributeQuote);
+            Visit(node.Value);
+            AddSemanticRange(node.ValueSuffix, RazorSemanticTokensLegend.MarkupAttributeQuote);
+        }
+
+        public override void VisitMarkupStartTag(MarkupStartTagSyntax node)
+        {
+            if (node.IsMarkupTransition)
+            {
+                AddSemanticRange(node, RazorSemanticTokensLegend.RazorDirective);
+            }
+            else
+            {
+                AddSemanticRange(node.OpenAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
+                if (node.Bang != null)
+                {
+                    AddSemanticRange(node.Bang, RazorSemanticTokensLegend.RazorTransition);
+                }
+
+                AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupElement);
+
+                Visit(node.Attributes);
+                if (node.ForwardSlash != null)
+                {
+                    AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
+                }
+                AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
+            }
+        }
+
+        public override void VisitMarkupEndTag(MarkupEndTagSyntax node)
+        {
+            if (node.IsMarkupTransition)
+            {
+                AddSemanticRange(node, RazorSemanticTokensLegend.RazorDirective);
+            }
+            else
+            {
+                AddSemanticRange(node.OpenAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
+                if (node.Bang != null)
+                {
+                    AddSemanticRange(node.Bang, RazorSemanticTokensLegend.RazorTransition);
+                }
+
+                if (node.ForwardSlash != null)
+                {
+                    AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
+                }
+
+                AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupElement);
+
+                AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
+            }
+        }
+
+        public override void VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
+        {
+            AddSemanticRange(node.Children[0], RazorSemanticTokensLegend.MarkupCommentPunctuation);
+
+            for (var i = 1; i < node.Children.Count - 1; i++)
+            {
+                var commentNode = node.Children[i];
+                switch (commentNode.Kind)
+                {
+                    case SyntaxKind.MarkupTextLiteral:
+                        AddSemanticRange(commentNode, RazorSemanticTokensLegend.MarkupComment);
+                        break;
+                    default:
+                        Visit(commentNode);
+                        break;
+                }
+            }
+
+            AddSemanticRange(node.Children[node.Children.Count - 1], RazorSemanticTokensLegend.MarkupCommentPunctuation);
+        }
+
+        public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
+        {
+            Visit(node.NamePrefix);
+            AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupAttribute);
+        }
+        #endregion HTML
+
+        #region C#
+
+        public override void VisitCSharpStatementBody(CSharpStatementBodySyntax node)
+        {
+            AddSemanticRange(node.OpenBrace, RazorSemanticTokensLegend.RazorTransition);
+            Visit(node.CSharpCode);
+            AddSemanticRange(node.CloseBrace, RazorSemanticTokensLegend.RazorTransition);
+        }
+
+        public override void VisitCSharpExplicitExpressionBody(CSharpExplicitExpressionBodySyntax node)
+        {
+            AddSemanticRange(node.OpenParen, RazorSemanticTokensLegend.RazorTransition);
+            Visit(node.CSharpCode);
+            AddSemanticRange(node.CloseParen, RazorSemanticTokensLegend.RazorTransition);
+        }
+        #endregion C#
+
+        #region Razor
+        public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
+        {
+            AddSemanticRange(node.StartCommentTransition, RazorSemanticTokensLegend.RazorCommentTransition);
+            AddSemanticRange(node.StartCommentStar, RazorSemanticTokensLegend.RazorCommentStar);
+            AddSemanticRange(node.Comment, RazorSemanticTokensLegend.RazorComment);
+            AddSemanticRange(node.EndCommentStar, RazorSemanticTokensLegend.RazorCommentStar);
+            AddSemanticRange(node.EndCommentTransition, RazorSemanticTokensLegend.RazorCommentTransition);
+        }
+
+        public override void VisitRazorMetaCode(RazorMetaCodeSyntax node)
+        {
+            if (node.Kind == SyntaxKind.RazorMetaCode)
+            {
+                AddSemanticRange(node, RazorSemanticTokensLegend.RazorTransition);
+            }
+            else
+            {
+                throw new NotSupportedException(RazorLS.Resources.Unknown_RazorMetaCode);
+            }
+        }
+
+        public override void VisitRazorDirectiveBody(RazorDirectiveBodySyntax node)
+        {
+            // We can't provide colors for CSharp because if we both provided them then they would overlap, which violates the LSP spec.
+            if (node.Keyword.Kind != SyntaxKind.CSharpStatementLiteral)
+            {
+                AddSemanticRange(node.Keyword, RazorSemanticTokensLegend.RazorDirective);
+            }
+            else
+            {
+                Visit(node.Keyword);
+            }
+
+            Visit(node.CSharpCode);
+        }
+
         public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
         {
+            AddSemanticRange(node.OpenAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
+            if (node.Bang != null)
+            {
+                AddSemanticRange(node.Bang, RazorSemanticTokensLegend.RazorTransition);
+            }
+
             if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
             {
-                var result = CreateSemanticRange(node.Name, SyntaxKind.MarkupTagHelperStartTag);
-                AddNode(result);
+                var semanticKind = GetElementSemanticKind(node);
+                AddSemanticRange(node.Name, semanticKind);
             }
-            base.VisitMarkupTagHelperStartTag(node);
+            else
+            {
+                AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupElement);
+            }
+
+            Visit(node.Attributes);
+
+            if (node.ForwardSlash != null)
+            {
+                AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
+            }
+            AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
         }
 
         public override void VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
         {
+            AddSemanticRange(node.OpenAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
+            AddSemanticRange(node.ForwardSlash, RazorSemanticTokensLegend.MarkupTagDelimiter);
+
+            if (node.Bang != null)
+            {
+                AddSemanticRange(node.Bang, RazorSemanticTokensLegend.RazorTransition);
+            }
+
             if (ClassifyTagName((MarkupTagHelperElementSyntax)node.Parent))
             {
-                var result = CreateSemanticRange(node.Name, SyntaxKind.MarkupTagHelperEndTag);
-                AddNode(result);
+                var semanticKind = GetElementSemanticKind(node);
+                AddSemanticRange(node.Name, semanticKind);
             }
-            base.VisitMarkupTagHelperEndTag(node);
+            else
+            {
+                AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupElement);
+            }
+
+            AddSemanticRange(node.CloseAngle, RazorSemanticTokensLegend.MarkupTagDelimiter);
         }
 
         public override void VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
         {
+            Visit(node.NamePrefix);
+
             if (node.TagHelperAttributeInfo.Bound)
             {
-                var result = CreateSemanticRange(node.Name, SyntaxKind.MarkupMinimizedTagHelperAttribute);
-                AddNode(result);
+                var semanticKind = GetAttributeSemanticKind(node);
+                AddSemanticRange(node.Name, semanticKind);
             }
-
-            base.VisitMarkupMinimizedTagHelperAttribute(node);
         }
 
         public override void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
         {
+            Visit(node.NamePrefix);
             if (node.TagHelperAttributeInfo.Bound)
             {
-                var result = CreateSemanticRange(node.Name, SyntaxKind.MarkupTagHelperAttribute);
-                AddNode(result);
+                var semanticKind = GetAttributeSemanticKind(node);
+                AddSemanticRange(node.Name, semanticKind);
             }
+            else
+            {
+                AddSemanticRange(node.Name, RazorSemanticTokensLegend.MarkupAttribute);
+            }
+            Visit(node.NameSuffix);
 
-            base.VisitMarkupTagHelperAttribute(node);
+            AddSemanticRange(node.EqualsToken, RazorSemanticTokensLegend.MarkupOperator);
+
+            AddSemanticRange(node.ValuePrefix, RazorSemanticTokensLegend.MarkupAttributeQuote);
+            Visit(node.Value);
+            AddSemanticRange(node.ValueSuffix, RazorSemanticTokensLegend.MarkupAttributeQuote);
+        }
+
+        public override void VisitMarkupTagHelperAttributeValue(MarkupTagHelperAttributeValueSyntax node)
+        {
+            foreach (var child in node.Children)
+            {
+                if (child.Kind == SyntaxKind.MarkupTextLiteral)
+                {
+                    AddSemanticRange(child, RazorSemanticTokensLegend.MarkupAttributeQuote);
+                }
+                else
+                {
+                    Visit(child);
+                }
+            }
         }
 
         public override void VisitMarkupTagHelperDirectiveAttribute(MarkupTagHelperDirectiveAttributeSyntax node)
         {
             if (node.TagHelperAttributeInfo.Bound)
             {
-                var transition = CreateSemanticRange(node.Transition, SyntaxKind.Transition);
-                AddNode(transition);
-
-                var directiveAttribute = CreateSemanticRange(node.Name, SyntaxKind.MarkupTagHelperDirectiveAttribute);
-                AddNode(directiveAttribute);
+                Visit(node.Transition);
+                Visit(node.NamePrefix);
+                AddSemanticRange(node.Name, RazorSemanticTokensLegend.RazorDirectiveAttribute);
+                Visit(node.NameSuffix);
 
                 if (node.Colon != null)
                 {
-                    var colon = CreateSemanticRange(node.Colon, SyntaxKind.Colon);
-                    AddNode(colon);
+                    AddSemanticRange(node.Colon, RazorSemanticTokensLegend.RazorDirectiveColon);
                 }
 
                 if (node.ParameterName != null)
                 {
-                    var parameterName = CreateSemanticRange(node.ParameterName, SyntaxKind.MarkupTagHelperDirectiveAttribute);
-                    AddNode(parameterName);
+                    AddSemanticRange(node.ParameterName, RazorSemanticTokensLegend.RazorDirectiveAttribute);
                 }
             }
 
-            base.VisitMarkupTagHelperDirectiveAttribute(node);
+            AddSemanticRange(node.EqualsToken, RazorSemanticTokensLegend.MarkupOperator);
+            AddSemanticRange(node.ValuePrefix, RazorSemanticTokensLegend.MarkupAttributeQuote);
+            Visit(node.Value);
+            AddSemanticRange(node.ValueSuffix, RazorSemanticTokensLegend.MarkupAttributeQuote);
         }
 
         public override void VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
         {
             if (node.TagHelperAttributeInfo.Bound)
             {
-                var transition = CreateSemanticRange(node.Transition, SyntaxKind.Transition);
-                AddNode(transition);
-
-                var directiveAttribute = CreateSemanticRange(node.Name, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute);
-                AddNode(directiveAttribute);
+                AddSemanticRange(node.Transition, RazorSemanticTokensLegend.RazorTransition);
+                Visit(node.NamePrefix);
+                AddSemanticRange(node.Name, RazorSemanticTokensLegend.RazorDirectiveAttribute);
 
                 if (node.Colon != null)
                 {
-                    var colon = CreateSemanticRange(node.Colon, SyntaxKind.Colon);
-                    AddNode(colon);
+                    AddSemanticRange(node.Colon, RazorSemanticTokensLegend.RazorDirectiveColon);
                 }
 
                 if (node.ParameterName != null)
                 {
-                    var parameterName = CreateSemanticRange(node.ParameterName, SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute);
-
-                    AddNode(parameterName);
+                    AddSemanticRange(node.ParameterName, RazorSemanticTokensLegend.RazorDirectiveAttribute);
                 }
             }
-
-            base.VisitMarkupMinimizedTagHelperDirectiveAttribute(node);
         }
 
-        private void AddNode(SemanticRange semanticRange)
+        public override void VisitCSharpTransition(CSharpTransitionSyntax node)
         {
-            if (_range is null || semanticRange.Range.OverlapsWith(_range))
+            AddSemanticRange(node, RazorSemanticTokensLegend.RazorTransition);
+        }
+
+        public override void VisitMarkupTransition(MarkupTransitionSyntax node)
+        {
+            AddSemanticRange(node, RazorSemanticTokensLegend.RazorTransition);
+        }
+        #endregion Razor
+
+        private static int GetElementSemanticKind(SyntaxNode node)
+        {
+            var semanticKind = IsComponent(node) ? RazorSemanticTokensLegend.RazorComponentElement : RazorSemanticTokensLegend.RazorTagHelperElement;
+            return semanticKind;
+        }
+
+        private static int GetAttributeSemanticKind(SyntaxNode node)
+        {
+            var semanticKind = IsComponent(node) ? RazorSemanticTokensLegend.RazorComponentAttribute : RazorSemanticTokensLegend.RazorTagHelperAttribute;
+            return semanticKind;
+        }
+
+        private static bool IsComponent(SyntaxNode node)
+        {
+            if (node is MarkupTagHelperElementSyntax element)
             {
-                _semanticRanges.Add(semanticRange);
+                var componentDescriptor = element.TagHelperInfo.BindingResult.Descriptors.FirstOrDefault(d => d.IsComponentTagHelper());
+                return componentDescriptor is not null;
+            }
+            else if (node is MarkupTagHelperStartTagSyntax startTag)
+            {
+                return IsComponent(startTag.Parent);
+            }
+            else if (node is MarkupTagHelperEndTagSyntax endTag)
+            {
+                return IsComponent(endTag.Parent);
+            }
+            else if (node is MarkupTagHelperAttributeSyntax attribute)
+            {
+                return IsComponent(attribute.Parent.Parent);
+            }
+            else if (node is MarkupMinimizedTagHelperAttributeSyntax minimizedTagHelperAttribute)
+            {
+                return IsComponent(minimizedTagHelperAttribute.Parent.Parent);
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
 
         // We don't want to classify TagNames of well-known HTML
         // elements as TagHelpers (even if they are). So the 'input' in`<input @onclick='...' />`
         // needs to not be marked as a TagHelper, but `<Input @onclick='...' />` should be.
-        private bool ClassifyTagName(MarkupTagHelperElementSyntax node)
+        private static bool ClassifyTagName(MarkupTagHelperElementSyntax node)
         {
             if (node is null)
             {
@@ -149,68 +410,84 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             if (node.StartTag != null && node.StartTag.Name != null)
             {
-                var name = node.StartTag.Name.Content;
-
-                if (!HtmlFactsService.IsHtmlTagName(name))
-                {
-                    // We always classify non-HTML tag names as TagHelpers if they're within a MarkupTagHelperElementSyntax
-                    return true;
-                }
-
-                // This must be a well-known HTML tag name like 'input', 'br'.
-
                 var binding = node.TagHelperInfo.BindingResult;
-                foreach (var descriptor in binding.Descriptors)
-                {
-                    if (!descriptor.IsComponentTagHelper())
-                    {
-                        return false;
-                    }
-                }
-
-                if (name.Length > 0 && char.IsUpper(name[0]))
-                {
-                    // pascal cased Component TagHelper tag name such as <Input>
-                    return true;
-                }
+                return !binding.IsAttributeMatch;
             }
 
             return false;
         }
 
-        private SemanticRange CreateSemanticRange(SyntaxNode node, SyntaxKind kind)
+        private void AddSemanticRange(SyntaxNode node, int semanticKind)
         {
-            uint kindUint;
-            switch (kind)
+            if (node is null)
             {
-                case SyntaxKind.MarkupTagHelperDirectiveAttribute:
-                case SyntaxKind.MarkupMinimizedTagHelperDirectiveAttribute:
-                    kindUint = SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorDirectiveAttribute];
-                    break;
-                case SyntaxKind.MarkupTagHelperStartTag:
-                case SyntaxKind.MarkupTagHelperEndTag:
-                    kindUint = SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTagHelperElement];
-                    break;
-                case SyntaxKind.MarkupTagHelperAttribute:
-                case SyntaxKind.MarkupMinimizedTagHelperAttribute:
-                    kindUint = SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTagHelperAttribute];
-                    break;
-                case SyntaxKind.Transition:
-                    kindUint = SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorTransition];
-                    break;
-                case SyntaxKind.Colon:
-                    kindUint = SemanticTokensLegend.TokenTypesLegend[SemanticTokensLegend.RazorDirectiveColon];
-                    break;
-                default:
-                    throw new NotImplementedException();
+                // This can happen in situations like "<p class='", where the trailing ' hasn't been typed yet.
+                return;
+            }
+
+            if (node.Width == 0)
+            {
+                // Under no circumstances can we have 0-width spans.
+                // This can happen in situations like "@* comment ", where EndCommentStar and EndCommentTransition are empty.
+                return;
             }
 
             var source = _razorCodeDocument.Source;
             var range = node.GetRange(source);
 
-            var result = new SemanticRange(kindUint, range);
+            // LSP spec forbids multi-line tokens, so we need to split this up.
+            if (range.Start.Line != range.End.Line)
+            {
+                var childNodes = node.ChildNodes();
+                if (childNodes.Count == 0)
+                {
+                    var content = node.GetContent();
+                    var lines = content.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+                    var charPosition = range.Start.Character;
+                    for (var i = 0; i < lines.Length; i++)
+                    {
+                        var startPosition = new Position(range.Start.Line + i, charPosition);
+                        var endPosition = new Position(range.Start.Line + i, charPosition + lines[i].Length);
+                        var lineRange = new Range(startPosition, endPosition);
+                        var semantic = new SemanticRange(semanticKind, lineRange, modifier: 0);
+                        AddRange(semantic);
+                        charPosition = 0;
+                    }
+                }
+                else
+                {
+                    // We have to iterate over the individual nodes because this node might consist of multiple lines
+                    // ie: "/r/ntext/r/n" would be parsed as one node containing three elements (newline, "text", newline).
+                    foreach (var token in node.ChildNodes())
+                    {
+                        // We skip whitespace to avoid "multiline" ranges for "/r/n", where the /n is interpreted as being on a new line.
+                        // This also stops us from returning data for " ", which seems like a nice side-effect as it's not likly to have any colorization anyway.
+                        if (!token.ContainsOnlyWhitespace())
+                        {
+                            var tokenRange = token.GetRange(source);
 
-            return result;
+                            var semantic = new SemanticRange(semanticKind, tokenRange, modifier: 0);
+                            AddRange(semantic);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var semanticRange = new SemanticRange(semanticKind, range, modifier: 0);
+                AddRange(semanticRange);
+            }
+
+            void AddRange(SemanticRange semanticRange)
+            {
+                if (_range is null || semanticRange.Range.OverlapsWith(_range))
+                {
+                    if (semanticRange.Range.Start != semanticRange.Range.End)
+                    {
+                        _semanticRanges.Add(semanticRange);
+                    }
+                }
+            }
         }
     }
 }

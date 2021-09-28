@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -18,25 +18,30 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultVisualStudioDocumentTrackerTest : ForegroundDispatcherWorkspaceTestBase
+    public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
     {
         public DefaultVisualStudioDocumentTrackerTest()
         {
-            RazorCoreContentType = Mock.Of<IContentType>(c => c.IsOfType(RazorLanguage.ContentType) == true);
-            TextBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == RazorCoreContentType);
+            RazorCoreContentType = Mock.Of<IContentType>(c => c.IsOfType(RazorLanguage.ContentType) && c.IsOfType(RazorConstants.LegacyContentType), MockBehavior.Strict);
+            TextBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == RazorCoreContentType, MockBehavior.Strict);
 
             FilePath = TestProjectData.SomeProjectFile1.FilePath;
             ProjectPath = TestProjectData.SomeProject.FilePath;
             RootNamespace = TestProjectData.SomeProject.RootNamespace;
 
-            ImportDocumentManager = Mock.Of<ImportDocumentManager>();
-            WorkspaceEditorSettings = new DefaultWorkspaceEditorSettings(Mock.Of<ForegroundDispatcher>(), Mock.Of<EditorSettingsManager>());
+            ImportDocumentManager = new Mock<ImportDocumentManager>(MockBehavior.Strict).Object;
+            Mock.Get(ImportDocumentManager).Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
+            Mock.Get(ImportDocumentManager).Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
+
+            var projectSnapshotManagerDispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
+            projectSnapshotManagerDispatcher.Setup(d => d.AssertDispatcherThread(It.IsAny<string>())).Verifiable();
+            WorkspaceEditorSettings = new DefaultWorkspaceEditorSettings(projectSnapshotManagerDispatcher.Object, Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
 
             SomeTagHelpers = new List<TagHelperDescriptor>()
             {
                 TagHelperDescriptorBuilder.Create("test", "test").Build(),
             };
-            
+
             ProjectManager = new TestProjectSnapshotManager(Dispatcher, Workspace) { AllowNotifyListeners = true };
 
             HostProject = new HostProject(ProjectPath, FallbackRazorConfiguration.MVC_2_1, RootNamespace);
@@ -45,6 +50,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             DocumentTracker = new DefaultVisualStudioDocumentTracker(
                 Dispatcher,
+                JoinableTaskFactory.Context,
                 FilePath,
                 ProjectPath,
                 ProjectManager,
@@ -101,15 +107,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 filePath: TestProjectData.SomeProject.FilePath));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribe_NoopsIfAlreadySubscribed()
         {
             // Arrange
             var callCount = 0;
-            DocumentTracker.ContextChanged += (sender, args) =>
-            {
-                callCount++;
-            };
+            DocumentTracker.ContextChanged += (sender, args) => callCount++;
             DocumentTracker.Subscribe();
 
             // Act
@@ -119,16 +122,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(1, callCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Unsubscribe_NoopsIfAlreadyUnsubscribed()
         {
             // Arrange
             var callCount = 0;
             DocumentTracker.Subscribe();
-            DocumentTracker.ContextChanged += (sender, args) =>
-            {
-                callCount++;
-            };
+            DocumentTracker.ContextChanged += (sender, args) => callCount++;
             DocumentTracker.Unsubscribe();
 
             // Act
@@ -138,17 +138,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(1, callCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Unsubscribe_NoopsIfSubscribeHasBeenCalledMultipleTimes()
         {
             // Arrange
             var callCount = 0;
             DocumentTracker.Subscribe();
             DocumentTracker.Subscribe();
-            DocumentTracker.ContextChanged += (sender, args) =>
-            {
-                callCount++;
-            };
+            DocumentTracker.ContextChanged += (sender, args) => callCount++;
 
             // Act - 1
             DocumentTracker.Unsubscribe();
@@ -163,7 +160,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Equal(1, callCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void EditorSettingsManager_Changed_TriggersContextChanged()
         {
             // Arrange
@@ -182,7 +179,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectManager_Changed_ProjectAdded_TriggersContextChanged()
         {
             // Arrange
@@ -205,12 +202,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectManager_Changed_ProjectChanged_TriggersContextChanged()
         {
             // Arrange
             ProjectManager.ProjectAdded(HostProject);
-            
+
             var e = new ProjectChangeEventArgs(null, ProjectManager.GetLoadedProject(HostProject.FilePath), ProjectChangeKind.ProjectChanged);
 
             var called = false;
@@ -228,7 +225,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectManager_Changed_ProjectRemoved_TriggersContextChanged_WithEphemeralProject()
         {
             // Arrange
@@ -255,7 +252,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void ProjectManager_Changed_IgnoresUnknownProject()
         {
             // Arrange
@@ -264,10 +261,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var e = new ProjectChangeEventArgs(null, ProjectManager.GetLoadedProject(OtherHostProject.FilePath), ProjectChangeKind.ProjectChanged);
 
             var called = false;
-            DocumentTracker.ContextChanged += (sender, args) =>
-            {
-                called = true;
-            };
+            DocumentTracker.ContextChanged += (sender, args) => called = true;
 
             // Act
             DocumentTracker.ProjectManager_Changed(ProjectManager, e);
@@ -276,7 +270,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.False(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Import_Changed_ImportAssociatedWithDocument_TriggersContextChanged()
         {
             // Arrange
@@ -296,14 +290,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Import_Changed_UnrelatedImport_DoesNothing()
         {
             // Arrange
-            DocumentTracker.ContextChanged += (sender, args) =>
-            {
-                throw new InvalidOperationException();
-            };
+            DocumentTracker.ContextChanged += (sender, args) => throw new InvalidOperationException();
 
             var importChangedArgs = new ImportChangedEventArgs("path/to/import", FileChangeKind.Changed, new[] { "path/to/differentfile" });
 
@@ -311,15 +302,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
             DocumentTracker.Import_Changed(null, importChangedArgs);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribe_SetsSupportedProjectAndTriggersContextChanged()
         {
             // Arrange
             var called = false;
-            DocumentTracker.ContextChanged += (sender, args) =>
-            {
-                called = true; // This will trigger both ContextChanged and TagHelprsChanged
-            };
+            DocumentTracker.ContextChanged += (sender, args) => called = true;
 
             // Act
             DocumentTracker.Subscribe();
@@ -329,7 +317,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(DocumentTracker.IsSupportedProject);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Unsubscribe_ResetsSupportedProjectAndTriggersContextChanged()
         {
             // Arrange
@@ -352,11 +340,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.True(called);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void AddTextView_AddsToTextViewCollection()
         {
             // Arrange
-            var textView = Mock.Of<ITextView>();
+            var textView = Mock.Of<ITextView>(MockBehavior.Strict);
 
             // Act
             DocumentTracker.AddTextView(textView);
@@ -365,11 +353,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Collection(DocumentTracker.TextViews, v => Assert.Same(v, textView));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void AddTextView_DoesNotAddDuplicateTextViews()
         {
             // Arrange
-            var textView = Mock.Of<ITextView>();
+            var textView = Mock.Of<ITextView>(MockBehavior.Strict);
 
             // Act
             DocumentTracker.AddTextView(textView);
@@ -379,12 +367,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Collection(DocumentTracker.TextViews, v => Assert.Same(v, textView));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void AddTextView_AddsMultipleTextViewsToCollection()
         {
             // Arrange
-            var textView1 = Mock.Of<ITextView>();
-            var textView2 = Mock.Of<ITextView>();
+            var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
+            var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
 
             // Act
             DocumentTracker.AddTextView(textView1);
@@ -397,11 +385,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 v => Assert.Same(v, textView2));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void RemoveTextView_RemovesTextViewFromCollection_SingleItem()
         {
             // Arrange
-            var textView = Mock.Of<ITextView>();
+            var textView = Mock.Of<ITextView>(MockBehavior.Strict);
             DocumentTracker.AddTextView(textView);
 
             // Act
@@ -411,13 +399,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Empty(DocumentTracker.TextViews);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void RemoveTextView_RemovesTextViewFromCollection_MultipleItems()
         {
             // Arrange
-            var textView1 = Mock.Of<ITextView>();
-            var textView2 = Mock.Of<ITextView>();
-            var textView3 = Mock.Of<ITextView>();
+            var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
+            var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
+            var textView3 = Mock.Of<ITextView>(MockBehavior.Strict);
             DocumentTracker.AddTextView(textView1);
             DocumentTracker.AddTextView(textView2);
             DocumentTracker.AddTextView(textView3);
@@ -432,13 +420,13 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 v => Assert.Same(v, textView3));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void RemoveTextView_NoopsWhenRemovingTextViewNotInCollection()
         {
             // Arrange
-            var textView1 = Mock.Of<ITextView>();
+            var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
             DocumentTracker.AddTextView(textView1);
-            var textView2 = Mock.Of<ITextView>();
+            var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
 
             // Act
             DocumentTracker.RemoveTextView(textView2);
@@ -448,7 +436,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         }
 
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribed_InitializesEphemeralProjectSnapshot()
         {
             // Arrange
@@ -460,7 +448,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.IsType<EphemeralProjectSnapshot>(DocumentTracker.ProjectSnapshot);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribed_InitializesRealProjectSnapshot()
         {
             // Arrange
@@ -473,7 +461,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.IsType<DefaultProjectSnapshot>(DocumentTracker.ProjectSnapshot);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribed_ListensToProjectChanges()
         {
             // Arrange
@@ -482,8 +470,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
             DocumentTracker.Subscribe();
 
             var args = new List<ContextChangeEventArgs>();
-            DocumentTracker.ContextChanged += (sender, e) => { args.Add(e); };
-            
+            DocumentTracker.ContextChanged += (sender, e) => args.Add(e);
+
             // Act
             ProjectManager.ProjectConfigurationChanged(UpdatedHostProject);
 
@@ -497,7 +485,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 e => Assert.Equal(ContextChangeKind.ProjectChanged, e.Kind));
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Subscribed_ListensToProjectRemoval()
         {
             // Arrange
@@ -506,7 +494,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             DocumentTracker.Subscribe();
 
             var args = new List<ContextChangeEventArgs>();
-            DocumentTracker.ContextChanged += (sender, e) => { args.Add(e); };
+            DocumentTracker.ContextChanged += (sender, e) => args.Add(e);
 
             // Act
             ProjectManager.ProjectRemoved(HostProject);

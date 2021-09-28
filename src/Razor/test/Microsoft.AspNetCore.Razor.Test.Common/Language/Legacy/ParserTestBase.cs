@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,11 +13,17 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy
 {
+    // Sets the FileName static variable.
+    // Finds the test method name using reflection, and uses
+    // that to find the expected input/output test files in the file system.
     [IntializeTestFile]
+
+    // These tests must be run serially due to the test specific FileName static var.
+    [Collection("ParserTestSerialRuns")]
     public abstract class ParserTestBase
     {
-        private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
-        private static readonly AsyncLocal<bool> _isTheory = new AsyncLocal<bool>();
+        private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
+        private static readonly AsyncLocal<bool> s_isTheory = new AsyncLocal<bool>();
 
         internal ParserTestBase()
         {
@@ -41,14 +47,14 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         // Used by the test framework to set the 'base' name for test files.
         public static string FileName
         {
-            get { return _fileName.Value; }
-            set { _fileName.Value = value; }
+            get { return s_fileName.Value; }
+            set { s_fileName.Value = value; }
         }
 
         public static bool IsTheory
         {
-            get { return _isTheory.Value; }
-            set { _isTheory.Value = value; }
+            get { return s_isTheory.Value; }
+            set { s_isTheory.Value = value; }
         }
 
         protected int BaselineTestCount { get; set; }
@@ -188,7 +194,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
         internal virtual RazorSyntaxTree ParseDocument(RazorLanguageVersion version, string document, IEnumerable<DirectiveDescriptor> directives, bool designTime = false, RazorParserFeatureFlags featureFlags = null, string fileKind = null)
         {
-            directives = directives ?? Array.Empty<DirectiveDescriptor>();
+            directives ??= Array.Empty<DirectiveDescriptor>();
 
             var source = TestRazorSourceDocument.Create(document, filePath: null, relativePath: null, normalizeNewLines: true);
 
@@ -249,8 +255,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         }
 
         internal static RazorParserOptions CreateParserOptions(
-            RazorLanguageVersion version, 
-            IEnumerable<DirectiveDescriptor> directives, 
+            RazorLanguageVersion version,
+            IEnumerable<DirectiveDescriptor> directives,
             bool designTime,
             RazorParserFeatureFlags featureFlags = null,
             string fileKind = null)

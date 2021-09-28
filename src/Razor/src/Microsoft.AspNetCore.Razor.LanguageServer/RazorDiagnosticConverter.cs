@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Globalization;
@@ -38,13 +38,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal static DiagnosticSeverity ConvertSeverity(RazorDiagnosticSeverity severity)
         {
-            switch (severity)
+            return severity switch
             {
-                case RazorDiagnosticSeverity.Error:
-                    return DiagnosticSeverity.Error;
-                default:
-                    return DiagnosticSeverity.Information;
-            }
+                RazorDiagnosticSeverity.Error => DiagnosticSeverity.Error,
+                RazorDiagnosticSeverity.Warning => DiagnosticSeverity.Warning,
+                _ => DiagnosticSeverity.Information,
+            };
         }
 
         // Internal for testing

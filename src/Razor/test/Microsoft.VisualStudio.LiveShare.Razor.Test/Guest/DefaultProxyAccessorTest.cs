@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Moq;
@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         public void GetProjectHierarchyProxy_Caches()
         {
             // Arrange
-            var proxy = Mock.Of<IProjectHierarchyProxy>();
+            var proxy = Mock.Of<IProjectHierarchyProxy>(MockBehavior.Strict);
             var proxyAccessor = new TestProxyAccessor<IProjectHierarchyProxy>(proxy);
 
             // Act

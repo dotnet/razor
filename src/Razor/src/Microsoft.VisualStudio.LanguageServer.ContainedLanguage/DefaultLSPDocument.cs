@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -48,7 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             get
             {
-                if (_currentSnapshot != TextBuffer.CurrentSnapshot)
+                if (TextBuffer.CurrentSnapshot.ContentType.IsOfType(InertContentType.Instance.TypeName))
+                {
+                    // TextBuffer is tearing itself down, return last known snapshot to avoid generating
+                    // a snapshot for an invalid TextBuffer
+                    return _currentSnapshot;
+                }
+
+                if (_currentSnapshot?.Snapshot != TextBuffer.CurrentSnapshot)
                 {
                     _currentSnapshot = UpdateSnapshot();
                 }
@@ -57,7 +64,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
         }
 
+        [Obsolete("Use the int overload instead")]
         public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
+        {
+            return UpdateVirtualDocument<TVirtualDocument>(changes, (int)hostDocumentVersion);
+        }
+
+        public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int hostDocumentVersion)
         {
             if (!TryGetVirtualDocument<TVirtualDocument>(out var virtualDocument))
             {

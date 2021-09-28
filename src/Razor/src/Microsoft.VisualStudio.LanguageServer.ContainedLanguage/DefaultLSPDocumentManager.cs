@@ -1,13 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
@@ -19,15 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private readonly FileUriProvider _fileUriProvider;
         private readonly LSPDocumentFactory _documentFactory;
         private readonly ConcurrentDictionary<Uri, LSPDocument> _documents;
-
-        public override event EventHandler<LSPDocumentChangeEventArgs> Changed;
+        private readonly IEnumerable<Lazy<LSPDocumentChangeListener, IContentTypeMetadata>> _documentManagerChangeListeners;
 
         [ImportingConstructor]
         public DefaultLSPDocumentManager(
             JoinableTaskContext joinableTaskContext,
             FileUriProvider fileUriProvider,
             LSPDocumentFactory documentFactory,
-            [ImportMany] IEnumerable<LSPDocumentManagerChangeTrigger> changeTriggers)
+            [ImportMany] IEnumerable<Lazy<LSPDocumentChangeListener, IContentTypeMetadata>> documentManagerChangeListeners)
         {
             if (joinableTaskContext is null)
             {
@@ -44,15 +45,16 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 throw new ArgumentNullException(nameof(documentFactory));
             }
 
+            if (documentManagerChangeListeners is null)
+            {
+                throw new ArgumentNullException(nameof(documentManagerChangeListeners));
+            }
+
             _joinableTaskContext = joinableTaskContext;
             _fileUriProvider = fileUriProvider;
             _documentFactory = documentFactory;
+            _documentManagerChangeListeners = documentManagerChangeListeners;
             _documents = new ConcurrentDictionary<Uri, LSPDocument>();
-
-            foreach (var trigger in changeTriggers)
-            {
-                trigger.Initialize(this);
-            }
         }
 
         public override void TrackDocument(ITextBuffer buffer)
@@ -72,8 +74,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             var lspDocument = _documentFactory.Create(buffer);
             _documents[uri] = lspDocument;
-            var args = new LSPDocumentChangeEventArgs(old: null, lspDocument.CurrentSnapshot, LSPDocumentChangeKind.Added);
-            Changed?.Invoke(this, args);
+
+            NotifyDocumentManagerChangeListeners(
+                old: null,
+                @new: lspDocument.CurrentSnapshot,
+                virtualOld: null,
+                virtualNew: null,
+                LSPDocumentChangeKind.Added);
         }
 
         public override void UntrackDocument(ITextBuffer buffer)
@@ -92,10 +99,17 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 return;
             }
 
+            // Given we're no longer tracking the document we don't want to pin the Uri to the current state of the buffer (could have been renamed to another Uri).
+            _fileUriProvider.Remove(buffer);
+
             if (_documents.TryRemove(uri, out _))
             {
-                var args = new LSPDocumentChangeEventArgs(lspDocument.CurrentSnapshot, @new: null, LSPDocumentChangeKind.Removed);
-                Changed?.Invoke(this, args);
+                NotifyDocumentManagerChangeListeners(
+                    lspDocument.CurrentSnapshot,
+                    @new: null,
+                    virtualOld: null,
+                    virtualNew: null,
+                    LSPDocumentChangeKind.Removed);
             }
             else
             {
@@ -105,10 +119,19 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             lspDocument.Dispose();
         }
 
+        [Obsolete("Use the int override instead")]
         public override void UpdateVirtualDocument<TVirtualDocument>(
             Uri hostDocumentUri,
             IReadOnlyList<ITextChange> changes,
             long hostDocumentVersion)
+        {
+            UpdateVirtualDocument<TVirtualDocument>(hostDocumentUri, changes, (int)hostDocumentVersion);
+        }
+
+        public override void UpdateVirtualDocument<TVirtualDocument>(
+            Uri hostDocumentUri,
+            IReadOnlyList<ITextChange> changes,
+            int hostDocumentVersion)
         {
             if (hostDocumentUri is null)
             {
@@ -137,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
 
             if (changes.Count == 0 &&
-                virtualDocument.HostDocumentSyncVersion == hostDocumentVersion)
+                virtualDocument.HostDocumentVersion == hostDocumentVersion)
             {
                 // The current virtual document already knows about this update.
                 // Ignore it so we don't prematurely invoke a change event.
@@ -159,13 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
 
             var newVirtual = newVirtualDocument.CurrentSnapshot;
-            var args = new LSPDocumentChangeEventArgs(
-                old,
-                @new,
-                oldVirtual,
-                newVirtual,
-                LSPDocumentChangeKind.VirtualDocumentChanged);
-            Changed?.Invoke(this, args);
+            NotifyDocumentManagerChangeListeners(old, @new, oldVirtual, newVirtual, LSPDocumentChangeKind.VirtualDocumentChanged);
         }
 
         public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
@@ -179,6 +196,35 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             lspDocumentSnapshot = lspDocument.CurrentSnapshot;
             return true;
+        }
+
+        private void NotifyDocumentManagerChangeListeners(
+            LSPDocumentSnapshot old,
+            LSPDocumentSnapshot @new,
+            VirtualDocumentSnapshot virtualOld,
+            VirtualDocumentSnapshot virtualNew,
+            LSPDocumentChangeKind kind)
+        {
+            foreach (var listener in _documentManagerChangeListeners)
+            {
+                var notifyListener = false;
+
+                if (old != null &&
+                    listener.Metadata.ContentTypes.Any(ct => old.Snapshot.ContentType.IsOfType(ct)))
+                {
+                    notifyListener = true;
+                }
+                else if (@new != null &&
+                    listener.Metadata.ContentTypes.Any(ct => @new.Snapshot.ContentType.IsOfType(ct)))
+                {
+                    notifyListener = true;
+                }
+
+                if (notifyListener)
+                {
+                    listener.Value.Changed(old, @new, virtualOld, virtualNew, kind);
+                }
+            }
         }
     }
 }

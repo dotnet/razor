@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,20 +14,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFileChangeListener
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly RazorProjectService _projectService;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly Dictionary<string, string> _configurationToProjectMap;
-        internal readonly Dictionary<string, DelayedProjectInfo> _projectInfoMap;
+        internal readonly Dictionary<string, DelayedProjectInfo> ProjectInfoMap;
 
         public ProjectConfigurationStateSynchronizer(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             RazorProjectService projectService,
             FilePathNormalizer filePathNormalizer)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (projectService is null)
@@ -40,11 +40,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectService = projectService;
             _filePathNormalizer = filePathNormalizer;
             _configurationToProjectMap = new Dictionary<string, string>(FilePathComparer.Instance);
-            _projectInfoMap = new Dictionary<string, DelayedProjectInfo>(FilePathComparer.Instance);
+            ProjectInfoMap = new Dictionary<string, DelayedProjectInfo>(FilePathComparer.Instance);
         }
 
         internal int EnqueueDelay { get; set; } = 250;
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(args));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             switch (args.Kind)
             {
@@ -76,7 +76,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             EnqueueUpdateProject(projectFilePath, snapshotHandle: null);
                             return;
                         }
-
 
                         EnqueueUpdateProject(handle.FilePath, handle);
                         break;
@@ -141,18 +140,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 await Task.Delay(EnqueueDelay).ConfigureAwait(true);
 
-                var delayedProjectInfo = _projectInfoMap[projectFilePath];
+                var delayedProjectInfo = ProjectInfoMap[projectFilePath];
                 UpdateProject(projectFilePath, delayedProjectInfo.FullProjectSnapshotHandle);
             }
 
             void EnqueueUpdateProject(string projectFilePath, FullProjectSnapshotHandle snapshotHandle)
             {
-                if (!_projectInfoMap.ContainsKey(projectFilePath))
+                projectFilePath = _filePathNormalizer.Normalize(projectFilePath);
+                if (!ProjectInfoMap.ContainsKey(projectFilePath))
                 {
-                    _projectInfoMap[projectFilePath] = new DelayedProjectInfo();
+                    ProjectInfoMap[projectFilePath] = new DelayedProjectInfo();
                 }
 
-                var delayedProjectInfo = _projectInfoMap[projectFilePath];
+                var delayedProjectInfo = ProjectInfoMap[projectFilePath];
                 delayedProjectInfo.FullProjectSnapshotHandle = snapshotHandle;
 
                 if (delayedProjectInfo.ProjectUpdateTask is null || delayedProjectInfo.ProjectUpdateTask.IsCompleted)

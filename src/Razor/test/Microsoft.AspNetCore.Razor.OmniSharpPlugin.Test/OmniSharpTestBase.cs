@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         {
             var commonTestAssembly = Assembly.Load("Microsoft.AspNetCore.Razor.LanguageServer.Test.Common");
             var testProjectSnapshotType = commonTestAssembly.GetType("Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshot");
-  
+
             var testProjectSnapshotManagerType = commonTestAssembly.GetType("Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshotManager");
             var strongNamedAssembly = Assembly.Load("Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed");
             var defaultSnapshotManagerType = strongNamedAssembly.GetType("Microsoft.AspNetCore.Razor.OmniSharpPlugin.DefaultOmniSharpProjectSnapshotManager");
@@ -39,14 +39,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             _createWithDocumentsTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(string[]), typeof(ProjectWorkspaceState) });
             _createProjectSnapshotManagerMethod = testProjectSnapshotManagerType.GetMethod("Create");
             _allowNotifyListenersProperty = testProjectSnapshotManagerType.GetProperty("AllowNotifyListeners");
-            _dispatcherProperty = typeof(OmniSharpForegroundDispatcher).GetProperty("InternalDispatcher", BindingFlags.NonPublic | BindingFlags.Instance);
+            _dispatcherProperty = typeof(OmniSharpProjectSnapshotManagerDispatcher).GetProperty("InternalDispatcher", BindingFlags.NonPublic | BindingFlags.Instance);
             _omniSharpProjectSnapshotMangerConstructor = defaultSnapshotManagerType.GetConstructors().Single();
             _omniSharpSnapshotConstructor = typeof(OmniSharpProjectSnapshot).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
 
-            Dispatcher = new DefaultOmniSharpForegroundDispatcher();
+            Dispatcher = new DefaultOmniSharpProjectSnapshotManagerDispatcher();
         }
 
-        protected OmniSharpForegroundDispatcher Dispatcher { get; }
+        protected OmniSharpProjectSnapshotManagerDispatcher Dispatcher { get; }
 
         protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
         {
@@ -77,31 +77,31 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             return snapshotManager;
         }
 
-        protected Task RunOnForegroundAsync(Action action)
+        protected Task RunOnDispatcherThreadAsync(Action action)
         {
             return Task.Factory.StartNew(
                 () => action(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                Dispatcher.DispatcherScheduler);
         }
 
-        protected Task<TReturn> RunOnForegroundAsync<TReturn>(Func<TReturn> action)
+        protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> action)
         {
             return Task.Factory.StartNew(
                 () => action(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                Dispatcher.DispatcherScheduler);
         }
 
-        protected Task RunOnForegroundAsync(Func<Task> action)
+        protected Task RunOnDispatcherThreadAsync(Func<Task> action)
         {
             return Task.Factory.StartNew(
                 async () => await action(),
                 CancellationToken.None,
                 TaskCreationOptions.None,
-                Dispatcher.ForegroundScheduler);
+                Dispatcher.DispatcherScheduler);
         }
     }
 }

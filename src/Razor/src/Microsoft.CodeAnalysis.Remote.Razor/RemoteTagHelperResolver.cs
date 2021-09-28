@@ -1,5 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 using System;
 using System.Threading;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal class RemoteTagHelperResolver : TagHelperResolver
     {
-        private readonly static RazorConfiguration DefaultConfiguration = FallbackRazorConfiguration.MVC_2_0;
+        private readonly static RazorConfiguration s_defaultConfiguration = FallbackRazorConfiguration.MVC_2_0;
 
         private readonly IFallbackProjectEngineFactory _fallbackFactory;
 
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Razor
             }
 
             var engine = CreateProjectEngine(configuration, factoryTypeName);
-            return GetTagHelpersAsync(project, engine);
+            return GetTagHelpersAsync(project, engine, cancellationToken);
         }
 
         internal RazorProjectEngine CreateProjectEngine(RazorConfiguration configuration, string factoryTypeName)
@@ -58,20 +60,20 @@ namespace Microsoft.CodeAnalysis.Razor
             // Most notably, we are going to find the Tag Helpers using a compilation, and we have
             // no editor settings.
             //
-            // The default configuration currently matches MVC-2.0. Beyond MVC-2.0 we added SDK support for 
+            // The default configuration currently matches MVC-2.0. Beyond MVC-2.0 we added SDK support for
             // properly detecting project versions, so that's a good version to assume when we can't find a
             // configuration.
-            configuration = configuration ?? DefaultConfiguration;
+            configuration ??= s_defaultConfiguration;
 
             // If there's no factory to handle the configuration then fall back to a very basic configuration.
             //
             // This will stop a crash from happening in this case (misconfigured project), but will still make
             // it obvious to the user that something is wrong.
-            var factory = CreateFactory(configuration, factoryTypeName) ?? _fallbackFactory;
+            var factory = CreateFactory(factoryTypeName) ?? _fallbackFactory;
             return factory.Create(configuration, RazorProjectFileSystem.Empty, b => { });
         }
 
-        private IProjectEngineFactory CreateFactory(RazorConfiguration configuration, string factoryTypeName)
+        private static IProjectEngineFactory? CreateFactory(string factoryTypeName)
         {
             if (factoryTypeName == null)
             {

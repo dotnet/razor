@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,20 +14,20 @@ namespace Microsoft.VisualStudio.Editor.Razor
     internal class DefaultImportDocumentManager : ImportDocumentManager
     {
         private readonly FileChangeTrackerFactory _fileChangeTrackerFactory;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ErrorReporter _errorReporter;
         private readonly Dictionary<string, ImportTracker> _importTrackerCache;
 
         public override event EventHandler<ImportChangedEventArgs> Changed;
 
         public DefaultImportDocumentManager(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ErrorReporter errorReporter,
             FileChangeTrackerFactory fileChangeTrackerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (errorReporter == null)
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _errorReporter = errorReporter;
             _fileChangeTrackerFactory = fileChangeTrackerFactory;
             _importTrackerCache = new Dictionary<string, ImportTracker>(StringComparer.OrdinalIgnoreCase);
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(tracker));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var imports = GetImportItems(tracker);
             foreach (var import in imports)
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(tracker));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var imports = GetImportItems(tracker);
             foreach (var import in imports)
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void OnChanged(ImportTracker importTracker, FileChangeKind changeKind)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (Changed == null)
             {
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private void FileChangeTracker_Changed(object sender, FileChangeEventArgs args)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_importTrackerCache.TryGetValue(args.FilePath, out var importTracker))
             {

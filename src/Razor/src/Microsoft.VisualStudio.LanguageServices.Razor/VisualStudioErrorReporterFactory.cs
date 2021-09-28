@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
     [ExportWorkspaceServiceFactory(typeof(ErrorReporter), ServiceLayer.Host)]
     internal class VisualStudioErrorReporterFactory : IWorkspaceServiceFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly SVsServiceProvider _serviceProvider;
 
         [ImportingConstructor]
         public VisualStudioErrorReporterFactory(SVsServiceProvider serviceProvider)

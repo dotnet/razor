@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             var project = new DefaultProjectSnapshot(
                 ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () =>
-                {
-                    return Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()));
-                }));
+                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
             var document = project.GetDocument(HostDocument.FilePath);
             var service = new RazorSpanMappingService(document);
@@ -54,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             // Act
             var result = RazorSpanMappingService.TryGetMappedSpans(span, await document.GetTextAsync(), generated, out var mappedLinePositionSpan, out var mappedSpan);
-            
+
             // Assert
             Assert.True(result);
             Assert.Equal(new LinePositionSpan(new LinePosition(1, 1), new LinePosition(1, 13)), mappedLinePositionSpan);
@@ -73,10 +70,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             var project = new DefaultProjectSnapshot(
                 ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () =>
-                {
-                    return Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()));
-                }));
+                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
             var document = project.GetDocument(HostDocument.FilePath);
             var service = new RazorSpanMappingService(document);
@@ -109,10 +103,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             var project = new DefaultProjectSnapshot(
                 ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () =>
-                {
-                    return Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()));
-                }));
+                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
             var document = project.GetDocument(HostDocument.FilePath);
             var service = new RazorSpanMappingService(document);
@@ -144,10 +135,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
             var project = new DefaultProjectSnapshot(
                 ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, () =>
-                {
-                    return Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()));
-                }));
+                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
 
             var document = project.GetDocument(HostDocument.FilePath);
             var service = new RazorSpanMappingService(document);

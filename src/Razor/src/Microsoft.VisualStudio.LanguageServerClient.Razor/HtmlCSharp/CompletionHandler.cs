@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,9 +7,12 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
@@ -18,36 +21,55 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [ExportLspMethod(Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : IRequestHandler<CompletionParams, SumType<CompletionItem[], CompletionList>?>
     {
-        private static readonly IReadOnlyList<string> CSharpTriggerCharacters = new[] { ".", "@" };
-        private static readonly IReadOnlyList<string> HtmlTriggerCharacters = new[] { "<", "&", "\\", "/", "'", "\"", "=", ":", " " };
-        private static readonly IReadOnlyList<string> AllTriggerCharacters = CSharpTriggerCharacters.Concat(HtmlTriggerCharacters).ToArray();
+        private static readonly IReadOnlyList<string> s_razorTriggerCharacters = new[] { "@" };
+        private static readonly IReadOnlyList<string> s_cSharpTriggerCharacters = new[] { " ", "(", "=", "#", ".", "<", "[", "{", "\"", "/", ":", "~" };
+        private static readonly IReadOnlyList<string> s_htmlTriggerCharacters = new[] { ":", "@", "#", ".", "!", "*", ",", "(", "[", "-", "<", "&", "\\", "/", "'", "\"", "=", ":", " ", "`" };
 
-        private static readonly IReadOnlyCollection<string> Keywords = new string[] {
+        public static readonly IReadOnlyList<string> AllTriggerCharacters = new HashSet<string>(
+            s_cSharpTriggerCharacters
+                .Concat(s_htmlTriggerCharacters)
+                .Concat(s_razorTriggerCharacters))
+            .ToArray();
+
+        private static readonly IReadOnlyCollection<string> s_keywords = new string[] {
             "for", "foreach", "while", "switch", "lock",
             "case", "if", "try", "do", "using"
         };
 
-        private static readonly IReadOnlyCollection<CompletionItem> KeywordCompletionItems = Keywords.Select(k => new CompletionItem
+        private static readonly IReadOnlyCollection<string> s_designTimeHelpers = new string[]
         {
-            Label = k,
-            InsertText = k,
-            FilterText = k,
-            Kind = CompletionItemKind.Keyword,
-            SortText = k,
-            InsertTextFormat = InsertTextFormat.Plaintext,
-        }).ToArray();
+            "__builder",
+            "__o",
+            "__RazorDirectiveTokenHelpers__",
+            "__tagHelperExecutionContext",
+            "__tagHelperRunner",
+            "__typeHelper",
+            "_Imports",
+            "BuildRenderTree"
+        };
+
+        private static readonly IReadOnlyCollection<CompletionItem> s_keywordCompletionItems = GenerateCompletionItems(s_keywords);
+        private static readonly IReadOnlyCollection<CompletionItem> s_designTimeHelpersCompletionItems = GenerateCompletionItems(s_designTimeHelpers);
 
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
+        private readonly ITextStructureNavigatorSelectorService _textStructureNavigator;
+        private readonly CompletionRequestContextCache _completionRequestContextCache;
+        private readonly FormattingOptionsProvider _formattingOptionsProvider;
+        private readonly ILogger _logger;
 
         [ImportingConstructor]
         public CompletionHandler(
             JoinableTaskContext joinableTaskContext,
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider)
+            LSPProjectionProvider projectionProvider,
+            ITextStructureNavigatorSelectorService textStructureNavigator,
+            CompletionRequestContextCache completionRequestContextCache,
+            FormattingOptionsProvider formattingOptionsProvider,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (joinableTaskContext is null)
             {
@@ -69,10 +91,34 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(projectionProvider));
             }
 
+            if (textStructureNavigator is null)
+            {
+                throw new ArgumentNullException(nameof(textStructureNavigator));
+            }
+
+            if (completionRequestContextCache is null)
+            {
+                throw new ArgumentNullException(nameof(completionRequestContextCache));
+            }
+
+            if (formattingOptionsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(formattingOptionsProvider));
+            }
+
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _joinableTaskFactory = joinableTaskContext.Factory;
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
+            _textStructureNavigator = textStructureNavigator;
+            _completionRequestContextCache = completionRequestContextCache;
+            _formattingOptionsProvider = formattingOptionsProvider;
+            _logger = loggerProvider.CreateLogger(nameof(CompletionHandler));
         }
 
         public async Task<SumType<CompletionItem[], CompletionList>?> HandleRequestAsync(CompletionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
@@ -87,18 +133,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
+            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
+                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
                 return null;
             }
 
-            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
+            var projectionResult = await _projectionProvider.GetProjectionAsync(
+                documentSnapshot,
+                request.Position,
+                cancellationToken).ConfigureAwait(false);
             if (projectionResult == null)
             {
                 return null;
             }
 
+            var projectedPosition = projectionResult.Position;
+            var projectedDocumentUri = projectionResult.Uri;
             var serverKind = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? LanguageServerKind.CSharp : LanguageServerKind.Html;
+            var languageServerName = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? RazorLSPConstants.RazorCSharpLanguageServerName : RazorLSPConstants.HtmlLanguageServerName;
 
             var (succeeded, result) = await TryGetProvisionalCompletionsAsync(request, documentSnapshot, projectionResult, cancellationToken).ConfigureAwait(false);
             if (succeeded)
@@ -106,69 +161,361 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 // This means the user has just typed a dot after some identifier such as (cursor is pipe): "DateTime.| "
                 // In this case Razor interprets after the dot as Html and before it as C#.
                 // We use this criteria to provide a better completion experience for what we call provisional changes.
+                serverKind = LanguageServerKind.CSharp;
+                if (documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocumentSnapshot))
+                {
+                    projectedDocumentUri = csharpVirtualDocumentSnapshot.Uri;
+                }
+                else
+                {
+                    _logger.LogError("Could not acquire C# virtual document snapshot after provisional completion.");
+                }
+
             }
             else if (!TriggerAppliesToProjection(request.Context, projectionResult.LanguageKind))
             {
+                _logger.LogInformation("Trigger does not apply to projection.");
                 return null;
             }
             else
             {
                 // This is a valid non-provisional completion request.
+                _logger.LogInformation("Searching for non-provisional completions, rewriting context.");
+
+                var completionContext = RewriteContext(request.Context, projectionResult.LanguageKind);
+
                 var completionParams = new CompletionParams()
                 {
-                    Context = request.Context,
-                    Position = projectionResult.Position,
+                    Context = completionContext,
+                    Position = projectedPosition,
                     TextDocument = new TextDocumentIdentifier()
                     {
-                        Uri = projectionResult.Uri
+                        Uri = projectedDocumentUri
                     }
                 };
 
-                result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
+                _logger.LogInformation($"Requesting non-provisional completions for {projectedDocumentUri}.");
+
+                var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                     Methods.TextDocumentCompletionName,
-                    serverKind,
+                    languageServerName,
                     completionParams,
                     cancellationToken).ConfigureAwait(false);
+                result = response.Result;
+
+                _logger.LogInformation("Found non-provisional completion");
             }
 
-            if (result.HasValue)
+            if (TryConvertToCompletionList(result, out var completionList))
             {
-                // Set some context on the CompletionItem so the CompletionResolveHandler can handle it accordingly.
-                result = SetResolveData(result.Value, serverKind);
-                if (serverKind == LanguageServerKind.CSharp && string.Equals(request.Context.TriggerCharacter, "@", StringComparison.Ordinal))
+                var wordExtent = documentSnapshot.Snapshot.GetWordExtent(request.Position.Line, request.Position.Character, _textStructureNavigator);
+
+                if (serverKind == LanguageServerKind.CSharp)
                 {
-                    result = IncludeCSharpKeywords(result.Value, serverKind);
+                    completionList = PostProcessCSharpCompletionList(request, documentSnapshot, wordExtent, completionList);
                 }
+
+                completionList = TranslateTextEdits(request.Position, projectedPosition, wordExtent, completionList);
+
+                var requestContext = new CompletionRequestContext(documentSnapshot.Uri, projectedDocumentUri, serverKind);
+                var resultId = _completionRequestContextCache.Set(requestContext);
+                SetResolveData(resultId, completionList);
             }
 
-            return result;
+            if (completionList != null)
+            {
+                completionList = completionList is VSInternalCompletionList vsCompletionList
+                    ? new OptimizedVSCompletionList(vsCompletionList)
+                    : new OptimizedVSCompletionList(completionList);
+            }
+
+            _logger.LogInformation("Returning completion list.");
+            return completionList;
+
+            static bool TryConvertToCompletionList(SumType<CompletionItem[], CompletionList>? original, out CompletionList completionList)
+            {
+                if (!original.HasValue)
+                {
+                    completionList = null;
+                    return false;
+                }
+
+                if (original.Value.TryGetFirst(out var completionItems))
+                {
+                    completionList = new CompletionList()
+                    {
+                        Items = completionItems,
+                        IsIncomplete = false
+                    };
+                }
+                else if (!original.Value.TryGetSecond(out completionList))
+                {
+                    throw new InvalidOperationException("Could not convert Razor completion set to a completion list. This should be impossible, the completion result should be either a completion list, a set of completion items or `null`.");
+                }
+
+                return true;
+            }
         }
 
-        internal async Task<(bool, SumType<CompletionItem[], CompletionList>?)> TryGetProvisionalCompletionsAsync(CompletionParams request, LSPDocumentSnapshot documentSnapshot, ProjectionResult projection, CancellationToken cancellationToken)
+        // For C# scenarios we want to do a few post-processing steps to the completion list.
+        //
+        // 1. Do not pre-select any C# items. Razor is complex and just because C# may think something should be "pre-selected" doesn't mean it makes sense based off of the top-level Razor view.
+        // 2. Incorporate C# keywords. Prevoiusly C# keywords like if, using, for etc. were added via VS' "Snippet" support in Razor scenarios. VS' LSP implementation doesn't currently support snippets
+        //    so those keywords will be missing from the completion list if we don't forcefully add them in Razor scenarios.
+        //
+        //    Razor is unique here because when you type @fo| it generates something like:
+        //
+        //    __o = fo|;
+        //
+        //    This isn't an applicable scenario for C# to provide the "for" keyword; however, Razor still wants that to be applicable because if you type out the full @for keyword it will generate the
+        //    appropriate C# code.
+        // 3. Remove Razor intrinsic design time items. Razor adds all sorts of C# helpers like __o, __builder etc. to aid in C# compilation/understanding; however, these aren't useful in regards to C# completion.
+        private CompletionList PostProcessCSharpCompletionList(
+            CompletionParams request,
+            LSPDocumentSnapshot documentSnapshot,
+            TextExtent? wordExtent,
+            CompletionList completionList)
+        {
+            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot.Uri);
+            if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
+            {
+                completionList = RemovePreselection(completionList);
+                completionList = IncludeCSharpKeywords(completionList);
+
+                // -1 is to account for the transition so base indentation is "|@if" instead of "@|if"
+                var baseIndentation = Math.Max(GetBaseIndentation(wordExtent.Value, formattingOptions) - 1, 0);
+                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
+            }
+            else if (IsWordOnEmptyLine(wordExtent, documentSnapshot))
+            {
+                var baseIndentation = GetBaseIndentation(wordExtent.Value, formattingOptions);
+                completionList = IncludeCSharpSnippets(baseIndentation, completionList, formattingOptions);
+            }
+
+            completionList = RemoveDesignTimeItems(documentSnapshot, wordExtent, completionList);
+
+            return completionList;
+        }
+
+        private static CompletionList IncludeCSharpSnippets(int baseIndentation, CompletionList completionList, FormattingOptions formattingOptions)
+        {
+            var baseIndentationString = GetIndentationString(baseIndentation, formattingOptions);
+            var baseIndentationPlus1String = GetIndentationString(baseIndentation + formattingOptions.TabSize, formattingOptions);
+
+            var forSnippet = new CompletionItem()
+            {
+                Label = "for (...)",
+                InsertText =
+                    @$"for (var ${{1:i}} = 0; ${{1:i}} < ${{2:length}}; ${{1:i}}++)
+{baseIndentationString}{{
+{baseIndentationPlus1String}$0
+{baseIndentationString}}}",
+                InsertTextFormat = InsertTextFormat.Snippet,
+                Kind = CompletionItemKind.Snippet,
+            };
+            var foreachSnippet = new CompletionItem()
+            {
+                Label = "foreach (...)",
+                InsertText =
+                    @$"foreach (${{1:var}} ${{2:item}} in ${{3:collection}})
+{baseIndentationString}{{
+{baseIndentationPlus1String}$0
+{baseIndentationString}}}",
+                InsertTextFormat = InsertTextFormat.Snippet,
+                Kind = CompletionItemKind.Snippet,
+            };
+            var ifSnippet = new CompletionItem()
+            {
+                Label = "if (...)",
+                InsertText =
+                    @$"if (${{1:true}})
+{baseIndentationString}{{
+{baseIndentationPlus1String}$0
+{baseIndentationString}}}",
+                InsertTextFormat = InsertTextFormat.Snippet,
+                Kind = CompletionItemKind.Snippet,
+            };
+            var propSnippet = new CompletionItem()
+            {
+                Label = "prop",
+                InsertText = "public ${1:int} ${2:MyProperty} { get; set; }$0",
+                InsertTextFormat = InsertTextFormat.Snippet,
+                Kind = CompletionItemKind.Snippet,
+            };
+
+            var snippets = new[]
+            {
+                forSnippet,
+                foreachSnippet,
+                ifSnippet,
+                propSnippet,
+            };
+            var newList = completionList.Items.Union(snippets, CompletionItemComparer.Instance);
+            completionList.Items = newList.ToArray();
+            return completionList;
+        }
+
+        private static IReadOnlyCollection<CompletionItem> GenerateCompletionItems(IReadOnlyCollection<string> completionItems)
+            => completionItems.Select(item => new CompletionItem { Label = item }).ToArray();
+
+        private static bool IsSimpleImplicitExpression(CompletionParams request, LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
+        {
+            if (string.Equals(request.Context.TriggerCharacter, "@", StringComparison.Ordinal))
+            {
+                // Completion was triggered with `@` this is always a simple implicit expression
+                return true;
+            }
+
+            if (wordExtent == null)
+            {
+                return false;
+            }
+
+            if (!wordExtent.Value.IsSignificant)
+            {
+                // Word is only whitespace, definitely not an implicit expresison
+                return false;
+            }
+
+            // We need to look at the item before the word because `@` at the beginning of a word is not encapsulated in that word.
+            var leadingWordCharacterIndex = Math.Max(0, wordExtent.Value.Span.Start.Position - 1);
+            var leadingWordCharacter = documentSnapshot.Snapshot[leadingWordCharacterIndex];
+            if (leadingWordCharacter == '@')
+            {
+                // This means that completion was requested at something like @for|e and the word was "fore" with the previous character index being "@"
+                return true;
+            }
+
+            return false;
+        }
+
+        // We should remove Razor design time helpers from C#'s completion list. If the current identifier being targeted does not start with a double
+        // underscore, we trim out all items starting with "__" from the completion list. If the current identifier does start with a double underscore
+        // (e.g. "__ab[||]"), we only trim out common design time helpers from the completion list.
+        private static CompletionList RemoveDesignTimeItems(
+            LSPDocumentSnapshot documentSnapshot,
+            TextExtent? wordExtent,
+            CompletionList completionList)
+        {
+            var filteredItems = completionList.Items.Except(s_designTimeHelpersCompletionItems, CompletionItemComparer.Instance).ToArray();
+
+            // If the current identifier starts with "__", only trim out common design time helpers from the list.
+            // In all other cases, trim out both common design time helpers and all completion items starting with "__".
+            if (ShouldRemoveAllDesignTimeItems(documentSnapshot, wordExtent))
+            {
+                filteredItems = filteredItems.Where(item => item.Label != null && !item.Label.StartsWith("__", StringComparison.Ordinal)).ToArray();
+            }
+
+            completionList.Items = filteredItems;
+
+            return completionList;
+
+            static bool ShouldRemoveAllDesignTimeItems(LSPDocumentSnapshot documentSnapshot, TextExtent? wordExtent)
+            {
+                if (!wordExtent.HasValue)
+                {
+                    return true;
+                }
+
+                var wordSpan = wordExtent.Value.Span;
+                if (wordSpan.Length < 2)
+                {
+                    return true;
+                }
+
+                var snapshot = documentSnapshot.Snapshot;
+                var startIndex = wordSpan.Start.Position;
+
+                if (snapshot[startIndex] == '_' && snapshot[startIndex + 1] == '_')
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        // Internal for testing only
+        internal static CompletionContext RewriteContext(CompletionContext context, RazorLanguageKind languageKind)
+        {
+            if (context.TriggerKind != CompletionTriggerKind.TriggerCharacter)
+            {
+                // Non-triggered based completion, the existing context is valid;
+                return context;
+            }
+
+            if (languageKind == RazorLanguageKind.CSharp && s_cSharpTriggerCharacters.Contains(context.TriggerCharacter))
+            {
+                // C# trigger character for C# content
+                return context;
+            }
+
+            if (languageKind == RazorLanguageKind.Html && s_htmlTriggerCharacters.Contains(context.TriggerCharacter))
+            {
+                // HTML trigger character for HTML content
+                return context;
+            }
+
+            // Trigger character not associated with the current langauge. Transform the context into an invoked context.
+            var rewrittenContext = new VSInternalCompletionContext()
+            {
+                TriggerKind = CompletionTriggerKind.Invoked,
+            };
+
+            var invokeKind = (context as VSInternalCompletionContext)?.InvokeKind;
+            if (invokeKind.HasValue)
+            {
+                rewrittenContext.InvokeKind = invokeKind.Value;
+            }
+
+            if (languageKind == RazorLanguageKind.CSharp && s_razorTriggerCharacters.Contains(context.TriggerCharacter))
+            {
+                // The C# language server will not return any completions for the '@' character unless we
+                // send the completion request explicitly.
+                rewrittenContext.InvokeKind = VSInternalCompletionInvokeKind.Explicit;
+            }
+
+            return rewrittenContext;
+        }
+
+        internal async Task<(bool, SumType<CompletionItem[], CompletionList>?)> TryGetProvisionalCompletionsAsync(
+            CompletionParams request,
+            LSPDocumentSnapshot documentSnapshot,
+            ProjectionResult projection,
+            CancellationToken cancellationToken)
         {
             SumType<CompletionItem[], CompletionList>? result = null;
             if (projection.LanguageKind != RazorLanguageKind.Html ||
                 request.Context.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
                 request.Context.TriggerCharacter != ".")
             {
+                _logger.LogInformation("Invalid provisional completion context.");
                 return (false, result);
             }
 
             if (projection.Position.Character == 0)
             {
                 // We're at the start of line. Can't have provisional completions here.
+                _logger.LogInformation("Start of line, invalid completion location.");
                 return (false, result);
             }
 
             var previousCharacterPosition = new Position(projection.Position.Line, projection.Position.Character - 1);
-            var previousCharacterProjection = await _projectionProvider.GetProjectionAsync(documentSnapshot, previousCharacterPosition, cancellationToken).ConfigureAwait(false);
-            if (previousCharacterProjection == null || previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp)
+            var previousCharacterProjection = await _projectionProvider.GetProjectionAsync(
+                documentSnapshot,
+                previousCharacterPosition,
+                cancellationToken).ConfigureAwait(false);
+            if (previousCharacterProjection == null ||
+                previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp ||
+                previousCharacterProjection.HostDocumentVersion is null)
             {
+                _logger.LogInformation($"Failed to find previous char projection in {previousCharacterProjection?.LanguageKind:G} at version {previousCharacterProjection?.HostDocumentVersion}.");
                 return (false, result);
             }
 
-            if (!(_documentManager is TrackingLSPDocumentManager trackingDocumentManager))
+            if (_documentManager is not TrackingLSPDocumentManager trackingDocumentManager)
             {
+                _logger.LogInformation("Not a tracking document manager.");
                 return (false, result);
             }
 
@@ -176,102 +523,174 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // completion items for moments when a user has typed a '.' that's typically interpreted as Html.
             var addProvisionalDot = new VisualStudioTextChange(previousCharacterProjection.PositionIndex, 0, ".");
 
-            await _joinableTaskFactory.SwitchToMainThreadAsync();
+            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(documentSnapshot.Uri, new[] { addProvisionalDot }, previousCharacterProjection.HostDocumentVersion);
+            _logger.LogInformation("Adding provisional dot.");
+            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
+                documentSnapshot.Uri,
+                new[] { addProvisionalDot },
+                previousCharacterProjection.HostDocumentVersion.Value);
 
             var provisionalCompletionParams = new CompletionParams()
             {
                 Context = request.Context,
-                Position = new Position(previousCharacterProjection.Position.Line, previousCharacterProjection.Position.Character + 1),
-                TextDocument = new TextDocumentIdentifier() { Uri = previousCharacterProjection.Uri }
+                Position = new Position(
+                    previousCharacterProjection.Position.Line,
+                    previousCharacterProjection.Position.Character + 1),
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = previousCharacterProjection.Uri
+                }
             };
 
-            result = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
+            _logger.LogInformation($"Requesting provisional completion for {previousCharacterProjection.Uri}.");
+
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
                 Methods.TextDocumentCompletionName,
-                LanguageServerKind.CSharp,
+                RazorLSPConstants.RazorCSharpLanguageServerName,
                 provisionalCompletionParams,
                 cancellationToken).ConfigureAwait(true);
+            result = response.Result;
 
             // We have now obtained the necessary completion items. We no longer need the provisional change. Revert.
             var removeProvisionalDot = new VisualStudioTextChange(previousCharacterProjection.PositionIndex, 1, string.Empty);
 
-            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(documentSnapshot.Uri, new[] { removeProvisionalDot }, previousCharacterProjection.HostDocumentVersion);
+            _logger.LogInformation("Removing provisional dot.");
+            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
+                documentSnapshot.Uri,
+                new[] { removeProvisionalDot },
+                previousCharacterProjection.HostDocumentVersion.Value);
 
+            _logger.LogInformation("Found provisional completion.");
             return (true, result);
         }
 
-        // C# keywords were previously provided by snippets, but as of now C# LSP doesn't provide snippets. 
-        // We're providing these for now to improve the user experience (not having to ESC out of completions to finish),
-        // but once C# starts providing them their completion will be offered instead, at which point we should be able to remove this step.
-        private SumType<CompletionItem[], CompletionList>? IncludeCSharpKeywords(SumType<CompletionItem[], CompletionList> completionResult, LanguageServerKind kind)
+        // In cases like "@{" preselection can lead to unexpected behavior, so let's exclude it.
+        private static CompletionList RemovePreselection(CompletionList completionList)
         {
-            var result = completionResult.Match<SumType<CompletionItem[], CompletionList>?>(
-                items =>
-                {
-                    var newList = items.Union(KeywordCompletionItems, CompletionItemComparer.Instance);
-                    return newList.ToArray();
-                },
-                list =>
-                {
-                    var newList = list.Items.Union(KeywordCompletionItems, CompletionItemComparer.Instance);
-                    list.Items = newList.ToArray();
+            foreach (var item in completionList.Items)
+            {
+                item.Preselect = false;
+            }
 
-                    return list;
-                });
-
-            return result;
+            return completionList;
         }
 
-        // Internal for testing
-        internal SumType<CompletionItem[], CompletionList>? SetResolveData(SumType<CompletionItem[], CompletionList> completionResult, LanguageServerKind kind)
+        // C# keywords were previously provided by snippets, but as of now C# LSP doesn't provide snippets.
+        // We're providing these for now to improve the user experience (not having to ESC out of completions to finish),
+        // but once C# starts providing them their completion will be offered instead, at which point we should be able to remove this step.
+        private static CompletionList IncludeCSharpKeywords(CompletionList completionList)
         {
-            var result = completionResult.Match<SumType<CompletionItem[], CompletionList>?>(
-                items =>
-                {
-                    var newItems = items.Select(item => SetData(item)).ToArray();
-                    return newItems;
-                },
-                list =>
-                {
-                    var newItems = list.Items.Select(item => SetData(item)).ToArray();
-                    if (list is VSCompletionList vsList)
-                    {
-                        return new VSCompletionList()
-                        {
-                            Items = newItems,
-                            IsIncomplete = vsList.IsIncomplete,
-                            SuggesstionMode = vsList.SuggesstionMode,
-                            ContinueCharacters = vsList.ContinueCharacters
-                        };
-                    }
+            var newList = completionList.Items.Union(s_keywordCompletionItems, CompletionItemComparer.Instance);
+            completionList.Items = newList.ToArray();
 
-                    return new CompletionList()
-                    {
-                        Items = newItems,
-                        IsIncomplete = list.IsIncomplete,
-                    };
-                },
-                () => null);
+            return completionList;
+        }
 
-            return result;
+        // The TextEdit positions returned to us from the C#/HTML language servers are positions correlating to the virtual document.
+        // We need to translate these positions to apply to the Razor document instead. Performance is a big concern here, so we want to
+        // make the logic as simple as possible, i.e. no asynchronous calls.
+        // The current logic takes the approach of assuming the original request's position (Razor doc) correlates directly to the positions
+        // returned by the C#/HTML language servers. We use this assumption (+ math) to map from the virtual (projected) doc positions ->
+        // Razor doc positions.
+        internal static CompletionList TranslateTextEdits(
+            Position hostDocumentPosition,
+            Position projectedPosition,
+            TextExtent? wordExtent,
+            CompletionList completionList)
+        {
+            var wordRange = wordExtent.HasValue && wordExtent.Value.IsSignificant ? wordExtent?.Span.AsRange() : null;
+            var newItems = completionList.Items.Select(item => TranslateTextEdits(hostDocumentPosition, projectedPosition, wordRange, item)).ToArray();
+            completionList.Items = newItems;
 
-            CompletionItem SetData(CompletionItem item)
+            return completionList;
+
+            static CompletionItem TranslateTextEdits(Position hostDocumentPosition, Position projectedPosition, Range wordRange, CompletionItem item)
             {
-                var data = new CompletionResolveData()
+                if (item.TextEdit != null)
                 {
-                    LanguageServerKind = kind,
-                    OriginalData = item.Data
-                };
+                    var offset = projectedPosition.Character - hostDocumentPosition.Character;
 
-                item.Data = data;
+                    var editStartPosition = item.TextEdit.Range.Start;
+                    var translatedStartPosition = TranslatePosition(offset, hostDocumentPosition, editStartPosition);
+                    var editEndPosition = item.TextEdit.Range.End;
+                    var translatedEndPosition = TranslatePosition(offset, hostDocumentPosition, editEndPosition);
+                    var translatedRange = new Range()
+                    {
+                        Start = translatedStartPosition,
+                        End = translatedEndPosition,
+                    };
+
+                    // Reduce the range down to the wordRange if needed. This means if we have a C# text edit that goes beyond
+                    // the original word, then we need to ensure that the edit is scoped to the word, otherwise it may remove
+                    // portions of the Razor document. This may not happen in practice, but we want to be fail-safe.
+                    //
+                    // For example, if we had the following code in the C# virtual doc:
+                    //     SomeMethod(|1|, 2);
+                    // Which corresponded to the following in a Razor file (notice '2' is not present here):
+                    //     <MyTagHelper SomeAttribute="|1|"/>
+                    // If there was a completion item that replaced '|1|, 2' with something like 'MyVariable', then without the
+                    // logic below, the TextEdit may be applied to the Razor file as:
+                    //     <MyTagHelper SomeAttribute="MyVariable>
+                    var scopedTranslatedRange = wordRange?.Overlap(translatedRange) ?? translatedRange;
+
+                    var translatedText = item.TextEdit.NewText;
+                    item.TextEdit = new TextEdit()
+                    {
+                        Range = scopedTranslatedRange,
+                        NewText = translatedText,
+                    };
+                }
+                else if (item.AdditionalTextEdits != null)
+                {
+                    // Additional text edits should typically only be provided at resolve time. We don't support them in the normal completion flow.
+                    item.AdditionalTextEdits = null;
+                }
 
                 return item;
+
+                static Position TranslatePosition(int offset, Position hostDocumentPosition, Position editPosition)
+                {
+                    var translatedCharacter = editPosition.Character - offset;
+
+                    // Note: If this completion handler ever expands to deal with multi-line TextEdits, this logic will likely need to change since
+                    // it assumes we're only dealing with single-line TextEdits.
+                    var translatedPosition = new Position(hostDocumentPosition.Line, translatedCharacter);
+                    return translatedPosition;
+                }
+            }
+        }
+
+        internal static void SetResolveData(long resultId, CompletionList completionList)
+        {
+            if (completionList is VSInternalCompletionList vsCompletionList && vsCompletionList.Data != null)
+            {
+                // Provided completion list is already wrapping completion list data, lets wrap that instead of each completion item.
+
+                var data = new CompletionResolveData()
+                {
+                    ResultId = resultId,
+                    OriginalData = vsCompletionList.Data,
+                };
+                vsCompletionList.Data = data;
+            }
+            else
+            {
+                for (var i = 0; i < completionList.Items.Length; i++)
+                {
+                    var item = completionList.Items[i];
+                    var data = new CompletionResolveData()
+                    {
+                        ResultId = resultId,
+                        OriginalData = item.Data,
+                    };
+                    item.Data = data;
+                }
             }
         }
 
         // Internal for testing
-        internal bool TriggerAppliesToProjection(CompletionContext context, RazorLanguageKind languageKind)
+        internal static bool TriggerAppliesToProjection(CompletionContext context, RazorLanguageKind languageKind)
         {
             if (languageKind == RazorLanguageKind.Razor)
             {
@@ -304,22 +723,116 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static bool IsApplicableTriggerCharacter(string triggerCharacter, RazorLanguageKind languageKind)
         {
-            if (languageKind == RazorLanguageKind.CSharp)
+            if (s_razorTriggerCharacters.Contains(triggerCharacter))
             {
-                return CSharpTriggerCharacters.Contains(triggerCharacter);
+                // Razor trigger characters always transition into either C# or HTML, always note as "applicable".
+                return true;
+            }
+            else if (languageKind == RazorLanguageKind.CSharp)
+            {
+                return s_cSharpTriggerCharacters.Contains(triggerCharacter);
             }
             else if (languageKind == RazorLanguageKind.Html)
             {
-                return HtmlTriggerCharacters.Contains(triggerCharacter);
+                return s_htmlTriggerCharacters.Contains(triggerCharacter);
             }
 
             // Unknown trigger character.
             return false;
         }
 
+        private static string GetIndentationString(int indentation, FormattingOptions options)
+        {
+            if (options.InsertSpaces)
+            {
+                return new string(' ', indentation);
+            }
+            else
+            {
+                var tabs = indentation / options.TabSize;
+                var tabPrefix = new string('\t', (int)tabs);
+
+                var spaces = indentation % options.TabSize;
+                var spaceSuffix = new string(' ', (int)spaces);
+
+                var combined = string.Concat(tabPrefix, spaceSuffix);
+                return combined;
+            }
+        }
+
+        private bool IsWordOnEmptyLine(TextExtent? wordExtent, LSPDocumentSnapshot documentSnapshot)
+        {
+            if (wordExtent == null)
+            {
+                return false;
+            }
+
+            var line = wordExtent.Value.Span.Start.GetContainingLine();
+            var lineStart = line.Start.Position;
+            var wordStart = wordExtent.Value.Span.Start.Position;
+
+            // Is the word prefixed by whitespace?
+            for (var i = lineStart; i < wordStart; i++)
+            {
+                if (!char.IsWhiteSpace(documentSnapshot.Snapshot[i]))
+                {
+                    return false;
+                }
+            }
+
+            var lineEnd = line.End.Position;
+            var wordEnd = wordExtent.Value.Span.End.Position;
+
+            // Is the word suffixed by whitespace?
+            for (var i = wordEnd; i < lineEnd; i++)
+            {
+                if (!char.IsWhiteSpace(documentSnapshot.Snapshot[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Internal for testing
+        internal static int GetBaseIndentation(TextExtent wordExtent, FormattingOptions formattingOptions)
+        {
+            var line = wordExtent.Span.Start.GetContainingLine();
+            var lineStart = line.Start.Position;
+            var wordStart = wordExtent.Span.Start.Position;
+
+            if (formattingOptions.InsertSpaces)
+            {
+                var baseIndentation = wordStart - lineStart;
+                return baseIndentation;
+            }
+            else
+            {
+                var leadingTabs = 0;
+                var firstNonTab = wordStart;
+                for (var i = lineStart; i < wordStart; i++)
+                {
+                    if (line.Snapshot[i] == '\t')
+                    {
+                        leadingTabs++;
+                    }
+                    else
+                    {
+                        firstNonTab = i;
+                        break;
+                    }
+                }
+                var nonTabIndentation = wordStart - firstNonTab;
+                var leadingIndentation = leadingTabs * formattingOptions.TabSize;
+                var baseIndentation = leadingIndentation + nonTabIndentation;
+                return baseIndentation;
+            }
+        }
+
         private class CompletionItemComparer : IEqualityComparer<CompletionItem>
         {
-            public static CompletionItemComparer Instance = new CompletionItemComparer();
+            public static CompletionItemComparer Instance = new();
 
             public bool Equals(CompletionItem x, CompletionItem y)
             {

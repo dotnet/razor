@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -35,21 +35,21 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         internal const string ActiveVirtualDocumentSuffix = "__virtual.cs";
         internal const string BackgroundVirtualDocumentSuffix = "__bg" + ActiveVirtualDocumentSuffix;
 
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly OmniSharpWorkspace _workspace;
-        private ILogger _logger;
+        private readonly ILogger _logger;
         private OmniSharpProjectSnapshotManager _projectManager;
-        private object _workspaceChangedLock;
+        private readonly object _workspaceChangedLock;
 
         [ImportingConstructor]
         public BackgroundDocumentProcessedPublisher(
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             OmniSharpWorkspace workspace,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (workspace is null)
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspace = workspace;
             _logger = loggerFactory.CreateLogger<BackgroundDocumentProcessedPublisher>();
             _workspaceChangedLock = new object();
@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_workspaceChangedLock)
             {
@@ -284,8 +284,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
             public async override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-                var sourceText = await _document.GetTextAsync();
-                var textVersion = await _document.GetTextVersionAsync();
+                var sourceText = await _document.GetTextAsync(cancellationToken);
+                var textVersion = await _document.GetTextVersionAsync(cancellationToken);
                 var textAndVersion = TextAndVersion.Create(sourceText, textVersion);
                 return textAndVersion;
             }

@@ -1,34 +1,35 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal static class RazorCompletionItemExtensions
     {
-        private readonly static string AttributeCompletionDescriptionKey = "Razor.AttributeDescription";
-        private readonly static string DirectiveCompletionDescriptionKey = "Razor.DirectiveDescription";
-        private readonly static string MarkupTransitionDescriptionKey = "Razor.MarkupTransitionDescription";
+        private readonly static string s_attributeCompletionDescriptionKey = "Razor.AttributeDescription";
+        private readonly static string s_directiveCompletionDescriptionKey = "Razor.DirectiveDescription";
+        private readonly static string s_markupTransitionDescriptionKey = "Razor.MarkupTransitionDescription";
 
-        public static void SetAttributeCompletionDescription(this RazorCompletionItem completionItem, AttributeCompletionDescription attributeCompletionDescription)
+        public static void SetAttributeCompletionDescription(this RazorCompletionItem completionItem, AggregateBoundAttributeDescription attributeCompletionDescription)
         {
             if (completionItem is null)
             {
                 throw new ArgumentNullException(nameof(completionItem));
             }
 
-            completionItem.Items[AttributeCompletionDescriptionKey] = attributeCompletionDescription;
+            completionItem.Items[s_attributeCompletionDescriptionKey] = attributeCompletionDescription;
         }
 
-        public static AttributeCompletionDescription GetAttributeCompletionDescription(this RazorCompletionItem completionItem)
+        public static AggregateBoundAttributeDescription GetAttributeCompletionDescription(this RazorCompletionItem completionItem)
         {
             if (completionItem is null)
             {
                 throw new ArgumentNullException(nameof(completionItem));
             }
 
-            var attributeCompletionDescription = completionItem.Items[AttributeCompletionDescriptionKey] as AttributeCompletionDescription;
+            var attributeCompletionDescription = completionItem.Items[s_attributeCompletionDescriptionKey] as AggregateBoundAttributeDescription;
             return attributeCompletionDescription;
         }
 
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 throw new ArgumentNullException(nameof(completionItem));
             }
 
-            completionItem.Items[DirectiveCompletionDescriptionKey] = attributeCompletionDescription;
+            completionItem.Items[s_directiveCompletionDescriptionKey] = attributeCompletionDescription;
         }
 
         public static DirectiveCompletionDescription GetDirectiveCompletionDescription(this RazorCompletionItem completionItem)
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 throw new ArgumentNullException(nameof(completionItem));
             }
 
-            var attributeCompletionDescription = completionItem.Items[DirectiveCompletionDescriptionKey] as DirectiveCompletionDescription;
+            var attributeCompletionDescription = completionItem.Items[s_directiveCompletionDescriptionKey] as DirectiveCompletionDescription;
             return attributeCompletionDescription;
         }
 
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 throw new ArgumentNullException(nameof(completionItem));
             }
 
-            completionItem.Items[MarkupTransitionDescriptionKey] = markupTransitionCompletionDescription;
+            completionItem.Items[s_markupTransitionDescriptionKey] = markupTransitionCompletionDescription;
         }
 
         public static MarkupTransitionCompletionDescription GetMarkupTransitionCompletionDescription(this RazorCompletionItem completionItem)
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 throw new ArgumentNullException(nameof(completionItem));
             }
 
-            var markupTransitionCompletionDescription = completionItem.Items[MarkupTransitionDescriptionKey] as MarkupTransitionCompletionDescription;
+            var markupTransitionCompletionDescription = completionItem.Items[s_markupTransitionDescriptionKey] as MarkupTransitionCompletionDescription;
             return markupTransitionCompletionDescription;
         }
     }

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public IPackageReferencesService ActiveConfiguredProjectPackageReferences => _activeConfiguredProjectPackageReferences.Value;
 
         public Rules.RazorProjectProperties ActiveConfiguredProjectRazorProperties => _activeConfiguredProjectProperties.Value;
-        
+
         public IActiveConfiguredProjectSubscriptionService ActiveConfiguredProjectSubscription { get; }
 
         public IProjectAsynchronousTasksService TasksService { get; }

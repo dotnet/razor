@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -20,36 +20,33 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         private const string ProjectChangedHint = "References";
 
         private bool _batchingProjectChanges;
-        private readonly DotNetProject _dotNetProject;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly ProjectSnapshotManagerBase _projectSnapshotManager;
         private readonly AsyncSemaphore _onProjectChangedInnerSemaphore;
         private readonly AsyncSemaphore _projectChangedSemaphore;
         private readonly Dictionary<string, HostDocument> _currentDocuments;
-        private HostProject _currentHostProject;
 
         public RazorProjectHostBase(
             DotNetProject project,
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (projectSnapshotManager == null)
+            if (projectSnapshotManager is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManager));
             }
 
-            _dotNetProject = project;
-            _foregroundDispatcher = foregroundDispatcher;
+            DotNetProject = project;
+            ProjectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectSnapshotManager = projectSnapshotManager;
             _onProjectChangedInnerSemaphore = new AsyncSemaphore(initialCount: 1);
             _projectChangedSemaphore = new AsyncSemaphore(initialCount: 1);
@@ -58,19 +55,19 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             AttachToProject();
         }
 
-        public DotNetProject DotNetProject => _dotNetProject;
+        public DotNetProject DotNetProject { get; }
 
-        public HostProject HostProject => _currentHostProject;
+        public HostProject HostProject { get; private set; }
 
-        protected ForegroundDispatcher ForegroundDispatcher => _foregroundDispatcher;
+        protected ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; }
 
         public void Detach()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             DotNetProject.Modified -= DotNetProject_Modified;
 
-            UpdateHostProjectForeground(null);
+            UpdateHostProjectProjectSnapshotManagerDispatcher(null);
         }
 
         protected abstract Task OnProjectChangedAsync();
@@ -78,21 +75,20 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
         // Protected virtual for testing
         protected virtual void AttachToProject()
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             DotNetProject.Modified += DotNetProject_Modified;
 
             // Trigger the initial update to the project.
             _batchingProjectChanges = true;
-            _ = Task.Factory.StartNew(ProjectChangedBackgroundAsync, null, CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.BackgroundScheduler);
+            _ = Task.Factory.StartNew(ProjectChangedBackgroundAsync, null, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         // Must be called inside the lock.
         protected async Task UpdateHostProjectUnsafeAsync(HostProject newHostProject)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
-            await Task.Factory.StartNew(UpdateHostProjectForeground, newHostProject, CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.ForegroundScheduler);
+            await ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () => UpdateHostProjectProjectSnapshotManagerDispatcher(newHostProject), CancellationToken.None).ConfigureAwait(false);
         }
 
         protected async Task ExecuteWithLockAsync(Func<Task> func)
@@ -105,8 +101,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         private async Task ProjectChangedBackgroundAsync(object state)
         {
-            ForegroundDispatcher.AssertBackgroundThread();
-
             _batchingProjectChanges = false;
 
             // Ensure ordering, typically we'll only have 1 background thread in flight at a time. However,
@@ -125,40 +119,41 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(args));
             }
 
-            ForegroundDispatcher.AssertForegroundThread();
-
-            if (_batchingProjectChanges)
+            _ = ProjectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync((args, ct) =>
             {
-                // Already waiting to recompute host project, no need to do any more work to determine if we're dirty.
-                return;
-            }
+                if (_batchingProjectChanges)
+                {
+                    // Already waiting to recompute host project, no need to do any more work to determine if we're dirty.
+                    return;
+                }
 
-            var projectChanged = args.Any(arg => string.Equals(arg.Hint, ProjectChangedHint, StringComparison.Ordinal));
-            if (projectChanged)
-            {
-                // This method can be spammed for tons of project change events but all we really care about is "are we dirty?". 
-                // Therefore, we re-dispatch here to allow any remaining project change events to fire and to then only have 1 host
-                // project change trigger; this way we don't spam our own system with re-configure calls.
-                _batchingProjectChanges = true;
-                _ = Task.Factory.StartNew(ProjectChangedBackgroundAsync, null, CancellationToken.None, TaskCreationOptions.None, ForegroundDispatcher.BackgroundScheduler);
-            }
+                var projectChanged = args.Any(arg => string.Equals(arg.Hint, ProjectChangedHint, StringComparison.Ordinal));
+                if (projectChanged)
+                {
+                    // This method can be spammed for tons of project change events but all we really care about is "are we dirty?".
+                    // Therefore, we re-dispatch here to allow any remaining project change events to fire and to then only have 1 host
+                    // project change trigger; this way we don't spam our own system with re-configure calls.
+                    _batchingProjectChanges = true;
+                    _ = Task.Factory.StartNew(ProjectChangedBackgroundAsync, null, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+                }
+            }, args, CancellationToken.None);
         }
 
-        private void UpdateHostProjectForeground(object state)
+        private void UpdateHostProjectProjectSnapshotManagerDispatcher(object state)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var newHostProject = (HostProject)state;
 
-            if (_currentHostProject == null && newHostProject == null)
+            if (HostProject == null && newHostProject == null)
             {
                 // This is a no-op. This project isn't using Razor.
             }
-            else if (_currentHostProject == null && newHostProject != null)
+            else if (HostProject == null && newHostProject != null)
             {
                 _projectSnapshotManager.ProjectAdded(newHostProject);
             }
-            else if (_currentHostProject != null && newHostProject == null)
+            else if (HostProject != null && newHostProject == null)
             {
                 _projectSnapshotManager.ProjectRemoved(HostProject);
             }
@@ -167,12 +162,12 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 _projectSnapshotManager.ProjectConfigurationChanged(newHostProject);
             }
 
-            _currentHostProject = newHostProject;
+            HostProject = newHostProject;
         }
 
         protected void AddDocument(HostProject hostProject, string filePath, string relativeFilePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            ProjectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_currentDocuments.ContainsKey(filePath))
             {

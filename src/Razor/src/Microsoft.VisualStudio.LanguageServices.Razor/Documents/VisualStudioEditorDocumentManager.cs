@@ -1,14 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
@@ -20,42 +22,37 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
 
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
-        private readonly uint _rdtCookie;
 
         private readonly Dictionary<uint, List<DocumentKey>> _documentsByCookie;
         private readonly Dictionary<DocumentKey, uint> _cookiesByDocument;
 
         public VisualStudioEditorDocumentManager(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext,
             FileChangeTrackerFactory fileChangeTrackerFactory,
             IVsRunningDocumentTable runningDocumentTable,
             IVsEditorAdaptersFactoryService editorAdaptersFactory)
-            : base(foregroundDispatcher, fileChangeTrackerFactory)
+            : base(projectSnapshotManagerDispatcher, joinableTaskContext, fileChangeTrackerFactory)
         {
-            if (runningDocumentTable == null)
+            if (runningDocumentTable is null)
             {
                 throw new ArgumentNullException(nameof(runningDocumentTable));
             }
 
-            if (editorAdaptersFactory == null)
+            if (editorAdaptersFactory is null)
             {
                 throw new ArgumentNullException(nameof(editorAdaptersFactory));
             }
 
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            if (fileChangeTrackerFactory == null)
+            if (fileChangeTrackerFactory is null)
             {
                 throw new ArgumentNullException(nameof(fileChangeTrackerFactory));
             }
 
             _runningDocumentTable = (IVsRunningDocumentTable4)runningDocumentTable;
             _editorAdaptersFactory = editorAdaptersFactory;
-            
-            var hr = runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out _rdtCookie);
+
+            var hr = runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out _);
             Marshal.ThrowExceptionForHR(hr);
 
             _documentsByCookie = new Dictionary<uint, List<DocumentKey>>();
@@ -64,20 +61,25 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override ITextBuffer GetTextBufferForOpenDocument(string filePath)
         {
-            if (filePath == null)
+            if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
+            JoinableTaskContext.AssertUIThread();
+
             // Check if the document is already open and initialized, and associate a buffer if possible.
-            var cookie = VSConstants.VSCOOKIE_NIL;
-            ITextBuffer textBuffer = null;
+            uint cookie;
             if (_runningDocumentTable.IsMonikerValid(filePath) &&
                 ((cookie = _runningDocumentTable.GetDocumentCookie(filePath)) != VSConstants.VSCOOKIE_NIL) &&
                 (_runningDocumentTable.GetDocumentFlags(cookie) & (uint)_VSRDTFLAGS4.RDT_PendingInitialization) == 0)
             {
-                var vsTextBuffer = ((object)_runningDocumentTable.GetDocumentData(cookie)) as VsTextBuffer;
-                textBuffer = vsTextBuffer == null ? null : _editorAdaptersFactory.GetDocumentBuffer(vsTextBuffer);
+                // GetDocumentData requires the UI thread
+                var documentData = _runningDocumentTable.GetDocumentData(cookie);
+
+                var textBuffer = !(documentData is VsTextBuffer vsTextBuffer)
+                    ? null
+                    : _editorAdaptersFactory.GetDocumentBuffer(vsTextBuffer);
                 return textBuffer;
             }
 
@@ -86,6 +88,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override void OnDocumentOpened(EditorDocument document)
         {
+            JoinableTaskContext.AssertUIThread();
+
             var cookie = _runningDocumentTable.GetDocumentCookie(document.DocumentFilePath);
             if (cookie != VSConstants.VSCOOKIE_NIL)
             {
@@ -95,6 +99,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         protected override void OnDocumentClosed(EditorDocument document)
         {
+            JoinableTaskContext.AssertUIThread();
+
             var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
             if (_cookiesByDocument.TryGetValue(key, out var cookie))
             {
@@ -104,12 +110,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void DocumentOpened(uint cookie)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 // Casts avoid dynamic
-                if ((object)(_runningDocumentTable.GetDocumentData(cookie)) is IVsTextBuffer vsTextBuffer)
+                if ((object)_runningDocumentTable.GetDocumentData(cookie) is IVsTextBuffer vsTextBuffer)
                 {
                     var filePath = _runningDocumentTable.GetDocumentMoniker(cookie);
                     if (!TryGetMatchingDocuments(filePath, out var documents))
@@ -122,10 +128,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                     if (textBuffer == null)
                     {
                         // The text buffer has not been created yet, register to be notified when it is.
-                        VsTextBufferDataEventsSink.Subscribe(vsTextBuffer, () =>
-                        {
-                            BufferLoaded(vsTextBuffer, filePath);
-                        });
+                        VsTextBufferDataEventsSink.Subscribe(vsTextBuffer, () => BufferLoaded(vsTextBuffer, filePath));
 
                         return;
                     }
@@ -143,8 +146,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void BufferLoaded(IVsTextBuffer vsTextBuffer, string filePath)
         {
-            ForegroundDispatcher.AssertForegroundThread();
-            
+            JoinableTaskContext.AssertUIThread();
+
             var textBuffer = _editorAdaptersFactory.GetDocumentBuffer(vsTextBuffer);
             if (textBuffer != null)
             {
@@ -159,9 +162,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void BufferLoaded(ITextBuffer textBuffer, string filePath, EditorDocument[] documents)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 for (var i = 0; i < documents.Length; i++)
                 {
@@ -172,9 +175,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void DocumentClosed(uint cookie, string exceptFilePath = null)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 if (!_documentsByCookie.TryGetValue(cookie, out var documents))
                 {
@@ -182,7 +185,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 }
 
                 // We have to deal with some complications here due to renames and event ordering and such.
-                // We we might see multiple documents open for a cookie (due to linked files), but only one of them 
+                // We we might see multiple documents open for a cookie (due to linked files), but only one of them
                 // has been renamed. In that case, we just process the change that we know about.
                 var filePaths = new HashSet<string>(documents.Select(d => d.DocumentFilePath));
                 filePaths.Remove(exceptFilePath);
@@ -196,7 +199,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public void DocumentRenamed(uint cookie, string fromFilePath, string toFilePath)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             // Ignore changes is casing
             if (FilePathComparer.Instance.Equals(fromFilePath, toFilePath))
@@ -204,7 +207,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                 return;
             }
 
-            lock (_lock)
+            lock (Lock)
             {
                 // Treat a rename as a close + reopen.
                 //

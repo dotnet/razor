@@ -5,9 +5,11 @@
             "label": "CompileTextMate",
             "type": "npm",
             "script": "compile:TextMate",
-            "problemMatcher": ["$eslint-stylish"],
+            "problemMatcher": [
+                "$eslint-stylish"
+            ],
             "options": {
-                "cwd": "src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.Extension/"
+                "cwd": "${workspaceFolder}/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.Extension/"
             }
         },
         {
@@ -17,7 +19,7 @@
                 "build"
             ],
             "options": {
-                "cwd": "src/Razor/src/Microsoft.AspNetCore.Razor.VSCode/"
+                "cwd": "${workspaceFolder}/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode/"
             },
             "problemMatcher": "$tsc-watch",
             "presentation": {
@@ -31,12 +33,37 @@
                 "build"
             ],
             "options": {
-                "cwd": "src/Razor/src/Microsoft.AspNetCore.Razor.VSCode/"
+                "cwd": "${workspaceFolder}/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode/"
             },
             "problemMatcher": "$tsc-watch",
             "presentation": {
                 "reveal": "silent"
-            }
+            },
+            "dependsOn": [
+                "ActivateDotnet"
+            ]
+        },
+        {
+            "label": "ActivateDotnet",
+            "type": "shell",
+            "windows": {
+                "command": "echo",
+                "args": [
+                    "Skipping activation on windows"
+                ]
+            },
+            "linux": {
+                "command": "source",
+                "args": [
+                    "activate.sh"
+                ],
+                "options": {
+                    "cwd": "${workspaceFolder}"
+                },
+                "presentation": {
+                    "reveal": "silent"
+                }
+            },
         },
         {
             "label": "WatchLibraryAndCompileExtension",
@@ -44,7 +71,7 @@
             "script": "watch",
             "problemMatcher": "$tsc-watch",
             "options": {
-                "cwd": "src/Razor/src/Microsoft.AspNetCore.Razor.VSCode/"
+                "cwd": "${workspaceFolder}/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode/"
             },
             "isBackground": true,
             "presentation": {
@@ -61,14 +88,14 @@
                 "build"
             ],
             "options": {
-                "cwd": "src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.Extension/"
+                "cwd": "${workspaceFolder}/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.Extension/"
             },
             "problemMatcher": "$tsc-watch",
             "presentation": {
                 "reveal": "silent"
             },
             "dependsOn": [
-              "CompileLibrary"
+                "CompileLibrary"
             ]
         },
         {
@@ -78,7 +105,7 @@
                 "build"
             ],
             "options": {
-                "cwd": "src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.Test/"
+                "cwd": "${workspaceFolder}/src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.Test/"
             },
             "problemMatcher": "$tsc-watch",
             "presentation": {
@@ -92,7 +119,7 @@
                 "build"
             ],
             "options": {
-                "cwd": "src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.Grammar.Test/"
+                "cwd": "${workspaceFolder}/src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.Grammar.Test/"
             },
             "problemMatcher": "$tsc-watch",
             "presentation": {
@@ -106,7 +133,7 @@
                 "build"
             ],
             "options": {
-                "cwd": "src/Razor/test/VSCode.FunctionalTest/"
+                "cwd": "${workspaceFolder}/src/Razor/test/VSCode.FunctionalTest/"
             },
             "problemMatcher": "$tsc-watch",
             "presentation": {

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -17,33 +17,25 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     [Export(typeof(IAsyncCompletionSourceProvider))]
     [Name("Razor directive completion provider.")]
     [ContentType(RazorLanguage.CoreContentType)]
+    [ContentType(RazorConstants.LegacyCoreContentType)]
     internal class RazorDirectiveCompletionSourceProvider : IAsyncCompletionSourceProvider
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
         private readonly RazorCompletionFactsService _completionFactsService;
 
         [ImportingConstructor]
-        public RazorDirectiveCompletionSourceProvider(
-            ForegroundDispatcher foregroundDispatcher, 
-            RazorCompletionFactsService completionFactsService)
+        public RazorDirectiveCompletionSourceProvider(RazorCompletionFactsService completionFactsService)
         {
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            if (completionFactsService == null)
+            if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
             _completionFactsService = completionFactsService;
         }
 
         public IAsyncCompletionSource GetOrCreate(ITextView textView)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }
@@ -68,7 +60,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 return null;
             }
 
-            var completionSource = new RazorDirectiveCompletionSource(_foregroundDispatcher, parser, _completionFactsService);
+            var completionSource = new RazorDirectiveCompletionSource(parser, _completionFactsService);
             return completionSource;
         }
     }

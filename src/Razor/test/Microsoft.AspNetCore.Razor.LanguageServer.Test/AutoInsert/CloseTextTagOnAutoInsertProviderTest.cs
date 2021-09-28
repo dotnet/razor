@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.Extensions.Options;
 using Moq;
@@ -15,15 +15,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             RunAutoInsertTest(
 input: @"
 @{
-    <text|
+    <text>$$
 }
 ",
 expected: @"
 @{
     <text>$0</text>
 }
-",
-character: ">");
+");
         }
 
         [Fact]
@@ -31,17 +30,16 @@ character: ">");
         {
             RunAutoInsertTest(
 input: @"
-    <text|
+    <text>$$
 ",
 expected: @"
     <text>
-",
-character: ">");
+");
         }
 
         internal override RazorOnAutoInsertProvider CreateProvider()
         {
-            var optionsMonitor = new Mock<IOptionsMonitor<RazorLSPOptions>>();
+            var optionsMonitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
             optionsMonitor.SetupGet(o => o.CurrentValue).Returns(RazorLSPOptions.Default);
             var provider = new CloseTextTagOnAutoInsertProvider(optionsMonitor.Object);
 

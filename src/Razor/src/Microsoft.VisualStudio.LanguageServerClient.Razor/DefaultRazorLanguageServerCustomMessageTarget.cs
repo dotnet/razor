@@ -1,17 +1,27 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
+using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
+using SemanticTokensParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -21,12 +31,42 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly TrackingLSPDocumentManager _documentManager;
         private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly LSPRequestInvoker _requestInvoker;
+        private readonly RazorUIContextManager _uIContextManager;
+        private readonly IDisposable _razorReadyListener;
+        private readonly RazorLSPClientOptionsMonitor _clientOptionsMonitor;
+        private readonly LSPDocumentSynchronizer _documentSynchronizer;
+
+        private const string RazorReadyFeature = "Razor-Initialization";
 
         [ImportingConstructor]
         public DefaultRazorLanguageServerCustomMessageTarget(
             LSPDocumentManager documentManager,
             JoinableTaskContext joinableTaskContext,
-            LSPRequestInvoker requestInvoker)
+            LSPRequestInvoker requestInvoker,
+            RazorUIContextManager uIContextManager,
+            IRazorAsynchronousOperationListenerProviderAccessor asyncOpListenerProvider,
+            RazorLSPClientOptionsMonitor clientOptionsMonitor,
+            LSPDocumentSynchronizer documentSynchronizer)
+                : this(
+                    documentManager,
+                    joinableTaskContext,
+                    requestInvoker,
+                    uIContextManager,
+                    asyncOpListenerProvider.GetListener(RazorReadyFeature).BeginAsyncOperation(RazorReadyFeature),
+                    clientOptionsMonitor,
+                    documentSynchronizer)
+        {
+        }
+
+        // Testing constructor
+        internal DefaultRazorLanguageServerCustomMessageTarget(
+            LSPDocumentManager documentManager,
+            JoinableTaskContext joinableTaskContext,
+            LSPRequestInvoker requestInvoker,
+            RazorUIContextManager uIContextManager,
+            IDisposable razorReadyListener,
+            RazorLSPClientOptionsMonitor clientOptionsMonitor,
+            LSPDocumentSynchronizer documentSynchronizer)
         {
             if (documentManager is null)
             {
@@ -43,17 +83,39 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(requestInvoker));
             }
 
+            if (uIContextManager is null)
+            {
+                throw new ArgumentNullException(nameof(uIContextManager));
+            }
+
+            if (razorReadyListener is null)
+            {
+                throw new ArgumentNullException(nameof(razorReadyListener));
+            }
+
+            if (clientOptionsMonitor is null)
+            {
+                throw new ArgumentNullException(nameof(clientOptionsMonitor));
+            }
+
+            if (documentSynchronizer is null)
+            {
+                throw new ArgumentNullException(nameof(documentSynchronizer));
+            }
+
             _documentManager = documentManager as TrackingLSPDocumentManager;
 
             if (_documentManager is null)
             {
-#pragma warning disable CA2208 // Instantiate argument exceptions correctly
                 throw new ArgumentException("The LSP document manager should be of type " + typeof(TrackingLSPDocumentManager).FullName, nameof(_documentManager));
-#pragma warning restore CA2208 // Instantiate argument exceptions correctly
             }
 
             _joinableTaskFactory = joinableTaskContext.Factory;
             _requestInvoker = requestInvoker;
+            _uIContextManager = uIContextManager;
+            _razorReadyListener = razorReadyListener;
+            _clientOptionsMonitor = clientOptionsMonitor;
+            _documentSynchronizer = documentSynchronizer;
         }
 
         // Testing constructor
@@ -62,23 +124,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager = documentManager;
         }
 
-        public override async Task UpdateCSharpBufferAsync(JToken token, CancellationToken cancellationToken)
+        public override async Task UpdateCSharpBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
         {
-            if (token is null)
+            if (request is null)
             {
-                throw new ArgumentNullException(nameof(token));
+                throw new ArgumentNullException(nameof(request));
             }
 
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            UpdateCSharpBuffer(token);
+            UpdateCSharpBuffer(request);
         }
 
         // Internal for testing
-        internal void UpdateCSharpBuffer(JToken token)
+        internal void UpdateCSharpBuffer(UpdateBufferRequest request)
         {
-            var request = token.ToObject<UpdateBufferRequest>();
-            if (request == null || request.HostDocumentFilePath == null)
+            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
             {
                 return;
             }
@@ -87,26 +148,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 hostDocumentUri,
                 request.Changes?.Select(change => change.ToVisualStudioTextChange()).ToArray(),
-                request.HostDocumentVersion);
+                request.HostDocumentVersion.Value);
         }
 
-        public override async Task UpdateHtmlBufferAsync(JToken token, CancellationToken cancellationToken)
+        public override async Task UpdateHtmlBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
         {
-            if (token is null)
+            if (request is null)
             {
-                throw new ArgumentNullException(nameof(token));
+                throw new ArgumentNullException(nameof(request));
             }
 
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            UpdateHtmlBuffer(token);
+            UpdateHtmlBuffer(request);
         }
 
         // Internal for testing
-        internal void UpdateHtmlBuffer(JToken token)
+        internal void UpdateHtmlBuffer(UpdateBufferRequest request)
         {
-            var request = token.ToObject<UpdateBufferRequest>();
-            if (request == null || request.HostDocumentFilePath == null)
+            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
             {
                 return;
             }
@@ -115,7 +175,49 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
                 hostDocumentUri,
                 request.Changes?.Select(change => change.ToVisualStudioTextChange()).ToArray(),
-                request.HostDocumentVersion);
+                request.HostDocumentVersion.Value);
+        }
+
+        public override async Task<RazorDocumentRangeFormattingResponse> RazorDocumentFormattingAsync(DocumentFormattingParams request, CancellationToken cancellationToken)
+        {
+            var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
+
+            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var hostDocumentUri = request.TextDocument.Uri;
+            if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
+            {
+                return response;
+            }
+
+            string languageServerName;
+            Uri projectedUri;
+            if (documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
+            {
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                projectedUri = htmlDocument.Uri;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
+                return response;
+            }
+
+            var formattingParams = new DocumentFormattingParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { Uri = projectedUri },
+                Options = request.Options
+            };
+
+            var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentFormattingParams, TextEdit[]>(
+                Methods.TextDocumentFormattingName,
+                languageServerName,
+                formattingParams,
+                cancellationToken).ConfigureAwait(false);
+
+            response.Edits = edits.Result ?? Array.Empty<TextEdit>();
+
+            return response;
         }
 
         public override async Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams request, CancellationToken cancellationToken)
@@ -127,27 +229,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return response;
             }
 
-            await _joinableTaskFactory.SwitchToMainThreadAsync();
-            
+            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             var hostDocumentUri = new Uri(request.HostDocumentFilePath);
             if (!_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot))
             {
                 return response;
             }
 
-            var serverKind = default(LanguageServerKind);
-            var projectedUri = default(Uri);
+            string languageServerName;
+            Uri projectedUri;
             if (request.Kind == RazorLanguageKind.CSharp &&
                 documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDocument))
             {
-                serverKind = LanguageServerKind.CSharp;
+                languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
                 projectedUri = csharpDocument.Uri;
-            }
-            else if (request.Kind == RazorLanguageKind.Html &&
-                documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
-            {
-                serverKind = LanguageServerKind.Html;
-                projectedUri = htmlDocument.Uri;
             }
             else
             {
@@ -162,13 +258,237 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Options = request.Options
             };
 
-            response.Edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
+            var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
                 Methods.TextDocumentRangeFormattingName,
-                serverKind,
+                languageServerName,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
 
+            response.Edits = edits.Result ?? Array.Empty<TextEdit>();
+
             return response;
+        }
+
+        public override async Task<VSInternalCodeAction[]> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
+        {
+            if (codeActionParams is null)
+            {
+                throw new ArgumentNullException(nameof(codeActionParams));
+            }
+
+            if (!_documentManager.TryGetDocument(codeActionParams.TextDocument.Uri, out var documentSnapshot))
+            {
+                return null;
+            }
+
+            if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
+            {
+                return null;
+            }
+
+            codeActionParams.TextDocument.Uri = csharpDoc.Uri;
+
+            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSInternalCodeAction[]>(
+                Methods.TextDocumentCodeActionName,
+                LanguageServerKind.CSharp.ToContentType(),
+                SupportsCSharpCodeActions,
+                codeActionParams,
+                cancellationToken).ConfigureAwait(false);
+
+            return results.SelectMany(l => l.Result).ToArray();
+        }
+
+        public override async Task<VSInternalCodeAction> ResolveCodeActionsAsync(VSInternalCodeAction codeAction, CancellationToken cancellationToken)
+        {
+            if (codeAction is null)
+            {
+                throw new ArgumentNullException(nameof(codeAction));
+            }
+
+            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
+                Methods.CodeActionResolveName,
+                LanguageServerKind.CSharp.ToContentType(),
+                SupportsCSharpCodeActions,
+                codeAction,
+                cancellationToken).ConfigureAwait(false);
+
+            return results.FirstOrDefault(c => c.Result != null).Result;
+        }
+
+        public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(
+            ProvideSemanticTokensParams semanticTokensParams,
+            CancellationToken cancellationToken)
+        {
+            if (semanticTokensParams is null)
+            {
+                throw new ArgumentNullException(nameof(semanticTokensParams));
+            }
+
+            var csharpDoc = GetCSharpDocumentSnapshsot(semanticTokensParams.TextDocument.Uri.ToUri());
+            if (csharpDoc is null)
+            {
+                return null;
+            }
+
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                (int)semanticTokensParams.RequiredHostDocumentVersion, csharpDoc, cancellationToken);
+
+            if (!synchronized)
+            {
+                // If we're unable to synchronize we won't produce useful results, but we have to indicate
+                // it's due to out of sync by providing the old version
+                return new ProvideSemanticTokensResponse(
+                    resultId: null, tokens: null, isFinalized: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+            }
+
+            var csharpTextDocument = semanticTokensParams.TextDocument with { Uri = csharpDoc.Uri };
+            semanticTokensParams = semanticTokensParams with { TextDocument = csharpTextDocument };
+
+            var newParams = new SemanticTokensParams
+            {
+                TextDocument = semanticTokensParams.TextDocument,
+                PartialResultToken = semanticTokensParams.PartialResultToken,
+            };
+
+            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, VSSemanticTokensResponse>(
+                Methods.TextDocumentSemanticTokensFullName,
+                RazorLSPConstants.RazorCSharpLanguageServerName,
+                newParams,
+                cancellationToken).ConfigureAwait(false);
+
+            var result = csharpResults.Result;
+            var response = new ProvideSemanticTokensResponse(
+                result.ResultId, result.Data, result.IsFinalized, semanticTokensParams.RequiredHostDocumentVersion);
+
+            return response;
+        }
+
+        public override async Task<ProvideSemanticTokensEditsResponse> ProvideSemanticTokensEditsAsync(
+            ProvideSemanticTokensDeltaParams semanticTokensEditsParams,
+            CancellationToken cancellationToken)
+        {
+            if (semanticTokensEditsParams is null)
+            {
+                throw new ArgumentNullException(nameof(semanticTokensEditsParams));
+            }
+
+            var documentUri = semanticTokensEditsParams.TextDocument.Uri.ToUri();
+            var csharpDoc = GetCSharpDocumentSnapshsot(documentUri);
+            if (csharpDoc is null)
+            {
+                return null;
+            }
+
+            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+                (int)semanticTokensEditsParams.RequiredHostDocumentVersion, csharpDoc, cancellationToken);
+            if (!synchronized)
+            {
+                // If we're unable to synchronize we won't produce useful results
+                return new ProvideSemanticTokensEditsResponse(
+                    resultId: null, tokens: null, edits: null, isFinalized: true, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+            }
+
+            var newParams = new SemanticTokensDeltaParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = csharpDoc.Uri,
+                },
+                PreviousResultId = semanticTokensEditsParams.PreviousResultId,
+            };
+
+            var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensDeltaParams, SumType<VSSemanticTokensResponse, VSSemanticTokensDeltaResponse>>(
+                Methods.TextDocumentSemanticTokensFullDeltaName,
+                RazorLSPConstants.RazorCSharpLanguageServerName,
+                newParams,
+                cancellationToken).ConfigureAwait(false);
+            var csharpResults = csharpResponse.Result;
+
+            // Converting from LSP to O# types
+            if (csharpResults.Value is VSSemanticTokensResponse tokens)
+            {
+                var response = new ProvideSemanticTokensEditsResponse(
+                    tokens.ResultId, tokens.Data, edits: null, isFinalized: tokens.IsFinalized, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
+                return response;
+            }
+            else if (csharpResults.Value is VSSemanticTokensDeltaResponse edits)
+            {
+                var results = new RazorSemanticTokensEdit[edits.Edits.Length];
+                for (var i = 0; i < edits.Edits.Length; i++)
+                {
+                    var currentEdit = edits.Edits[i];
+                    results[i] = new RazorSemanticTokensEdit(currentEdit.Start, currentEdit.DeleteCount, currentEdit.Data);
+                }
+
+                var response = new ProvideSemanticTokensEditsResponse(
+                    edits.ResultId, tokens: null, edits: results, isFinalized: edits.IsFinalized, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
+                return response;
+            }
+            else
+            {
+                throw new ArgumentException("Returned tokens should be of type VSSemanticTokensResponse or VSSemanticTokensDeltaResponse.");
+            }
+        }
+
+        private CSharpVirtualDocumentSnapshot GetCSharpDocumentSnapshsot(Uri uri)
+        {
+            var normalizedString = uri.GetAbsoluteOrUNCPath();
+            var normalizedUri = new Uri(WebUtility.UrlDecode(normalizedString));
+
+            if (!_documentManager.TryGetDocument(normalizedUri, out var documentSnapshot))
+            {
+                return null;
+            }
+
+            if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
+            {
+                return null;
+            }
+
+            return csharpDoc;
+        }
+
+        public override async Task RazorServerReadyAsync(CancellationToken cancellationToken)
+        {
+            // Doing both UIContext and BrokeredService while integrating
+            await _uIContextManager.SetUIContextAsync(RazorLSPConstants.RazorActiveUIContextGuid, isActive: true, cancellationToken);
+            _razorReadyListener.Dispose();
+        }
+
+        private static bool SupportsCSharpCodeActions(JToken token)
+        {
+            var serverCapabilities = token.ToObject<ServerCapabilities>();
+
+            var (providesCodeActions, resolvesCodeActions) = serverCapabilities?.CodeActionProvider?.Match(
+                boolValue => (boolValue, false),
+                options => (true, options.ResolveProvider)) ?? (false, false);
+
+            return providesCodeActions && resolvesCodeActions;
+        }
+
+        // NOTE: This method is a polyfill for VS. We only intend to do it this way until VS formally
+        // supports sending workspace configuration requests.
+        public override Task<object[]> WorkspaceConfigurationAsync(
+            OmniSharpConfigurationParams configParams,
+            CancellationToken cancellationToken)
+        {
+            if (configParams is null)
+            {
+                throw new ArgumentNullException(nameof(configParams));
+            }
+
+            var result = new List<object>();
+            foreach (var item in configParams.Items)
+            {
+                // Right now in VS we only care about editor settings, but we should update this logic later if
+                // we want to support Razor and HTML settings as well.
+                var setting = item.Section == "vs.editor.razor"
+                    ? _clientOptionsMonitor.EditorSettings
+                    : new object();
+                result.Add(setting);
+            }
+
+            return Task.FromResult(result.ToArray());
         }
     }
 }

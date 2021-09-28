@@ -1,11 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -17,15 +19,12 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorLanguageEndpoint : IRazorLanguageQueryHandler, IRazorMapToDocumentRangesHandler, IRazorMapToDocumentEditsHandler
+    internal class RazorLanguageEndpoint :
+        IRazorLanguageQueryHandler,
+        IRazorMapToDocumentRangesHandler,
+        IRazorMapToDocumentEditsHandler
     {
-        // Internal for testing
-        internal static readonly Range UndefinedRange = new Range(
-            start: new Position(-1, -1),
-            end: new Position(-1, -1));
-        private static readonly long UndefinedDocumentVersion = -1;
-
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly RazorDocumentMappingService _documentMappingService;
@@ -33,16 +32,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ILogger _logger;
 
         public RazorLanguageEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             DocumentVersionCache documentVersionCache,
             RazorDocumentMappingService documentMappingService,
-            RazorFormattingService razorFormattingService, 
+            RazorFormattingService razorFormattingService,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver == null)
@@ -70,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
             _documentVersionCache = documentVersionCache;
             _documentMappingService = documentMappingService;
@@ -80,23 +79,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<RazorLanguageQueryResponse> Handle(RazorLanguageQueryParams request, CancellationToken cancellationToken)
         {
-            long documentVersion = -1;
+            int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.Uri.GetAbsoluteOrUNCPath(), out documentSnapshot);
+
+                Debug.Assert(documentSnapshot != null, "Failed to get the document snapshot, could not map to document ranges.");
+
                 if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
                 {
                     // This typically happens for closed documents.
-                    documentVersion = UndefinedDocumentVersion;
+                    documentVersion = null;
                 }
 
                 return documentSnapshot;
-            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken).ConfigureAwait(false);
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             var sourceText = await documentSnapshot.GetTextAsync();
-            var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
+            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
             var responsePosition = request.Position;
 
@@ -152,16 +154,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            long documentVersion = -1;
+            int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
-                if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
+
+                Debug.Assert(documentSnapshot != null, "Failed to get the document snapshot, could not map to document ranges.");
+
+                if (documentSnapshot is null ||
+                    !_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
                 {
-                    documentVersion = UndefinedDocumentVersion;
+                    documentVersion = null;
                 }
-            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (request.Kind != RazorLanguageKind.CSharp)
             {
@@ -173,16 +179,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
             }
 
+            if (documentSnapshot is null)
+            {
+                return null;
+            }
+
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             var ranges = new Range[request.ProjectedRanges.Length];
             for (var i = 0; i < request.ProjectedRanges.Length; i++)
             {
                 var projectedRange = request.ProjectedRanges[i];
                 if (codeDocument.IsUnsupported() ||
-                    !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
+                    !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, projectedRange, request.MappingBehavior, out var originalRange))
                 {
                     // All language queries on unsupported documents return Html. This is equivalent to what pre-VSCode Razor was capable of.
-                    ranges[i] = UndefinedRange;
+                    ranges[i] = RangeExtensions.UndefinedRange;
                     continue;
                 }
 
@@ -203,16 +214,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentVersion = UndefinedDocumentVersion;
+            int? documentVersion = null;
             DocumentSnapshot documentSnapshot = null;
-            await Task.Factory.StartNew(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot);
+
+                Debug.Assert(documentSnapshot != null, "Failed to get the document snapshot, could not map to document ranges.");
+
                 if (!_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
                 {
-                    documentVersion = UndefinedDocumentVersion;
+                    documentVersion = null;
                 }
-            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken).ConfigureAwait(false);
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             if (codeDocument.IsUnsupported())
@@ -224,10 +238,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 };
             }
 
-            if (request.ShouldFormat)
+            if (request.TextEditKind == TextEditKind.FormatOnType)
             {
                 var mappedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
-                    request.RazorDocumentUri, documentSnapshot, request.Kind, request.ProjectedTextEdits, request.FormattingOptions);
+                    request.RazorDocumentUri, documentSnapshot, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, cancellationToken);
+
+                return new RazorMapToDocumentEditsResponse()
+                {
+                    TextEdits = mappedEdits,
+                    HostDocumentVersion = documentVersion,
+                };
+            }
+            else if (request.TextEditKind == TextEditKind.Snippet)
+            {
+                if (request.Kind == RazorLanguageKind.CSharp)
+                {
+                    WrapCSharpSnippets(request.ProjectedTextEdits);
+                }
+
+                var mappedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
+                    request.RazorDocumentUri,
+                    documentSnapshot,
+                    request.Kind,
+                    request.ProjectedTextEdits,
+                    request.FormattingOptions,
+                    cancellationToken,
+                    bypassValidationPasses: true,
+                    collapseEdits: true);
+
+                if (request.Kind == RazorLanguageKind.CSharp)
+                {
+                    UnwrapCSharpSnippets(mappedEdits);
+                }
 
                 return new RazorMapToDocumentEditsResponse()
                 {
@@ -270,6 +312,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 TextEdits = edits.ToArray(),
                 HostDocumentVersion = documentVersion,
             };
+
+            static void WrapCSharpSnippets(TextEdit[] snippetEdits)
+            {
+                for (var i = 0; i < snippetEdits.Length; i++)
+                {
+                    var snippetEdit = snippetEdits[i];
+
+                    // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
+                    // So, let's avoid the error by wrapping the cursor marker in a comment.
+                    var wrappedText = snippetEdit.NewText?.Replace("$0", "/*$0*/");
+                    snippetEdits[i] = snippetEdit with { NewText = wrappedText };
+                }
+            }
+
+            static void UnwrapCSharpSnippets(TextEdit[] snippetEdits)
+            {
+                for (var i = 0; i < snippetEdits.Length; i++)
+                {
+                    var snippetEdit = snippetEdits[i];
+
+                    // Unwrap the cursor marker.
+                    var unwrappedText = snippetEdit.NewText?.Replace("/*$0*/", "$0");
+                    snippetEdits[i] = snippetEdit with { NewText = unwrappedText };
+                }
+            }
         }
     }
 }

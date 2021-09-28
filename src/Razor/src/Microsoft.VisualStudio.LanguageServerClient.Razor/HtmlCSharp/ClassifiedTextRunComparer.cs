@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.Extensions.Internal;
@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     internal class ClassifiedTextRunComparer : IEqualityComparer<ClassifiedTextRun>
     {
-        public static ClassifiedTextRunComparer Default = new ClassifiedTextRunComparer();
+        public static ClassifiedTextRunComparer Default = new();
 
         public bool Equals(ClassifiedTextRun x, ClassifiedTextRun y)
         {

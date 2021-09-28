@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -15,23 +17,20 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    public class ProjectBuildChangeTriggerTest : ForegroundDispatcherTestBase
+    public class ProjectBuildChangeTriggerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public ProjectBuildChangeTriggerTest()
         {
             SomeProject = new HostProject("c:\\SomeProject\\SomeProject.csproj", FallbackRazorConfiguration.MVC_1_0, "SomeProject");
             SomeOtherProject = new HostProject("c:\\SomeOtherProject\\SomeOtherProject.csproj", FallbackRazorConfiguration.MVC_2_0, "SomeOtherProject");
 
-            Workspace = TestWorkspace.Create(w =>
-            {
-                SomeWorkspaceProject = w.AddProject(ProjectInfo.Create(
+            Workspace = TestWorkspace.Create(w => SomeWorkspaceProject = w.AddProject(ProjectInfo.Create(
                     ProjectId.CreateNewId(),
                     VersionStamp.Create(),
                     "SomeProject",
                     "SomeProject",
                     LanguageNames.CSharp,
-                    filePath: SomeProject.FilePath));
-            });
+                    filePath: SomeProject.FilePath)));
         }
 
         private HostProject SomeProject { get; }
@@ -42,8 +41,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         private Workspace Workspace { get; }
 
-        [ForegroundFact]
-        public void ProjectOperations_EndBuild_EnqueuesProjectStateUpdate()
+        [UIFact]
+        public async Task ProjectOperations_EndBuild_EnqueuesProjectStateUpdate()
         {
             // Arrange
             var expectedProjectPath = SomeProject.FilePath;
@@ -61,15 +60,17 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService, workspaceStateGenerator, projectManager.Object);
 
             // Act
-            trigger.ProjectOperations_EndBuild(null, args);
+            await trigger.HandleEndBuildAsync(args);
+
+            Thread.Sleep(500);
 
             // Assert
             var update = Assert.Single(workspaceStateGenerator.UpdateQueue);
             Assert.Equal(SomeWorkspaceProject, update.workspaceProject);
         }
 
-        [ForegroundFact]
-        public void ProjectOperations_EndBuild_ProjectWithoutWorkspaceProject_Noops()
+        [UIFact]
+        public async Task ProjectOperations_EndBuild_ProjectWithoutWorkspaceProject_Noops()
         {
             // Arrange
             var expectedPath = "Path/To/Project.csproj";
@@ -81,7 +82,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                     Workspace.Services,
                     new HostProject(expectedPath, RazorConfiguration.Default, "Project")));
 
-            var projectManager = new Mock<ProjectSnapshotManagerBase>();
+            var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
             projectManager.SetupGet(p => p.Workspace).Returns(Workspace);
             projectManager
                 .Setup(p => p.GetLoadedProject(expectedPath))
@@ -90,21 +91,21 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService, workspaceStateGenerator, projectManager.Object);
 
             // Act
-            trigger.ProjectOperations_EndBuild(null, args);
+            await trigger.HandleEndBuildAsync(args);
 
             // Assert
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
         }
 
-        [ForegroundFact]
-        public void ProjectOperations_EndBuild_UntrackedProject_Noops()
+        [UIFact]
+        public async Task ProjectOperations_EndBuild_UntrackedProject_NoopsAsync()
         {
             // Arrange
             var projectService = CreateProjectService(SomeProject.FilePath);
 
             var args = new BuildEventArgs(monitor: null, success: true);
 
-            var projectManager = new Mock<ProjectSnapshotManagerBase>();
+            var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
             projectManager.SetupGet(p => p.Workspace).Returns(Workspace);
             projectManager
                 .Setup(p => p.GetLoadedProject(SomeProject.FilePath))
@@ -113,45 +114,45 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService, workspaceStateGenerator, projectManager.Object);
 
             // Act
-            trigger.ProjectOperations_EndBuild(null, args);
+            await trigger.HandleEndBuildAsync(args);
 
             // Assert
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
         }
 
-        [ForegroundFact]
-        public void ProjectOperations_EndBuild_BuildFailed_Noops()
+        [UIFact]
+        public async Task ProjectOperations_EndBuild_BuildFailed_Noops()
         {
             // Arrange
             var args = new BuildEventArgs(monitor: null, success: false);
-            var projectService = new Mock<TextBufferProjectService>();
+            var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
             projectService.Setup(p => p.IsSupportedProject(null)).Throws<InvalidOperationException>();
-            var projectManager = new Mock<ProjectSnapshotManagerBase>();
+            var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
             projectManager.SetupGet(p => p.Workspace).Throws<InvalidOperationException>();
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
             var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService.Object, workspaceStateGenerator, projectManager.Object);
 
             // Act
-            trigger.ProjectOperations_EndBuild(null, args);
+            await trigger.HandleEndBuildAsync(args);
 
             // Assert
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
         }
 
-        [ForegroundFact]
-        public void ProjectOperations_EndBuild_UnsupportedProject_Noops()
+        [UIFact]
+        public async Task ProjectOperations_EndBuild_UnsupportedProject_Noops()
         {
             // Arrange
             var args = new BuildEventArgs(monitor: null, success: true);
-            var projectService = new Mock<TextBufferProjectService>();
+            var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
             projectService.Setup(p => p.IsSupportedProject(null)).Returns(false);
-            var projectManager = new Mock<ProjectSnapshotManagerBase>();
+            var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
             projectManager.SetupGet(p => p.Workspace).Throws<InvalidOperationException>();
             var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
             var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService.Object, workspaceStateGenerator, projectManager.Object);
 
             // Act
-            trigger.ProjectOperations_EndBuild(null, args);
+            await trigger.HandleEndBuildAsync(args);
 
             // Assert
             Assert.Empty(workspaceStateGenerator.UpdateQueue);
@@ -159,7 +160,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         private static TextBufferProjectService CreateProjectService(string projectPath)
         {
-            var projectService = new Mock<TextBufferProjectService>();
+            var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
             projectService.Setup(p => p.GetProjectPath(null)).Returns(projectPath);
             projectService.Setup(p => p.IsSupportedProject(null)).Returns(true);
             return projectService.Object;

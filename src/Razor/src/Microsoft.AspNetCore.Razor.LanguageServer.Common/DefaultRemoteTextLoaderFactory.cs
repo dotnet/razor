@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -69,13 +69,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                     var newLastWriteTime = File.GetLastWriteTimeUtc(_filePath);
                     if (!newLastWriteTime.Equals(prevLastWriteTime))
                     {
-                        throw new IOException($"File was externally modified: {_filePath}");
+                        throw new IOException(RazorLSCommon.Resources.FormatFile_Externally_Modified(_filePath));
                     }
                 }
-                catch (IOException e) when (e is DirectoryNotFoundException || e is FileNotFoundException)
+                catch (IOException)
                 {
                     // This can typically occur when a file is renamed. What happens is the client "closes" the old file before any file system "rename" event makes it to us. Resulting
                     // in us trying to refresh the "closed" files buffer with what's on disk; however, there's nothing actually on disk because the file was renamed.
+                    //
+                    // Can also occur when a file is in the middle of being copied resulting in a generic IO exception for the resource not being ready.
                     textAndVersion = TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Default, filePath: _filePath);
                 }
 

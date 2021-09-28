@@ -1,14 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Razor;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
-    public class VisualStudioMacFileChangeTrackerTest : ForegroundDispatcherTestBase
+    public class VisualStudioMacFileChangeTrackerTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        [ForegroundFact]
+        [UIFact]
         public void StartListening_AdvisesForFileChange()
         {
             // Arrange
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             Assert.Equal(1, tracker.AttachToFileServiceEventsCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StartListening_AlreadyListening_DoesNothing()
         {
             // Arrange
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             Assert.Equal(1, tracker.AttachToFileServiceEventsCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StopListening_UnadvisesForFileChange()
         {
             // Arrange
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             Assert.Equal(1, tracker.DetachFromFileServiceEventsCount);
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void StopListening_NotListening_DoesNothing()
         {
             // Arrange
@@ -68,8 +68,8 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         private class TestFileChangeTracker : VisualStudioMacFileChangeTracker
         {
             public TestFileChangeTracker(
-                string filePath, 
-                ForegroundDispatcher foregroundDispatcher) : base(filePath, foregroundDispatcher)
+                string filePath,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(filePath, projectSnapshotManagerDispatcher)
             {
             }
 

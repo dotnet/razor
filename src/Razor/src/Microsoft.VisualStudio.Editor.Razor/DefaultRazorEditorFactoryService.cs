@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [Export(typeof(RazorEditorFactoryService))]
     internal class DefaultRazorEditorFactoryService : RazorEditorFactoryService
     {
-        private static readonly object RazorTextBufferInitializationKey = new object();
+        private static readonly object s_razorTextBufferInitializationKey = new object();
         private readonly VisualStudioWorkspaceAccessor _workspaceAccessor;
 
         [ImportingConstructor]
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override bool TryGetDocumentTracker(ITextBuffer textBuffer, out VisualStudioDocumentTracker documentTracker)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override bool TryGetParser(ITextBuffer textBuffer, out VisualStudioRazorParser parser)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         internal override bool TryGetSmartIndenter(ITextBuffer textBuffer, out BraceSmartIndenter braceSmartIndenter)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal bool TryInitializeTextBuffer(ITextBuffer textBuffer)
         {
-            if (textBuffer.Properties.ContainsProperty(RazorTextBufferInitializationKey))
+            if (textBuffer.Properties.ContainsProperty(s_razorTextBufferInitializationKey))
             {
                 // Buffer already initialized.
                 return true;
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var braceSmartIndenter = braceSmartIndenterFactory.Create(tracker);
             textBuffer.Properties[typeof(BraceSmartIndenter)] = braceSmartIndenter;
 
-            textBuffer.Properties.AddProperty(RazorTextBufferInitializationKey, RazorTextBufferInitializationKey);
+            textBuffer.Properties.AddProperty(s_razorTextBufferInitializationKey, s_razorTextBufferInitializationKey);
 
             return true;
         }

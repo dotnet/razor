@@ -1,27 +1,33 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class CodeDirectiveFormattingTest : FormattingTestBase
     {
+        public CodeDirectiveFormattingTest(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public async Task FormatsCodeBlockDirective()
         {
             await RunFormattingTestAsync(
 input: @"
-|@code {
+@code {
  public class Foo{}
         public interface Bar {
 }
-}|
+}
 ",
-expected: @"
-@code {
+expected: @"@code {
     public class Foo { }
     public interface Bar
     {
@@ -31,61 +37,121 @@ expected: @"
         }
 
         [Fact]
-        public async Task DoesNotFormat_NonCodeBlockDirectives()
+        public async Task Formats_MultipleBlocksInADirective()
         {
             await RunFormattingTestAsync(
 input: @"
-|@{
+@{
+void Method(){
 var x = ""foo"";
+@(DateTime.Now)
+    <p></p>
+var y= ""fooo"";
+}
 }
 <div>
-        </div>|
+        </div>
 ",
-expected: @"
+expected: @"@{
+    void Method()
+    {
+        var x = ""foo"";
+        @(DateTime.Now)
+        <p></p>
+        var y = ""fooo"";
+    }
+}
+<div>
+</div>
+");
+        }
+
+        [Fact]
+        public async Task Formats_NonCodeBlockDirectives()
+        {
+            await RunFormattingTestAsync(
+input: @"
 @{
 var x = ""foo"";
 }
 <div>
         </div>
+",
+expected: @"@{
+    var x = ""foo"";
+}
+<div>
+</div>
 ");
         }
 
         [Fact]
-        public async Task DoesNotFormat_CodeBlockDirectiveWithMarkup()
+        public async Task Formats_CodeBlockDirectiveWithMarkup_NonBraced()
         {
             await RunFormattingTestAsync(
 input: @"
-|@functions {
+@functions {
  public class Foo{
-void Method() { <div></div> }
+void Method() { var x = ""t""; <div></div> var y = ""t"";}
 }
-}|
+}
 ",
-expected: @"
+expected: @"@functions {
+    public class Foo
+    {
+        void Method()
+        {
+            var x = ""t"";
+            <div></div>
+            var y = ""t"";
+        }
+    }
+}
+");
+        }
+
+        [Fact]
+        public async Task Formats_CodeBlockDirectiveWithMarkup()
+        {
+            await RunFormattingTestAsync(
+input: @"
 @functions {
  public class Foo{
 void Method() { <div></div> }
 }
 }
+",
+expected: @"@functions {
+    public class Foo
+    {
+        void Method()
+        {
+            <div></div>
+        }
+    }
+}
 ");
         }
 
         [Fact]
-        public async Task DoesNotFormat_CodeBlockDirectiveWithImplicitExpressions()
+        public async Task Formats_CodeBlockDirectiveWithImplicitExpressions()
         {
             await RunFormattingTestAsync(
 input: @"
-|@code {
- public class Foo{
-void Method() { @DateTime.Now }
-}
-}|
-",
-expected: @"
 @code {
  public class Foo{
 void Method() { @DateTime.Now }
+    }
 }
+",
+expected: @"@code {
+    public class Foo
+    {
+        void Method()
+        {
+            @DateTime.Now
+        }
+    }
 }
 ");
         }
@@ -95,62 +161,92 @@ void Method() { @DateTime.Now }
         {
             await RunFormattingTestAsync(
 input: @"
-|@functions {
- public class Foo{
-void Method() { @(DateTime.Now) }
-}
-}|
-",
-expected: @"
 @functions {
  public class Foo{
 void Method() { @(DateTime.Now) }
+    }
 }
+",
+expected: @"@functions {
+    public class Foo
+    {
+        void Method()
+        {
+            @(DateTime.Now)
+        }
+    }
 }
 ",
 fileKind: FileKinds.Legacy);
         }
 
         [Fact]
-        public async Task DoesNotFormat_CodeBlockDirectiveWithRazorComments()
+        public async Task DoesNotFormat_SectionDirectiveBlock()
         {
             await RunFormattingTestAsync(
 input: @"
-|@functions {
+@functions {
  public class Foo{
-@* This is a Razor Comment *@
 void Method() {  }
+    }
 }
-}|
+
+@section Scripts {
+<script></script>
+}
 ",
-expected: @"
+expected: @"@functions {
+    public class Foo
+    {
+        void Method() { }
+    }
+}
+
+@section Scripts {
+<script></script>
+}
+",
+fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
+        public async Task Formats_CodeBlockDirectiveWithRazorComments()
+        {
+            await RunFormattingTestAsync(
+input: @"
 @functions {
  public class Foo{
 @* This is a Razor Comment *@
 void Method() {  }
 }
+}
+",
+expected: @"@functions {
+    public class Foo
+    {
+        @* This is a Razor Comment *@
+        void Method() { }
+    }
 }
 ");
         }
 
         [Fact]
-        public async Task DoesNotFormat_CodeBlockDirectiveWithRazorStatements()
+        public async Task Formats_CodeBlockDirectiveWithRazorStatements()
         {
             await RunFormattingTestAsync(
 input: @"
-|@functions {
- public class Foo{
-@* This is a Razor Comment *@
-void Method() { @if (true) {} }
-}
-}|
-",
-expected: @"
 @functions {
  public class Foo{
 @* This is a Razor Comment *@
-void Method() { @if (true) {} }
+    }
 }
+",
+expected: @"@functions {
+    public class Foo
+    {
+        @* This is a Razor Comment *@
+    }
 }
 ");
         }
@@ -160,7 +256,7 @@ void Method() { @if (true) {} }
         {
             await RunFormattingTestAsync(
 input: @"
-|<div>Foo</div>|
+[|<div>Foo</div>|]
 @functions {
  public class Foo{}
         public interface Bar {
@@ -184,8 +280,8 @@ expected: @"
 input: @"
 @functions {
  public class Foo{}
-        |public interface Bar {
-}|
+        [|public interface Bar {
+}|]
 }
 ",
 expected: @"
@@ -203,7 +299,7 @@ expected: @"
         {
             await RunFormattingTestAsync(
 input: @"
-|@functions {
+@functions {
  public class Foo{}
         public interface Bar {
 }
@@ -214,10 +310,9 @@ Hello World
           void Method ( )
           { }
           }
-}|
+}
 ",
-expected: @"
-@functions {
+expected: @"@functions {
     public class Foo { }
     public interface Bar
     {
@@ -239,7 +334,7 @@ fileKind: FileKinds.Legacy);
         public async Task MultipleCodeBlockDirectives2()
         {
             await RunFormattingTestAsync(
-input: @"|
+input: @"
 Hello World
 @code {
 public class HelloWorld
@@ -248,20 +343,19 @@ public class HelloWorld
 }
 
 @functions{
-    
+
  public class Bar {}
 }
-|",
-expected: @"
-Hello World
+",
+expected: @"Hello World
 @code {
     public class HelloWorld
     {
     }
 }
 
-@functions{
-    
+@functions {
+
     public class Bar { }
 }
 ");
@@ -272,12 +366,11 @@ Hello World
         {
             await RunFormattingTestAsync(
 input: @"
-|@functions {public class Foo{
+@functions {public class Foo{
 }
-}|
+}
 ",
-expected: @"
-@functions {
+expected: @"@functions {
     public class Foo
     {
     }
@@ -290,12 +383,11 @@ expected: @"
         {
             await RunFormattingTestAsync(
 input: @"
-|@functions {
-public class Foo{
-}}|
-",
-expected: @"
 @functions {
+public class Foo{
+}}
+",
+expected: @"@functions {
     public class Foo
     {
     }
@@ -308,10 +400,10 @@ expected: @"
         {
             await RunFormattingTestAsync(
 input: @"
-|@functions {public class Foo{}}|
+@functions {public class Foo{}
+}
 ",
-expected: @"
-@functions {
+expected: @"@functions {
     public class Foo { }
 }
 ");
@@ -321,14 +413,13 @@ expected: @"
         public async Task IndentsCodeBlockDirectiveStart()
         {
             await RunFormattingTestAsync(
-input: @"|
+input: @"
 Hello World
      @functions {public class Foo{}
-}|
+}
 ",
-expected: @"
-Hello World
-@functions {
+expected: @"Hello World
+     @functions {
     public class Foo { }
 }
 ");
@@ -338,15 +429,14 @@ Hello World
         public async Task IndentsCodeBlockDirectiveEnd()
         {
             await RunFormattingTestAsync(
-input: @"|
+input: @"
  @functions {
 public class Foo{}
-     }|
+     }
 ",
-expected: @"
-@functions {
+expected: @" @functions {
     public class Foo { }
-}
+     }
 ");
         }
 
@@ -356,15 +446,17 @@ expected: @"
             await RunFormattingTestAsync(
 input: @"
 @using System.Buffers
-|@functions{
+@functions{
      public class Foo
             {
                 public Foo()
                 {
-                    var arr = new string[ ] {
-""One"", ""two"",
-""three""
-                    };
+                    var arr = new string[ ] { ""One"", ""two"",""three"" };
+                    var str = @""
+This should
+not
+be indented.
+"";
                 }
 public int MyProperty { get
 {
@@ -375,19 +467,20 @@ void Method(){
 
 }
                     }
-}|
+}
 ",
-expected: @"
-@using System.Buffers
-@functions{
+expected: @"@using System.Buffers
+@functions {
     public class Foo
     {
         public Foo()
         {
-            var arr = new string[] {
-""One"", ""two"",
-""three""
-                };
+            var arr = new string[] { ""One"", ""two"", ""three"" };
+            var str = @""
+This should
+not
+be indented.
+"";
         }
         public int MyProperty
         {
@@ -412,20 +505,42 @@ expected: @"
         {
             await RunFormattingTestAsync(
 input: @"
-|@code {
+@code {
  public class Foo{}
         void Method(  ) {
 }
-}|
+}
 ",
-expected: @"
-@code {
+expected: @"@code {
 	public class Foo { }
 	void Method()
 	{
 	}
 }
 ",
+insertSpaces: false);
+
+        }
+        [Fact]
+        public async Task CodeBlockDirective_UseTabsWithTabSize8_HTML()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@code {
+ public class Foo{}
+        void Method(  ) {<div></div>
+}
+}
+",
+expected: @"@code {
+	public class Foo { }
+	void Method()
+	{
+		<div></div>
+	}
+}
+",
+tabSize: 8,
 insertSpaces: false);
         }
 
@@ -434,14 +549,13 @@ insertSpaces: false);
         {
             await RunFormattingTestAsync(
 input: @"
-|@code {
+@code {
  public class Foo{}
         void Method(  ) {
 }
-}|
+}
 ",
-expected: @"
-@code {
+expected: @"@code {
 	public class Foo { }
 	void Method()
 	{
@@ -452,19 +566,18 @@ tabSize: 8,
 insertSpaces: false);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/18996")]
+        [Fact]
         public async Task CodeBlockDirective_WithTabSize3()
         {
             await RunFormattingTestAsync(
 input: @"
-|@code {
+@code {
  public class Foo{}
         void Method(  ) {
 }
-}|
+}
 ",
-expected: @"
-@code {
+expected: @"@code {
    public class Foo { }
    void Method()
    {
@@ -479,14 +592,13 @@ tabSize: 3);
         {
             await RunFormattingTestAsync(
 input: @"
-|@code {
+@code {
  public class Foo{}
         void Method(  ) {
 }
-}|
+}
 ",
-expected: @"
-@code {
+expected: @"@code {
         public class Foo { }
         void Method()
         {
@@ -496,19 +608,18 @@ expected: @"
 tabSize: 8);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/18996")]
+        [Fact]
         public async Task CodeBlockDirective_WithTabSize12()
         {
             await RunFormattingTestAsync(
 input: @"
-|@code {
+@code {
  public class Foo{}
         void Method(  ) {
 }
-}|
+}
 ",
-expected: @"
-@code {
+expected: @"@code {
             public class Foo { }
             void Method()
             {
@@ -516,6 +627,111 @@ expected: @"
 }
 ",
 tabSize: 12);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+        public async Task CodeBlock_SemiColon_SingleLine()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<div></div>
+@{ Debugger.Launch()$$;}
+<div></div>
+",
+expected: @"
+<div></div>
+@{
+    Debugger.Launch();
+}
+<div></div>
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/29837")]
+        public async Task CodeBlock_NestedComponents()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@code {
+    private WeatherForecast[] forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        <Counter>
+            @{
+                    var t = DateTime.Now;
+                    t.ToString();
+                }
+            </Counter>
+        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+    }
+}
+",
+expected: @"@code {
+    private WeatherForecast[] forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        <Counter>
+            @{
+                var t = DateTime.Now;
+                t.ToString();
+            }
+        </Counter>
+        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+    }
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/34320")]
+        public async Task CodeBlock_ObjectCollectionArrayInitializers()
+        {
+            // The C# Formatter doesn't touch these types of initializers, so nor to we. This test
+            // just verifies we don't regress things and start moving code around.
+            await RunFormattingTestAsync(
+input: @"
+@code {
+    public List<object> AList = new List<object>()
+    {
+        new
+        {
+            Name = ""One"",
+            Goo = new
+            {
+                First = 1,
+                Second = 2
+            },
+            Bar = new string[] {
+                ""Hello"",
+                ""There""
+            }
+        }
+    };
+}
+",
+expected: @"@code {
+    public List<object> AList = new List<object>()
+    {
+        new
+        {
+            Name = ""One"",
+            Goo = new
+            {
+                First = 1,
+                Second = 2
+            },
+            Bar = new string[] {
+                ""Hello"",
+                ""There""
+            }
+        }
+    };
+}
+");
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -14,14 +14,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             FilePath = filePath;
             PhysicalPath = physicalPath;
             FileKind = fileKind ?? FileKinds.GetFileKindFromFilePath(FilePath);
-            if (FilePath.StartsWith("/", StringComparison.Ordinal))
-            {
-                RelativePhysicalPath = FilePath.Substring(1);
-            }
-            else
-            {
-                RelativePhysicalPath = FilePath;
-            }
+            RelativePhysicalPath = FilePath.StartsWith("/", StringComparison.Ordinal)
+                ? FilePath.Substring(1)
+                : FilePath;
         }
 
         public override string BasePath => "/";

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,12 +14,10 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 {
-    public class DefaultProjectSnapshotManagerProxyTest : ForegroundDispatcherTestBase, IDisposable
+    public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public DefaultProjectSnapshotManagerProxyTest()
         {
-            JoinableTaskContext = new JoinableTaskContext();
-            JoinableTaskFactory = new JoinableTaskFactory(JoinableTaskContext);
             Workspace = TestWorkspace.Create();
             var projectWorkspaceState1 = new ProjectWorkspaceState(new[]
             {
@@ -40,10 +38,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
                     new HostProject("/host/path/to/project2.csproj", RazorConfiguration.Default, "project2"),
                     projectWorkspaceState2));
         }
-
-        private JoinableTaskFactory JoinableTaskFactory { get; }
-
-        private JoinableTaskContext JoinableTaskContext { get; }
 
         private Workspace Workspace { get; }
 
@@ -194,11 +188,6 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
             // Assert
             Assert.Same(state1, state2);
-        }
-
-        public void Dispose()
-        {
-            JoinableTaskContext.Dispose();
         }
 
         private class TestProjectSnapshotManager : ProjectSnapshotManager

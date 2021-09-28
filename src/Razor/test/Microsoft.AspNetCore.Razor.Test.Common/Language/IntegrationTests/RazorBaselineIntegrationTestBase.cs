@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -11,10 +11,16 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 {
+    // Sets the FileName static variable.
+    // Finds the test method name using reflection, and uses
+    // that to find the expected input/output test files in the file system.
     [IntializeTestFile]
+
+    // These tests must be run serially due to the test specific FileName static var.
+    [Collection("RazorBaselineIntegrationTestSerialRuns")]
     public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBase
     {
-        private static readonly AsyncLocal<string> _directoryPath = new AsyncLocal<string>();
+        private static readonly AsyncLocal<string> s_directoryPath = new AsyncLocal<string>();
 
         protected RazorBaselineIntegrationTestBase(bool? generateBaselines = null)
         {
@@ -29,8 +35,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         // Used by the test framework to set the directory for test files.
         public static string DirectoryPath
         {
-            get { return _directoryPath.Value; }
-            set { _directoryPath.Value = value; }
+            get { return s_directoryPath.Value; }
+            set { s_directoryPath.Value = value; }
         }
 
 #if GENERATE_BASELINES
@@ -38,9 +44,9 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 #else
         protected bool GenerateBaselines { get; } = false;
 #endif
-        
+
         protected string TestProjectRoot { get; }
-        
+
         // For consistent line endings because the character counts are going to be recorded in files.
         internal override string LineEnding => "\r\n";
 
@@ -248,7 +254,6 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 
         private static void WriteBaseline(string text, string filePath)
         {
-            var lines = text.Replace("\r", "").Replace("\n", "\r\n");
             File.WriteAllText(filePath, text);
         }
 

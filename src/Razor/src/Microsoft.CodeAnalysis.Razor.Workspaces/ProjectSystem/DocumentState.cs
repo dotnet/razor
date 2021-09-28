@@ -1,29 +1,31 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class DocumentState
     {
-        private static readonly TextAndVersion EmptyText = TextAndVersion.Create(
+        private static readonly TextAndVersion s_emptyText = TextAndVersion.Create(
             SourceText.From(string.Empty),
             VersionStamp.Default);
 
-        public static readonly Func<Task<TextAndVersion>> EmptyLoader = () => Task.FromResult(EmptyText);
+        public static readonly Func<Task<TextAndVersion>> EmptyLoader = () => Task.FromResult(s_emptyText);
 
         private readonly object _lock;
 
         private ComputedStateTracker _computedState;
 
-        private Func<Task<TextAndVersion>> _loader;
+        private readonly Func<Task<TextAndVersion>> _loader;
         private Task<TextAndVersion> _loaderTask;
         private SourceText _sourceText;
         private VersionStamp? _version;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 throw new ArgumentNullException(nameof(hostDocument));
             }
 
-            loader = loader ?? EmptyLoader;
+            loader ??= EmptyLoader;
             return new DocumentState(services, hostDocument, null, null, loader);
         }
 
@@ -140,7 +142,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             if (_loaderTask != null && _loaderTask.IsCompleted)
             {
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                 result = _loaderTask.Result.Text;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
                 return true;
             }
 
@@ -158,7 +162,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             if (_loaderTask != null && _loaderTask.IsCompleted)
             {
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                 result = _loaderTask.Result.Version;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
                 return true;
             }
 
@@ -168,12 +174,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public virtual DocumentState WithConfigurationChange()
         {
-            var state = new DocumentState(Services, HostDocument, _sourceText, _version, _loader);
-
-            // The source could not have possibly changed.
-            state._sourceText = _sourceText;
-            state._version = _version;
-            state._loaderTask = _loaderTask;
+            var state = new DocumentState(Services, HostDocument, _sourceText, _version, _loader)
+            {
+                // The source could not have possibly changed.
+                _sourceText = _sourceText,
+                _version = _version,
+                _loaderTask = _loaderTask
+            };
 
             // Do not cache computed state
 
@@ -182,12 +189,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public virtual DocumentState WithImportsChange()
         {
-            var state = new DocumentState(Services, HostDocument, _sourceText, _version, _loader);
-
-            // The source could not have possibly changed.
-            state._sourceText = _sourceText;
-            state._version = _version;
-            state._loaderTask = _loaderTask;
+            var state = new DocumentState(Services, HostDocument, _sourceText, _version, _loader)
+            {
+                // The source could not have possibly changed.
+                _sourceText = _sourceText,
+                _version = _version,
+                _loaderTask = _loaderTask
+            };
 
             // Optimisically cache the computed state
             state._computedState = new ComputedStateTracker(state, _computedState);
@@ -197,12 +205,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public virtual DocumentState WithProjectWorkspaceStateChange()
         {
-            var state = new DocumentState(Services, HostDocument, _sourceText, _version, _loader);
-
-            // The source could not have possibly changed.
-            state._sourceText = _sourceText;
-            state._version = _version;
-            state._loaderTask = _loaderTask;
+            var state = new DocumentState(Services, HostDocument, _sourceText, _version, _loader)
+            {
+                // The source could not have possibly changed.
+                _sourceText = _sourceText,
+                _version = _version,
+                _loaderTask = _loaderTask
+            };
 
             // Optimisically cache the computed state
             state._computedState = new ComputedStateTracker(state, _computedState);
@@ -279,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             // We utilize a WeakReference here to avoid bloating committed memory. If pieces request document output inbetween GC collections
             // then we will provide the weak referenced task; otherwise we require any state requests to be re-computed.
-            public WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>> TaskUnsafeReference;
+            private WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>> _taskUnsafeReference;
 
             public ComputedStateTracker(DocumentState state, ComputedStateTracker older = null)
             {
@@ -291,12 +300,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 get
                 {
-                    if (TaskUnsafeReference == null)
+                    if (_taskUnsafeReference == null)
                     {
                         return false;
                     }
 
-                    if (TaskUnsafeReference.TryGetTarget(out var taskUnsafe))
+                    if (_taskUnsafeReference.TryGetTarget(out var taskUnsafe))
                     {
                         return taskUnsafe.IsCompleted;
                     }
@@ -317,21 +326,81 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                     throw new ArgumentNullException(nameof(document));
                 }
 
-                if (TaskUnsafeReference == null ||
-                    !TaskUnsafeReference.TryGetTarget(out var taskUnsafe))
+                if (_taskUnsafeReference == null ||
+                    !_taskUnsafeReference.TryGetTarget(out var taskUnsafe))
                 {
+                    TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> tcs = null;
+
                     lock (_lock)
                     {
-                        if (TaskUnsafeReference == null ||
-                            !TaskUnsafeReference.TryGetTarget(out taskUnsafe))
+                        if (_taskUnsafeReference == null ||
+                            !_taskUnsafeReference.TryGetTarget(out taskUnsafe))
                         {
-                            taskUnsafe = GetGeneratedOutputAndVersionCoreAsync(project, document);
-                            TaskUnsafeReference = new WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>>(taskUnsafe);
+                            // So this is a bit confusing. Instead of directly calling the Razor parser inside of this lock we create an indirect TaskCompletionSource
+                            // to represent when it completes. The reason behind this is that there are several scenarios in which the Razor parser will run synchronously
+                            // (mostly all in VS) resulting in this lock being held for significantly longer than expected. To avoid threads queuing up repeatedly on the
+                            // above lock and blocking we can allow those threads to await asynchronously for the completion of the original parse.
+
+                            tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                            taskUnsafe = tcs.Task;
+                            _taskUnsafeReference = new WeakReference<Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>>(taskUnsafe);
                         }
+                    }
+
+                    if (tcs == null)
+                    {
+                        // There's no task completion source created meaning a value was retrieved from cache, just return it.
+                        return taskUnsafe;
+                    }
+
+                    // Typically in VS scenarios this will run synchronously because all resources are readily available.
+                    var outputTask = GetGeneratedOutputAndVersionCoreAsync(project, document);
+                    if (outputTask.IsCompleted)
+                    {
+                        // Compiling ran synchronously, lets just immediately propagate to the TCS
+                        PropagateToTaskCompletionSource(outputTask, tcs);
+                    }
+                    else
+                    {
+                        // Task didn't run synchronously (most likely outside of VS), lets allocate a bit more but utilize ContinueWith
+                        // to properly connect the output task and TCS
+                        _ = outputTask.ContinueWith(
+                            static (task, state) =>
+                            {
+                                var tcs = (TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)>)state;
+
+                                PropagateToTaskCompletionSource(task, tcs);
+                            },
+                            tcs,
+                            CancellationToken.None,
+                            TaskContinuationOptions.ExecuteSynchronously,
+                            TaskScheduler.Default);
                     }
                 }
 
                 return taskUnsafe;
+
+                static void PropagateToTaskCompletionSource(
+                    Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> targetTask,
+                    TaskCompletionSource<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> tcs)
+                {
+                    if (targetTask.Status == TaskStatus.RanToCompletion)
+                    {
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+                        tcs.SetResult(targetTask.Result);
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
+                    }
+                    else if (targetTask.Status == TaskStatus.Canceled)
+                    {
+                        tcs.SetCanceled();
+                    }
+                    else if (targetTask.Status == TaskStatus.Faulted)
+                    {
+                        // Faulted tasks area always aggregate exceptions so we need to extract the "true" exception if it's available:
+                        var exception = targetTask.Exception.InnerException ?? targetTask.Exception;
+                        tcs.SetException(exception);
+                    }
+                }
             }
 
             private async Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetGeneratedOutputAndVersionCoreAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
@@ -348,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 var configurationVersion = project.State.ConfigurationVersion;
                 var projectWorkspaceStateVersion = project.State.ProjectWorkspaceStateVersion;
                 var documentCollectionVersion = project.State.DocumentCollectionVersion;
-                var imports = await GetImportsAsync(project, document).ConfigureAwait(false);
+                var imports = await GetImportsAsync(document).ConfigureAwait(false);
                 var documentVersion = await document.GetTextVersionAsync().ConfigureAwait(false);
 
                 // OK now that have the previous output and all of the versions, we can see if anything
@@ -379,19 +448,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 }
 
                 RazorCodeDocument olderOutput = null;
-                var olderInputVersion = default(VersionStamp);
                 var olderCSharpOutputVersion = default(VersionStamp);
                 var olderHtmlOutputVersion = default(VersionStamp);
-                if (_older?.TaskUnsafeReference != null &&
-                    _older.TaskUnsafeReference.TryGetTarget(out var taskUnsafe))
+                if (_older?._taskUnsafeReference != null &&
+                    _older._taskUnsafeReference.TryGetTarget(out var taskUnsafe))
                 {
+                    VersionStamp olderInputVersion;
                     (olderOutput, olderInputVersion, olderCSharpOutputVersion, olderHtmlOutputVersion) = await taskUnsafe.ConfigureAwait(false);
                     if (inputVersion.GetNewerVersion(olderInputVersion) == olderInputVersion)
                     {
                         // Nothing has changed, we can use the cached result.
                         lock (_lock)
                         {
-                            TaskUnsafeReference = _older.TaskUnsafeReference;
+                            _taskUnsafeReference = _older._taskUnsafeReference;
                             _older = null;
                             return (olderOutput, olderInputVersion, olderCSharpOutputVersion, olderHtmlOutputVersion);
                         }
@@ -421,15 +490,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 // us to run code generation, but don't change the result.
                 //
                 // Note that we're talking about the effect on the generated C#/HTML here (not the other artifacts).
-                // This is the reason why we have three versions associated with the document. 
+                // This is the reason why we have three versions associated with the document.
                 //
                 // The INPUT version is related the .cshtml files and tag helpers
                 // The CSHARPOUTPUT version is related to the generated C#
                 // The HTMLOUTPUT version is related to the generated HTML
                 //
-                // Examples: 
-                // 
-                // A change to a tag helper not used by this document - updates the INPUT version, but not 
+                // Examples:
+                //
+                // A change to a tag helper not used by this document - updates the INPUT version, but not
                 // the OUTPUT version.
                 //
                 //
@@ -459,10 +528,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
                 if (document is DefaultDocumentSnapshot defaultDocument)
                 {
-                    defaultDocument.State.HostDocument.GeneratedDocumentContainer.SetOutput(
+                    defaultDocument.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(
                         defaultDocument,
-                        csharpDocument,
-                        htmlDocument,
+                        codeDocument,
                         inputVersion,
                         outputCSharpVersion,
                         outputHtmlVersion);
@@ -471,13 +539,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 return (codeDocument, inputVersion, outputCSharpVersion, outputHtmlVersion);
             }
 
-            private async Task<RazorSourceDocument> GetRazorSourceDocumentAsync(DocumentSnapshot document, RazorProjectItem projectItem)
+            private static async Task<RazorSourceDocument> GetRazorSourceDocumentAsync(DocumentSnapshot document, RazorProjectItem projectItem)
             {
                 var sourceText = await document.GetTextAsync();
                 return sourceText.GetRazorSourceDocument(document.FilePath, projectItem?.RelativePhysicalPath);
             }
 
-            private async Task<IReadOnlyList<ImportItem>> GetImportsAsync(ProjectSnapshot project, DocumentSnapshot document)
+            private static async Task<IReadOnlyList<ImportItem>> GetImportsAsync(DocumentSnapshot document)
             {
                 var imports = new List<ImportItem>();
                 foreach (var snapshot in document.GetImports())

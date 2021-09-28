@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
@@ -36,6 +36,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Act
             var severity = RazorDiagnosticConverter.ConvertSeverity(RazorDiagnosticSeverity.Error);
+
+            // Assert
+            Assert.Equal(expectedSeverity, severity);
+        }
+
+        [Fact]
+        public void ConvertSeverity_WarningReturnsWarning()
+        {
+            // Arrange
+            var expectedSeverity = DiagnosticSeverity.Warning;
+
+            // Act
+            var severity = RazorDiagnosticConverter.ConvertSeverity(RazorDiagnosticSeverity.Warning);
 
             // Assert
             Assert.Equal(expectedSeverity, severity);

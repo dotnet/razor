@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -13,6 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
         }
 
-        protected override HtmlVirtualDocumentSnapshot GetUpdatedSnapshot() => new HtmlVirtualDocumentSnapshot(Uri, TextBuffer.CurrentSnapshot, HostDocumentSyncVersion);
+        protected override HtmlVirtualDocumentSnapshot GetUpdatedSnapshot() => new(Uri, TextBuffer.CurrentSnapshot, HostDocumentVersion);
     }
 }

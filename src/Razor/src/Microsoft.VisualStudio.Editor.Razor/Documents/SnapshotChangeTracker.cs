@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.Text;
 
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         private void OnTextBufferChanged(object sender, TextContentChangedEventArgs e)
         {
-            if (sender is ITextBuffer buffer)
+            if (sender is ITextBuffer)
             {
                 var snapshot = _snapshot;
                 if (snapshot != null && snapshot.Version != null && e.AfterVersion != null &&

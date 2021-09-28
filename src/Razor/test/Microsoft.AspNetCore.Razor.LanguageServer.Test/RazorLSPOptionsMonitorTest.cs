@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -23,8 +24,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task UpdateAsync_Invokes_OnChangeRegistration()
         {
             // Arrange
-            var expectedOptions = new RazorLSPOptions(Trace.Messages, enableFormatting: false, autoClosingTags: true);
-            var configService = Mock.Of<RazorConfigurationService>(f => f.GetLatestOptionsAsync() == Task.FromResult(expectedOptions));
+            var expectedOptions = new RazorLSPOptions(Trace.Messages, enableFormatting: false, autoClosingTags: true, insertSpaces: true, tabSize: 4);
+            var configService = Mock.Of<RazorConfigurationService>(f => f.GetLatestOptionsAsync(CancellationToken.None) == Task.FromResult(expectedOptions), MockBehavior.Strict);
             var optionsMonitor = new RazorLSPOptionsMonitor(configService, Cache);
             var called = false;
 
@@ -34,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 called = true;
                 Assert.Same(expectedOptions, options);
             });
-            await optionsMonitor.UpdateAsync();
+            await optionsMonitor.UpdateAsync(CancellationToken.None);
             Assert.True(called, "Registered callback was not called.");
         }
 
@@ -42,17 +43,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task UpdateAsync_DoesNotInvoke_OnChangeRegistration_AfterDispose()
         {
             // Arrange
-            var expectedOptions = new RazorLSPOptions(Trace.Messages, enableFormatting: false, autoClosingTags: true);
-            var configService = Mock.Of<RazorConfigurationService>(f => f.GetLatestOptionsAsync() == Task.FromResult(expectedOptions));
+            var expectedOptions = new RazorLSPOptions(Trace.Messages, enableFormatting: false, autoClosingTags: true, insertSpaces: true, tabSize: 4);
+            var configService = Mock.Of<RazorConfigurationService>(f => f.GetLatestOptionsAsync(CancellationToken.None) == Task.FromResult(expectedOptions), MockBehavior.Strict);
             var optionsMonitor = new RazorLSPOptionsMonitor(configService, Cache);
             var called = false;
-            var onChangeToken = optionsMonitor.OnChange(options =>
-            {
-                called = true;
-            });
+            var onChangeToken = optionsMonitor.OnChange(options => called = true);
 
             // Act 1
-            await optionsMonitor.UpdateAsync();
+            await optionsMonitor.UpdateAsync(CancellationToken.None);
 
             // Assert 1
             Assert.True(called, "Registered callback was not called.");
@@ -60,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Act 2
             called = false;
             onChangeToken.Dispose();
-            await optionsMonitor.UpdateAsync();
+            await optionsMonitor.UpdateAsync(CancellationToken.None);
 
             // Assert 2
             Assert.False(called, "Registered callback called even after dispose.");
@@ -70,16 +68,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task UpdateAsync_ConfigReturnsNull_DoesNotInvoke_OnChangeRegistration()
         {
             // Arrange
-            var configService = Mock.Of<RazorConfigurationService>();
+            var configService = new Mock<RazorConfigurationService>(MockBehavior.Strict).Object;
+            Mock.Get(configService).Setup(s => s.GetLatestOptionsAsync(CancellationToken.None)).ReturnsAsync(value: null);
             var optionsMonitor = new RazorLSPOptionsMonitor(configService, Cache);
             var called = false;
-            var onChangeToken = optionsMonitor.OnChange(options =>
-            {
-                called = true;
-            });
+            var onChangeToken = optionsMonitor.OnChange(options => called = true);
 
             // Act
-            await optionsMonitor.UpdateAsync();
+            await optionsMonitor.UpdateAsync(CancellationToken.None);
 
             // Assert
             Assert.False(called, "Registered callback called even when GetLatestOptionsAsync() returns null.");

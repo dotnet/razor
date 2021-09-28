@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -16,9 +16,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class RazorDocumentSynchronizationEndpointTest : LanguageServerTestBase
     {
-        private DocumentResolver DocumentResolver => Mock.Of<DocumentResolver>();
+        private static DocumentResolver DocumentResolver => Mock.Of<DocumentResolver>(MockBehavior.Strict);
 
-        private RazorProjectService ProjectService => Mock.Of<RazorProjectService>();
+        private static RazorProjectService ProjectService => Mock.Of<RazorProjectService>(MockBehavior.Strict);
 
         [Fact]
         public void ApplyContentChanges_SingleChange()
@@ -96,8 +96,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var sourceText = SourceText.From("<p>");
             var documentResolver = CreateDocumentResolver(documentPath, sourceText);
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.UpdateDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<long>()))
-                .Callback<string, SourceText, long>((path, text, version) =>
+            projectService.Setup(service => service.UpdateDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
+                .Callback<string, SourceText, int>((path, text, version) =>
                 {
                     var resultString = GetString(text);
                     Assert.Equal("<p></p>", resultString);
@@ -114,7 +114,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var request = new DidChangeTextDocumentParams()
             {
                 ContentChanges = new Container<TextDocumentContentChangeEvent>(change),
-                TextDocument = new VersionedTextDocumentIdentifier()
+                TextDocument = new OptionalVersionedTextDocumentIdentifier()
                 {
                     Uri = new Uri(documentPath),
                     Version = 1337,
@@ -135,8 +135,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var documentPath = "C:/path/to/document.cshtml";
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.OpenDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<long>()))
-                .Callback<string, SourceText, long>((path, text, version) =>
+            projectService.Setup(service => service.OpenDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
+                .Callback<string, SourceText, int>((path, text, version) =>
                 {
                     var resultString = GetString(text);
                     Assert.Equal("hello", resultString);
@@ -169,10 +169,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var documentPath = "C:/path/to/document.cshtml";
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.CloseDocument(It.IsAny<string>()))
-                .Callback<string>((path) =>
-                {
-                    Assert.Equal(documentPath, path);
-                });
+                .Callback<string>((path) => Assert.Equal(documentPath, path));
             var endpoint = new RazorDocumentSynchronizationEndpoint(Dispatcher, DocumentResolver, projectService.Object, LoggerFactory);
             var request = new DidCloseTextDocumentParams()
             {
@@ -189,7 +186,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectService.VerifyAll();
         }
 
-        private string GetString(SourceText sourceText)
+        private static string GetString(SourceText sourceText)
         {
             var sourceChars = new char[sourceText.Length];
             sourceText.CopyTo(0, sourceChars, 0, sourceText.Length);
@@ -200,8 +197,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private static DocumentResolver CreateDocumentResolver(string documentPath, SourceText sourceText)
         {
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document => document.GetTextAsync() == Task.FromResult(sourceText) && document.FilePath == documentPath);
-            var documentResolver = new Mock<DocumentResolver>();
+            var documentSnapshot = Mock.Of<DocumentSnapshot>(document => document.GetTextAsync() == Task.FromResult(sourceText) && document.FilePath == documentPath, MockBehavior.Strict);
+            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
             documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
                 .Returns(true);
             return documentResolver.Object;

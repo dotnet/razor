@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 
@@ -8,20 +8,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class ProjectChangeEventArgs : EventArgs
     {
         public ProjectChangeEventArgs(ProjectSnapshot older, ProjectSnapshot newer, ProjectChangeKind kind)
+            : this(older, newer, null, kind, false)
         {
-            if (older == null && newer == null)
-            {
-                throw new ArgumentException("Both projects cannot be null.");
-            }
-
-            Older = older;
-            Newer = newer;
-            Kind = kind;
-
-            ProjectFilePath = older?.FilePath ?? newer.FilePath;
         }
 
-        public ProjectChangeEventArgs(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)
+        public ProjectChangeEventArgs(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind, bool solutionIsClosing)
         {
             if (older == null && newer == null)
             {
@@ -32,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Newer = newer;
             DocumentFilePath = documentFilePath;
             Kind = kind;
-
+            SolutionIsClosing = solutionIsClosing;
             ProjectFilePath = older?.FilePath ?? newer.FilePath;
         }
 
@@ -46,7 +37,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public ProjectChangeKind Kind { get; }
 
-        public static ProjectChangeEventArgs CreateTestInstance(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind) =>
-            new ProjectChangeEventArgs(older, newer, documentFilePath, kind);
+        public bool SolutionIsClosing { get; }
+
+        public static ProjectChangeEventArgs CreateTestInstance(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind, bool solutionIsClosing = false) =>
+            new ProjectChangeEventArgs(older, newer, documentFilePath, kind, solutionIsClosing);
     }
 }

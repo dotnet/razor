@@ -1,13 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
@@ -15,41 +19,49 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [Export(typeof(RazorDocumentManager))]
     internal class DefaultRazorDocumentManager : RazorDocumentManager
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
         private readonly RazorEditorFactoryService _editorFactoryService;
 
         [ImportingConstructor]
         public DefaultRazorDocumentManager(
-            ForegroundDispatcher dispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext,
             RazorEditorFactoryService editorFactoryService)
         {
-            if (dispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(dispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (editorFactoryService == null)
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
+            if (editorFactoryService is null)
             {
                 throw new ArgumentNullException(nameof(editorFactoryService));
             }
 
-            _foregroundDispatcher = dispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _joinableTaskContext = joinableTaskContext;
             _editorFactoryService = editorFactoryService;
         }
 
-        public override void OnTextViewOpened(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
+        public async override Task OnTextViewOpenedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (subjectBuffers == null)
+            if (subjectBuffers is null)
             {
                 throw new ArgumentNullException(nameof(subjectBuffers));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
             foreach (var textBuffer in subjectBuffers)
             {
@@ -69,40 +81,43 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
                 if (documentTracker.TextViews.Count == 1)
                 {
-                    tracker.Subscribe();
+                    // tracker.Subscribe() accesses the project snapshot manager, which needs to be run on the
+                    // project snapshot manager's specialized thread.
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => tracker.Subscribe(), CancellationToken.None).ConfigureAwait(false);
                 }
             }
         }
 
-        public override void OnTextViewClosed(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
+        public async override Task OnTextViewClosedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers)
         {
-            if (textView == null)
+            if (textView is null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (subjectBuffers == null)
+            if (subjectBuffers is null)
             {
                 throw new ArgumentNullException(nameof(subjectBuffers));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _joinableTaskContext.AssertUIThread();
 
-            // This means a Razor buffer has be detached from this ITextView or the ITextView is closing. Since we keep a 
+            // This means a Razor buffer has be detached from this ITextView or the ITextView is closing. Since we keep a
             // list of all of the open text views for each text buffer, we need to update the tracker.
             //
             // Notice that this method is called *after* changes are applied to the text buffer(s). We need to check every
             // one of them for a tracker because the content type could have changed.
             foreach (var textBuffer in subjectBuffers)
             {
-                DefaultVisualStudioDocumentTracker documentTracker;
-                if (textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out documentTracker))
+                if (textBuffer.Properties.TryGetProperty(typeof(VisualStudioDocumentTracker), out DefaultVisualStudioDocumentTracker documentTracker))
                 {
                     documentTracker.RemoveTextView(textView);
 
                     if (documentTracker.TextViews.Count == 0)
                     {
-                        documentTracker.Unsubscribe();
+                        // tracker.Unsubscribe() should be in sync with tracker.Subscribe(). The latter of needs to be run
+                        // on the project snapshot manager's specialized thread, so we run both on it.
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => documentTracker.Unsubscribe(), CancellationToken.None).ConfigureAwait(false);
                     }
                 }
             }

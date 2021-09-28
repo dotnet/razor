@@ -1,9 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
@@ -133,10 +134,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
         }
 
-        public void SetOutput(
-            DefaultDocumentSnapshot document, 
-            RazorCSharpDocument outputCSharp,
-            RazorHtmlDocument outputHtml,
+        public bool TrySetOutput(
+            DefaultDocumentSnapshot document,
+            RazorCodeDocument codeDocument,
             VersionStamp inputVersion,
             VersionStamp outputCSharpVersion,
             VersionStamp outputHtmlVersion)
@@ -144,28 +144,32 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             lock (_setOutputLock)
             {
                 if (_inputVersion.HasValue &&
-                    _inputVersion != inputVersion &&
+                    _inputVersion.Value != inputVersion &&
                     _inputVersion == _inputVersion.Value.GetNewerVersion(inputVersion))
                 {
                     // Latest document is newer than the provided document.
-                    return;
+                    return false;
                 }
 
                 if (!document.TryGetText(out var source))
                 {
                     Debug.Fail("The text should have already been evaluated.");
-                    return;
+                    return false;
                 }
 
                 _source = source;
                 _inputVersion = inputVersion;
                 _outputCSharpVersion = outputCSharpVersion;
                 _outputHtmlVersion = outputHtmlVersion;
-                _outputCSharp = outputCSharp;
-                _outputHtml = outputHtml;
+                _outputCSharp = codeDocument.GetCSharpDocument();
+                _outputHtml = codeDocument.GetHtmlDocument();
                 _latestDocument = document;
-                _csharpTextContainer.SetText(SourceText.From(_outputCSharp.GeneratedCode));
-                _htmlTextContainer.SetText(SourceText.From(_outputHtml.GeneratedHtml));
+                var csharpSourceText = codeDocument.GetCSharpSourceText();
+                _csharpTextContainer.SetText(csharpSourceText);
+                var htmlSourceText = codeDocument.GetHtmlSourceText();
+                _htmlTextContainer.SetText(htmlSourceText);
+
+                return true;
             }
         }
 

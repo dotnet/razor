@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,8 @@ namespace Microsoft.VisualStudio.Text
     public class StringTextSnapshot : ITextSnapshot2
     {
         private readonly List<ITextSnapshotLine> _lines;
+        private IContentType _contentType;
+        private ITextBuffer _textBuffer;
 
         public static readonly StringTextSnapshot Empty = new StringTextSnapshot(string.Empty);
 
@@ -36,7 +38,7 @@ namespace Microsoft.VisualStudio.Text
                 if (delimiterIndex == -1)
                 {
                     delimiterLength = 1;
-                    for (int i = start; i < Content.Length; i++)
+                    for (var i = start; i < Content.Length; i++)
                     {
                         if (ParserHelpers.IsNewLine(content[i]))
                         {
@@ -65,9 +67,17 @@ namespace Microsoft.VisualStudio.Text
 
         public int Length => Content.Length;
 
-        public ITextBuffer TextBuffer { get; set; }
+        public ITextBuffer TextBuffer
+        {
+            get => _textBuffer;
+            set
+            {
+                _textBuffer = value;
+                _contentType = _textBuffer.ContentType;
+            }
+        }
 
-        public IContentType ContentType => throw new NotImplementedException();
+        public IContentType ContentType => _contentType;
 
         public int LineCount => _lines.Count;
 
@@ -85,7 +95,7 @@ namespace Microsoft.VisualStudio.Text
 
         public ITextSnapshotLine GetLineFromPosition(int position)
         {
-            var matchingLine = _lines.FirstOrDefault(line => line.Start + line.LengthIncludingLineBreak > position);
+            var matchingLine = _lines.FirstOrDefault(line => line.Start + line.Length >= position);
 
             if (position < 0 || matchingLine == null)
             {

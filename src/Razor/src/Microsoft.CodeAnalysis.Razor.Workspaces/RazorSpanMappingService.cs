@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
-    internal class RazorSpanMappingService: IRazorSpanMappingService
+    internal class RazorSpanMappingService : IRazorSpanMappingService
     {
         private readonly DocumentSnapshot _document;
 
@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Razor
         }
 
         public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
-            Document document, 
-            IEnumerable<TextSpan> spans, 
+            Document document,
+            IEnumerable<TextSpan> spans,
             CancellationToken cancellationToken)
         {
             if (document == null)
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
                 if (!generated.Contains(span))
                 {
-                    // If the search span isn't contained within the generated span, it is not a match. 
+                    // If the search span isn't contained within the generated span, it is not a match.
                     // A C# identifier won't cover multiple generated spans.
                     continue;
                 }

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
@@ -20,25 +21,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         // Internal for testing
         internal TimeSpan _publishDelay = TimeSpan.FromSeconds(2);
-        internal readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> _publishedDiagnostics;
+        internal readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> PublishedDiagnostics;
         internal Timer _workTimer;
         internal Timer _documentClosedTimer;
 
-        private static readonly TimeSpan CheckForDocumentClosedDelay = TimeSpan.FromSeconds(5);
-        private readonly ForegroundDispatcher _foregroundDispatcher;
-        private readonly ILanguageServer _languageServer;
+        private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private readonly ITextDocumentLanguageServer _languageServer;
         private readonly Dictionary<string, DocumentSnapshot> _work;
         private readonly ILogger<RazorDiagnosticsPublisher> _logger;
         private ProjectSnapshotManager _projectManager;
 
         public RazorDiagnosticsPublisher(
-            ForegroundDispatcher foregroundDispatcher,
-            ILanguageServer languageServer,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            ITextDocumentLanguageServer languageServer,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (languageServer == null)
@@ -51,9 +52,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _languageServer = languageServer;
-            _publishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
+            PublishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
             _work = new Dictionary<string, DocumentSnapshot>(FilePathComparer.Instance);
             _logger = loggerFactory.CreateLogger<RazorDiagnosticsPublisher>();
         }
@@ -81,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             lock (_work)
             {
@@ -105,31 +106,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             if (_documentClosedTimer == null)
             {
-                _documentClosedTimer = new Timer(DocumentClosedTimer_Tick, null, CheckForDocumentClosedDelay, Timeout.InfiniteTimeSpan);
+                _documentClosedTimer = new Timer(DocumentClosedTimer_Tick, null, s_checkForDocumentClosedDelay, Timeout.InfiniteTimeSpan);
             }
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void DocumentClosedTimer_Tick(object state)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            await Task.Factory.StartNew(
-                ClearClosedDocuments,
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                _foregroundDispatcher.ForegroundScheduler);
+            try
+            {
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                    ClearClosedDocuments,
+                    CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // Swallow exception to not crash VS (this is an async void method)
+                _logger.LogError(ex, "Background diagnostic publisher for Razor failed to publish diagnostics for an unexpected reason.");
+            }
         }
 
         // Internal for testing
         internal void ClearClosedDocuments()
         {
-            lock (_publishedDiagnostics)
+            lock (PublishedDiagnostics)
             {
-                var publishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(_publishedDiagnostics);
+                var publishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(PublishedDiagnostics);
                 foreach (var entry in publishedDiagnostics)
                 {
                     if (!_projectManager.IsDocumentOpen(entry.Key))
                     {
                         // Document is now closed, we shouldn't track its diagnostics anymore.
-                        _publishedDiagnostics.Remove(entry.Key);
+                        PublishedDiagnostics.Remove(entry.Key);
 
                         // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
                         // doesn't have a ton of closed document errors that they can't get rid of.
@@ -143,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _documentClosedTimer?.Dispose();
                 _documentClosedTimer = null;
 
-                if (_publishedDiagnostics.Count > 0)
+                if (PublishedDiagnostics.Count > 0)
                 {
                     lock (_work)
                     {
@@ -162,16 +171,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var diagnostics = result.GetCSharpDocument().Diagnostics;
 
-            lock (_publishedDiagnostics)
+            lock (PublishedDiagnostics)
             {
-                if (_publishedDiagnostics.TryGetValue(document.FilePath, out var previousDiagnostics) &&
+                if (PublishedDiagnostics.TryGetValue(document.FilePath, out var previousDiagnostics) &&
                     diagnostics.SequenceEqual(previousDiagnostics))
                 {
                     // Diagnostics are the same as last publish
                     return;
                 }
 
-                _publishedDiagnostics[document.FilePath] = diagnostics;
+                PublishedDiagnostics[document.FilePath] = diagnostics;
             }
 
             if (!document.TryGetText(out var sourceText))
@@ -189,34 +198,44 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void WorkTimer_Tick(object state)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
-            DocumentSnapshot[] documents;
-            lock (_work)
+            try
             {
-                documents = _work.Values.ToArray();
-                _work.Clear();
-            }
-
-            for (var i = 0; i < documents.Length; i++)
-            {
-                var document = documents[i];
-                await PublishDiagnosticsAsync(document);
-            }
-
-            OnCompletingBackgroundWork();
-
-            lock (_work)
-            {
-                // Resetting the timer allows another batch of work to start.
-                _workTimer.Dispose();
-                _workTimer = null;
-
-                // If more work came in while we were running start the timer again.
-                if (_work.Count > 0)
+                DocumentSnapshot[] documents;
+                lock (_work)
                 {
-                    StartWorkTimer();
+                    documents = _work.Values.ToArray();
+                    _work.Clear();
                 }
+
+                for (var i = 0; i < documents.Length; i++)
+                {
+                    var document = documents[i];
+                    await PublishDiagnosticsAsync(document);
+                }
+
+                OnCompletingBackgroundWork();
+
+                lock (_work)
+                {
+                    // Resetting the timer allows another batch of work to start.
+                    _workTimer.Dispose();
+                    _workTimer = null;
+
+                    // If more work came in while we were running start the timer again.
+                    if (_work.Count > 0)
+                    {
+                        StartWorkTimer();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Swallow exception to not crash VS (this is an async void method)
+                _logger.LogError(ex, "Background diagnostic publisher for Razor failed to publish diagnostics for an unexpected reason.");
             }
         }
 
@@ -242,7 +261,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Path = filePath,
                 Host = string.Empty,
             };
-            _languageServer.Document.PublishDiagnostics(new PublishDiagnosticsParams()
+
+            _languageServer.PublishDiagnostics(new PublishDiagnosticsParams()
             {
                 Uri = uriBuilder.Uri,
                 Diagnostics = new Container<Diagnostic>(diagnostics),

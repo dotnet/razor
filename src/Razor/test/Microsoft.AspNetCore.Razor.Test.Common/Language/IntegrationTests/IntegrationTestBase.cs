@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -20,12 +20,18 @@ using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
 {
+    // Sets the FileName static variable.
+    // Finds the test method name using reflection, and uses
+    // that to find the expected input/output test files in the file system.
     [IntializeTestFile]
+
+    // These tests must be run serially due to the test specific FileName static var.
+    [Collection("IntegrationTestSerialRuns")]
     public abstract class IntegrationTestBase
     {
-        private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
+        private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
 
-        private static readonly CSharpCompilation DefaultBaseCompilation;
+        private static readonly CSharpCompilation s_defaultBaseCompilation;
 
         static IntegrationTestBase()
         {
@@ -40,7 +46,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 .Select(Assembly.Load)
                 .Select(assembly => MetadataReference.CreateFromFile(assembly.Location))
                 .ToList();
-            DefaultBaseCompilation = CSharpCompilation.Create(
+            s_defaultBaseCompilation = CSharpCompilation.Create(
                 "TestAssembly",
                 Array.Empty<SyntaxTree>(),
                 referenceAssemblies,
@@ -60,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         /// <summary>
         /// Gets the <see cref="CSharpCompilation"/> that will be used as the 'app' compilation.
         /// </summary>
-        protected virtual CSharpCompilation BaseCompilation => DefaultBaseCompilation;
+        protected virtual CSharpCompilation BaseCompilation => s_defaultBaseCompilation;
 
         /// <summary>
         /// Gets the parse options applied when using <see cref="AddCSharpSyntaxTree(string, string)"/>.
@@ -85,13 +91,13 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         protected virtual bool DesignTime { get; } = false;
 
         /// <summary>
-        /// Gets the 
+        /// Gets the
         /// </summary>
         internal VirtualRazorProjectFileSystem FileSystem { get; } = new VirtualRazorProjectFileSystem();
 
         /// <summary>
-        /// Used to force a specific style of line-endings for testing. This matters for the baseline tests that exercise line mappings. 
-        /// Even though we normalize newlines for testing, the difference between platforms affects the data through the *count* of 
+        /// Used to force a specific style of line-endings for testing. This matters for the baseline tests that exercise line mappings.
+        /// Even though we normalize newlines for testing, the difference between platforms affects the data through the *count* of
         /// characters written.
         /// </summary>
         protected virtual string LineEnding { get; } = "\r\n";
@@ -107,8 +113,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         // Used by the test framework to set the 'base' name for test files.
         public static string FileName
         {
-            get { return _fileName.Value; }
-            set { _fileName.Value = value; }
+            get { return s_fileName.Value; }
+            set { s_fileName.Value = value; }
         }
 
         public string FileExtension { get; set; } = ".cshtml";
@@ -160,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             {
                 Content = text,
             };
-            
+
             return projectItem;
         }
 
@@ -206,7 +212,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             {
                 Content = fileContent,
             };
-            
+
             return projectItem;
         }
 
@@ -230,7 +236,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
         protected CompiledAssembly CompileToAssembly(string text, string path = "test.cshtml", bool? designTime = null, bool throwOnFailure = true)
         {
             var compiled = CompileToCSharp(text, path, designTime);
-            return CompileToAssembly(compiled);
+            return CompileToAssembly(compiled, throwOnFailure);
         }
 
         protected CompiledAssembly CompileToAssembly(RazorProjectItem projectItem, bool? designTime = null, bool throwOnFailure = true)
@@ -491,7 +497,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             {
                 var span = spans[i];
                 var sourceSpan = span.GetSourceSpan(codeDocument.Source);
-                if (sourceSpan == null)
+                if (sourceSpan == SourceSpan.Undefined)
                 {
                     // Not in the main file, skip.
                     continue;

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,18 +12,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     public class AdhocWorkspaceServices : HostWorkspaceServices
     {
-        private static readonly Workspace DefaultWorkspace = new AdhocWorkspace();
-
         private readonly HostServices _hostServices;
         private readonly HostLanguageServices _razorLanguageServices;
         private readonly IEnumerable<IWorkspaceService> _workspaceServices;
         private readonly Workspace _workspace;
+        private readonly HostWorkspaceServices _fallbackServices;
 
         public AdhocWorkspaceServices(
             HostServices hostServices,
             IEnumerable<IWorkspaceService> workspaceServices,
             IEnumerable<ILanguageService> languageServices,
-            Workspace workspace)
+            Workspace workspace,
+            HostWorkspaceServices fallbackServices)
         {
             if (hostServices == null)
             {
@@ -45,10 +45,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 throw new ArgumentNullException(nameof(workspace));
             }
 
+            if (fallbackServices is null)
+            {
+                throw new ArgumentNullException(nameof(fallbackServices));
+            }
+
             _hostServices = hostServices;
             _workspaceServices = workspaceServices;
             _workspace = workspace;
-
+            _fallbackServices = fallbackServices;
             _razorLanguageServices = new AdhocLanguageServices(this, languageServices);
         }
 
@@ -63,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             if (service == null)
             {
                 // Fallback to default host services to resolve roslyn specific features.
-                service = DefaultWorkspace.Services.GetService<TWorkspaceService>();
+                service = _fallbackServices.GetService<TWorkspaceService>();
             }
 
             return service;
@@ -77,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             }
 
             // Fallback to default host services to resolve roslyn specific features.
-            return DefaultWorkspace.Services.GetLanguageServices(languageName);
+            return _fallbackServices.GetLanguageServices(languageName);
         }
 
         public override IEnumerable<string> SupportedLanguages => new[] { RazorLanguage.Name };

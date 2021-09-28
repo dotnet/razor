@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -25,8 +25,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build(),
             }, default);
 
-            SomeTagHelpers = new List<TagHelperDescriptor>();
-            SomeTagHelpers.Add(TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build());
+            SomeTagHelpers = new List<TagHelperDescriptor>
+            {
+                TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build()
+            };
 
             Documents = new HostDocument[]
             {
@@ -567,8 +569,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 "ChangedRootNamespace");
 
             // Force init
-            var originalTagHelpers = original.TagHelpers;
-            var originalProjectWorkspaceStateVersion = original.ConfigurationVersion;
+            _ = original.TagHelpers;
+            _ = original.ConfigurationVersion;
 
             TagHelperResolver.TagHelpers = SomeTagHelpers;
 
@@ -588,7 +590,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
 
             // Force init
-            var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
+            _ = original.ProjectWorkspaceStateVersion;
 
             // Act
             var state = original.WithHostProject(HostProject);
@@ -778,8 +780,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 .WithAddedHostDocument(Documents[1], DocumentState.EmptyLoader);
 
             // Force init
-            var originalTagHelpers = original.TagHelpers;
-            var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
+            _ = original.TagHelpers;
+            _ = original.ProjectWorkspaceStateVersion;
 
             var changed = new ProjectWorkspaceState(original.TagHelpers, original.CSharpLanguageVersion);
 

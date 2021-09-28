@@ -1,12 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
@@ -16,19 +17,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
     internal class OnAutoInsertEndpoint : IOnAutoInsertHandler
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
+        private readonly AdhocWorkspaceFactory _workspaceFactory;
         private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
         private readonly Container<string> _onAutoInsertTriggerCharacters;
 
         public OnAutoInsertEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
-            IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider)
+            IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider,
+            AdhocWorkspaceFactory workspaceFactory)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentResolver is null)
@@ -41,15 +44,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 throw new ArgumentNullException(nameof(onAutoInsertProvider));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            if (workspaceFactory is null)
+            {
+                throw new ArgumentNullException(nameof(workspaceFactory));
+            }
+
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
+            _workspaceFactory = workspaceFactory;
             _onAutoInsertProviders = onAutoInsertProvider.ToList();
             _onAutoInsertTriggerCharacters = _onAutoInsertProviders.Select(provider => provider.TriggerCharacter).ToList();
         }
 
         public RegistrationExtensionResult GetRegistration()
         {
-            const string AssociatedServerCapability = "_ms_onAutoInsertProvider";
+            const string AssociatedServerCapability = "_vs_onAutoInsertProvider";
 
             var registrationOptions = new OnAutoInsertRegistrationOptions()
             {
@@ -62,12 +71,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 
         public async Task<OnAutoInsertResponse> Handle(OnAutoInsertParams request, CancellationToken cancellationToken)
         {
-            var document = await Task.Factory.StartNew(() =>
+            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
 
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {
@@ -104,16 +113,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             var uri = request.TextDocument.Uri;
             var position = request.Position;
 
-            var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, new Range(position, position));
-            for (var i = 0; i < applicableProviders.Count; i++)
+            using (var formattingContext = FormattingContext.Create(uri, document, codeDocument, request.Options, _workspaceFactory))
             {
-                if (applicableProviders[i].TryResolveInsertion(position, formattingContext, out var textEdit, out var format))
+                for (var i = 0; i < applicableProviders.Count; i++)
                 {
-                    return new OnAutoInsertResponse()
+                    if (applicableProviders[i].TryResolveInsertion(position, formattingContext, out var textEdit, out var format))
                     {
-                        TextEdit = textEdit,
-                        TextEditFormat = format,
-                    };
+                        return new OnAutoInsertResponse()
+                        {
+                            TextEdit = textEdit,
+                            TextEditFormat = format,
+                        };
+                    }
                 }
             }
 

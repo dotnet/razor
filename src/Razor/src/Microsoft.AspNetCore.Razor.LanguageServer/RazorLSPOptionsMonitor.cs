@@ -1,7 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 
@@ -11,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly RazorConfigurationService _configurationService;
         private readonly IOptionsMonitorCache<RazorLSPOptions> _cache;
-        internal event Action<RazorLSPOptions, string> _onChange;
+        private event Action<RazorLSPOptions, string> OnChangeEvent;
         private RazorLSPOptions _currentValue;
 
         public RazorLSPOptionsMonitor(RazorConfigurationService configurationService, IOptionsMonitorCache<RazorLSPOptions> cache)
@@ -35,20 +36,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public RazorLSPOptions Get(string name)
         {
-            name = name ?? Options.DefaultName;
+            name ??= Options.DefaultName;
             return _cache.GetOrAdd(name, () => _currentValue);
         }
 
         public IDisposable OnChange(Action<RazorLSPOptions, string> listener)
         {
             var disposable = new ChangeTrackerDisposable(this, listener);
-            _onChange += disposable.OnChange;
+            OnChangeEvent += disposable.OnChange;
             return disposable;
         }
 
-        public virtual async Task UpdateAsync()
+        public virtual async Task UpdateAsync(CancellationToken cancellationToken = default)
         {
-            var latestOptions = await _configurationService.GetLatestOptionsAsync();
+            var latestOptions = await _configurationService.GetLatestOptionsAsync(cancellationToken);
             if (latestOptions != null)
             {
                 _currentValue = latestOptions;
@@ -61,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var name = Options.DefaultName;
             _cache.TryRemove(name);
             var options = Get(name);
-            _onChange?.Invoke(options, name);
+            OnChangeEvent?.Invoke(options, name);
         }
 
         internal class ChangeTrackerDisposable : IDisposable
@@ -77,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public void OnChange(RazorLSPOptions options, string name) => _listener.Invoke(options, name);
 
-            public void Dispose() => _monitor._onChange -= OnChange;
+            public void Dispose() => _monitor.OnChangeEvent -= OnChange;
         }
     }
 }

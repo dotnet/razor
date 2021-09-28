@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 {
@@ -14,17 +15,21 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     [ExportWorkspaceServiceFactory(typeof(EditorDocumentManager), ServiceLayer.Host)]
     internal class VisualStudioMacEditorDocumentManagerFactory : IWorkspaceServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
-        public VisualStudioMacEditorDocumentManagerFactory(ForegroundDispatcher foregroundDispatcher)
+        public VisualStudioMacEditorDocumentManagerFactory(
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _joinableTaskContext = joinableTaskContext;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -35,7 +40,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
             }
 
             var fileChangeTrackerFactory = workspaceServices.GetRequiredService<FileChangeTrackerFactory>();
-            var editorDocumentManager = new VisualStudioMacEditorDocumentManager(_foregroundDispatcher, fileChangeTrackerFactory);
+            var editorDocumentManager = new VisualStudioMacEditorDocumentManager(_projectSnapshotManagerDispatcher, _joinableTaskContext, fileChangeTrackerFactory);
             return editorDocumentManager;
         }
     }

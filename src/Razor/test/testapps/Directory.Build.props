@@ -42,13 +42,6 @@
     <_MvcAssemblyName Include="Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(BuildingTestAppsIndependently) == false">
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset"
-        Version="$(MicrosoftNetCompilersToolsetPackageVersion)"
-        PrivateAssets="all"
-        IsImplicitlyDefined="true" />
-  </ItemGroup>
-
   <Import Project="After.Directory.Build.props" Condition="Exists('After.Directory.Build.props')" />
 
 </Project>

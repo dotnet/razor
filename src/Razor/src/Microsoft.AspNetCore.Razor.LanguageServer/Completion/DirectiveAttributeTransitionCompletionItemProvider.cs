@@ -1,45 +1,57 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Completion;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 {
     internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
     {
-        private static RazorCompletionItem _transitionCompletionItem;
+        private static RazorCompletionItem s_transitionCompletionItem;
 
         public static RazorCompletionItem TransitionCompletionItem
         {
             get
             {
-                if (_transitionCompletionItem == null)
+                if (s_transitionCompletionItem == null)
                 {
-                    _transitionCompletionItem = new RazorCompletionItem("@...", "@", RazorCompletionItemKind.Directive);
-                    _transitionCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription("Blazor directive attributes"));
+                    s_transitionCompletionItem = new RazorCompletionItem(
+                        displayText: "@...",
+                        insertText: "@",
+                        kind: RazorCompletionItemKind.Directive,
+
+                        // We specify these three commit characters to work around a Visual Studio interaction where
+                        // completion items that get "soft selected" will cause completion to re-trigger if a user
+                        // types one of the soft-selected completion item's commit characters.
+                        // In practice this happens in the `<button |` scenario where the "space" results in completions
+                        // where this directive attribute transition character ("@...") gets provided and then typing
+                        // `@` should re-trigger OR typing `/` should re-trigger.
+                        commitCharacters: new[] { "@", "/", ">" });
+                    s_transitionCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(RazorLS.Resources.Blazor_directive_attributes));
                 }
 
-                return _transitionCompletionItem;
+                return s_transitionCompletionItem;
             }
         }
 
-        private static readonly IReadOnlyList<RazorCompletionItem> Completions = new[] { TransitionCompletionItem };
+        private static readonly IReadOnlyList<RazorCompletionItem> s_completions = new[] { TransitionCompletionItem };
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
-            if (!FileKinds.IsComponent(syntaxTree.Options.FileKind))
+            if (!FileKinds.IsComponent(context.SyntaxTree.Options.FileKind))
             {
                 // Directive attributes are only supported in components
                 return Array.Empty<RazorCompletionItem>();
             }
 
             var change = new SourceChange(location, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = context.SyntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
             {
@@ -47,10 +59,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             var attribute = owner.Parent;
-            if (attribute is MarkupMiscAttributeContentSyntax)
+            if (attribute is MarkupMiscAttributeContentSyntax && attribute.ContainsOnlyWhitespace())
             {
                 // This represents a tag when there's no attribute content <InputText | />.
-                return Completions;
+                return s_completions;
             }
 
             if (!TryGetAttributeInfo(owner, out var prefixLocation, out var attributeName, out var attributeNameLocation, out _, out _))
@@ -71,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             }
 
             // This represents a tag when there's no attribute content <InputText | />.
-            return Completions;
+            return s_completions;
         }
 
         // Internal for testing

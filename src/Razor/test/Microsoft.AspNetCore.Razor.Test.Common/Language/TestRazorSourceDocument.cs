@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.Language
                 {
                     content = NormalizeNewLines(content);
                 }
-                
+
                 return new StringSourceDocument(content, encoding ?? Encoding.UTF8, properties);
             }
         }
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.Language
         public static MemoryStream CreateStreamContent(string content = "Hello, World!", Encoding encoding = null, bool normalizeNewLines = false)
         {
             var stream = new MemoryStream();
-            encoding = encoding ?? Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
             using (var writer = new StreamWriter(stream, encoding, bufferSize: 1024, leaveOpen: true))
             {
                 if (normalizeNewLines)
@@ -92,16 +92,16 @@ namespace Microsoft.AspNetCore.Razor.Language
         }
 
         public static RazorSourceDocument Create(
-            string content, 
+            string content,
             RazorSourceDocumentProperties properties,
-            Encoding encoding = null, 
+            Encoding encoding = null,
             bool normalizeNewLines = false)
         {
             if (normalizeNewLines)
             {
                 content = NormalizeNewLines(content);
             }
-            
+
             return new StringSourceDocument(content, encoding ?? Encoding.UTF8, properties);
         }
 

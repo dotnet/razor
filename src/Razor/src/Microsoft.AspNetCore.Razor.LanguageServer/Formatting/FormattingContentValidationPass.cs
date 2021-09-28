@@ -1,13 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -18,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public FormattingContentValidationPass(
             RazorDocumentMappingService documentMappingService,
             FilePathNormalizer filePathNormalizer,
-            ILanguageServer server,
+            ClientNotifierServiceBase server,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, filePathNormalizer, server)
         {
@@ -33,15 +37,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         // We want this to run at the very end.
         public override int Order => DefaultOrder + 1000;
 
+        public override bool IsValidationPass => true;
+
         // Internal for testing.
         internal bool DebugAssertsEnabled { get; set; } = true;
 
-        public override FormattingResult Execute(FormattingContext context, FormattingResult result)
+        public override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
         {
             if (result.Kind != RazorLanguageKind.Razor)
             {
                 // We don't care about changes to projected documents here.
-                return result;
+                return Task.FromResult(result);
             }
 
             var text = context.SourceText;
@@ -56,13 +62,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 if (DebugAssertsEnabled)
                 {
-                    Debug.Fail("A formatting result was rejected because it was going to mess up the document.");
+                    Debug.Fail("A formatting result was rejected because it was going to change non-whitespace content in the document.");
                 }
 
-                return new FormattingResult(Array.Empty<TextEdit>());
+                return Task.FromResult(new FormattingResult(Array.Empty<TextEdit>()));
             }
 
-            return result;
+            return Task.FromResult(result);
         }
     }
 }

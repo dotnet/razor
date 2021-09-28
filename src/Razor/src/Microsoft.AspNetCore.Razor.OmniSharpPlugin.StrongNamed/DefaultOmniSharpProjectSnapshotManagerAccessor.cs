@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,14 +15,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     {
         private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
         private readonly IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> _projectChangeTriggers;
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly Workspace _workspace;
         private OmniSharpProjectSnapshotManager _instance;
 
         public DefaultOmniSharpProjectSnapshotManagerAccessor(
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             Workspace workspace)
         {
             if (remoteTextLoaderFactory is null)
@@ -35,9 +35,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 throw new ArgumentNullException(nameof(projectChangeTriggers));
             }
 
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (workspace == null)
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
             _remoteTextLoaderFactory = remoteTextLoaderFactory;
             _projectChangeTriggers = projectChangeTriggers;
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _workspace = workspace;
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 if (_instance == null)
                 {
                     var projectSnapshotManager = new DefaultProjectSnapshotManager(
-                        _foregroundDispatcher.InternalDispatcher,
+                        _projectSnapshotManagerDispatcher.InternalDispatcher,
                         new DefaultErrorReporter(),
                         Enumerable.Empty<ProjectSnapshotChangeTrigger>(),
                         _workspace);

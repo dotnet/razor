@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private DirectiveAttributeTransitionCompletionItemProvider Provider { get; }
 
-        private RazorCompletionItem TransitionCompletionItem => DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
+        private static RazorCompletionItem TransitionCompletionItem => DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
 
 
         [Fact]
@@ -132,9 +132,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<input  />", FileKinds.Legacy);
             var location = new SourceSpan(7, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             Assert.Empty(result);
@@ -146,9 +147,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<input  />");
             var location = new SourceSpan(50, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             Assert.Empty(result);
@@ -160,9 +162,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<input  />");
             var location = new SourceSpan(2, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             Assert.Empty(result);
@@ -174,9 +177,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<input @ />");
             var location = new SourceSpan(8, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void GetCompletionItems_InbetweenSelfClosingEnd_ReturnsEmptyList()
+        {
+            // Arrange
+
+            var syntaxTree = GetSyntaxTree("<input /" + Environment.NewLine);
+            var location = new SourceSpan(8, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
+
+            // Act
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             Assert.Empty(result);
@@ -188,9 +208,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<input  />");
             var location = new SourceSpan(7, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             var item = Assert.Single(result);
@@ -203,9 +224,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<input />");
             var location = new SourceSpan(7, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             var item = Assert.Single(result);
@@ -218,9 +240,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<input ></input>");
             var location = new SourceSpan(7, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             var item = Assert.Single(result);
@@ -233,9 +256,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<input src=\"xyz\" />");
             var location = new SourceSpan(7, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             Assert.Empty(result);
@@ -247,9 +271,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<input src=\"xyz\" />");
             var location = new SourceSpan(16, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             Assert.Empty(result);
@@ -261,9 +286,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<svg xml: ></svg>");
             var location = new SourceSpan(9, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             Assert.Empty(result);
@@ -275,9 +301,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<input   @{");
             var location = new SourceSpan(7, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             var item = Assert.Single(result);
@@ -290,9 +317,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             // Arrange
             var syntaxTree = GetSyntaxTree("<svg  xml:base=\"d\"></svg>");
             var location = new SourceSpan(5, 0);
+            var context = new RazorCompletionContext(syntaxTree, TagHelperDocumentContext);
 
             // Act
-            var result = Provider.GetCompletionItems(syntaxTree, TagHelperDocumentContext, location);
+            var result = Provider.GetCompletionItems(context, location);
 
             // Assert
             var item = Assert.Single(result);
@@ -301,7 +329,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         private static RazorSyntaxTree GetSyntaxTree(string text, string fileKind = null)
         {
-            fileKind = fileKind ?? FileKinds.Component;
+            fileKind ??= FileKinds.Component;
             var sourceDocument = TestRazorSourceDocument.Create(text);
             var projectEngine = RazorProjectEngine.Create(builder => { });
             var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,8 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -26,13 +30,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCustomMessage2, ILanguageClientPriority
     {
+        private const string LogFileIdentifier = "Razor.RazorLanguageServerClient";
+
         private readonly RazorLanguageServerCustomMessageTarget _customMessageTarget;
         private readonly ILanguageClientMiddleLayer _middleLayer;
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-        private object _shutdownLock;
+        private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
+        private readonly VSLanguageServerFeatureOptions _vsLanguageServerFeatureOptions;
+        private readonly VSHostServicesProvider _vsHostWorkspaceServicesProvider;
+        private readonly object _shutdownLock;
         private RazorLanguageServer _server;
         private IDisposable _serverShutdownDisposable;
+        private LogHubLoggerProvider _loggerProvider;
 
         private const string RazorLSPLogLevel = "RAZOR_TRACE";
 
@@ -41,7 +51,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             RazorLanguageServerCustomMessageTarget customTarget,
             RazorLanguageClientMiddleLayer middleLayer,
             LSPRequestInvoker requestInvoker,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
+            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+            RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
+            VSLanguageServerFeatureOptions vsLanguageServerFeatureOptions,
+            VSHostServicesProvider vsHostWorkspaceServicesProvider)
         {
             if (customTarget is null)
             {
@@ -63,14 +76,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
             }
 
+            if (logHubLoggerProviderFactory is null)
+            {
+                throw new ArgumentNullException(nameof(logHubLoggerProviderFactory));
+            }
+
+            if (vsLanguageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(vsLanguageServerFeatureOptions));
+            }
+
+            if (vsHostWorkspaceServicesProvider is null)
+            {
+                throw new ArgumentNullException(nameof(vsHostWorkspaceServicesProvider));
+            }
+
             _customMessageTarget = customTarget;
             _middleLayer = middleLayer;
             _requestInvoker = requestInvoker;
             _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+            _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
+            _vsLanguageServerFeatureOptions = vsLanguageServerFeatureOptions;
+            _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
             _shutdownLock = new object();
         }
 
-        public string Name => "Razor Language Server Client";
+        public string Name => RazorLSPConstants.RazorLanguageServerName;
 
         public IEnumerable<string> ConfigurationSections => null;
 
@@ -87,6 +118,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // We set a priority to ensure that our Razor language server is always chosen if there's a conflict for which language server to prefer.
         public int Priority => 10;
 
+        public bool ShowNotificationOnInitializeFailed => true;
+
         public event AsyncEventHandler<EventArgs> StartAsync;
         public event AsyncEventHandler<EventArgs> StopAsync
         {
@@ -96,21 +129,42 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public async Task<Connection> ActivateAsync(CancellationToken token)
         {
+            // Swap to background thread, nothing below needs to be done on the UI thread.
+            await TaskScheduler.Default;
+
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
             await EnsureCleanedUpServerAsync(token).ConfigureAwait(false);
 
-            // Need an auto-flushing stream for the server because O# doesn't currently flush after writing responses. Without this
-            // performing the Initialize handshake with the LanguageServer hangs.
-            var autoFlushingStream = new AutoFlushingNerdbankStream(serverStream);
             var traceLevel = GetVerbosity();
-            _server = await RazorLanguageServer.CreateAsync(autoFlushingStream, autoFlushingStream, traceLevel).ConfigureAwait(false);
+
+            // Initialize Logging Infrastructure
+            _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
+
+            _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, ConfigureLanguageServer).ConfigureAwait(false);
 
             // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
             _server.InitializedAsync(token).FileAndForget("RazorLanguageServerClient_ActivateAsync");
 
             var connection = new Connection(clientStream, clientStream);
             return connection;
+        }
+
+        private void ConfigureLanguageServer(RazorLanguageServerBuilder builder)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            var services = builder.Services;
+            services.AddLogging(logging =>
+            {
+                logging.AddFilter<LogHubLoggerProvider>(level => true);
+                logging.AddProvider(_loggerProvider);
+            });
+            services.AddSingleton<LanguageServerFeatureOptions>(_vsLanguageServerFeatureOptions);
+            services.AddSingleton<HostServicesProvider>(_vsHostWorkspaceServicesProvider);
         }
 
         private Trace GetVerbosity()
@@ -125,14 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             else
             {
                 var logString = Environment.GetEnvironmentVariable(RazorLSPLogLevel);
-                if (Enum.TryParse<Trace>(logString, out var parsedTrace))
-                {
-                    result = parsedTrace;
-                }
-                else
-                {
-                    result = Trace.Off;
-                }
+                result = Enum.TryParse<Trace>(logString, out var parsedTrace) ? parsedTrace : Trace.Off;
             }
 
             return result;
@@ -146,16 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var shell = AsyncPackage.GetGlobalService(typeof(SVsShell)) as IVsShell;
             var result = shell.GetProperty((int)__VSSPROPID11.VSSPROPID_ShellMode, out var mode);
 
-            bool isVSServer;
-            if (ErrorHandler.Succeeded(result))
-            {
-                isVSServer = ((int)mode == (int)__VSShellMode.VSSM_Server);
-            }
-            else
-            {
-                isVSServer = false;
-            }
-
+            var isVSServer = ErrorHandler.Succeeded(result) && (int)mode == (int)__VSShellMode.VSSM_Server;
             return isVSServer;
         }
 
@@ -173,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             while (_server != null && ++attempts < WaitForShutdownAttempts)
             {
                 // Server failed to shutdown, lets wait a little bit and check again.
-                await Task.Delay(100, token);
+                await Task.Delay(100, token).ConfigureAwait(false);
             }
 
             lock (_shutdownLock)
@@ -191,11 +229,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public async Task OnLoadedAsync()
         {
             await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
-        }
-
-        public Task OnServerInitializeFailedAsync(Exception e)
-        {
-            return Task.CompletedTask;
         }
 
         public Task OnServerInitializedAsync()
@@ -250,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 await _requestInvoker.ReinvokeRequestOnServerAsync<MonitorProjectConfigurationFilePathParams, object>(
                     LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint,
-                    LanguageServerKind.Razor,
+                    RazorLSPConstants.RazorLanguageServerName,
                     parameter,
                     CancellationToken.None);
             }
@@ -271,5 +304,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
+
+        public Task<InitializationFailureContext> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
+        {
+            var initializationFailureContext = new InitializationFailureContext();
+            initializationFailureContext.FailureMessage = string.Format(VS.LSClientRazor.Resources.LanguageServer_Initialization_Failed,
+                Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
+            return Task.FromResult<InitializationFailureContext>(initializationFailureContext);
+        }
     }
 }

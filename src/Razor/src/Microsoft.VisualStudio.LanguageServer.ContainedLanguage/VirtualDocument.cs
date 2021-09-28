@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,8 +15,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public abstract VirtualDocumentSnapshot CurrentSnapshot { get; }
 
+        public abstract int HostDocumentVersion { get; }
+
+        [Obsolete]
         public abstract long? HostDocumentSyncVersion { get; }
 
+        public abstract VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion);
+
+        [Obsolete]
         public abstract VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, long hostDocumentVersion);
 
         public abstract void Dispose();

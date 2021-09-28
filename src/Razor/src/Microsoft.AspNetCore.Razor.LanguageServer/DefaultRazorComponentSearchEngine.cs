@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -15,14 +15,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
 
         public DefaultRazorComponentSearchEngine(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
         }
 
@@ -42,29 +42,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return null;
             }
 
-            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var namespaceSpan, out var typeSpan);
-            var namespaceName = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.GetTextSpanContent(namespaceSpan, tagHelper.Name);
-            var typeName = DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.GetTextSpanContent(typeSpan, tagHelper.Name);
+            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var @namespaceName, out var typeName);
+            var lookupSymbolName = RemoveGenericContent(typeName);
 
-            var projects = await Task.Factory.StartNew(() =>
-            {
-                return _projectSnapshotManager.Projects.ToArray();
-            }, CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () => _projectSnapshotManager.Projects.ToArray(),
+                CancellationToken.None).ConfigureAwait(false);
 
             foreach (var project in projects)
             {
-                if (!project.FilePath.EndsWith($"{tagHelper.AssemblyName}.csproj", FilePathComparison.Instance))
-                {
-                    continue;
-                }
-
                 foreach (var path in project.DocumentFilePaths)
                 {
                     // Get document and code document
                     var documentSnapshot = project.GetDocument(path);
 
                     // Rule out if not Razor component with correct name
-                    if (!IsPathCandidateForComponent(documentSnapshot, typeName))
+                    if (!IsPathCandidateForComponent(documentSnapshot, lookupSymbolName))
                     {
                         continue;
                     }
@@ -86,24 +79,36 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return null;
         }
 
-        public static bool IsPathCandidateForComponent(DocumentSnapshot documentSnapshot, string typeName)
+        private StringSegment RemoveGenericContent(StringSegment typeName)
+        {
+            var genericSeparatorStart = typeName.IndexOf('<');
+            if (genericSeparatorStart > 0)
+            {
+                var ungenericTypeName = typeName.Subsegment(0, genericSeparatorStart);
+                return ungenericTypeName;
+            }
+
+            return typeName;
+        }
+
+        private static bool IsPathCandidateForComponent(DocumentSnapshot documentSnapshot, StringSegment path)
         {
             if (documentSnapshot.FileKind != FileKinds.Component)
             {
                 return false;
             }
             var fileName = Path.GetFileNameWithoutExtension(documentSnapshot.FilePath);
-            return fileName.Equals(typeName, FilePathComparison.Instance);
+            return new StringSegment(fileName).Equals(path, FilePathComparison.Instance);
         }
 
-        public static bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, string namespaceName)
+        private static bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, StringSegment namespaceName)
         {
             var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
                 .GetDocumentIntermediateNode()
                 .FindDescendantNodes<IntermediateNode>()
                 .First(n => n is NamespaceDeclarationIntermediateNode);
 
-            return namespaceNode.Content.Equals(namespaceName, StringComparison.Ordinal);
+            return new StringSegment(namespaceNode.Content).Equals(namespaceName, StringComparison.Ordinal);
         }
     }
 }

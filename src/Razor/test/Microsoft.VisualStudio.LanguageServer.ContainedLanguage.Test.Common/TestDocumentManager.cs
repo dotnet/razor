@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -11,8 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     {
         private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = new Dictionary<Uri, LSPDocumentSnapshot>();
 
-        public override event EventHandler<LSPDocumentChangeEventArgs> Changed;
-
         public int UpdateVirtualDocumentCallCount { get; private set; }
 
         public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
@@ -23,8 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public void AddDocument(Uri uri, LSPDocumentSnapshot documentSnapshot)
         {
             _documents.Add(uri, documentSnapshot);
-
-            Changed?.Invoke(this, null);
         }
 
         public override void TrackDocument(ITextBuffer buffer)
@@ -37,9 +33,15 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             throw new NotImplementedException();
         }
 
-        public override void UpdateVirtualDocument<TVirtualDocument>(Uri hostDocumentUri, IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
+        public override void UpdateVirtualDocument<TVirtualDocument>(Uri hostDocumentUri, IReadOnlyList<ITextChange> changes, int hostDocumentVersion)
         {
             UpdateVirtualDocumentCallCount++;
+        }
+
+        [Obsolete]
+        public override void UpdateVirtualDocument<TVirtualDocument>(Uri hostDocumentUri, IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
+        {
+            throw new NotImplementedException();
         }
     }
 }

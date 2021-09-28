@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
@@ -25,9 +25,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("<div>");
             var location = new SourceSpan(5, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -39,9 +40,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("<div><");
             var location = new SourceSpan(6, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -53,9 +55,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("<div><span><p></p><p>< </p></span></div>");
             var location = new SourceSpan(22, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -67,9 +70,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{<");
             var location = new SourceSpan(3, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -81,9 +85,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{<te");
             var location = new SourceSpan(5, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -95,9 +100,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@if (true) {< }");
             var location = new SourceSpan(13, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -109,9 +115,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@functions {public string GetHello(){< return \"pi\";}}", FunctionsDirective.Directive);
             var location = new SourceSpan(38, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -132,10 +139,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     <
 })");
-            var location = new SourceSpan(121 + Environment.NewLine.Length * 9, 0);
+            var location = new SourceSpan(121 + (Environment.NewLine.Length * 9), 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -149,10 +157,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
     @* @: Here's some Markup | <-- You shouldn't get a <text> tag completion here. *@
     @: Here's some markup <
 }");
-            var location = new SourceSpan(114 + Environment.NewLine.Length * 2, 0);
+            var location = new SourceSpan(114 + (Environment.NewLine.Length * 2), 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -168,10 +177,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
   < @* Should get text completion here *@
 }
 </div>");
-            var location = new SourceSpan(19 + Environment.NewLine.Length * 3, 0);
+            var location = new SourceSpan(19 + (Environment.NewLine.Length * 3), 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -187,10 +197,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
   < @* Shouldn't get text completion here *@
 </div>
 }");
-            var location = new SourceSpan(19 + Environment.NewLine.Length * 3, 0);
+            var location = new SourceSpan(19 + (Environment.NewLine.Length * 3), 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -208,10 +219,11 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
     private bool _collapseNavMenu => true;
 }", FunctionsDirective.Directive);
-            var location = new SourceSpan(59 + Environment.NewLine.Length * 3, 0);
+            var location = new SourceSpan(59 + (Environment.NewLine.Length * 3), 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
@@ -223,22 +235,13 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{<></>");
             var location = new SourceSpan(3, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Collection(completionItems, AssertRazorCompletionItem);
-        }
-
-        [Fact]
-        public void GetCompletionItems_ReturnsEmptyCompletionItemIfSyntaxTreeNull()
-        {
-            // Arrange
-            var location = new SourceSpan(0, 0);
-
-            // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => Provider.GetCompletionItems(null, null, location));
         }
 
         [Fact]
@@ -247,9 +250,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@DateTime.Now<");
             var location = new SourceSpan(14, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -261,9 +265,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@(something)<");
             var location = new SourceSpan(13, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -275,9 +280,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{< ");
             var location = new SourceSpan(4, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -289,9 +295,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("@{< te=\"\"");
             var location = new SourceSpan(6, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -303,9 +310,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             // Arrange
             var syntaxTree = CreateSyntaxTree("<p < >");
             var location = new SourceSpan(4, 0);
+            var razorCompletionContext = CreateRazorCompletionContext(syntaxTree);
 
             // Act
-            var completionItems = Provider.GetCompletionItems(syntaxTree, null, location);
+            var completionItems = Provider.GetCompletionItems(razorCompletionContext, location);
 
             // Assert
             Assert.Empty(completionItems);
@@ -316,7 +324,14 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Assert.Equal(item.DisplayText, SyntaxConstants.TextTagName);
             Assert.Equal(item.InsertText, SyntaxConstants.TextTagName);
             var completionDescription = item.GetMarkupTransitionCompletionDescription();
-            Assert.Equal(Resources.MarkupTransition_Description, completionDescription.Description);
+            Assert.Equal(CodeAnalysisResources.MarkupTransition_Description, completionDescription.Description);
+        }
+
+        private static RazorCompletionContext CreateRazorCompletionContext(RazorSyntaxTree syntaxTree)
+        {
+            var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Array.Empty<TagHelperDescriptor>());
+
+            return new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
         }
 
         private static RazorSyntaxTree CreateSyntaxTree(string text, params DirectiveDescriptor[] directives)

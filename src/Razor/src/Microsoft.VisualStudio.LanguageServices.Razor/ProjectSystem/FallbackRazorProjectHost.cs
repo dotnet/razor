@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -38,17 +38,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public FallbackRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
-            : base(commonServices, workspace, projectConfigurationFilePathStore)
+            : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
         }
 
         internal FallbackRazorProjectHost(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             ProjectSnapshotManagerBase projectManager)
-            : base(commonServices, workspace, projectConfigurationFilePathStore, projectManager)
+            : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
         {
         }
 
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // to the UI thread to push our updates.
             //
             // Just subscribe and handle the notification later.
-            var receiver = new ActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(OnProjectChanged);
+            var receiver = new ActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(OnProjectChangedAsync);
             _subscription = CommonServices.ActiveConfiguredProjectSubscription.JointRuleSource.SourceBlock.LinkTo(
                 receiver,
                 initialDataAsNew: true,
@@ -85,81 +87,78 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         // Internal for testing
-        internal async Task OnProjectChanged(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
+        internal async Task OnProjectChangedAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
         {
             if (IsDisposing || IsDisposed)
             {
                 return;
             }
 
-            await CommonServices.TasksService.LoadedProjectAsync(async () =>
+            await CommonServices.TasksService.LoadedProjectAsync(async () => await ExecuteWithLockAsync(async () =>
             {
-                await ExecuteWithLock(async () =>
+                string mvcReferenceFullPath = null;
+                if (update.Value.CurrentState.ContainsKey(ResolvedCompilationReference.SchemaName))
                 {
-                    string mvcReferenceFullPath = null;
-                    if (update.Value.CurrentState.ContainsKey(ResolvedCompilationReference.SchemaName))
+                    var references = update.Value.CurrentState[ResolvedCompilationReference.SchemaName].Items;
+                    foreach (var reference in references)
                     {
-                        var references = update.Value.CurrentState[ResolvedCompilationReference.SchemaName].Items;
-                        foreach (var reference in references)
+                        if (reference.Key.EndsWith(MvcAssemblyFileName, StringComparison.OrdinalIgnoreCase))
                         {
-                            if (reference.Key.EndsWith(MvcAssemblyFileName, StringComparison.OrdinalIgnoreCase))
-                            {
-                                mvcReferenceFullPath = reference.Key;
-                                break;
-                            }
+                            mvcReferenceFullPath = reference.Key;
+                            break;
                         }
                     }
+                }
 
-                    if (mvcReferenceFullPath == null)
+                if (mvcReferenceFullPath == null)
+                {
+                    // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
+                    return;
+                }
+
+                var version = GetAssemblyVersion(mvcReferenceFullPath);
+                if (version == null)
+                {
+                    // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
+                    return;
+                }
+
+                // We need to deal with the case where the project was uninitialized, but now
+                // is valid for Razor. In that case we might have previously seen all of the documents
+                // but ignored them because the project wasn't active.
+                //
+                // So what we do to deal with this, is that we 'remove' all changed and removed items
+                // and then we 'add' all current items. This allows minimal churn to the PSM, but still
+                // makes us up-to-date.
+                var documents = GetCurrentDocuments(update.Value);
+                var changedDocuments = GetChangedAndRemovedDocuments(update.Value);
+
+                await UpdateAsync(() =>
+                {
+                    var configuration = FallbackRazorConfiguration.SelectConfiguration(version);
+                    var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, configuration, rootNamespace: null);
+
+                    if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
                     {
-                        // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                        await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
-                        return;
+                        var projectRazorJson = Path.Combine(intermediatePath, "project.razor.json");
+                        ProjectConfigurationFilePathStore.Set(hostProject.FilePath, projectRazorJson);
                     }
 
-                    var version = GetAssemblyVersion(mvcReferenceFullPath);
-                    if (version == null)
+                    UpdateProjectUnsafe(hostProject);
+
+                    for (var i = 0; i < changedDocuments.Length; i++)
                     {
-                        // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                        await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
-                        return;
+                        RemoveDocumentUnsafe(changedDocuments[i]);
                     }
 
-                    // We need to deal with the case where the project was uninitialized, but now
-                    // is valid for Razor. In that case we might have previously seen all of the documents
-                    // but ignored them because the project wasn't active.
-                    //
-                    // So what we do to deal with this, is that we 'remove' all changed and removed items
-                    // and then we 'add' all current items. This allows minimal churn to the PSM, but still
-                    // makes us up-to-date.
-                    var documents = GetCurrentDocuments(update.Value);
-                    var changedDocuments = GetChangedAndRemovedDocuments(update.Value);
-
-                    await UpdateAsync(() =>
+                    for (var i = 0; i < documents.Length; i++)
                     {
-                        var configuration = FallbackRazorConfiguration.SelectConfiguration(version);
-                        var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, configuration, rootNamespace: null);
-
-                        if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
-                        {
-                            var projectRazorJson = Path.Combine(intermediatePath, "project.razor.json");
-                            _projectConfigurationFilePathStore.Set(hostProject.FilePath, projectRazorJson);
-                        }
-
-                        UpdateProjectUnsafe(hostProject);
-
-                        for (var i = 0; i < changedDocuments.Length; i++)
-                        {
-                            RemoveDocumentUnsafe(changedDocuments[i]);
-                        }
-
-                        for (var i = 0; i < documents.Length; i++)
-                        {
-                            AddDocumentUnsafe(documents[i]);
-                        }
-                    }).ConfigureAwait(false);
-                }).ConfigureAwait(false);
-            }, registerFaultHandler: true);
+                        AddDocumentUnsafe(documents[i]);
+                    }
+                }, CancellationToken.None).ConfigureAwait(false);
+            }).ConfigureAwait(false), registerFaultHandler: true);
         }
 
         // virtual for overriding in tests

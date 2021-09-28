@@ -1,44 +1,46 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
+using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
+using OmniSharp.Extensions.LanguageServer.Protocol.Document;
+using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
     internal class RazorDefinitionEndpoint : IDefinitionHandler
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
         private readonly RazorComponentSearchEngine _componentSearchEngine;
 
-        public DefinitionCapability _capability { get; private set; }
-
         public RazorDefinitionEndpoint(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentResolver documentResolver,
             RazorComponentSearchEngine componentSearchEngine)
         {
-            _foregroundDispatcher = foregroundDispatcher ?? throw new ArgumentNullException(nameof(foregroundDispatcher));
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
             _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
         }
 
-        public TextDocumentRegistrationOptions GetRegistrationOptions()
+        public DefinitionRegistrationOptions GetRegistrationOptions(DefinitionCapability capability, ClientCapabilities clientCapabilities)
         {
-            return new TextDocumentRegistrationOptions
+            return new DefinitionRegistrationOptions
             {
-                DocumentSelector = RazorDefaults.Selector
+                DocumentSelector = RazorDefaults.Selector,
             };
         }
 
@@ -49,12 +51,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var documentSnapshot = await Task.Factory.StartNew(() =>
+            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 var path = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
                 _documentResolver.TryResolveDocument(path, out var documentSnapshot);
                 return documentSnapshot;
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
 
             if (documentSnapshot is null)
             {
@@ -78,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 return null;
             }
 
-            var originTagDescriptor = originTagHelperBinding.Descriptors.SingleOrDefault();
+            var originTagDescriptor = originTagHelperBinding.Descriptors.FirstOrDefault(d => !d.IsAttributeDescriptor());
             if (originTagDescriptor is null)
             {
                 return null;
@@ -107,17 +109,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             });
         }
 
-        public void SetCapability(DefinitionCapability capability)
-        {
-            _capability = capability;
-        }
-
-        private async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(DocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, Position position)
+        internal static async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(
+            DocumentSnapshot documentSnapshot,
+            RazorCodeDocument codeDocument,
+            Position position)
         {
             var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            var linePosition = new LinePosition((int)position.Line, (int)position.Character);
+            var linePosition = new LinePosition(position.Line, position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceLocation(hostDocumentIndex, (int)position.Line, (int)position.Character);
+            var location = new SourceLocation(hostDocumentIndex, position.Line, position.Character);
 
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: string.Empty);
             var syntaxTree = codeDocument.GetSyntaxTree();
@@ -132,23 +132,41 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 return null;
             }
 
-            var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.MarkupTagHelperStartTag);
-            if (node == null || !(node is MarkupTagHelperStartTagSyntax tagHelperStartTag))
-            {
-                return null;
-            }
-            
-            if (!tagHelperStartTag.Name.Span.Contains(location.AbsoluteIndex))
+            var node = owner.Ancestors().FirstOrDefault(n =>
+                n.Kind == SyntaxKind.MarkupTagHelperStartTag ||
+                n.Kind == SyntaxKind.MarkupTagHelperEndTag);
+            if (node is null)
             {
                 return null;
             }
 
-            if (!(tagHelperStartTag?.Parent is MarkupTagHelperElementSyntax tagHelperElement))
+            var name = GetStartOrEndTagName(node);
+            if (name is null)
+            {
+                return null;
+            }
+
+            if (!name.Span.Contains(location.AbsoluteIndex))
+            {
+                return null;
+            }
+
+            if (!(node.Parent is MarkupTagHelperElementSyntax tagHelperElement))
             {
                 return null;
             }
 
             return tagHelperElement.TagHelperInfo.BindingResult;
+        }
+
+        private static SyntaxNode GetStartOrEndTagName(SyntaxNode node)
+        {
+            return node switch
+            {
+                MarkupTagHelperStartTagSyntax tagHelperStartTag => tagHelperStartTag.Name,
+                MarkupTagHelperEndTagSyntax tagHelperEndTag => tagHelperEndTag.Name,
+                _ => null
+            };
         }
     }
 }

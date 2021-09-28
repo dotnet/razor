@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -14,12 +13,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
     public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
     {
         public OmniSharpWorkspaceProjectStateChangeDetector(
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (workspaceStateGenerator == null)
@@ -27,8 +26,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
-            InternalWorkspaceProjectStateChangeDetector = new ForegroundWorkspaceProjectStateChangeDetector(
-                foregroundDispatcher.InternalDispatcher,
+            InternalWorkspaceProjectStateChangeDetector = new ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
+                projectSnapshotManagerDispatcher.InternalDispatcher,
                 workspaceStateGenerator.InternalWorkspaceStateGenerator);
         }
 
@@ -39,35 +38,31 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
             InternalWorkspaceProjectStateChangeDetector.Initialize(projectManager.InternalProjectSnapshotManager);
         }
 
-        private class ForegroundWorkspaceProjectStateChangeDetector : WorkspaceProjectStateChangeDetector
+        private class ProjectSnapshotManagerWorkspaceProjectStateChangeDetector : WorkspaceProjectStateChangeDetector
         {
-            private readonly ForegroundDispatcher _foregroundDispatcher;
+            private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
-            public ForegroundWorkspaceProjectStateChangeDetector(
-                ForegroundDispatcher foregroundDispatcher,
-                ProjectWorkspaceStateGenerator workspaceStateGenerator) : base(workspaceStateGenerator)
+            public ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+                ProjectWorkspaceStateGenerator workspaceStateGenerator) : base(workspaceStateGenerator, projectSnapshotManagerDispatcher)
             {
-                if (foregroundDispatcher == null)
+                if (projectSnapshotManagerDispatcher is null)
                 {
-                    throw new ArgumentNullException(nameof(foregroundDispatcher));
+                    throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
                 }
 
-                _foregroundDispatcher = foregroundDispatcher;
+                _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             }
 
-            // We override the InitializeSolution in order to enforce calls to this to be on the foreground thread.
-            // OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
+            // We override the InitializeSolution in order to enforce calls to this to be on the project snapshot manager's
+            // thread. OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
             // in change events dispatching through the Workspace on multiple different threads. This normalizes
             // that abnormality.
+#pragma warning disable VSTHRD100 // Avoid async void methods
             protected override async void InitializeSolution(Solution solution)
+#pragma warning restore VSTHRD100 // Avoid async void methods
             {
-                if (_foregroundDispatcher.IsForegroundThread)
-                {
-                    base.InitializeSolution(solution);
-                    return;
-                }
-
-                await Task.Factory.StartNew(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
                         try
@@ -79,23 +74,18 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                             Debug.Fail("Unexpected error when initializing solution: " + ex);
                         }
                     },
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler);
+                    CancellationToken.None).ConfigureAwait(false);
             }
 
-            // We override Workspace_WorkspaceChanged in order to enforce calls to this to be on the foreground thread.
-            // OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
+            // We override Workspace_WorkspaceChanged in order to enforce calls to this to be on the project snapshot manager's
+            // thread. OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
             // in change events dispatching through the Workspace on multiple different threads. This normalizes
             // that abnormality.
+#pragma warning disable VSTHRD100 // Avoid async void methods
             internal override async void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
+#pragma warning restore VSTHRD100 // Avoid async void methods
             {
-                if (_foregroundDispatcher.IsForegroundThread)
-                {
-                    base.Workspace_WorkspaceChanged(sender, args);
-                    return;
-                }
-                await Task.Factory.StartNew(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
                         try
@@ -107,9 +97,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
                             Debug.Fail("Unexpected error when handling a workspace changed event: " + ex);
                         }
                     },
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler);
+                    CancellationToken.None).ConfigureAwait(false);
             }
         }
     }

@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
@@ -14,18 +13,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
     [Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
     internal class DocumentChangedSynchronizationService : IRazorDocumentChangeListener, IOmniSharpProjectSnapshotManagerChangeTrigger
     {
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private OmniSharpProjectSnapshotManagerBase _projectManager;
 
         [ImportingConstructor]
-        public DocumentChangedSynchronizationService(OmniSharpForegroundDispatcher foregroundDispatcher)
+        public DocumentChangedSynchronizationService(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (foregroundDispatcher is null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
         public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
@@ -53,9 +52,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var projectFilePath = args.UnevaluatedProjectInstance.ProjectFileLocation.File;
             var documentFilePath = args.FilePath;
 
-            Task.Factory.StartNew(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.DocumentChanged(projectFilePath, documentFilePath),
-                CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

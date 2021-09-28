@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
     internal class DefaultRazorProjectService : RazorProjectService
     {
         private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly HostDocumentFactory _hostDocumentFactory;
         private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
         private readonly ProjectResolver _projectResolver;
@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         private readonly ILogger _logger;
 
         public DefaultRazorProjectService(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             HostDocumentFactory hostDocumentFactory,
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             DocumentResolver documentResolver,
@@ -41,9 +41,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             ILoggerFactory loggerFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (hostDocumentFactory == null)
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _hostDocumentFactory = hostDocumentFactory;
             _remoteTextLoaderFactory = remoteTextLoaderFactory;
             _documentResolver = documentResolver;
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void AddDocument(string filePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var textDocumentPath = _filePathNormalizer.Normalize(filePath);
             if (_documentResolver.TryResolveDocument(textDocumentPath, out var _))
@@ -133,9 +133,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             _projectSnapshotManagerAccessor.Instance.DocumentAdded(defaultProject.HostProject, hostDocument, textLoader);
         }
 
-        public override void OpenDocument(string filePath, SourceText sourceText, long version)
+        public override void OpenDocument(string filePath, SourceText sourceText, int version)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var textDocumentPath = _filePathNormalizer.Normalize(filePath);
             if (!_documentResolver.TryResolveDocument(textDocumentPath, out _))
@@ -160,13 +160,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             if (_documentResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
             {
                 // Start generating the C# for the document so it can immediately be ready for incoming requests.
-                documentSnapshot.GetGeneratedOutputAsync();
+                _ = documentSnapshot.GetGeneratedOutputAsync();
             }
         }
 
         public override void CloseDocument(string filePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var textDocumentPath = _filePathNormalizer.Normalize(filePath);
             if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
@@ -182,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void RemoveDocument(string filePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var textDocumentPath = _filePathNormalizer.Normalize(filePath);
             if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
@@ -202,9 +202,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             _projectSnapshotManagerAccessor.Instance.DocumentRemoved(defaultProject.HostProject, document.State.HostDocument);
         }
 
-        public override void UpdateDocument(string filePath, SourceText sourceText, long version)
+        public override void UpdateDocument(string filePath, SourceText sourceText, int version)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var textDocumentPath = _filePathNormalizer.Normalize(filePath);
             if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
@@ -221,7 +221,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void AddProject(string filePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var normalizedPath = _filePathNormalizer.Normalize(filePath);
 
@@ -242,7 +242,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
         public override void RemoveProject(string filePath)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var normalizedPath = _filePathNormalizer.Normalize(filePath);
             var project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
@@ -266,7 +266,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             ProjectWorkspaceState projectWorkspaceState,
             IReadOnlyList<DocumentSnapshotHandle> documents)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var normalizedPath = _filePathNormalizer.Normalize(filePath);
             var project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
@@ -411,7 +411,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         // Internal for testing
         internal void TryMigrateDocumentsFromRemovedProject(ProjectSnapshot project)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var miscellaneousProject = _projectResolver.GetMiscellaneousProject();
 
@@ -437,7 +437,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         // Internal for testing
         internal void TryMigrateMiscellaneousDocumentsToProject()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var miscellaneousProject = _projectResolver.GetMiscellaneousProject();
 
@@ -464,7 +464,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             }
         }
 
-        private void TrackDocumentVersion(string textDocumentPath, long version)
+        private void TrackDocumentVersion(string textDocumentPath, int version)
         {
             if (!_documentResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
             {

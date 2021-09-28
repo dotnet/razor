@@ -1,11 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
@@ -13,17 +14,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
     [ExportLanguageServiceFactory(typeof(VisualStudioRazorParserFactory), RazorLanguage.Name, ServiceLayer.Default)]
     internal class DefaultVisualStudioRazorParserFactoryFactory : ILanguageServiceFactory
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
-        public DefaultVisualStudioRazorParserFactoryFactory(ForegroundDispatcher foregroundDispatcher)
+        public DefaultVisualStudioRazorParserFactoryFactory(JoinableTaskContext joinableTaskContext)
         {
-            if (foregroundDispatcher == null)
+            if (joinableTaskContext is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(joinableTaskContext));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _joinableTaskContext = joinableTaskContext;
         }
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
@@ -38,7 +39,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var projectEngineFactory = workspaceServices.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
 
             return new DefaultVisualStudioRazorParserFactory(
-                _foregroundDispatcher,
+                _joinableTaskContext,
                 errorReporter,
                 completionBroker,
                 projectEngineFactory);

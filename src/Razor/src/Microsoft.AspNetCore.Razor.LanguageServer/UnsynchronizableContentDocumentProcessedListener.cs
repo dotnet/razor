@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.Razor;
@@ -9,19 +9,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class UnsynchronizableContentDocumentProcessedListener : DocumentProcessedListener
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly GeneratedDocumentPublisher _generatedDocumentPublisher;
         private ProjectSnapshotManager _projectManager;
 
         public UnsynchronizableContentDocumentProcessedListener(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             DocumentVersionCache documentVersionCache,
             GeneratedDocumentPublisher generatedDocumentPublisher)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (documentVersionCache == null)
@@ -34,14 +34,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(generatedDocumentPublisher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentVersionCache = documentVersionCache;
             _generatedDocumentPublisher = generatedDocumentPublisher;
         }
 
         public override void DocumentProcessed(DocumentSnapshot document)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (!_projectManager.IsDocumentOpen(document.FilePath))
             {
@@ -53,11 +53,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return;
             }
 
-            if (!_documentVersionCache.TryGetDocumentVersion(document, out var syncVersion))
+            if (!_documentVersionCache.TryGetDocumentVersion(document, out var nullableSyncVersion))
             {
                 // Document is no longer important.
                 return;
             }
+            var syncVersion = nullableSyncVersion.Value;
 
             var documentContainer = defaultDocument.State.GeneratedDocumentContainer;
             var latestSynchronizedDocument = documentContainer.LatestDocument;
@@ -81,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _projectManager = projectManager;
         }
 
-        private bool UnchangedHostDocument(DocumentSnapshot document, DocumentSnapshot latestSynchronizedDocument, long syncVersion)
+        private bool UnchangedHostDocument(DocumentSnapshot document, DocumentSnapshot latestSynchronizedDocument, int syncVersion)
         {
             return latestSynchronizedDocument.TryGetTextVersion(out var latestSourceVersion) &&
                 document.TryGetTextVersion(out var documentSourceVersion) &&

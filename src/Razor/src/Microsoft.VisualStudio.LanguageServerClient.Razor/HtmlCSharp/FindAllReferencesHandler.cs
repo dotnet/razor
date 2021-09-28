@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,22 +8,29 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentReferencesName)]
-    internal class FindAllReferencesHandler : IRequestHandler<ReferenceParams, VSReferenceItem[]>
+    internal class FindAllReferencesHandler :
+        LSPProgressListenerHandlerBase<ReferenceParams, VSInternalReferenceItem[]>,
+        IRequestHandler<ReferenceParams, VSInternalReferenceItem[]>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly LSPProgressListener _lspProgressListener;
+        private readonly ILogger _logger;
 
         [ImportingConstructor]
         public FindAllReferencesHandler(
@@ -31,7 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
-            LSPProgressListener lspProgressListener)
+            LSPProgressListener lspProgressListener,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (requestInvoker is null)
             {
@@ -58,30 +66,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(lspProgressListener));
             }
 
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
             _lspProgressListener = lspProgressListener;
-        }
 
-        // Roslyn sends Progress Notifications every 0.5s *only* if results have been found.
-        // Consequently, at ~ time > 0.5s ~ after the last notification, we don't know whether Roslyn is
-        // done searching for results, or just hasn't found any additional results yet.
-        // To work around this, we wait for up to 3.5s since the last notification before timing out.
-        //
-        // Internal for testing
-        internal TimeSpan WaitForProgressNotificationTimeout { private get; set; } = TimeSpan.FromSeconds(3.5);
-
-        public async Task<VSReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            // Temporary till IProgress serialization is fixed
-            var token = Guid.NewGuid().ToString(); // request.PartialResultToken.Id
-            return await HandleRequestAsync(request, clientCapabilities, token, cancellationToken).ConfigureAwait(false);
+            _logger = loggerProvider.CreateLogger(nameof(FindAllReferencesHandler));
         }
 
         // Internal for testing
-        internal async Task<VSReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
+        internal async override Task<VSInternalReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -93,13 +93,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
+            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
+                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
                 return null;
             }
 
-            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null || projectionResult.LanguageKind != RazorLanguageKind.CSharp)
+            var projectionResult = await _projectionProvider.GetProjectionAsync(
+                documentSnapshot,
+                request.Position,
+                cancellationToken).ConfigureAwait(false);
+            if (projectionResult == null)
             {
                 return null;
             }
@@ -117,29 +123,67 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 PartialResultToken = token // request.PartialResultToken
             };
 
+            _logger.LogInformation("Attaching to progress listener.");
+
             if (!_lspProgressListener.TryListenForProgress(
                 token,
                 onProgressNotifyAsync: (value, ct) => ProcessReferenceItemsAsync(value, request.PartialResultToken, ct),
-                WaitForProgressNotificationTimeout,
+                DelayAfterLastNotifyAsync,
                 cancellationToken,
                 out var onCompleted))
             {
+                _logger.LogWarning("Failed to attach to progress listener.");
                 return null;
             }
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSReferenceItem[]>(
+            _logger.LogInformation($"Requesting references for {projectionResult.Uri}.");
+
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSInternalReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
-                LanguageServerKind.CSharp,
+                projectionResult.LanguageKind.ToContainedLanguageServerName(),
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
+            var result = response.Result;
+
+            if (result is null)
+            {
+                _logger.LogInformation("Received no results from initial request.");
+                return null;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _logger.LogInformation("Waiting on progress notifications.");
 
             // We must not return till we have received the progress notifications
             // and reported the results via the PartialResultToken
             await onCompleted.ConfigureAwait(false);
 
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _logger.LogInformation("Finished waiting, remapping results.");
+
             // Results returned through Progress notification
             var remappedResults = await RemapReferenceItemsAsync(result, cancellationToken).ConfigureAwait(false);
+
+            _logger.LogInformation($"Returning {remappedResults.Length} results.");
+
             return remappedResults;
+
+            // Local functions
+            async Task DelayAfterLastNotifyAsync(CancellationToken cancellationToken)
+            {
+                using var combined = ImmediateNotificationTimeout.CombineWith(cancellationToken);
+
+                try
+                {
+                    await Task.Delay(WaitForProgressNotificationTimeout, combined.Token).ConfigureAwait(false);
+                }
+                catch (TaskCanceledException) when (ImmediateNotificationTimeout.IsCancellationRequested)
+                {
+                    // The delay was requested to complete immediately
+                }
+            }
         }
 
         private async Task ProcessReferenceItemsAsync(
@@ -147,21 +191,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             IProgress<object> progress,
             CancellationToken cancellationToken)
         {
-            var result = value.ToObject<VSReferenceItem[]>();
+            var result = value.ToObject<VSInternalReferenceItem[]>();
 
             if (result == null || result.Length == 0)
             {
+                _logger.LogInformation("Received empty progress notification");
                 return;
             }
 
+            _logger.LogInformation($"Received {result.Length} references, remapping.");
             var remappedResults = await RemapReferenceItemsAsync(result, cancellationToken).ConfigureAwait(false);
 
+            _logger.LogInformation($"Reporting {remappedResults.Length} results.");
             progress.Report(remappedResults);
         }
 
-        private async Task<VSReferenceItem[]> RemapReferenceItemsAsync(VSReferenceItem[] result, CancellationToken cancellationToken)
+        private async Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(VSInternalReferenceItem[] result, CancellationToken cancellationToken)
         {
-            var remappedLocations = new List<VSReferenceItem>();
+            var remappedLocations = new List<VSInternalReferenceItem>();
 
             foreach (var referenceItem in result)
             {
@@ -175,7 +222,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 referenceItem.DefinitionText = FilterReferenceDisplayText(referenceItem.DefinitionText);
                 referenceItem.Text = FilterReferenceDisplayText(referenceItem.Text);
 
-                if (!RazorLSPConventions.IsRazorCSharpFile(referenceItem.Location.Uri))
+                // Indicates the reference item is directly available in the code
+                referenceItem.Origin = VSInternalItemOrigin.Exact;
+
+                if (!RazorLSPConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
+                    !RazorLSPConventions.IsVirtualHtmlFile(referenceItem.Location.Uri))
                 {
                     // This location doesn't point to a virtual cs file. No need to remap.
                     remappedLocations.Add(referenceItem);
@@ -183,8 +234,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
 
                 var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(referenceItem.Location.Uri);
+                var languageKind = RazorLSPConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) ? RazorLanguageKind.CSharp : RazorLanguageKind.Html;
                 var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
-                    RazorLanguageKind.CSharp,
+                    languageKind,
                     razorDocumentUri,
                     new[] { referenceItem.Location.Range },
                     cancellationToken).ConfigureAwait(false);
@@ -208,24 +260,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return remappedLocations.ToArray();
         }
 
-        private object FilterReferenceDisplayText(object referenceText)
+        private static object FilterReferenceDisplayText(object referenceText)
         {
-            const string codeBehindObjectPrefix = "__o = ";
-            const string codeBehindBackingFieldSuffix = "k__BackingField";
+            const string CodeBehindObjectPrefix = "__o = ";
+            const string CodeBehindBackingFieldSuffix = "k__BackingField";
 
             if (referenceText is string text)
             {
-                if (text.StartsWith(codeBehindObjectPrefix, StringComparison.Ordinal))
+                if (text.StartsWith(CodeBehindObjectPrefix, StringComparison.Ordinal))
                 {
                     return text
-                        .Substring(codeBehindObjectPrefix.Length, text.Length - codeBehindObjectPrefix.Length - 1); // -1 for trailing `;`
+                        .Substring(CodeBehindObjectPrefix.Length, text.Length - CodeBehindObjectPrefix.Length - 1); // -1 for trailing `;`
                 }
 
-                return text.Replace(codeBehindBackingFieldSuffix, string.Empty);
+                return text.Replace(CodeBehindBackingFieldSuffix, string.Empty);
             }
 
             if (referenceText is ClassifiedTextElement textElement &&
-                FilterReferenceClassifiedRuns(textElement.Runs))
+                FilterReferenceClassifiedRuns(textElement.Runs.ToArray()))
             {
                 var filteredRuns = textElement.Runs.Skip(4); // `__o`, ` `, `=`, ` `
                 filteredRuns = filteredRuns.Take(filteredRuns.Count() - 1); // Trailing `;`
@@ -235,18 +287,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return referenceText;
         }
 
-        private bool FilterReferenceClassifiedRuns(IEnumerable<ClassifiedTextRun> runs)
+        private static bool FilterReferenceClassifiedRuns(IReadOnlyList<ClassifiedTextRun> runs)
         {
-            if (runs.Count() < 5)
+            if (runs.Count < 5)
             {
                 return false;
             }
 
-            return VerifyRunMatches(runs.ElementAt(0), "field name", "__o") &&
-                VerifyRunMatches(runs.ElementAt(1), "text", " ") &&
-                VerifyRunMatches(runs.ElementAt(2), "operator", "=") &&
-                VerifyRunMatches(runs.ElementAt(3), "text", " ") &&
-                VerifyRunMatches(runs.Last(), "punctuation", ";");
+            return VerifyRunMatches(runs[0], "field name", "__o") &&
+                VerifyRunMatches(runs[1], "text", " ") &&
+                VerifyRunMatches(runs[2], "operator", "=") &&
+                VerifyRunMatches(runs[3], "text", " ") &&
+                VerifyRunMatches(runs[runs.Count - 1], "punctuation", ";");
 
             static bool VerifyRunMatches(ClassifiedTextRun run, string expectedClassificationType, string expectedText)
             {

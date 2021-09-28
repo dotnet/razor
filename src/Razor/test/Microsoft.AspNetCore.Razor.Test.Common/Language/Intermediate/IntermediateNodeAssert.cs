@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
         public static void LiteralAttributeValue(string prefix, string expected, IntermediateNode node)
         {
             var attributeValue = Assert.IsType<HtmlAttributeValueIntermediateNode>(node);
-            
+
             try
             {
                 var content = new StringBuilder();
@@ -340,7 +340,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
                 throw new IntermediateNodeAssertException(propertyValueNode, e.Message);
             }
         }
-        
+
         internal static void TagHelper(string tagName, TagMode tagMode, IEnumerable<TagHelperDescriptor> tagHelpers, IntermediateNode node, params Action<IntermediateNode>[] childValidators)
         {
             var tagHelperNode = Assert.IsType<TagHelperIntermediateNode>(node);
@@ -420,13 +420,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
         private class IntermediateNodeAssertException : XunitException
         {
             public IntermediateNodeAssertException(IntermediateNode node, string userMessage)
-                : base(Format(node, null, null, userMessage))
+                : base(Format(null, null, userMessage))
             {
                 Node = node;
             }
 
             public IntermediateNodeAssertException(IntermediateNode node, IEnumerable<IntermediateNode> nodes, string userMessage)
-                : base(Format(node, null, nodes, userMessage))
+                : base(Format(null, nodes, userMessage))
             {
                 Node = node;
                 Nodes = nodes;
@@ -437,7 +437,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
                 IEnumerable<IntermediateNode> nodes,
                 string userMessage,
                 Exception innerException)
-                : base(Format(node, null, nodes, userMessage), innerException)
+                : base(Format(null, nodes, userMessage), innerException)
             {
             }
 
@@ -447,7 +447,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
                 IEnumerable<IntermediateNode> nodes,
                 string userMessage,
                 Exception innerException)
-                : base(Format(node, ancestors, nodes, userMessage), innerException)
+                : base(Format(ancestors, nodes, userMessage), innerException)
             {
             }
 
@@ -455,7 +455,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate
 
             public IEnumerable<IntermediateNode> Nodes { get; }
 
-            private static string Format(IntermediateNode node, IntermediateNode[] ancestors, IEnumerable<IntermediateNode> nodes, string userMessage)
+            private static string Format(IntermediateNode[] ancestors, IEnumerable<IntermediateNode> nodes, string userMessage)
             {
                 var builder = new StringBuilder();
                 builder.AppendLine(userMessage);

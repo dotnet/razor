@@ -1,7 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
@@ -9,16 +10,25 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
     {
         public TestProjectSnapshotManager(Workspace workspace)
-            : base(Mock.Of<ForegroundDispatcher>(), Mock.Of<ErrorReporter>(), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
+            : base(CreateProjectSnapshotManagerDispatcher(), Mock.Of<ErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
         {
         }
 
-        public TestProjectSnapshotManager(ForegroundDispatcher foregroundDispatcher, Workspace workspace)
-            : base(foregroundDispatcher, Mock.Of<ErrorReporter>(), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
+        public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, Workspace workspace)
+            : base(projectSnapshotManagerDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
         {
         }
 
         public bool AllowNotifyListeners { get; set; }
+
+        private static ProjectSnapshotManagerDispatcher CreateProjectSnapshotManagerDispatcher()
+        {
+            var dispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
+            dispatcher.Setup(d => d.AssertDispatcherThread(It.IsAny<string>())).Verifiable();
+            dispatcher.Setup(d => d.IsDispatcherThread).Returns(true);
+            dispatcher.Setup(d => d.DispatcherScheduler).Returns(TaskScheduler.FromCurrentSynchronizationContext());
+            return dispatcher.Object;
+        }
 
         public DefaultProjectSnapshot GetSnapshot(HostProject hostProject)
         {

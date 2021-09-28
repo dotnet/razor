@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -14,9 +14,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             var store = new DefaultGeneratedDocumentContainerStore(
                 Dispatcher,
-                Mock.Of<DocumentVersionCache>(),
-                Mock.Of<GeneratedDocumentPublisher>());
-            Factory = new DefaultHostDocumentFactory(Dispatcher, store);
+                Mock.Of<DocumentVersionCache>(MockBehavior.Strict),
+                Mock.Of<GeneratedDocumentPublisher>(MockBehavior.Strict));
+            Factory = new DefaultHostDocumentFactory(store);
         }
 
         private DefaultHostDocumentFactory Factory { get; }

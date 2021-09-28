@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 #nullable enable
 
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private readonly object _lock;
 
         private IRazorSpanMappingService? _spanMappingService;
-        private IRazorDocumentExcerptService? _excerptService;
+        private IRazorDocumentExcerptService? _documentExcerptService;
         private IRazorDocumentPropertiesService? _documentPropertiesService;
 
         public RazorDocumentServiceProvider()
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public bool CanApplyChange => false;
 
-        public bool SupportDiagnostics => false;
+        public bool SupportDiagnostics => _documentContainer?.SupportsDiagnostics ?? false;
 
         public TService? GetService<TService>() where TService : class
         {
@@ -39,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 return this as TService;
             }
 
-            if (typeof(TService) == typeof(IRazorSpanMappingService))
+            var serviceType = typeof(TService);
+
+            if (serviceType == typeof(IRazorSpanMappingService))
             {
                 if (_spanMappingService == null)
                 {
@@ -55,23 +57,23 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 return (TService)_spanMappingService;
             }
 
-            if (typeof(TService) == typeof(IRazorDocumentExcerptService))
+            if (serviceType == typeof(IRazorDocumentExcerptService))
             {
-                if (_excerptService == null)
+                if (_documentExcerptService == null)
                 {
                     lock (_lock)
                     {
-                        if (_excerptService == null)
+                        if (_documentExcerptService == null)
                         {
-                            _excerptService = _documentContainer.GetExcerptService();
+                            _documentExcerptService = _documentContainer.GetExcerptService();
                         }
                     }
                 }
 
-                return (TService)_excerptService;
+                return (TService)_documentExcerptService;
             }
 
-            if (typeof(TService) == typeof(IRazorDocumentPropertiesService))
+            if (serviceType == typeof(IRazorDocumentPropertiesService))
             {
                 if (_documentPropertiesService == null)
                 {

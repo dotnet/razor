@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var services = new ServiceCollection().AddOptions();
             Cache = services.BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>();
 
-            ConfigurationService = Mock.Of<RazorConfigurationService>();
+            ConfigurationService = Mock.Of<RazorConfigurationService>(MockBehavior.Strict);
         }
 
         private IOptionsMonitorCache<RazorLSPOptions> Cache { get; }
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public bool Called { get; private set; }
 
-            public override Task UpdateAsync()
+            public override Task UpdateAsync(CancellationToken cancellationToken)
             {
                 Called = true;
                 return Task.CompletedTask;

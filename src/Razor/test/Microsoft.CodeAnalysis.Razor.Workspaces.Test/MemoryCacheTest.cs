@@ -1,15 +1,39 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Test
 {
     public class MemoryCacheTest
     {
+        [Fact]
+        public async Task ConcurrentSets_DoesNotThrow()
+        {
+            // Arrange
+            var cache = new TestMemoryCache();
+            var entries = Enumerable.Range(0, 500);
+            var repeatCount = 4;
+
+            // 1111 2222 3333 4444 ...
+            var repeatedEntries = entries.SelectMany(entry => Enumerable.Repeat(entry, repeatCount));
+            var tasks = repeatedEntries.Select(async entry =>
+            {
+                // 2 is an arbitrarily low number, we're just trying to emulate concurrency
+                await Task.Delay(2);
+                cache.Set(entry.ToString(CultureInfo.InvariantCulture), Array.Empty<uint>());
+            });
+
+            // Act & Assert
+            await Task.WhenAll(tasks);
+        }
+
         [Fact]
         public void LastAccessIsUpdated()
         {
@@ -53,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Razor.Test
                 var key = GetKey();
                 var value = new List<uint> { (uint)i };
                 cache.Set(key, value);
-                Assert.False(cache.WasCompacted, "It got compacted early.");
+                Assert.False(cache._wasCompacted, "It got compacted early.");
             }
 
             cache.Set(GetKey(), new List<uint> { (uint)sizeLimit + 1 });
-            Assert.True(cache.WasCompacted, "Compaction is not happening");
+            Assert.True(cache._wasCompacted, "Compaction is not happening");
         }
 
         [Fact]
@@ -76,10 +100,7 @@ namespace Microsoft.CodeAnalysis.Razor.Test
         {
             var cache = new TestMemoryCache();
 
-            Assert.Throws<ArgumentNullException>(() =>
-            {
-                cache.TryGetValue(key: null, out var result);
-            });
+            Assert.Throws<ArgumentNullException>(() => cache.TryGetValue(key: null, out var result));
         }
 
         private static string GetKey()
@@ -90,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Razor.Test
         private class TestMemoryCache : MemoryCache<string, IReadOnlyList<uint>>
         {
             public static int SizeLimit = 10;
-            public bool WasCompacted = false;
+            public bool _wasCompacted = false;
 
             public TestMemoryCache() : base(SizeLimit)
             {
@@ -103,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Razor.Test
 
             protected override void Compact()
             {
-                WasCompacted = true;
+                _wasCompacted = true;
                 base.Compact();
             }
         }

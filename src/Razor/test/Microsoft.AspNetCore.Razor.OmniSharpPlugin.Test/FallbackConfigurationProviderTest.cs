@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.Build.Construction;
@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public void TryResolveConfiguration_RazorConfigurationCapability_ReturnsFalse()
         {
             // Arrange
-            var projectCapabilities = new[] 
+            var projectCapabilities = new[]
             {
                 CoreProjectConfigurationProvider.DotNetCoreRazorCapability,
                 CoreProjectConfigurationProvider.DotNetCoreRazorConfigurationCapability
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             Assert.Empty(projectConfiguration.Documents);
         }
 
-        private ProjectConfigurationProviderContext BuildContext(params string[] referencePaths)
+        private static ProjectConfigurationProviderContext BuildContext(params string[] referencePaths)
         {
             var projectCapabilities = new[] { CoreProjectConfigurationProvider.DotNetCoreRazorCapability };
             var projectInstance = new ProjectInstance(ProjectRootElement.Create());

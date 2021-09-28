@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,24 +8,34 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
     {
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
+        private readonly ILogger _logger;
         private FileSystemWatcher _watcher;
 
-        public ProjectConfigurationFileChangeDetector(
-            ForegroundDispatcher foregroundDispatcher,
-            FilePathNormalizer filePathNormalizer,
-            IEnumerable<IProjectConfigurationFileChangeListener> listeners)
+        private static readonly IReadOnlyCollection<string> s_ignoredDirectories = new string[]
         {
-            if (foregroundDispatcher is null)
+            "node_modules",
+            "bin",
+            ".vs",
+        };
+
+        public ProjectConfigurationFileChangeDetector(
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            FilePathNormalizer filePathNormalizer,
+            IEnumerable<IProjectConfigurationFileChangeListener> listeners,
+            ILoggerFactory loggerFactory = null)
+        {
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (filePathNormalizer is null)
@@ -38,9 +48,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(listeners));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
+            _logger = loggerFactory?.CreateLogger<ProjectConfigurationFileChangeDetector>();
         }
 
         public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
@@ -55,13 +66,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             workspaceDirectory = _filePathNormalizer.Normalize(workspaceDirectory);
             var existingConfigurationFiles = GetExistingConfigurationFiles(workspaceDirectory);
 
-            await Task.Factory.StartNew(() =>
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
                 foreach (var configurationFilePath in existingConfigurationFiles)
                 {
                     FileSystemWatcher_ProjectConfigurationFileEvent(configurationFilePath, RazorFileChangeKind.Added);
                 }
-            }, cancellationToken, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+            }, cancellationToken).ConfigureAwait(false);
 
             // This is an entry point for testing
             OnInitializationFinished();
@@ -114,16 +125,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Protected virtual for testing
-        protected virtual IReadOnlyList<string> GetExistingConfigurationFiles(string workspaceDirectory)
+        protected virtual IEnumerable<string> GetExistingConfigurationFiles(string workspaceDirectory)
         {
-            return Directory.GetFiles(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile, SearchOption.AllDirectories);
+            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, LanguageServerConstants.ProjectConfigurationFile, s_ignoredDirectories, logger: _logger);
+
+            return files;
         }
 
         private void FileSystemWatcher_ProjectConfigurationFileEvent_Background(string physicalFilePath, RazorFileChangeKind kind)
         {
-            Task.Factory.StartNew(
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                 () => FileSystemWatcher_ProjectConfigurationFileEvent(physicalFilePath, kind),
-                CancellationToken.None, TaskCreationOptions.None, _foregroundDispatcher.ForegroundScheduler);
+                CancellationToken.None);
         }
 
         private void FileSystemWatcher_ProjectConfigurationFileEvent(string physicalFilePath, RazorFileChangeKind kind)

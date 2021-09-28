@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Assert
 
             // We acquire the notification prior to unblocking notification work because once we allow that work to proceed the notification will be removed.
-            var notification = Assert.Single(fileChangeDetector._pendingNotifications);
+            var notification = Assert.Single(fileChangeDetector.PendingNotifications);
 
             fileChangeDetector.BlockNotificationWorkStart.Set();
 
@@ -139,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Assert
 
             // We acquire the notification prior to unblocking notification work because once we allow that work to proceed the notification will be removed.
-            var notification = Assert.Single(fileChangeDetector._pendingNotifications);
+            var notification = Assert.Single(fileChangeDetector.PendingNotifications);
 
             fileChangeDetector.BlockNotificationWorkStart.Set();
 
@@ -155,9 +155,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestRazorFileChangeDetector(
                 CancellationTokenSource cancellationTokenSource,
-                ForegroundDispatcher foregroundDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IRazorFileChangeListener> listeners,
-                IReadOnlyList<string> existingprojectFiles) : base(foregroundDispatcher, new FilePathNormalizer(), listeners)
+                IReadOnlyList<string> existingprojectFiles) : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingProjectFiles = existingprojectFiles;

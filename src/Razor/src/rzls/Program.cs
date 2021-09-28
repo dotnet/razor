@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -12,7 +12,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public static void Main(string[] args)
         {
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
             MainAsync(args).Wait();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
         }
 
         public static async Task MainAsync(string[] args)
@@ -20,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var trace = Trace.Messages;
             for (var i = 0; i < args.Length; i++)
             {
-                if (args[i].IndexOf("debug", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (args[i].Contains("debug", StringComparison.OrdinalIgnoreCase))
                 {
                     while (!Debugger.IsAttached)
                     {

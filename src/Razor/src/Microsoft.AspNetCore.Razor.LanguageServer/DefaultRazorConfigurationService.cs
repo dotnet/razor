@@ -1,23 +1,23 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
-using System.Text;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorConfigurationService : RazorConfigurationService
     {
-        private readonly ILanguageServer _server;
+        private readonly ClientNotifierServiceBase _server;
         private readonly ILogger _logger;
 
-        public DefaultRazorConfigurationService(ILanguageServer languageServer, ILoggerFactory loggerFactory)
+        public DefaultRazorConfigurationService(ClientNotifierServiceBase languageServer, ILoggerFactory loggerFactory)
         {
             if (languageServer is null)
             {
@@ -33,45 +33,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
         }
 
-        public async override Task<RazorLSPOptions> GetLatestOptionsAsync()
+        public async override Task<RazorLSPOptions> GetLatestOptionsAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var request = new ConfigurationParams()
-                {
-                    Items = new[]
-                    {
-                        new ConfigurationItem()
-                        {
-                            Section = "razor"
-                        },
-                        new ConfigurationItem()
-                        {
-                            Section = "html"
-                        },
-                    }
-                };
+                var request = GenerateConfigParams();
 
-                var result = await _server.Client.SendRequest<ConfigurationParams, object[]>("workspace/configuration", request);
-                if (result == null || result.Length < 2 || result[0] == null)
+                var response = await _server.SendRequestAsync("workspace/configuration", request);
+                var result = await response.Returning<JObject[]>(cancellationToken);
+
+                // LSP spec indicates result should be the same length as the number of ConfigurationItems we pass in.
+                if (result == null || result.Length != request.Items.Count() || result[0] == null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");
                     return null;
                 }
 
-                var builder = new ConfigurationBuilder();
-
-                var razorJsonString = result[0].ToString();
-                using var razorStream = new MemoryStream(Encoding.UTF8.GetBytes(razorJsonString));
-                builder.AddJsonStream(razorStream);
-
-                var htmlJsonString = result[1].ToString();
-                using var htmlStream = new MemoryStream(Encoding.UTF8.GetBytes(htmlJsonString));
-                builder.AddJsonStream(htmlStream);
-
-                var config = builder.Build();
-
-                var instance = BuildOptions(config);
+                var instance = BuildOptions(result);
                 return instance;
             }
             catch (Exception ex)
@@ -81,25 +59,117 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        private RazorLSPOptions BuildOptions(IConfiguration config)
+        private static ConfigurationParams GenerateConfigParams()
         {
-            var instance = RazorLSPOptions.Default;
-
-            Enum.TryParse(config["trace"], out Trace trace);
-
-            var enableFormatting = instance.EnableFormatting;
-            if (bool.TryParse(config["format:enable"], out var parsedEnableFormatting))
+            // NOTE: Do not change the ordering of sections without updating
+            // the code in the BuildOptions method below.
+            return new ConfigurationParams()
             {
-                enableFormatting = parsedEnableFormatting;
+                Items = new[]
+                {
+                    new ConfigurationItem()
+                    {
+                        Section = "razor"
+                    },
+                    new ConfigurationItem()
+                    {
+                        Section = "html"
+                    },
+                    new ConfigurationItem()
+                    {
+                        Section = "vs.editor.razor"
+                    },
+                }
+            };
+        }
+
+        // Internal for testing
+        internal RazorLSPOptions BuildOptions(JObject[] result)
+        {
+            ExtractVSCodeOptions(result, out var trace, out var enableFormatting, out var autoClosingTags);
+            ExtractVSOptions(result, out var insertSpaces, out var tabSize);
+
+            return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, insertSpaces, tabSize);
+        }
+
+        private void ExtractVSCodeOptions(
+            JObject[] result,
+            out Trace trace,
+            out bool enableFormatting,
+            out bool autoClosingTags)
+        {
+            var razor = result[0];
+            var html = result[1];
+
+            trace = RazorLSPOptions.Default.Trace;
+            enableFormatting = RazorLSPOptions.Default.EnableFormatting;
+            autoClosingTags = RazorLSPOptions.Default.AutoClosingTags;
+
+            if (razor != null)
+            {
+                if (razor.TryGetValue("trace", out var parsedTrace))
+                {
+                    trace = GetObjectOrDefault(parsedTrace, trace);
+                }
+
+                if (razor.TryGetValue("format", out var parsedFormat))
+                {
+                    if (parsedFormat is JObject jObject &&
+                        jObject.TryGetValue("enable", out var parsedEnableFormatting))
+                    {
+                        enableFormatting = GetObjectOrDefault(parsedEnableFormatting, enableFormatting);
+                    }
+                }
             }
 
-            var autoClosingTags = instance.AutoClosingTags;
-            if (bool.TryParse(config["autoClosingTags"], out var parsedAutoClosingTags))
+            if (html != null)
             {
-                autoClosingTags = parsedAutoClosingTags;
+                if (html.TryGetValue("autoClosingTags", out var parsedAutoClosingTags))
+                {
+                    autoClosingTags = GetObjectOrDefault(parsedAutoClosingTags, autoClosingTags);
+                }
+            }
+        }
+
+        private void ExtractVSOptions(
+            JObject[] result,
+            out bool insertSpaces,
+            out int tabSize)
+        {
+            var vsEditor = result[2];
+
+            insertSpaces = RazorLSPOptions.Default.InsertSpaces;
+            tabSize = RazorLSPOptions.Default.TabSize;
+
+            if (vsEditor == null)
+            {
+                return;
             }
 
-            return new RazorLSPOptions(trace, enableFormatting, autoClosingTags);
+            if (vsEditor.TryGetValue(nameof(EditorSettings.IndentWithTabs), out var parsedInsertTabs))
+            {
+                insertSpaces = !GetObjectOrDefault(parsedInsertTabs, insertSpaces);
+            }
+
+            if (vsEditor.TryGetValue(nameof(EditorSettings.IndentSize), out var parsedTabSize))
+            {
+                tabSize = GetObjectOrDefault(parsedTabSize, tabSize);
+            }
+        }
+
+        private T GetObjectOrDefault<T>(JToken token, T defaultValue)
+        {
+            try
+            {
+                // JToken.ToObject could potentially throw here if the user provides malformed options.
+                // If this occurs, catch the exception and return the default value.
+                return token.ToObject<T>() ?? defaultValue;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Malformed option: Token {token} cannot be converted to type {typeof(T)}.");
+                return defaultValue;
+            }
         }
     }
 }

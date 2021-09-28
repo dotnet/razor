@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,12 +14,12 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
     internal class RazorProjectExtension : ProjectExtension
     {
         private readonly object _lock = new object();
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private CancellationTokenSource _cancellationTokenSource;
 
         public RazorProjectExtension()
         {
-            _foregroundDispatcher = CompositionManager.Instance.GetExportedValue<ForegroundDispatcher>();
+            _projectSnapshotManagerDispatcher = CompositionManager.Instance.GetExportedValue<ProjectSnapshotManagerDispatcher>();
         }
 
         protected override void OnBoundToSolution()
@@ -49,13 +49,10 @@ namespace Microsoft.VisualStudio.Mac.RazorAddin
             _cancellationTokenSource = new CancellationTokenSource();
             var token = _cancellationTokenSource.Token;
 
-            _ = IdeApp.TypeSystemService.GetWorkspaceAsync(Project.ParentSolution, token).ContinueWith(task =>
-            {
-                projectHost.Subscribe();
-            },
+            _ = IdeApp.TypeSystemService.GetWorkspaceAsync(Project.ParentSolution, token).ContinueWith(task => projectHost.Subscribe(),
             token,
             TaskContinuationOptions.OnlyOnRanToCompletion, // We only want to act if we could properly retrieve the workspace.
-            _foregroundDispatcher.ForegroundScheduler);
+            _projectSnapshotManagerDispatcher.DispatcherScheduler);
         }
 
         protected override void OnUnboundFromSolution()

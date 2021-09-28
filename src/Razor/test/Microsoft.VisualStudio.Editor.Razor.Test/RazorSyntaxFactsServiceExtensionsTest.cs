@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private class DesignTimeOptionsFeature : IConfigureRazorParserOptionsFeature, IConfigureRazorCodeGenerationOptionsFeature
         {
-            private bool _designTime;
+            private readonly bool _designTime;
 
             public DesignTimeOptionsFeature(bool designTime)
             {

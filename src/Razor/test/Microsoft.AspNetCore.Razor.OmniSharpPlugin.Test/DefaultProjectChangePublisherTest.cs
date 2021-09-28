@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             publisher.ProjectManager_Changed(null, args);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value;
             Assert.True(serializationSuccessful);
         }
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             publisher.EnqueuePublish(secondSnapshot);
 
             // Assert
-            var kvp = Assert.Single(publisher._deferredPublishTasks);
+            var kvp = Assert.Single(publisher.DeferredPublishTasks);
             await kvp.Value;
             Assert.True(serializationSuccessful);
         }
@@ -145,10 +145,10 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var publisher = new TestProjectChangePublisher(LoggerFactory);
             publisher.Initialize(snapshotManager);
             var hostProject = new OmniSharpHostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            await RunOnForegroundAsync(() => snapshotManager.ProjectAdded(hostProject));
+            await RunOnDispatcherThreadAsync(() => snapshotManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
             // Act & Assert
-            await RunOnForegroundAsync(() => snapshotManager.ProjectRemoved(hostProject));
+            await RunOnDispatcherThreadAsync(() => snapshotManager.ProjectRemoved(hostProject)).ConfigureAwait(false);
         }
 
         private class TestProjectChangePublisher : DefaultProjectChangePublisher
@@ -160,7 +160,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 Action<OmniSharpProjectSnapshot, string> onSerializeToFile = null
             ) : base(loggerFactory)
             {
-                _onSerializeToFile = onSerializeToFile ?? ((_, __) => throw new XunitException("SerializeToFile should not have been called."));
+                _onSerializeToFile = onSerializeToFile ?? ((_1, _2) => throw new XunitException("SerializeToFile should not have been called."));
             }
 
             protected override void SerializeToFile(OmniSharpProjectSnapshot projectSnapshot, string publishFilePath) => _onSerializeToFile?.Invoke(projectSnapshot, publishFilePath);

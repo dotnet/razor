@@ -1,7 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Xunit;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             // Assert
             Assert.NotSame(originalSnapshot, document.CurrentSnapshot);
-            Assert.Equal(1337, document.HostDocumentSyncVersion);
+            Assert.Equal(1337, document.HostDocumentVersion);
         }
 
         [Fact]
@@ -99,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         }
 
         [Fact]
-        public void Update_NoChanges_InvokesPostChangedEventTwice_NoEffectiveChanges()
+        public void Update_NoChanges_InvokesPostChangedEventZeroTimes_NoEffectiveChanges()
         {
             // Arrange
             var textBuffer = new TestTextBuffer(new StringTextSnapshot("Hello World"));
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             document.Update(Array.Empty<ITextChange>(), hostDocumentVersion: 1);
 
             // Assert
-            Assert.Equal(2, called);
+            Assert.Equal(0, called);
             var text = textBuffer.CurrentSnapshot.GetText();
             Assert.Equal("Hello World", text);
         }

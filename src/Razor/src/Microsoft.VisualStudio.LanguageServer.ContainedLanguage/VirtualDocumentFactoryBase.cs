@@ -1,8 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
@@ -12,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     {
         /// <summary>
         /// This marker is understood by LiveShare in order to ensure that virtual documents are not serialized to disk.
+        /// Also used in roslyn to filter out text buffer operations on virtual documents.
         /// </summary>
         private const string ContainedLanguageMarker = "ContainedLanguageMarker";
 

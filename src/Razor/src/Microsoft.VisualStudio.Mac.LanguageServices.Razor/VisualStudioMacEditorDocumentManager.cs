@@ -1,12 +1,14 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using MonoDevelop.Ide;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
@@ -14,9 +16,10 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
     internal class VisualStudioMacEditorDocumentManager : EditorDocumentManagerBase
     {
         public VisualStudioMacEditorDocumentManager(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            JoinableTaskContext joinableTaskContext,
             FileChangeTrackerFactory fileChangeTrackerFactory)
-            : base(foregroundDispatcher, fileChangeTrackerFactory)
+            : base(projectSnapshotManagerDispatcher, joinableTaskContext, fileChangeTrackerFactory)
         {
         }
 
@@ -41,9 +44,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void HandleDocumentOpened(string filePath, ITextBuffer textBuffer)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 if (!TryGetMatchingDocuments(filePath, out var documents))
                 {
@@ -57,9 +60,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void HandleDocumentClosed(string filePath)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 if (!TryGetMatchingDocuments(filePath, out var documents))
                 {
@@ -67,7 +70,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 }
 
                 // We have to deal with some complications here due to renames and event ordering and such.
-                // We might see multiple documents open for a cookie (due to linked files), but only one of them 
+                // We might see multiple documents open for a cookie (due to linked files), but only one of them
                 // has been renamed. In that case, we just process the change that we know about.
                 var matchingFilePaths = documents.Select(d => d.DocumentFilePath);
                 var filePaths = new HashSet<string>(matchingFilePaths, FilePathComparer.Instance);
@@ -81,14 +84,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void HandleDocumentRenamed(string fromFilePath, string toFilePath, ITextBuffer textBuffer)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
             if (string.Equals(fromFilePath, toFilePath, FilePathComparison.Instance))
             {
                 return;
             }
 
-            lock (_lock)
+            lock (Lock)
             {
                 // Treat a rename as a close + reopen.
                 //
@@ -102,9 +105,9 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public void BufferLoaded(ITextBuffer textBuffer, string filePath, EditorDocument[] documents)
         {
-            ForegroundDispatcher.AssertForegroundThread();
+            JoinableTaskContext.AssertUIThread();
 
-            lock (_lock)
+            lock (Lock)
             {
                 for (var i = 0; i < documents.Length; i++)
                 {

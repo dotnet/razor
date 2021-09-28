@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -32,32 +31,24 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         }.ToImmutableArray();
 
         // Internal for testing
-        internal readonly VisualStudioRazorParser _parser;
+        internal readonly VisualStudioRazorParser Parser;
         private readonly RazorCompletionFactsService _completionFactsService;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
 
         public RazorDirectiveCompletionSource(
-            ForegroundDispatcher foregroundDispatcher,
             VisualStudioRazorParser parser,
             RazorCompletionFactsService completionFactsService)
         {
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            if (parser == null)
+            if (parser is null)
             {
                 throw new ArgumentNullException(nameof(parser));
             }
 
-            if (completionFactsService == null)
+            if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
-            _parser = parser;
+            Parser = parser;
             _completionFactsService = completionFactsService;
         }
 
@@ -68,11 +59,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             SnapshotSpan applicableSpan,
             CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             try
             {
-                var codeDocument = await _parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);
+                var codeDocument = await Parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);
                 if (codeDocument == null)
                 {
                     return CompletionContext.Empty;
@@ -81,7 +70,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 var location = new SourceSpan(triggerLocation.Position, 0);
                 var syntaxTree = codeDocument.GetSyntaxTree();
                 var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
-                var razorCompletionItems = _completionFactsService.GetCompletionItems(syntaxTree, tagHelperDocumentContext, location);
+                var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
+                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext, location);
 
                 var completionItems = new List<CompletionItem>();
                 foreach (var razorCompletionItem in razorCompletionItems)

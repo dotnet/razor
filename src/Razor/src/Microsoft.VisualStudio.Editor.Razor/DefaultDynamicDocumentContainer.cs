@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override string FilePath => _documentSnapshot.FilePath;
 
+        public override bool SupportsDiagnostics => false;
+
         public override TextLoader GetTextLoader(string filePath) => new GeneratedDocumentTextLoader(_documentSnapshot, filePath);
 
         public override IRazorDocumentExcerptService GetExcerptService()
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public override IRazorDocumentPropertiesService GetDocumentPropertiesService()
         {
-            // DocumentPropertiesServices are used to tell Roslyn to provide C# diagnostics for LSP provided documents to be shown 
+            // DocumentPropertiesServices are used to tell Roslyn to provide C# diagnostics for LSP provided documents to be shown
             // in the editor given a specific Language Server Client. Given this type is a container for DocumentSnapshots, we don't
             // have a Language Server to associate errors with or an open document to display those errors on. We return `null` to
             // opt out of those features.

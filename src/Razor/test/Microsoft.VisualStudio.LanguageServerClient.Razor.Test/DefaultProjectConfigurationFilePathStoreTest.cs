@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Xunit;
@@ -39,10 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var configurationFilePath = "C:/project/obj/project.razor.json";
             store.Set(projectFilePath, configurationFilePath);
             var called = false;
-            store.Changed += (sender, args) =>
-            {
-                called = true;
-            };
+            store.Changed += (sender, args) => called = true;
 
             // Act
             store.Set(projectFilePath, configurationFilePath);
@@ -150,10 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Arrange
             var store = new DefaultProjectConfigurationFilePathStore();
             var called = false;
-            store.Changed += (sender, args) =>
-            {
-                called = true;
-            };
+            store.Changed += (sender, args) => called = true;
 
             // Act
             store.Remove("C:/project.csproj");
@@ -172,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             // Act
             store.Remove(projectFilePath);
-            var result = store.TryGet(projectFilePath, out var configurationFilePath);
+            var result = store.TryGet(projectFilePath, out _);
 
             // Assert
             Assert.False(result);

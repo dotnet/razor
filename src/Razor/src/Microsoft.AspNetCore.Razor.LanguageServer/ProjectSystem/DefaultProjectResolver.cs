@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -12,20 +12,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
     internal class DefaultProjectResolver : ProjectResolver
     {
         // Internal for testing
-        protected internal readonly HostProject _miscellaneousHostProject;
+        protected internal readonly HostProject MiscellaneousHostProject;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
         public DefaultProjectResolver(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             FilePathNormalizer filePathNormalizer,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (filePathNormalizer == null)
@@ -38,12 +38,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
 
             var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
-            _miscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
+            MiscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
         }
 
         public override bool TryResolveProject(string documentFilePath, out ProjectSnapshot projectSnapshot, bool enforceDocumentInProject = true)
@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 throw new ArgumentNullException(nameof(documentFilePath));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var normalizedDocumentPath = _filePathNormalizer.Normalize(documentFilePath);
             var projects = _projectSnapshotManagerAccessor.Instance.Projects;
@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             {
                 projectSnapshot = projects[i];
 
-                if (projectSnapshot.FilePath == _miscellaneousHostProject.FilePath)
+                if (projectSnapshot.FilePath == MiscellaneousHostProject.FilePath)
                 {
                     if (enforceDocumentInProject &&
                         IsDocumentInProject(projectSnapshot, documentFilePath))
@@ -83,19 +83,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             projectSnapshot = null;
             return false;
 
-            static bool IsDocumentInProject(ProjectSnapshot projectSnapshot, string documentFilePath) =>
-                projectSnapshot.GetDocument(documentFilePath) != null;
+            static bool IsDocumentInProject(ProjectSnapshot projectSnapshot, string documentFilePath)
+            {
+                return projectSnapshot.GetDocument(documentFilePath) != null;
+            }
         }
 
         public override ProjectSnapshot GetMiscellaneousProject()
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(_miscellaneousHostProject.FilePath);
+            var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.FilePath);
             if (miscellaneousProject == null)
             {
-                _projectSnapshotManagerAccessor.Instance.ProjectAdded(_miscellaneousHostProject);
-                miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(_miscellaneousHostProject.FilePath);
+                _projectSnapshotManagerAccessor.Instance.ProjectAdded(MiscellaneousHostProject);
+                miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.FilePath);
             }
 
             return miscellaneousProject;

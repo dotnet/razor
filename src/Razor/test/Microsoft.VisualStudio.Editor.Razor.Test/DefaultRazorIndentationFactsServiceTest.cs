@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -337,7 +337,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private static RazorSyntaxTree GetSyntaxTree(StringTextSnapshot source, IEnumerable<DirectiveDescriptor> directives = null)
         {
-            directives = directives ?? Enumerable.Empty<DirectiveDescriptor>();
+            directives ??= Enumerable.Empty<DirectiveDescriptor>();
             var engine = RazorProjectEngine.Create(builder =>
             {
                 foreach (var directive in directives)

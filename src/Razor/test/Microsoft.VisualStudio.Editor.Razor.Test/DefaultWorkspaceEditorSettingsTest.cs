@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Moq;
@@ -9,14 +8,14 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class DefaultWorkspaceEditorSettingsTest : ForegroundDispatcherTestBase
+    public class DefaultWorkspaceEditorSettingsTest : ProjectSnapshotManagerDispatcherTestBase
     {
         [Fact]
         public void InitialSettingsAreEditorSettingsManagerDefault()
         {
             // Arrange
             var editorSettings = new EditorSettings(true, 123);
-            var editorSettingsManager = Mock.Of<EditorSettingsManager>(m => m.Current == editorSettings);
+            var editorSettingsManager = Mock.Of<EditorSettingsManager>(m => m.Current == editorSettings, MockBehavior.Strict);
 
             // Act
             var manager = new DefaultWorkspaceEditorSettings(Dispatcher, editorSettingsManager);
@@ -29,12 +28,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public void OnChanged_TriggersChanged()
         {
             // Arrange
-            var manager = new DefaultWorkspaceEditorSettings(Dispatcher, Mock.Of<EditorSettingsManager>());
+            var editorSettingsManager = new Mock<EditorSettingsManager>(MockBehavior.Strict);
+            editorSettingsManager.SetupGet(m => m.Current).Returns((EditorSettings)null);
+            var manager = new DefaultWorkspaceEditorSettings(Dispatcher, editorSettingsManager.Object);
             var called = false;
-            manager.Changed += (caller, args) =>
-            {
-                called = true;
-            };
+            manager.Changed += (caller, args) => called = true;
 
             // Act
             manager.OnChanged(null, null);
@@ -62,14 +60,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var manager = new TestEditorSettingsManagerInternal(Dispatcher);
-            EventHandler<EditorSettingsChangedEventArgs> listener1 = (caller, args) => { };
-            EventHandler<EditorSettingsChangedEventArgs> listener2 = (caller, args) => { };
-            manager.Changed += listener1;
-            manager.Changed += listener2;
+            static void Listener1(object caller, EditorSettingsChangedEventArgs args) { }
+            static void Listener2(object caller, EditorSettingsChangedEventArgs args) { }
+            manager.Changed += Listener1;
+            manager.Changed += Listener2;
 
             // Act
-            manager.Changed -= listener1;
-            manager.Changed -= listener2;
+            manager.Changed -= Listener1;
+            manager.Changed -= Listener2;
 
             // Assert
             Assert.Equal(1, manager.DetachCount);
@@ -77,7 +75,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private class TestEditorSettingsManagerInternal : DefaultWorkspaceEditorSettings
         {
-            public TestEditorSettingsManagerInternal(ForegroundDispatcher foregroundDispatcher) : base(foregroundDispatcher, Mock.Of<EditorSettingsManager>())
+            public TestEditorSettingsManagerInternal(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(projectSnapshotManagerDispatcher, Mock.Of<EditorSettingsManager>(MockBehavior.Strict))
             {
             }
 

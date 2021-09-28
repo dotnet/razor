@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -18,24 +18,26 @@ namespace Microsoft.CodeAnalysis.Razor
     internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGenerator, IDisposable
     {
         // Internal for testing
-        internal readonly Dictionary<string, UpdateItem> _updates;
+        internal readonly Dictionary<string, UpdateItem> Updates;
 
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private readonly SemaphoreSlim _semaphore;
         private ProjectSnapshotManagerBase _projectManager;
         private TagHelperResolver _tagHelperResolver;
         private bool _disposed;
 
         [ImportingConstructor]
-        public DefaultProjectWorkspaceStateGenerator(ForegroundDispatcher foregroundDispatcher)
+        public DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
-            _updates = new Dictionary<string, UpdateItem>(FilePathComparer.Instance);
+            _semaphore = new SemaphoreSlim(initialCount: 1);
+            Updates = new Dictionary<string, UpdateItem>(FilePathComparer.Instance);
         }
 
         // Used in unit tests to ensure we can control when background work starts.
@@ -63,14 +65,14 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(projectSnapshot));
             }
 
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_disposed)
             {
                 return;
             }
 
-            if (_updates.TryGetValue(projectSnapshot.FilePath, out var updateItem) &&
+            if (Updates.TryGetValue(projectSnapshot.FilePath, out var updateItem) &&
                 !updateItem.Task.IsCompleted &&
                 !updateItem.Cts.IsCancellationRequested)
             {
@@ -87,19 +89,17 @@ namespace Microsoft.CodeAnalysis.Razor
                 () => UpdateWorkspaceStateAsync(workspaceProject, projectSnapshot, lcts.Token),
                 lcts.Token,
                 TaskCreationOptions.None,
-                _foregroundDispatcher.BackgroundScheduler).Unwrap();
+                TaskScheduler.Default).Unwrap();
             updateTask.ConfigureAwait(false);
             updateItem = new UpdateItem(updateTask, lcts);
-            _updates[projectSnapshot.FilePath] = updateItem;
+            Updates[projectSnapshot.FilePath] = updateItem;
         }
 
         public void Dispose()
         {
-            _foregroundDispatcher.AssertForegroundThread();
-
             _disposed = true;
 
-            foreach (var update in _updates)
+            foreach (var update in Updates)
             {
                 if (!update.Value.Task.IsCompleted &&
                     !update.Value.Cts.IsCancellationRequested)
@@ -108,6 +108,8 @@ namespace Microsoft.CodeAnalysis.Razor
                 }
             }
 
+            _semaphore.Dispose();
+
             BlockBackgroundWorkStart?.Set();
         }
 
@@ -115,8 +117,19 @@ namespace Microsoft.CodeAnalysis.Razor
         {
             try
             {
-                _foregroundDispatcher.AssertBackgroundThread();
+                // Only allow a single TagHelper resolver request to process at a time in order to reduce Visual Studio memory pressure. Typically a TagHelper resolution result can be upwards of 10mb+.
+                // So if we now do multiple requests to resolve TagHelpers simultaneously it results in only a single one executing at a time so that we don't have N number of requests in flight with these
+                // 10mb payloads waiting to be processed.
+                await _semaphore.WaitAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+                // Object disposed or task cancelled exceptions should be swallowed/no-op'd
+                return;
+            }
 
+            try
+            {
                 OnStartingBackgroundWork();
 
                 if (cancellationToken.IsCancellationRequested)
@@ -144,13 +157,17 @@ namespace Microsoft.CodeAnalysis.Razor
                         workspaceState = new ProjectWorkspaceState(tagHelperResolutionResult.Descriptors, csharpLanguageVersion);
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    // Abort work if we get a task cancelled exception
+                    return;
+                }
                 catch (Exception ex)
                 {
-                    await Task.Factory.StartNew(
+                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                        () => _projectManager.ReportError(ex, projectSnapshot),
-                       CancellationToken.None, // Don't allow errors to be cancelled
-                       TaskCreationOptions.None,
-                       _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                       // Don't allow errors to be cancelled
+                       CancellationToken.None).ConfigureAwait(false);
                     return;
                 }
 
@@ -160,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Razor
                     return;
                 }
 
-                await Task.Factory.StartNew(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () =>
                     {
                         if (cancellationToken.IsCancellationRequested)
@@ -170,18 +187,31 @@ namespace Microsoft.CodeAnalysis.Razor
 
                         ReportWorkspaceStateChange(projectSnapshot.FilePath, workspaceState);
                     },
-                    cancellationToken,
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Abort work if we get a task canceled exception
+                return;
             }
             catch (Exception ex)
             {
                 // This is something totally unexpected, let's just send it over to the project manager.
-                await Task.Factory.StartNew(
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                     () => _projectManager.ReportError(ex),
-                    CancellationToken.None, // Don't allow errors to be cancelled
-                    TaskCreationOptions.None,
-                    _foregroundDispatcher.ForegroundScheduler).ConfigureAwait(false);
+                    // Don't allow errors to be cancelled
+                    CancellationToken.None).ConfigureAwait(false);
+            }
+            finally
+            {
+                try
+                {
+                    _semaphore.Release();
+                }
+                catch
+                {
+                    // Swallow exceptions that happen from releasing the semaphore.
+                }
             }
 
             OnBackgroundWorkCompleted();
@@ -189,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private void ReportWorkspaceStateChange(string projectFilePath, ProjectWorkspaceState workspaceStateChange)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             _projectManager.ProjectWorkspaceStateChanged(projectFilePath, workspaceStateChange);
         }

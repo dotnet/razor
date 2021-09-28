@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -21,8 +21,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     }
 
     [Shared]
-    [Export(typeof(OmniSharpForegroundDispatcher))]
-    internal class ExportOmniSharpForegroundDispatcher : DefaultOmniSharpForegroundDispatcher
+    [Export(typeof(OmniSharpProjectSnapshotManagerDispatcher))]
+    internal class ExportOmniSharpProjectSnapshotManagerDispatcher : DefaultOmniSharpProjectSnapshotManagerDispatcher
     {
     }
 
@@ -44,8 +44,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public ExportDefaultOmniSharpProjectSnapshotManagerAccessor(
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             [ImportMany] IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
-            OmniSharpForegroundDispatcher foregroundDispatcher,
-            OmniSharpWorkspace workspace) : base(remoteTextLoaderFactory, projectChangeTriggers, foregroundDispatcher, workspace)
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            OmniSharpWorkspace workspace) : base(remoteTextLoaderFactory, projectChangeTriggers, projectSnapshotManagerDispatcher, workspace)
         {
         }
     }
@@ -56,8 +56,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     {
         [ImportingConstructor]
         public ExportOmniSharpWorkspaceProjectStateChangeDetector(
-            OmniSharpForegroundDispatcher foregroundDispatcher,
-            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator) : base(foregroundDispatcher, workspaceStateGenerator)
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator) : base(projectSnapshotManagerDispatcher, workspaceStateGenerator)
         {
         }
     }
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     public class ExportOmniSharpProjectWorkspaceStateGenerator : OmniSharpProjectWorkspaceStateGenerator
     {
         [ImportingConstructor]
-        public ExportOmniSharpProjectWorkspaceStateGenerator(OmniSharpForegroundDispatcher foregroundDispatcher) : base(foregroundDispatcher)
+        public ExportOmniSharpProjectWorkspaceStateGenerator(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(projectSnapshotManagerDispatcher)
         {
         }
     }
@@ -79,9 +79,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     {
         [ImportingConstructor]
         public ExportOmniSharpBackgroundDocumentGenerator(
-            OmniSharpForegroundDispatcher foregroundDispatcher,
+            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             RemoteTextLoaderFactory remoteTextLoaderFactory,
-            [ImportMany] IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners) : base(foregroundDispatcher, remoteTextLoaderFactory, documentProcessedListeners)
+            [ImportMany] IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners) : base(projectSnapshotManagerDispatcher, remoteTextLoaderFactory, documentProcessedListeners)
         {
         }
     }

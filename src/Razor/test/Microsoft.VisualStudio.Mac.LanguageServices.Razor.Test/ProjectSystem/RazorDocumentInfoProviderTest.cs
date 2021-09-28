@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public RazorDocumentInfoProviderTest()
         {
             var serviceProviderFactory = new DefaultRazorDocumentServiceProviderFactory();
-            var lspEditorEnabledFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorFeatureEnabled() == true);
+            var lspEditorEnabledFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorAvailable() == true, MockBehavior.Strict);
             InnerDynamicDocumentInfoProvider = new DefaultRazorDynamicFileInfoProvider(serviceProviderFactory, lspEditorEnabledFeatureDetector);
             ProjectSnapshotManager = new TestProjectSnapshotManager(Workspace);
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             ProjectSnapshot = ProjectSnapshotManager.Projects[0];
             DocumentSnapshot = ProjectSnapshot.GetDocument(hostDocument.FilePath);
-            var factory = new Mock<VisualStudioMacDocumentInfoFactory>();
+            var factory = new Mock<VisualStudioMacDocumentInfoFactory>(MockBehavior.Strict);
             factory.Setup(f => f.CreateEmpty(It.IsAny<string>(), It.IsAny<ProjectId>()))
                 .Returns<string, ProjectId>((razorFilePath, projectId) =>
                 {
@@ -69,10 +69,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var provider = new RazorDynamicDocumentInfoProvider(Factory, InnerDynamicDocumentInfoProvider);
             DocumentInfo documentInfo = null;
-            provider.Updated += (info) =>
-            {
-                documentInfo = info;
-            };
+            provider.Updated += (info) => documentInfo = info;
 
             // Populate the providers understanding of our project/document
             provider.GetDynamicDocumentInfo(ProjectId.CreateNewId(), ProjectSnapshot.FilePath, DocumentSnapshot.FilePath);
@@ -119,10 +116,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // Arrange
             var provider = new RazorDynamicDocumentInfoProvider(Factory, InnerDynamicDocumentInfoProvider);
             DocumentInfo documentInfo = null;
-            provider.Updated += (info) =>
-            {
-                documentInfo = info;
-            };
+            provider.Updated += (info) => documentInfo = info;
 
             // Populate the providers understanding of our project/document
             provider.GetDynamicDocumentInfo(ProjectId.CreateNewId(), ProjectSnapshot.FilePath, DocumentSnapshot.FilePath);

@@ -1,36 +1,41 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
+using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
+using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
+using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
+using Newtonsoft.Json.Linq;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 using OmniSharp.Extensions.LanguageServer.Server;
-using ILanguageServer = OmniSharp.Extensions.LanguageServer.Server.ILanguageServer;
-using System.Threading;
-using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
-using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
-using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
+using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -55,33 +60,45 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public Task WaitForExit => _innerServer.WaitForExit;
 
-        public Task InitializedAsync(CancellationToken token) => _innerServer.InitializedAsync(token);
+        public Task InitializedAsync(CancellationToken token) => _innerServer.Initialize(token);
 
-        public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace)
+        public static Task<RazorLanguageServer> CreateAsync(Stream input, Stream output, Trace trace, Action<RazorLanguageServerBuilder> configure = null)
         {
-            Serializer.Instance.Settings.Converters.Add(SemanticTokensOrSemanticTokensEditsConverter.Instance);
-            Serializer.Instance.JsonSerializer.Converters.RegisterRazorConverters();
-
-            // Custom ClientCapabilities deserializer to extract experimental capabilities
-            Serializer.Instance.JsonSerializer.Converters.Add(ExtendableClientCapabilitiesJsonConverter.Instance);
+            var serializer = new LspSerializer();
+            serializer.RegisterRazorConverters();
 
             ILanguageServer server = null;
+            var logLevel = RazorLSPOptions.GetLogLevelForTrace(trace);
+            var initializedCompletionSource = new TaskCompletionSource<bool>();
+
             server = OmniSharp.Extensions.LanguageServer.Server.LanguageServer.PreInit(options =>
                 options
                     .WithInput(input)
                     .WithOutput(output)
-                    .ConfigureLogging(builder => builder
-                        .AddLanguageServer()
-                        .SetMinimumLevel(RazorLSPOptions.GetLogLevelForTrace(trace)))
-                    .OnInitialized(async (s, request, response) =>
+                    // StreamJsonRpc has both Serial and Parallel requests. With WithContentModifiedSupport(true) (which is default) when a Serial
+                    // request is made any Parallel requests will be cancelled because the assumption is that Serial requests modify state, and that
+                    // therefore any Parallel request is now invalid and should just try again. A specific instance of this can be seen when you
+                    // hover over a TagHelper while the switch is set to true. Hover is parallel, and a lot of our endpoints like
+                    // textDocument/_vs_onAutoInsert, and razor/languageQuery are Serial. I BELIEVE that specifically what happened is the serial
+                    // languageQuery event gets fired by our semantic tokens endpoint (which fires constantly), cancelling the hover, which red-bars.
+                    // We can prevent that behavior entirely by doing WithContentModifiedSupport, at the possible expense of some delays due doing all requests in serial.
+                    //
+                    // I recommend that we attempt to resolve this and switch back to WithContentModifiedSupport(true) in the future,
+                    // I think that would mean either having 0 Serial Handlers in the whole LS, or making VSLanguageServerClient handle this more gracefully.
+                    .WithContentModifiedSupport(false)
+                    .WithSerializer(serializer)
+                    .OnInitialized(async (s, request, response, cancellationToken) =>
                     {
-                        var jsonRpcHandlers = s.Services.GetServices<IJsonRpcHandler>();
-                        var registrationExtensions = jsonRpcHandlers.OfType<IRegistrationExtension>();
-                        if (registrationExtensions.Any())
+                        var handlersManager = s.GetRequiredService<IHandlersManager>();
+                        var jsonRpcHandlers = handlersManager.Descriptors.Select(d => d.Handler);
+                        var registrationExtensions = jsonRpcHandlers.OfType<IRegistrationExtension>().Distinct();
+                        foreach (var registrationExtension in registrationExtensions)
                         {
-                            var capabilities = new ExtendableServerCapabilities(response.Capabilities, registrationExtensions);
-                            response.Capabilities = capabilities;
+                            var optionsResult = registrationExtension.GetRegistration();
+                            response.Capabilities.ExtensionData[optionsResult.ServerCapability] = JObject.FromObject(optionsResult.Options);
                         }
+
+                        RazorLanguageServerCapability.AddTo(response.Capabilities);
 
                         var fileChangeDetectorManager = s.Services.GetRequiredService<RazorFileChangeDetectorManager>();
                         await fileChangeDetectorManager.InitializedAsync();
@@ -92,52 +109,60 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         {
                             // Initialize our options for the first time.
                             var optionsMonitor = languageServer.Services.GetRequiredService<RazorLSPOptionsMonitor>();
-                            _ = Task.Delay(TimeSpan.FromSeconds(3)).ContinueWith(async (_) => await optionsMonitor.UpdateAsync());
+
+                            // Explicitly not passing in the same CancellationToken as that might get cancelled before the update happens.
+                            _ = Task.Delay(TimeSpan.FromSeconds(3), CancellationToken.None)
+                                .ContinueWith(async (_) => await optionsMonitor.UpdateAsync(), TaskScheduler.Default);
                         }
                     })
                     .WithHandler<RazorDocumentSynchronizationEndpoint>()
                     .WithHandler<RazorCompletionEndpoint>()
                     .WithHandler<RazorHoverEndpoint>()
                     .WithHandler<RazorLanguageEndpoint>()
+                    .WithHandler<RazorDiagnosticsEndpoint>()
                     .WithHandler<RazorConfigurationEndpoint>()
                     .WithHandler<RazorFormattingEndpoint>()
                     .WithHandler<RazorSemanticTokensEndpoint>()
-                    .WithHandler<RazorSemanticTokensLegendEndpoint>()
                     .WithHandler<OnAutoInsertEndpoint>()
                     .WithHandler<CodeActionEndpoint>()
                     .WithHandler<CodeActionResolutionEndpoint>()
                     .WithHandler<MonitorProjectConfigurationFilePathEndpoint>()
                     .WithHandler<RazorComponentRenameEndpoint>()
                     .WithHandler<RazorDefinitionEndpoint>()
+                    .WithHandler<LinkedEditingRangeEndpoint>()
                     .WithServices(services =>
                     {
-                        var filePathNormalizer = new FilePathNormalizer();
-                        services.AddSingleton<FilePathNormalizer>(filePathNormalizer);
+                        services.AddLogging(builder => builder
+                            .SetMinimumLevel(logLevel)
+                            .AddLanguageProtocolLogging());
 
-                        var foregroundDispatcher = new DefaultForegroundDispatcher();
-                        services.AddSingleton<ForegroundDispatcher>(foregroundDispatcher);
+                        services.AddSingleton<RequestInvoker, RazorOmniSharpRequestInvoker>();
 
-                        var generatedDocumentPublisher = new DefaultGeneratedDocumentPublisher(foregroundDispatcher, new Lazy<OmniSharp.Extensions.LanguageServer.Protocol.Server.ILanguageServer>(() => server));
-                        services.AddSingleton<ProjectSnapshotChangeTrigger>(generatedDocumentPublisher);
-                        services.AddSingleton<GeneratedDocumentPublisher>(generatedDocumentPublisher);
+                        services.AddSingleton<FilePathNormalizer>();
+                        services.AddSingleton<ProjectSnapshotManagerDispatcher, LSPProjectSnapshotManagerDispatcher>();
+                        services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
+                        services.AddSingleton<AdhocWorkspaceFactory, DefaultAdhocWorkspaceFactory>();
+                        services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());
 
-                        var documentVersionCache = new DefaultDocumentVersionCache(foregroundDispatcher);
-                        services.AddSingleton<DocumentVersionCache>(documentVersionCache);
-                        services.AddSingleton<ProjectSnapshotChangeTrigger>(documentVersionCache);
-                        var containerStore = new DefaultGeneratedDocumentContainerStore(
-                            foregroundDispatcher,
-                            documentVersionCache,
-                            generatedDocumentPublisher);
-                        services.AddSingleton<GeneratedDocumentContainerStore>(containerStore);
-                        services.AddSingleton<ProjectSnapshotChangeTrigger>(containerStore);
+                        services.AddSingleton<DocumentVersionCache, DefaultDocumentVersionCache>();
+                        services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DocumentVersionCache>());
+
+                        services.AddSingleton<GeneratedDocumentContainerStore, DefaultGeneratedDocumentContainerStore>();
+                        services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentContainerStore>());
 
                         services.AddSingleton<RemoteTextLoaderFactory, DefaultRemoteTextLoaderFactory>();
                         services.AddSingleton<ProjectResolver, DefaultProjectResolver>();
                         services.AddSingleton<DocumentResolver, DefaultDocumentResolver>();
                         services.AddSingleton<RazorProjectService, DefaultRazorProjectService>();
-                        services.AddSingleton<ProjectSnapshotChangeTrigger, BackgroundDocumentGenerator>();
+                        services.AddSingleton<ProjectSnapshotChangeTrigger, OpenDocumentGenerator>();
                         services.AddSingleton<RazorDocumentMappingService, DefaultRazorDocumentMappingService>();
                         services.AddSingleton<RazorFileChangeDetectorManager>();
+
+                        services.AddSingleton<ProjectSnapshotChangeTrigger, RazorServerReadyPublisher>();
+
+                        services.AddSingleton<ClientNotifierServiceBase, DefaultClientNotifierService>();
+
+                        services.AddSingleton<IOnLanguageServerStarted, DefaultClientNotifierService>();
 
                         // Options
                         services.AddSingleton<RazorConfigurationService, DefaultRazorConfigurationService>();
@@ -161,46 +186,69 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         services.AddSingleton<HostDocumentFactory, DefaultHostDocumentFactory>();
                         services.AddSingleton<ProjectSnapshotManagerAccessor, DefaultProjectSnapshotManagerAccessor>();
                         services.AddSingleton<TagHelperFactsService, DefaultTagHelperFactsService>();
-                        services.AddSingleton<VisualStudio.Editor.Razor.TagHelperCompletionService, VisualStudio.Editor.Razor.DefaultTagHelperCompletionService>();
-                        services.AddSingleton<TagHelperDescriptionFactory, DefaultTagHelperDescriptionFactory>();
+                        services.AddSingleton<LSPTagHelperTooltipFactory, DefaultLSPTagHelperTooltipFactory>();
+                        services.AddSingleton<VSLSPTagHelperTooltipFactory, DefaultVSLSPTagHelperTooltipFactory>();
 
                         // Completion
-                        services.AddSingleton<Completion.TagHelperCompletionService, Completion.DefaultTagHelperCompletionService>();
+                        services.AddSingleton<TagHelperCompletionService, DefaultTagHelperCompletionService>();
+                        services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveCompletionItemProvider>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveAttributeCompletionItemProvider>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveAttributeParameterCompletionItemProvider>();
                         services.AddSingleton<RazorCompletionItemProvider, DirectiveAttributeTransitionCompletionItemProvider>();
                         services.AddSingleton<RazorCompletionItemProvider, MarkupTransitionCompletionItemProvider>();
+                        services.AddSingleton<RazorCompletionItemProvider, TagHelperCompletionProvider>();
 
                         // Auto insert
-                        services.AddSingleton<RazorOnAutoInsertProvider, HtmlSmartIndentOnAutoInsertProvider>();
-                        services.AddSingleton<RazorOnAutoInsertProvider, CloseRazorCommentOnAutoInsertProvider>();
                         services.AddSingleton<RazorOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
-                        services.AddSingleton<RazorOnAutoInsertProvider, AttributeSnippetOnAutoInsertProvider>();
+                        services.AddSingleton<RazorOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
+
+                        // Disabling equals => `="|"` OnAutoInsert support until dynamic overtyping is a thing: https://github.com/dotnet/aspnetcore/issues/33677
+                        // services.AddSingleton<RazorOnAutoInsertProvider, AttributeSnippetOnAutoInsertProvider>();
 
                         // Formatting
                         services.AddSingleton<RazorFormattingService, DefaultRazorFormattingService>();
 
                         // Formatting Passes
-                        services.AddSingleton<IFormattingPass, CodeBlockDirectiveFormattingPass>();
+                        services.AddSingleton<IFormattingPass, HtmlFormattingPass>();
+                        services.AddSingleton<IFormattingPass, CSharpFormattingPass>();
                         services.AddSingleton<IFormattingPass, CSharpOnTypeFormattingPass>();
-                        services.AddSingleton<IFormattingPass, FormattingStructureValidationPass>();
+                        services.AddSingleton<IFormattingPass, FormattingDiagnosticValidationPass>();
                         services.AddSingleton<IFormattingPass, FormattingContentValidationPass>();
+                        services.AddSingleton<IFormattingPass, RazorFormattingPass>();
 
-                        // Code actions
+                        // Razor Code actions
                         services.AddSingleton<RazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
                         services.AddSingleton<RazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
                         services.AddSingleton<RazorCodeActionProvider, ComponentAccessibilityCodeActionProvider>();
                         services.AddSingleton<RazorCodeActionResolver, CreateComponentCodeActionResolver>();
                         services.AddSingleton<RazorCodeActionResolver, AddUsingsCodeActionResolver>();
 
+                        // CSharp Code actions
+                        services.AddSingleton<CSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
+                        services.AddSingleton<CSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
+                        services.AddSingleton<CSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
+                        services.AddSingleton<CSharpCodeActionResolver, AddUsingsCSharpCodeActionResolver>();
+                        services.AddSingleton<CSharpCodeActionResolver, UnformattedRemappingCSharpCodeActionResolver>();
+
                         // Other
-                        services.AddSingleton<RazorCompletionFactsService, DefaultRazorCompletionFactsService>();
                         services.AddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();
                         services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
                         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
                         services.AddSingleton<WorkspaceDirectoryPathResolver, DefaultWorkspaceDirectoryPathResolver>();
                         services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
+
+                        if (configure != null)
+                        {
+                            var builder = new RazorLanguageServerBuilder(services);
+                            configure(builder);
+                        }
+
+                        // Defaults: For when the caller hasn't provided them through the `configure` action.
+                        services.TryAddSingleton<LanguageServerFeatureOptions, DefaultLanguageServerFeatureOptions>();
+
+                        // Defaults: For when the caller hasn't provided them through the `configure` action.
+                        services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();
                     }));
 
             try
@@ -248,6 +296,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 var disposableServices = _innerServer.Services as IDisposable;
                 disposableServices?.Dispose();
             }
+        }
+
+        // For testing purposes only.
+        internal ILanguageServer GetInnerLanguageServerForTesting()
+        {
+            return _innerServer;
         }
     }
 }

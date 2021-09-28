@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 var updated = new TextSpan(classifiedSecondarySpan.TextSpan.Start + offsetGeneratedToRazor, classifiedSecondarySpan.TextSpan.Length);
 
                 // NOTE: The Classifier will only return spans for things that it understands. That means
-                // that whitespace is not classified. The preview expects us to provide contiguous spans, 
+                // that whitespace is not classified. The preview expects us to provide contiguous spans,
                 // so we are going to have to fill in the gaps.
                 if (remainingSpan.Start < updated.Start)
                 {

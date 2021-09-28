@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private readonly Action _action;
         private readonly IConnectionPoint _connectionPoint;
         private uint _cookie;
-        
+
         public static void Subscribe(IVsTextBuffer vsTextBuffer, Action action)
         {
             if (vsTextBuffer == null)

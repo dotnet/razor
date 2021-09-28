@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -8,7 +8,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
+using OmniSharp.Extensions.LanguageServer.Protocol.Workspace;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -34,26 +34,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<RazorConfigurationEndpoint>();
         }
 
-        public object GetRegistrationOptions()
+        public void SetCapability(DidChangeConfigurationCapability capability, ClientCapabilities clientCapabilities)
         {
-            return new TextDocumentRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector
-            };
+            _capability = capability;
         }
 
         public async Task<Unit> Handle(DidChangeConfigurationParams request, CancellationToken cancellationToken)
         {
             _logger.LogTrace("Settings changed. Updating the server.");
 
-            await _optionsMonitor.UpdateAsync();
+            await _optionsMonitor.UpdateAsync(cancellationToken);
 
             return new Unit();
-        }
-
-        public void SetCapability(DidChangeConfigurationCapability capability)
-        {
-            _capability = capability;
         }
     }
 }

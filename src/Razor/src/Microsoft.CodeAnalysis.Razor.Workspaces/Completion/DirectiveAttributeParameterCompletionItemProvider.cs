@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion
@@ -28,26 +29,26 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             _tagHelperFactsService = tagHelperFactsService;
         }
 
-        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorSyntaxTree syntaxTree, TagHelperDocumentContext tagHelperDocumentContext, SourceSpan location)
+        public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context, SourceSpan location)
         {
-            if (syntaxTree is null)
+            if (context is null)
             {
-                throw new ArgumentNullException(nameof(syntaxTree));
+                throw new ArgumentNullException(nameof(context));
             }
 
-            if (tagHelperDocumentContext is null)
+            if (context.TagHelperDocumentContext is null)
             {
-                throw new ArgumentNullException(nameof(tagHelperDocumentContext));
+                throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
             }
 
-            if (!FileKinds.IsComponent(syntaxTree.Options.FileKind))
+            if (!FileKinds.IsComponent(context.SyntaxTree.Options.FileKind))
             {
                 // Directive attribute parameters are only supported in components
                 return Array.Empty<RazorCompletionItem>();
             }
 
             var change = new SourceChange(location, string.Empty);
-            var owner = syntaxTree.Root.LocateOwner(change);
+            var owner = context.SyntaxTree.Root.LocateOwner(change);
 
             if (owner == null)
             {
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 return Array.Empty<RazorCompletionItem>();
             }
 
-            var completions = GetAttributeParameterCompletions(attributeName, parameterName, containingTagName, attributes, tagHelperDocumentContext);
+            var completions = GetAttributeParameterCompletions(attributeName, parameterName, containingTagName, attributes, context.TagHelperDocumentContext);
             return completions;
         }
 
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             }
 
             // Attribute parameters are case sensitive when matching
-            var attributeCompletions = new Dictionary<string, HashSet<AttributeDescriptionInfo>>(StringComparer.Ordinal);
+            var attributeCompletions = new Dictionary<string, HashSet<BoundAttributeDescriptionInfo>>(StringComparer.Ordinal);
             foreach (var descriptor in descriptorsForTag)
             {
                 for (var i = 0; i < descriptor.BoundAttributes.Count; i++)
@@ -118,15 +119,12 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
                             if (!attributeCompletions.TryGetValue(parameterDescriptor.Name, out var attributeDescriptionInfos))
                             {
-                                attributeDescriptionInfos = new HashSet<AttributeDescriptionInfo>();
+                                attributeDescriptionInfos = new HashSet<BoundAttributeDescriptionInfo>();
                                 attributeCompletions[parameterDescriptor.Name] = attributeDescriptionInfos;
                             }
 
-                            var descriptionInfo = new AttributeDescriptionInfo(
-                                parameterDescriptor.TypeName,
-                                descriptor.GetTypeName(),
-                                parameterDescriptor.GetPropertyName(),
-                                parameterDescriptor.Documentation);
+                            var tagHelperTypeName = descriptor.GetTypeName();
+                            var descriptionInfo = BoundAttributeDescriptionInfo.From(parameterDescriptor, tagHelperTypeName);
                             attributeDescriptionInfos.Add(descriptionInfo);
                         }
                     }
@@ -147,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                     completion.Key,
                     completion.Key,
                     RazorCompletionItemKind.DirectiveAttributeParameter);
-                var completionDescription = new AttributeCompletionDescription(completion.Value.ToArray());
+                var completionDescription = new AggregateBoundAttributeDescription(completion.Value.ToArray());
                 razorCompletionItem.SetAttributeCompletionDescription(completionDescription);
 
                 completionItems.Add(razorCompletionItem);

@@ -1,25 +1,24 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-using LSPFormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class HtmlFormatter
     {
         private readonly FilePathNormalizer _filePathNormalizer;
-        private readonly ILanguageServer _server;
+        private readonly ClientNotifierServiceBase _server;
 
         public HtmlFormatter(
-            ILanguageServer languageServer,
+            ClientNotifierServiceBase languageServer,
             FilePathNormalizer filePathNormalizer)
         {
             if (languageServer is null)
@@ -37,23 +36,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         public async Task<TextEdit[]> FormatAsync(
-            RazorCodeDocument codeDocument,
-            Range range,
-            Uri uri,
-            LSPFormattingOptions options)
+            FormattingContext context,
+            CancellationToken cancellationToken)
         {
-            var @params = new RazorDocumentRangeFormattingParams()
+            if (context is null)
             {
-                Kind = RazorLanguageKind.Html,
-                ProjectedRange = range,
-                HostDocumentFilePath = _filePathNormalizer.Normalize(uri.GetAbsoluteOrUNCPath()),
-                Options = options
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            var @params = new DocumentFormattingParams()
+            {
+                TextDocument = new TextDocumentIdentifier { Uri = _filePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
+                Options = context.Options
             };
 
-            var result = await _server.Client.SendRequest<RazorDocumentRangeFormattingParams, RazorDocumentRangeFormattingResponse>(
-                LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
+            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorDocumentFormattingEndpoint, @params);
+            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
 
-            return result.Edits;
+            return result?.Edits ?? Array.Empty<TextEdit>();
         }
     }
 }

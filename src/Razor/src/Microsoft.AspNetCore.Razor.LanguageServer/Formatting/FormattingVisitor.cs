@@ -1,8 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -12,12 +15,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class FormattingVisitor : SyntaxWalker
     {
-        private RazorSourceDocument _source;
-        private List<FormattingSpan> _spans;
+        private const string HtmlTagName = "html";
+
+        private readonly RazorSourceDocument _source;
+        private readonly List<FormattingSpan> _spans;
         private FormattingBlockKind _currentBlockKind;
-        private SyntaxNode _currentBlock;
-        private int _currentIndentationLevel = 0;
+        private SyntaxNode? _currentBlock;
+        private int _currentHtmlIndentationLevel = 0;
+        private int _currentRazorIndentationLevel = 0;
         private bool _isInClassBody = false;
+        private readonly Stack<MarkupTagHelperElementSyntax> _componentTracker;
 
         public FormattingVisitor(RazorSourceDocument source)
         {
@@ -28,6 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             _source = source;
             _spans = new List<FormattingSpan>();
+            _componentTracker = new Stack<MarkupTagHelperElementSyntax>();
             _currentBlockKind = FormattingBlockKind.Markup;
         }
 
@@ -46,7 +54,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // We need to generate a formatting span at this position. So insert a marker in its place.
                     comment = (SyntaxToken)SyntaxFactory.Token(SyntaxKind.Marker, string.Empty).Green.CreateRed(razorCommentSyntax, razorCommentSyntax.StartCommentStar.EndPosition);
                 }
+
+                _currentRazorIndentationLevel++;
                 WriteSpan(comment, FormattingSpanKind.Comment);
+                _currentRazorIndentationLevel--;
 
                 WriteSpan(razorCommentSyntax.EndCommentStar, FormattingSpanKind.MetaCode);
                 WriteSpan(razorCommentSyntax.EndCommentTransition, FormattingSpanKind.Transition);
@@ -60,12 +71,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 node.Parent is CSharpImplicitExpressionBodySyntax ||
                 node.Parent is RazorDirectiveBodySyntax ||
                 (_currentBlockKind == FormattingBlockKind.Directive &&
-                node.Children.Count == 1 &&
-                node.Children[0] is CSharpStatementLiteralSyntax))
+                node.Parent?.Parent is RazorDirectiveBodySyntax))
             {
+                // If we get here, it means we don't want this code block to be considered significant.
+                // Without this, we would have double indentation in places where
+                // CSharpCodeBlock is used as a wrapper block in the syntax tree.
+
                 if (!(node.Parent is RazorDirectiveBodySyntax))
                 {
-                    _currentIndentationLevel++;
+                    _currentRazorIndentationLevel++;
                 }
 
                 var isInCodeBlockDirective =
@@ -88,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 if (!(node.Parent is RazorDirectiveBodySyntax))
                 {
-                    _currentIndentationLevel--;
+                    _currentRazorIndentationLevel--;
                 }
                 return;
             }
@@ -129,12 +143,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public override void VisitMarkupElement(MarkupElementSyntax node)
         {
             Visit(node.StartTag);
-            _currentIndentationLevel++;
+
+            // Temporary fix to not break the default Html formatting behavior. Remove after https://github.com/dotnet/aspnetcore/issues/25475.
+            if (!string.Equals(node.StartTag?.Name?.Content, HtmlTagName, StringComparison.OrdinalIgnoreCase))
+            {
+                _currentHtmlIndentationLevel++;
+            }
+
             foreach (var child in node.Body)
             {
                 Visit(child);
             }
-            _currentIndentationLevel--;
+
+            // Temporary fix to not break the default Html formatting behavior. Remove after https://github.com/dotnet/aspnetcore/issues/25475.
+            if (!string.Equals(node.StartTag?.Name?.Content, HtmlTagName, StringComparison.OrdinalIgnoreCase))
+            {
+                _currentHtmlIndentationLevel--;
+            }
+
             Visit(node.EndTag);
         }
 
@@ -164,14 +190,88 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
         {
+            var isComponent = IsComponentTagHelperNode(node);
+
+            var causesIndentation = isComponent;
+            if (node.Parent is MarkupTagHelperElementSyntax parentComponent &&
+                IsComponentTagHelperNode(parentComponent) &&
+                ParentHasProperty(parentComponent, node.TagHelperInfo?.TagName))
+            {
+                causesIndentation = false;
+            }
+
             Visit(node.StartTag);
-            _currentIndentationLevel++;
+
+            _currentHtmlIndentationLevel++;
+            if (causesIndentation)
+            {
+                _componentTracker.Push(node);
+            }
+
             foreach (var child in node.Body)
             {
                 Visit(child);
             }
-            _currentIndentationLevel--;
+
+            if (causesIndentation)
+            {
+                Debug.Assert(_componentTracker.Any(), "Component tracker should not be empty.");
+                _componentTracker.Pop();
+            }
+            _currentHtmlIndentationLevel--;
+
             Visit(node.EndTag);
+
+            static bool IsComponentTagHelperNode(MarkupTagHelperElementSyntax node)
+            {
+                var tagHelperInfo = node.TagHelperInfo;
+
+                if (tagHelperInfo is null)
+                {
+                    return false;
+                }
+
+                var descriptors = tagHelperInfo.BindingResult?.Descriptors;
+                if (descriptors is null)
+                {
+                    return false;
+                }
+
+                return descriptors.Any(d => d.IsComponentOrChildContentTagHelper());
+            }
+
+            static bool ParentHasProperty(MarkupTagHelperElementSyntax parentComponent, string? propertyName)
+            {
+                // If this is a child tag helper that match a property of its parent tag helper
+                // then it means this specific node won't actually cause a change in indentation.
+                // For example, the following two bits of Razor generate identical C# code, even though the code block is
+                // nested in a different number of tag helper elements:
+                //
+                // <Component>
+                //     @if (true)
+                //     {
+                //     }
+                // </Component>
+                //
+                // and
+                //
+                // <Component>
+                //     <ChildContent>
+                //         @if (true)
+                //         {
+                //         }
+                //     </ChildContent>
+                // </Component>
+                //
+                // This code will not count "ChildContent" as causing indentation because its parent
+                // has a property called "ChildContent".
+                if (parentComponent.TagHelperInfo?.BindingResult.Descriptors.Any(d => d.BoundAttributes.Any(a => a.Name == propertyName)) ?? false)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
@@ -337,10 +437,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return;
             }
 
+            Assumes.NotNull(_currentBlock);
+
             var spanSource = new TextSpan(node.Position, node.FullWidth);
             var blockSource = new TextSpan(_currentBlock.Position, _currentBlock.FullWidth);
 
-            var span = new FormattingSpan(spanSource, blockSource, kind, _currentBlockKind, _currentIndentationLevel, _isInClassBody);
+            var componentLambdaNestingLevel = _componentTracker.Count;
+
+            var span = new FormattingSpan(
+                spanSource,
+                blockSource,
+                kind,
+                _currentBlockKind,
+                _currentRazorIndentationLevel,
+                _currentHtmlIndentationLevel,
+                _isInClassBody,
+                componentLambdaNestingLevel);
+
             _spans.Add(span);
         }
 
@@ -364,7 +477,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().CreateRed(node, node.Position));
             }
 
-            SpanContext latestSpanContext = null;
+            SpanContext? latestSpanContext = null;
             var children = node.Children;
             var newChildren = new SyntaxListBuilder(children.Count);
             var literals = new List<MarkupTextLiteralSyntax>();

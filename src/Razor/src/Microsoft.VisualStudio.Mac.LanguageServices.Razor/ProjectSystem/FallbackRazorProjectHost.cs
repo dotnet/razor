@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -20,16 +20,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 
         public FallbackRazorProjectHost(
             DotNetProject project,
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager)
-            : base(project, foregroundDispatcher, projectSnapshotManager)
+            : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager)
         {
         }
 
         protected override async Task OnProjectChangedAsync()
         {
-            ForegroundDispatcher.AssertBackgroundThread();
-
             await ExecuteWithLockAsync(async () =>
             {
                 var referencedAssemblies = await DotNetProject.GetReferencedAssemblies(ConfigurationSelector.Default);

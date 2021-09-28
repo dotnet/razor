@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -237,7 +237,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             public ProjectSystemRazorConfiguration(
                 RazorLanguageVersion languageVersion,
                 string configurationName,
-                RazorExtension[] extensions)
+                RazorExtension[] extensions,
+                bool useConsolidatedMvcViews = false)
             {
                 if (languageVersion == null)
                 {
@@ -257,6 +258,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 LanguageVersion = languageVersion;
                 ConfigurationName = configurationName;
                 Extensions = extensions;
+                UseConsolidatedMvcViews = useConsolidatedMvcViews;
             }
 
             public override string ConfigurationName { get; }
@@ -264,6 +266,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             public override IReadOnlyList<RazorExtension> Extensions { get; }
 
             public override RazorLanguageVersion LanguageVersion { get; }
+
+            public override bool UseConsolidatedMvcViews { get; }
         }
 
         internal class ProjectSystemRazorExtension : RazorExtension

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -8,22 +8,22 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 {
     internal static class FilePathComparison
     {
-        private static StringComparison? _instance;
+        private static StringComparison? s_instance;
 
         public static StringComparison Instance
         {
             get
             {
-                if (_instance == null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                if (s_instance == null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    _instance = StringComparison.Ordinal;
+                    s_instance = StringComparison.Ordinal;
                 }
-                else if (_instance == null)
+                else if (s_instance == null)
                 {
-                    _instance = StringComparison.OrdinalIgnoreCase;
+                    s_instance = StringComparison.OrdinalIgnoreCase;
                 }
 
-                return _instance.Value;
+                return s_instance.Value;
             }
         }
     }

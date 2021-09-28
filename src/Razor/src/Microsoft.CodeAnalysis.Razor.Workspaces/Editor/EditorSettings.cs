@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.Extensions.Internal;
@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.Editor
 {
     public sealed class EditorSettings : IEquatable<EditorSettings>
     {
-        public static readonly EditorSettings Default = new EditorSettings(indentWithTabs: false, indentSize: 4);
+        public static readonly EditorSettings Default = new(indentWithTabs: false, indentSize: 4);
 
         public EditorSettings(bool indentWithTabs, int indentSize)
         {

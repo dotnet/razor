@@ -1,8 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+#nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -10,161 +11,298 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     [Shared]
     [Export(typeof(ProjectSnapshotChangeTrigger))]
-    internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigger
+    internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigger, IDisposable
     {
+        private static readonly TimeSpan s_batchingDelay = TimeSpan.FromSeconds(1);
+        private readonly object _disposedLock = new();
+        private readonly object _workQueueAccessLock = new();
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
-        private ProjectSnapshotManagerBase _projectManager;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+        private BatchingWorkQueue? _workQueue;
+        private ProjectSnapshotManagerBase? _projectManager;
+        private bool _disposed;
 
-        public int EnqueueDelay { get; set; } = 3 * 1000;
+        private ProjectSnapshotManagerBase ProjectSnapshotManager
+        {
+            get
+            {
+                if (_projectManager is null)
+                {
+                    throw new InvalidOperationException($"ProjectManager was accessed before Initialize was called");
+                }
 
-        // We throttle updates to projects to prevent doing too much work while the projects
-        // are being initialized.
-        //
-        // Internal for testing
-        internal Dictionary<ProjectId, UpdateItem> _deferredUpdates;
+                return _projectManager;
+            }
+        }
 
         [ImportingConstructor]
-        public WorkspaceProjectStateChangeDetector(ProjectWorkspaceStateGenerator workspaceStateGenerator)
+        public WorkspaceProjectStateChangeDetector(
+            ProjectWorkspaceStateGenerator workspaceStateGenerator,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (workspaceStateGenerator == null)
+            if (workspaceStateGenerator is null)
             {
                 throw new ArgumentNullException(nameof(workspaceStateGenerator));
             }
 
-            _workspaceStateGenerator = workspaceStateGenerator;
-        }
-
-        // Used in unit tests to ensure we can control when background work starts.
-        public ManualResetEventSlim BlockDelayedUpdateWorkEnqueue { get; set; }
-
-        private void OnStartingDelayedUpdate()
-        {
-            if (BlockDelayedUpdateWorkEnqueue != null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                BlockDelayedUpdateWorkEnqueue.Wait();
-                BlockDelayedUpdateWorkEnqueue.Reset();
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
+
+            _workspaceStateGenerator = workspaceStateGenerator;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
+
+        // Internal for testing
+        internal WorkspaceProjectStateChangeDetector(
+            ProjectWorkspaceStateGenerator workspaceStateGenerator,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            BatchingWorkQueue workQueue)
+        {
+            _workspaceStateGenerator = workspaceStateGenerator;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            _workQueue = workQueue;
+        }
+
+        public ManualResetEventSlim? NotifyWorkspaceChangedEventComplete { get; set; }
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
             _projectManager = projectManager;
+
+            EnsureWorkQueue();
+
             _projectManager.Changed += ProjectManager_Changed;
             _projectManager.Workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
-
-            _deferredUpdates = new Dictionary<ProjectId, UpdateItem>();
 
             // This will usually no-op, in the case that another project snapshot change trigger immediately adds projects we want to be able to handle those projects
             InitializeSolution(_projectManager.Workspace.CurrentSolution);
         }
 
-        // Internal for testing, virtual for temporary VSCode workaround
-        internal virtual void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        private void EnsureWorkQueue()
         {
-            Project project;
-            switch (e.Kind)
+            lock (_disposedLock)
             {
-                case WorkspaceChangeKind.ProjectAdded:
+                lock (_workQueueAccessLock)
+                {
+                    if (_projectManager == null || _disposed)
                     {
-                        project = e.NewSolution.GetProject(e.ProjectId);
-
-                        Debug.Assert(project != null);
-
-                        if (TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
-                        {
-                            _workspaceStateGenerator.Update(project, projectSnapshot, CancellationToken.None);
-                        }
-                        break;
+                        return;
                     }
 
-                case WorkspaceChangeKind.ProjectChanged:
-                case WorkspaceChangeKind.ProjectReloaded:
+                    if (_workQueue == null)
                     {
-                        project = e.NewSolution.GetProject(e.ProjectId);
-
-                        if (TryGetProjectSnapshot(project?.FilePath, out var _))
-                        {
-                            EnqueueUpdate(e.ProjectId);
-                        }
-                        break;
+                        var errorReporter = _projectManager.Workspace.Services.GetRequiredService<ErrorReporter>();
+                        _workQueue = new BatchingWorkQueue(
+                           s_batchingDelay,
+                           FilePathComparer.Instance,
+                           errorReporter);
                     }
+                }
+            }
+        }
 
-                case WorkspaceChangeKind.ProjectRemoved:
-                    {
-                        project = e.OldSolution.GetProject(e.ProjectId);
-                        Debug.Assert(project != null);
-
-                        if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
-                        {
-                            _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot, CancellationToken.None);
-                        }
-
-                        break;
-                    }
-
-                case WorkspaceChangeKind.DocumentChanged:
-                case WorkspaceChangeKind.DocumentReloaded:
-                    {
-                        // This is the case when a component declaration file changes on disk. We have an MSBuild
-                        // generator configured by the SDK that will poke these files on disk when a component
-                        // is saved, or loses focus in the editor.
-                        project = e.OldSolution.GetProject(e.ProjectId);
-                        var document = project.GetDocument(e.DocumentId);
-
-                        if (document.FilePath == null)
-                        {
-                            return;
-                        }
-
-                        // Using EndsWith because Path.GetExtension will ignore everything before .cs
-                        // Using Ordinal because the SDK generates these filenames.
-                        // Stll have .cshtml.g.cs and .razor.g.cs for Razor.VSCode scenarios.
-                        if (document.FilePath.EndsWith(".cshtml.g.cs", StringComparison.Ordinal) ||
-                            document.FilePath.EndsWith(".razor.g.cs", StringComparison.Ordinal) ||
-                            document.FilePath.EndsWith(".razor", StringComparison.Ordinal) ||
-
-                            // VSCode's background C# document
-                            document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal))
-                        {
-                            EnqueueUpdate(e.ProjectId);
-                            return;
-                        }
-
-                        // We now know we're not operating directly on a Razor file. However, it's possible the user is operating on a partial class that is associated with a Razor file.
-
-                        if (IsPartialComponentClass(document))
-                        {
-                            EnqueueUpdate(e.ProjectId);
-                        }
-
-                        break;
-                    }
-
-                case WorkspaceChangeKind.SolutionAdded:
-                case WorkspaceChangeKind.SolutionChanged:
-                case WorkspaceChangeKind.SolutionCleared:
-                case WorkspaceChangeKind.SolutionReloaded:
-                case WorkspaceChangeKind.SolutionRemoved:
-
-                    if (e.OldSolution != null)
-                    {
-                        foreach (var p in e.OldSolution.Projects)
-                        {
-
-                            if (TryGetProjectSnapshot(p?.FilePath, out var projectSnapshot))
+        // Internal for testing, virtual for temporary VSCode workaround
+#pragma warning disable VSTHRD100 // Avoid async void methods
+        internal async virtual void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
+        {
+            try
+            {
+                // Method needs to be run on the project snapshot manager's specialized thread
+                // due to project snapshot manager access.
+                switch (e.Kind)
+                {
+                    case WorkspaceChangeKind.ProjectAdded:
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
                             {
-                                _workspaceStateGenerator.Update(workspaceProject: null, projectSnapshot, CancellationToken.None);
-                            }
-                        }
-                    }
+                                var project = state.NewSolution.GetRequiredProject(state.ProjectId);
+                                state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
+                            },
+                            (self: this, e.ProjectId, e.NewSolution),
+                            CancellationToken.None).ConfigureAwait(false);
+                        break;
 
-                    InitializeSolution(e.NewSolution);
-                    break;
+                    case WorkspaceChangeKind.ProjectChanged:
+                    case WorkspaceChangeKind.ProjectReloaded:
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
+                            {
+                                var project = state.NewSolution.GetRequiredProject(state.ProjectId);
+
+                                state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
+                            },
+                            (self: this, e.ProjectId, e.NewSolution),
+                            CancellationToken.None).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.ProjectRemoved:
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
+                            {
+                                var project = state.OldSolution.GetRequiredProject(state.ProjectId);
+
+                                if (state.self.TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
+                                {
+                                    state.self.EnqueueUpdateOnProjectAndDependencies(state.ProjectId!, project: null, state.OldSolution, projectSnapshot!);
+                                }
+                            },
+                            (self: this, e.ProjectId, e.OldSolution),
+                            CancellationToken.None).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.DocumentAdded:
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
+                            {
+                                // This is the case when a component declaration file changes on disk. We have an MSBuild
+                                // generator configured by the SDK that will poke these files on disk when a component
+                                // is saved, or loses focus in the editor.
+                                var project = state.NewSolution.GetRequiredProject(state.ProjectId);
+                                var newDocument = project.GetDocument(state.DocumentId!);
+
+                                if (newDocument?.FilePath is null)
+                                {
+                                    return;
+                                }
+
+                                if (IsRazorFileOrRazorVirtual(newDocument))
+                                {
+                                    state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
+                                    return;
+                                }
+
+                                // We now know we're not operating directly on a Razor file. However, it's possible the user
+                                // is operating on a partial class that is associated with a Razor file.
+                                if (state.self.IsPartialComponentClass(newDocument))
+                                {
+                                    state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
+                                }
+                            },
+                            (self: this, e.ProjectId, e.DocumentId, e.NewSolution),
+                            CancellationToken.None).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.DocumentRemoved:
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
+                            {
+                                var project = state.OldSolution.GetRequiredProject(state.ProjectId);
+                                var removedDocument = project.GetRequiredDocument(state.DocumentId);
+
+                                if (removedDocument.FilePath is null)
+                                {
+                                    return;
+                                }
+
+                                if (IsRazorFileOrRazorVirtual(removedDocument))
+                                {
+                                    state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
+                                    return;
+                                }
+
+                                // We now know we're not operating directly on a Razor file. However, it's possible the user
+                                // is operating on a partial class that is associated with a Razor file.
+
+                                if (state.self.IsPartialComponentClass(removedDocument))
+                                {
+                                    state.self.EnqueueUpdateOnProjectAndDependencies(project, state.NewSolution);
+                                }
+                            },
+                            (self: this, e.OldSolution, e.ProjectId, e.DocumentId, e.NewSolution),
+                            CancellationToken.None).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.DocumentChanged:
+                    case WorkspaceChangeKind.DocumentReloaded:
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
+                            {
+                                // This is the case when a component declaration file changes on disk. We have an MSBuild
+                                // generator configured by the SDK that will poke these files on disk when a component
+                                // is saved, or loses focus in the editor.
+                                var project = state.OldSolution.GetRequiredProject(state.ProjectId);
+                                var document = project.GetRequiredDocument(state.DocumentId);
+
+                                if (document.FilePath == null)
+                                {
+                                    return;
+                                }
+
+                                if (IsRazorFileOrRazorVirtual(document))
+                                {
+                                    var newProject = state.NewSolution.GetRequiredProject(state.ProjectId);
+                                    state.self.EnqueueUpdateOnProjectAndDependencies(newProject, state.NewSolution);
+                                    return;
+                                }
+
+                                // We now know we're not operating directly on a Razor file. However, it's possible the user is operating on a partial class that is associated with a Razor file.
+
+                                if (state.self.IsPartialComponentClass(document))
+                                {
+                                    var newProject = state.NewSolution.GetRequiredProject(state.ProjectId);
+                                    state.self.EnqueueUpdateOnProjectAndDependencies(newProject, state.NewSolution);
+                                }
+                            },
+                            (self: this, e.OldSolution, e.ProjectId, e.DocumentId, e.NewSolution),
+                            CancellationToken.None).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.SolutionAdded:
+                    case WorkspaceChangeKind.SolutionChanged:
+                    case WorkspaceChangeKind.SolutionCleared:
+                    case WorkspaceChangeKind.SolutionReloaded:
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                            static (state, _) =>
+                            {
+                                if (state.oldProjectPaths != null)
+                                {
+                                    foreach (var p in state.oldProjectPaths)
+                                    {
+                                        if (state.self.TryGetProjectSnapshot(p, out var projectSnapshot))
+                                        {
+                                            state.self.EnqueueUpdate(project: null, projectSnapshot!);
+                                        }
+                                    }
+                                }
+
+                                state.self.InitializeSolution(state.NewSolution);
+                            },
+                            (self: this, oldProjectPaths: e.OldSolution?.Projects.Select(p => p?.FilePath), e.NewSolution),
+                            CancellationToken.None).ConfigureAwait(false);
+                        break;
+                }
+
+                // Let tests know that this event has completed
+                NotifyWorkspaceChangedEventComplete?.Set();
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail("WorkspaceProjectStateChangeDetector.Workspace_WorkspaceChanged threw exception:" +
+                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+            }
+
+            static bool IsRazorFileOrRazorVirtual(Document document)
+            {
+                // Using EndsWith because Path.GetExtension will ignore everything before .cs
+                // Using Ordinal because the SDK generates these filenames.
+                // Stll have .cshtml.g.cs and .razor.g.cs for Razor.VSCode scenarios.
+                return document.FilePath.EndsWith(".cshtml.g.cs", FilePathComparison.Instance) ||
+                    document.FilePath.EndsWith(".razor.g.cs", FilePathComparison.Instance) ||
+                    document.FilePath.EndsWith(".razor", FilePathComparison.Instance) ||
+
+                    // VSCode's background C# document
+                    document.FilePath.EndsWith("__bg__virtual.cs", StringComparison.Ordinal);
             }
         }
 
@@ -198,8 +336,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             foreach (var classDeclaration in classDeclarations)
             {
-                var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration) as INamedTypeSymbol;
-                if (classSymbol == null)
+                if (semanticModel.GetDeclaredSymbol(classDeclaration) is not INamedTypeSymbol classSymbol)
                 {
                     continue;
                 }
@@ -216,107 +353,157 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // Virtual for temporary VSCode workaround
         protected virtual void InitializeSolution(Solution solution)
         {
-            Debug.Assert(solution != null);
-
             foreach (var project in solution.Projects)
             {
                 if (TryGetProjectSnapshot(project?.FilePath, out var projectSnapshot))
                 {
-                    _workspaceStateGenerator.Update(project, projectSnapshot, CancellationToken.None);
+                    EnqueueUpdate(project, projectSnapshot!);
                 }
             }
         }
 
         private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            if (args.Kind == ProjectChangeKind.ProjectAdded)
+            // Don't do any work if the solution is closing. Any work in the queue will be cancelled on disposal
+            if (args.SolutionIsClosing)
             {
-                var associatedWorkspaceProject = _projectManager
-                    .Workspace
-                    .CurrentSolution
-                    .Projects
-                    .FirstOrDefault(project => FilePathComparer.Instance.Equals(args.ProjectFilePath, project.FilePath));
+                ClearWorkQueue();
+                return;
+            }
 
-                if (associatedWorkspaceProject != null)
+            switch (args.Kind)
+            {
+                case ProjectChangeKind.ProjectAdded:
+                case ProjectChangeKind.DocumentRemoved:
+                case ProjectChangeKind.DocumentAdded:
+                    var associatedWorkspaceProject = ProjectSnapshotManager
+                        .Workspace
+                        .CurrentSolution
+                        .Projects
+                        .FirstOrDefault(project => FilePathComparer.Instance.Equals(args.ProjectFilePath, project.FilePath));
+
+                    if (associatedWorkspaceProject != null)
+                    {
+                        var projectSnapshot = args.Newer;
+                        EnqueueUpdateOnProjectAndDependencies(associatedWorkspaceProject.Id, associatedWorkspaceProject, associatedWorkspaceProject.Solution, projectSnapshot);
+                    }
+                    break;
+            }
+        }
+
+        private void EnqueueUpdateOnProjectAndDependencies(Project project, Solution solution)
+        {
+            if (TryGetProjectSnapshot(project.FilePath, out var projectSnapshot))
+            {
+                EnqueueUpdateOnProjectAndDependencies(project.Id, project, solution, projectSnapshot!);
+            }
+        }
+
+        private void EnqueueUpdateOnProjectAndDependencies(ProjectId projectId, Project? project, Solution solution, ProjectSnapshot projectSnapshot)
+        {
+            EnqueueUpdate(project, projectSnapshot);
+
+            var dependencyGraph = solution.GetProjectDependencyGraph();
+
+            var dependentProjectIds = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
+            foreach (var dependentProjectId in dependentProjectIds)
+            {
+                var dependentProject = solution.GetProject(dependentProjectId);
+
+                if (TryGetProjectSnapshot(dependentProject?.FilePath, out var dependentProjectSnapshot))
                 {
-                    _workspaceStateGenerator.Update(associatedWorkspaceProject, args.Newer, CancellationToken.None);
+                    EnqueueUpdate(dependentProject, dependentProjectSnapshot!);
                 }
             }
         }
 
-        private void EnqueueUpdate(ProjectId projectId)
+        private void EnqueueUpdate(Project? project, ProjectSnapshot projectSnapshot)
         {
-            // A race is not possible here because we use the main thread to synchronize the updates
-            // by capturing the sync context.
-            if (_deferredUpdates.TryGetValue(projectId, out var deferredUpdate)
-                    && !deferredUpdate.Task.IsCompleted
-                    && !deferredUpdate.Task.IsCanceled
-                    && !deferredUpdate.Cts.IsCancellationRequested)
-            {
-                deferredUpdate.Cts.Cancel();
-            }
+            var workItem = new UpdateWorkspaceWorkItem(project, projectSnapshot, _workspaceStateGenerator, _projectSnapshotManagerDispatcher);
 
-            var cts = new CancellationTokenSource();
-            var updateTask = UpdateAfterDelay(projectId, cts);
-            _deferredUpdates[projectId] = new UpdateItem(updateTask, cts);
+            EnsureWorkQueue();
+
+            _workQueue?.Enqueue(projectSnapshot.FilePath, workItem);
         }
 
-        private async Task UpdateAfterDelay(ProjectId projectId, CancellationTokenSource cts)
+        // TODO: [NotNullWhen] here when we move to netstandard2.1
+        private bool TryGetProjectSnapshot(string? projectFilePath, out ProjectSnapshot? projectSnapshot)
         {
-            try
-            {
-                await Task.Delay(EnqueueDelay, cts.Token);
-            }
-            catch (TaskCanceledException)
-            {
-                // Task cancelled, don't queue additional work.
-                return;
-            }
-
-            OnStartingDelayedUpdate();
-
-            var solution = _projectManager.Workspace.CurrentSolution;
-            var workspaceProject = solution.GetProject(projectId);
-            if (workspaceProject != null && TryGetProjectSnapshot(workspaceProject.FilePath, out var projectSnapshot))
-            {
-                _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, cts.Token);
-            }
-        }
-
-        private bool TryGetProjectSnapshot(string projectFilePath, out ProjectSnapshot projectSnapshot)
-        {
-            if (projectFilePath == null)
+            if (projectFilePath is null)
             {
                 projectSnapshot = null;
                 return false;
             }
 
-            projectSnapshot = _projectManager.GetLoadedProject(projectFilePath);
+            projectSnapshot = ProjectSnapshotManager.GetLoadedProject(projectFilePath);
             return projectSnapshot != null;
         }
 
-        // Internal for testing
-        internal class UpdateItem
+        public void Dispose()
         {
-            public UpdateItem(Task task, CancellationTokenSource cts)
+            lock (_disposedLock)
             {
-                if (task == null)
+                if (_disposed)
                 {
-                    throw new ArgumentNullException(nameof(task));
+                    return;
                 }
 
-                if (cts == null)
+                _disposed = true;
+                ClearWorkQueue();
+            }
+        }
+
+        private void ClearWorkQueue()
+        {
+            lock (_workQueueAccessLock)
+            {
+                _workQueue?.Dispose();
+                _workQueue = null;
+            }
+        }
+
+        private class UpdateWorkspaceWorkItem : BatchableWorkItem
+        {
+            private readonly Project? _workspaceProject;
+            private readonly ProjectSnapshot _projectSnapshot;
+            private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
+            private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+
+            public UpdateWorkspaceWorkItem(
+                Project? workspaceProject,
+                ProjectSnapshot projectSnapshot,
+                ProjectWorkspaceStateGenerator workspaceStateGenerator,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+            {
+                if (projectSnapshot is null)
                 {
-                    throw new ArgumentNullException(nameof(cts));
+                    throw new ArgumentNullException(nameof(projectSnapshot));
                 }
 
-                Task = task;
-                Cts = cts;
+                if (workspaceStateGenerator is null)
+                {
+                    throw new ArgumentNullException(nameof(workspaceStateGenerator));
+                }
+
+                if (projectSnapshotManagerDispatcher is null)
+                {
+                    throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+                }
+
+                _workspaceProject = workspaceProject;
+                _projectSnapshot = projectSnapshot;
+                _workspaceStateGenerator = workspaceStateGenerator;
+                _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             }
 
-            public Task Task { get; }
-
-            public CancellationTokenSource Cts { get; }
+            public override ValueTask ProcessAsync(CancellationToken cancellationToken)
+            {
+                var task = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+                {
+                    _workspaceStateGenerator.Update(_workspaceProject, _projectSnapshot, cancellationToken);
+                }, cancellationToken);
+                return new ValueTask(task);
+            }
         }
     }
 }

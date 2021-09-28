@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using MediatR;
@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public TextEdit[] ProjectedTextEdits { get; set; }
 
-        public bool ShouldFormat { get; set; }
+        public TextEditKind TextEditKind { get; set; }
 
         public FormattingOptions FormattingOptions { get; set; }
     }

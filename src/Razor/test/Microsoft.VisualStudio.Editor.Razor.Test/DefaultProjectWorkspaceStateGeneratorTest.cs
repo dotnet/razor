@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
-    public class DefaultProjectWorkspaceStateGeneratorTest : ForegroundDispatcherTestBase
+    public class DefaultProjectWorkspaceStateGeneratorTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public DefaultProjectWorkspaceStateGeneratorTest()
         {
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         private ProjectWorkspaceState ProjectWorkspaceStateWithTagHelpers { get; }
 
-        [ForegroundFact]
+        [UIFact]
         public void Dispose_MakesUpdateNoop()
         {
-            // Arrange  
+            // Arrange
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -62,14 +62,14 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
 
                 // Assert
-                Assert.Empty(stateGenerator._updates);
+                Assert.Empty(stateGenerator.Updates);
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Update_StartsUpdateTask()
         {
-            // Arrange  
+            // Arrange
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
@@ -78,20 +78,20 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
 
                 // Assert
-                var update = Assert.Single(stateGenerator._updates);
+                var update = Assert.Single(stateGenerator.Updates);
                 Assert.False(update.Value.Task.IsCompleted);
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public void Update_SoftCancelsIncompleteTaskForSameProject()
         {
-            // Arrange  
+            // Arrange
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
                 stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
-                var initialUpdate = stateGenerator._updates.Single().Value;
+                var initialUpdate = stateGenerator.Updates.Single().Value;
 
                 // Act
                 stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task Update_NullWorkspaceProject_ClearsProjectWorkspaceState()
         {
-            // Arrange  
+            // Arrange
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 // Act
                 stateGenerator.Update(workspaceProject: null, ProjectSnapshot, CancellationToken.None);
 
-                // Jump off the foreground thread so the background work can complete.
+                // Jump off the UI thread so the background work can complete.
                 await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
                 // Assert
@@ -125,10 +125,10 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             }
         }
 
-        [ForegroundFact]
+        [UIFact]
         public async Task Update_ResolvesTagHelpersAndUpdatesWorkspaceState()
         {
-            // Arrange  
+            // Arrange
             using (var stateGenerator = new DefaultProjectWorkspaceStateGenerator(Dispatcher))
             {
                 stateGenerator.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 // Act
                 stateGenerator.Update(WorkspaceProject, ProjectSnapshot, CancellationToken.None);
 
-                // Jump off the foreground thread so the background work can complete.
+                // Jump off the UI thread so the background work can complete.
                 await Task.Run(() => stateGenerator.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)));
 
                 // Assert

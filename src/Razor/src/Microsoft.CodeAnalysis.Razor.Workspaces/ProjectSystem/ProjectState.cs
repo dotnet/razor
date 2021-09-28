@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             ProjectDifference.DocumentAdded |
             ProjectDifference.DocumentRemoved;
 
-        private static readonly ImmutableDictionary<string, DocumentState> EmptyDocuments = ImmutableDictionary.Create<string, DocumentState>(FilePathComparer.Instance);
-        private static readonly ImmutableDictionary<string, ImmutableArray<string>> EmptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathComparer.Instance);
-        private static readonly IReadOnlyList<TagHelperDescriptor> EmptyTagHelpers = Array.Empty<TagHelperDescriptor>();
+        private static readonly ImmutableDictionary<string, DocumentState> s_emptyDocuments = ImmutableDictionary.Create<string, DocumentState>(FilePathComparer.Instance);
+        private static readonly ImmutableDictionary<string, ImmutableArray<string>> s_emptyImportsToRelatedDocuments = ImmutableDictionary.Create<string, ImmutableArray<string>>(FilePathComparer.Instance);
+        private static readonly IReadOnlyList<TagHelperDescriptor> s_emptyTagHelpers = Array.Empty<TagHelperDescriptor>();
         private readonly object _lock;
 
         private RazorProjectEngine _projectEngine;
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             Services = services;
             HostProject = hostProject;
             ProjectWorkspaceState = projectWorkspaceState;
-            Documents = EmptyDocuments;
-            ImportsToRelatedDocuments = EmptyImportsToRelatedDocuments;
+            Documents = s_emptyDocuments;
+            ImportsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
             Version = VersionStamp.Create();
             DocumentCollectionVersion = Version;
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public HostWorkspaceServices Services { get; }
 
-        public IReadOnlyList<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState?.TagHelpers ?? EmptyTagHelpers;
+        public IReadOnlyList<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState?.TagHelpers ?? s_emptyTagHelpers;
 
         public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState?.CSharpLanguageVersion ?? LanguageVersion.Default;
 
@@ -185,13 +185,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 {
                     if (_projectEngine == null)
                     {
-                        _projectEngine = this.CreateProjectEngine();
+                        _projectEngine = CreateProjectEngine();
                     }
                 }
 
                 return _projectEngine;
             }
-
         }
 
         /// <summary>
@@ -342,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var documents = Documents.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.WithConfigurationChange(), FilePathComparer.Instance);
 
             // If the host project has changed then we need to recompute the imports map
-            var importsToRelatedDocuments = EmptyImportsToRelatedDocuments;
+            var importsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
 
             foreach (var document in documents)
             {
@@ -401,14 +400,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 if (importsToRelatedDocuments.TryGetValue(importTargetPath, out var relatedDocuments))
                 {
                     relatedDocuments = relatedDocuments.Remove(hostDocument.FilePath);
-                    if (relatedDocuments.Length > 0)
-                    {
-                        importsToRelatedDocuments = importsToRelatedDocuments.SetItem(importTargetPath, relatedDocuments);
-                    }
-                    else
-                    {
-                        importsToRelatedDocuments = importsToRelatedDocuments.Remove(importTargetPath);
-                    }
+                    importsToRelatedDocuments = relatedDocuments.Length > 0
+                        ? importsToRelatedDocuments.SetItem(importTargetPath, relatedDocuments)
+                        : importsToRelatedDocuments.Remove(importTargetPath);
                 }
             }
 
@@ -425,6 +419,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 {
                     builder.SetRootNamespace(HostProject.RootNamespace);
                     builder.SetCSharpLanguageVersion(CSharpLanguageVersion);
+                    builder.SetSupportLocalizedComponentNames();
                 });
         }
 

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private const string TempFileExt = ".temp";
 
         // Internal for testing
-        internal readonly Dictionary<string, Task> _deferredPublishTasks;
+        internal readonly Dictionary<string, Task> DeferredPublishTasks;
         private readonly ILogger<DefaultProjectChangePublisher> _logger;
         private readonly JsonSerializer _serializer;
         private readonly Dictionary<string, string> _publishFilePathMappings;
@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             };
             _serializer.Converters.RegisterOmniSharpRazorConverters();
             _publishFilePathMappings = new Dictionary<string, string>(FilePathComparer.Instance);
-            _deferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
+            DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
             _pendingProjectPublishes = new Dictionary<string, OmniSharpProjectSnapshot>(FilePathComparer.Instance);
             _publishLock = new object();
         }
@@ -137,9 +137,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             {
                 _pendingProjectPublishes[projectSnapshot.FilePath] = projectSnapshot;
 
-                if (!_deferredPublishTasks.TryGetValue(projectSnapshot.FilePath, out var update) || update.IsCompleted)
+                if (!DeferredPublishTasks.TryGetValue(projectSnapshot.FilePath, out var update) || update.IsCompleted)
                 {
-                    _deferredPublishTasks[projectSnapshot.FilePath] = PublishAfterDelay(projectSnapshot.FilePath);
+                    DeferredPublishTasks[projectSnapshot.FilePath] = PublishAfterDelayAsync(projectSnapshot.FilePath);
                 }
             }
         }
@@ -188,7 +188,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             }
         }
 
-        private async Task PublishAfterDelay(string projectFilePath)
+        private async Task PublishAfterDelayAsync(string projectFilePath)
         {
             await Task.Delay(EnqueueDelay);
 

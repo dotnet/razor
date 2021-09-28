@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Razor.Completion;
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             // Arrange
             var manager = new RazorDirectiveAttributeCommitManager();
             var properties = new PropertyCollection();
-            var session = Mock.Of<IAsyncCompletionSession>(s => s.Properties == properties);
+            var session = Mock.Of<IAsyncCompletionSession>(s => s.Properties == properties, MockBehavior.Strict);
 
             // Act
             var result = manager.ShouldCommitCompletion(session, location: default, typedChar: '=', token: default);
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var manager = new RazorDirectiveAttributeCommitManager();
             var properties = new PropertyCollection();
             properties.SetCompletionItemKinds(new HashSet<RazorCompletionItemKind>() { RazorCompletionItemKind.DirectiveAttribute });
-            var session = Mock.Of<IAsyncCompletionSession>(s => s.Properties == properties);
+            var session = Mock.Of<IAsyncCompletionSession>(s => s.Properties == properties, MockBehavior.Strict);
 
             // Act
             var result = manager.ShouldCommitCompletion(session, location: default, typedChar: '=', token: default);
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             var manager = new RazorDirectiveAttributeCommitManager();
             var properties = new PropertyCollection();
             properties.SetCompletionItemKinds(new HashSet<RazorCompletionItemKind>() { RazorCompletionItemKind.DirectiveAttributeParameter });
-            var session = Mock.Of<IAsyncCompletionSession>(s => s.Properties == properties);
+            var session = Mock.Of<IAsyncCompletionSession>(s => s.Properties == properties, MockBehavior.Strict);
 
             // Act
             var result = manager.ShouldCommitCompletion(session, location: default, typedChar: ':', token: default);

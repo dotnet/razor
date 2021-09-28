@@ -1,19 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    [Shared]
     [Export(typeof(VirtualDocumentFactory))]
+    [ContentType(RazorLSPConstants.RazorLSPContentTypeName)]
     internal class HtmlVirtualDocumentFactory : VirtualDocumentFactoryBase
     {
-        private static IContentType _htmlLSPContentType;
+        private static IContentType s_htmlLSPContentType;
 
         [ImportingConstructor]
         public HtmlVirtualDocumentFactory(
@@ -29,12 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             get
             {
-                if (_htmlLSPContentType == null)
+                if (s_htmlLSPContentType == null)
                 {
-                    _htmlLSPContentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPContentTypeName);
+                    s_htmlLSPContentType = ContentTypeRegistry.GetContentType(RazorLSPConstants.HtmlLSPDelegationContentTypeName);
                 }
 
-                return _htmlLSPContentType;
+                return s_htmlLSPContentType;
             }
         }
 

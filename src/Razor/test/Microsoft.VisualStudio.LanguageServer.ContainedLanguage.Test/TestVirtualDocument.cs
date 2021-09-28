@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.VisualStudio.Text;
@@ -12,6 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
         }
 
-        protected override TestVirtualDocumentSnapshot GetUpdatedSnapshot() => new TestVirtualDocumentSnapshot(Uri, HostDocumentSyncVersion, TextBuffer.CurrentSnapshot);
+        protected override TestVirtualDocumentSnapshot GetUpdatedSnapshot() => new TestVirtualDocumentSnapshot(Uri, HostDocumentVersion, TextBuffer.CurrentSnapshot);
     }
 }

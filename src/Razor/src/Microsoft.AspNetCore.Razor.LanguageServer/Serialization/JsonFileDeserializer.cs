@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.IO;
 using OmniSharp.Extensions.LanguageServer.Protocol.Serialization;
@@ -14,13 +14,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
 
         private class DefaultJsonFileDeserializer : JsonFileDeserializer
         {
+            private readonly LspSerializer _serializer;
+
+            public DefaultJsonFileDeserializer()
+            {
+                _serializer = new LspSerializer();
+                _serializer.RegisterRazorConverters();
+            }
+
             public override TValue Deserialize<TValue>(string filePath) where TValue : class
             {
                 using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
                 using var reader = new StreamReader(stream);
                 try
                 {
-                    var deserializedValue = (TValue)Serializer.Instance.JsonSerializer.Deserialize(reader, typeof(TValue));
+                    var deserializedValue = (TValue)_serializer.JsonSerializer.Deserialize(reader, typeof(TValue));
                     return deserializedValue;
                 }
                 catch

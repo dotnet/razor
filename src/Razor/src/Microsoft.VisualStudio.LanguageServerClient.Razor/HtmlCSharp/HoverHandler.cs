@@ -1,12 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -18,13 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
+        private readonly ILogger _logger;
 
         [ImportingConstructor]
         public HoverHandler(
             LSPRequestInvoker requestInvoker,
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
-            LSPDocumentMappingProvider documentMappingProvider)
+            LSPDocumentMappingProvider documentMappingProvider,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (requestInvoker is null)
             {
@@ -46,10 +51,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentMappingProvider));
             }
 
+            if (loggerProvider == null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
             _requestInvoker = requestInvoker;
             _documentManager = documentManager;
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
+
+            _logger = loggerProvider.CreateLogger(nameof(HoverHandler));
         }
 
         public async Task<Hover> HandleRequestAsync(TextDocumentPositionParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
@@ -64,18 +76,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
+            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
+                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
                 return null;
             }
 
-            var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, request.Position, cancellationToken).ConfigureAwait(false);
+            var projectionResult = await _projectionProvider.GetProjectionAsync(
+                documentSnapshot,
+                request.Position,
+                cancellationToken).ConfigureAwait(false);
             if (projectionResult == null)
             {
                 return null;
             }
 
-            var serverKind = projectionResult.LanguageKind == RazorLanguageKind.CSharp ? LanguageServerKind.CSharp : LanguageServerKind.Html;
+            var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -88,21 +106,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(
+            _logger.LogInformation($"Requesting hovers for {projectionResult.Uri}.");
+
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Hover>(
                 Methods.TextDocumentHoverName,
-                serverKind,
+                languageServerName,
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
+            var result = response.Result;
 
-            if (result?.Range == null || result?.Contents == null)
+            if (result?.Range is null || result?.Contents is null)
             {
+                _logger.LogInformation("Received no results.");
                 return null;
             }
 
-            var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(projectionResult.LanguageKind, request.TextDocument.Uri, new[] { result.Range }, cancellationToken).ConfigureAwait(false);
-            if (mappingResult == null || mappingResult.Ranges[0].IsUndefined())
+            _logger.LogInformation("Received result, remapping.");
+
+            var mappingResult = await _documentMappingProvider.MapToDocumentRangesAsync(
+                projectionResult.LanguageKind,
+                request.TextDocument.Uri,
+                new[] { result.Range },
+                cancellationToken).ConfigureAwait(false);
+            if (mappingResult is null || mappingResult.Ranges[0].IsUndefined())
             {
                 // Couldn't remap the edits properly. Returning hover at initial request position.
+                _logger.LogInformation("Mapping failed");
                 return CreateHover(result, new Range
                 {
                     Start = request.Position,
@@ -111,20 +140,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
             else if (mappingResult.HostDocumentVersion != documentSnapshot.Version)
             {
-                // Discard hover if document has changed.
+                _logger.LogInformation($"Discarding result, document has changed. {documentSnapshot.Version} -> {mappingResult.HostDocumentVersion}");
                 return null;
             }
 
+            _logger.LogInformation("Returning hover result.");
             return CreateHover(result, mappingResult.Ranges[0]);
         }
 
-        private static VSHover CreateHover(Hover originalHover, Range range)
+        private static VSInternalHover CreateHover(Hover originalHover, Range range)
         {
-            return new VSHover
+            return new VSInternalHover
             {
                 Contents = originalHover.Contents,
                 Range = range,
-                RawContent = originalHover is VSHover originalVSHover ? originalVSHover.RawContent : null
+                RawContent = originalHover is VSInternalHover originalVSHover ? originalVSHover.RawContent : null
             };
         }
     }

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -14,8 +14,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public DefaultGeneratedCodeContainerStoreTest()
         {
-            var documentVersionCache = Mock.Of<DocumentVersionCache>();
-            var csharpPublisher = Mock.Of<GeneratedDocumentPublisher>();
+            var documentVersionCache = Mock.Of<DocumentVersionCache>(MockBehavior.Strict);
+            var csharpPublisher = Mock.Of<GeneratedDocumentPublisher>(MockBehavior.Strict);
             Store = new DefaultGeneratedDocumentContainerStore(Dispatcher, documentVersionCache, csharpPublisher);
             ProjectManager = TestProjectSnapshotManager.Create(Dispatcher);
             Store.Initialize(ProjectManager);
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var container = Store.Get(documentFilePath);
             var oldProject = TestProjectSnapshot.Create(projectFilePath, new[] { documentFilePath });
             var newProjet = TestProjectSnapshot.Create(projectFilePath);
-            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentRemoved);
+            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentRemoved, false);
 
             // Act
             Store.ProjectSnapshotManager_Changed(null, args);
@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var container = Store.Get(documentFilePath);
             var oldProject = TestProjectSnapshot.Create(projectFilePath, new[] { documentFilePath });
             var newProjet = TestProjectSnapshot.Create(projectFilePath, new[] { documentFilePath });
-            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentChanged);
+            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentChanged, false);
 
             // Act
             Store.ProjectSnapshotManager_Changed(null, args);
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             ProjectManager.DocumentOpened(projectFilePath, documentFilePath, SourceText.From(string.Empty));
             var oldProject = TestProjectSnapshot.Create(projectFilePath, new[] { documentFilePath });
             var newProjet = TestProjectSnapshot.Create(projectFilePath, new[] { documentFilePath });
-            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentChanged);
+            var args = new ProjectChangeEventArgs(oldProject, newProjet, documentFilePath, ProjectChangeKind.DocumentChanged, false);
 
             // Act
             Store.ProjectSnapshotManager_Changed(null, args);

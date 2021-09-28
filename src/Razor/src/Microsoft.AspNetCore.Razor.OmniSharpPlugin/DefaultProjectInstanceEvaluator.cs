@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -34,32 +34,23 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         private const string CoreCompileTargetName = "CoreCompile";
         private const string RazorGenerateDesignTimeTargetName = "RazorGenerateDesignTime";
         private const string RazorGenerateComponentDesignTimeTargetName = "RazorGenerateComponentDesignTime";
-        private static readonly IEnumerable<ILogger> EmptyMSBuildLoggers = Enumerable.Empty<ILogger>();
-        private readonly OmniSharpForegroundDispatcher _foregroundDispatcher;
+        private static readonly IEnumerable<ILogger> s_emptyMSBuildLoggers = Enumerable.Empty<ILogger>();
         private readonly object _evaluationLock = new object();
 
         [ImportingConstructor]
-        public DefaultProjectInstanceEvaluator(OmniSharpForegroundDispatcher foregroundDispatcher)
+        public DefaultProjectInstanceEvaluator()
         {
-            if (foregroundDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
-            }
-
-            _foregroundDispatcher = foregroundDispatcher;
         }
 
         public override ProjectInstance Evaluate(ProjectInstance projectInstance)
         {
-            if (projectInstance == null)
+            if (projectInstance is null)
             {
                 throw new ArgumentNullException(nameof(projectInstance));
             }
 
             lock (_evaluationLock)
             {
-                _foregroundDispatcher.AssertBackgroundThread();
-
                 var refreshTargets = new List<string>()
                 {
                     // These are the default targets for the project instance that OmniSharp runs.
@@ -79,14 +70,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
                 if (refreshTargets.Count > 2)
                 {
-                    var _projectCollection = new ProjectCollection(projectInstance.GlobalProperties);
-                    var project = _projectCollection.LoadProject(projectInstance.ProjectFileLocation.File, projectInstance.ToolsVersion);
+                    var projectCollection = new ProjectCollection(projectInstance.GlobalProperties);
+                    var project = projectCollection.LoadProject(projectInstance.ProjectFileLocation.File, projectInstance.ToolsVersion);
                     SetTargetFrameworkIfNeeded(project);
 
                     var refreshedProjectInstance = project.CreateProjectInstance();
 
                     // Force a Razor information refresh
-                    refreshedProjectInstance.Build(refreshTargets.ToArray(), EmptyMSBuildLoggers);
+                    refreshedProjectInstance.Build(refreshTargets.ToArray(), s_emptyMSBuildLoggers);
 
                     return refreshedProjectInstance;
                 }

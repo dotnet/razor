@@ -28,7 +28,8 @@ trigger:
   batch: true
   branches:
     include:
-      - master
+      - main
+      - main-vs-deps
       - release/*
       - internal/release/3.*
 
@@ -42,6 +43,13 @@ stages:
 - stage: build
   displayName: Build
   jobs:
+  - ${{ if and(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
+    - template: /eng/common/templates/job/onelocbuild.yml
+      parameters:
+        LclSource: lclFilesfromPackage
+        LclPackageId: 'LCL-JUNO-PROD-RAZORTOOL'
+        MirrorRepo: aspnetcore-tooling
+
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
       enablePublishBuildArtifacts: false
@@ -55,10 +63,10 @@ stages:
           pool:
             ${{ if eq(variables['System.TeamProject'], 'public') }}:
               name: NetCorePublic-Pool
-              queue: BuildPool.Server.Amd64.VS2019.Open
+              queue: buildpool.windows.10.amd64.vs2019.pre.open
             ${{ if ne(variables['System.TeamProject'], 'public') }}:
               name: NetCoreInternal-Pool
-              queue: BuildPool.Server.Amd64.VS2019
+              queue: buildpool.windows.10.amd64.vs2019.pre
           steps:
           - task: NodeTool@0
             displayName: Install Node 10.x
@@ -81,6 +89,7 @@ stages:
           - powershell: ./restore.cmd -msbuildEngine dotnet -ci $(_InternalRuntimeDownloadArgs); ./eng/scripts/CodeCheck.ps1 -ci
             displayName: Run eng/scripts/CodeCheck.ps1
 
+
   # Three jobs for each of the three OSes we want to run on
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
@@ -99,10 +108,10 @@ stages:
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             name: NetCorePublic-Pool
-            queue: BuildPool.Server.Amd64.VS2019.Open
+            queue: buildpool.windows.10.amd64.vs2019.pre.open
           ${{ if ne(variables['System.TeamProject'], 'public') }}:
             name: NetCoreInternal-Pool
-            queue: BuildPool.Server.Amd64.VS2019
+            queue: buildpool.windows.10.amd64.vs2019.pre
         strategy:
           matrix:
             ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -205,7 +214,15 @@ stages:
           displayName: Finish background dump collection
           continueOnError: true
           condition: always()
-
+        - powershell: |
+            $version = $(node -p "require('./package.json').version" | Out-String).Trim()
+            yarn
+            node ./scripts/retrieveDebugProxy.js
+            md $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)/ -ea 0
+            npx vsce package -o $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)/blazorwasm-companion-$version.vsix
+          displayName: Produce Blazor WASM Debugging Extension VSIX
+          workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
+          condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
         - task: PublishBuildArtifacts@1
           displayName: Upload Test Results
           condition: always()
@@ -245,6 +262,14 @@ stages:
             PathtoPublish: $(Build.SourcesDirectory)/artifacts/packages/$(_BuildConfig)
             PublishLocation: Container
             ArtifactName: Packages_$(Agent.Os)_$(_BuildConfig)
+          continueOnError: true
+          condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+        - task: PublishBuildArtifacts@1
+          displayName: Publish VS Code extension artifacts
+          inputs:
+            PathtoPublish: $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)
+            PublishLocation: Container
+            ArtifactName: BlazorWasmDebuggingExtension
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
@@ -292,7 +317,11 @@ stages:
           image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-14.04-cross-0cd4667-20170319080304
           options: --init # This ensures all the stray defunct processes are reaped.
         pool:
-          vmImage: ubuntu-16.04
+          vmImage: ubuntu-18.04
+        variables:
+        - LC_ALL: 'en_US.UTF-8'
+        - LANG: 'en_US.UTF-8'
+        - LANGUAGE: 'en_US.UTF-8'
         strategy:
           matrix:
             debug:
@@ -332,6 +361,6 @@ stages:
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
-      # See https://github.com/dotnet/arcade/issues/2871
-      enableSymbolValidation: false
-      publishInstallersAndChecksums: true
+      publishingInfraVersion: 3
+      enableSigningValidation: false
+      enableNugetValidation: false

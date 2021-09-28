@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -8,12 +8,13 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
-    public class EditorDocumentManagerListenerTest
+    public class EditorDocumentManagerListenerTest : ProjectSnapshotManagerDispatcherTestBase
     {
         public EditorDocumentManagerListenerTest()
         {
@@ -56,9 +57,10 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
                     Assert.Same(closed, onClosed);
                 });
 
-            var listener = new EditorDocumentManagerListener(editorDocumentManger.Object, changedOnDisk, changedInEditor, opened, closed);
+            var listener = new EditorDocumentManagerListener(
+                Dispatcher, JoinableTaskFactory.Context, editorDocumentManger.Object, changedOnDisk, changedInEditor, opened, closed);
 
-            var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj");
+            var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
 
             // Act & Assert
             listener.ProjectManager_Changed(null, new ProjectChangeEventArgs(project, project, ProjectChangeKind.DocumentAdded));
@@ -69,16 +71,17 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             // Arrange
             var called = false;
-            var opened = new EventHandler((o, args) => { called = true; });
+            var opened = new EventHandler((o, args) => called = true);
 
             var editorDocumentManger = new Mock<EditorDocumentManager>(MockBehavior.Strict);
             editorDocumentManger
                 .Setup(e => e.GetOrCreateDocument(It.IsAny<DocumentKey>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>(), It.IsAny<EventHandler>()))
                 .Returns(GetEditorDocument(isOpen: true));
 
-            var listener = new EditorDocumentManagerListener(editorDocumentManger.Object, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
+            var listener = new EditorDocumentManagerListener(
+                Dispatcher, JoinableTaskFactory.Context, editorDocumentManger.Object, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
 
-            var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj");
+            var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
 
             // Act
             listener.ProjectManager_Changed(null, new ProjectChangeEventArgs(project, project, ProjectChangeKind.DocumentAdded));
@@ -90,7 +93,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         private EditorDocument GetEditorDocument(bool isOpen = false)
         {
             var document = new EditorDocument(
-                Mock.Of<EditorDocumentManager>(),
+                Mock.Of<EditorDocumentManager>(MockBehavior.Strict),
+                Dispatcher,
+                JoinableTaskFactory.Context,
                 ProjectFilePath,
                 DocumentFilePath,
                 TextLoader,

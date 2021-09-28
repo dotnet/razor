@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal class DefaultProjectSnapshotProjectEngineFactory : ProjectSnapshotProjectEngineFactory
     {
-        private readonly static RazorConfiguration DefaultConfiguration = FallbackRazorConfiguration.Latest;
+        private readonly static RazorConfiguration s_defaultConfiguration = FallbackRazorConfiguration.Latest;
 
         private readonly IFallbackProjectEngineFactory _fallback;
         private readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] _factories;
@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.Razor
 
             // When we're running in the editor, the editor provides a configure delegate that will include
             // the editor settings and tag helpers.
-            // 
+            //
             // This service is only used in process in Visual Studio, and any other callers should provide these
             // things also.
-            configure = configure ?? ((b) => { });
+            configure ??= ((b) => { });
 
             // The default configuration currently matches the newest MVC configuration.
             //
             // We typically want this because the language adds features over time - we don't want to a bunch of errors
             // to show up when a document is first opened, and then go away when the configuration loads, we'd prefer the opposite.
-            configuration = configuration ?? DefaultConfiguration;
+            configuration ??= s_defaultConfiguration;
 
             // If there's no factory to handle the configuration then fall back to a very basic configuration.
             //
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return SelectFactory(project.Configuration ?? DefaultConfiguration, requireSerializable: false);
+            return SelectFactory(project.Configuration ?? s_defaultConfiguration, requireSerializable: false);
         }
 
         public override IProjectEngineFactory FindSerializableFactory(ProjectSnapshot project)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return SelectFactory(project.Configuration ?? DefaultConfiguration, requireSerializable: true);
+            return SelectFactory(project.Configuration ?? s_defaultConfiguration, requireSerializable: true);
         }
 
         private IProjectEngineFactory SelectFactory(RazorConfiguration configuration, bool requireSerializable = false)

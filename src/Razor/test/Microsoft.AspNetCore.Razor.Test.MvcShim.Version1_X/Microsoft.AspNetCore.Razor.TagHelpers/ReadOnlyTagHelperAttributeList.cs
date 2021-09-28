@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
     /// </summary>
     public abstract class ReadOnlyTagHelperAttributeList : ReadOnlyCollection<TagHelperAttribute>
     {
-        private static readonly IReadOnlyList<TagHelperAttribute> EmptyList = Array.Empty<TagHelperAttribute>();
+        private static readonly IReadOnlyList<TagHelperAttribute> s_emptyList = Array.Empty<TagHelperAttribute>();
 
         /// <summary>
         /// Instantiates a new instance of <see cref="ReadOnlyTagHelperAttributeList"/> with an empty
@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.TagHelpers
                     matchedAttributes.Add(Items[i]);
                 }
             }
-            attributes = matchedAttributes ?? EmptyList;
+            attributes = matchedAttributes ?? s_emptyList;
 
             return matchedAttributes != null;
         }

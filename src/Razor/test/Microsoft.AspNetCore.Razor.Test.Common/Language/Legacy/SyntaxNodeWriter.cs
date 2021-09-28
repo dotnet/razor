@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -113,11 +113,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
             var builder = new StringBuilder("Directive:{");
             builder.Append(node.DirectiveDescriptor.Directive);
-            builder.Append(";");
+            builder.Append(';');
             builder.Append(node.DirectiveDescriptor.Kind);
-            builder.Append(";");
+            builder.Append(';');
             builder.Append(node.DirectiveDescriptor.Usage);
-            builder.Append("}");
+            builder.Append('}');
 
             var diagnostics = node.GetDiagnostics();
             if (diagnostics.Length > 0)
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
                 builder.Append(" [");
                 var ids = string.Join(", ", diagnostics.Select(diagnostic => $"{diagnostic.Id}{diagnostic.Span}"));
                 builder.Append(ids);
-                builder.Append("]");
+                builder.Append(']');
             }
 
             WriteSeparator();

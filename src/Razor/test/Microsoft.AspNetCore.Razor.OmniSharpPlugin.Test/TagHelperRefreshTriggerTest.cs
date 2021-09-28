@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             Workspace.TryApplyChanges(solution);
         }
 
-        public TimeSpan WaitDelay
+        public static TimeSpan WaitDelay
         {
             get
             {
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             refreshTrigger.Initialize(projectManager);
 
             // Act
-            var result = await RunOnForegroundAsync(() => refreshTrigger.IsComponentFile("file.razor", "/path/to/project.csproj"));
+            var result = await RunOnDispatcherThreadAsync(() => refreshTrigger.IsComponentFile("file.razor", "/path/to/project.csproj")).ConfigureAwait(false);
 
             // Assert
             Assert.False(result);
@@ -87,10 +87,10 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var refreshTrigger = CreateRefreshTrigger();
             refreshTrigger.Initialize(projectManager);
             var hostProject = new OmniSharpHostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-            await RunOnForegroundAsync(() => projectManager.ProjectAdded(hostProject));
+            await RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(hostProject)).ConfigureAwait(false);
 
             // Act
-            var result = await RunOnForegroundAsync(() => refreshTrigger.IsComponentFile("file.razor", hostProject.FilePath));
+            var result = await RunOnDispatcherThreadAsync(() => refreshTrigger.IsComponentFile("file.razor", hostProject.FilePath)).ConfigureAwait(false);
 
             // Assert
             Assert.False(result);
@@ -105,14 +105,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             refreshTrigger.Initialize(projectManager);
             var hostProject = new OmniSharpHostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
             var hostDocument = new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Legacy);
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(hostProject);
                 projectManager.DocumentAdded(hostProject, hostDocument);
-            });
+            }).ConfigureAwait(false);
 
             // Act
-            var result = await RunOnForegroundAsync(() => refreshTrigger.IsComponentFile(hostDocument.FilePath, hostProject.FilePath));
+            var result = await RunOnDispatcherThreadAsync(() => refreshTrigger.IsComponentFile(hostDocument.FilePath, hostProject.FilePath)).ConfigureAwait(false);
 
             // Assert
             Assert.False(result);
@@ -127,14 +127,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             refreshTrigger.Initialize(projectManager);
             var hostProject = new OmniSharpHostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
             var hostDocument = new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Component);
-            await RunOnForegroundAsync(() =>
+            await RunOnDispatcherThreadAsync(() =>
             {
                 projectManager.ProjectAdded(hostProject);
                 projectManager.DocumentAdded(hostProject, hostDocument);
-            });
+            }).ConfigureAwait(false);
 
             // Act
-            var result = await RunOnForegroundAsync(() => refreshTrigger.IsComponentFile(hostDocument.FilePath, hostProject.FilePath));
+            var result = await RunOnDispatcherThreadAsync(() => refreshTrigger.IsComponentFile(hostDocument.FilePath, hostProject.FilePath)).ConfigureAwait(false);
 
             // Assert
             Assert.True(result);
@@ -144,19 +144,22 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public async Task ProjectLoaded_TriggersUpdate()
         {
             // Arrange
-            await RunOnForegroundAsync(() => ProjectManager.ProjectAdded(Project1));
-            var mre = new ManualResetEventSlim(initialState: false);
-            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>();
+            await RunOnDispatcherThreadAsync(() => ProjectManager.ProjectAdded(Project1)).ConfigureAwait(false);
+            using var mre = new ManualResetEventSlim(initialState: false);
+            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
             workspaceStateGenerator.Setup(generator => generator.Update(It.IsAny<Project>(), It.IsAny<OmniSharpProjectSnapshot>()))
-                .Callback<Project, OmniSharpProjectSnapshot>((_, __) => mre.Set());
+                .Callback<Project, OmniSharpProjectSnapshot>((_1, _2) => mre.Set());
             var refreshTrigger = CreateRefreshTrigger(workspaceStateGenerator.Object);
             var args = new ProjectLoadedEventArgs(
-                null,
+                id: null,
+                project: null,
+                sessionId: Guid.NewGuid(),
                 (ProjectInstance)Project1Instance,
-                Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
+                diagnostics: Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
                 isReload: false,
                 projectIdIsDefinedInSolution: false,
-                sourceFiles: Enumerable.Empty<string>().ToImmutableArray());
+                sourceFiles: Enumerable.Empty<string>().ToImmutableArray(),
+                sdkVersion: default);
 
             // Act
             refreshTrigger.ProjectLoaded(args);
@@ -170,11 +173,11 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public async Task ProjectLoaded_BatchesUpdates()
         {
             // Arrange
-            await RunOnForegroundAsync(() => ProjectManager.ProjectAdded(Project1));
-            var mre = new ManualResetEventSlim(initialState: false);
-            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>();
+            await RunOnDispatcherThreadAsync(() => ProjectManager.ProjectAdded(Project1)).ConfigureAwait(false);
+            using var mre = new ManualResetEventSlim(initialState: false);
+            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
             workspaceStateGenerator.Setup(generator => generator.Update(It.IsAny<Project>(), It.IsAny<OmniSharpProjectSnapshot>()))
-                .Callback<Project, OmniSharpProjectSnapshot>((_, __) =>
+                .Callback<Project, OmniSharpProjectSnapshot>((_1, _2) =>
                 {
                     if (mre.IsSet)
                     {
@@ -185,12 +188,15 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 });
             var refreshTrigger = CreateRefreshTrigger(workspaceStateGenerator.Object, enqueueDelay: 10);
             var args = new ProjectLoadedEventArgs(
-                null,
+                id: null,
+                project: null,
+                sessionId: Guid.NewGuid(),
                 (ProjectInstance)Project1Instance,
-                Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
+                diagnostics: Enumerable.Empty<MSBuildDiagnostic>().ToImmutableArray(),
                 isReload: false,
                 projectIdIsDefinedInSolution: false,
-                sourceFiles: Enumerable.Empty<string>().ToImmutableArray());
+                sourceFiles: Enumerable.Empty<string>().ToImmutableArray(),
+                sdkVersion: default);
 
             // Act
             refreshTrigger.ProjectLoaded(args);
@@ -207,11 +213,11 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public async Task RazorDocumentOutputChanged_TriggersUpdate()
         {
             // Arrange
-            await RunOnForegroundAsync(() => ProjectManager.ProjectAdded(Project1));
-            var mre = new ManualResetEventSlim(initialState: false);
-            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>();
+            await RunOnDispatcherThreadAsync(() => ProjectManager.ProjectAdded(Project1)).ConfigureAwait(false);
+            using var mre = new ManualResetEventSlim(initialState: false);
+            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
             workspaceStateGenerator.Setup(generator => generator.Update(It.IsAny<Project>(), It.IsAny<OmniSharpProjectSnapshot>()))
-                .Callback<Project, OmniSharpProjectSnapshot>((_, __) => mre.Set());
+                .Callback<Project, OmniSharpProjectSnapshot>((_1, _2) => mre.Set());
             var refreshTrigger = CreateRefreshTrigger(workspaceStateGenerator.Object);
             var args = new RazorFileChangeEventArgs("/path/to/obj/file.cshtml.g.cs", (ProjectInstance)Project1Instance, RazorFileChangeKind.Added);
 
@@ -227,11 +233,11 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public async Task RazorDocumentOutputChanged_BatchesUpdates()
         {
             // Arrange
-            await RunOnForegroundAsync(() => ProjectManager.ProjectAdded(Project1));
-            var mre = new ManualResetEventSlim(initialState: false);
-            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>();
+            await RunOnDispatcherThreadAsync(() => ProjectManager.ProjectAdded(Project1)).ConfigureAwait(false);
+            using var mre = new ManualResetEventSlim(initialState: false);
+            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
             workspaceStateGenerator.Setup(generator => generator.Update(It.IsAny<Project>(), It.IsAny<OmniSharpProjectSnapshot>()))
-                .Callback<Project, OmniSharpProjectSnapshot>((_, __) =>
+                .Callback<Project, OmniSharpProjectSnapshot>((_1, _2) =>
                 {
                     if (mre.IsSet)
                     {
@@ -258,16 +264,16 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public async Task UpdateAfterDelayAsync_NoWorkspaceProject_Noops()
         {
             // Arrange
-            var workspace = TestWorkspace.Create();
+            using var workspace = TestWorkspace.Create();
             var projectManager = CreateProjectSnapshotManager();
-            await RunOnForegroundAsync(() => ProjectManager.ProjectAdded(Project1));
-            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>();
+            await RunOnDispatcherThreadAsync(() => ProjectManager.ProjectAdded(Project1)).ConfigureAwait(false);
+            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
             workspaceStateGenerator.Setup(generator => generator.Update(It.IsAny<Project>(), It.IsAny<OmniSharpProjectSnapshot>()))
                 .Throws<XunitException>();
             var refreshTrigger = CreateRefreshTrigger(workspaceStateGenerator.Object, workspace);
 
             // Act & Assert
-            await RunOnForegroundAsync(() => refreshTrigger.UpdateAfterDelayAsync(Project1.FilePath));
+            await RunOnDispatcherThreadAsync(() => refreshTrigger.UpdateAfterDelayAsync(Project1.FilePath)).ConfigureAwait(false);
         }
 
         [Fact]
@@ -275,19 +281,19 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         {
             // Arrange
             var projectManager = CreateProjectSnapshotManager();
-            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>();
+            var workspaceStateGenerator = new Mock<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
             workspaceStateGenerator.Setup(generator => generator.Update(It.IsAny<Project>(), It.IsAny<OmniSharpProjectSnapshot>()))
                 .Throws<XunitException>();
             var refreshTrigger = CreateRefreshTrigger(workspaceStateGenerator.Object);
 
             // Act & Assert
-            await RunOnForegroundAsync(() => refreshTrigger.UpdateAfterDelayAsync(((ProjectInstance)Project1Instance).ProjectFileLocation.File));
+            await RunOnDispatcherThreadAsync(() => refreshTrigger.UpdateAfterDelayAsync(((ProjectInstance)Project1Instance).ProjectFileLocation.File)).ConfigureAwait(false);
         }
 
         private TagHelperRefreshTrigger CreateRefreshTrigger(OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator = null, Workspace workspace = null, int enqueueDelay = 1)
         {
-            workspaceStateGenerator = workspaceStateGenerator ?? Mock.Of<OmniSharpProjectWorkspaceStateGenerator>();
-            workspace = workspace ?? Workspace;
+            workspaceStateGenerator ??= Mock.Of<OmniSharpProjectWorkspaceStateGenerator>(MockBehavior.Strict);
+            workspace ??= Workspace;
             var refreshTrigger = new TagHelperRefreshTrigger(Dispatcher, workspace, workspaceStateGenerator)
             {
                 EnqueueDelay = enqueueDelay,

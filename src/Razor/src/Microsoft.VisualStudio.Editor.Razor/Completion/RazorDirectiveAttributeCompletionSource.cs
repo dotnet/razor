@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -26,48 +27,48 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         // Hardcoding the Guid here to avoid a reference to Microsoft.VisualStudio.ImageCatalog.dll
         // that is not present in Visual Studio for Mac
-        private static readonly Guid ImageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
-        private static readonly ImageElement DirectiveAttributeImageGlyph = new ImageElement(
-            new ImageId(ImageCatalogGuid, 3564), // KnownImageIds.Type = 3564
+        private static readonly Guid s_imageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+        private static readonly ImageElement s_directiveAttributeImageGlyph = new ImageElement(
+            new ImageId(s_imageCatalogGuid, 3564), // KnownImageIds.Type = 3564
             "Razor Directive Attribute.");
-        private static readonly ImmutableArray<CompletionFilter> DirectiveAttributeCompletionFilters = new[] {
-            new CompletionFilter("Razor Directive Attrsibute", "r", DirectiveAttributeImageGlyph)
+        private static readonly ImmutableArray<CompletionFilter> s_directiveAttributeCompletionFilters = new[] {
+            new CompletionFilter("Razor Directive Attrsibute", "r", s_directiveAttributeImageGlyph)
         }.ToImmutableArray();
 
         private readonly VisualStudioRazorParser _parser;
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly ICompletionBroker _completionBroker;
         private readonly VisualStudioDescriptionFactory _descriptionFactory;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
         public RazorDirectiveAttributeCompletionSource(
-            ForegroundDispatcher foregroundDispatcher,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             VisualStudioRazorParser parser,
             RazorCompletionFactsService completionFactsService,
             ICompletionBroker completionBroker,
             VisualStudioDescriptionFactory descriptionFactory)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (parser == null)
+            if (parser is null)
             {
                 throw new ArgumentNullException(nameof(parser));
             }
 
-            if (completionFactsService == null)
+            if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            if (descriptionFactory == null)
+            if (descriptionFactory is null)
             {
                 throw new ArgumentNullException(nameof(descriptionFactory));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _parser = parser;
             _completionFactsService = completionFactsService;
             _completionBroker = completionBroker;
@@ -76,8 +77,6 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
         public async Task<CompletionContext> GetCompletionContextAsync(IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
         {
-            _foregroundDispatcher.AssertBackgroundThread();
-
             try
             {
                 var codeDocument = await _parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);
@@ -90,7 +89,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 var syntaxTree = codeDocument.GetSyntaxTree();
                 var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
                 var location = new SourceSpan(triggerLocation.Position, 0);
-                var razorCompletionItems = _completionFactsService.GetCompletionItems(syntaxTree, tagHelperDocumentContext, location);
+
+                var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
+                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext, location);
 
                 if (razorCompletionItems.Count == 0)
                 {
@@ -109,11 +110,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
                     // Legacy completion is also active, we need to dismiss it.
 
-                    _ = Task.Factory.StartNew(
+                    _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
                         () => activeSession.Dismiss(),
-                        CancellationToken.None,
-                        TaskCreationOptions.None,
-                        _foregroundDispatcher.ForegroundScheduler);
+                        CancellationToken.None);
                 }
 
                 var completionItems = new List<CompletionItem>();
@@ -132,8 +131,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                         filterText: razorCompletionItem.DisplayText,
                         insertText: razorCompletionItem.InsertText,
                         source: this,
-                        icon: DirectiveAttributeImageGlyph,
-                        filters: DirectiveAttributeCompletionFilters,
+                        icon: s_directiveAttributeImageGlyph,
+                        filters: s_directiveAttributeCompletionFilters,
                         suffix: string.Empty,
                         sortText: razorCompletionItem.DisplayText,
                         attributeIcons: ImmutableArray<ImageElement>.Empty);
@@ -162,7 +161,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 throw new ArgumentNullException(nameof(item));
             }
 
-            if (!item.Properties.TryGetProperty(DescriptionKey, out AttributeCompletionDescription completionDescription))
+            if (!item.Properties.TryGetProperty(DescriptionKey, out AggregateBoundAttributeDescription completionDescription))
             {
                 return Task.FromResult<object>(string.Empty);
             }

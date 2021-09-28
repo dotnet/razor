@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 existingConfigurationFiles);
 
             // Act
-            await detector.StartAsync("/some/workspacedirectory", cts.Token);
+            await detector.StartAsync("/some/workspace+directory", cts.Token);
 
             // Assert
             Assert.Collection(eventArgs1,
@@ -69,9 +69,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestProjectConfigurationFileChangeDetector(
                 CancellationTokenSource cancellationTokenSource,
-                ForegroundDispatcher foregroundDispatcher,
+                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-                IReadOnlyList<string> existingConfigurationFiles) : base(foregroundDispatcher, new FilePathNormalizer(), listeners)
+                IReadOnlyList<string> existingConfigurationFiles) : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingConfigurationFiles = existingConfigurationFiles;
@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 _cancellationTokenSource.Cancel();
             }
 
-            protected override IReadOnlyList<string> GetExistingConfigurationFiles(string workspaceDirectory)
+            protected override IEnumerable<string> GetExistingConfigurationFiles(string workspaceDirectory)
             {
                 return _existingConfigurationFiles;
             }

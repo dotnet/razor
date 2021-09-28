@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Testing;
 using Xunit;
@@ -143,7 +143,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var filePathNormalizer = new FilePathNormalizer();
 
             // Act
-            var normalized = filePathNormalizer.Normalize(null);
+            var normalized = filePathNormalizer.Normalize(string.Empty);
 
             // Assert
             Assert.Equal("/", normalized);
@@ -176,6 +176,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             // Assert
             Assert.Equal("C:/path to/document.cshtml", normalized);
+        }
+
+        [Fact]
+        public void Normalize_UrlDecodesOnlyOnce()
+        {
+            // Arrange
+            var filePathNormalizer = new FilePathNormalizer();
+            var filePath = "C:/path%2Bto/document.cshtml";
+
+            // Act
+            var normalized = filePathNormalizer.Normalize(filePath);
+            normalized = filePathNormalizer.Normalize(normalized);
+
+            // Assert
+            Assert.Equal("C:/path+to/document.cshtml", normalized);
         }
 
         [Fact]

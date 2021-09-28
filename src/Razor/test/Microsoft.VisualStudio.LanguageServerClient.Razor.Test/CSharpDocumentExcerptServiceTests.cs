@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var razorSource = @"
 <html>
 @{
-    var |foo| = ""Hello, World!"";
+    var [|foo|] = ""Hello, World!"";
 }
   <body>@foo</body>
   <div>@(3 + 4)</div><div>@(foo + foo)</div>
@@ -50,14 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
                 ignoreLineEndingDifferences: true);
 
-            Assert.Equal(@"    var foo = ""Hello, World!"";", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
+            Assert.Equal(@"var foo = ""Hello, World!"";", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
             Assert.Collection(
                 result.Value.ClassifiedSpans,
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal("    ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
                 c =>
                 {
                     Assert.Equal(ClassificationTypeNames.Keyword, c.ClassificationType);
@@ -109,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 @{
     var foo = ""Hello, World!"";
 }
-  <body>@|foo|</body>
+  <body>@[|foo|]</body>
   <div>@(3 + 4)</div><div>@(foo + foo)</div>
 </html>
 ";
@@ -139,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
                 ignoreLineEndingDifferences: true);
 
-            Assert.Equal(@"  <body>@foo</body>", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
+            Assert.Equal(@"<body>@foo</body>", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -152,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     var foo = ""Hello, World!"";
 }
   <body>@foo</body>
-  <div>@(3 + 4)</div><div>@(foo + |foo|)</div>
+  <div>@(3 + 4)</div><div>@(foo + [|foo|])</div>
 </html>
 ";
 
@@ -182,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 ignoreLineEndingDifferences: true);
 
             // Verifies that the right part of the primary document will be highlighted.
-            Assert.Equal(@"  <div>@(3 + 4)</div><div>@(foo + foo)</div>", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
+            Assert.Equal(@"<div>@(3 + 4)</div><div>@(foo + foo)</div>", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
         }
 
         [Fact]
@@ -192,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var razorSource = @"
 <html>
 @{
-    var |foo| = ""Hello, World!"";
+    var [|foo|] = ""Hello, World!"";
 }
   <body></body>
   <div></div>
@@ -239,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public async Task TryGetExcerptInternalAsync_MultiLine_Boundaries_CanClassifyCSharp()
         {
             // Arrange
-            var razorSource = @"@{ var |foo| = ""Hello, World!""; }";
+            var razorSource = @"@{ var [|foo|] = ""Hello, World!""; }";
 
             var (generatedDocument, razorSourceText, primarySpan, generatedSpan) = await InitializeAsync(razorSource);
 

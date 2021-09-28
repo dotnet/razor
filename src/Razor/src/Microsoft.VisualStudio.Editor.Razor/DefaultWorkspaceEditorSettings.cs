@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -13,14 +13,14 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly EditorSettingsManager _editorSettingsManager;
         private readonly EventHandler<EditorSettingsChangedEventArgs> _onChanged;
         private EventHandler<EditorSettingsChangedEventArgs> _changed;
-        private readonly ForegroundDispatcher _foregroundDispatcher;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private int _listenerCount = 0;
 
-        public DefaultWorkspaceEditorSettings(ForegroundDispatcher foregroundDispatcher, EditorSettingsManager editorSettingsManager)
+        public DefaultWorkspaceEditorSettings(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, EditorSettingsManager editorSettingsManager)
         {
-            if (foregroundDispatcher == null)
+            if (projectSnapshotManagerDispatcher == null)
             {
-                throw new ArgumentNullException(nameof(foregroundDispatcher));
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
             if (editorSettingsManager == null)
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(editorSettingsManager));
             }
 
-            _foregroundDispatcher = foregroundDispatcher;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _editorSettingsManager = editorSettingsManager;
             _onChanged = OnChanged;
         }
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             add
             {
-                _foregroundDispatcher.AssertForegroundThread();
+                _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
                 _listenerCount++;
                 _changed += value;
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
             remove
             {
-                _foregroundDispatcher.AssertForegroundThread();
+                _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
                 _listenerCount--;
                 _changed -= value;
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         // Internal for testing
         internal void OnChanged(object sender, EditorSettingsChangedEventArgs e)
         {
-            _foregroundDispatcher.AssertForegroundThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             Debug.Assert(_changed != null, nameof(OnChanged) + " should not be invoked when there are no listeners.");
 

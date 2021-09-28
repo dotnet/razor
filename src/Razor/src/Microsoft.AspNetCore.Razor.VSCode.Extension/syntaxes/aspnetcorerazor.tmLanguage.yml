@@ -7,47 +7,6 @@ patterns:
   - include: '#razor-control-structures'
   - include: 'text.html.basic'
 
-injections:
-  'R:text.aspnetcorerazor':
-    patterns:
-      - name: 'meta.structure.template.razor'
-        begin: '(@)(?=\<)'
-        beginCaptures:
-          1: { patterns: [ include: '#transition' ] }
-        patterns:
-          - include: '#wellformed-html'
-        end: '(?<=\>)'
-  'L:meta.structure.razor.codeblock - (meta.statement | string.quoted | comment), L:meta.structure.razor.directive.codeblock - (meta.statement | string.quoted | comment)':
-    patterns:
-      - begin: '(\{)'
-        beginCaptures:
-          1: { name: 'punctuation.curlybrace.open.cs' }
-        patterns:
-          - include: '#razor-codeblock-body'
-        end: '(\})'
-        endCaptures:
-          1: { name: 'punctuation.curlybrace.close.cs' }
-  'L:meta.attribute string.quoted.double.html, L:meta.attribute string.quoted.single.html':
-    patterns:
-      - name: 'meta.attribute.razor.explicit'
-        begin: '@\('
-        beginCaptures:
-          0: { name: 'keyword.control.cshtml' }
-        patterns:
-          - include: 'source.cs#expression'
-        end: '\)'
-        endCaptures:
-          0: { name: 'keyword.control.cshtml' }
-      - name: 'meta.attribute.razor.implicit'
-        begin: '@'
-        beginCaptures:
-          0: { name: 'keyword.control.cshtml' }
-        patterns:
-          - include: '#await-prefix'
-          - include: '#implicit-expression-body'
-        end: '(?=[\s<>\{\}\)\]''"])'
-
-
 repository:
   razor-control-structures:
     patterns:
@@ -75,6 +34,7 @@ repository:
     beginCaptures:
       1: { patterns: [ include: '#transition' ] }
       2: { name: 'keyword.control.razor.directive.codeblock.open' }
+    contentName: 'source.cs'
     patterns:
       - include: '#razor-codeblock-body'
     end: '(\})'
@@ -203,6 +163,7 @@ repository:
 
   implicit-expression:
     name: 'meta.expression.implicit.cshtml'
+    contentName: 'source.cs'
     begin: '(?<![[:alpha:][:alnum:]])(@)'
     beginCaptures:
       1: { patterns: [ include: '#transition' ] }
@@ -342,6 +303,7 @@ repository:
     beginCaptures:
       1: { name: 'keyword.control.razor.directive.codeblock.open' }
     name: 'meta.structure.razor.directive.codeblock'
+    contentName: 'source.cs'
     patterns:
       - include: 'source.cs'
     end: '(\})'
@@ -351,7 +313,7 @@ repository:
   #>>>>> @page <<<<<
 
   page-directive:
-    name: 'meta.directive.page.cshtml'
+    name: 'meta.directive'
     match: '(@)(page)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -361,7 +323,7 @@ repository:
   #>>>>> @addTagHelper, @removeTagHelper and @tagHelperPrefix <<<<<
 
   addTagHelper-directive:
-    name: 'meta.directive.addTagHelper.razor'
+    name: 'meta.directive'
     match: '(@)(addTagHelper)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -369,7 +331,7 @@ repository:
       3: { patterns: [ include: '#tagHelper-directive-argument' ] }
 
   removeTagHelper-directive:
-    name: 'meta.directive.removeTagHelper.razor'
+    name: 'meta.directive'
     match: '(@)(removeTagHelper)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -377,7 +339,7 @@ repository:
       3: { patterns: [ include: '#tagHelper-directive-argument' ] }
 
   tagHelperPrefix-directive:
-    name: 'meta.directive.tagHelperPrefix.razor'
+    name: 'meta.directive'
     match: '(@)(tagHelperPrefix)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -396,7 +358,7 @@ repository:
   #>>>>> @model, layout, @implements and @inherits <<<<<
 
   model-directive:
-    name: 'meta.directive.model.cshtml'
+    name: 'meta.directive'
     match: '(@)(model)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -404,7 +366,7 @@ repository:
       3: { patterns: [ include: 'source.cs#type' ] }
 
   inherits-directive:
-    name: 'meta.directive.inherits.cshtml'
+    name: 'meta.directive'
     match: '(@)(inherits)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -412,7 +374,7 @@ repository:
       3: { patterns: [ include: 'source.cs#type' ] }
 
   implements-directive:
-    name: 'meta.directive.implements.razor'
+    name: 'meta.directive'
     match: '(@)(implements)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -420,7 +382,7 @@ repository:
       3: { patterns: [ include: 'source.cs#type' ] }
 
   layout-directive:
-    name: 'meta.directive.layout.razor'
+    name: 'meta.directive'
     match: '(@)(layout)\s+([^$]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -430,7 +392,7 @@ repository:
   #>>>>> @namespace <<<<<
 
   namespace-directive:
-    name: 'meta.directive.namespace.razor'
+    name: 'meta.directive'
     match: '(@)(namespace)\s+([^\s]+)?'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -446,7 +408,7 @@ repository:
   #>>>>> @inject <<<<<
 
   inject-directive:
-    name: 'meta.directive.inject.cshtml'
+    name: 'meta.directive'
     match: '(@)(inject)\s*([\S\s]+?)?\s*([_[:alpha:]][_[:alnum:]]*)?\s*(?=$)'
     captures:
       1: { patterns: [ include: '#transition' ] }
@@ -457,8 +419,8 @@ repository:
   #>>>>> @attribute <<<<<
 
   attribute-directive:
-    name: 'meta.directive.attribute.razor'
-    begin: '(@)(attribute)\b'
+    name: 'meta.directive'
+    begin: '(@)(attribute)\b\s+'
     beginCaptures:
       1: { patterns: [ include: '#transition' ] }
       2: { name: 'keyword.control.razor.directive.attribute'}
@@ -469,8 +431,8 @@ repository:
   #>>>>> @section <<<<<
 
   section-directive:
-    name: 'meta.directive.section.razor'
-    begin: '(@)(section)\b\s*([_[:alpha:]][_[:alnum:]]*)?'
+    name: 'meta.directive.block'
+    begin: '(@)(section)\b\s+([_[:alpha:]][_[:alnum:]]*)?'
     beginCaptures:
       1: { patterns: [ include: '#transition' ] }
       2: { name: 'keyword.control.razor.directive.section'}
@@ -493,8 +455,8 @@ repository:
   #>>>>> @using <<<<<
 
   using-directive:
-    name: 'meta.directive.using.cshtml'
-    match: '(@)(using)\b\s*(?!\(|\s)(.+?)?(;)?$'
+    name: 'meta.directive'
+    match: '(@)(using)\b\s+(?!\(|\s)(.+?)?(;)?$'
     captures:
       1: { patterns: [ include: '#transition' ] }
       2: { name: 'keyword.other.using.cs'}

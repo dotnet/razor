@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         protected override RazorLanguageVersion Version => RazorLanguageVersion.Latest;
 
         [Fact]
-        public void SetOutput_AcceptsSameVersionedDocuments()
+        public void TrySetOutput_AcceptsSameVersionedDocuments()
         {
             // Arrange
             using var workspace = TestWorkspace.Create();
@@ -33,20 +33,23 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             var csharpDocument = RazorCSharpDocument.Create("...", RazorCodeGenerationOptions.CreateDefault(), Enumerable.Empty<RazorDiagnostic>());
             var htmlDocument = RazorHtmlDocument.Create("...", RazorCodeGenerationOptions.CreateDefault());
+            var codeDocument = CreateCodeDocument(csharpDocument, htmlDocument);
 
             var version = VersionStamp.Create();
             var container = new GeneratedDocumentContainer();
-            container.SetOutput(document, csharpDocument, htmlDocument, version, version, version);
+            var initialResult = container.TrySetOutput(document, codeDocument, version, version, version);
 
             // Act
-            container.SetOutput(newDocument, csharpDocument, htmlDocument, version, version, version);
+            var result = container.TrySetOutput(newDocument, codeDocument, version, version, version);
 
             // Assert
             Assert.Same(newDocument, container.LatestDocument);
+            Assert.True(initialResult);
+            Assert.True(result);
         }
 
         [Fact]
-        public void SetOutput_AcceptsInitialOutput()
+        public void TrySetOutput_AcceptsInitialOutput()
         {
             // Arrange
             using var workspace = TestWorkspace.Create();
@@ -63,19 +66,21 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var document = new DefaultDocumentSnapshot(project, documentState);
             var csharpDocument = RazorCSharpDocument.Create("...", RazorCodeGenerationOptions.CreateDefault(), Enumerable.Empty<RazorDiagnostic>());
             var htmlDocument = RazorHtmlDocument.Create("...", RazorCodeGenerationOptions.CreateDefault());
+            var codeDocument = CreateCodeDocument(csharpDocument, htmlDocument);
 
             var version = VersionStamp.Create();
             var container = new GeneratedDocumentContainer();
 
             // Act
-            container.SetOutput(document, csharpDocument, htmlDocument, version, version, version);
+            var result = container.TrySetOutput(document, codeDocument, version, version, version);
 
             // Assert
             Assert.NotNull(container.LatestDocument);
+            Assert.True(result);
         }
 
         [Fact]
-        public void SetOutput_InvokesChangedEvent()
+        public void TrySetOutput_InvokesChangedEvent()
         {
             // Arrange
             using var workspace = TestWorkspace.Create();
@@ -92,21 +97,31 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var document = new DefaultDocumentSnapshot(project, documentState);
             var csharpDocument = RazorCSharpDocument.Create("...", RazorCodeGenerationOptions.CreateDefault(), Enumerable.Empty<RazorDiagnostic>());
             var htmlDocument = RazorHtmlDocument.Create("...", RazorCodeGenerationOptions.CreateDefault());
+            var codeDocument = CreateCodeDocument(csharpDocument, htmlDocument);
 
             var version = VersionStamp.Create();
             var container = new GeneratedDocumentContainer();
             var csharpChanged = false;
             var htmlChanged = false;
-            container.GeneratedCSharpChanged += (o, a) => { csharpChanged = true; };
-            container.GeneratedHtmlChanged += (o, a) => { htmlChanged = true; };
+            container.GeneratedCSharpChanged += (o, a) => csharpChanged = true;
+            container.GeneratedHtmlChanged += (o, a) => htmlChanged = true;
 
             // Act
-            container.SetOutput(document, csharpDocument, htmlDocument, version, version, version);
+            var result = container.TrySetOutput(document, codeDocument, version, version, version);
 
             // Assert
             Assert.NotNull(container.LatestDocument);
             Assert.True(csharpChanged);
             Assert.True(htmlChanged);
+            Assert.True(result);
+        }
+
+        private static RazorCodeDocument CreateCodeDocument(RazorCSharpDocument csharpDocument, RazorHtmlDocument htmlDocument)
+        {
+            var codeDocument = TestRazorCodeDocument.CreateEmpty();
+            codeDocument.SetCSharpDocument(csharpDocument);
+            codeDocument.Items[typeof(RazorHtmlDocument)] = htmlDocument;
+            return codeDocument;
         }
     }
 }

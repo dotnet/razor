@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             if (service == null)
             {
-                throw new InvalidOperationException($"Razor language services not configured properly, missing language service '{typeof(TLanguageService).FullName}'.");
+                throw new InvalidOperationException(RazorLSCommon.Resources.FormatLanguage_Services_Missing_Service(typeof(TLanguageService).FullName));
             }
 
             return service;

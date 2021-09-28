@@ -1,8 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
+using System.IO;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
@@ -12,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     internal class DefaultFileUriProvider : FileUriProvider
     {
         private readonly ITextDocumentFactoryService _textDocumentFactory;
-        private readonly string TextBufferUri = "__MsLspTextBufferUri";
+        private const string TextBufferUri = "__MsLspTextBufferUri";
 
         [ImportingConstructor]
         public DefaultFileUriProvider(ITextDocumentFactoryService textDocumentFactory)
@@ -60,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             else
             {
                 // TextBuffer doesn't have a file path, we need to fabricate one.
-                filePath = Uri.UriSchemeFile + Uri.SchemeDelimiter + Guid.NewGuid().ToString();
+                filePath = Path.GetTempFileName();
             }
 
             uri = new Uri(filePath, UriKind.Absolute);
@@ -81,6 +82,16 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
 
             return false;
+        }
+
+        public override void Remove(ITextBuffer textBuffer)
+        {
+            if (textBuffer is null)
+            {
+                throw new ArgumentNullException(nameof(textBuffer));
+            }
+
+            textBuffer.Properties.RemoveProperty(TextBufferUri);
         }
     }
 }

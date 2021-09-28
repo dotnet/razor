@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -17,32 +17,34 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
     {
         public LanguageServerTestBase()
         {
-            Dispatcher = new SingleThreadedForegroundDispatcher();
+            Dispatcher = new TestProjectSnapshotManagerDispatcher();
             FilePathNormalizer = new FilePathNormalizer();
-            LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == Mock.Of<ILogger>());
+            var logger = new Mock<ILogger>(MockBehavior.Strict).Object;
+            Mock.Get(logger).Setup(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>())).Verifiable();
+            Mock.Get(logger).Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(false);
+            LoggerFactory = Mock.Of<ILoggerFactory>(factory => factory.CreateLogger(It.IsAny<string>()) == logger, MockBehavior.Strict);
         }
 
-        internal ForegroundDispatcher Dispatcher { get; }
+        internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
 
         internal FilePathNormalizer FilePathNormalizer { get; }
 
         protected ILoggerFactory LoggerFactory { get; }
 
-        private class SingleThreadedForegroundDispatcher : ForegroundDispatcher
+        private class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
         {
-            public SingleThreadedForegroundDispatcher()
+            public TestProjectSnapshotManagerDispatcher()
             {
-                ForegroundScheduler = SynchronizationContext.Current == null ? new ThrowingTaskScheduler() : TaskScheduler.FromCurrentSynchronizationContext();
-                BackgroundScheduler = TaskScheduler.Default;
+                DispatcherScheduler = SynchronizationContext.Current == null
+                    ? new ThrowingTaskScheduler()
+                    : TaskScheduler.FromCurrentSynchronizationContext();
             }
 
-            public override TaskScheduler ForegroundScheduler { get; }
-
-            public override TaskScheduler BackgroundScheduler { get; }
+            public override TaskScheduler DispatcherScheduler { get; }
 
             private Thread Thread { get; } = Thread.CurrentThread;
 
-            public override bool IsForegroundThread => Thread.CurrentThread == Thread;
+            public override bool IsDispatcherThread => Thread.CurrentThread == Thread;
         }
 
         private class ThrowingTaskScheduler : TaskScheduler

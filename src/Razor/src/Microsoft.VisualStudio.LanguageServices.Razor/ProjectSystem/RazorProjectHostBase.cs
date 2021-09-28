@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -23,11 +23,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal abstract class RazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
     {
         private readonly Workspace _workspace;
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly AsyncSemaphore _lock;
 
         private ProjectSnapshotManagerBase _projectManager;
         private readonly Dictionary<string, HostDocument> _currentDocuments;
-        protected readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
+        protected readonly ProjectConfigurationFilePathStore ProjectConfigurationFilePathStore;
 
         internal const string BaseIntermediateOutputPathPropertyName = "BaseIntermediateOutputPath";
         internal const string IntermediateOutputPathPropertyName = "IntermediateOutputPath";
@@ -42,34 +43,42 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public RazorProjectHostBase(
             IUnconfiguredProjectCommonServices commonServices,
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore)
             : base(commonServices.ThreadingService.JoinableTaskContext)
         {
-            if (commonServices == null)
+            if (commonServices is null)
             {
                 throw new ArgumentNullException(nameof(commonServices));
             }
 
-            if (workspace == null)
+            if (workspace is null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
 
+            if (projectSnapshotManagerDispatcher is null)
+            {
+                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+            }
+
             CommonServices = commonServices;
             _workspace = workspace;
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
             _lock = new AsyncSemaphore(initialCount: 1);
             _currentDocuments = new Dictionary<string, HostDocument>(FilePathComparer.Instance);
-            _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+            ProjectConfigurationFilePathStore = projectConfigurationFilePathStore;
         }
 
         // Internal for testing
         protected RazorProjectHostBase(
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
             ProjectSnapshotManagerBase projectManager)
-            : this(commonServices, workspace, projectConfigurationFilePathStore)
+            : this(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
             if (projectManager == null)
             {
@@ -91,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         protected override Task InitializeCoreAsync(CancellationToken cancellationToken)
         {
-            CommonServices.UnconfiguredProject.ProjectRenaming += UnconfiguredProject_ProjectRenaming;
+            CommonServices.UnconfiguredProject.ProjectRenaming += UnconfiguredProject_ProjectRenamingAsync;
 
             return Task.CompletedTask;
         }
@@ -100,13 +109,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             if (initialized)
             {
-                CommonServices.UnconfiguredProject.ProjectRenaming -= UnconfiguredProject_ProjectRenaming;
+                CommonServices.UnconfiguredProject.ProjectRenaming -= UnconfiguredProject_ProjectRenamingAsync;
 
-                await ExecuteWithLock(async () =>
+                await ExecuteWithLockAsync(async () =>
                 {
                     if (Current != null)
                     {
-                        await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                        await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                     }
                 }).ConfigureAwait(false);
             }
@@ -120,14 +129,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             // However, the project snapshot manager uses the project Fullpath as the key. We want to just
             // reinitialize the HostProject with the same configuration and settings here, but the updated
             // FilePath.
-            await ExecuteWithLock(async () =>
+            await ExecuteWithLockAsync(async () =>
             {
                 if (Current != null)
                 {
                     var old = Current;
                     var oldDocuments = _currentDocuments.Values.ToArray();
 
-                    await UpdateAsync(UninitializeProjectUnsafe).ConfigureAwait(false);
+                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
 
                     await UpdateAsync(() =>
                     {
@@ -139,15 +148,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                         {
                             AddDocumentUnsafe(oldDocuments[i]);
                         }
-                    }).ConfigureAwait(false);
+                    }, CancellationToken.None).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
         }
 
-        // Should only be called from the UI thread.
+        // Should only be called from the project snapshot manager's specialized thread.
         private ProjectSnapshotManagerBase GetProjectManager()
         {
-            CommonServices.ThreadingService.VerifyOnUIThread();
+            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             if (_projectManager == null)
             {
@@ -157,11 +166,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return _projectManager;
         }
 
-        protected async Task UpdateAsync(Action action)
-        {
-            await CommonServices.ThreadingService.SwitchToUIThread();
-            action();
-        }
+        protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
+            => _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
 
         protected void UninitializeProjectUnsafe()
         {
@@ -178,13 +184,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             }
             else if (Current == null && project != null)
             {
+                // Just in case we somehow got in a state where VS didn't tell us that solution close was finished, lets just
+                // ensure we're going to actually do something with the new project that we've just been told about.
+                // If VS did tell us, then this is a no-op.
+                projectManager.SolutionOpened();
+
                 projectManager.ProjectAdded(project);
             }
             else if (Current != null && project == null)
             {
                 Debug.Assert(_currentDocuments.Count == 0);
                 projectManager.ProjectRemoved(Current);
-                _projectConfigurationFilePathStore.Remove(Current.FilePath);
+                ProjectConfigurationFilePathStore.Remove(Current.FilePath);
             }
             else
             {
@@ -227,8 +238,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             _currentDocuments.Clear();
         }
-        
-        protected async Task ExecuteWithLock(Func<Task> func)
+
+        protected async Task ExecuteWithLockAsync(Func<Task> func)
         {
             using (JoinableCollection.Join())
             {
@@ -250,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return DisposeAsync();
         }
 
-        private async Task UnconfiguredProject_ProjectRenaming(object sender, ProjectRenamedEventArgs args)
+        private async Task UnconfiguredProject_ProjectRenamingAsync(object sender, ProjectRenamedEventArgs args)
         {
             await OnProjectRenamingAsync().ConfigureAwait(false);
         }
@@ -286,8 +297,45 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             var basePath = new DirectoryInfo(baseIntermediateOutputPathValue).Parent;
             var joinedPath = Path.Combine(basePath.FullName, intermediateOutputPathValue);
 
+            if (!Directory.Exists(joinedPath))
+            {
+                // The directory doesn't exist for the currently executing application.
+                // This can occur in Razor class library scenarios because:
+                //   1. Razor class libraries base intermediate path is not absolute. Meaning instead of C:/project/obj it returns /obj.
+                //   2. Our `new DirectoryInfo(...).Parent` call above is forgiving so if the path passed to it isn't absolute (Razor class library scenario) it utilizes Directory.GetCurrentDirectory where
+                //      in this case would be the C:/Windows/System path
+                // Because of the above two issues the joinedPath ends up looking like "C:\WINDOWS\system32\obj\Debug\netstandard2.0\" which doesn't actually exist and of course isn't writeable. The end-user effect of this
+                // quirk means that you don't get any component completions for Razor class libraries because we're unable to capture their project state information.
+                //
+                // To workaround these inconsistencies with Razor class libraries we fall back to the MSBuildProjectDirectory and build what we think is the intermediate output path.
+                joinedPath = ResolveFallbackIntermediateOutputPath(rule, intermediateOutputPathValue);
+                if (joinedPath == null)
+                {
+                    // Still couldn't resolve a valid directory.
+                    path = null;
+                    return false;
+                }
+            }
+
             path = joinedPath;
             return true;
+        }
+
+        private static string ResolveFallbackIntermediateOutputPath(IProjectRuleSnapshot rule, string intermediateOutputPathValue)
+        {
+            if (!rule.Properties.TryGetValue(MSBuildProjectDirectoryPropertyName, out var projectDirectory))
+            {
+                // Can't resolve the project, bail.
+                return null;
+            }
+
+            var joinedPath = Path.Combine(projectDirectory, intermediateOutputPathValue);
+            if (!Directory.Exists(joinedPath))
+            {
+                return null;
+            }
+
+            return joinedPath;
         }
     }
 }

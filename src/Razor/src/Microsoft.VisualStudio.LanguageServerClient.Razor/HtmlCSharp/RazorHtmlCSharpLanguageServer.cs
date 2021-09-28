@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
@@ -17,12 +18,33 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     {
         private readonly JsonRpc _jsonRpc;
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
-        private VSClientCapabilities _clientCapabilities;
+        private VSInternalClientCapabilities _clientCapabilities;
 
-        public RazorHtmlCSharpLanguageServer(
+        private RazorHtmlCSharpLanguageServer(
             Stream inputStream,
             Stream outputStream,
-            IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : this(requestHandlers)
+            IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider) : this(requestHandlers)
+        {
+            _jsonRpc = CreateJsonRpc(outputStream, inputStream, target: this);
+
+            // Facilitates activity based tracing for structured logging within LogHub
+            var traceSource = loggerProvider.GetTraceSource();
+            _jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy
+            {
+                TraceSource = traceSource
+            };
+            _jsonRpc.TraceSource = traceSource;
+
+            _jsonRpc.StartListening();
+        }
+
+        public static async Task<RazorHtmlCSharpLanguageServer> CreateAsync(
+            Stream inputStream,
+            Stream outputStream,
+            IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider,
+            CancellationToken cancellationToken)
         {
             if (inputStream is null)
             {
@@ -34,8 +56,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(outputStream));
             }
 
-            _jsonRpc = new JsonRpc(outputStream, inputStream, this);
-            _jsonRpc.StartListening();
+            if (loggerProvider is null)
+            {
+                throw new ArgumentNullException(nameof(loggerProvider));
+            }
+
+            // Wait for logging infrastructure to initialize. This must be completed
+            // before we can start listening via Json RPC (as we must link the log hub
+            // trace source with Json RPC to facilitate structured logging / activity tracing).
+            await loggerProvider.InitializeLoggerAsync(cancellationToken).ConfigureAwait(false);
+
+            return new RazorHtmlCSharpLanguageServer(inputStream, outputStream, requestHandlers, loggerProvider);
         }
 
         // Test constructor
@@ -58,9 +89,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             // InitializeParams only references ClientCapabilities, but the VS LSP client
-            // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
+            // sends additional VS specific capabilities, so directly deserialize them into the VSInternalClientCapabilities
             // to avoid losing them.
-            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
+            _clientCapabilities = input["capabilities"].ToObject<VSInternalClientCapabilities>();
             var initializeParams = input.ToObject<InitializeParams>();
             return ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, initializeParams, _clientCapabilities, cancellationToken);
         }
@@ -114,15 +145,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<CompletionItem, CompletionItem>(Methods.TextDocumentCompletionResolveName, request, _clientCapabilities, cancellationToken);
         }
 
-        [JsonRpcMethod(MSLSPMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DocumentOnAutoInsertResponseItem> OnAutoInsertAsync(DocumentOnAutoInsertParams request, CancellationToken cancellationToken)
+        [JsonRpcMethod(VSInternalMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSInternalDocumentOnAutoInsertResponseItem> OnAutoInsertAsync(VSInternalDocumentOnAutoInsertParams request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem>(MSLSPMethods.OnAutoInsertName, request, _clientCapabilities, cancellationToken);
+            return ExecuteRequestAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(VSInternalMethods.OnAutoInsertName, request, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName, UseSingleObjectParameterDeserialization = true)]
@@ -134,6 +165,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             return ExecuteRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(Methods.TextDocumentOnTypeFormattingName, request, _clientCapabilities, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentLinkedEditingRangeName, UseSingleObjectParameterDeserialization = true)]
+        public Task<LinkedEditingRanges> OnLinkedEditingRangeAsync(LinkedEditingRangeParams request, CancellationToken cancellationToken)
+        {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            return ExecuteRequestAsync<LinkedEditingRangeParams, LinkedEditingRanges>(Methods.TextDocumentLinkedEditingRangeName, request, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName, UseSingleObjectParameterDeserialization = true)]
@@ -148,14 +190,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentReferencesName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSReferenceItem[]> FindAllReferencesAsync(ReferenceParams referenceParams, CancellationToken cancellationToken)
+        public Task<VSInternalReferenceItem[]> FindAllReferencesAsync(VSInternalReferenceParams referenceParams, CancellationToken cancellationToken)
         {
             if (referenceParams is null)
             {
                 throw new ArgumentNullException(nameof(referenceParams));
             }
 
-            return ExecuteRequestAsync<ReferenceParams, VSReferenceItem[]>(Methods.TextDocumentReferencesName, referenceParams, _clientCapabilities, cancellationToken);
+            return ExecuteRequestAsync<ReferenceParams, VSInternalReferenceItem[]>(Methods.TextDocumentReferencesName, referenceParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentSignatureHelpName, UseSingleObjectParameterDeserialization = true)]
@@ -202,6 +244,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentImplementationName, positionParams, _clientCapabilities, cancellationToken);
         }
 
+        [JsonRpcMethod(VSInternalMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSInternalDiagnosticReport[]> DocumentPullDiagnosticsAsync(VSInternalDocumentDiagnosticsParams documentDiagnosticsParams, CancellationToken cancellationToken)
+        {
+            if (documentDiagnosticsParams is null)
+            {
+                throw new ArgumentNullException(nameof(documentDiagnosticsParams));
+            }
+
+            return ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(VSInternalMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, cancellationToken);
+        }
+
+        // Razor tooling doesn't utilize workspace pull diagnostics as it doesn't really make sense for our use case.
+        // However, without the workspace pull diagnostics endpoint, a bunch of unnecessary exceptions are
+        // triggered. Thus we add the following no-op handler until a server capability is available.
+        // Having a server capability would reduce overhead of sending/receiving the request and the
+        // associated serialization/deserialization.
+        [JsonRpcMethod(VSInternalMethods.WorkspacePullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public static Task<VSInternalWorkspaceDiagnosticReport> WorkspacePullDiagnosticsAsync(VSInternalWorkspaceDiagnosticsParams workspaceDiagnosticsParams, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<VSInternalWorkspaceDiagnosticReport>(null);
+        }
+
         // Internal for testing
         internal Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,
@@ -227,6 +291,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             return handler.HandleRequestAsync(request, clientCapabilities, cancellationToken);
+        }
+
+        private static JsonRpc CreateJsonRpc(Stream outputStream, Stream inputStream, object target)
+        {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            var messageFormatter = new JsonMessageFormatter();
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+            var serializer = messageFormatter.JsonSerializer;
+            serializer.AddVSInternalExtensionConverters();
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            var messageHandler = new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+            // The JsonRpc object owns disposing the message handler which disposes the formatter.
+            var jsonRpc = new JsonRpc(messageHandler, target);
+            return jsonRpc;
         }
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
@@ -13,12 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     internal class DefaultLSPDocumentFactory : LSPDocumentFactory
     {
         private readonly FileUriProvider _fileUriProvider;
-        private readonly IEnumerable<VirtualDocumentFactory> _virtualDocumentFactories;
+        private readonly IEnumerable<Lazy<VirtualDocumentFactory, IContentTypeMetadata>> _virtualDocumentFactories;
 
         [ImportingConstructor]
         public DefaultLSPDocumentFactory(
             FileUriProvider fileUriProvider,
-            [ImportMany] IEnumerable<VirtualDocumentFactory> virtualBufferFactories)
+            [ImportMany] IEnumerable<Lazy<VirtualDocumentFactory, IContentTypeMetadata>> virtualBufferFactories)
         {
             if (fileUriProvider is null)
             {
@@ -53,9 +55,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var virtualDocuments = new List<VirtualDocument>();
             foreach (var factory in _virtualDocumentFactories)
             {
-                if (factory.TryCreateFor(hostDocumentBuffer, out var virtualDocument))
+                if (factory.Metadata.ContentTypes.Any(ct => hostDocumentBuffer.ContentType.IsOfType(ct)))
                 {
-                    virtualDocuments.Add(virtualDocument);
+                    if (factory.Value.TryCreateFor(hostDocumentBuffer, out var virtualDocument))
+                    {
+                        virtualDocuments.Add(virtualDocument);
+                    }
                 }
             }
 

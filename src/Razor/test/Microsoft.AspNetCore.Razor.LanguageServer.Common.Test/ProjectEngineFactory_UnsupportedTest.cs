@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
@@ -17,10 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             var factory = new ProjectEngineFactory_Unsupported();
 
             // Act & Assert
-            factory.Create(UnsupportedRazorConfiguration.Instance, RazorProjectFileSystem.Empty, (builder) =>
-            {
-                throw new XunitException("There should not be an opportunity to configure the project engine in the unsupported scenario.");
-            });
+            factory.Create(UnsupportedRazorConfiguration.Instance, RazorProjectFileSystem.Empty, (builder) => throw new XunitException("There should not be an opportunity to configure the project engine in the unsupported scenario."));
         }
 
         // This is more of an integration test to validate that all the pieces work together

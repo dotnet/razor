@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,13 +10,12 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
-using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     internal class TestLanguageServiceBroker : ILanguageServiceBroker2
     {
-        private readonly Action<string, string> _callback;
+        private readonly Action<string> _callback;
 
 #pragma warning disable CS0067 // The event is never used
         public event EventHandler<LanguageClientLoadedEventArgs> LanguageClientLoaded;
@@ -61,13 +60,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public IRequestBroker<FoldingRangeParams, FoldingRange[]> FoldingRangeBroker => throw new NotImplementedException();
 
-        public IRequestBroker<GetTextDocumentWithContextParams, ActiveProjectContexts> ProjectContextBroker => throw new NotImplementedException();
-
         public IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> FactoryLanguageClients => throw new NotImplementedException();
 
         public IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> LanguageClients => throw new NotImplementedException();
 
-        public TestLanguageServiceBroker(Action<string, string> callback)
+        IStreamingRequestBroker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]> ILanguageServiceBroker.DocumentDiagnosticsBroker => throw new NotImplementedException();
+
+        IStreamingRequestBroker<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]> ILanguageServiceBroker.WorkspaceDiagnosticsBroker => throw new NotImplementedException();
+
+        IRequestBroker<VSGetProjectContextsParams, VSProjectContextList> ILanguageServiceBroker.ProjectContextBroker => throw new NotImplementedException();
+
+        IRequestBroker<VSInternalKindAndModifier, VSInternalIconMapping> ILanguageServiceBroker.KindDescriptionResolveBroker => throw new NotImplementedException();
+
+        public TestLanguageServiceBroker(Action<string> callback)
         {
             _callback = callback;
         }
@@ -84,10 +89,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             JToken parameters,
             CancellationToken cancellationToken)
         {
-            // We except it to be called with only one content type.
-            var contentType = Assert.Single(contentTypes);
+            _callback?.Invoke(method);
 
-            _callback?.Invoke(contentType, method);
+            return Task.FromResult<(ILanguageClient, JToken)>((null, null));
+        }
+
+        public Task<(ILanguageClient, JToken)> RequestAsync(string[] contentTypes, Func<JToken, bool> capabilitiesFilter, string clientName, string method, JToken parameters, CancellationToken cancellationToken)
+        {
+            _callback?.Invoke(method);
 
             return Task.FromResult<(ILanguageClient, JToken)>((null, null));
         }
@@ -128,16 +137,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         public void RemoveLanguageClients(IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> items)
-        {
-            throw new NotImplementedException();
-        }
-
-        Diagnostic[] ILanguageServiceBroker.GetDiagnostics(Uri uri)
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerable<(Uri, Diagnostic[])> ILanguageServiceBroker.GetAllDiagnostics()
         {
             throw new NotImplementedException();
         }

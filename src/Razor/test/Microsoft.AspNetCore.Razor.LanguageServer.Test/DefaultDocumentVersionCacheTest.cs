@@ -1,5 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.False(documentVersionCache.TryGetDocumentVersion(untrackedDocument, out var version));
-            Assert.Equal(-1, version);
+            Assert.Null(version);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.False(result);
-            Assert.Equal(-1, version);
+            Assert.Null(version);
         }
 
         [Fact]
@@ -94,14 +94,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectSnapshotManager.DocumentAdded(document.ProjectInternal.HostProject, document.State.HostDocument, TextLoader.From(textAndVersion));
 
             // Act - 1
-            var result = documentVersionCache.TryGetDocumentVersion(document, out var version);
+            var result = documentVersionCache.TryGetDocumentVersion(document, out _);
 
             // Assert - 1
             Assert.True(result);
 
             // Act - 2
             projectSnapshotManager.DocumentRemoved(document.ProjectInternal.HostProject, document.State.HostDocument);
-            result = documentVersionCache.TryGetDocumentVersion(document, out version);
+            result = documentVersionCache.TryGetDocumentVersion(document, out _);
 
             // Assert - 2
             Assert.True(result);
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectSnapshotManager.DocumentOpened(document.ProjectInternal.FilePath, document.FilePath, textAndVersion.Text);
 
             // Act - 1
-            var result = documentVersionCache.TryGetDocumentVersion(document, out var version);
+            var result = documentVersionCache.TryGetDocumentVersion(document, out _);
 
             // Assert - 1
             Assert.True(result);
@@ -133,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Act - 2
             projectSnapshotManager.DocumentRemoved(document.ProjectInternal.HostProject, document.State.HostDocument);
-            result = documentVersionCache.TryGetDocumentVersion(document, out version);
+            result = documentVersionCache.TryGetDocumentVersion(document, out _);
 
             // Assert - 2
             Assert.True(result);
@@ -157,17 +157,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             projectSnapshotManager.DocumentAdded(document.ProjectInternal.HostProject, document.State.HostDocument, textLoader);
 
             // Act - 1
-            var result = documentVersionCache.TryGetDocumentVersion(document, out var version);
+            var result = documentVersionCache.TryGetDocumentVersion(document, out _);
 
             // Assert - 1
             Assert.True(result);
 
             // Act - 2
             projectSnapshotManager.DocumentClosed(document.ProjectInternal.HostProject.FilePath, document.State.HostDocument.FilePath, textLoader);
-            result = documentVersionCache.TryGetDocumentVersion(document, out version);
+            result = documentVersionCache.TryGetDocumentVersion(document, out var version);
 
             // Assert - 2
             Assert.False(result);
+            Assert.Null(version);
         }
 
         [Fact]
@@ -181,7 +182,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             documentVersionCache.TrackDocumentVersion(document, 1337);
 
             // Assert
-            var kvp = Assert.Single(documentVersionCache._documentLookup);
+            var kvp = Assert.Single(documentVersionCache.DocumentLookup);
             Assert.Equal(document.FilePath, kvp.Key);
             var entry = Assert.Single(kvp.Value);
             Assert.True(entry.Document.TryGetTarget(out var actualDocument));
@@ -205,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             documentVersionCache.TrackDocumentVersion(document, 1337);
 
             // Assert
-            var kvp = Assert.Single(documentVersionCache._documentLookup);
+            var kvp = Assert.Single(documentVersionCache.DocumentLookup);
             Assert.Equal(DefaultDocumentVersionCache.MaxDocumentTrackingCount, kvp.Value.Count);
             Assert.Equal(1337, kvp.Value.Last().Version);
         }
@@ -222,7 +223,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.False(result);
-            Assert.Equal(-1, version);
+            Assert.Null(version);
         }
 
         [Fact]
@@ -239,7 +240,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Assert
             Assert.False(result);
-            Assert.Equal(-1, version);
+            Assert.Null(version);
         }
 
         [Fact]

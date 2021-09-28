@@ -1,20 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
-using Task = System.Threading.Tasks.Task;
 using Shared = System.Composition.SharedAttribute;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -25,18 +25,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     [Export(typeof(ProjectSnapshotChangeTrigger))]
     internal class DefaultRazorProjectChangePublisher : ProjectSnapshotChangeTrigger
     {
-        internal readonly Dictionary<string, Task> _deferredPublishTasks;
+        internal readonly Dictionary<string, Task> DeferredPublishTasks;
+
+        // Internal for testing
+        internal bool _active;
+
         private const string TempFileExt = ".temp";
         private readonly RazorLogger _logger;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
         private readonly IVsOperationProgressStatusService _operationProgressStatusService = null;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly Dictionary<string, ProjectSnapshot> _pendingProjectPublishes;
+        private readonly object _pendingProjectPublishesLock;
         private readonly object _publishLock;
 
-        private readonly JsonSerializer _serializer = new JsonSerializer();
-
+        private readonly JsonSerializer _serializer = new();
         private ProjectSnapshotManagerBase _projectSnapshotManager;
+        private bool _documentsProcessed = false;
 
         [ImportingConstructor]
         public DefaultRazorProjectChangePublisher(
@@ -65,8 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            _deferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
+            DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
             _pendingProjectPublishes = new Dictionary<string, ProjectSnapshot>(FilePathComparer.Instance);
+            _pendingProjectPublishesLock = new();
             _publishLock = new object();
 
             _lspEditorFeatureDetector = lSPEditorFeatureDetector;
@@ -96,21 +102,56 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void EnqueuePublish(ProjectSnapshot projectSnapshot)
         {
-            // A race is not possible here because we use the main thread to synchronize the updates
-            // by capturing the sync context.
-            _pendingProjectPublishes[projectSnapshot.FilePath] = projectSnapshot;
-
-            if (!_deferredPublishTasks.TryGetValue(projectSnapshot.FilePath, out var update) || update.IsCompleted)
+            lock (_pendingProjectPublishesLock)
             {
-                _deferredPublishTasks[projectSnapshot.FilePath] = PublishAfterDelayAsync(projectSnapshot.FilePath);
+                _pendingProjectPublishes[projectSnapshot.FilePath] = projectSnapshot;
+            }
+
+            if (!DeferredPublishTasks.TryGetValue(projectSnapshot.FilePath, out var update) || update.IsCompleted)
+            {
+                DeferredPublishTasks[projectSnapshot.FilePath] = PublishAfterDelayAsync(projectSnapshot.FilePath);
             }
         }
 
         internal void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
         {
-            if (!_lspEditorFeatureDetector.IsLSPEditorAvailable(args.ProjectFilePath, hierarchy: null))
+            // Don't do any work if the solution is closing
+            if (args.SolutionIsClosing)
             {
                 return;
+            }
+
+            if (!_lspEditorFeatureDetector.IsLSPEditorAvailable())
+            {
+                return;
+            }
+
+            // Prior to doing any sort of project state serialization/publishing we avoid any excess work as long as there aren't any "open" Razor files.
+            // However, once a Razor file is opened we turn the firehose on and start doing work.
+            // By taking this lazy approach we ensure that we don't do any excess Razor work (serialization is expensive) in non-Razor scenarios.
+
+            if (!_active)
+            {
+                // Not currently active, we need to decide if we should become active or if we should no-op.
+
+                if (_projectSnapshotManager.OpenDocuments.Count > 0)
+                {
+                    // A Razor document was just opened, we should become "active" which means we'll constantly be monitoring project state.
+                    _active = true;
+
+                    if (ProjectWorkspacePublishable(args))
+                    {
+                        // Typically document open events don't result in us re-processing project state; however, given this is the first time a user opened a Razor document we should.
+                        // Don't enqueue, just publish to get the most immediate result.
+                        ImmediatePublish(args.Newer);
+                        return;
+                    }
+                }
+                else
+                {
+                    // No open documents and not active. No-op.
+                    return;
+                }
             }
 
             // All the below Publish's (except ProjectRemoved) wait until our project has been initialized (ProjectWorkspaceState != null)
@@ -118,11 +159,29 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // when they update repeatedly as they load.
             switch (args.Kind)
             {
+                case ProjectChangeKind.ProjectChanged:
+                    if (!ProjectWorkspacePublishable(args))
+                    {
+                        break;
+                    }
+
+                    if (!ReferenceEquals(args.Newer.ProjectWorkspaceState, args.Older.ProjectWorkspaceState))
+                    {
+                        // If our workspace state has changed since our last snapshot then this means pieces influencing
+                        // TagHelper resolution have also changed. Fast path the TagHelper publish.
+                        ImmediatePublish(args.Newer);
+                    }
+                    else
+                    {
+                        // There was a project change that doesn't seem to be related to TagHelpers, we can be
+                        // less aggressive and do a delayed publish.
+                        EnqueuePublish(args.Newer);
+                    }
+                    break;
                 case ProjectChangeKind.DocumentRemoved:
                 case ProjectChangeKind.DocumentAdded:
-                case ProjectChangeKind.ProjectChanged:
 
-                    if (args.Newer.ProjectWorkspaceState != null)
+                    if (ProjectWorkspacePublishable(args))
                     {
                         // These changes can come in bursts so we don't want to overload the publishing system. Therefore,
                         // we enqueue publishes and then publish the latest project after a delay.
@@ -132,15 +191,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 case ProjectChangeKind.ProjectAdded:
 
-                    if (args.Newer.ProjectWorkspaceState != null)
+                    if (ProjectWorkspacePublishable(args))
                     {
-                        Publish(args.Newer);
+                        ImmediatePublish(args.Newer);
                     }
                     break;
 
                 case ProjectChangeKind.ProjectRemoved:
                     RemovePublishingData(args.Older);
                     break;
+            }
+
+            static bool ProjectWorkspacePublishable(ProjectChangeEventArgs args)
+            {
+                return args.Newer?.ProjectWorkspaceState != null;
             }
         }
 
@@ -162,11 +226,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                         return;
                     }
 
-
                     // We don't want to serialize the project until it's ready to avoid flashing as the project loads different parts.
                     // Since the project.razor.json from last session likely still exists the experience is unlikely to be degraded by this delay.
                     // An exception is made for when there's no existing project.razor.json because some flashing is preferable to having no TagHelper knowledge.
-                    if (ShouldSerialize(configurationFilePath))
+                    if (ShouldSerialize(projectSnapshot, configurationFilePath))
                     {
                         SerializeToFile(projectSnapshot, configurationFilePath);
                     }
@@ -191,10 +254,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     return;
                 }
 
-                if (_pendingProjectPublishes.TryGetValue(oldProjectFilePath, out _))
+
+                lock (_pendingProjectPublishesLock)
                 {
-                    // Project was removed while a delayed publish was in flight. Clear the in-flight publish so it noops.
-                    _pendingProjectPublishes.Remove(oldProjectFilePath);
+                    if (_pendingProjectPublishes.TryGetValue(oldProjectFilePath, out _))
+                    {
+                        // Project was removed while a delayed publish was in flight. Clear the in-flight publish so it noops.
+                        _pendingProjectPublishes.Remove(oldProjectFilePath);
+                    }
                 }
             }
         }
@@ -228,34 +295,84 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             tempFileInfo.MoveTo(publishFilePath);
         }
 
-        protected virtual bool ShouldSerialize(string configurationFilePath)
+        protected virtual bool FileExists(string file)
         {
-            if (!File.Exists(configurationFilePath))
+            return File.Exists(file);
+        }
+
+        protected virtual bool ShouldSerialize(ProjectSnapshot projectSnapshot, string configurationFilePath)
+        {
+            if (!FileExists(configurationFilePath))
             {
                 return true;
             }
 
             var status = _operationProgressStatusService?.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
 
+            // Don't serialize our understanding until we're "ready"
+            if (!_documentsProcessed)
+            {
+                if (projectSnapshot.DocumentFilePaths.Any(d => AspNetCore.Razor.Language.FileKinds.GetFileKindFromFilePath(d)
+                    .Equals(AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase)))
+                {
+                    foreach (var document in projectSnapshot.DocumentFilePaths)
+                    {
+                        // We want to wait until at least one document has been processed (meaning it became a TagHelper.
+                        // Because we don't have a way to tell which TagHelpers were created from the local project just from their descriptors we have to improvise
+                        // We assume that a document has been processed if at least one Component matches the name of one of our files.
+                        var fileName = Path.GetFileNameWithoutExtension(document);
+
+                        var documentSnapshot = projectSnapshot.GetDocument(document);
+
+                        if (documentSnapshot.FileKind.Equals(AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase) &&
+                            projectSnapshot.TagHelpers.Any(t => t.Name.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            // Documents have been processed, lets publish
+                            _documentsProcessed = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // This project has no Components and thus cannot suffer from the lagging compilation problem.
+                    _documentsProcessed = true;
+                }
+            }
             if (status is null)
             {
                 return true;
             }
 
-            return !status.IsInProgress;
+            return !status.IsInProgress && _documentsProcessed;
+        }
+
+        private void ImmediatePublish(ProjectSnapshot projectSnapshot)
+        {
+            lock (_pendingProjectPublishesLock)
+            {
+                // Clear any pending publish
+                _pendingProjectPublishes.Remove(projectSnapshot.FilePath);
+            }
+
+            Publish(projectSnapshot);
         }
 
         private async Task PublishAfterDelayAsync(string projectFilePath)
         {
             await Task.Delay(EnqueueDelay).ConfigureAwait(false);
 
-            if (!_pendingProjectPublishes.TryGetValue(projectFilePath, out var projectSnapshot))
+            ProjectSnapshot projectSnapshot;
+            lock (_pendingProjectPublishesLock)
             {
-                // Project was removed while waiting for the publish delay.
-                return;
-            }
+                if (!_pendingProjectPublishes.TryGetValue(projectFilePath, out projectSnapshot))
+                {
+                    // Project was removed while waiting for the publish delay.
+                    return;
+                }
 
-            _pendingProjectPublishes.Remove(projectFilePath);
+                _pendingProjectPublishes.Remove(projectFilePath);
+            }
 
             Publish(projectSnapshot);
         }
