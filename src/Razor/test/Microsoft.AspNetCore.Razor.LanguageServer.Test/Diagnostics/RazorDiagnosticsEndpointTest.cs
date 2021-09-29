@@ -271,6 +271,41 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
         }
 
         [Fact]
+        public async Task Handle_FilterDiagnostics_CSharpInsideStylePropertySpace()
+        {
+            // Arrange
+            var documentPath = "C:/path/to/document.cshtml";
+            var codeDocument = CreateCodeDocumentWithCSharpProjection(
+                "<style> body { overflow: @DateTime.Now; } </style>",
+                "var __o = DateTime.Now",
+                new[] {
+                    new SourceMapping(
+                        new SourceSpan(26, 12),
+                        new SourceSpan(10, 12))
+                });
+            var documentResolver = CreateDocumentResolver(documentPath, codeDocument);
+            var diagnosticsEndpoint = new RazorDiagnosticsEndpoint(Dispatcher, documentResolver, DocumentVersionCache, MappingService, LoggerFactory);
+            var request = new RazorDiagnosticsParams()
+            {
+                Kind = RazorLanguageKind.Html,
+                Diagnostics = new[] {
+                    new OmniSharpVSDiagnostic() {
+                        Range = new Range(new Position(0, 25), new Position(0, 38)),
+                        Code = "CSS123456",
+                        Severity = DiagnosticSeverity.Warning
+                    }
+                },
+                RazorDocumentUri = new Uri(documentPath),
+            };
+
+            // Act
+            var response = await Task.Run(() => diagnosticsEndpoint.Handle(request, default));
+
+            // Assert
+            Assert.Empty(response.Diagnostics);
+        }
+
+        [Fact]
         public async Task Handle_FilterDiagnostics_CSharpInsideStyleBlock()
         {
             // Arrange

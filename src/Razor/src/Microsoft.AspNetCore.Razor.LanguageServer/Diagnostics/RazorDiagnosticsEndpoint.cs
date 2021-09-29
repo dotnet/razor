@@ -171,12 +171,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
 
             var filteredDiagnostics = unmappedDiagnostics
                 .Where(d =>
+                    !InCSharpLiteral(d, sourceText, syntaxTree) &&
                     !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes) &&
                     !AppliesToTagHelperTagName(d, sourceText, syntaxTree) &&
                     !ShouldFilterHtmlDiagnosticBasedOnErrorCode(d, sourceText, syntaxTree))
                 .ToArray();
 
             return filteredDiagnostics;
+        }
+
+        private static bool InCSharpLiteral(OmniSharpVSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree)
+        {
+            if (d.Range is null)
+            {
+                return false;
+            }
+
+            var owner = syntaxTree.GetOwner(sourceText, d.Range.End);
+            if (owner is null)
+            {
+                return false;
+            }
+
+            var isCSharp = owner.Kind switch
+            {
+                SyntaxKind.CSharpExpressionLiteral => true,
+                SyntaxKind.CSharpStatementLiteral => true,
+                SyntaxKind.CSharpEphemeralTextLiteral => true,
+                _ => false,
+            };
+
+            return isCSharp;
         }
 
         private static bool AppliesToTagHelperTagName(OmniSharpVSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
