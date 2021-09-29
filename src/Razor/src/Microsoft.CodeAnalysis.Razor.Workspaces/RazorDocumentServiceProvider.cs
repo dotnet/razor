@@ -1,25 +1,27 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal class RazorDocumentServiceProvider : IRazorDocumentServiceProvider, IRazorDocumentOperationService
     {
-        private readonly DynamicDocumentContainer _documentContainer;
+        private readonly DynamicDocumentContainer? _documentContainer;
         private readonly object _lock;
 
-        private IRazorSpanMappingService _spanMappingService;
-        private IRazorDocumentExcerptService _documentExcerptService;
-        private IRazorDocumentPropertiesService _documentPropertiesService;
+        private IRazorSpanMappingService? _spanMappingService;
+        private IRazorDocumentExcerptService? _documentExcerptService;
+        private IRazorDocumentPropertiesService? _documentPropertiesService;
 
         public RazorDocumentServiceProvider()
             : this(null)
         {
         }
 
-        public RazorDocumentServiceProvider(DynamicDocumentContainer documentContainer)
+        public RazorDocumentServiceProvider(DynamicDocumentContainer? documentContainer)
         {
             _documentContainer = documentContainer;
 
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public bool SupportDiagnostics => _documentContainer?.SupportsDiagnostics ?? false;
 
-        public TService GetService<TService>() where TService : class
+        public TService? GetService<TService>() where TService : class
         {
             if (_documentContainer == null)
             {
