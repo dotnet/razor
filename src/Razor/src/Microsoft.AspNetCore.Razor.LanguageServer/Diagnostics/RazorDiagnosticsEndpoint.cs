@@ -193,13 +193,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
                 return false;
             }
 
-            var isCSharp = owner.Kind switch
-            {
-                SyntaxKind.CSharpExpressionLiteral => true,
-                SyntaxKind.CSharpStatementLiteral => true,
-                SyntaxKind.CSharpEphemeralTextLiteral => true,
-                _ => false,
-            };
+            var isCSharp = owner.Kind is SyntaxKind.CSharpExpressionLiteral or SyntaxKind.CSharpStatementLiteral or SyntaxKind.CSharpEphemeralTextLiteral;
 
             return isCSharp;
         }
