@@ -655,7 +655,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var request = new RazorDiagnosticsParams()
             {
                 Kind = RazorLanguageKind.Razor,
-                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 3), new Position(0, 4)) } },
+                Diagnostics = new[] { new OmniSharpVSDiagnostic() { Range = new Range(new Position(0, 1), new Position(0, 3)) } },
                 RazorDocumentUri = new Uri(documentPath),
             };
 
