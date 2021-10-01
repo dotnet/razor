@@ -211,9 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void RazorOptions_OptionChanged(object sender, EditorOptionChangedEventArgs e)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void RazorOptions_OptionChanged(object sender, EditorOptionChangedEventArgs e)
         {
             Assumes.NotNull(_textBuffer);
 
@@ -236,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // updated via the line above) by sending a workspace/configuration request.
             // NOTE: This flow uses polyfilling because VS doesn't yet support workspace configuration
             // updates. Once they do, we can get rid of this extra logic.
-            await _requestInvoker.ReinvokeRequestOnServerAsync<DidChangeConfigurationParams, Unit>(
+            _ = _requestInvoker.ReinvokeRequestOnServerAsync<DidChangeConfigurationParams, Unit>(
                 Methods.WorkspaceDidChangeConfigurationName,
                 RazorLSPConstants.RazorLanguageServerName,
                 CheckRazorServerCapability,
