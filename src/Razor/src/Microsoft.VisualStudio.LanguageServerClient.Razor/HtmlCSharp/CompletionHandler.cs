@@ -141,6 +141,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
+            if (!TryGetWordExtent(request, documentSnapshot, out var wordExtent))
+            {
+                return null;
+            }
+
             var projectionResult = await _projectionProvider.GetProjectionAsync(
                 documentSnapshot,
                 request.Position,
@@ -208,7 +213,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (TryConvertToCompletionList(result, out var completionList))
             {
-                var wordExtent = documentSnapshot.Snapshot.GetWordExtent(request.Position.Line, request.Position.Character, _textStructureNavigator);
 
                 if (serverKind == LanguageServerKind.CSharp)
                 {
@@ -255,6 +259,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 return true;
             }
+        }
+
+        private bool TryGetWordExtent(CompletionParams request, LSPDocumentSnapshot documentSnapshot, out TextExtent? wordExtent)
+        {
+            var wordCharacterPosition = request.Position.Character;
+            var invokeKind = (request.Context as VSInternalCompletionContext)?.InvokeKind;
+            if (invokeKind != null && invokeKind.Value == VSInternalCompletionInvokeKind.Typing)
+            {
+                // Grab the character right before the word. Reason why this is important is that
+                // when completion is requested it gives us the position after the typed character
+                // i.e: @D|
+                // Therefore, in order to properly detect the word we need to inspect the character that
+                // was just typed.
+
+                wordCharacterPosition = Math.Max(0, wordCharacterPosition - 1);
+            }
+
+            wordExtent = documentSnapshot.Snapshot.GetWordExtent(request.Position.Line, wordCharacterPosition, _textStructureNavigator);
+
+            return true;
         }
 
         // For C# scenarios we want to do a few post-processing steps to the completion list.
