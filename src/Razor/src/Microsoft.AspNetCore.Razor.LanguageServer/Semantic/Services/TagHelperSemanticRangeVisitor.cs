@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (!node.ContainsOnlyWhitespace())
             {
-                AddSemanticRange(node, RazorSemanticTokensLegend.MarkupTextLiteral);
+                // Don't return anything for MarkupTextLiterals. It translates to "text" on the VS side, which is the default color anyway
             }
         }
 
