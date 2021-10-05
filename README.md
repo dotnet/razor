@@ -19,7 +19,7 @@ Also check out the [.NET Homepage](https://www.microsoft.com/net) for released v
 
 ## How to Engage, Contribute, and Give Feedback
 
-Some of the best ways to contribute are to try things out, [file issues](https://github.com/dotnet/aspnetcore/issues), join in design conversations,
+Some of the best ways to contribute are to try things out, [file issues](https://github.com/dotnet/aspnetcore-tooling/issues), join in design conversations,
 and make pull-requests.
 
 * Follow along with the development of ASP.NET Core:
