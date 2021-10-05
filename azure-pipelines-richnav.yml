@@ -31,8 +31,8 @@ stages:
       jobs:
       - job: Windows
         pool:
-          name: NetCorePublic-Pool
-          queue: buildpool.windows.10.amd64.vs2019.pre.open
+          name: NetCore1ESPool-Public
+          demands: ImageOverride -equals build.windows.10.amd64.vs2019.pre.open
 
         steps:
         - task: NodeTool@0
