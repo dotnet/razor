@@ -1,2 +1,1 @@
 //line,characterPos,length,tokenType,modifier
-0 1 5 96 0 //markupTextLiteral
