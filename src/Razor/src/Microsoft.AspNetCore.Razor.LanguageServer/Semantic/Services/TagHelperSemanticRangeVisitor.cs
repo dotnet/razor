@@ -48,10 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         #region HTML
         public override void VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
         {
-            if (!node.ContainsOnlyWhitespace())
-            {
-                // Don't return anything for MarkupTextLiterals. It translates to "text" on the VS side, which is the default color anyway
-            }
+            // Don't return anything for MarkupTextLiterals. It translates to "text" on the VS side, which is the default color anyway
         }
 
         public override void VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
