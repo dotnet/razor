@@ -1,5 +1,5 @@
 ---
-name: Feature request
+name: 💡 Feature request
 about: Suggest an idea for this project
 title: ''
 labels: ''
@@ -13,7 +13,7 @@ A clear and concise description of what the problem is. Ex. I'm always frustrate
 **Describe the solution you'd like**
 A clear and concise description of what you want to happen.
 
-** Applicable Scenarios **
+**Applicable Scenarios**
 In what scenarios would the feature apply?
 
 **Describe alternatives you've considered**
