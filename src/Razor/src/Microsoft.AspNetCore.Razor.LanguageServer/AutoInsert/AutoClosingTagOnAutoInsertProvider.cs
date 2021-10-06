@@ -224,8 +224,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
                 // the ">" we get the C# statement block instead of the end close-angle (Razor compiler quirk).
 
                 var closeAngleIndex = afterCloseAngleIndex - 1;
-                var closeAngleSoureChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
-                currentOwner = syntaxTree.Root.LocateOwner(closeAngleSoureChange);
+                var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
+                currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
             }
             else if (currentOwner.Parent is MarkupEndTagSyntax ||
                      currentOwner.Parent is MarkupTagHelperEndTagSyntax)
