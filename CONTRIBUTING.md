@@ -3,23 +3,21 @@
 One of the easiest ways to contribute is to participate in discussions on GitHub issues. You can also contribute by submitting pull requests with code changes.
 
 
-## General feedback and discussions?
-Please start a discussion on the [dotnet/aspnetcore issue tracker](https://github.com/dotnet/aspnetcore/issues).
-
-
-## Bugs and feature requests?
-For non-security related bugs please log a new issue in the appropriate GitHub repo. Here are some of the most common repos:
-
-* [Docs](https://github.com/aspnet/Docs)
-* [ASP.NET Core (runtime)](https://github.com/dotnet/aspnetcore)
-* [Entity Framework Core](https://github.com/dotnet/efcore)
-* [Extensions](https://github.com/dotnet/extensions)
-
-Or browse the full list of repos in the [aspnet](https://github.com/aspnet/) organization.
+## Feedback, bug reports, and feature requests
+Please start a discussion in the [dotnet/razor-tooling issue tracker](https://github.com/dotnet/razor-tooling/issues).
 
 ## Reporting security issues and bugs
 Security issues and bugs should be reported privately, via email, to the Microsoft Security Response Center (MSRC)  secure@microsoft.com. You should receive a response within 24 hours. If for some reason you do not, please follow up via email to ensure we received your original message. Further information, including the MSRC PGP key, can be found in the [Security TechCenter](https://technet.microsoft.com/en-us/security/ff852094.aspx).
 
+## Other issues
+For non-Razor tooling related bugs, please log a new issue in the appropriate GitHub repo. Here are some of the most common repos:
+
+* [ASP.NET Core (runtime and Razor compiler)](https://github.com/dotnet/aspnetcore)
+* [Docs](https://github.com/aspnet/Docs)
+* [Entity Framework Core](https://github.com/dotnet/efcore)
+* [Extensions](https://github.com/dotnet/extensions)
+
+Or browse the full list of repos in the [dotnet](https://github.com/dotnet/) and [aspnet](https://github.com/aspnet/) organizations.
 
 ## Other discussions
 Our team members also monitor several other discussion forums:
