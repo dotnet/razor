@@ -178,13 +178,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         index = (~index) - 1;
                     }
 
-                    // This will now be set to the same value as the end of the closest source mapping.
                     if (index < 0)
                     {
-                        csharpDesiredIndentation = 0;
+                        // If we _still_ couldn't find the right indentation, then it probably means that the text is
+                        // before the first source mapping location, so we can just place it in the minimum spot (realistically
+                        // at index 0 in the razor file, but we use minCSharpIndentation because we're adjusting based on the
+                        // generated file here)
+                        csharpDesiredIndentation = minCSharpIndentation;
                     }
                     else
                     {
+                        // index will now be set to the same value as the end of the closest source mapping.
                         var absoluteIndex = sourceMappingIndentationScopes[index];
                         csharpDesiredIndentation = sourceMappingIndentations[absoluteIndex];
 
