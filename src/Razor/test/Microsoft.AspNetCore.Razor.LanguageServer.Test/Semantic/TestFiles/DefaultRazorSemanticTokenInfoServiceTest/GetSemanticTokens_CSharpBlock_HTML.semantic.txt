@@ -11,8 +11,7 @@
 1 4 1 91 0 //markupTagDelimiter
 0 1 1 92 0 //markupElement
 0 1 1 91 0 //markupTagDelimiter
-0 1 5 96 0 //markupTextLiteral
-0 5 1 84 0 //razorTransition
+0 6 1 84 0 //razorTransition
 0 1 1 8 0 //variable
 0 1 1 91 0 //markupTagDelimiter
 0 1 1 91 0 //markupTagDelimiter
