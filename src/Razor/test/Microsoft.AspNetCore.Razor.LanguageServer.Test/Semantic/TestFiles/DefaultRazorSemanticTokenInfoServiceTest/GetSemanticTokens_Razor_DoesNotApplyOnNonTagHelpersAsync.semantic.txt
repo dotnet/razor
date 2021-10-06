@@ -1,7 +1,5 @@
 //line,characterPos,length,tokenType,modifier
 0 0 1 84 0 //razorTransition
-0 15 2 96 0 //markupTextLiteral
-0 3 12 96 0 //markupTextLiteral
 1 0 1 91 0 //markupTagDelimiter
 0 1 1 92 0 //markupElement
 0 1 1 91 0 //markupTagDelimiter
