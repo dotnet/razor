@@ -48,7 +48,7 @@ stages:
       parameters:
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-RAZORTOOL'
-        MirrorRepo: aspnetcore-tooling
+        MirrorRepo: razor-tooling
 
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
@@ -96,7 +96,7 @@ stages:
       enablePublishBuildArtifacts: true
       enablePublishTestResults: true
       enableTelemetry: true
-      helixRepo: dotnet/aspnetcore-tooling
+      helixRepo: dotnet/razor-tooling
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
       ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -149,7 +149,7 @@ stages:
               /p:OfficialBuildId=$(Build.BuildNumber)
               /p:ManifestBuildBranch=$(Build.SourceBranchName)
               /p:ManifestBuildNumber=$(Build.BuildNumber)
-              /p:VisualStudioDropName=Products/dotnet/aspnetcore-tooling/$(Build.SourceBranchName)/$(Build.BuildNumber)
+              /p:VisualStudioDropName=Products/dotnet/razor-tooling/$(Build.SourceBranchName)/$(Build.BuildNumber)
 
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - group: DotNet-Blob-Feed
