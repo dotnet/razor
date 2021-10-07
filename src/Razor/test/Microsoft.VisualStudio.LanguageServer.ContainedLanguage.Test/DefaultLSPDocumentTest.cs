@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var originalSnapshot = document.CurrentSnapshot;
 
             // Act
-            document.UpdateVirtualDocument<TestVirtualDocument>(changes, hostDocumentVersion: 1337);
+            document.UpdateVirtualDocument<TestVirtualDocument>(changes, hostDocumentVersion: 1337, state: null);
 
             // Assert
             Assert.Equal(1337, virtualDocument.HostDocumentVersion);
@@ -95,18 +95,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             public override VirtualDocumentSnapshot CurrentSnapshot => null;
 
-            [Obsolete]
-            public override long? HostDocumentSyncVersion => throw new NotImplementedException();
-
             public override int HostDocumentVersion => _hostDocumentVersion;
 
-            [Obsolete]
-            public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion)
+            public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object state)
             {
                 _hostDocumentVersion = hostDocumentVersion;
                 Changes = changes;

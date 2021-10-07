@@ -12,6 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
         }
 
-        protected override TestVirtualDocumentSnapshot GetUpdatedSnapshot() => new TestVirtualDocumentSnapshot(Uri, HostDocumentVersion, TextBuffer.CurrentSnapshot);
+        protected override TestVirtualDocumentSnapshot GetUpdatedSnapshot(object state) => new TestVirtualDocumentSnapshot(Uri, HostDocumentVersion, TextBuffer.CurrentSnapshot, state);
     }
 }

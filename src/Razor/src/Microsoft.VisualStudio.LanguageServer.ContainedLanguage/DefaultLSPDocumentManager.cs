@@ -119,19 +119,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             lspDocument.Dispose();
         }
 
-        [Obsolete("Use the int override instead")]
         public override void UpdateVirtualDocument<TVirtualDocument>(
             Uri hostDocumentUri,
             IReadOnlyList<ITextChange> changes,
-            long hostDocumentVersion)
-        {
-            UpdateVirtualDocument<TVirtualDocument>(hostDocumentUri, changes, (int)hostDocumentVersion);
-        }
-
-        public override void UpdateVirtualDocument<TVirtualDocument>(
-            Uri hostDocumentUri,
-            IReadOnlyList<ITextChange> changes,
-            int hostDocumentVersion)
+            int hostDocumentVersion,
+            object state)
         {
             if (hostDocumentUri is null)
             {
@@ -169,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             var old = lspDocument.CurrentSnapshot;
             var oldVirtual = virtualDocument.CurrentSnapshot;
-            var @new = lspDocument.UpdateVirtualDocument<TVirtualDocument>(changes, hostDocumentVersion);
+            var @new = lspDocument.UpdateVirtualDocument<TVirtualDocument>(changes, hostDocumentVersion, state);
 
             if (old == @new)
             {

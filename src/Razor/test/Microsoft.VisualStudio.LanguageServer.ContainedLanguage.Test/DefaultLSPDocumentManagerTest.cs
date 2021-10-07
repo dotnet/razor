@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var changes = new[] { new VisualStudioTextChange(1, 1, string.Empty) };
 
             // Act
-            manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123);
+            manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123, state: null);
 
             // Assert
             changeListenerMock.Verify(l => l.Changed(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<LSPDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<LSPDocumentChangeKind>()),
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var changes = Array.Empty<ITextChange>();
 
             // Act
-            manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123);
+            manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123, state: null);
 
             // Assert
             changeListenerMock.Verify(l => l.Changed(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<LSPDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.VirtualDocumentChanged),
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var changes = new[] { new VisualStudioTextChange(1, 1, string.Empty) };
 
             // Act
-            manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123);
+            manager.UpdateVirtualDocument<TestVirtualDocument>(Uri, changes, 123, state: null);
 
             // Assert
             changeListenerMock.Verify(l => l.Changed(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<LSPDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.VirtualDocumentChanged),
@@ -228,18 +228,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             public override VirtualDocumentSnapshot CurrentSnapshot { get; } = new TestVirtualDocumentSnapshot(new Uri("C:/path/to/something.razor.g.cs"), 123);
 
-            [Obsolete]
-            public override long? HostDocumentSyncVersion => throw new NotImplementedException();
-
             public override int HostDocumentVersion => 123;
 
-            [Obsolete]
-            public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion)
+            public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object state)
             {
                 return CurrentSnapshot;
             }
