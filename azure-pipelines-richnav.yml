@@ -23,7 +23,7 @@ stages:
   jobs:
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
-      helixRepo: dotnet/aspnetcore-tooling
+      helixRepo: dotnet/razor-tooling
       helixType: build.product/
       enableRichCodeNavigation: true
       richCodeNavigationEnvironment: 'production'
