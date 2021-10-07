@@ -16,6 +16,7 @@ For non-Razor tooling related bugs, please log a new issue in the appropriate Gi
 * [Docs](https://github.com/aspnet/Docs)
 * [Entity Framework Core](https://github.com/dotnet/efcore)
 * [Extensions](https://github.com/dotnet/extensions)
+* [Roslyn (C#/VB IDE and compiler)](https://github.com/dotnet/roslyn)
 
 Or browse the full list of repos in the [dotnet](https://github.com/dotnet/) and [aspnet](https://github.com/aspnet/) organizations.
 
