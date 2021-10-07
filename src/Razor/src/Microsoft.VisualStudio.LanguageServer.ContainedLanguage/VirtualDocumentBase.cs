@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             Uri = uri;
             TextBuffer = textBuffer;
-            _currentSnapshot = GetUpdatedSnapshot();
+            _currentSnapshot = GetUpdatedSnapshot(state: null);
         }
 
         public override Uri Uri { get; }
@@ -37,18 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
         public override int HostDocumentVersion => _hostDocumentSyncVersion;
 
-        [Obsolete("Use HostDocumentVersion instead")]
-        public override long? HostDocumentSyncVersion => _hostDocumentSyncVersion;
-
         public override VirtualDocumentSnapshot CurrentSnapshot => _currentSnapshot;
 
-        [Obsolete]
-        public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
-        {
-            return Update(changes, (int)hostDocumentVersion);
-        }
-
-        public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion)
+        public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object state)
         {
             if (changes is null)
             {
@@ -66,12 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
 
             edit.Apply();
-            _currentSnapshot = GetUpdatedSnapshot();
+            _currentSnapshot = GetUpdatedSnapshot(state);
 
             return _currentSnapshot;
         }
 
-        protected abstract T GetUpdatedSnapshot();
+        protected abstract T GetUpdatedSnapshot(object state);
 
         [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "https://github.com/dotnet/roslyn-analyzers/issues/4801")]
         public override void Dispose()

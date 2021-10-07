@@ -553,7 +553,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 documentSnapshot.Uri,
                 new[] { addProvisionalDot },
-                previousCharacterProjection.HostDocumentVersion.Value);
+                previousCharacterProjection.HostDocumentVersion.Value,
+                state: null);
 
             var provisionalCompletionParams = new CompletionParams()
             {
@@ -583,7 +584,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 documentSnapshot.Uri,
                 new[] { removeProvisionalDot },
-                previousCharacterProjection.HostDocumentVersion.Value);
+                previousCharacterProjection.HostDocumentVersion.Value,
+                state: null);
 
             _logger.LogInformation("Found provisional completion.");
             return (true, result);
