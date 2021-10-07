@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             // Arrange
             var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            documentManager.Setup(manager => manager.UpdateVirtualDocument<CSharpVirtualDocument>(It.IsAny<Uri>(), It.IsAny<IReadOnlyList<ITextChange>>(), 1337))
+            documentManager.Setup(manager => manager.UpdateVirtualDocument<CSharpVirtualDocument>(It.IsAny<Uri>(), It.IsAny<IReadOnlyList<ITextChange>>(), 1337, It.IsAny<object>()))
                 .Verifiable();
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
             var request = new UpdateBufferRequest()

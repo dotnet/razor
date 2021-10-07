@@ -560,7 +560,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 documentSnapshot.Uri,
                 new[] { addProvisionalDot },
-                previousCharacterProjection.HostDocumentVersion.Value);
+                previousCharacterProjection.HostDocumentVersion.Value,
+                state: null);
 
             try
             {

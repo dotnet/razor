@@ -64,20 +64,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
         }
 
-        [Obsolete("Use the int overload instead")]
-        public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, long hostDocumentVersion)
-        {
-            return UpdateVirtualDocument<TVirtualDocument>(changes, (int)hostDocumentVersion);
-        }
-
-        public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int hostDocumentVersion)
+        public override LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object state)
         {
             if (!TryGetVirtualDocument<TVirtualDocument>(out var virtualDocument))
             {
                 throw new InvalidOperationException($"Cannot update virtual document of type {typeof(TVirtualDocument)} because LSP document {Uri} does not contain a virtual document of that type.");
             }
 
-            virtualDocument.Update(changes, hostDocumentVersion);
+            virtualDocument.Update(changes, hostDocumentVersion, state);
 
             _currentSnapshot = UpdateSnapshot();
 
