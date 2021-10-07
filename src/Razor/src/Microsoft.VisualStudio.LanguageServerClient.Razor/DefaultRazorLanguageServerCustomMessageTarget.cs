@@ -148,7 +148,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 hostDocumentUri,
                 request.Changes?.Select(change => change.ToVisualStudioTextChange()).ToArray(),
-                request.HostDocumentVersion.Value);
+                request.HostDocumentVersion.Value,
+                state: null);
         }
 
         public override async Task UpdateHtmlBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
@@ -175,7 +176,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
                 hostDocumentUri,
                 request.Changes?.Select(change => change.ToVisualStudioTextChange()).ToArray(),
-                request.HostDocumentVersion.Value);
+                request.HostDocumentVersion.Value,
+                state: null);
         }
 
         public override async Task<RazorDocumentRangeFormattingResponse> RazorDocumentFormattingAsync(DocumentFormattingParams request, CancellationToken cancellationToken)

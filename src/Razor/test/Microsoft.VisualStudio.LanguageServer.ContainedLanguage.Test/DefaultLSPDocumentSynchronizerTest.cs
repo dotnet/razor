@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private (TestLSPDocumentSnapshot, TestVirtualDocumentSnapshot) CreateDocuments(int lspDocumentVersion, long virtualDocumentSyncVersion)
         {
             var virtualDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
-            var virtualDocument = new TestVirtualDocumentSnapshot(virtualDocumentUri, virtualDocumentSyncVersion, VirtualDocumentSnapshot);
+            var virtualDocument = new TestVirtualDocumentSnapshot(virtualDocumentUri, virtualDocumentSyncVersion, VirtualDocumentSnapshot, state: null);
             var documentUri = new Uri("C:/path/to/file.razor");
             var document = new TestLSPDocumentSnapshot(documentUri, lspDocumentVersion, virtualDocument);
 
