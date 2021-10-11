@@ -80,9 +80,9 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>826f81a11ad17f415668fe1cb934bdaf00d36ea2</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="7.0.0-beta.21474.2">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="7.0.0-beta.21508.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>3ea0d860c6973f2cbadc9e895c7ec2cbdaec4ad5</Sha>
+      <Sha>020ac68b5848016459652ebf4ed965b9800fe426</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
