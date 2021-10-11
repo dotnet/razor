@@ -464,7 +464,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             if (context.TriggerKind != CompletionTriggerKind.TriggerCharacter)
             {
-                // Non-triggered based completion, the existing context is valid;
+                // Non-triggered based completion
+
+                if (context is VSInternalCompletionContext internalContext && internalContext.InvokeKind == VSInternalCompletionInvokeKind.Typing)
+                {
+                    // We're in the midst of doing a C# typing completion. We consider this 24/7 completion and HTML & C# only offer 24/7 completion at the
+                    // beginning of a word. Meaning, completions will be provided at `|D` but not for `|Da` which brings us to an interesting cross-roads.
+                    // Razor is currently designed with two language servers:
+                    //   1. HTML C#: Powers the HTML / C# experience
+                    //   2. Razor: Has all of the Razor understanding / powers the generated C# & HTML for a document
+                    // Because of this split, in the middle of completion requests it's possible for additional generated content (C# or HTML) to flow into the client.
+                    // When additional content flows to the client we could mean to ask for completions at `|D` but in practice it'd ask C# for `|Da` (resulting
+                    // in 0 completions). Therefore, to counteract this point-in-time design flaw we translate typing completion requests to explicit in order
+                    // to ensure that we still get completion results at `|Da`.
+                    internalContext.InvokeKind = VSInternalCompletionInvokeKind.Explicit;
+                }
+                
                 return context;
             }
 
