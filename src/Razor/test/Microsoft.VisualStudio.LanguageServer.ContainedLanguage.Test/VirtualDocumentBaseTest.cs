@@ -19,19 +19,21 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private Uri Uri { get; }
 
         [Fact]
-        public void Update_AlwaysSetsHostDocumentSyncVersion_AndUpdatesSnapshot()
+        public void Update_AlwaysSetsHostDocumentSyncVersion_AndUpdatesSnapshot_AndSetsState()
         {
             // Arrange
             var textBuffer = new TestTextBuffer(StringTextSnapshot.Empty);
             using var document = new TestVirtualDocument(Uri, textBuffer);
             var originalSnapshot = document.CurrentSnapshot;
+            var originalState = new object();
 
             // Act
-            document.Update(Array.Empty<ITextChange>(), hostDocumentVersion: 1337);
+            document.Update(Array.Empty<ITextChange>(), hostDocumentVersion: 1337, state: originalState);
 
             // Assert
             Assert.NotSame(originalSnapshot, document.CurrentSnapshot);
             Assert.Equal(1337, document.HostDocumentVersion);
+            Assert.Same(originalState, (document.CurrentSnapshot as TestVirtualDocumentSnapshot)?.State);
         }
 
         [Fact]
@@ -43,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             using var document = new TestVirtualDocument(Uri, textBuffer);
 
             // Act
-            document.Update(new[] { insert }, hostDocumentVersion: 1);
+            document.Update(new[] { insert }, hostDocumentVersion: 1, state: null);
 
             // Assert
             var text = textBuffer.CurrentSnapshot.GetText();
@@ -59,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             using var document = new TestVirtualDocument(Uri, textBuffer);
 
             // Act
-            document.Update(new[] { replace }, hostDocumentVersion: 1);
+            document.Update(new[] { replace }, hostDocumentVersion: 1, state: null);
 
             // Assert
             var text = textBuffer.CurrentSnapshot.GetText();
@@ -75,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             using var document = new TestVirtualDocument(Uri, textBuffer);
 
             // Act
-            document.Update(new[] { delete }, hostDocumentVersion: 1);
+            document.Update(new[] { delete }, hostDocumentVersion: 1, state: null);
 
             // Assert
             var text = textBuffer.CurrentSnapshot.GetText();
@@ -92,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             using var document = new TestVirtualDocument(Uri, textBuffer);
 
             // Act
-            document.Update(new[] { replace, delete }, hostDocumentVersion: 1);
+            document.Update(new[] { replace, delete }, hostDocumentVersion: 1, state: null);
 
             // Assert
             var text = textBuffer.CurrentSnapshot.GetText();
@@ -116,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             using var document = new TestVirtualDocument(Uri, textBuffer);
 
             // Act
-            document.Update(Array.Empty<ITextChange>(), hostDocumentVersion: 1);
+            document.Update(Array.Empty<ITextChange>(), hostDocumentVersion: 1, state: null);
 
             // Assert
             Assert.Equal(0, called);

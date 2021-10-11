@@ -10,15 +10,16 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     {
         private readonly long? _hostDocumentSyncVersion;
 
-        public TestVirtualDocumentSnapshot(Uri uri, long? hostDocumentVersion) : this(uri, hostDocumentVersion, snapshot: null)
+        public TestVirtualDocumentSnapshot(Uri uri, long? hostDocumentVersion) : this(uri, hostDocumentVersion, snapshot: null, state: null)
         {
         }
 
-        public TestVirtualDocumentSnapshot(Uri uri, long? hostDocumentVersion, ITextSnapshot snapshot)
+        public TestVirtualDocumentSnapshot(Uri uri, long? hostDocumentVersion, ITextSnapshot snapshot, object state)
         {
             Uri = uri;
             _hostDocumentSyncVersion = hostDocumentVersion;
             Snapshot = snapshot;
+            State = state;
         }
 
         public override Uri Uri { get; }
@@ -26,6 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public override ITextSnapshot Snapshot { get; }
 
         public override long? HostDocumentSyncVersion => _hostDocumentSyncVersion;
+
+        public object State { get; }
 
         public TestVirtualDocumentSnapshot Fork(int hostDocumentVersion) => new TestVirtualDocumentSnapshot(Uri, hostDocumentVersion);
     }

@@ -419,7 +419,7 @@ Hello World
 }
 ",
 expected: @"Hello World
-     @functions {
+@functions {
     public class Foo { }
 }
 ");
@@ -434,7 +434,7 @@ input: @"
 public class Foo{}
      }
 ",
-expected: @" @functions {
+expected: @"@functions {
     public class Foo { }
      }
 ");
@@ -731,6 +731,67 @@ expected: @"@code {
         }
     };
 }
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
+        public async Task IfBlock_TopLevel()
+        {
+            await RunFormattingTestAsync(
+input: @"
+        @if (true)
+{
+}
+",
+expected: @"@if (true)
+{
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
+        public async Task IfBlock_TopLevel_WithOtherCode()
+        {
+            await RunFormattingTestAsync(
+input: @"
+@{
+    // foo
+}
+
+        @if (true)
+{
+}
+",
+expected: @"@{
+    // foo
+}
+
+@if (true)
+{
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/aspnetcore/issues/4498")]
+        public async Task IfBlock_Nested()
+        {
+            await RunFormattingTestAsync(
+input: @"
+<div>
+        @if (true)
+{
+}
+</div>
+",
+expected: @"
+<div>
+    @if (true)
+    {
+    }
+</div>
 ");
         }
     }

@@ -7,23 +7,23 @@ assignees: ''
 
 ---
 
-**Describe the bug**
+**Describe the bug:**
 A clear and concise description of what the bug is.
 
-**Version Used**
+**Version used:**
+e.g. VS2022 17.0 Preview 1
 
-**To Reproduce**
+**To reproduce:**
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
 4. See error
 
-**Expected behavior**
+**Expected behavior:**
 A clear and concise description of what you expected to happen.
 
-**Actual Behavior**:
+**Actual behavior:**
 
-
-**Additional context**
+**Additional context:**
 Add any other context about the problem here.

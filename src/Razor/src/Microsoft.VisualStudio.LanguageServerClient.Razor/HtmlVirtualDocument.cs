@@ -13,6 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
         }
 
-        protected override HtmlVirtualDocumentSnapshot GetUpdatedSnapshot() => new(Uri, TextBuffer.CurrentSnapshot, HostDocumentVersion);
+        protected override HtmlVirtualDocumentSnapshot GetUpdatedSnapshot(object state) => new(Uri, TextBuffer.CurrentSnapshot, HostDocumentVersion);
     }
 }
