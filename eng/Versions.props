@@ -91,7 +91,7 @@
     <Tooling_MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.21103.2</Tooling_MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.0.0-previews-1-31410-258</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.0.35-gdeb9415fdc</MicrosoftVisualStudioPackagesVersion>
-    <RoslynPackageVersion>4.0.0-5.21459.3</RoslynPackageVersion>
+    <RoslynPackageVersion>4.1.0-1.21471.13</RoslynPackageVersion>
     <VisualStudioLanguageServerProtocolVersion>17.0.5133</VisualStudioLanguageServerProtocolVersion>
   </PropertyGroup>
   <PropertyGroup Label="Manual">
