@@ -20,9 +20,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="$(MicrosoftVisualStudioProjectSystemSDKPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropPackageVersion)" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="$(MicrosoftInternalVisualStudioShellFrameworkPackageVersion)" />
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcPackageVersion)" />
     <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsPackageVersion)" />
   </ItemGroup>
 
