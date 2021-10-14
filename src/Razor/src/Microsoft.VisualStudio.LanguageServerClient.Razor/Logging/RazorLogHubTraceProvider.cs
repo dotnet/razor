@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
                 logName: $"{logIdentifier}.{logHubSessionId}",
                 serviceId: new ServiceMoniker($"Razor.{logIdentifier}"));
 
-            using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker, cancellationToken).ConfigureAwait(false);
+            using var traceConfig = await LogHub.TraceConfiguration.CreateTraceConfigurationInstanceAsync(_serviceBroker, ownsServiceBroker: true, cancellationToken).ConfigureAwait(false);
             var traceSource = await traceConfig.RegisterLogSourceAsync(logId, s_logOptions, cancellationToken).ConfigureAwait(false);
 
             return traceSource;

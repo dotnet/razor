@@ -180,5 +180,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             throw new NotImplementedException();
         }
+
+        public Task<ReinvocationResponse<TResponseType>> RequestAsync<TResponseType>(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IAsyncEnumerable<ReinvocationResponse<TResponseType>> RequestMultipleAsync<TResponseType>(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
