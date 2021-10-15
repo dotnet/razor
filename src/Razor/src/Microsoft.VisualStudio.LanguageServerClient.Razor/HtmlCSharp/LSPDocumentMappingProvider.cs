@@ -6,13 +6,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
+#nullable enable
+
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     internal abstract class LSPDocumentMappingProvider
     {
-        public abstract Task<RazorMapToDocumentRangesResponse> MapToDocumentRangesAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, Range[] projectedRanges, CancellationToken cancellationToken);
+        public abstract Task<RazorMapToDocumentRangesResponse?> MapToDocumentRangesAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, Range[] projectedRanges, CancellationToken cancellationToken);
 
-        public abstract Task<RazorMapToDocumentRangesResponse> MapToDocumentRangesAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, Range[] projectedRanges, LanguageServerMappingBehavior mappingBehavior, CancellationToken cancellationToken);
+        public abstract Task<RazorMapToDocumentRangesResponse?> MapToDocumentRangesAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, Range[] projectedRanges, LanguageServerMappingBehavior mappingBehavior, CancellationToken cancellationToken);
 
         public abstract Task<Location[]> RemapLocationsAsync(Location[] locations, CancellationToken cancellationToken);
 
