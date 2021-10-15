@@ -1,6 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFramework>net472</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <LangVersion>9.0</LangVersion>
@@ -17,14 +17,13 @@
     </Content>
   </ItemGroup>
 
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.Interactive" Version="1.0.0-beta.21329.2" />
-    <PackageReference Include="Microsoft.ServiceHub.Client" Version="3.0.31-alpha" />
+    <PackageReference Include="Microsoft.ServiceHub.Client" Version="3.0.2055-alpha" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.Notebook.InteractiveService.Contract\Microsoft.VisualStudio.Notebook.InteractiveService.Contract.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Razor.ServiceHub.Contracts\Microsoft.VisualStudio.Razor.ServiceHub.Contracts.csproj" />
   </ItemGroup>
 
   <Target Name="FilesToPublishOutputGroup" DependsOnTargets="ComputeFilesToPublish" Outputs="@(FilesToPublishOutput)">
