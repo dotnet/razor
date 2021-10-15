@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -13,6 +14,8 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Newtonsoft.Json.Linq;
+
+#nullable enable
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -46,10 +49,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _lazyDocumentManager = lazyDocumentManager;
         }
 
-        public override Task<RazorMapToDocumentRangesResponse> MapToDocumentRangesAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, Range[] projectedRanges, CancellationToken cancellationToken)
+        public override Task<RazorMapToDocumentRangesResponse?> MapToDocumentRangesAsync(RazorLanguageKind languageKind, Uri razorDocumentUri, Range[] projectedRanges, CancellationToken cancellationToken)
             => MapToDocumentRangesAsync(languageKind, razorDocumentUri, projectedRanges, LanguageServerMappingBehavior.Strict, cancellationToken);
 
-        public async override Task<RazorMapToDocumentRangesResponse> MapToDocumentRangesAsync(
+        public async override Task<RazorMapToDocumentRangesResponse?> MapToDocumentRangesAsync(
             RazorLanguageKind languageKind,
             Uri razorDocumentUri,
             Range[] projectedRanges,
@@ -74,14 +77,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 MappingBehavior = mappingBehavior,
             };
 
+            if (!_lazyDocumentManager.Value.TryGetDocument(razorDocumentUri, out var documentSnapshot))
+            {
+                return null;
+            }
+
             var documentMappingResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorMapToDocumentRangesParams, RazorMapToDocumentRangesResponse>(
+                documentSnapshot.Snapshot.TextBuffer,
                 LanguageServerConstants.RazorMapToDocumentRangesEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
                 CheckRazorRangeMappingCapability,
                 mapToDocumentRangeParams,
                 cancellationToken).ConfigureAwait(false);
 
-            return documentMappingResponse.Result;
+            return documentMappingResponse?.Response;
         }
 
         public async override Task<Location[]> RemapLocationsAsync(Location[] locations, CancellationToken cancellationToken)
@@ -204,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     DocumentChanges = remappedEdits
                 };
             }
-            else if (workspaceEdit?.Changes != null)
+            else if (workspaceEdit.Changes != null)
             {
                 var remappedEdits = await RemapDocumentEditsAsync(workspaceEdit.Changes, cancellationToken).ConfigureAwait(false);
                 return new WorkspaceEdit()
@@ -216,10 +225,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return workspaceEdit;
         }
 
-        private static bool TryGetDocumentChanges(WorkspaceEdit workspaceEdit, out TextDocumentEdit[] documentChanges)
+        private static bool TryGetDocumentChanges(WorkspaceEdit workspaceEdit, [NotNullWhen(true)] out TextDocumentEdit[]? documentChanges)
         {
-            documentChanges = null;
-
             if (workspaceEdit.DocumentChanges?.Value is TextDocumentEdit[] documentEdits)
             {
                 documentChanges = documentEdits;
@@ -244,6 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             }
 
+            documentChanges = null;
             return false;
         }
 
@@ -313,12 +321,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return remappedChanges;
         }
 
-        private async Task<(LSPDocumentSnapshot, TextEdit[])> RemapTextEditsCoreAsync(
+        private async Task<(LSPDocumentSnapshot?, TextEdit[])> RemapTextEditsCoreAsync(
             Uri uri,
             TextEdit[] edits,
             TextEditKind textEditKind,
             CancellationToken cancellationToken,
-            FormattingOptions formattingOptions = null)
+            FormattingOptions? formattingOptions = null)
         {
             var languageKind = RazorLanguageKind.Razor;
             if (RazorLSPConventions.IsVirtualCSharpFile(uri))
@@ -345,16 +353,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 FormattingOptions = formattingOptions
             };
 
+            if (!_lazyDocumentManager.Value.TryGetDocument(razorDocumentUri, out var documentSnapshot))
+            {
+                return (null, s_emptyEdits);
+            }
+
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorMapToDocumentEditsParams, RazorMapToDocumentEditsResponse>(
+                documentSnapshot.Snapshot.TextBuffer,
                 LanguageServerConstants.RazorMapToDocumentEditsEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
                 CheckRazorEditMappingCapability,
                 mapToDocumentEditsParams,
                 cancellationToken).ConfigureAwait(false);
-            var mappingResult = response.Result;
+            var mappingResult = response?.Response;
 
             if (mappingResult is null ||
-                (_lazyDocumentManager.Value.TryGetDocument(razorDocumentUri, out var documentSnapshot) &&
+                (_lazyDocumentManager.Value.TryGetDocument(razorDocumentUri, out documentSnapshot) &&
                     mappingResult.HostDocumentVersion != documentSnapshot.Version))
             {
                 // Couldn't remap the location or the document changed in the meantime. Discard these ranges.
