@@ -13,6 +13,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json.Linq;
 
+#nullable enable
+
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
@@ -24,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly RazorLogger _activityLogger;
         private readonly HTMLCSharpLanguageServerLogHubLoggerProvider _loggerProvider;
 
-        private ILogger _logHubLogger = null;
+        private ILogger? _logHubLogger = null;
 
         [ImportingConstructor]
         public DefaultLSPProjectionProvider(
@@ -59,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _loggerProvider = loggerProvider;
         }
 
-        public override async Task<ProjectionResult> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+        public override async Task<ProjectionResult?> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
         {
             if (documentSnapshot is null)
             {
@@ -83,13 +85,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             };
 
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
+                documentSnapshot.Snapshot.TextBuffer,
                 LanguageServerConstants.RazorLanguageQueryEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
                 CheckRazorLanguageQueryCapability,
                 languageQueryParams,
                 cancellationToken).ConfigureAwait(false);
-            var languageResponse = response.Result;
 
+            var languageResponse = response?.Response;
             if (languageResponse is null)
             {
                 _logHubLogger.LogInformation("The language server is still being spun up. Could not resolve the projection.");
