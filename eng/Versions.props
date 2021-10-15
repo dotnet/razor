@@ -103,13 +103,11 @@
     <!-- Packages from dotnet/roslyn -->
     <MicrosoftCodeAnalysisAnalyzerTestingPackageVersion>$(Tooling_MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisAnalyzerTestingPackageVersion>
     <MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion>$(Tooling_MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion>
-    <MicrosoftExtensionsLoggingPackageVersion>2.0.0</MicrosoftExtensionsLoggingPackageVersion>
-    <MicrosoftExtensionsLoggingTestingPackageVersion>6.0.0-rc.2.21480.5</MicrosoftExtensionsLoggingTestingPackageVersion>
-    <MicrosoftExtensionsConfigurationPackageVersion>6.0.0-rc.2.21480.5</MicrosoftExtensionsConfigurationPackageVersion>
+    <OmniSharpMicrosoftExtensionsLoggingPackageVersion>2.0.0</OmniSharpMicrosoftExtensionsLoggingPackageVersion>
     <MicrosoftVisualStudioEditorPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioEditorPackageVersion>
     <MicrosoftVisualStudioLanguagePackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioLanguagePackageVersion>
     <MicrosoftVisualStudioLanguageIntellisensePackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioLanguageIntellisensePackageVersion>
-    <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>17.1.10</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
+    <MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>17.1.11</MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackageVersion>$(VisualStudioLanguageServerProtocolVersion)</MicrosoftVisualStudioLanguageServerProtocolPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsPackageVersion>$(VisualStudioLanguageServerProtocolVersion)</MicrosoftVisualStudioLanguageServerProtocolExtensionsPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion>$(VisualStudioLanguageServerProtocolVersion)</MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion>
