@@ -73,5 +73,9 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent"  Path="Microsoft.VisualStudio.LanguageServerClient.Razor.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly"  Path="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent"  Path="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" />
+
+    <!-- ServiceHub -->
+    <Assert Type="Microsoft.VisualStudio.VsPackage" d:Source="File" Path="optout.pkgdef" />
+    <Assert Type="Microsoft.VisaulStudio.VsPackage" d:Source="File" Path="servicehubservices.pkgdef" />
   </Assets>
 </PackageManifest>

@@ -42,6 +42,16 @@
     </Content>
   </ItemGroup>
 
+  <!-- Include ServiceHub assets in the VSIX -->
+  <ItemGroup>
+    <Content Include="optout.pkgdef">
+      <IncludeInVsix>true</IncludeInVsix>
+    </Content>
+    <Content Include="servicehubservices.pkgdef">
+      <IncludeInVsix>true</IncludeInVsix>
+    </Content>
+  </ItemGroup>
+
   <!-- Misc other content -->
   <ItemGroup>
     <Content Include="NOTICE.txt">
@@ -198,6 +208,15 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServerClient.Razor\Microsoft.VisualStudio.LanguageServerClient.Razor.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Common\Microsoft.AspNetCore.Razor.LanguageServer.Common.csproj" />
+
+    <ProjectReference Include="..\Microsoft.VisualStudio.Razor.ServiceHub.Contracts\Microsoft.VisualStudio.Razor.ServiceHub.Contracts.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Razor.ServiceHub\Microsoft.VisualStudio.Razor.ServiceHub.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <SetTargetFramework>TargetFramework=net6.0</SetTargetFramework>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bFilesToPublishOutputGroup</IncludeOutputGroupsInVSIX>
+      <VSIXSubPath>InteractiveService</VSIXSubPath>
+      <Ngen>false</Ngen>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
