@@ -40,20 +40,14 @@
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="OmniSharp.Extensions.LanguageProtocol.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="OmniSharp.Extensions.LanguageServer.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="OmniSharp.Extensions.LanguageServer.Shared.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Configuration.Binder.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Options.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Primitives.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.DependencyInjection.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Configuration.FileExtensions.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Configuration.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Configuration.Abstractions.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Logging.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Logging.Abstractions.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.FileSystemGlobbing.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.FileProviders.Abstractions.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.FileProviders.Physical.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="System.IO.Pipelines.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="System.Reactive.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="System.Runtime.CompilerServices.Unsafe.dll" />

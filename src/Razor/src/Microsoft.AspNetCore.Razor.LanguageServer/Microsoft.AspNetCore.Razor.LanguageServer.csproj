@@ -13,7 +13,6 @@
     <PackageReference Include="OmniSharp.Extensions.LanguageProtocol" Version="$(OmniSharpExtensionsLanguageProtocolPackageVersion)" />
 
     <!-- We hide these dependencies from consumers because they're implementation details and aren't required to interact with the language server. -->
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsConfigurationJsonPackageVersion)" PrivateAssets="All" />
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="$(OmniSharpExtensionsLanguageServerPackageVersion)" PrivateAssets="All" />
   </ItemGroup>
 
