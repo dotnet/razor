@@ -1,5 +1,0 @@
-[$RootKey$\BrokeredServices\MicrosoftVSInteractive]
-@="11AD60FC-6D87-4674-8F88-9ABE79176CBE"
-"IsServiceHub"=dword:00000001
-"ServiceLocation"="$PackageFolder$\InteractiveService"
-"audience"=dword:00000001

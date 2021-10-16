@@ -15,6 +15,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+using Microsoft.VisualStudio.Razor.ServiceHub.Contracts;
+using Microsoft.VisualStudio.RazorExtension.ServiceHub;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -41,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly VSHostServicesProvider _vsHostWorkspaceServicesProvider;
         private readonly object _shutdownLock;
         private RazorLanguageServer _server;
+        private IInteractiveService _interactiveService;
         private IDisposable _serverShutdownDisposable;
         private LogHubLoggerProvider _loggerProvider;
 
@@ -141,13 +144,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Initialize Logging Infrastructure
             _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
-            _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, ConfigureLanguageServer).ConfigureAwait(false);
+            if (UseServiceHub())
+            {
+                _interactiveService = await LanguageServerServiceFactory.CreateServiceAsync(token);
+            }
+            else
+            {
+                _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, ConfigureLanguageServer).ConfigureAwait(false);
 
-            // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
-            _server.InitializedAsync(token).FileAndForget("RazorLanguageServerClient_ActivateAsync");
+                // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
+                _server.InitializedAsync(token).FileAndForget("RazorLanguageServerClient_ActivateAsync");
+            }
 
             var connection = new Connection(clientStream, clientStream);
             return connection;
+        }
+
+        private bool UseServiceHub()
+        {
+            return true;
         }
 
         private void ConfigureLanguageServer(RazorLanguageServerBuilder builder)
@@ -224,6 +239,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     ServerShutdown();
                 }
             }
+
+            // TODO: ServiceHub cleanup
         }
 
         public async Task OnLoadedAsync()
@@ -256,16 +273,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             lock (_shutdownLock)
             {
-                if (_server == null)
+                if (_server != null)
                 {
-                    // Already shutdown
-                    return;
+                    _projectConfigurationFilePathStore.Changed -= ProjectConfigurationFilePathStore_Changed;
+                    _serverShutdownDisposable?.Dispose();
+                    _serverShutdownDisposable = null;
+                    _server = null;
                 }
 
-                _projectConfigurationFilePathStore.Changed -= ProjectConfigurationFilePathStore_Changed;
-                _serverShutdownDisposable?.Dispose();
-                _serverShutdownDisposable = null;
-                _server = null;
+                if (_interactiveService != null)
+                {
+                    _interactiveService.Shutdown();
+                }
             }
         }
 

@@ -5,13 +5,9 @@
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <LangVersion>9.0</LangVersion>
     <Ngen>false</Ngen>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="MicrosoftVSRazorLanguageServer.serviceHub.service.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="$(FeatureFlagPath)">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

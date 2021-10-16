@@ -19,6 +19,11 @@ namespace Microsoft.VisualStudio.Razor.ServiceHub
             throw new NotImplementedException();
         }
 
+        public bool Shutdown()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<bool> Start(CancellationToken ct)
         {
             var trace = Trace.Messages;

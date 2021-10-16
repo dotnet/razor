@@ -13,5 +13,7 @@ namespace Microsoft.VisualStudio.Razor.ServiceHub.Contracts
         Task<bool> IsRunning(CancellationToken ct);
 
         Task<bool> Start(CancellationToken ct);
+
+        bool Shutdown();
     }
 }
