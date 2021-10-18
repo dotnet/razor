@@ -269,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
-        public override async Task<VSInternalCodeAction[]> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<VSInternalCodeAction>> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
         {
             if (codeActionParams is null)
             {
@@ -288,17 +288,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             codeActionParams.TextDocument.Uri = csharpDoc.Uri;
 
-            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSInternalCodeAction[]>(
+            var textBuffer = csharpDoc.Snapshot.TextBuffer;
+            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
+                textBuffer,
                 Methods.TextDocumentCodeActionName,
-                LanguageServerKind.CSharp.ToContentType(),
                 SupportsCSharpCodeActions,
                 codeActionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            return results.SelectMany(l => l.Result).ToArray();
-        }
+            var codeActions = new List<VSInternalCodeAction>();
+            await foreach (var response in requests)
+            {
+                if (response.Response != null)
+                {
+                    codeActions.AddRange(response.Response);
+                }
+            }
 
-        public override async Task<VSInternalCodeAction> ResolveCodeActionsAsync(VSInternalCodeAction codeAction, CancellationToken cancellationToken)
+            return codeActions;
+        }
         {
             if (codeAction is null)
             {
