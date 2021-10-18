@@ -13,11 +13,13 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 
+#nullable enable
+
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(VSInternalMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : IRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>
+    internal class OnAutoInsertHandler : IRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new HashSet<string>();
         private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new() { "'", "/", "\n" };
@@ -72,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(OnAutoInsertHandler));
         }
 
-        public async Task<VSInternalDocumentOnAutoInsertResponseItem> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -126,17 +128,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting auto-insert for {projectionResult.Uri}.");
 
-            var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
+            var serverKind = projectionResult.LanguageKind.ToLanguageServerKind();
+            var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
+            var languageServerName = serverKind.ToLanguageServerName();
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(
+                textBuffer,
                 VSInternalMethods.OnAutoInsertName,
                 languageServerName,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
-            var result = response.Result;
 
-            if (result is null)
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var result))
             {
-                _logger.LogInformation("Received no results.");
                 return null;
             }
 
