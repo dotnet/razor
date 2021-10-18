@@ -9,10 +9,10 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    internal static class ReinvocationResponseExtensions
+    internal static class ReinvocationResponseHelper
     {
         public static bool TryExtractResultOrLog<TResponseType>(
-            this ReinvocationResponse<TResponseType> response,
+            ReinvocationResponse<TResponseType>? response,
             ILogger logger,
             string fromLanguageServerName,
             [NotNullWhen(true)] out TResponseType? result)

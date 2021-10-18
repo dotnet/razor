@@ -210,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     completionParams,
                     cancellationToken).ConfigureAwait(false);
 
-                if (!response.TryExtractResultOrLog(_logger, languageServerName, out result))
+                if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out result))
                 {
                     return null;
                 }
@@ -584,7 +584,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 provisionalCompletionParams,
                 cancellationToken).ConfigureAwait(true);
 
-            if (!response.TryExtractResultOrLog(_logger, RazorLSPConstants.RazorCSharpLanguageServerName, out result))
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorCSharpLanguageServerName, out result))
             {
                 return (false, result);
             }
