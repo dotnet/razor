@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         // Called by the Razor Language Server to resolve code actions from the platform.
         [JsonRpcMethod(LanguageServerConstants.RazorResolveCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
-        public abstract Task<VSInternalCodeAction> ResolveCodeActionsAsync(VSInternalCodeAction codeAction, CancellationToken cancellationToken);
+        public abstract Task<VSInternalCodeAction> ResolveCodeActionsAsync(RazorResolveCodeActionParams codeAction, CancellationToken cancellationToken);
 
         // Called by the Razor Language Server to provide semantic tokens from the platform.
         [JsonRpcMethod(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, UseSingleObjectParameterDeserialization = true)]
