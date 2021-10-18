@@ -7,6 +7,7 @@
     <!-- Use .NET Framework reference assemblies from a nuget package so machine-global targeting packs do not need to be installed. -->
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
+    <UsingToolMicrosoftNetCompilers>true</UsingToolMicrosoftNetCompilers>
   </PropertyGroup>
   <!-- Opt out Arcade features -->
   <PropertyGroup>
