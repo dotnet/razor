@@ -6,8 +6,12 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+
+#nullable enable
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
@@ -15,20 +19,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [Export(typeof(LSPDiagnosticsTranslator))]
     internal class DefaultLSPDiagnosticsTranslator : LSPDiagnosticsTranslator
     {
+        private readonly LSPDocumentManager _documentManager;
         private readonly LSPRequestInvoker _requestInvoker;
+        private readonly ILogger _logger;
 
         [ImportingConstructor]
-        public DefaultLSPDiagnosticsTranslator(LSPRequestInvoker requestInvoker)
+        public DefaultLSPDiagnosticsTranslator(
+            LSPDocumentManager documentManager,
+            LSPRequestInvoker requestInvoker,
+            HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
             if (requestInvoker is null)
             {
                 throw new ArgumentNullException(nameof(requestInvoker));
             }
 
+            _documentManager = documentManager;
             _requestInvoker = requestInvoker;
+            _logger = loggerProvider.CreateLogger(nameof(DefaultLSPDiagnosticsTranslator));
         }
 
-        public override async Task<RazorDiagnosticsResponse> TranslateAsync(
+        public override async Task<RazorDiagnosticsResponse?> TranslateAsync(
             RazorLanguageKind languageKind,
             Uri razorDocumentUri,
             Diagnostic[] diagnostics,
@@ -44,6 +60,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(diagnostics));
             }
 
+            if (!_documentManager.TryGetDocument(razorDocumentUri, out var documentSnapshot))
+            {
+                return new RazorDiagnosticsResponse()
+                {
+                    Diagnostics = Array.Empty<Diagnostic>(),
+                };
+            }
+
             var diagnosticsParams = new RazorDiagnosticsParams()
             {
                 Kind = languageKind,
@@ -51,13 +75,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 Diagnostics = diagnostics
             };
 
-            var diagnosticResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, RazorDiagnosticsResponse>(
+            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, RazorDiagnosticsResponse>(
+                documentSnapshot.Snapshot.TextBuffer,
                 LanguageServerConstants.RazorTranslateDiagnosticsEndpoint,
                 RazorLSPConstants.RazorLanguageServerName,
                 diagnosticsParams,
                 cancellationToken).ConfigureAwait(false);
 
-            return diagnosticResponse.Result;
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorLanguageServerName, out var result))
+            {
+                return null;
+            }
+
+            return result;
         }
     }
 }
