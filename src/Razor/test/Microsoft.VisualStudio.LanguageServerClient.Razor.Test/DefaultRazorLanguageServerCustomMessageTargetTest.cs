@@ -436,7 +436,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var documentVersion = 0;
             var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
-            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, Mock.Of<ITextSnapshot>(MockBehavior.Strict), 0);
+            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, TextBuffer.CurrentSnapshot, 0);
             LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, documentVersion, testVirtualDocument, csharpVirtualDocument);
 
             var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
@@ -446,11 +446,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var expectedcSharpResults = new VSSemanticTokensResponse();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams, VSSemanticTokensResponse>(
+                TextBuffer,
                 Methods.TextDocumentSemanticTokensFullName,
                 LanguageServerKind.CSharp.ToLanguageServerName(),
                 It.IsAny<OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult(new ReinvokeResponse<VSSemanticTokensResponse>(_languageClient, expectedcSharpResults)));
+            )).Returns(Task.FromResult(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", expectedcSharpResults)));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
@@ -490,7 +491,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
 
             var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
-            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, Mock.Of<ITextSnapshot>(MockBehavior.Strict), 0);
+            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, TextBuffer.CurrentSnapshot, 0);
             LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0, testVirtualDocument, csharpVirtualDocument);
 
             var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
@@ -500,11 +501,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var expectedResults = new SemanticTokens { };
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, SemanticTokens>(
+                TextBuffer,
                 Methods.TextDocumentSemanticTokensFullName,
                 LanguageServerKind.CSharp.ToContentType(),
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult(new ReinvokeResponse<SemanticTokens>(_languageClient, expectedResults)));
+            )).Returns(Task.FromResult(new ReinvocationResponse<SemanticTokens>("languageClient", expectedResults)));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             uIContextManager.Setup(m => m.SetUIContextAsync(RazorLSPConstants.RazorActiveUIContextGuid, true, It.IsAny<CancellationToken>()))

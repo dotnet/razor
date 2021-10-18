@@ -381,13 +381,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 PartialResultToken = semanticTokensParams.PartialResultToken,
             };
 
+            var textBuffer = csharpDoc.Snapshot.TextBuffer;
             var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, VSSemanticTokensResponse>(
+                textBuffer,
                 Methods.TextDocumentSemanticTokensFullName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 newParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var result = csharpResults.Result;
+            var result = csharpResults?.Response;
+            if (result is null)
+            {
+                // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
+                return new ProvideSemanticTokensResponse(
+                    resultId: null, tokens: null, isFinalized: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+            }
+
             var response = new ProvideSemanticTokensResponse(
                 result.ResultId, result.Data, result.IsFinalized, semanticTokensParams.RequiredHostDocumentVersion);
 
@@ -428,21 +437,29 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 PreviousResultId = semanticTokensEditsParams.PreviousResultId,
             };
 
+            var textBuffer = csharpDoc.Snapshot.TextBuffer;
             var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensDeltaParams, SumType<VSSemanticTokensResponse, VSSemanticTokensDeltaResponse>>(
+                textBuffer,
                 Methods.TextDocumentSemanticTokensFullDeltaName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 newParams,
                 cancellationToken).ConfigureAwait(false);
-            var csharpResults = csharpResponse.Result;
+            var csharpResults = csharpResponse?.Response;
+            if (csharpResults is null)
+            {
+                // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
+                return new ProvideSemanticTokensEditsResponse(
+                    resultId: null, tokens: null, edits: null, isFinalized: true, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+            }
 
             // Converting from LSP to O# types
-            if (csharpResults.Value is VSSemanticTokensResponse tokens)
+            if (csharpResults.Value.Value is VSSemanticTokensResponse tokens)
             {
                 var response = new ProvideSemanticTokensEditsResponse(
                     tokens.ResultId, tokens.Data, edits: null, isFinalized: tokens.IsFinalized, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
                 return response;
             }
-            else if (csharpResults.Value is VSSemanticTokensDeltaResponse edits)
+            else if (csharpResults.Value.Value is VSSemanticTokensDeltaResponse edits)
             {
                 var results = new RazorSemanticTokensEdit[edits.Edits.Length];
                 for (var i = 0; i < edits.Edits.Length; i++)
