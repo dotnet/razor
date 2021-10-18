@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 serializedParams,
                 cancellationToken);
 
-            var result = resultToken != null ? new ReinvokeResponse<TOut>(languageClient!, resultToken.ToObject<TOut>(_serializer)!) : default;
+            var result = resultToken is not null ? new ReinvokeResponse<TOut>(languageClient!, resultToken.ToObject<TOut>(_serializer)!) : default;
             return result;
         }
 
@@ -120,13 +120,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 parameterFactory,
                 cancellationToken);
 
-            if (response == null)
+            if (response is null)
             {
                 return null;
             }
 
             var responseBody = default(TOut);
-            if (response.Response != null)
+            if (response.Response is not null)
             {
                 responseBody = response.Response.ToObject<TOut>(_serializer);
             }
@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 #pragma warning restore CS0618 // Type or member is obsolete
 
             // a little ugly - tuple deconstruction in lambda arguments doesn't work - https://github.com/dotnet/csharplang/issues/258
-            var results = clientAndResultTokenPairs.Select((clientAndResultToken) => clientAndResultToken.Item2 != null ? new ReinvokeResponse<TOut>(clientAndResultToken.Item1, clientAndResultToken.Item2.ToObject<TOut>(_serializer)!) : default);
+            var results = clientAndResultTokenPairs.Select((clientAndResultToken) => clientAndResultToken.Item2 is not null ? new ReinvokeResponse<TOut>(clientAndResultToken.Item1, clientAndResultToken.Item2.ToObject<TOut>(_serializer)!) : default);
 
             return results;
         }
@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             await foreach (var response in requests)
             {
                 var responseBody = default(TOut);
-                if (response.Response != null)
+                if (response.Response is not null)
                 {
                     responseBody = response.Response.ToObject<TOut>(_serializer);
                     var reinvocationResponse = new ReinvocationResponse<TOut>(response.LanguageClientName, responseBody);
