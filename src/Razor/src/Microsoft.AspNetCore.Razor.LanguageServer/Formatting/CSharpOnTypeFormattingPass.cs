@@ -429,5 +429,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var change = new TextChange(spanToReplace, replacement);
             changes.Add(change);
         }
+
+        private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits)
+        {
+            if (originalText is null)
+            {
+                throw new ArgumentNullException(nameof(originalText));
+            }
+
+            if (edits is null)
+            {
+                throw new ArgumentNullException(nameof(edits));
+            }
+
+            var changes = edits.Select(e => e.AsTextChange(originalText));
+            var changedText = originalText.WithChanges(changes);
+            var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
+            var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
+            return cleanEdits;
+        }
     }
 }
