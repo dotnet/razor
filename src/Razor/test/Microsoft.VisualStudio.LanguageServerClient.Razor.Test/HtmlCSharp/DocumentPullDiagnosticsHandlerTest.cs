@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
@@ -95,8 +96,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
         };
 
-        private static readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
-
         public DocumentPullDiagnosticsHandlerTest()
         {
             Uri = new Uri("C:/path/to/file.razor");
@@ -142,10 +141,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 s_roslynDiagnosticResponse,
-                (method, serverContentType, diagnosticParams, ct) =>
+                (textBuffer, method, diagnosticParams, ct) =>
                 {
                     Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -188,10 +186,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 s_roslynDiagnosticResponse,
-                (method, serverContentType, diagnosticParams, ct) =>
+                (textBuffer, method, diagnosticParams, ct) =>
                 {
                     Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -260,10 +257,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 new[] { diagnosticReport },
-                (method, serverContentType, diagnosticParams, ct) =>
+                (textBuffer, method, diagnosticParams, ct) =>
                 {
                     Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -328,10 +324,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 new[] { diagnosticReport },
-                (method, serverContentType, diagnosticParams, ct) =>
+                (textBuffer, method, diagnosticParams, ct) =>
                 {
                     Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -364,10 +359,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 s_roslynDiagnosticResponse,
-                (method, serverContentType, diagnosticParams, ct) =>
+                (textBuffer, method, diagnosticParams, ct) =>
                 {
                     Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -402,10 +396,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = GetRequestInvoker<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 s_roslynDiagnosticResponse,
-                (method, serverContentType, diagnosticParams, ct) =>
+                (textBuffer, method, diagnosticParams, ct) =>
                 {
                     Assert.Equal(VSInternalMethods.DocumentPullDiagnosticName, method);
-                    Assert.Equal(RazorLSPConstants.CSharpContentTypeName, serverContentType);
                     called = true;
                 });
 
@@ -429,27 +422,35 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Null(returnedReport.Diagnostics);
         }
 
-        private static LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<string, string, TParams, CancellationToken> callback)
+        private static LSPRequestInvoker GetRequestInvoker<TParams, TResult>(TResult expectedResponse, Action<ITextBuffer, string, TParams, CancellationToken> callback)
         {
+            async IAsyncEnumerable<ReinvocationResponse<TResult>> GetExpectedResultsAsync()
+            {
+                yield return new ReinvocationResponse<TResult>("LanguageClientName", expectedResponse);
+
+                await Task.CompletedTask;
+            }
+            var expectedResponses = GetExpectedResultsAsync();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnMultipleServersAsync<TParams, TResult>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReinvokeRequestOnMultipleServersAsync<TParams, TResult>(
+                    It.IsAny<ITextBuffer>(), It.IsAny<string>(), It.IsAny<TParams>(), It.IsAny<CancellationToken>()))
                 .Callback(callback)
-                .Returns(Task.FromResult(new List<ReinvokeResponse<TResult>>() { new ReinvokeResponse<TResult>(_languageClient, expectedResponse )} as IEnumerable<ReinvokeResponse<TResult>>));
+                .Returns(expectedResponses);
 
             return requestInvoker.Object;
         }
 
-        private TrackingLSPDocumentManager CreateDocumentManager(int hostDocumentVersion = 0)
+        private LSPDocumentManager CreateDocumentManager(int hostDocumentVersion = 0)
         {
             var testVirtualDocUri = new Uri("C:/path/to/file.razor.g.cs");
             var testVirtualDocument = new TestVirtualDocumentSnapshot(Uri, hostDocumentVersion);
-            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testVirtualDocUri, Mock.Of<ITextSnapshot>(MockBehavior.Strict), hostDocumentVersion);
-            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(Uri, hostDocumentVersion, testVirtualDocument, csharpVirtualDocument);
-            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
-                .Returns(true);
-            return documentManager.Object;
+            var csharpTextBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
+            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testVirtualDocUri, csharpTextBuffer.CurrentSnapshot, hostDocumentVersion);
+            LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(Uri, hostDocumentVersion, testVirtualDocument, csharpVirtualDocument);
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(Uri, documentSnapshot);
+            return documentManager;
         }
 
         private LSPDiagnosticsTranslator GetDiagnosticsProvider(params Range[] expectedRanges)
