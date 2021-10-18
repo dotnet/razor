@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 request,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!response.TryExtractResultOrLog(_logger, RazorLSPConstants.RazorCSharpLanguageServerName, out var result))
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorCSharpLanguageServerName, out var result))
             {
                 return request;
             }
