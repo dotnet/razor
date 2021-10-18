@@ -322,10 +322,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public async Task ResolveCodeActionsAsync_ReturnsSingleCodeAction()
         {
             // Arrange
-            var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
-
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor.g.cs"), TextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
+            var documentManager = new TestDocumentManager();
+            var razorUri = new Uri("C:/path/to/file.razor");
+            documentManager.AddDocument(razorUri, new TestLSPDocumentSnapshot(razorUri, version: 0, "Some Content", csharpVirtualDocument));
             var expectedCodeAction = new VSInternalCodeAction()
             {
                 Title = "Something",
@@ -336,17 +337,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Title = "Something Else",
                 Data = new object()
             };
-            IEnumerable<ReinvokeResponse<VSInternalCodeAction>> expectedResponses = new List<ReinvokeResponse<VSInternalCodeAction>> () {
-                new ReinvokeResponse<VSInternalCodeAction>(_languageClient, expectedCodeAction),
-                new ReinvokeResponse<VSInternalCodeAction>(_languageClient, unexpectedCodeAction),
-            };
+
+            async IAsyncEnumerable<ReinvocationResponse<VSInternalCodeAction>> GetExpectedResultsAsync()
+            {
+                yield return new ReinvocationResponse<VSInternalCodeAction>("languageClient", expectedCodeAction);
+                yield return new ReinvocationResponse<VSInternalCodeAction>("languageClient", unexpectedCodeAction);
+
+                await Task.CompletedTask;
+            }
+            var expectedResponses = GetExpectedResultsAsync();
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
+                It.IsAny<ITextBuffer>(),
                 Methods.CodeActionResolveName,
-                LanguageServerKind.CSharp.ToContentType(),
                 It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<VSInternalCodeAction>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult(expectedResponses));
+            )).Returns(expectedResponses);
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
@@ -354,12 +360,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
-                documentManager.Object, JoinableTaskContext, requestInvoker.Object,
+                documentManager, JoinableTaskContext, requestInvoker.Object,
                 uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object, documentSynchronizer.Object);
-            var request = new VSInternalCodeAction()
+            var codeAction = new VSInternalCodeAction()
             {
                 Title = "Something",
             };
+            var request = new RazorResolveCodeActionParams(razorUri, codeAction);
 
             // Act
             var result = await target.ResolveCodeActionsAsync(request, CancellationToken.None).ConfigureAwait(false);

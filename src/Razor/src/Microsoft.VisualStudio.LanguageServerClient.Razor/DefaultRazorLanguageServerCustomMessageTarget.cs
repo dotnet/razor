@@ -309,20 +309,39 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return codeActions;
         }
+
+        public override async Task<VSInternalCodeAction> ResolveCodeActionsAsync(RazorResolveCodeActionParams resolveCodeActionParams, CancellationToken cancellationToken)
         {
-            if (codeAction is null)
+            if (resolveCodeActionParams is null)
             {
-                throw new ArgumentNullException(nameof(codeAction));
+                throw new ArgumentNullException(nameof(resolveCodeActionParams));
             }
 
-            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
+            if (!_documentManager.TryGetDocument(resolveCodeActionParams.Uri, out var documentSnapshot))
+            {
+                // Couldn't resolve the document associated with the code action bail out.
+                return null;
+            }
+
+            var csharpTextBuffer = LanguageServerKind.CSharp.GetTextBuffer(documentSnapshot);
+            var codeAction = resolveCodeActionParams.CodeAction;
+            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
+                csharpTextBuffer,
                 Methods.CodeActionResolveName,
-                LanguageServerKind.CSharp.ToContentType(),
                 SupportsCSharpCodeActions,
                 codeAction,
                 cancellationToken).ConfigureAwait(false);
 
-            return results.FirstOrDefault(c => c.Result != null).Result;
+            await foreach (var response in requests)
+            {
+                if (response.Response != null)
+                {
+                    // Only take the first response from a resolution
+                    return response.Response;
+                }
+            }
+
+            return null;
         }
 
         public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(
