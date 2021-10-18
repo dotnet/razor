@@ -56,6 +56,7 @@
     <MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>6.0.0-rtm.21518.12</MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion>
     <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>6.0.0-rtm.21518.12</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XPackageVersion>
     <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>6.0.0-rtm.21518.12</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XPackageVersion>
+    <MicrosoftExtensionsConfigurationPackageVersion>6.0.0-rtm.21518.4</MicrosoftExtensionsConfigurationPackageVersion>
     <MicrosoftExtensionsConfigurationJsonPackageVersion>6.0.0-rtm.21518.4</MicrosoftExtensionsConfigurationJsonPackageVersion>
     <MicrosoftExtensionsDependencyModelPackageVersion>6.0.0-rtm.21518.4</MicrosoftExtensionsDependencyModelPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>6.0.0-rtm.21518.4</MicrosoftExtensionsLoggingPackageVersion>
