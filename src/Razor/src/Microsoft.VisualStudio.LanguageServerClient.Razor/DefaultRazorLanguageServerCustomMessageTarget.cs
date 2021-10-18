@@ -209,13 +209,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Options = request.Options
             };
 
+            var textBuffer = htmlDocument.Snapshot.TextBuffer;
             var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentFormattingParams, TextEdit[]>(
+                textBuffer,
                 Methods.TextDocumentFormattingName,
                 languageServerName,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
 
-            response.Edits = edits.Result ?? Array.Empty<TextEdit>();
+            response.Edits = edits?.Response ?? Array.Empty<TextEdit>();
 
             return response;
         }
@@ -258,13 +260,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Options = request.Options
             };
 
+            var textBuffer = csharpDocument.Snapshot.TextBuffer;
             var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
+                textBuffer,
                 Methods.TextDocumentRangeFormattingName,
                 languageServerName,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
 
-            response.Edits = edits.Result ?? Array.Empty<TextEdit>();
+            response.Edits = edits?.Response ?? Array.Empty<TextEdit>();
 
             return response;
         }

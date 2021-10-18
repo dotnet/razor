@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
@@ -34,7 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private ITextBuffer TextBuffer { get; }
 
         private JoinableTaskContext JoinableTaskContext { get; }
-        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
 
         [Fact]
         public void UpdateCSharpBuffer_CannotLookupDocument_NoopsGracefully()
@@ -153,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Arrange
             var filePath = "c:/Some/path/to/file.razor";
             var uri = new Uri(filePath);
-            var virtualDocument = new CSharpVirtualDocumentSnapshot(new Uri($"{filePath}.g.cs"), Mock.Of<ITextSnapshot>(MockBehavior.Strict), 1);
+            var virtualDocument = new CSharpVirtualDocumentSnapshot(new Uri($"{filePath}.g.cs"), TextBuffer.CurrentSnapshot, 1);
             LSPDocumentSnapshot document = new TestLSPDocumentSnapshot(uri, 1, new[] { virtualDocument });
             var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
@@ -167,11 +165,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
+                    TextBuffer,
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<DocumentRangeFormattingParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new ReinvokeResponse<TextEdit[]>(_languageClient, new[] { expectedEdit })));
+                .Returns(Task.FromResult(new ReinvocationResponse<TextEdit[]>("languageClient", new[] { expectedEdit })));
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
