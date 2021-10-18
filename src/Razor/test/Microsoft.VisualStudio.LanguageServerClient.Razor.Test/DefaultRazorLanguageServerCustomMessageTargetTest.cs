@@ -6,19 +6,20 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 using OmniSharpTextDocumentIdentifier = OmniSharp.Extensions.LanguageServer.Protocol.Models.TextDocumentIdentifier;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -27,7 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public DefaultRazorLanguageServerCustomMessageTargetTest()
         {
             JoinableTaskContext = new JoinableTaskContext();
+            TextBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
         }
+
+        private ITextBuffer TextBuffer { get; }
 
         private JoinableTaskContext JoinableTaskContext { get; }
         private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
@@ -262,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
 
             var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
-            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, Mock.Of<ITextSnapshot>(MockBehavior.Strict), 0);
+            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, TextBuffer.CurrentSnapshot, 0);
             LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0, testVirtualDocument, csharpVirtualDocument);
 
             var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
@@ -271,18 +275,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var languageServer1Response = new[] { new VSInternalCodeAction() { Title = "Response 1" } };
             var languageServer2Response = new[] { new VSInternalCodeAction() { Title = "Response 2" } };
-            IEnumerable<ReinvokeResponse<VSInternalCodeAction[]>> expectedResults = new List<ReinvokeResponse<VSInternalCodeAction[]>>() {
-                new ReinvokeResponse<VSInternalCodeAction[]>(_languageClient, languageServer1Response),
-                new ReinvokeResponse<VSInternalCodeAction[]>(_languageClient, languageServer2Response),
-            };
+
+            async IAsyncEnumerable<ReinvocationResponse<IReadOnlyList<VSInternalCodeAction>>> GetExpectedResultsAsync()
+            {
+                yield return new ReinvocationResponse<IReadOnlyList<VSInternalCodeAction>>("languageClient", languageServer1Response);
+                yield return new ReinvocationResponse<IReadOnlyList<VSInternalCodeAction>>("languageClient", languageServer2Response);
+
+                await Task.CompletedTask;
+            }
+            var expectedResults = GetExpectedResultsAsync();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSInternalCodeAction[]>(
+            requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
+                TextBuffer,
                 Methods.TextDocumentCodeActionName,
-                LanguageServerKind.CSharp.ToContentType(),
                 It.IsAny<Func<JToken, bool>>(),
                 It.IsAny<CodeActionParams>(),
                 It.IsAny<CancellationToken>()
-            )).Returns(Task.FromResult<IEnumerable<ReinvokeResponse<VSInternalCodeAction[]>>>(expectedResults));
+            )).Returns(expectedResults);
 
             var uIContextManager = new Mock<RazorUIContextManager>(MockBehavior.Strict);
             var disposable = new Mock<IDisposable>(MockBehavior.Strict);
