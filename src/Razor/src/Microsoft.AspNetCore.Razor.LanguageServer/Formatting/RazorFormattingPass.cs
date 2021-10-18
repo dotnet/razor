@@ -70,7 +70,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Compute the final combined set of edits
             var formattingChanges = edits.Select(e => e.AsTextChange(changedText));
             changedText = changedText.WithChanges(formattingChanges);
-            var finalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
+
+            var finalChanges = changedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);

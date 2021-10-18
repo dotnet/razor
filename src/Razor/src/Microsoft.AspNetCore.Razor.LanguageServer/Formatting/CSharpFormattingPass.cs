@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 changedText = changedText.WithChanges(indentationChanges);
             }
 
-            var finalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
+            var finalChanges = changedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);

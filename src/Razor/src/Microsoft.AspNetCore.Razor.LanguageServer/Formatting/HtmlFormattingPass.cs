@@ -58,8 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var originalText = context.SourceText;
 
             var htmlEdits = await HtmlFormatter.FormatAsync(context, cancellationToken);
-            var normalizedEdits = NormalizeTextEdits(originalText, htmlEdits);
-            var mappedEdits = RemapTextEdits(context.CodeDocument, normalizedEdits, RazorLanguageKind.Html);
+            var mappedEdits = RemapTextEdits(context.CodeDocument, htmlEdits, RazorLanguageKind.Html);
             var changes = mappedEdits.Select(e => e.AsTextChange(originalText));
 
             var changedText = originalText;
@@ -78,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 changedText = changedText.WithChanges(indentationChanges);
             }
 
-            var finalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
+            var finalChanges = changedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);

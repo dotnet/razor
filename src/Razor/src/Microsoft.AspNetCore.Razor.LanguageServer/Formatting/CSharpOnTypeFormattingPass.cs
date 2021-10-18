@@ -143,7 +143,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             // Now that we have made all the necessary changes to the document. Let's diff the original vs final version and return the diff.
-            var finalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, cleanedText, lineDiffOnly: false);
+            var finalChanges = cleanedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);
