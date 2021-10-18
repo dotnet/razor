@@ -152,16 +152,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
         private static SourceText ApplyChangesAndTrackChange(SourceText oldText, IEnumerable<TextChange> changes, out TextSpan spanBeforeChange, out TextSpan spanAfterChange)
         {
-            if (oldText is null)
-            {
-                throw new ArgumentNullException(nameof(oldText));
-            }
-
-            if (changes is null)
-            {
-                throw new ArgumentNullException(nameof(changes));
-            }
-
             var newText = oldText.WithChanges(changes);
             var affectedRange = newText.GetEncompassingTextChangeRange(oldText);
 
@@ -432,16 +422,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits)
         {
-            if (originalText is null)
-            {
-                throw new ArgumentNullException(nameof(originalText));
-            }
-
-            if (edits is null)
-            {
-                throw new ArgumentNullException(nameof(edits));
-            }
-
             var changes = edits.Select(e => e.AsTextChange(originalText));
             var changedText = originalText.WithChanges(changes);
             var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
