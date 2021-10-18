@@ -287,14 +287,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         [JsonRpcMethod(Methods.TextDocumentRenameName, UseSingleObjectParameterDeserialization = true)]
-        public Task<WorkspaceEdit> RenameAsync(RenameParams renameParams, CancellationToken cancellationToken)
+        public Task<WorkspaceEdit?> RenameAsync(RenameParams renameParams, CancellationToken cancellationToken)
         {
             if (renameParams is null)
             {
                 throw new ArgumentNullException(nameof(renameParams));
             }
 
-            return ExecuteRequestAsync<RenameParams, WorkspaceEdit>(Methods.TextDocumentRenameName, renameParams, _clientCapabilities, cancellationToken);
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
+            }
+
+            return ExecuteRequestAsync<RenameParams, WorkspaceEdit?>(Methods.TextDocumentRenameName, renameParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentImplementationName, UseSingleObjectParameterDeserialization = true)]
