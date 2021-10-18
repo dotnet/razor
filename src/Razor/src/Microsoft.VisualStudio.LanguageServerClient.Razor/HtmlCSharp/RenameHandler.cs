@@ -11,11 +11,13 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 
+#nullable enable
+
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentRenameName)]
-    internal class RenameHandler : IRequestHandler<RenameParams, WorkspaceEdit>
+    internal class RenameHandler : IRequestHandler<RenameParams, WorkspaceEdit?>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -64,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger = loggerProvider.CreateLogger(nameof(RenameHandler));
         }
 
-        public async Task<WorkspaceEdit> HandleRequestAsync(RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -107,20 +109,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting rename for {projectionResult.Uri}.");
 
+            var serverKind = projectionResult.LanguageKind.ToLanguageServerKind();
+            var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
+            var languageServerName = serverKind.ToLanguageServerName();
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<RenameParams, WorkspaceEdit>(
+                textBuffer,
                 Methods.TextDocumentRenameName,
-                projectionResult.LanguageKind.ToContainedLanguageServerName(),
+                languageServerName,
                 renameParams,
                 cancellationToken).ConfigureAwait(false);
-            var result = response.Result;
 
-            if (result is null)
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var result))
             {
-                _logger.LogInformation("Received no result.");
                 return null;
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
 
             _logger.LogInformation("Received result, remapping.");
 
