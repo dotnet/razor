@@ -12,13 +12,15 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
+#nullable enable
+
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     internal class RazorHtmlCSharpLanguageServer : IDisposable
     {
         private readonly JsonRpc _jsonRpc;
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
-        private VSInternalClientCapabilities _clientCapabilities;
+        private VSInternalClientCapabilities? _clientCapabilities;
 
         private RazorHtmlCSharpLanguageServer(
             Stream inputStream,
@@ -70,7 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Test constructor
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         internal RazorHtmlCSharpLanguageServer(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             if (requestHandlers is null)
             {
@@ -91,8 +95,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSInternalClientCapabilities
             // to avoid losing them.
-            _clientCapabilities = input["capabilities"].ToObject<VSInternalClientCapabilities>();
+            _clientCapabilities = input["capabilities"]?.ToObject<VSInternalClientCapabilities>();
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities failed to deserialize");
+            }
+
             var initializeParams = input.ToObject<InitializeParams>();
+            if (initializeParams is null)
+            {
+                throw new InvalidOperationException("Initialize params failed to deserialize");
+            }
+
             return ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, initializeParams, _clientCapabilities, cancellationToken);
         }
 
@@ -120,6 +134,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(completionParams));
             }
 
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
+            }
+
             return ExecuteRequestAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(Methods.TextDocumentCompletionName, completionParams, _clientCapabilities, cancellationToken);
         }
 
@@ -129,6 +148,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (positionParams is null)
             {
                 throw new ArgumentNullException(nameof(positionParams));
+            }
+
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
             }
 
             return ExecuteRequestAsync<TextDocumentPositionParams, Hover>(Methods.TextDocumentHoverName, positionParams, _clientCapabilities, cancellationToken);
@@ -142,18 +166,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(request));
             }
 
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
+            }
+
             return ExecuteRequestAsync<CompletionItem, CompletionItem>(Methods.TextDocumentCompletionResolveName, request, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(VSInternalMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSInternalDocumentOnAutoInsertResponseItem> OnAutoInsertAsync(VSInternalDocumentOnAutoInsertParams request, CancellationToken cancellationToken)
+        public Task<VSInternalDocumentOnAutoInsertResponseItem?> OnAutoInsertAsync(VSInternalDocumentOnAutoInsertParams request, CancellationToken cancellationToken)
         {
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return ExecuteRequestAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem>(VSInternalMethods.OnAutoInsertName, request, _clientCapabilities, cancellationToken);
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
+            }
+
+            return ExecuteRequestAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(VSInternalMethods.OnAutoInsertName, request, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName, UseSingleObjectParameterDeserialization = true)]
@@ -162,6 +196,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
+            }
+
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
             }
 
             return ExecuteRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(Methods.TextDocumentOnTypeFormattingName, request, _clientCapabilities, cancellationToken);
@@ -175,6 +214,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(request));
             }
 
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
+            }
+
             return ExecuteRequestAsync<LinkedEditingRangeParams, LinkedEditingRanges>(Methods.TextDocumentLinkedEditingRangeName, request, _clientCapabilities, cancellationToken);
         }
 
@@ -184,6 +228,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (positionParams is null)
             {
                 throw new ArgumentNullException(nameof(positionParams));
+            }
+
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
             }
 
             return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentDefinitionName, positionParams, _clientCapabilities, cancellationToken);
@@ -197,6 +246,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(referenceParams));
             }
 
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
+            }
+
             return ExecuteRequestAsync<ReferenceParams, VSInternalReferenceItem[]>(Methods.TextDocumentReferencesName, referenceParams, _clientCapabilities, cancellationToken);
         }
 
@@ -208,6 +262,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(positionParams));
             }
 
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
+            }
+
             return ExecuteRequestAsync<TextDocumentPositionParams, SignatureHelp>(Methods.TextDocumentSignatureHelpName, positionParams, _clientCapabilities, cancellationToken);
         }
 
@@ -217,6 +276,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (documentHighlightParams is null)
             {
                 throw new ArgumentNullException(nameof(documentHighlightParams));
+            }
+
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
             }
 
             return ExecuteRequestAsync<DocumentHighlightParams, DocumentHighlight[]>(Methods.TextDocumentDocumentHighlightName, documentHighlightParams, _clientCapabilities, cancellationToken);
@@ -241,6 +305,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(positionParams));
             }
 
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
+            }
+
             return ExecuteRequestAsync<TextDocumentPositionParams, Location[]>(Methods.TextDocumentImplementationName, positionParams, _clientCapabilities, cancellationToken);
         }
 
@@ -252,6 +321,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(documentDiagnosticsParams));
             }
 
+            if (_clientCapabilities is null)
+            {
+                throw new InvalidOperationException("Client capabilities have not been provided prior to request");
+            }
+
             return ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, IReadOnlyList<VSInternalDiagnosticReport>>(VSInternalMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, _clientCapabilities, cancellationToken);
         }
 
@@ -261,9 +335,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         // Having a server capability would reduce overhead of sending/receiving the request and the
         // associated serialization/deserialization.
         [JsonRpcMethod(VSInternalMethods.WorkspacePullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
-        public static Task<VSInternalWorkspaceDiagnosticReport> WorkspacePullDiagnosticsAsync(VSInternalWorkspaceDiagnosticsParams workspaceDiagnosticsParams, CancellationToken cancellationToken)
+        public static Task<VSInternalWorkspaceDiagnosticReport?> WorkspacePullDiagnosticsAsync(VSInternalWorkspaceDiagnosticsParams workspaceDiagnosticsParams, CancellationToken cancellationToken)
         {
-            return Task.FromResult<VSInternalWorkspaceDiagnosticReport>(null);
+            return Task.FromResult<VSInternalWorkspaceDiagnosticReport?>(null);
         }
 
         // Internal for testing
@@ -283,13 +357,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var handler = (IRequestHandler<RequestType, ResponseType>)_requestHandlers[methodName]?.Value;
-
-            if (handler is null)
+            if (!_requestHandlers.TryGetValue(methodName, out var lazyHandler))
             {
                 throw new InvalidOperationException($"Request handler not found for method {methodName}");
             }
 
+            var handler = (IRequestHandler<RequestType, ResponseType>)lazyHandler.Value;
             return handler.HandleRequestAsync(request, clientCapabilities, cancellationToken);
         }
 
