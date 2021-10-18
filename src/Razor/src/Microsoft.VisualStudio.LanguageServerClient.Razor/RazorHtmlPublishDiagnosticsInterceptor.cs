@@ -125,6 +125,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 cancellationToken
             ).ConfigureAwait(false);
 
+            if (processedDiagnostics is null)
+            {
+                _logger?.LogInformation($"Failed to talk to diagnostic translation server for {htmlDocumentUri}.");
+                return CreateEmptyDiagnosticsResponse(diagnosticParams);
+            }
+
             // Note it's possible the document version changed between when the diagnostics were created
             // and when we finished remapping the diagnostics. This could result in lingering / misaligned diagnostics.
             // We're choosing to do this over clearing out the diagnostics as that would lead to flickering.
