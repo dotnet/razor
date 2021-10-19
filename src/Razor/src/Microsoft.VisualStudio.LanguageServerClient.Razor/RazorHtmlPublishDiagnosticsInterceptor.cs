@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (processedDiagnostics is null)
             {
-                _logger?.LogInformation($"Failed to talk to diagnostic translation server for {htmlDocumentUri}.");
+                _logger?.LogWarning($"Failed to semnd request to diagnostic translation server for {htmlDocumentUri}.");
                 return CreateEmptyDiagnosticsResponse(diagnosticParams);
             }
 
