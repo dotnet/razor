@@ -104,17 +104,25 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 }
             };
 
-            var languageServerName = projectionResult.LanguageKind.ToContainedLanguageServerName();
+            var serverKind = projectionResult.LanguageKind.ToLanguageServerKind();
+            var languageServerName = serverKind.ToLanguageServerName();
+
             _logger.LogInformation($"Requesting {languageServerName} implementation for {projectionResult.Uri}.");
 
+            var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
+                textBuffer,
                 Methods.TextDocumentImplementationName,
                 languageServerName,
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
-            var locations = response.Result;
 
-            if (locations is null || locations.Length == 0)
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var locations))
+            {
+                return null;
+            }
+
+            if (locations.Length == 0)
             {
                 _logger.LogInformation("Received no results.");
                 return locations;
