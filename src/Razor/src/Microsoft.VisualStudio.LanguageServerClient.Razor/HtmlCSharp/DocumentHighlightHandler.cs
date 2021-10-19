@@ -110,14 +110,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting highlights for {projectionResult.Uri} at ({projectionResult.Position?.Line}, {projectionResult.Position?.Character}).");
 
+            var languageServerName = serverKind.ToLanguageServerName();
+            var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentHighlightParams, DocumentHighlight[]>(
+                textBuffer,
                 Methods.TextDocumentDocumentHighlightName,
-                serverKind.ToLanguageServerName(),
+                languageServerName,
                 documentHighlightParams,
                 cancellationToken).ConfigureAwait(false);
-            var highlights = response.Result;
 
-            if (highlights is null || highlights.Length == 0)
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var highlights))
+            {
+                return null;
+            }
+
+            if (highlights.Length == 0)
             {
                 _logger.LogInformation("Received no results.");
                 return highlights;
