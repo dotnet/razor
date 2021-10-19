@@ -133,10 +133,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation($"Requesting diagnostics for {csharpDoc.Uri} with previous result Id of {request.PreviousResultId}.");
 
             var textBuffer = csharpDoc.Snapshot.TextBuffer;
-
-            // End goal is to transition this from ReinvokeRequestOnMultipleServersAsync -> ReinvokeRequestOnServerAsync
-            // We can't do this right now as we don't have the ability to specify the language client name we'd like to make the call out to
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1246135
             var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
                 textBuffer,
                 VSInternalMethods.DocumentPullDiagnosticName,
