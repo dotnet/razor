@@ -3,17 +3,17 @@
 
 #nullable enable
 
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Razor.ServiceHub.Contracts;
 using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.RazorExtension.ServiceHub
 {
     public static class LanguageServerServiceFactory
     {
-        public static async Task<IInteractiveService?> CreateServiceAsync(CancellationToken cancellationToken)
+        public static async Task<IDuplexPipe?> CreateServiceAsync(CancellationToken cancellationToken)
         {
             if (VSShell.Package.GetGlobalService(typeof(VSShell.Interop.SAsyncServiceProvider)) is not VSShell.IAsyncServiceProvider serviceProvider)
             {
@@ -29,9 +29,7 @@ namespace Microsoft.VisualStudio.RazorExtension.ServiceHub
             }
             var sb = serviceContainer.GetFullAccessServiceBroker();
 
-#pragma warning disable ISB001 // Dispose of proxies
-            return await sb.GetProxyAsync<IInteractiveService>(RpcDescriptor.InteractiveServiceDescriptor, cancellationToken);
-#pragma warning restore ISB001 // Dispose of proxies
+            return await sb.GetPipeAsync(RpcDescriptor.InteractiveServiceDescriptor.Moniker, cancellationToken);
         }
     }
 }

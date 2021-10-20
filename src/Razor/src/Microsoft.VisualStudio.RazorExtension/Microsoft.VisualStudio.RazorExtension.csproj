@@ -48,8 +48,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="MicrosoftVSRazorLanguageServer.serviceHub.service.json">
+    <Content Include="Microsoft.VisualStudio.Razor.LanguageServer.serviceHub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Microsoft.VisualStudio.Razor.TagHelperProvider.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -208,7 +209,6 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bFilesToPublishOutputGroup</IncludeOutputGroupsInVSIX>
-      <VSIXSubPath>InteractiveService</VSIXSubPath>
       <Ngen>false</Ngen>
     </ProjectReference>
   </ItemGroup>

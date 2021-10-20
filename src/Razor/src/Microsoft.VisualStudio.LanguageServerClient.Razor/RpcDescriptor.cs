@@ -8,8 +8,8 @@ namespace Microsoft.VisualStudio.RazorExtension
     public static class RpcDescriptor
     {
         public static ServiceRpcDescriptor InteractiveServiceDescriptor { get; } = new ServiceJsonRpcDescriptor(
-            new ServiceMoniker("RazorLanguageServer"),
-            null,
+            new ServiceMoniker("Microsoft.VisualStudio.Razor.LanguageServer"),
+            clientInterface: null,
             ServiceJsonRpcDescriptor.Formatters.UTF8,
             ServiceJsonRpcDescriptor.MessageDelimiters.HttpLikeHeaders);
     }

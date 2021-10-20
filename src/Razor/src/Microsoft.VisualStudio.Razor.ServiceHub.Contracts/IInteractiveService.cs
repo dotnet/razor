@@ -3,6 +3,7 @@
 
 #nullable enable
 
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,8 +13,8 @@ namespace Microsoft.VisualStudio.Razor.ServiceHub.Contracts
     {
         Task<bool> IsRunning(CancellationToken ct);
 
-        Task<bool> Start(CancellationToken ct);
+        Task<bool> Start(Stream input, Stream output, CancellationToken ct);
 
-        bool Shutdown();
+        Task<bool> Shutdown();
     }
 }

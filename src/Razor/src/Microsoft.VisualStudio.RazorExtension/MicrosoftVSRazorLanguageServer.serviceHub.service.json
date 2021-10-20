@@ -1,8 +1,0 @@
-{
-  "host": "coreClr",
-  "hostId": "RazorLanguageServer",
-  "entryPoint": {
-    "assemblyPath": "Microsoft.VisualStudio.Razor.ServiceHub.dll",
-    "fullClassName": "Microsoft.VisualStudio.Razor.ServiceHub.RazorLanguageServerFactory"
-  }
-}

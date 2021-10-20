@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -15,8 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
-using Microsoft.VisualStudio.Razor.ServiceHub.Contracts;
-using Microsoft.VisualStudio.RazorExtension.ServiceHub;
+using Microsoft.VisualStudio.RazorExtension;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -25,6 +25,7 @@ using Nerdbank.Streams;
 using StreamJsonRpc;
 using Task = System.Threading.Tasks.Task;
 using Trace = Microsoft.AspNetCore.Razor.LanguageServer.Trace;
+using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -43,7 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly VSHostServicesProvider _vsHostWorkspaceServicesProvider;
         private readonly object _shutdownLock;
         private RazorLanguageServer _server;
-        private IInteractiveService _interactiveService;
         private IDisposable _serverShutdownDisposable;
         private LogHubLoggerProvider _loggerProvider;
 
@@ -135,21 +135,40 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // Swap to background thread, nothing below needs to be done on the UI thread.
             await TaskScheduler.Default;
 
-            var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-
             await EnsureCleanedUpServerAsync(token).ConfigureAwait(false);
 
             var traceLevel = GetVerbosity();
 
             // Initialize Logging Infrastructure
             _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
+            Stream clientStream;
+            Stream serverStream;
 
             if (UseServiceHub())
             {
-                _interactiveService = await LanguageServerServiceFactory.CreateServiceAsync(token);
+                // Do nothing, servicehub should have done it.
+                if (VSShell.Package.GetGlobalService(typeof(VSShell.Interop.SAsyncServiceProvider)) is not VSShell.IAsyncServiceProvider serviceProvider)
+                {
+                    return null;
+                }
+
+                var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<
+                    VSShell.ServiceBroker.SVsBrokeredServiceContainer,
+                    VSShell.ServiceBroker.IBrokeredServiceContainer>(serviceProvider).ConfigureAwait(false);
+                if (serviceContainer is null)
+                {
+                    return null;
+                }
+                var sb = serviceContainer.GetFullAccessServiceBroker();
+
+                var pipe = await sb.GetPipeAsync(RpcDescriptor.InteractiveServiceDescriptor.Moniker, cancellationToken: token);
+                var stream = pipe.AsStream();
+                clientStream = stream;
+                serverStream = stream;
             }
             else
             {
+                (clientStream, serverStream) = FullDuplexStream.CreatePair();
                 _server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, traceLevel, ConfigureLanguageServer).ConfigureAwait(false);
 
                 // Fire and forget for Initialized. Need to allow the LSP infrastructure to run in order to actually Initialize.
@@ -250,7 +269,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         public Task OnServerInitializedAsync()
         {
-            _serverShutdownDisposable = _server.OnShutdown.Subscribe((_) => ServerShutdown());
+            if (_server is not null)
+            {
+                _serverShutdownDisposable = _server.OnShutdown.Subscribe((_) => ServerShutdown());
+            }
 
             ServerStarted();
 
@@ -279,11 +301,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     _serverShutdownDisposable?.Dispose();
                     _serverShutdownDisposable = null;
                     _server = null;
-                }
-
-                if (_interactiveService != null)
-                {
-                    _interactiveService.Shutdown();
                 }
             }
         }

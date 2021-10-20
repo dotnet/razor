@@ -4,11 +4,11 @@
 #nullable enable
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.VisualStudio.Razor.ServiceHub.Contracts;
-using Nerdbank.Streams;
 
 namespace Microsoft.VisualStudio.Razor.ServiceHub
 {
@@ -19,18 +19,16 @@ namespace Microsoft.VisualStudio.Razor.ServiceHub
             throw new NotImplementedException();
         }
 
-        public bool Shutdown()
+        public Task<bool> Shutdown()
         {
             throw new NotImplementedException();
         }
 
-        public async Task<bool> Start(CancellationToken ct)
+        public async Task<bool> Start(Stream input, Stream output, CancellationToken ct)
         {
             var trace = Trace.Messages;
 
-            var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-
-            var server = await RazorLanguageServer.CreateAsync(serverStream, serverStream, trace);
+            var server = await RazorLanguageServer.CreateAsync(input, output, trace);
             await server.InitializedAsync(ct);
 
             return true;
