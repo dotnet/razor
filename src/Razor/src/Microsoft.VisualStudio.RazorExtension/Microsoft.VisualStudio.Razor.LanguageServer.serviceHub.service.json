@@ -1,0 +1,11 @@
+{
+  "host": "desktopClr",
+  "hostId": "RazorLanguageServer",
+  "hostGroupAllowed": true,
+  "entryPoint": {
+    "assemblyPath": "Microsoft.VisualStudio.Razor.ServiceHub.dll",
+    "fullClassName": "Microsoft.VisualStudio.Razor.ServiceHub.RazorLanguageServerFactory",
+    "appBasePath": "%VSAPPIDDIR%",
+    "configPath": "%PkgDefApplicationConfigFile%"
+  }
+}
