@@ -5,18 +5,16 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class DefaultLSPDiagnosticsTranslatorTest
+    public class DefaultLSPDiagnosticsTranslatorTest : HandlerTestBase
     {
-        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
-
         [Fact]
         public async Task ProcessDiagnosticsAsync_ReturnsResponse()
         {
@@ -28,18 +26,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(ri => ri.ReinvokeRequestOnServerAsync<RazorDiagnosticsParams, RazorDiagnosticsResponse>(
-                    LanguageServerConstants.RazorTranslateDiagnosticsEndpoint,
-                    RazorLSPConstants.RazorLanguageServerName,
-                    It.IsAny<RazorDiagnosticsParams>(),
-                    It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new ReinvokeResponse<RazorDiagnosticsResponse>(_languageClient, response)));
-
-            var diagnosticsProvider = new DefaultLSPDiagnosticsTranslator(requestInvoker.Object);
+                It.IsAny<ITextBuffer>(),
+                LanguageServerConstants.RazorTranslateDiagnosticsEndpoint,
+                RazorLSPConstants.RazorLanguageServerName,
+                It.IsAny<RazorDiagnosticsParams>(),
+                It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(new ReinvocationResponse<RazorDiagnosticsResponse>("TestLanguageClient", response)));
+            var documentUri = new Uri("file://C:/path/to/file.razor");
+            var documentManager = new TestDocumentManager();
+            documentManager.AddDocument(documentUri, new TestLSPDocumentSnapshot(documentUri, version: 0, "The content"));
+            var diagnosticsProvider = new DefaultLSPDiagnosticsTranslator(documentManager, requestInvoker.Object, LoggerProvider);
 
             // Act
             var diagnosticsResponse = await diagnosticsProvider.TranslateAsync(
                 RazorLanguageKind.CSharp,
-                new Uri("file://C:/path/to/file"),
+                documentUri,
                 Array.Empty<Diagnostic>(),
                 CancellationToken.None).ConfigureAwait(false);
 

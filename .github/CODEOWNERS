@@ -7,4 +7,4 @@
 /eng/common/                                   @dotnet-maestro-bot
 /eng/Versions.props                            @dotnet-maestro-bot
 /eng/Version.Details.xml                       @dotnet-maestro-bot
-/src/                                          @dotnet/razor-tooling @NTaylorMullen @ryanbrandenburg @allisonchou @sharwell
+/src/                                          @dotnet/razor-tooling @NTaylorMullen @ryanbrandenburg @allisonchou @sharwell @davidwengier
