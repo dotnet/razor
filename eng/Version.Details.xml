@@ -29,11 +29,7 @@
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
       <Sha>cfabc4242644352503512f53ab660202499cf51e</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Configuration" Version="6.0.0-rtm.21518.4">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>7785ce1aed2506859b8193a7073a8b1e394a6c29</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.Extensions.Configuration.Json" Version="6.0.0-rtm.21518.4" CoherentParentDependency="Microsoft.CodeAnalysis.Razor">
+    <Dependency Name="Microsoft.Extensions.Configuration" Version="6.0.0-rtm.21518.4" CoherentParentDependency="Microsoft.CodeAnalysis.Razor">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>7785ce1aed2506859b8193a7073a8b1e394a6c29</Sha>
     </Dependency>
