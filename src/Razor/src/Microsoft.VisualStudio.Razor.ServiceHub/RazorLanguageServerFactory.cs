@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.Razor.ServiceHub
 
         public async Task<object> CreateAsync(Stream stream, IServiceProvider hostProvidedServices, ServiceActivationOptions serviceActivationOptions, IServiceBroker serviceBroker, AuthorizationServiceClient authorizationServiceClient)
         {
+            // _hostProvider = hostProvidedServices.;
             var trace = Trace.Verbose;
             var server = await RazorLanguageServer.CreateAsync(stream, stream, trace);
             await server.InitializedAsync(System.Threading.CancellationToken.None);

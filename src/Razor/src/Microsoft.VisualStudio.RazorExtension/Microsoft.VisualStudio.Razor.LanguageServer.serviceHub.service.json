@@ -1,4 +1,5 @@
 {
+  "name": "Microsoft.VisualStudio.Razor.LanguageServer",
   "host": "desktopClr",
   "hostId": "RazorLanguageServer",
   "hostGroupAllowed": true,

@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             if (UseServiceHub())
             {
                 // Do nothing, servicehub should have done it.
-                if (VSShell.Package.GetGlobalService(typeof(VSShell.Interop.SAsyncServiceProvider)) is not VSShell.IAsyncServiceProvider serviceProvider)
+                if (Package.GetGlobalService(typeof(SAsyncServiceProvider)) is not IAsyncServiceProvider serviceProvider)
                 {
                     return null;
                 }
