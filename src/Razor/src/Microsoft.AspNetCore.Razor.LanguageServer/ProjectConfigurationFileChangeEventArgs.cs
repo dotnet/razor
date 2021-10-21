@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             handle = _projectSnapshotHandle;
-            if (handle == null)
+            if (handle is null)
             {
                 // Deserialization failed
                 return false;

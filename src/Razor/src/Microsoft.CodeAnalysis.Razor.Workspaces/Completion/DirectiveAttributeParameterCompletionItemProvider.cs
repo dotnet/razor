@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             var change = new SourceChange(location, string.Empty);
             var owner = context.SyntaxTree.Root.LocateOwner(change);
 
-            if (owner == null)
+            if (owner is null)
             {
                 return Array.Empty<RazorCompletionItem>();
             }

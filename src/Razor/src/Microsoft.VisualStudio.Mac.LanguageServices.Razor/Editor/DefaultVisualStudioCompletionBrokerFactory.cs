@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
     {
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }

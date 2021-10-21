@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             .RegisterRazorConverters()
             .ToImmutableArray();
 
-        public static readonly RazorServiceDescriptorsWrapper TagHelperProviderServiceDescriptors = new RazorServiceDescriptorsWrapper(ComponentName, _ => "Razor TagHelper Provider", s_jsonConverters, new (Type, Type?)[] { (typeof(IRemoteTagHelperProviderService), null) });
+        public static readonly RazorServiceDescriptorsWrapper TagHelperProviderServiceDescriptors = new(ComponentName, _ => "Razor TagHelper Provider", s_jsonConverters, new (Type, Type?)[] { (typeof(IRemoteTagHelperProviderService), null) });
     }
 }

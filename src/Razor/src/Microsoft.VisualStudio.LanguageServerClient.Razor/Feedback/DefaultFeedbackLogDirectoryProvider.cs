@@ -17,8 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
     {
         private const string FeedbackDirectoryName = "RazorVSFeedbackLogs";
         private readonly object _accessLock = new();
-        private string _baseLogDirectory;
-        private string _logDirectory;
+        private string? _baseLogDirectory;
+        private string? _logDirectory;
 
         public override bool DirectoryCreated => _logDirectory != null;
 
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
 
             lock (_accessLock)
             {
-                if (_logDirectory == null)
+                if (_logDirectory is null)
                 {
                     EnsureBaseLogDirectory();
 
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
         {
             lock (_accessLock)
             {
-                if (_baseLogDirectory == null)
+                if (_baseLogDirectory is null)
                 {
                     var tempDirectory = Path.GetTempPath();
                     var baseLogDirectory = Path.Combine(tempDirectory, FeedbackDirectoryName);

@@ -435,7 +435,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             Assert.Collection(DocumentTracker.TextViews, v => Assert.Same(v, textView1));
         }
 
-
         [UIFact]
         public void Subscribed_InitializesEphemeralProjectSnapshot()
         {

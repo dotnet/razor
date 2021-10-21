@@ -8,7 +8,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 {
     internal class DefaultLogHubLogWriter : LogHubLogWriter, IDisposable
     {
-        private TraceSource _traceSource = null;
+        private TraceSource? _traceSource;
+
+        private TraceSource TraceSource { get
+            {
+                if (_traceSource is null)
+                {
+                    throw new ObjectDisposedException($"{nameof(DefaultLogHubLogWriter)} called after being disposed.");
+                }
+
+                return _traceSource;
+            } }
 
         public DefaultLogHubLogWriter(TraceSource traceSource)
         {
@@ -20,21 +30,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             _traceSource = traceSource;
         }
 
-        public override TraceSource GetTraceSource() => _traceSource;
+        public override TraceSource GetTraceSource() => TraceSource;
 
         public override void TraceInformation(string format, params object[] args)
         {
-            _traceSource.TraceInformation(format, args);
+            TraceSource.TraceInformation(format, args);
         }
 
         public override void TraceWarning(string format, params object[] args)
         {
-            _traceSource.TraceEvent(TraceEventType.Warning, id: 0, format, args);
+            TraceSource.TraceEvent(TraceEventType.Warning, id: 0, format, args);
         }
 
         public override void TraceError(string format, params object[] args)
         {
-            _traceSource.TraceEvent(TraceEventType.Error, id: 0, format, args);
+            TraceSource.TraceEvent(TraceEventType.Error, id: 0, format, args);
         }
 
         public void Dispose()

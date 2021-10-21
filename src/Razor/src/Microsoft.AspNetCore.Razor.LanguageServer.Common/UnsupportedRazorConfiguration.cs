@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         {
             public UnsupportedRazorExtension(string extensionName)
             {
-                if (extensionName == null)
+                if (extensionName is null)
                 {
                     throw new ArgumentNullException(nameof(extensionName));
                 }

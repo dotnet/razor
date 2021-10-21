@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         protected internal override void OnClosed()
         {
-            if (_editorDocumentManager == null)
+            if (_editorDocumentManager is null)
             {
                 return;
             }
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         public override Task<bool> SupportsController(DocumentController controller)
         {
-            if (controller.GetContent<ITextBuffer>() == null || !(controller is FileDocumentController))
+            if (controller.GetContent<ITextBuffer>() is null || controller is not FileDocumentController)
             {
                 return Task.FromResult(false);
             }

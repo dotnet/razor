@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
             var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: "");
             var owner = syntaxTree.Root.LocateOwner(change);
 
-            if (owner == null)
+            if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
                 return null;

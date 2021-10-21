@@ -110,11 +110,10 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 return false;
             }
 
-            if (item.Include == null)
+            if (item.Include is null)
             {
                 return false;
             }
-
 
             if (!item.Include.EndsWith(".razor", StringComparison.Ordinal) && !item.Include.EndsWith(".cshtml", StringComparison.Ordinal))
             {
@@ -167,7 +166,6 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             configuration = new ProjectSystemRazorConfiguration(languageVersion, configurationItem.Include, extensions);
             return true;
         }
-
 
         // Internal for testing
         internal static bool TryGetDefaultConfiguration(IMSBuildEvaluatedPropertyCollection projectProperties, out string defaultConfiguration)

@@ -280,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var change = new SourceChange(absoluteIndex, 0, string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
             var owner = syntaxTree.Root.LocateOwner(change);
-            if (owner == null)
+            if (owner is null)
             {
                 // Can't determine owner of this position. Optimistically allow formatting.
                 return true;
@@ -344,7 +344,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // `@using |System;
                 //
                 return owner.AncestorsAndSelf().Any(
-                    n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor == null);
+                    n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor is null);
             }
 
             bool IsAttributeDirective()

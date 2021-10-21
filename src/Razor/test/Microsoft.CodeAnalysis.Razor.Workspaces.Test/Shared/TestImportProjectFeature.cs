@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Razor.Language
     {
         public IReadOnlyList<RazorProjectItem> GetImports(RazorProjectItem projectItem)
         {
-            if (projectItem == null)
+            if (projectItem is null)
             {
                 throw new ArgumentNullException(nameof(projectItem));
             }

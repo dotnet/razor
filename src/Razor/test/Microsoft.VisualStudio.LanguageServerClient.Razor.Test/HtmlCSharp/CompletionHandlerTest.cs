@@ -349,7 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(TextBuffer, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionParams>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(String.Empty, null)))
+                .Returns(Task.FromResult(new ReinvocationResponse<SumType<CompletionItem[], CompletionList>?>(string.Empty, null)))
                 .Verifiable();
 
             var projectionResult = new ProjectionResult()
@@ -1909,7 +1909,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private class TestFormattingOptionsProvider : FormattingOptionsProvider
         {
-            public static readonly TestFormattingOptionsProvider Default = new TestFormattingOptionsProvider(
+            public static readonly TestFormattingOptionsProvider Default = new(
                 new FormattingOptions()
                 {
                     InsertSpaces = true,

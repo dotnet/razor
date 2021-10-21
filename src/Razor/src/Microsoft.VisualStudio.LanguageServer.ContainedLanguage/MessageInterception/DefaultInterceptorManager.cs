@@ -56,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
             {
                 throw new ArgumentException("Cannot be empty", nameof(methodName));
             }
+
             if (string.IsNullOrEmpty(contentType))
             {
                 throw new ArgumentException("Cannot be empty", nameof(contentType));

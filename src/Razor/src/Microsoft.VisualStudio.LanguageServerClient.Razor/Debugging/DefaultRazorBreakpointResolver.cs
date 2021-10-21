@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         private readonly LSPDocumentManager _documentManager;
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
-        private readonly CodeAnalysis.Workspace _workspace;
+        private readonly CodeAnalysis.Workspace? _workspace;
         private readonly MemoryCache<CacheKey, Range> _cache;
 
         [ImportingConstructor]
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
-            CodeAnalysis.Workspace workspace)
+            CodeAnalysis.Workspace? workspace)
         {
             if (fileUriProvider is null)
             {
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             _cache = new MemoryCache<CacheKey, Range>(sizeLimit: 4);
         }
 
-        public override async Task<Range> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
+        public override async Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
         {
             if (textBuffer is null)
             {
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             var lspPosition = new Position(lineIndex, characterIndex);
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, lspPosition, cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 // Can't map the position, invalid breakpoint location.
                 return null;
@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
                 },
             };
             var hostDocumentMapping = await _documentMappingProvider.MapToDocumentRangesAsync(RazorLanguageKind.CSharp, documentUri, projectedRange, cancellationToken).ConfigureAwait(false);
-            if (hostDocumentMapping == null)
+            if (hostDocumentMapping is null)
             {
                 return null;
             }
@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             FileUriProvider fileUriProvider,
             LSPDocumentManager documentManager,
             LSPProjectionProvider projectionProvider,
-            LSPDocumentMappingProvider documentMappingProvider) => new(fileUriProvider, documentManager, projectionProvider, documentMappingProvider, (CodeAnalysis.Workspace)null);
+            LSPDocumentMappingProvider documentMappingProvider) => new(fileUriProvider, documentManager, projectionProvider, documentMappingProvider, (CodeAnalysis.Workspace?)null);
 
         private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);
     }

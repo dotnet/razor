@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
 
         private OmniSharpProjectChangeEventArgs(OmniSharpProjectSnapshot older, OmniSharpProjectSnapshot newer, string documentFilePath, OmniSharpProjectChangeKind kind)
         {
-            if (older == null && newer == null)
+            if (older is null && newer is null)
             {
                 throw new ArgumentException("Both projects cannot be null.");
             }
@@ -45,6 +45,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         public OmniSharpProjectChangeKind Kind { get; }
 
         public static OmniSharpProjectChangeEventArgs CreateTestInstance(OmniSharpProjectSnapshot older, OmniSharpProjectSnapshot newer, string documentFilePath, OmniSharpProjectChangeKind kind) =>
-            new OmniSharpProjectChangeEventArgs(older, newer, documentFilePath, kind);
+            new(older, newer, documentFilePath, kind);
     }
 }

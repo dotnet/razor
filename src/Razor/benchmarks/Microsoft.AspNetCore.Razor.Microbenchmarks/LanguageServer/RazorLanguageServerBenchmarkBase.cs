@@ -26,6 +26,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
             {
                 current = current.Parent;
             }
+
             RepoRoot = current.FullName;
 
             using var memoryStream = new MemoryStream();

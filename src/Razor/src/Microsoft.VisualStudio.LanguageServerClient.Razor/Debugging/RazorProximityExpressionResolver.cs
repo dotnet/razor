@@ -10,6 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
     internal abstract class RazorProximityExpressionResolver
     {
-        public abstract Task<IReadOnlyList<string>> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken);
+        public abstract Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken);
     }
 }

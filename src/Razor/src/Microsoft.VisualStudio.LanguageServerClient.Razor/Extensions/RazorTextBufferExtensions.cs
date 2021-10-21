@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
     {
         public static bool IsRazorLSPBuffer(this ITextBuffer textBuffer)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }

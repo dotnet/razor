@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules
         internal RazorGeneral(Microsoft.VisualStudio.ProjectSystem.ConfiguredProject configuredProject, System.Collections.Immutable.IImmutableDictionary<string, Microsoft.VisualStudio.ProjectSystem.Properties.IPropertyPagesCatalog> catalogs, string context, string file, string itemType, string itemName) : 
                 this(GetRule(System.Collections.Immutable.ImmutableDictionary.GetValueOrDefault(catalogs, context), file, itemType, itemName))
         {
-            if ((configuredProject == null))
+            if ((configuredProject is null))
             {
                 throw new System.ArgumentNullException("configuredProject");
             }
@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules
         internal RazorGeneral(Microsoft.VisualStudio.ProjectSystem.Properties.IRule rule, Microsoft.VisualStudio.ProjectSystem.ConfiguredProject configuredProject) : 
                 this(rule)
         {
-            if ((rule == null))
+            if ((rule is null))
             {
                 throw new System.ArgumentNullException("rule");
             }
-            if ((configuredProject == null))
+            if ((configuredProject is null))
             {
                 throw new System.ArgumentNullException("configuredProject");
             }
@@ -124,16 +124,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules
             get
             {
                 Microsoft.VisualStudio.ProjectSystem.Properties.IRule localRule = this.rule;
-                if ((localRule == null))
+                if ((localRule is null))
                 {
                     localRule = this.GeneratedFallbackRule;
                 }
-                if ((localRule == null))
+                if ((localRule is null))
                 {
                     return null;
                 }
                 Microsoft.VisualStudio.ProjectSystem.Properties.IEvaluatedProperty property = ((Microsoft.VisualStudio.ProjectSystem.Properties.IEvaluatedProperty)(localRule.GetProperty(RazorLangVersionProperty)));
-                if (((property == null) 
+                if (((property is null) 
                             && (this.GeneratedFallbackRule != null)))
                 {
                     localRule = this.GeneratedFallbackRule;
@@ -149,16 +149,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules
             get
             {
                 Microsoft.VisualStudio.ProjectSystem.Properties.IRule localRule = this.rule;
-                if ((localRule == null))
+                if ((localRule is null))
                 {
                     localRule = this.GeneratedFallbackRule;
                 }
-                if ((localRule == null))
+                if ((localRule is null))
                 {
                     return null;
                 }
                 Microsoft.VisualStudio.ProjectSystem.Properties.IEvaluatedProperty property = ((Microsoft.VisualStudio.ProjectSystem.Properties.IEvaluatedProperty)(localRule.GetProperty(RazorDefaultConfigurationProperty)));
-                if (((property == null) 
+                if (((property is null) 
                             && (this.GeneratedFallbackRule != null)))
                 {
                     localRule = this.GeneratedFallbackRule;
@@ -173,13 +173,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules
         {
             get
             {
-                if (((this.fallbackRule == null) 
+                if (((this.fallbackRule is null) 
                             && (this.configuredProject != null)))
                 {
                     System.Threading.Monitor.Enter(this.locker);
                     try
                     {
-                        if ((this.fallbackRule == null))
+                        if ((this.fallbackRule is null))
                         {
                             this.InitializeFallbackRule();
                         }
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules
         
         private static Microsoft.VisualStudio.ProjectSystem.Properties.IRule GetRule(Microsoft.VisualStudio.ProjectSystem.Properties.IPropertyPagesCatalog catalog, string file, string itemType, string itemName)
         {
-            if ((catalog == null))
+            if ((catalog is null))
             {
                 return null;
             }
@@ -216,12 +216,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules
         
         private void InitializeFallbackRule()
         {
-            if ((this.configuredProject == null))
+            if ((this.configuredProject is null))
             {
                 return;
             }
             Microsoft.Build.Framework.XamlTypes.Rule unboundRule = RazorGeneral.deserializedFallbackRule;
-            if ((unboundRule == null))
+            if ((unboundRule is null))
             {
                 System.IO.Stream xamlStream = null;
                 System.Reflection.Assembly thisAssembly = System.Reflection.Assembly.GetExecutingAssembly();
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem.Rules
                     Microsoft.Build.Framework.XamlTypes.IProjectSchemaNode root = ((Microsoft.Build.Framework.XamlTypes.IProjectSchemaNode)(System.Xaml.XamlServices.Load(xamlStream)));
                     System.Collections.Generic.IEnumerator<System.Object> ruleEnumerator = root.GetSchemaObjects(typeof(Microsoft.Build.Framework.XamlTypes.Rule)).GetEnumerator();
                     for (
-                    ; ((unboundRule == null) 
+                    ; ((unboundRule is null) 
                                 && ruleEnumerator.MoveNext()); 
                     )
                     {

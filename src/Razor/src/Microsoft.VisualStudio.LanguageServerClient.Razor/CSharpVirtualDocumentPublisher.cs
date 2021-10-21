@@ -73,8 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             private readonly ITextSnapshot _textSnapshot;
             private readonly LSPDocumentMappingProvider _lspDocumentMappingProvider;
             private readonly LSPDocumentSnapshot _documentSnapshot;
-            private IRazorSpanMappingService _mappingService;
-            private IRazorDocumentExcerptService _excerptService;
+            private IRazorSpanMappingService? _mappingService;
+            private IRazorDocumentExcerptService? _excerptService;
 
             public override string FilePath => _documentSnapshot.Uri.LocalPath;
 
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public override IRazorDocumentExcerptService GetExcerptService()
             {
-                if (_excerptService == null)
+                if (_excerptService is null)
                 {
                     var mappingService = GetMappingService();
                     _excerptService = new CSharpDocumentExcerptService(mappingService, _documentSnapshot);
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             public override IRazorSpanMappingService GetMappingService()
             {
-                if (_mappingService == null)
+                if (_mappingService is null)
                 {
                     _mappingService = new RazorLSPSpanMappingService(_lspDocumentMappingProvider, _documentSnapshot, _textSnapshot);
                 }

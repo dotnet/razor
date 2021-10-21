@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization
     {
         public static void RegisterRazorLiveShareConverters(this JsonConverterCollection collection)
         {
-            if (collection == null)
+            if (collection is null)
             {
                 throw new ArgumentNullException(nameof(collection));
             }

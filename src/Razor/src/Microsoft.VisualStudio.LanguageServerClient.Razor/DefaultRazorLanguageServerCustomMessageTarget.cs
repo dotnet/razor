@@ -25,6 +25,8 @@ using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protoco
 using SemanticTokensRangeParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams;
 using Task = System.Threading.Tasks.Task;
 
+#nullable enable
+
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
     [Export(typeof(RazorLanguageServerCustomMessageTarget))]
@@ -143,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void UpdateCSharpBuffer(UpdateBufferRequest request)
         {
-            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
+            if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
             {
                 return;
             }
@@ -171,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         // Internal for testing
         internal void UpdateHtmlBuffer(UpdateBufferRequest request)
         {
-            if (request == null || request.HostDocumentFilePath == null || request.HostDocumentVersion == null)
+            if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
             {
                 return;
             }

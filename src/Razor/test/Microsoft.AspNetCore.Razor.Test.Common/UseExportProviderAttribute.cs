@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         private static void DisposeExportProvider(ExportProvider? exportProvider)
         {
-            if (exportProvider == null)
+            if (exportProvider is null)
             {
                 return;
             }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         public static JsonConverterCollection RegisterRazorConverters(this JsonConverterCollection collection)
         {
-            if (collection == null)
+            if (collection is null)
             {
                 throw new ArgumentNullException(nameof(collection));
             }

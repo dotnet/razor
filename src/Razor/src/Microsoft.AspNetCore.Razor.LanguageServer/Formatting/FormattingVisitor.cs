@@ -104,6 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 {
                     _currentRazorIndentationLevel--;
                 }
+
                 return;
             }
 
@@ -220,6 +221,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 Debug.Assert(_currentComponentIndentationLevel > 0, "Component indentation level should not be at 0.");
                 _currentComponentIndentationLevel -= componentIndentationLevels;
             }
+
             _currentHtmlIndentationLevel--;
 
             Visit(node.EndTag);

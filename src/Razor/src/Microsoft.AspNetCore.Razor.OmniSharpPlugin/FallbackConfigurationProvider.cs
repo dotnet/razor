@@ -40,14 +40,14 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 }
             }
 
-            if (mvcReferenceFullPath == null)
+            if (mvcReferenceFullPath is null)
             {
                 configuration = null;
                 return false;
             }
 
             var version = GetAssemblyVersion(mvcReferenceFullPath);
-            if (version == null)
+            if (version is null)
             {
                 configuration = null;
                 return false;

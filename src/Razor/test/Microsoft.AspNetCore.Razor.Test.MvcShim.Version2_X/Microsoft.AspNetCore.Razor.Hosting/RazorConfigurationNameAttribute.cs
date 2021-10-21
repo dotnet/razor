@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.Hosting
         /// <param name="configurationName">The name of the Razor configuration.</param>
         public RazorConfigurationNameAttribute(string configurationName)
         {
-            if (configurationName == null)
+            if (configurationName is null)
             {
                 throw new ArgumentNullException(nameof(configurationName));
             }

@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
         [ImportingConstructor]
         public DefaultVisualStudioCompletionBrokerFactory(ICompletionBroker completionBroker)
         {
-            if (completionBroker == null)
+            if (completionBroker is null)
             {
                 throw new ArgumentNullException(nameof(completionBroker));
             }
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }

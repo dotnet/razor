@@ -19,15 +19,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             requestedLoggingLevel: new LoggingLevelSettings(SourceLevels.Information | SourceLevels.ActivityTracing),
             privacySetting: PrivacyFlags.MayContainPersonallyIdentifibleInformation | PrivacyFlags.MayContainPrivateInformation);
 
-        private readonly SemaphoreSlim _initializationSemaphore = null;
-        private IServiceBroker _serviceBroker = null;
+        private readonly SemaphoreSlim _initializationSemaphore;
+        private IServiceBroker? _serviceBroker = null;
 
         public RazorLogHubTraceProvider()
         {
             _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
         }
 
-        public async Task<TraceSource> InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
+        public async Task<TraceSource?> InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken)
         {
             if (!await TryInitializeServiceBrokerAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
             try
             {
                 // Check if the service broker has already been initialized
-                if (!(_serviceBroker is null))
+                if (_serviceBroker is not null)
                 {
                     return true;
                 }

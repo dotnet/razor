@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor
         public ExportCustomProjectEngineFactoryAttribute(string configurationName)
             : base(typeof(IProjectEngineFactory))
         {
-            if (configurationName == null)
+            if (configurationName is null)
             {
                 throw new ArgumentNullException(nameof(configurationName));
             }

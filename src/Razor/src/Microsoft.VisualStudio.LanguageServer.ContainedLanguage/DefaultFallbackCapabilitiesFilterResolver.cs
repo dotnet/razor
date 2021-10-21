@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
                 default:
                     return FallbackCheckCapabilties;
-            }
+            };
         }
 
         private bool CheckDocumentColorCapabilities(JToken token)

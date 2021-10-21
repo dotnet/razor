@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
-            if (request.ConfigurationFilePath == null)
+            if (request.ConfigurationFilePath is null)
             {
                 _logger.LogInformation("'null' configuration path provided. Stopping custom configuration monitoring for project '{0}'.", request.ProjectFilePath);
                 RemoveMonitor(request.ProjectFilePath);

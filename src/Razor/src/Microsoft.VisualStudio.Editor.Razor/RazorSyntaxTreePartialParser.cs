@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public RazorSyntaxTreePartialParser(RazorSyntaxTree syntaxTree)
         {
-            if (syntaxTree == null)
+            if (syntaxTree is null)
             {
                 throw new ArgumentNullException(nameof(syntaxTree));
             }

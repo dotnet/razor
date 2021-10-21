@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             IFallbackProjectEngineFactory fallback,
             [ImportMany] Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories)
         {
-            if (fallback == null)
+            if (fallback is null)
             {
                 throw new ArgumentNullException(nameof(fallback));
             }
 
-            if (factories == null)
+            if (factories is null)
             {
                 throw new ArgumentNullException(nameof(factories));
             }
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }

@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         private static bool LocalHasCapability(IVsHierarchy hierarchy, string capability)
         {
-            if (hierarchy == null)
+            if (hierarchy is null)
             {
                 return false;
             }

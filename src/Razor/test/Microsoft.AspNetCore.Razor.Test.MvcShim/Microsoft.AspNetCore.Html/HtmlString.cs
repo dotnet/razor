@@ -39,12 +39,12 @@ namespace Microsoft.AspNetCore.Html
         /// <inheritdoc />
         public void WriteTo(TextWriter writer, HtmlEncoder encoder)
         {
-            if (writer == null)
+            if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            if (encoder == null)
+            if (encoder is null)
             {
                 throw new ArgumentNullException(nameof(encoder));
             }

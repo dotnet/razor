@@ -282,6 +282,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 await Task.CompletedTask;
             }
+
             var expectedResults = GetExpectedResultsAsync();
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
@@ -344,6 +345,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 await Task.CompletedTask;
             }
+
             var expectedResponses = GetExpectedResultsAsync();
             requestInvoker.Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
                 It.IsAny<ITextBuffer>(),

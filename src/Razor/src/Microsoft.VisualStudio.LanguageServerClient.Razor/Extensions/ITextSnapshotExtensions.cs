@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
             int character,
             ITextStructureNavigatorSelectorService textStructureNavigatorService)
         {
-            if (snapshot == null || textStructureNavigatorService == null)
+            if (snapshot is null || textStructureNavigatorService is null)
             {
                 return null;
             }

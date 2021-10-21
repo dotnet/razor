@@ -209,7 +209,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return newText;
         }
 
-        private TextEdit[] FilterCSharpTextEdits(FormattingContext context, TextEdit[] edits)
+        private static TextEdit[] FilterCSharpTextEdits(FormattingContext context, TextEdit[] edits)
         {
             var filteredEdits = edits.Where(e =>
             {
@@ -241,6 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 {
                     firstPosition = range.Start;
                 }
+
                 if (lastPosition is null || lastPosition < range.End)
                 {
                     lastPosition = range.End;
@@ -256,8 +257,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         private static List<TextChange> CleanupDocument(FormattingContext context, Range? range = null)
         {
-            var isOnType = range is not null;
-
             var text = context.SourceText;
             range ??= TextSpan.FromBounds(0, text.Length).AsRange(text);
             var csharpDocument = context.CodeDocument.GetCSharpDocument();
@@ -273,7 +272,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
-                CleanupSourceMappingStart(context, mappingRange, changes, isOnType, out var newLineAdded);
+                CleanupSourceMappingStart(context, mappingRange, changes, out var newLineAdded);
 
                 CleanupSourceMappingEnd(context, mappingRange, changes, newLineAdded);
             }
@@ -281,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return changes;
         }
 
-        private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, bool isOnType, out bool newLineAdded)
+        private static void CleanupSourceMappingStart(FormattingContext context, Range sourceMappingRange, List<TextChange> changes, out bool newLineAdded)
         {
             newLineAdded = false;
 
@@ -332,7 +331,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // We want to return the length of the range marked by |...|
             //
             var whitespaceLength = text.GetFirstNonWhitespaceOffset(sourceMappingSpan, out var newLineCount);
-            if (whitespaceLength == null)
+            if (whitespaceLength is null)
             {
                 // There was no content after the start of this mapping. Meaning it already is clean.
                 // E.g,
@@ -441,7 +440,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var contentStartOffset = text.Lines[mappingEndLineIndex].GetFirstNonWhitespaceOffset(sourceMappingRange.End.Character);
-            if (contentStartOffset == null)
+            if (contentStartOffset is null)
             {
                 // There is no content after the end of this source mapping. No need to clean up.
                 return;

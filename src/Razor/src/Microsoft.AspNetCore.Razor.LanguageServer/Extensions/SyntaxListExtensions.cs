@@ -48,7 +48,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
         }
 
-
         internal static bool TryGetOpenBraceNode(this SyntaxList<RazorSyntaxNode> children, [NotNullWhen(true)] out RazorMetaCodeSyntax? brace)
         {
             // If there is no whitespace between the directive and the brace then there will only be

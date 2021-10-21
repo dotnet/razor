@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             }
 
             // Assert
-            var edited = edit == null ? source : ApplyEdit(source, edit);
+            var edited = edit is null ? source : ApplyEdit(source, edit);
             var actual = edited.ToString();
             Assert.Equal(expected, actual);
         }

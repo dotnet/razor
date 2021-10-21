@@ -55,22 +55,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (documentResolver == null)
+            if (documentResolver is null)
             {
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
-            if (completionFactsService == null)
+            if (completionFactsService is null)
             {
                 throw new ArgumentNullException(nameof(completionFactsService));
             }
 
-            if (lspTagHelperTooltipFactory == null)
+            if (lspTagHelperTooltipFactory is null)
             {
                 throw new ArgumentNullException(nameof(lspTagHelperTooltipFactory));
             }
@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
@@ -193,7 +193,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
             var labelQuery = completionItem.Label;
             var associatedRazorCompletion = cachedCompletionItems.FirstOrDefault(completion => string.Equals(labelQuery, completion.DisplayText, StringComparison.Ordinal));
-            if (associatedRazorCompletion == null)
+            if (associatedRazorCompletion is null)
             {
                 Debug.Fail("Could not find an associated razor completion item. This should never happen since we were able to look up the cached completion list.");
                 return Task.FromResult(completionItem);

@@ -301,6 +301,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 tagHelpers = tagHelpers.Concat(s_defaultComponents).ToArray();
             }
+
             var sourceDocument = text.GetRazorSourceDocument(path, path);
 
             // Yes I know "BlazorServer_31 is weird, but thats what is in the taghelpers.json file
@@ -347,7 +348,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private static string GetProjectDirectory()
         {
             var repoRoot = SearchUp(AppContext.BaseDirectory, "global.json");
-            if (repoRoot == null)
+            if (repoRoot is null)
             {
                 repoRoot = AppContext.BaseDirectory;
             }
@@ -384,6 +385,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 current = current.Parent;
             }
+
             var tagHelperFilePath = Path.Combine(current!.FullName, testFileName);
             var buffer = File.ReadAllBytes(tagHelperFilePath);
             var serializer = new JsonSerializer();

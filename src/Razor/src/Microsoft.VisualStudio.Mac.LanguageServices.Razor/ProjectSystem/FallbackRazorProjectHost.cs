@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 var referencedAssemblies = await DotNetProject.GetReferencedAssemblies(ConfigurationSelector.Default);
                 var mvcReference = referencedAssemblies.FirstOrDefault(IsMvcAssembly);
 
-                if (mvcReference == null)
+                if (mvcReference is null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
                     await UpdateHostProjectUnsafeAsync(null).ConfigureAwait(false);
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 }
 
                 var version = GetAssemblyVersion(mvcReference.FilePath);
-                if (version == null)
+                if (version is null)
                 {
                     // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
                     await UpdateHostProjectUnsafeAsync(null).ConfigureAwait(false);

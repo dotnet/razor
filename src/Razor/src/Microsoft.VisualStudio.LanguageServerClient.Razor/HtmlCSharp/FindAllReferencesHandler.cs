@@ -22,8 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [Shared]
     [ExportLspMethod(Methods.TextDocumentReferencesName)]
     internal class FindAllReferencesHandler :
-        LSPProgressListenerHandlerBase<ReferenceParams, VSInternalReferenceItem[]>,
-        IRequestHandler<ReferenceParams, VSInternalReferenceItem[]>
+        LSPProgressListenerHandlerBase<ReferenceParams, VSInternalReferenceItem[]?>,
+        IRequestHandler<ReferenceParams, VSInternalReferenceItem[]?>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        internal async override Task<VSInternalReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
+        internal async override Task<VSInternalReferenceItem[]?> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 return null;
             }
@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             var result = value.ToObject<VSInternalReferenceItem[]>();
 
-            if (result == null || result.Length == 0)
+            if (result is null || result.Length == 0)
             {
                 _logger.LogInformation("Received empty progress notification");
                 return;
@@ -241,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     new[] { referenceItem.Location.Range },
                     cancellationToken).ConfigureAwait(false);
 
-                if (mappingResult == null ||
+                if (mappingResult is null ||
                     mappingResult.Ranges[0].IsUndefined() ||
                     (_documentManager.TryGetDocument(razorDocumentUri, out var mappedDocumentSnapshot) &&
                     mappingResult.HostDocumentVersion != mappedDocumentSnapshot.Version))

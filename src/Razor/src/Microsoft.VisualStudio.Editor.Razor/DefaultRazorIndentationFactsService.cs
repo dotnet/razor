@@ -36,17 +36,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             int indentSize,
             int tabSize)
         {
-            if (syntaxTree == null)
+            if (syntaxTree is null)
             {
                 throw new ArgumentNullException(nameof(syntaxTree));
             }
 
-            if (syntaxTreeSnapshot == null)
+            if (syntaxTreeSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(syntaxTreeSnapshot));
             }
 
-            if (line == null)
+            if (line is null)
             {
                 throw new ArgumentNullException(nameof(line));
             }
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var previousLineEndIndex = GetPreviousLineEndIndex(syntaxTreeSnapshot, line);
             var simulatedChange = new SourceChange(previousLineEndIndex, 0, string.Empty);
             var owner = syntaxTree.Root.LocateOwner(simulatedChange);
-            if (owner == null || owner.IsCodeSpanKind())
+            if (owner is null || owner.IsCodeSpanKind())
             {
                 // Example,
                 // @{\n

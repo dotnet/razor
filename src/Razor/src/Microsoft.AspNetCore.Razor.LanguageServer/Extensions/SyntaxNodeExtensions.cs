@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
         internal static bool TryGetPreviousSibling(this SyntaxNode syntaxNode, out SyntaxNode previousSibling)
         {
             var syntaxNodeParent = syntaxNode.Parent;
-            if (syntaxNodeParent == null)
+            if (syntaxNodeParent is null)
             {
                 previousSibling = default;
                 return false;

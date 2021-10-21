@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             try
             {
                 var codeDocument = await Parser.GetLatestCodeDocumentAsync(triggerLocation.Snapshot, token);
-                if (codeDocument == null)
+                if (codeDocument is null)
                 {
                     return CompletionContext.Empty;
                 }
@@ -96,6 +96,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                     completionItem.Properties.AddProperty(DescriptionKey, completionDescription);
                     completionItems.Add(completionItem);
                 }
+
                 var context = new CompletionContext(completionItems.ToImmutableArray());
                 return context;
             }

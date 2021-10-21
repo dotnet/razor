@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization
 {
     internal class OmniSharpProjectSnapshotHandleJsonConverter : JsonConverter
     {
-        public static readonly OmniSharpProjectSnapshotHandleJsonConverter Instance = new OmniSharpProjectSnapshotHandleJsonConverter();
+        public static readonly OmniSharpProjectSnapshotHandleJsonConverter Instance = new();
 
         public override bool CanConvert(Type objectType)
         {

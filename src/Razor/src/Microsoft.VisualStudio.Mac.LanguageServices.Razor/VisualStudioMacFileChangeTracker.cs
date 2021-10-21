@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
             }
 
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
         private void HandleFileChangeEvent(FileChangeKind changeKind, FileEventArgs args)
         {
-            if (Changed == null)
+            if (Changed is null)
             {
                 return;
             }
@@ -105,10 +105,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                 var normalizedEventPath = NormalizePath(fileEvent.FileName.FullPath);
                 if (string.Equals(_normalizedFilePath, normalizedEventPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync((changeKind, ct) =>
-                    {
-                        OnChanged(changeKind);
-                    }, changeKind, CancellationToken.None);
+                    _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync((changeKind, ct) => OnChanged(changeKind), changeKind, CancellationToken.None);
                     return;
                 }
             }

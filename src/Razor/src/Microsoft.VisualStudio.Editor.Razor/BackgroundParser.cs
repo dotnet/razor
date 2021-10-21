@@ -109,12 +109,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private class MainThreadState : ThreadStateBase, IDisposable
         {
-            private readonly CancellationTokenSource _cancelSource = new CancellationTokenSource();
-            private ManualResetEventSlim _hasParcel = new ManualResetEventSlim(false);
+            private readonly CancellationTokenSource _cancelSource = new();
+            private ManualResetEventSlim _hasParcel = new(false);
             private CancellationTokenSource _currentParcelCancelSource;
 
-            private readonly object _disposeLock = new object();
-            private readonly object _stateLock = new object();
+            private readonly object _disposeLock = new();
+            private readonly object _stateLock = new();
             private IList<ChangeReference> _changes = new List<ChangeReference>();
             private bool _disposed;
 
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 {
                     lock (_stateLock)
                     {
-                        return _currentParcelCancelSource == null;
+                        return _currentParcelCancelSource is null;
                     }
                 }
             }
@@ -416,7 +416,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private class WorkParcel
         {
-            public static readonly WorkParcel Empty = new WorkParcel(Array.Empty<ChangeReference>(), CancellationToken.None);
+            public static readonly WorkParcel Empty = new(Array.Empty<ChangeReference>(), CancellationToken.None);
 
             public WorkParcel(IList<ChangeReference> changes, CancellationToken cancelToken)
             {

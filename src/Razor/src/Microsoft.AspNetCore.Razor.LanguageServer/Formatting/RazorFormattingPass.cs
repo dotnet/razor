@@ -124,6 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // Don't trust ourselves in an incomplete scenario.
                     return false;
                 }
+
                 var code = cSharpCode.Children.PreviousSiblingOrSelf(closeBrace) as CSharpCodeBlockSyntax;
 
                 var openBraceNode = openBrace;
@@ -402,6 +403,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     var indentation = context.Indentations[range.Start.Line];
                     desiredIndentationLevel = indentation.HtmlIndentationLevel + indentation.RazorIndentationLevel;
                 }
+
                 var desiredIndentationOffset = context.GetIndentationOffsetForLevel(desiredIndentationLevel);
                 var currentIndentationOffset = openBraceNode.GetTrailingWhitespaceLength(context) + codeNode.GetLeadingWhitespaceLength(context);
 

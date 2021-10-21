@@ -95,13 +95,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _serializer.AddVSInternalExtensionConverters();
         }
 
-        public Task<InitializeResult> HandleRequestAsync(InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public Task<InitializeResult?> HandleRequestAsync(InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             VerifyMergedLanguageServerCapabilities();
 
             _logger.LogInformation("Providing initialization configuration.");
 
-            return Task.FromResult(s_initializeResult);
+            return Task.FromResult<InitializeResult?>(s_initializeResult);
         }
 
         [Conditional("DEBUG")]
@@ -139,6 +139,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 {
                     var resultToken = languageClientInstance.InitializeResult;
                     var initializeResult = resultToken.ToObject<InitializeResult>(_serializer);
+                    if (initializeResult is null)
+                    {
+                        throw new JsonSerializationException($"Failed to serialize to {nameof(InitializeResult)}");
+                    }
 
                     _serverCapabilities.Add((languageClientInstance.Client, (initializeResult.Capabilities as VSInternalServerCapabilities)!));
                 }

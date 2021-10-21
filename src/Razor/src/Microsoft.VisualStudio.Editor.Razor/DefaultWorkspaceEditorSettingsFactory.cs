@@ -20,12 +20,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
         [ImportingConstructor]
         public DefaultWorkspaceEditorSettingsFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, EditorSettingsManager editorSettingsManager)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (editorSettingsManager == null)
+            if (editorSettingsManager is null)
             {
                 throw new ArgumentNullException(nameof(editorSettingsManager));
             }
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            if (languageServices == null)
+            if (languageServices is null)
             {
                 throw new ArgumentNullException(nameof(languageServices));
             }

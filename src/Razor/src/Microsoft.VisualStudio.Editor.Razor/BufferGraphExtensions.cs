@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Text
     {
         public static Collection<ITextBuffer> GetRazorBuffers(this IBufferGraph bufferGraph)
         {
-            if (bufferGraph == null)
+            if (bufferGraph is null)
             {
                 throw new ArgumentNullException(nameof(bufferGraph));
             }

@@ -271,7 +271,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private class TestDocumentManager : LSPDocumentManager
         {
-            private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = new Dictionary<Uri, LSPDocumentSnapshot>();
+            private readonly Dictionary<Uri, LSPDocumentSnapshot> _documents = new();
 
             public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
             {

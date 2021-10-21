@@ -177,7 +177,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestDocumentVersionCache(Dictionary<DocumentSnapshot, int?> versions)
             {
-                if (versions == null)
+                if (versions is null)
                 {
                     throw new ArgumentNullException(nameof(versions));
                 }

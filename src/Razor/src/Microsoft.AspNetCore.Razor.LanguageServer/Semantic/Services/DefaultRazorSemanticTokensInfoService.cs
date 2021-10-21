@@ -218,6 +218,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 {
                     throw new ArgumentNullException(nameof(codeDocument));
                 }
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument);
@@ -374,6 +375,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                         razorRanges.Add(razorRange);
                     }
                 }
+
                 previousSemanticRange = semanticRange;
             }
 

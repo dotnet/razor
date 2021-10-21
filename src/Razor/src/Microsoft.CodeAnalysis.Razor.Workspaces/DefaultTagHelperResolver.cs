@@ -12,17 +12,17 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
         {
-            if (workspaceProject == null)
+            if (workspaceProject is null)
             {
                 throw new ArgumentNullException(nameof(workspaceProject));
             }
 
-            if (projectSnapshot == null)
+            if (projectSnapshot is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshot));
             }
 
-            if (projectSnapshot.Configuration == null)
+            if (projectSnapshot.Configuration is null)
             {
                 return Task.FromResult(TagHelperResolutionResult.Empty);
             }

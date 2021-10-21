@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                if (node == null)
+                if (node is null)
                 {
                     return node;
                 }
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
                     return;
                 }
 
-                if (expected == null)
+                if (expected is null)
                 {
                     var message = "The node is missing from baseline.";
                     throw new SyntaxNodeBaselineException(node, Ancestors.ToArray(), expected, actual, message);

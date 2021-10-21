@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public DefaultDocumentVersionCache(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
@@ -134,12 +134,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         // Document closed, evict entry.
                         DocumentLookup.Remove(args.DocumentFilePath);
                     }
+
                     break;
             }
 
             // Any event that has a project may have changed the state of the documents
             // and therefore requires us to mark all existing documents as latest.
-            if (args.ProjectFilePath == null)
+            if (args.ProjectFilePath is null)
             {
                 return;
             }

@@ -37,17 +37,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             ITextDocumentLanguageServer languageServer,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (languageServer == null)
+            if (languageServer is null)
             {
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
-            if (loggerFactory == null)
+            if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override void Initialize(ProjectSnapshotManager projectManager)
         {
-            if (projectManager == null)
+            if (projectManager is null)
             {
                 throw new ArgumentNullException(nameof(projectManager));
             }
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override void DocumentProcessed(DocumentSnapshot document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private void StartWorkTimer()
         {
             // Access to the timer is protected by the lock in Synchronize and in Timer_Tick
-            if (_workTimer == null)
+            if (_workTimer is null)
             {
                 // Timer will fire after a fixed delay, but only once.
                 _workTimer = new Timer(WorkTimer_Tick, null, _publishDelay, Timeout.InfiniteTimeSpan);
@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private void StartDocumentClosedCheckTimer()
         {
-            if (_documentClosedTimer == null)
+            if (_documentClosedTimer is null)
             {
                 _documentClosedTimer = new Timer(DocumentClosedTimer_Tick, null, s_checkForDocumentClosedDelay, Timeout.InfiniteTimeSpan);
             }
@@ -173,7 +173,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Internal for testing
-        internal async Task PublishDiagnosticsAsync(DocumentSnapshot document)
+        internal async Task PublishDiagnosticsAsync(DocumentSnapshot document, CancellationToken? _ = null)
         {
             var result = await document.GetGeneratedOutputAsync();
 
@@ -195,6 +195,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 Debug.Fail("Document source text should already be available.");
             }
+
             var convertedDiagnostics = diagnostics.Select(razorDiagnostic => RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText));
 
             PublishDiagnosticsForFilePath(document.FilePath, convertedDiagnostics);
@@ -225,7 +226,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 for (var i = 0; i < documents.Length; i++)
                 {
                     var document = documents[i];
-                    await PublishDiagnosticsAsync(document);
+                    await PublishDiagnosticsAsync(document, cancellationToken);
                 }
 
                 OnCompletingBackgroundWork();

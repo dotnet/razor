@@ -14,11 +14,11 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         {
             get
             {
-                if (s_instance == null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                if (s_instance is null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     s_instance = StringComparison.Ordinal;
                 }
-                else if (s_instance == null)
+                else if (s_instance is null)
                 {
                     s_instance = StringComparison.OrdinalIgnoreCase;
                 }

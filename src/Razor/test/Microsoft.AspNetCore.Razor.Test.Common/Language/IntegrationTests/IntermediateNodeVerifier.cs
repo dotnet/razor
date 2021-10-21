@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                     return;
                 }
 
-                if (expected == null)
+                if (expected is null)
                 {
                     var message = "The node is missing from baseline.";
                     throw new IntermediateNodeBaselineException(node, Ancestors.ToArray(), expected, actual, message);
@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 throw new InvalidOperationException("We can't figure out HOW these two things are different. This is a bug.");
             }
 
-            private void AssertNestingEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+            private static void AssertNestingEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
             {
                 var i = 0;
                 for (; i < expected.Length; i++)
@@ -123,7 +123,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 charsVerified = j;
             }
 
-            private void AssertNameEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+            private static void AssertNameEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
             {
                 var expectedName = GetName(expected, charsVerified);
                 var actualName = GetName(actual, charsVerified);
@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
             }
 
             // Either both strings need to have a delimiter next or neither should.
-            private void AssertDelimiter(string expected, string actual, bool required, ref int charsVerified)
+            private static void AssertDelimiter(string expected, string actual, bool required, ref int charsVerified)
             {
                 if (charsVerified == expected.Length && required)
                 {
@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 charsVerified += 3;
             }
 
-            private void AssertLocationEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+            private static void AssertLocationEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
             {
                 var expectedLocation = GetLocation(expected, charsVerified);
                 var actualLocation = GetLocation(actual, charsVerified);
@@ -186,7 +186,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 charsVerified += expectedLocation.Length;
             }
 
-            private void AssertContentEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
+            private static void AssertContentEqual(IntermediateNode node, IEnumerable<IntermediateNode> ancestors, string expected, string actual, ref int charsVerified)
             {
                 var expectedContent = GetContent(expected, charsVerified);
                 var actualContent = GetContent(actual, charsVerified);
@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 charsVerified += expectedContent.Length;
             }
 
-            private string GetName(string text, int start)
+            private static string GetName(string text, int start)
             {
                 var delimiter = text.IndexOf(" - ", start, StringComparison.Ordinal);
                 if (delimiter == -1)
@@ -211,13 +211,13 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                 return text.Substring(start, delimiter - start);
             }
 
-            private string GetLocation(string text, int start)
+            private static string GetLocation(string text, int start)
             {
                 var delimiter = text.IndexOf(" - ", start, StringComparison.Ordinal);
                 return delimiter == -1 ? text.Substring(start) : text.Substring(start, delimiter - start);
             }
 
-            private string GetContent(string text, int start)
+            private static string GetContent(string text, int start)
             {
                 return start == text.Length ? string.Empty : text.Substring(start);
             }

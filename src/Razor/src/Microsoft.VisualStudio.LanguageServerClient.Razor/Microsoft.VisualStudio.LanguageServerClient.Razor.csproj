@@ -6,6 +6,7 @@
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>false</IsShippingPackage>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

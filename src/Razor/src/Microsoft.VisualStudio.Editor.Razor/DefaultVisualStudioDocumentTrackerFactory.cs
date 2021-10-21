@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public override VisualStudioDocumentTracker Create(ITextBuffer textBuffer)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }

@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (workspaceServices == null)
+            if (workspaceServices is null)
             {
                 throw new ArgumentNullException(nameof(workspaceServices));
             }

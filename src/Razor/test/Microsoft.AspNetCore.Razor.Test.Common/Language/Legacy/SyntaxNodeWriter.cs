@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
         private void WriteRazorDirective(RazorDirectiveSyntax node)
         {
-            if (node.DirectiveDescriptor == null)
+            if (node.DirectiveDescriptor is null)
             {
                 return;
             }

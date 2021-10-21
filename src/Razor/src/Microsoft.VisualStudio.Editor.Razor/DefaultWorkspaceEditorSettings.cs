@@ -18,12 +18,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public DefaultWorkspaceEditorSettings(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, EditorSettingsManager editorSettingsManager)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (editorSettingsManager == null)
+            if (editorSettingsManager is null)
             {
                 throw new ArgumentNullException(nameof(editorSettingsManager));
             }

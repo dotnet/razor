@@ -148,6 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 {
                     throw new InvalidOperationException("Couldn't get syntax root.");
                 }
+
                 var spanToFormat = @params.ProjectedRange.AsTextSpan(csharpSourceText);
 
                 var changes = Formatter.GetFormattedTextChanges(root, spanToFormat, csharpDocument.Project.Solution.Workspace);
@@ -250,6 +251,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 return Task.FromResult(Convert(response));
             }
+
             throw new NotImplementedException();
         }
 

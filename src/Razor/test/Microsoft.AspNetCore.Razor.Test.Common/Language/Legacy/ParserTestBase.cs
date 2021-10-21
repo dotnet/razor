@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
             var root = syntaxTree.Root;
             var diagnostics = syntaxTree.Diagnostics;
             var filePath = syntaxTree.Source.FilePath;
-            if (FileName == null)
+            if (FileName is null)
             {
                 var message = $"{nameof(AssertSyntaxTreeNodeMatchesBaseline)} should only be called from a parser test ({nameof(FileName)} is null).";
                 throw new InvalidOperationException(message);
@@ -274,7 +274,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy
         {
             public TestRazorParserOptions(DirectiveDescriptor[] directives, bool designTime, bool parseLeadingDirectives, RazorLanguageVersion version, string fileKind, RazorParserFeatureFlags featureFlags = null)
             {
-                if (directives == null)
+                if (directives is null)
                 {
                     throw new ArgumentNullException(nameof(directives));
                 }

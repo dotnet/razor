@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         public TextEditKind TextEditKind { get; set; }
 
-        public FormattingOptions FormattingOptions { get; set; }
+        public FormattingOptions? FormattingOptions { get; set; }
 
         // Everything below this is for testing purposes only.
         public bool Equals(RazorMapToDocumentEditsParams other)
@@ -53,9 +53,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return hash;
         }
 
-        private bool IsEqual(FormattingOptions other)
+        private bool IsEqual(FormattingOptions? other)
         {
-            if (FormattingOptions == null || other == null)
+            if (FormattingOptions is null || other is null)
             {
                 return FormattingOptions == other;
             }
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 FormattingOptions.InsertSpaces == other.InsertSpaces &&
                 FormattingOptions.TabSize == other.TabSize &&
                 (object.ReferenceEquals(FormattingOptions.OtherOptions, other.OtherOptions) ||
-                ((FormattingOptions.OtherOptions != null && other.OtherOptions != null) &&
+                (FormattingOptions.OtherOptions != null && other.OtherOptions != null &&
                 FormattingOptions.OtherOptions.OrderBy(k => k.Key).SequenceEqual(other.OtherOptions.OrderBy(k => k.Key))));
         }
     }

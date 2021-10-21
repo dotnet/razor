@@ -105,6 +105,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 return codeAction;
             }
+
             var (documentSnapshot, documentVersion) = documentInfo.Value;
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public RazorSpanMappingService(DocumentSnapshot document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
@@ -32,18 +32,18 @@ namespace Microsoft.CodeAnalysis.Razor
             IEnumerable<TextSpan> spans,
             CancellationToken cancellationToken)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
-            if (spans == null)
+            if (spans is null)
             {
                 throw new ArgumentNullException(nameof(spans));
             }
 
             // Called on an uninitialized document.
-            if (_document == null)
+            if (_document is null)
             {
                 return ImmutableArray.Create<RazorMappedSpanResult>();
             }

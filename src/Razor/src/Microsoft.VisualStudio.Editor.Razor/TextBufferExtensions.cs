@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Text
     {
         public static bool IsRazorBuffer(this ITextBuffer textBuffer)
         {
-            if (textBuffer == null)
+            if (textBuffer is null)
             {
                 throw new ArgumentNullException(nameof(textBuffer));
             }

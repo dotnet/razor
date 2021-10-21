@@ -101,6 +101,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Debug.Fail($"No resolver registered for {GetCodeActionId(resolutionParams)}.");
                 return codeAction;
             }
+
             var edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
             codeAction = codeAction with { Edit = edit };
             return codeAction;
@@ -141,6 +142,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 {
                     Debug.Fail($"Duplicate resolver action for {resolver.Action} of type {typeof(T)}.");
                 }
+
                 resolverMap[resolver.Action] = resolver;
             }
 

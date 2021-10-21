@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             _cache = new MemoryCache<CacheKey, IReadOnlyList<string>>(sizeLimit: 10);
         }
 
-        public override async Task<IReadOnlyList<string>> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
         {
             if (textBuffer is null)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 
             var lspPosition = new Position(lineIndex, characterIndex);
             var projectionResult = await _projectionProvider.GetProjectionAsync(documentSnapshot, lspPosition, cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 // Can't map the position, invalid breakpoint location.
                 return null;
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
             }
 
             var syntaxTree = await virtualDocument.GetCSharpSyntaxTreeAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            var proximityExpressions = RazorCSharpProximityExpressionResolverService.GetProximityExpressions(syntaxTree, projectionResult.PositionIndex, cancellationToken)?.ToList();
+            var proximityExpressions = RazorCSharpProximityExpressionResolverService.GetProximityExpressions(syntaxTree, projectionResult.PositionIndex, cancellationToken).ToList();
 
             // Cache range so if we're asked again for this document/line/character we don't have to go async.
             _cache.Set(cacheKey, proximityExpressions);
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
         public static DefaultRazorProximityExpressionResolver CreateTestInstance(
             FileUriProvider fileUriProvider,
             LSPDocumentManager documentManager,
-            LSPProjectionProvider projectionProvider) => new(fileUriProvider, documentManager, projectionProvider, (CodeAnalysis.Workspace)null);
+            LSPProjectionProvider projectionProvider) => new(fileUriProvider, documentManager, projectionProvider, (CodeAnalysis.Workspace?)null);
 
         private record CacheKey(Uri DocumentUri, int DocumentVersion, int Line, int Character);
     }

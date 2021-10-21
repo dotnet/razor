@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
             var razorBuffer = textView.BufferGraph.GetRazorBuffers().FirstOrDefault();
             if (!razorBuffer.Properties.TryGetProperty(typeof(RazorDirectiveCompletionSource), out IAsyncCompletionSource completionSource) ||
-                completionSource == null)
+                completionSource is null)
             {
                 completionSource = CreateCompletionSource(razorBuffer);
                 razorBuffer.Properties.AddProperty(typeof(RazorDirectiveCompletionSource), completionSource);

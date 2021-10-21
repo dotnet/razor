@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
             Func<CancellationToken, Task> delayAfterLastNotifyAsync,
             CancellationToken handlerCancellationToken,
-            out Task onCompleted)
+            [NotNullWhen(true)] out Task? onCompleted)
         {
             var onCompletedSource = new TaskCompletionSource<bool>();
             var request = new ProgressRequest(

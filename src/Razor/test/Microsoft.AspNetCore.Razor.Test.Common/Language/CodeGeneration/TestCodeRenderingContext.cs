@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
             var documentNode = new DocumentIntermediateNode();
             var options = RazorCodeGenerationOptions.CreateDesignTimeDefault();
 
-            if (source == null)
+            if (source is null)
             {
                 source = TestRazorSourceDocument.Create();
             }
@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
                 codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = suppressUniqueIds;
             }
 
-            if (nodeWriter == null)
+            if (nodeWriter is null)
             {
                 nodeWriter = new DesignTimeNodeWriter();
             }
@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
             var documentNode = new DocumentIntermediateNode();
             var options = RazorCodeGenerationOptions.CreateDefault();
 
-            if (source == null)
+            if (source is null)
             {
                 source = TestRazorSourceDocument.Create();
             }
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
                 codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = suppressUniqueIds;
             }
 
-            if (nodeWriter == null)
+            if (nodeWriter is null)
             {
                 nodeWriter = new RuntimeNodeWriter();
             }

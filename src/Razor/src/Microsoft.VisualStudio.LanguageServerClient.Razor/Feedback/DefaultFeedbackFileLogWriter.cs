@@ -18,7 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
         private readonly object _writeToLock;
         private readonly FeedbackLogDirectoryProvider _feedbackLogDirectoryProvider;
         private TextWriter _logWriter;
-        private string _logFile;
         private bool _disposed;
 
         public DefaultFeedbackFileLogWriter(FeedbackLogDirectoryProvider feedbackLogDirectoryProvider, string logFileIdentifier)
@@ -33,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
             _writeToLock = new object();
             _feedbackLogDirectoryProvider = feedbackLogDirectoryProvider;
 
-            InitializeLogFile(logFileIdentifier);
+            _logWriter = InitializeLogFile(logFileIdentifier);
 
             _logWriterTask = Task.Run(WriteToLogAsync);
         }
@@ -70,7 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
             _logSemaphore.Release();
             _logSemaphore.Dispose();
 
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
             _logWriterTask.Wait();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
             _logWriter.Close();
             _logWriter.Dispose();
@@ -86,12 +87,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
                     // An empty queue is a stop signal.
                     break;
                 }
+
                 await _logWriter.WriteLineAsync(line);
                 await _logWriter.FlushAsync();
             }
         }
 
-        private void InitializeLogFile(string logFileIdentifier)
+        private TextWriter InitializeLogFile(string logFileIdentifier)
         {
             var logDirectory = _feedbackLogDirectoryProvider.GetDirectory();
 
@@ -110,9 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Feedback
                 {
                     var fileStream = File.Open(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
 
-                    _logWriter = new StreamWriter(fileStream);
-                    _logFile = filePath;
-                    return;
+                    return new StreamWriter(fileStream);
                 }
                 catch (IOException)
                 {

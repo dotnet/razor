@@ -10,7 +10,7 @@ namespace OmniSharp
 {
     public static class TestOmniSharpWorkspace
     {
-        private static readonly object s_workspaceLock = new object();
+        private static readonly object s_workspaceLock = new();
 
         public static OmniSharpWorkspace Create()
         {
@@ -26,7 +26,7 @@ namespace OmniSharp
 
         private class TestFileSystemWatcher : IFileSystemWatcher
         {
-            public static readonly TestFileSystemWatcher Instance = new TestFileSystemWatcher();
+            public static readonly TestFileSystemWatcher Instance = new();
 
             private TestFileSystemWatcher()
             {

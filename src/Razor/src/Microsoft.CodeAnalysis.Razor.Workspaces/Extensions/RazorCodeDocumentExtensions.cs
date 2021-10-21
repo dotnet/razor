@@ -9,19 +9,19 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
 {
     internal static class RazorCodeDocumentExtensions
     {
-        private static readonly object s_sourceTextKey = new object();
-        private static readonly object s_cSharpSourceTextKey = new object();
-        private static readonly object s_htmlSourceTextKey = new object();
+        private static readonly object s_sourceTextKey = new();
+        private static readonly object s_cSharpSourceTextKey = new();
+        private static readonly object s_htmlSourceTextKey = new();
 
         public static SourceText GetSourceText(this RazorCodeDocument document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
             var sourceTextObj = document.Items[s_sourceTextKey];
-            if (sourceTextObj == null)
+            if (sourceTextObj is null)
             {
                 var source = document.Source;
                 var charBuffer = new char[source.Length];
@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
 
         public static SourceText GetCSharpSourceText(this RazorCodeDocument document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
             var sourceTextObj = document.Items[s_cSharpSourceTextKey];
-            if (sourceTextObj == null)
+            if (sourceTextObj is null)
             {
                 var csharpDocument = document.GetCSharpDocument();
                 var sourceText = SourceText.From(csharpDocument.GeneratedCode);
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
 
         public static SourceText GetHtmlSourceText(this RazorCodeDocument document)
         {
-            if (document == null)
+            if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
             var sourceTextObj = document.Items[s_htmlSourceTextKey];
-            if (sourceTextObj == null)
+            if (sourceTextObj is null)
             {
                 var htmlDocument = document.GetHtmlDocument();
                 var sourceText = SourceText.From(htmlDocument.GeneratedHtml);

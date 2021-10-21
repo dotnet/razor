@@ -62,7 +62,7 @@ namespace Xunit
 
                     Dispatcher.PushFrame(frame);
 
-                    if (caught == null)
+                    if (caught is null)
                     {
                         tcs.SetResult(worker.Result);
                     }

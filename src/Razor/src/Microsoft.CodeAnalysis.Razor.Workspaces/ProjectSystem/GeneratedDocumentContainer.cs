@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public TextContainer(SourceText sourceText)
             {
-                if (sourceText == null)
+                if (sourceText is null)
                 {
                     throw new ArgumentNullException(nameof(sourceText));
                 }
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             public void SetText(SourceText sourceText)
             {
-                if (sourceText == null)
+                if (sourceText is null)
                 {
                     throw new ArgumentNullException(nameof(sourceText));
                 }

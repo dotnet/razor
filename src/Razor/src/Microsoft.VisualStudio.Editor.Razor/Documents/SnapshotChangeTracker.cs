@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             }
 
             // start tracking new buffer
-            if (buffer != null && _snapshot == null)
+            if (buffer != null && _snapshot is null)
             {
                 _snapshot = buffer.CurrentSnapshot;
                 _textBuffer = buffer;

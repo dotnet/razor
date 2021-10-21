@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(diagnosticsProvider));
             }
 
-            if (loggerProvider == null)
+            if (loggerProvider is null)
             {
                 throw new ArgumentNullException(nameof(loggerProvider));
             }
@@ -67,9 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        public async Task<IReadOnlyList<VSInternalDiagnosticReport>> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            if (request is null)
+            if (request is null || request.TextDocument is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -172,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Uri razorDocumentUri,
             CancellationToken cancellationToken)
         {
-            if (unmappedDiagnosticReports?.Any() != true)
+            if (unmappedDiagnosticReports.Any() != true)
             {
                 return unmappedDiagnosticReports;
             }
@@ -185,7 +185,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 if (diagnosticReport?.Diagnostics?.Any() != true)
                 {
                     _logger.LogInformation("Diagnostic report contained no diagnostics.");
-                    mappedDiagnosticReports.Add(diagnosticReport);
+                    if (diagnosticReport is not null)
+                    {
+                        mappedDiagnosticReports.Add(diagnosticReport);
+                    }
+
                     continue;
                 }
 

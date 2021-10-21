@@ -26,22 +26,22 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             VisualStudioMacWorkspaceAccessor workspaceAccessor,
             TextBufferProjectService projectService)
         {
-            if (project == null)
+            if (project is null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (workspaceAccessor == null)
+            if (workspaceAccessor is null)
             {
                 throw new ArgumentNullException(nameof(workspaceAccessor));
             }
 
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
@@ -58,17 +58,17 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             VisualStudioMacWorkspaceAccessor workspaceAccessor,
             TextBufferProjectService projectService)
         {
-            if (projectSnapshotManagerDispatcher == null)
+            if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (workspaceAccessor == null)
+            if (workspaceAccessor is null)
             {
                 throw new ArgumentNullException(nameof(workspaceAccessor));
             }
 
-            if (projectService == null)
+            if (projectService is null)
             {
                 throw new ArgumentNullException(nameof(projectService));
             }
@@ -93,10 +93,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             _project.ProjectCapabilitiesChanged -= Project_ProjectCapabilitiesChanged;
             _project.Disposing -= Project_Disposing;
 
-            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-                {
-                    DetachCurrentRazorProjectHost();
-                }, CancellationToken.None);
+            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => DetachCurrentRazorProjectHost(), CancellationToken.None);
         }
 
         private void Project_ProjectCapabilitiesChanged(object sender, EventArgs e) => UpdateRazorHostProject();

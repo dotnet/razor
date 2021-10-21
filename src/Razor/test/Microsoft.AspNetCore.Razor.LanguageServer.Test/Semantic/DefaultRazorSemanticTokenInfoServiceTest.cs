@@ -236,7 +236,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
         {
             var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
 
-
             var csharpTokens = new int[]
             {
                 14, 12, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
@@ -874,6 +873,7 @@ slf*@";
             {
                 (service, serviceMock) = GetDefaultRazorSemanticTokenInfoService(documentSnapshots, csharpTokens, documentMappings, documentVersion);
             }
+
             var outService = service;
 
             var textDocumentIdentifier = textDocumentIdentifiers.Dequeue();
@@ -951,6 +951,7 @@ slf*@";
                         .Returns(razorRange != null);
                 }
             }
+
             var loggingFactory = new Mock<LoggerFactory>(MockBehavior.Strict);
             loggingFactory.Protected().Setup("CheckDisposed").CallBase();
 

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
                 if (IsRazorCompilerBugWithCSharpKeywords(request, wordExtent))
                 {
@@ -253,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _logger.LogInformation("Returning completion list.");
             return completionList;
 
-            static bool TryConvertToCompletionList(SumType<CompletionItem[], CompletionList>? original, out CompletionList completionList)
+            static bool TryConvertToCompletionList(SumType<CompletionItem[], CompletionList>? original, [NotNullWhen(true)]out CompletionList? completionList)
             {
                 if (!original.HasValue)
                 {
@@ -292,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private static bool WordSpanMatchesCSharpPolyfills(TextExtent? wordExtent)
         {
-            if (wordExtent == null || !wordExtent.Value.IsSignificant)
+            if (wordExtent is null || !wordExtent.Value.IsSignificant)
             {
                 return false;
             }
@@ -463,7 +464,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return true;
             }
 
-            if (wordExtent == null)
+            if (wordExtent is null)
             {
                 return false;
             }
@@ -600,6 +601,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         {
             SumType<CompletionItem[], CompletionList>? result = null;
             if (projection.LanguageKind != RazorLanguageKind.Html ||
+                request.Context is null ||
                 request.Context.TriggerKind != CompletionTriggerKind.TriggerCharacter ||
                 request.Context.TriggerCharacter != ".")
             {
@@ -619,7 +621,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 previousCharacterPosition,
                 cancellationToken).ConfigureAwait(false);
-            if (previousCharacterProjection == null ||
+            if (previousCharacterProjection is null ||
                 previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp ||
                 previousCharacterProjection.HostDocumentVersion is null)
             {
@@ -889,7 +891,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private bool IsWordOnEmptyLine(TextExtent? wordExtent, LSPDocumentSnapshot documentSnapshot)
         {
-            if (wordExtent == null)
+            if (wordExtent is null)
             {
                 return false;
             }

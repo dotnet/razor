@@ -33,14 +33,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private const string TempFileExt = ".temp";
         private readonly RazorLogger _logger;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
-        private readonly IVsOperationProgressStatusService _operationProgressStatusService = null;
+        private readonly IVsOperationProgressStatusService? _operationProgressStatusService = null;
         private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
         private readonly Dictionary<string, ProjectSnapshot> _pendingProjectPublishes;
         private readonly object _pendingProjectPublishesLock;
         private readonly object _publishLock;
 
         private readonly JsonSerializer _serializer = new();
-        private ProjectSnapshotManagerBase _projectSnapshotManager;
+        private ProjectSnapshotManagerBase? _projectSnapshotManager;
         private bool _documentsProcessed = false;
 
         [ImportingConstructor]
@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             lock (_publishLock)
             {
-                string configurationFilePath = null;
+                string? configurationFilePath = null;
                 try
                 {
                     if (!_projectConfigurationFilePathStore.TryGet(projectSnapshot.FilePath, out configurationFilePath))
