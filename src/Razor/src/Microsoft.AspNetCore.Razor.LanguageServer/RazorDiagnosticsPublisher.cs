@@ -160,13 +160,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
                 }
             }
-            finally
+            catch
             {
                 lock (PublishedDiagnostics)
                 {
                     _documentClosedTimer?.Dispose();
                     _documentClosedTimer = null;
                 }
+
+                throw;
             }
         }
 
@@ -241,7 +243,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
                 }
             }
-            finally
+            catch
             {
                 lock (_work)
                 {
@@ -249,6 +251,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     _workTimer.Dispose();
                     _workTimer = null;
                 }
+
+                throw;
             }
         }
 
