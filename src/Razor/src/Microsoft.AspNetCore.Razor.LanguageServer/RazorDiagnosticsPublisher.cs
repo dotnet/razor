@@ -252,7 +252,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-
         private void OnCompletingBackgroundWork()
         {
             if (NotifyBackgroundWorkCompleting != null)
