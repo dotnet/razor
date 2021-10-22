@@ -110,57 +110,65 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void DocumentClosedTimer_Tick(object state)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void DocumentClosedTimer_Tick(object state)
         {
-            try
-            {
-                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                    ClearClosedDocuments,
-                    CancellationToken.None).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                // Swallow exception to not crash VS (this is an async void method)
-                _logger.LogError(ex, "Background diagnostic publisher for Razor failed to publish diagnostics for an unexpected reason.");
-            }
+            _ = DocumentClosedTimer_TickAsync(CancellationToken.None);
+        }
+
+        private async Task DocumentClosedTimer_TickAsync(CancellationToken cancellationToken)
+        {
+            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                ClearClosedDocuments,
+                cancellationToken).ConfigureAwait(false);
         }
 
         // Internal for testing
         internal void ClearClosedDocuments()
         {
-            lock (PublishedDiagnostics)
+            try
             {
-                var publishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(PublishedDiagnostics);
-                foreach (var entry in publishedDiagnostics)
+                lock (PublishedDiagnostics)
                 {
-                    if (!_projectManager.IsDocumentOpen(entry.Key))
+                    var publishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(PublishedDiagnostics);
+                    foreach (var entry in publishedDiagnostics)
                     {
-                        // Document is now closed, we shouldn't track its diagnostics anymore.
-                        PublishedDiagnostics.Remove(entry.Key);
-
-                        // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
-                        // doesn't have a ton of closed document errors that they can't get rid of.
-                        if (entry.Value.Count > 0)
+                        if (!_projectManager.IsDocumentOpen(entry.Key))
                         {
-                            PublishDiagnosticsForFilePath(entry.Key, Array.Empty<Diagnostic>());
+                            // Document is now closed, we shouldn't track its diagnostics anymore.
+                            PublishedDiagnostics.Remove(entry.Key);
+
+                            // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
+                            // doesn't have a ton of closed document errors that they can't get rid of.
+                            if (entry.Value.Count > 0)
+                            {
+                                PublishDiagnosticsForFilePath(entry.Key, Array.Empty<Diagnostic>());
+                            }
+                        }
+                    }
+
+                    _documentClosedTimer?.Dispose();
+                    _documentClosedTimer = null;
+
+                    if (PublishedDiagnostics.Count > 0)
+                    {
+                        lock (_work)
+                        {
+                            // There's no way for us to know when a document is closed at this layer. Therefore, we need to poll every X seconds
+                            // and check if the currently tracked documents are closed. In practice this work is super minimal.
+                            StartDocumentClosedCheckTimer();
                         }
                     }
                 }
-
-                _documentClosedTimer?.Dispose();
-                _documentClosedTimer = null;
-
-                if (PublishedDiagnostics.Count > 0)
+            }
+            catch
+            {
+                lock (PublishedDiagnostics)
                 {
-                    lock (_work)
-                    {
-                        // There's no way for us to know when a document is closed at this layer. Therefore, we need to poll every X seconds
-                        // and check if the currently tracked documents are closed. In practice this work is super minimal.
-                        StartDocumentClosedCheckTimer();
-                    }
+                    _documentClosedTimer?.Dispose();
+                    _documentClosedTimer = null;
                 }
+
+                throw;
             }
         }
 
@@ -198,9 +206,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void WorkTimer_Tick(object state)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void WorkTimer_Tick(object state)
+        {
+            _ = WorkTimer_TickAsync(CancellationToken.None);
+        }
+
+        private async Task WorkTimer_TickAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -232,10 +243,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                // Swallow exception to not crash VS (this is an async void method)
-                _logger.LogError(ex, "Background diagnostic publisher for Razor failed to publish diagnostics for an unexpected reason.");
+                lock (_work)
+                {
+                    // Resetting the timer allows another batch of work to start.
+                    _workTimer.Dispose();
+                    _workTimer = null;
+                }
+
+                throw;
             }
         }
 
