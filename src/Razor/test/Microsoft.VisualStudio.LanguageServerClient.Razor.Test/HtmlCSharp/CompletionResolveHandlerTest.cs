@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Test;
+using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
 
@@ -15,13 +17,30 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     public class CompletionResolveHandlerTest : HandlerTestBase
     {
+        private TestDocumentManager DocumentManager { get; } = new TestDocumentManager();
+
         private TestDocumentMappingProvider DocumentMappingProvider { get; } = new TestDocumentMappingProvider();
 
         private TestFormattingOptionsProvider FormattingOptionsProvider { get; } = new TestFormattingOptionsProvider();
 
         private CompletionRequestContextCache CompletionRequestContextCache { get; } = new CompletionRequestContextCache();
 
-        private static readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
+        private Uri HostDocumentUri { get; }
+
+        private TestTextBuffer TextBuffer { get; }
+
+        public CompletionResolveHandlerTest()
+        {
+            HostDocumentUri = new Uri("C:/path/to/file.razor");
+            TextBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
+            DocumentManager.AddDocument(
+                HostDocumentUri,
+                new TestLSPDocumentSnapshot(
+                    HostDocumentUri,
+                    version: 0,
+                    new CSharpVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor.g.cs"), TextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0),
+                    new HtmlVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor__virtual.html"), TextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0)));
+        }
 
         [Fact]
         public async Task HandleRequestAsync_NonNullOriginalInsertText_DoesNotRemapTextEdit()
@@ -41,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 TextEdit = originalEdit,
             };
             var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) => resolvedCompletionItem);
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
             var result = await handler.HandleRequestAsync(requestedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
@@ -69,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 TextEdit = originalEdit,
             };
             var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) => resolvedCompletionItem);
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
             var result = await handler.HandleRequestAsync(requestedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
@@ -89,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 InsertText = "DateTime",
             };
             var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) => resolvedCompletionItem);
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act & Assert
             var result = await handler.HandleRequestAsync(requestedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
@@ -109,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 TextEdit = originalEdit,
             };
             var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) => resolvedCompletionItem);
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
             var result = await handler.HandleRequestAsync(requestedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
@@ -132,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 AdditionalTextEdits = new[] { originalEdit },
             };
             var requestInvoker = CreateRequestInvoker((method, languageServerName, completionItem) => resolvedCompletionItem);
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
             var result = await handler.HandleRequestAsync(requestedCompletionItem, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
@@ -168,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return expectedResponse;
             });
 
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
             var result = await handler.HandleRequestAsync(request, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
@@ -204,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return expectedResponse;
             });
 
-            var handler = new CompletionResolveHandler(requestInvoker, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
+            var handler = new CompletionResolveHandler(requestInvoker, DocumentManager, DocumentMappingProvider, FormattingOptionsProvider, CompletionRequestContextCache, LoggerProvider);
 
             // Act
             var result = await handler.HandleRequestAsync(request, new ClientCapabilities(), CancellationToken.None).ConfigureAwait(false);
@@ -214,14 +233,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Same(expectedResponse, result);
         }
 
-        private static LSPRequestInvoker CreateRequestInvoker(Func<string, string, CompletionItem, CompletionItem> reinvokeCallback)
+        private LSPRequestInvoker CreateRequestInvoker(Func<string, string, CompletionItem, CompletionItem> reinvokeCallback)
         {
             CompletionItem response = null;
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
-                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CompletionItem>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, CompletionItem, CancellationToken>((method, languageServerName, completionItem, ct) => response = reinvokeCallback(method, languageServerName, completionItem))
-                .Returns(() => Task.FromResult(new ReinvokeResponse<CompletionItem>(_languageClient, response)));
+                .Setup(r => r.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(
+                    TextBuffer,
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CompletionItem>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<ITextBuffer, string, string, CompletionItem, CancellationToken>(
+                    (textBuffer, method, languageServerName, completionItem, ct) => response = reinvokeCallback(method, languageServerName, completionItem))
+                .Returns(() => Task.FromResult(new ReinvocationResponse<CompletionItem>(languageClientName: "TestLanguageClient", response)));
 
             return requestInvoker.Object;
         }

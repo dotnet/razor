@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     [Shared]
     [ExportLspMethod(VSInternalMethods.DocumentPullDiagnosticName)]
     internal class DocumentPullDiagnosticsHandler :
-        IRequestHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>
+        IRequestHandler<VSInternalDocumentDiagnosticsParams, IReadOnlyList<VSInternalDiagnosticReport>>
     {
         private readonly LSPRequestInvoker _requestInvoker;
         private readonly LSPDocumentManager _documentManager;
@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         }
 
         // Internal for testing
-        public async Task<VSInternalDiagnosticReport[]> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<VSInternalDiagnosticReport>> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -132,21 +132,26 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting diagnostics for {csharpDoc.Uri} with previous result Id of {request.PreviousResultId}.");
 
-            // End goal is to transition this from ReinvokeRequestOnMultipleServersAsync -> ReinvokeRequestOnServerAsync
-            // We can't do this right now as we don't have the ability to specify the language client name we'd like to make the call out to
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1246135
-            var resultsFromAllLanguageServers = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
+            var textBuffer = csharpDoc.Snapshot.TextBuffer;
+            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
+                textBuffer,
                 VSInternalMethods.DocumentPullDiagnosticName,
-                RazorLSPConstants.CSharpContentTypeName,
                 referenceParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var results = resultsFromAllLanguageServers.SelectMany(l => l.Result).ToArray();
+            var resultsFromAllLanguageServers = new List<VSInternalDiagnosticReport>();
+            await foreach (var response in requests)
+            {
+                if (response.Response is not null)
+                {
+                    resultsFromAllLanguageServers.AddRange(response.Response);
+                }
+            }
 
-            _logger.LogInformation($"Received {results?.Length} diagnostic reports.");
+            _logger.LogInformation($"Received {resultsFromAllLanguageServers.Count} diagnostic reports.");
 
             var processedResults = await RemapDocumentDiagnosticsAsync(
-                results,
+                resultsFromAllLanguageServers,
                 request.TextDocument.Uri,
                 cancellationToken).ConfigureAwait(false);
 
@@ -162,8 +167,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return processedResults;
         }
 
-        private async Task<VSInternalDiagnosticReport[]> RemapDocumentDiagnosticsAsync(
-            VSInternalDiagnosticReport[] unmappedDiagnosticReports,
+        private async Task<IReadOnlyList<VSInternalDiagnosticReport>> RemapDocumentDiagnosticsAsync(
+            IReadOnlyList<VSInternalDiagnosticReport> unmappedDiagnosticReports,
             Uri razorDocumentUri,
             CancellationToken cancellationToken)
         {
@@ -172,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return unmappedDiagnosticReports;
             }
 
-            var mappedDiagnosticReports = new List<VSInternalDiagnosticReport>(unmappedDiagnosticReports.Length);
+            var mappedDiagnosticReports = new List<VSInternalDiagnosticReport>(unmappedDiagnosticReports.Count);
 
             foreach (var diagnosticReport in unmappedDiagnosticReports)
             {

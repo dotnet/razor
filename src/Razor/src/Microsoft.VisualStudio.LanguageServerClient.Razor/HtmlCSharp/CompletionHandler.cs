@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Threading;
 
@@ -152,6 +153,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 cancellationToken).ConfigureAwait(false);
             if (projectionResult == null)
             {
+                if (IsRazorCompilerBugWithCSharpKeywords(request, wordExtent))
+                {
+                    var csharpPolyfilledCompletionList = new CompletionList()
+                    {
+                        Items = Array.Empty<CompletionItem>(),
+                        IsIncomplete = true,
+                    };
+                    csharpPolyfilledCompletionList = IncludeCSharpKeywords(csharpPolyfilledCompletionList);
+                    return csharpPolyfilledCompletionList;
+                }
+
                 return null;
             }
 
@@ -201,12 +213,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 _logger.LogInformation($"Requesting non-provisional completions for {projectedDocumentUri}.");
 
+                var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
                 var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
+                    textBuffer,
                     Methods.TextDocumentCompletionName,
                     languageServerName,
                     completionParams,
                     cancellationToken).ConfigureAwait(false);
-                result = response.Result;
+
+                if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out result))
+                {
+                    return null;
+                }
 
                 _logger.LogInformation("Found non-provisional completion");
             }
@@ -259,6 +277,62 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
                 return true;
             }
+        }
+
+        // Internal for testing
+        internal static bool IsRazorCompilerBugWithCSharpKeywords(CompletionParams request, TextExtent? wordExtent)
+        {
+            // This was originally found when users would attempt to type out `@using` in an _Imports.razor file and get 0 completion items at the `g` of `using`.
+            // After lots of investigation it turns out that the Razor compiler will generate 0 C# source for an incomplete using directive. This in turn results
+            // in 0 C# information at `@using|`. This is tracked here: https://github.com/dotnet/aspnetcore/issues/37568
+            //
+            // The entire purpose of this method is to encapsulate this compiler bug and try and make users experiences a little better in a low-risk fashion.
+            return request.Context.TriggerKind == CompletionTriggerKind.TriggerForIncompleteCompletions &&
+                WordSpanMatchesCSharpPolyfills(wordExtent);
+        }
+
+        private static bool WordSpanMatchesCSharpPolyfills(TextExtent? wordExtent)
+        {
+            if (wordExtent == null || !wordExtent.Value.IsSignificant)
+            {
+                return false;
+            }
+
+            var wordSpan = wordExtent.Value.Span;
+
+            foreach (var keyword in s_keywords)
+            {
+                if (wordSpan.Length != keyword.Length)
+                {
+                    // Word can't match, different length
+                    continue;
+                }
+
+                var allCharactersMatch = true;
+                for (var j = 0; j < keyword.Length; j++)
+                {
+                    var wordSpanIndex = wordSpan.Start.Position + j;
+                    if (wordSpanIndex >= wordSpan.Snapshot.Length)
+                    {
+                        // Don't think this is technically possible but being extra cautious to stay low-risk.
+                        break;
+                    }
+
+                    var wordCharacter = wordSpan.Snapshot[wordSpanIndex];
+                    if (keyword[j] != wordCharacter)
+                    {
+                        allCharactersMatch = false;
+                        break;
+                    }
+                }
+
+                if (allCharactersMatch)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool TryGetWordExtent(CompletionParams request, LSPDocumentSnapshot documentSnapshot, out TextExtent? wordExtent)
@@ -479,7 +553,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     // to ensure that we still get completion results at `|Da`.
                     internalContext.InvokeKind = VSInternalCompletionInvokeKind.Explicit;
                 }
-                
+
                 return context;
             }
 
@@ -585,12 +659,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting provisional completion for {previousCharacterProjection.Uri}.");
 
+            var textBuffer = LanguageServerKind.CSharp.GetTextBuffer(documentSnapshot);
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
+                textBuffer,
                 Methods.TextDocumentCompletionName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 provisionalCompletionParams,
                 cancellationToken).ConfigureAwait(true);
-            result = response.Result;
+
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorCSharpLanguageServerName, out result))
+            {
+                return (false, result);
+            }
 
             // We have now obtained the necessary completion items. We no longer need the provisional change. Revert.
             var removeProvisionalDot = new VisualStudioTextChange(previousCharacterProjection.PositionIndex, 1, string.Empty);

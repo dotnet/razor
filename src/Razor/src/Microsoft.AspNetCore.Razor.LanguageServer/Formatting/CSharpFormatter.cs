@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
@@ -240,6 +241,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         // nodes end up moving left with every format operation, until they hit the minimum of 2 indent levels.
                         // We can't fix this, so we just work around it by ignoring those nodes compeletely, and leaving them where the
                         // user put them. This is the same as what the C# formatter does.
+
                         if (IsIgnoredByCSharpFormatter(token.Parent))
                         {
                             offset = -1;
@@ -252,11 +254,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         private static bool IsIgnoredByCSharpFormatter(SyntaxNode? parent)
-            => parent?.AncestorsAndSelf().Any(n => n.Kind() switch
+            => parent?.AncestorsAndSelf().Any(n => n switch
             {
-                CodeAnalysis.CSharp.SyntaxKind.ObjectInitializerExpression => true,
-                CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression => true,
-                CodeAnalysis.CSharp.SyntaxKind.CollectionInitializerExpression => true,
+                // C# formatter doesn't touch array initializers
+                InitializerExpressionSyntax { RawKind: (int)CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression } => true,
+                // C# formatter doesn't touch object and collection initializers if they're not empty
+                InitializerExpressionSyntax { Expressions: { Count: > 0 } } => true,
                 _ => false
             }) ?? false;
 

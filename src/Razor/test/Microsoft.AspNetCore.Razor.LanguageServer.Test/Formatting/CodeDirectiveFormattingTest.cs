@@ -719,7 +719,7 @@ expected: @"@code {
         [WorkItem("https://github.com/dotnet/aspnetcore/issues/34320")]
         public async Task CodeBlock_ObjectCollectionArrayInitializers(bool useSourceTextDiffer)
         {
-            // The C# Formatter doesn't touch these types of initializers, so nor to we. This test
+            // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
             // just verifies we don't regress things and start moving code around.
             await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
 input: @"
@@ -759,6 +759,46 @@ expected: @"@code {
             }
         }
     };
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5618")]
+        public async Task CodeBlock_EmptyObjectCollectionInitializers(bool useSourceTextDiffer)
+        {
+            // The C# Formatter _does_ touch these types of initializers if they're empty. Who knew ¯\_(ツ)_/¯
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@code {
+    public void Foo()
+    {
+        SomeMethod(new List<string>()
+            {
+
+            });
+
+        SomeMethod(new Exception
+            {
+
+            });
+    }
+}
+",
+expected: @"@code {
+    public void Foo()
+    {
+        SomeMethod(new List<string>()
+        {
+
+        });
+
+        SomeMethod(new Exception
+        {
+
+        });
+    }
 }
 ");
         }

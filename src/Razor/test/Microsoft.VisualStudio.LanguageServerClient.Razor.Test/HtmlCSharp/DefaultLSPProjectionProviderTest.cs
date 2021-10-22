@@ -16,16 +16,28 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     public class DefaultLSPProjectionProviderTest : HandlerTestBase
     {
-        private readonly ILanguageClient _languageClient = Mock.Of<ILanguageClient>(MockBehavior.Strict);
+        public DefaultLSPProjectionProviderTest()
+        {
+            var htmlUri = new Uri("file:///some/folder/to/file.razor__virtual.html");
+            HtmlVirtualDocumentSnapshot = new HtmlVirtualDocumentSnapshot(htmlUri, new StringTextSnapshot(string.Empty), 1);
+
+            var csharpUri = new Uri("file:///some/folder/to/file.razor__virtual.cs");
+            CSharpVirtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(csharpUri, new StringTextSnapshot(string.Empty), 1);
+
+            var uri = new Uri("file:///some/folder/to/file.razor");
+            DocumentSnapshot = new TestLSPDocumentSnapshot(uri, version: 0, "Some Content", HtmlVirtualDocumentSnapshot, CSharpVirtualDocumentSnapshot);
+        }
+
+        private LSPDocumentSnapshot DocumentSnapshot { get; }
+
+        private HtmlVirtualDocumentSnapshot HtmlVirtualDocumentSnapshot { get; }
+
+        private CSharpVirtualDocumentSnapshot CSharpVirtualDocumentSnapshot { get; }
 
         [Fact]
         public async Task GetProjectionAsync_RazorProjection_ReturnsNull()
         {
             // Arrange
-            var uri = new Uri("file:///some/folder/to/file.razor");
-            var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshot.SetupGet(d => d.Uri).Returns(uri);
-
             var response = new RazorLanguageQueryResponse()
             {
                 Kind = RazorLanguageKind.Razor
@@ -33,19 +45,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
+                    It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     RazorLSPConstants.RazorLanguageServerName,
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new ReinvokeResponse<RazorLanguageQueryResponse>(_languageClient, response)));
+                .Returns(Task.FromResult(new ReinvocationResponse<RazorLanguageQueryResponse>("LanguageClient", response)));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
             var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, Mock.Of<RazorLogger>(MockBehavior.Strict), LoggerProvider);
 
             // Act
-            var result = await projectionProvider.GetProjectionAsync(documentSnapshot.Object, new Position(), CancellationToken.None).ConfigureAwait(false);
+            var result = await projectionProvider.GetProjectionAsync(DocumentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result);
@@ -55,16 +68,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task GetProjectionAsync_HtmlProjection_Synchronizes_ReturnsProjection()
         {
             // Arrange
-            var uri = new Uri("file:///some/folder/to/file.razor");
-            var htmlUri = new Uri("file:///some/folder/to/file.razor__virtual.html");
-            var virtualDocumentSnapshot = new HtmlVirtualDocumentSnapshot(htmlUri, Mock.Of<ITextSnapshot>(MockBehavior.Strict), 1);
-
-            var documentSnapshotObj = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshotObj.SetupGet(d => d.Uri).Returns(uri);
-            documentSnapshotObj.SetupGet(d => d.Version).Returns(1);
-            documentSnapshotObj.SetupGet(d => d.VirtualDocuments).Returns(new[] { virtualDocumentSnapshot });
-            var documentSnapshot = documentSnapshotObj.Object;
-
             var expectedPosition = new Position(0, 0);
             var response = new RazorLanguageQueryResponse()
             {
@@ -75,26 +78,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
+                    It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     RazorLSPConstants.RazorLanguageServerName,
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new ReinvokeResponse<RazorLanguageQueryResponse>(_languageClient, response)));
+                .Returns(Task.FromResult(new ReinvocationResponse<RazorLanguageQueryResponse>("LanguageClient", response)));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
-                .Setup(d => d.TrySynchronizeVirtualDocumentAsync(documentSnapshot.Version, virtualDocumentSnapshot, It.IsAny<CancellationToken>()))
+                .Setup(d => d.TrySynchronizeVirtualDocumentAsync(DocumentSnapshot.Version, HtmlVirtualDocumentSnapshot, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(true));
 
             var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, Mock.Of<RazorLogger>(MockBehavior.Strict), LoggerProvider);
 
             // Act
-            var result = await projectionProvider.GetProjectionAsync(documentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
+            var result = await projectionProvider.GetProjectionAsync(DocumentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(htmlUri, result.Uri);
+            Assert.Equal(HtmlVirtualDocumentSnapshot.Uri, result.Uri);
             Assert.Equal(RazorLanguageKind.Html, result.LanguageKind);
             Assert.Equal(expectedPosition, result.Position);
         }
@@ -103,16 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task GetProjectionAsync_CSharpProjection_Synchronizes_ReturnsProjection()
         {
             // Arrange
-            var uri = new Uri("file:///some/folder/to/file.razor");
-            var csharpUri = new Uri("file:///some/folder/to/file.razor__virtual.cs");
-            var virtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(csharpUri, Mock.Of<ITextSnapshot>(MockBehavior.Strict), 1);
-
-            var documentSnapshotObj = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshotObj.SetupGet(d => d.Uri).Returns(uri);
-            documentSnapshotObj.SetupGet(d => d.Version).Returns(1);
-            documentSnapshotObj.SetupGet(d => d.VirtualDocuments).Returns(new[] { virtualDocumentSnapshot });
-            var documentSnapshot = documentSnapshotObj.Object;
-
             var expectedPosition = new Position(0, 0);
             var response = new RazorLanguageQueryResponse()
             {
@@ -123,26 +117,27 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
+                    It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     RazorLSPConstants.RazorLanguageServerName,
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new ReinvokeResponse<RazorLanguageQueryResponse>(_languageClient, response)));
+                .Returns(Task.FromResult(new ReinvocationResponse<RazorLanguageQueryResponse>("LanguageClient", response)));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
-                .Setup(d => d.TrySynchronizeVirtualDocumentAsync(documentSnapshot.Version, virtualDocumentSnapshot, It.IsAny<CancellationToken>()))
+                .Setup(d => d.TrySynchronizeVirtualDocumentAsync(DocumentSnapshot.Version, CSharpVirtualDocumentSnapshot, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(true));
 
             var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, Mock.Of<RazorLogger>(MockBehavior.Strict), LoggerProvider);
 
             // Act
-            var result = await projectionProvider.GetProjectionAsync(documentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
+            var result = await projectionProvider.GetProjectionAsync(DocumentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(csharpUri, result.Uri);
+            Assert.Equal(CSharpVirtualDocumentSnapshot.Uri, result.Uri);
             Assert.Equal(RazorLanguageKind.CSharp, result.LanguageKind);
             Assert.Equal(expectedPosition, result.Position);
         }
@@ -151,16 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task GetProjectionAsync_UndefinedHostDocumentVersionResponse_ReturnsProjection()
         {
             // Arrange
-            var uri = new Uri("file:///some/folder/to/file.razor");
-            var htmlUri = new Uri("file:///some/folder/to/file.razor__virtual.html");
-            var virtualDocumentSnapshot = new HtmlVirtualDocumentSnapshot(htmlUri, Mock.Of<ITextSnapshot>(MockBehavior.Strict), 1);
-
-            var documentSnapshotObj = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshotObj.SetupGet(d => d.Uri).Returns(uri);
-            documentSnapshotObj.SetupGet(d => d.Version).Returns(1);
-            documentSnapshotObj.SetupGet(d => d.VirtualDocuments).Returns(new[] { virtualDocumentSnapshot });
-            var documentSnapshot = documentSnapshotObj.Object;
-
             var expectedPosition = new Position(0, 0);
             var response = new RazorLanguageQueryResponse()
             {
@@ -171,16 +156,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
+                    It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     RazorLSPConstants.RazorLanguageServerName,
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new ReinvokeResponse<RazorLanguageQueryResponse>(_languageClient, response)));
+                .Returns(Task.FromResult(new ReinvocationResponse<RazorLanguageQueryResponse>("LanguageClient", response)));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
-                .Setup(d => d.TrySynchronizeVirtualDocumentAsync(documentSnapshot.Version, virtualDocumentSnapshot, It.IsAny<CancellationToken>()))
+                .Setup(d => d.TrySynchronizeVirtualDocumentAsync(DocumentSnapshot.Version, HtmlVirtualDocumentSnapshot, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(true));
 
             var logger = new Mock<RazorLogger>(MockBehavior.Strict);
@@ -188,11 +174,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, logger.Object, LoggerProvider);
 
             // Act
-            var result = await projectionProvider.GetProjectionAsync(documentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
+            var result = await projectionProvider.GetProjectionAsync(DocumentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(htmlUri, result.Uri);
+            Assert.Equal(HtmlVirtualDocumentSnapshot.Uri, result.Uri);
             Assert.Equal(RazorLanguageKind.Html, result.LanguageKind);
             Assert.Equal(expectedPosition, result.Position);
         }
@@ -201,16 +187,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         public async Task GetProjectionAsync_SynchronizationFails_ReturnsNull()
         {
             // Arrange
-            var uri = new Uri("file:///some/folder/to/file.razor");
-            var csharpUri = new Uri("file:///some/folder/to/file.razor__virtual.cs");
-            var virtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(csharpUri, Mock.Of<ITextSnapshot>(MockBehavior.Strict), 1);
-
-            var documentSnapshotObj = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshotObj.SetupGet(d => d.Uri).Returns(uri);
-            documentSnapshotObj.SetupGet(d => d.Version).Returns(1);
-            documentSnapshotObj.SetupGet(d => d.VirtualDocuments).Returns(new[] { virtualDocumentSnapshot });
-            var documentSnapshot = documentSnapshotObj.Object;
-
             var expectedPosition = new Position(0, 0);
             var response = new RazorLanguageQueryResponse()
             {
@@ -221,22 +197,23 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
             requestInvoker
                 .Setup(r => r.ReinvokeRequestOnServerAsync<RazorLanguageQueryParams, RazorLanguageQueryResponse>(
+                    It.IsAny<ITextBuffer>(),
                     It.IsAny<string>(),
                     RazorLSPConstants.RazorLanguageServerName,
                     It.IsAny<Func<JToken, bool>>(),
                     It.IsAny<RazorLanguageQueryParams>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new ReinvokeResponse<RazorLanguageQueryResponse>(_languageClient, response)));
+                .Returns(Task.FromResult(new ReinvocationResponse<RazorLanguageQueryResponse>("LanguageClient", response)));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
-                .Setup(d => d.TrySynchronizeVirtualDocumentAsync(documentSnapshot.Version, virtualDocumentSnapshot, It.IsAny<CancellationToken>()))
+                .Setup(d => d.TrySynchronizeVirtualDocumentAsync(DocumentSnapshot.Version, CSharpVirtualDocumentSnapshot, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(false));
 
             var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, Mock.Of<RazorLogger>(MockBehavior.Strict), LoggerProvider);
 
             // Act
-            var result = await projectionProvider.GetProjectionAsync(documentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
+            var result = await projectionProvider.GetProjectionAsync(DocumentSnapshot, new Position(), CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.Null(result);

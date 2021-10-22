@@ -211,13 +211,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Options = request.Options
             };
 
+            var textBuffer = htmlDocument.Snapshot.TextBuffer;
             var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentFormattingParams, TextEdit[]>(
+                textBuffer,
                 Methods.TextDocumentFormattingName,
                 languageServerName,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
 
-            response.Edits = edits.Result ?? Array.Empty<TextEdit>();
+            response.Edits = edits?.Response ?? Array.Empty<TextEdit>();
 
             return response;
         }
@@ -260,18 +262,20 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 Options = request.Options
             };
 
+            var textBuffer = csharpDocument.Snapshot.TextBuffer;
             var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
+                textBuffer,
                 Methods.TextDocumentRangeFormattingName,
                 languageServerName,
                 formattingParams,
                 cancellationToken).ConfigureAwait(false);
 
-            response.Edits = edits.Result ?? Array.Empty<TextEdit>();
+            response.Edits = edits?.Response ?? Array.Empty<TextEdit>();
 
             return response;
         }
 
-        public override async Task<VSInternalCodeAction[]> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<VSInternalCodeAction>> ProvideCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
         {
             if (codeActionParams is null)
             {
@@ -290,31 +294,58 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             codeActionParams.TextDocument.Uri = csharpDoc.Uri;
 
-            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, VSInternalCodeAction[]>(
+            var textBuffer = csharpDoc.Snapshot.TextBuffer;
+            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
+                textBuffer,
                 Methods.TextDocumentCodeActionName,
-                LanguageServerKind.CSharp.ToContentType(),
                 SupportsCSharpCodeActions,
                 codeActionParams,
                 cancellationToken).ConfigureAwait(false);
 
-            return results.SelectMany(l => l.Result).ToArray();
-        }
-
-        public override async Task<VSInternalCodeAction> ResolveCodeActionsAsync(VSInternalCodeAction codeAction, CancellationToken cancellationToken)
-        {
-            if (codeAction is null)
+            var codeActions = new List<VSInternalCodeAction>();
+            await foreach (var response in requests)
             {
-                throw new ArgumentNullException(nameof(codeAction));
+                if (response.Response != null)
+                {
+                    codeActions.AddRange(response.Response);
+                }
             }
 
-            var results = await _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
+            return codeActions;
+        }
+
+        public override async Task<VSInternalCodeAction> ResolveCodeActionsAsync(RazorResolveCodeActionParams resolveCodeActionParams, CancellationToken cancellationToken)
+        {
+            if (resolveCodeActionParams is null)
+            {
+                throw new ArgumentNullException(nameof(resolveCodeActionParams));
+            }
+
+            if (!_documentManager.TryGetDocument(resolveCodeActionParams.Uri, out var documentSnapshot))
+            {
+                // Couldn't resolve the document associated with the code action bail out.
+                return null;
+            }
+
+            var csharpTextBuffer = LanguageServerKind.CSharp.GetTextBuffer(documentSnapshot);
+            var codeAction = resolveCodeActionParams.CodeAction;
+            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
+                csharpTextBuffer,
                 Methods.CodeActionResolveName,
-                LanguageServerKind.CSharp.ToContentType(),
                 SupportsCSharpCodeActions,
                 codeAction,
                 cancellationToken).ConfigureAwait(false);
 
-            return results.FirstOrDefault(c => c.Result != null).Result;
+            await foreach (var response in requests)
+            {
+                if (response.Response != null)
+                {
+                    // Only take the first response from a resolution
+                    return response.Response;
+                }
+            }
+
+            return null;
         }
 
         public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(
@@ -352,13 +383,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 PartialResultToken = semanticTokensParams.PartialResultToken,
             };
 
+            var textBuffer = csharpDoc.Snapshot.TextBuffer;
             var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, VSSemanticTokensResponse>(
+                textBuffer,
                 Methods.TextDocumentSemanticTokensFullName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 newParams,
                 cancellationToken).ConfigureAwait(false);
 
-            var result = csharpResults.Result;
+            var result = csharpResults?.Response;
+            if (result is null)
+            {
+                // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
+                return new ProvideSemanticTokensResponse(
+                    resultId: null, tokens: null, isFinalized: false, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+            }
+
             var response = new ProvideSemanticTokensResponse(
                 result.ResultId, result.Data, result.IsFinalized, semanticTokensParams.RequiredHostDocumentVersion);
 
@@ -399,21 +439,29 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 PreviousResultId = semanticTokensEditsParams.PreviousResultId,
             };
 
+            var textBuffer = csharpDoc.Snapshot.TextBuffer;
             var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensDeltaParams, SumType<VSSemanticTokensResponse, VSSemanticTokensDeltaResponse>>(
+                textBuffer,
                 Methods.TextDocumentSemanticTokensFullDeltaName,
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 newParams,
                 cancellationToken).ConfigureAwait(false);
-            var csharpResults = csharpResponse.Result;
+            var csharpResults = csharpResponse?.Response;
+            if (csharpResults is null)
+            {
+                // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
+                return new ProvideSemanticTokensEditsResponse(
+                    resultId: null, tokens: null, edits: null, isFinalized: true, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+            }
 
             // Converting from LSP to O# types
-            if (csharpResults.Value is VSSemanticTokensResponse tokens)
+            if (csharpResults.Value.Value is VSSemanticTokensResponse tokens)
             {
                 var response = new ProvideSemanticTokensEditsResponse(
                     tokens.ResultId, tokens.Data, edits: null, isFinalized: tokens.IsFinalized, hostDocumentSyncVersion: semanticTokensEditsParams.RequiredHostDocumentVersion);
                 return response;
             }
-            else if (csharpResults.Value is VSSemanticTokensDeltaResponse edits)
+            else if (csharpResults.Value.Value is VSSemanticTokensDeltaResponse edits)
             {
                 var results = new RazorSemanticTokensEdit[edits.Edits.Length];
                 for (var i = 0; i < edits.Edits.Length; i++)
