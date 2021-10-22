@@ -199,6 +199,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     }
                 };
 
+                // Purposefully slow down completion to fix a race condition (fixed in 17.1) where the "didChange" from retrieving the projection above
+                // doesn't hit the corresponding sub-language language server in time resulting in a 0 item completion list.
+                await Task.Delay(5).ConfigureAwait(false);
+
                 _logger.LogInformation($"Requesting non-provisional completions for {projectedDocumentUri}.");
 
                 var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
