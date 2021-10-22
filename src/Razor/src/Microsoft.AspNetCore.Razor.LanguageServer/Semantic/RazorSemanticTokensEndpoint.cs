@@ -72,6 +72,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
             var edits = await _semanticTokensInfoService.GetSemanticTokensEditsAsync(request.TextDocument, request.PreviousResultId, cancellationToken);
 
+            _logger.LogInformation($"Returned semantic tokens edits for {request.TextDocument.Uri}.");
+
             return edits;
         }
 
