@@ -5,14 +5,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -91,25 +88,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             return edits.ToArray();
-        }
-
-        protected static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits)
-        {
-            if (originalText is null)
-            {
-                throw new ArgumentNullException(nameof(originalText));
-            }
-
-            if (edits is null)
-            {
-                throw new ArgumentNullException(nameof(edits));
-            }
-
-            var changes = edits.Select(e => e.AsTextChange(originalText));
-            var changedText = originalText.WithChanges(changes);
-            var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
-            var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
-            return cleanEdits;
         }
     }
 }

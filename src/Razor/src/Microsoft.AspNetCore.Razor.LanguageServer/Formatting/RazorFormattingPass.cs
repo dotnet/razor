@@ -70,7 +70,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // Compute the final combined set of edits
             var formattingChanges = edits.Select(e => e.AsTextChange(changedText));
             changedText = changedText.WithChanges(formattingChanges);
-            var finalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
+
+            // Allow benchmarks to specify a different diff algorithm
+            if (!context.Options.TryGetValue("UseSourceTextDiffer", out var useSourceTextDiffer))
+            {
+                useSourceTextDiffer = new BooleanNumberString(false);
+            }
+
+            var finalChanges = useSourceTextDiffer.Bool ? SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false) : changedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
             return new FormattingResult(finalEdits);
