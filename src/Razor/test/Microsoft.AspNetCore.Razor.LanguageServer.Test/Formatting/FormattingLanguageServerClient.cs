@@ -87,7 +87,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
             var contentTypeService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
 
-            contentTypeService.AddContentType(HtmlContentTypeDefinition.HtmlContentType, new[] { StandardContentTypeNames.Text });
+            if (!contentTypeService.ContentTypes.Any(t => t.TypeName == HtmlContentTypeDefinition.HtmlContentType))
+            {
+                contentTypeService.AddContentType(HtmlContentTypeDefinition.HtmlContentType, new[] { StandardContentTypeNames.Text });
+            }
 
             var textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             var textBufferListeners = Array.Empty<Lazy<IWebTextBufferListener, IOrderedComponentContentTypes>>();
