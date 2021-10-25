@@ -23,8 +23,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private SyntaxNode? _currentBlock;
         private int _currentHtmlIndentationLevel = 0;
         private int _currentRazorIndentationLevel = 0;
+        private int _currentComponentIndentationLevel = 0;
         private bool _isInClassBody = false;
-        private readonly Stack<MarkupTagHelperElementSyntax> _componentTracker;
 
         public FormattingVisitor(RazorSourceDocument source)
         {
@@ -35,7 +35,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             _source = source;
             _spans = new List<FormattingSpan>();
-            _componentTracker = new Stack<MarkupTagHelperElementSyntax>();
             _currentBlockKind = FormattingBlockKind.Markup;
         }
 
@@ -205,7 +204,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _currentHtmlIndentationLevel++;
             if (causesIndentation)
             {
-                _componentTracker.Push(node);
+                _currentComponentIndentationLevel++;
             }
 
             foreach (var child in node.Body)
@@ -215,8 +214,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             if (causesIndentation)
             {
-                Debug.Assert(_componentTracker.Any(), "Component tracker should not be empty.");
-                _componentTracker.Pop();
+                Debug.Assert(_currentComponentIndentationLevel > 0, "Component tracker should not be empty.");
+                _currentComponentIndentationLevel--;
             }
             _currentHtmlIndentationLevel--;
 
@@ -442,8 +441,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var spanSource = new TextSpan(node.Position, node.FullWidth);
             var blockSource = new TextSpan(_currentBlock.Position, _currentBlock.FullWidth);
 
-            var componentLambdaNestingLevel = _componentTracker.Count;
-
             var span = new FormattingSpan(
                 spanSource,
                 blockSource,
@@ -452,7 +449,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 _currentRazorIndentationLevel,
                 _currentHtmlIndentationLevel,
                 _isInClassBody,
-                componentLambdaNestingLevel);
+                _currentComponentIndentationLevel);
 
             _spans.Add(span);
         }
