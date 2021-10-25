@@ -190,6 +190,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
         {
             var isComponent = IsComponentTagHelperNode(node);
+            // Components with cascading type parameters cause an extra level of indentation
+            var componentIndentationLevels = isComponent && DoesComponentHaveCascadingTypeParameter(node) ? 2 : 1;
 
             var causesIndentation = isComponent;
             if (node.Parent is MarkupTagHelperElementSyntax parentComponent &&
@@ -204,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _currentHtmlIndentationLevel++;
             if (causesIndentation)
             {
-                _currentComponentIndentationLevel++;
+                _currentComponentIndentationLevel += componentIndentationLevels;
             }
 
             foreach (var child in node.Body)
@@ -215,7 +217,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (causesIndentation)
             {
                 Debug.Assert(_currentComponentIndentationLevel > 0, "Component tracker should not be empty.");
-                _currentComponentIndentationLevel--;
+                _currentComponentIndentationLevel -= componentIndentationLevels;
             }
             _currentHtmlIndentationLevel--;
 
@@ -267,6 +269,30 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 if (parentComponent.TagHelperInfo?.BindingResult.Descriptors.Any(d => d.BoundAttributes.Any(a => a.Name == propertyName)) ?? false)
                 {
                     return true;
+                }
+
+                return false;
+            }
+
+            static bool DoesComponentHaveCascadingTypeParameter(MarkupTagHelperElementSyntax node)
+            {
+                var tagHelperInfo = node.TagHelperInfo;
+
+                if (tagHelperInfo is null)
+                {
+                    return false;
+                }
+
+                foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
+                {
+                    foreach (var attribute in descriptor.BoundAttributes)
+                    {
+                        if (attribute.Metadata.TryGetValue("Components.TypeParameterIsCascading", out var value) &&
+                            string.Equals(value, bool.TrueString))
+                        {
+                            return true;
+                        }
+                    }
                 }
 
                 return false;
