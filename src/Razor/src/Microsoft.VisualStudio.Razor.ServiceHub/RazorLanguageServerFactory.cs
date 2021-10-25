@@ -37,34 +37,33 @@ namespace Microsoft.VisualStudio.Razor.ServiceHub
 
             System.Diagnostics.Debugger.Break();
 #endif
+            // LanguageServerFeatureOptions vsLanguageServerFeatureOptions;
+            // HostServicesProvider vsHostWorkspaceServicesProvider;
 
-            LanguageServerFeatureOptions vsLanguageServerFeatureOptions;
-            HostServicesProvider vsHostWorkspaceServicesProvider;
-
-            using (var vsOptionsService = await serviceBroker.GetProxyAsync<OptionsService>(ServiceHubDescriptors.VSOptionsService))
-            {
-                vsLanguageServerFeatureOptions = await vsOptionsService?.GetLanguageServerFeatureOptionsAsync();
-                vsHostWorkspaceServicesProvider = await vsOptionsService?.GetHostWorkspaceServicesProviderAsync();
-            }
+            //using (var vsOptionsService = await serviceBroker.GetProxyAsync<OptionsService>(ServiceHubDescriptors.VSOptionsService))
+            //{
+            //    vsLanguageServerFeatureOptions = await vsOptionsService?.GetLanguageServerFeatureOptionsAsync();
+            //    vsHostWorkspaceServicesProvider = await vsOptionsService?.GetHostWorkspaceServicesProviderAsync();
+            //}
 
             var trace = Trace.Verbose;
-            var server = await RazorLanguageServer.CreateAsync(stream, stream, trace, ConfigureLanguageServer);
+            var server = await RazorLanguageServer.CreateAsync(stream, stream, trace);
             await server.InitializedAsync(System.Threading.CancellationToken.None);
 
             return server;
 
-            void ConfigureLanguageServer(RazorLanguageServerBuilder builder)
-            {
-                if (builder is null)
-                {
-                    throw new ArgumentNullException(nameof(builder));
-                }
+            //void ConfigureLanguageServer(RazorLanguageServerBuilder builder)
+            //{
+            //    if (builder is null)
+            //    {
+            //        throw new ArgumentNullException(nameof(builder));
+            //    }
 
-                var services = builder.Services;
+            //    var services = builder.Services;
 
-                services.AddSingleton(vsLanguageServerFeatureOptions);
-                services.AddSingleton(vsHostWorkspaceServicesProvider);
-            }
+            //    services.AddSingleton(vsLanguageServerFeatureOptions);
+            //    services.AddSingleton(vsHostWorkspaceServicesProvider);
+            //}
         }
     }
 

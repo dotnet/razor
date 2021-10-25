@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ServiceHub.Client" Version="3.0.2055-alpha" />
+    <PackageReference Include="Microsoft.ServiceHub.Client" Version="3.0.2061" />
   </ItemGroup>
 
   <ItemGroup>

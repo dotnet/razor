@@ -4,6 +4,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="3.0.0" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="3.0.2061" />
   </ItemGroup>
 </Project>
