@@ -16,8 +16,24 @@ using FormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.Fo
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 {
+    public enum InputType
+    {
+        Preformatted,
+        Unformatted
+    }
+
+    public enum DifferType
+    {
+        GetTextChanges,
+        SourceTextDiffer,
+    }
+
+    [CsvExporter]
+    [RPlotExporter]
     public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
     {
+        private string _filePath;
+
         private RazorLanguageServer RazorLanguageServer { get; set; }
 
         private RazorFormattingService RazorFormattingService { get; set; }
@@ -28,6 +44,18 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
         private SourceText DocumentText { get; set; }
 
+        /// <summary>
+        /// How many blocks of 25 lines of code should be formatted
+        /// </summary>
+        [Params(1, 2, 3, 4, 5, 10, 20, 30, 40, 100)]
+        public int Blocks { get; set; }
+
+        [ParamsAllValues]
+        public InputType InputType { get; set; }
+
+        [ParamsAllValues]
+        public DifferType DifferType { get; set; }
+
         [GlobalSetup(Target = nameof(RazorCSharpFormattingAsync))]
         public async Task InitializeRazorCSharpFormattingAsync()
         {
@@ -35,15 +63,62 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
             var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
             var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
-            var filePath = Path.Combine(projectRoot, "Components", "Pages", $"FormattingTest.razor");
-            var targetPath = "/Components/Pages/FormattingTest.razor";
+            _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
 
-            DocumentUri = DocumentUri.File(filePath);
-            DocumentSnapshot = GetDocumentSnapshot(projectFilePath, filePath, targetPath);
+            WriteSampleFormattingFile(_filePath, InputType == InputType.Preformatted, Blocks);
+
+            var targetPath = "/Components/Pages/Generated.razor";
+
+            DocumentUri = DocumentUri.File(_filePath);
+            DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
             DocumentText = await DocumentSnapshot.GetTextAsync();
         }
 
-        [Benchmark(Description = "Razor CSharp Formatting")]
+        private void WriteSampleFormattingFile(string filePath, bool preformatted, int blocks)
+        {
+            var data = @"
+@{
+    y = 456;
+}
+
+<div>
+    <span>@DateTime.Now</span>
+    @if (true)
+    {
+        var x = 123;
+        <span>@x</span>
+    }
+</div>
+
+@code {
+    public string Prop$INDEX$ { get; set; }
+
+    public string[] SomeList$INDEX$ { get; set; }
+
+    public class Foo$INDEX$
+    {
+        @* This is a Razor Comment *@
+        void Method() { }
+    }
+}
+
+";
+            using var fileStream = File.CreateText(filePath);
+
+            if (!preformatted)
+            {
+                data = data.Replace("    ", "")
+                    .Replace("@code {", "@code{")
+                    .Replace("@if (true", "@if(true");
+            }
+
+            for (var i = 0; i < blocks; i++)
+            {
+                fileStream.WriteLine(data.Replace("$INDEX$", i.ToString()));
+            }
+        }
+
+        [Benchmark(Description = "Formatting")]
         public async Task RazorCSharpFormattingAsync()
         {
             var options = new FormattingOptions()
@@ -51,6 +126,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 TabSize = 4,
                 InsertSpaces = true
             };
+
+            var useSourceTextDiffer = DifferType != DifferType.GetTextChanges;
+            options["UseSourceTextDiffer"] = new OmniSharp.Extensions.LanguageServer.Protocol.Models.BooleanNumberString(useSourceTextDiffer);
 
             var range = TextSpan.FromBounds(0, DocumentText.Length).AsRange(DocumentText);
             var edits = await RazorFormattingService.FormatAsync(DocumentUri, DocumentSnapshot, range, options, CancellationToken.None);
@@ -65,6 +143,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         [GlobalCleanup]
         public void CleanupServer()
         {
+            File.Delete(_filePath);
+
             RazorLanguageServer?.Dispose();
         }
 
