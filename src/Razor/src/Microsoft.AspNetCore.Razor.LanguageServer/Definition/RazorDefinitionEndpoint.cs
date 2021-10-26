@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -53,13 +55,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             };
         }
 
-        public async Task<LocationOrLocationLinks> Handle(DefinitionParams request, CancellationToken cancellationToken)
+#pragma warning disable CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
+        // The return type of the handler should be nullable. O# tracking issue:
+        // https://github.com/OmniSharp/csharp-language-server-protocol/issues/644
+        public async Task<LocationOrLocationLinks?> Handle(DefinitionParams request, CancellationToken cancellationToken)
+#pragma warning restore CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
         {
             _logger.LogInformation("Starting go-to-def endpoint request.");
 
             if (request is null)
             {
-                _logger.LogInformation("Request is null.");
+                _logger.LogWarning("Request is null.");
                 throw new ArgumentNullException(nameof(request));
             }
 
@@ -72,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
             if (documentSnapshot is null)
             {
-                _logger.LogInformation("Document snapshot is null for document.");
+                _logger.LogWarning("Document snapshot is null for document.");
                 return null;
             }
 
@@ -129,7 +135,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             });
         }
 
-        internal static async Task<TagHelperBinding> GetOriginTagHelperBindingAsync(
+        internal static async Task<TagHelperBinding?> GetOriginTagHelperBindingAsync(
             DocumentSnapshot documentSnapshot,
             RazorCodeDocument codeDocument,
             Position position,
@@ -186,7 +192,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             return tagHelperElement.TagHelperInfo.BindingResult;
         }
 
-        private static SyntaxNode GetStartOrEndTagName(SyntaxNode node)
+        private static SyntaxNode? GetStartOrEndTagName(SyntaxNode node)
         {
             return node switch
             {
