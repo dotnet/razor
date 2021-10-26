@@ -488,7 +488,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
                 d.TryResolveDocument(itemDirectory1.FilePath, out directory1Component) == true &&
                 d.TryResolveDocument(itemDirectory2.FilePath, out directory2Component) == true, MockBehavior.Strict);
 
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor);
+            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true, MockBehavior.Strict);
             var endpoint = new RazorComponentRenameEndpoint(Dispatcher, documentResolver, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
             return endpoint;
