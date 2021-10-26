@@ -16,10 +16,7 @@ SET PATH=%DOTNET_ROOT%;%PATH%
 SET sln=%~1
 
 IF "%sln%"=="" (
-    echo Error^: Expected argument ^<SLN_FILE^>
-    echo Usage^: startvs.cmd ^<SLN_FILE^>
-
-    exit /b 1
+    SET sln=%~dp0\src\Razor\Razor.sln
 )
 
 IF NOT EXIST "%DOTNET_ROOT%\dotnet.exe" (
