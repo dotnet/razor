@@ -32,7 +32,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 2);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("test1", binding.TagName);
@@ -48,7 +49,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 2);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("Component1", binding.TagName);
@@ -65,7 +67,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 35);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("Component1", binding.TagName);
@@ -82,7 +85,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 14);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Null(binding);
@@ -96,7 +100,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 24);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Null(binding);
@@ -110,7 +115,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 18);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Null(binding);
@@ -124,7 +130,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 29);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Null(binding);
@@ -145,7 +152,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 2);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("Component1", binding.TagName);
@@ -170,7 +178,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 2);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("Component1", binding.TagName);
@@ -194,7 +203,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 2);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Equal("Component1", binding.TagName);
@@ -212,7 +222,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             var position = new Position(1, 6);
 
             // Act
-            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentSnapshot, codeDocument, position).ConfigureAwait(false);
+            var binding = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
 
             // Assert
             Assert.Null(binding);

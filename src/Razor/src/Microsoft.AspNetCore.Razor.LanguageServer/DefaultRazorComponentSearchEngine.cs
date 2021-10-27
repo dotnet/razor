@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -17,13 +18,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ProjectSnapshotManager _projectSnapshotManager;
+        private readonly ILogger<DefaultRazorComponentSearchEngine> _logger;
 
         public DefaultRazorComponentSearchEngine(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+            ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+            ILoggerFactory loggerFactory)
         {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             _projectSnapshotManager = projectSnapshotManagerAccessor?.Instance ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
+            _logger = loggerFactory.CreateLogger<DefaultRazorComponentSearchEngine>();
         }
 
         /// <summary>Search for a component in a project based on its tag name and fully qualified name.</summary>
@@ -35,14 +44,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         /// </remarks>
         /// <param name="tagHelper">A TagHelperDescriptor to find the corresponding Razor component for.</param>
         /// <returns>The corresponding DocumentSnapshot if found, null otherwise.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="tagHelper"/> is null.</exception>
         public override async Task<DocumentSnapshot> TryLocateComponentAsync(TagHelperDescriptor tagHelper)
         {
             if (tagHelper is null)
             {
+                throw new ArgumentNullException(nameof(tagHelper));
+            }
+
+            if (!DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var @namespaceName, out var typeName))
+            {
+                _logger.LogWarning($"Could not split namespace and type for name {tagHelper.Name}.");
                 return null;
             }
 
-            DefaultRazorTagHelperBinderPhase.ComponentDirectiveVisitor.TrySplitNamespaceAndType(tagHelper.Name, out var @namespaceName, out var typeName);
             var lookupSymbolName = RemoveGenericContent(typeName);
 
             var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
@@ -73,9 +88,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     {
                         continue;
                     }
+
                     return documentSnapshot;
                 }
             }
+
             return null;
         }
 
@@ -101,14 +118,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return new StringSegment(fileName).Equals(path, FilePathComparison.Instance);
         }
 
-        private static bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, StringSegment namespaceName)
+        private bool ComponentNamespaceMatchesFullyQualifiedName(RazorCodeDocument razorCodeDocument, StringSegment namespaceName)
         {
             var namespaceNode = (NamespaceDeclarationIntermediateNode)razorCodeDocument
                 .GetDocumentIntermediateNode()
                 .FindDescendantNodes<IntermediateNode>()
                 .First(n => n is NamespaceDeclarationIntermediateNode);
 
-            return new StringSegment(namespaceNode.Content).Equals(namespaceName, StringComparison.Ordinal);
+            var namespacesMatch = new StringSegment(namespaceNode.Content).Equals(namespaceName, StringComparison.Ordinal);
+            if (!namespacesMatch)
+            {
+                _logger.LogInformation($"Namespace name {namespaceNode.Content} does not match namespace name {namespaceName}.");
+            }
+
+            return namespacesMatch;
         }
     }
 }
