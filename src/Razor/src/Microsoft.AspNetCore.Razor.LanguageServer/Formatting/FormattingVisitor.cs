@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -216,7 +217,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             if (causesIndentation)
             {
-                Debug.Assert(_currentComponentIndentationLevel > 0, "Component tracker should not be empty.");
+                Debug.Assert(_currentComponentIndentationLevel > 0, "Component indentation level should not be at 0.");
                 _currentComponentIndentationLevel -= componentIndentationLevels;
             }
             _currentHtmlIndentationLevel--;
@@ -283,19 +284,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     return false;
                 }
 
-                foreach (var descriptor in tagHelperInfo.BindingResult.Descriptors)
+                var descriptors = tagHelperInfo.BindingResult?.Descriptors;
+                if (descriptors is null)
                 {
-                    foreach (var attribute in descriptor.BoundAttributes)
-                    {
-                        if (attribute.Metadata.TryGetValue("Components.TypeParameterIsCascading", out var value) &&
-                            string.Equals(value, bool.TrueString))
-                        {
-                            return true;
-                        }
-                    }
+                    return false;
                 }
 
-                return false;
+                return descriptors.Any(d => d.SuppliesCascadingGenericParameters());
             }
         }
 
