@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -255,11 +256,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var projectEngine = RazorProjectEngine.Create(builder =>
             {
                 builder.SetRootNamespace("Test");
+                builder.Features.Add(new DefaultTypeNameFeature());
                 RazorExtensions.Register(builder);
             });
             var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, new[] { importsDocument }, tagHelpers);
 
-            Assert.False(codeDocument.GetCSharpDocument().Diagnostics.Any(), "Error creating document: " + string.Join(Environment.NewLine, codeDocument.GetCSharpDocument().Diagnostics));
+            Assert.False(codeDocument.GetCSharpDocument().Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, codeDocument.GetCSharpDocument().Diagnostics));
 
             var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
             documentSnapshot.Setup(d => d.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -11,6 +12,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class CodeDirectiveFormattingTest : FormattingTestBase
     {
+        internal override bool UseTwoPhaseCompilation => true;
+
+        internal override bool DesignTime => true;
+
         public CodeDirectiveFormattingTest(ITestOutputHelper output)
             : base(output)
         {
@@ -865,6 +870,195 @@ expected: @"
     }
 </div>
 ");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
+        public async Task GenericComponentWithCascadingTypeParameter(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@page ""/counter""
+
+@if(true)
+    {
+                // indented
+        }
+
+<TestGeneric Items=""_items"">
+    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+        {
+            <div></div>
+        }
+    </TestGeneric>
+
+@if(true)
+    {
+                // indented
+            }
+
+@code
+    {
+    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+}",
+expected: @"@page ""/counter""
+
+@if (true)
+{
+    // indented
+}
+
+<TestGeneric Items=""_items"">
+    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+    {
+        <div></div>
+    }
+</TestGeneric>
+
+@if (true)
+{
+    // indented
+}
+
+@code
+{
+    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+}",
+tagHelpers: GetComponentWithCascadingTypeParameter());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
+        public async Task GenericComponentWithCascadingTypeParameter_Nested(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@page ""/counter""
+
+<TestGeneric Items=""_items"">
+    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+        {
+            <div></div>
+        }
+<TestGeneric Items=""_items"">
+    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+        {
+            <div></div>
+        }
+    </TestGeneric>
+    </TestGeneric>
+
+@code
+    {
+    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+}",
+expected: @"@page ""/counter""
+
+<TestGeneric Items=""_items"">
+    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+    {
+        <div></div>
+    }
+    <TestGeneric Items=""_items"">
+        @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+        {
+            <div></div>
+        }
+    </TestGeneric>
+</TestGeneric>
+
+@code
+{
+    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+}",
+tagHelpers: GetComponentWithCascadingTypeParameter());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5648")]
+        public async Task GenericComponentWithCascadingTypeParameter_MultipleParameters(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@page ""/counter""
+
+<TestGenericTwo Items=""_items"" ItemsTwo=""_items2"">
+    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+        {
+            <div></div>
+        }
+    </TestGenericTwo>
+
+@code
+    {
+    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+    private IEnumerable<long> _items2 = new long[] { 1, 2, 3, 4, 5 };
+}",
+expected: @"@page ""/counter""
+
+<TestGenericTwo Items=""_items"" ItemsTwo=""_items2"">
+    @foreach (var v in System.Linq.Enumerable.Range(1, 10))
+    {
+        <div></div>
+    }
+</TestGenericTwo>
+
+@code
+{
+    private IEnumerable<int> _items = new[] { 1, 2, 3, 4, 5 };
+    private IEnumerable<long> _items2 = new long[] { 1, 2, 3, 4, 5 };
+}",
+tagHelpers: GetComponentWithTwoCascadingTypeParameter());
+        }
+
+        private IReadOnlyList<TagHelperDescriptor> GetComponentWithCascadingTypeParameter()
+        {
+            var input = @"
+@using System.Collections.Generic
+@using Microsoft.AspNetCore.Components
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+
+<h3>TestGeneric</h3>
+
+@code
+{
+    [Parameter] public IEnumerable<TItem> Items { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+}
+            ";
+
+            var generated = CompileToCSharp("TestGeneric.razor", input, throwOnFailure: true, fileKind: FileKinds.Component);
+            var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
+            return tagHelpers;
+        }
+
+        private IReadOnlyList<TagHelperDescriptor> GetComponentWithTwoCascadingTypeParameter()
+        {
+            var input = @"
+@using System.Collections.Generic
+@using Microsoft.AspNetCore.Components
+@typeparam TItem
+@typeparam TItemTwo
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@attribute [CascadingTypeParameter(nameof(TItemTwo))]
+
+<h3>TestGeneric</h3>
+
+@code
+{
+    [Parameter] public IEnumerable<TItem> Items { get; set; }
+    [Parameter] public IEnumerable<TItemTwo> ItemsTwo { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+}
+            ";
+
+            var generated = CompileToCSharp("TestGenericTwo.razor", input, throwOnFailure: true, fileKind: FileKinds.Component);
+            var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
+            return tagHelpers;
         }
     }
 }
