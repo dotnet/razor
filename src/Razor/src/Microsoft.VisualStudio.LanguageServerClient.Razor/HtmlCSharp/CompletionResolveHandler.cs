@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
     internal class CompletionResolveHandler : IRequestHandler<CompletionItem, CompletionItem>
     {
         private readonly LSPRequestInvoker _requestInvoker;
+        private readonly LSPDocumentManager _documentManager;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly FormattingOptionsProvider _formattingOptionsProvider;
         private readonly CompletionRequestContextCache _completionRequestContextCache;
@@ -27,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         [ImportingConstructor]
         public CompletionResolveHandler(
             LSPRequestInvoker requestInvoker,
+            LSPDocumentManager documentManager,
             LSPDocumentMappingProvider documentMappingProvider,
             FormattingOptionsProvider formattingOptionsProvider,
             CompletionRequestContextCache completionRequestContextCache,
@@ -35,6 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             if (requestInvoker is null)
             {
                 throw new ArgumentNullException(nameof(requestInvoker));
+            }
+
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
             }
 
             if (documentMappingProvider is null)
@@ -58,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             _requestInvoker = requestInvoker;
+            _documentManager = documentManager;
             _documentMappingProvider = documentMappingProvider;
             _formattingOptionsProvider = formattingOptionsProvider;
             _completionRequestContextCache = completionRequestContextCache;
@@ -86,24 +94,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return request;
             }
 
-            var languageServerName = requestContext.LanguageServerKind.ToLanguageServerName();
+            if (!_documentManager.TryGetDocument(requestContext.HostDocumentUri, out var documentSnapshot))
+            {
+                _logger.LogError("Could not find the associated host document for completion resolve: {0}.", requestContext.HostDocumentUri);
+                return request;
+            }
+
+            var serverKind = requestContext.LanguageServerKind;
+            var languageServerName = serverKind.ToLanguageServerName();
+            var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionItem, CompletionItem>(
+                textBuffer,
                 Methods.TextDocumentCompletionResolveName,
                 languageServerName,
                 request,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!response.IsSuccess)
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorCSharpLanguageServerName, out var result))
             {
-                // Could not resolve any additional information about the completion item, return early.
                 return request;
             }
 
             _logger.LogInformation("Received result, post-processing.");
 
-            var result = await PostProcessCompletionItemAsync(request, response.Result, requestContext, cancellationToken).ConfigureAwait(false);
+            var postProcessedResult = await PostProcessCompletionItemAsync(request, result, requestContext, cancellationToken).ConfigureAwait(false);
             _logger.LogInformation("Returning resolved completion.");
-            return result;
+            return postProcessedResult;
         }
 
         private async Task<CompletionItem> PostProcessCompletionItemAsync(

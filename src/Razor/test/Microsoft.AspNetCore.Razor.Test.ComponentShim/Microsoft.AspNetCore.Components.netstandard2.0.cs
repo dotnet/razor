@@ -59,6 +59,12 @@ namespace Microsoft.AspNetCore.Components
         public string Suffix { [System.Runtime.CompilerServices.CompilerGeneratedAttribute]get { throw null; } }
         public string ValueAttribute { [System.Runtime.CompilerServices.CompilerGeneratedAttribute]get { throw null; } }
     }
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    public sealed class CascadingTypeParameterAttribute : System.Attribute
+    {
+        public CascadingTypeParameterAttribute(string name) { }
+        public string Name { [System.Runtime.CompilerServices.CompilerGeneratedAttribute]get { throw null; } [System.Runtime.CompilerServices.CompilerGeneratedAttribute]set { } }
+    }
     [System.AttributeUsageAttribute(System.AttributeTargets.Property, AllowMultiple=false, Inherited=true)]
     public sealed partial class CascadingParameterAttribute : System.Attribute
     {

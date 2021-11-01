@@ -88,8 +88,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
-            if (projectionResult == null)
+            if (projectionResult is null)
             {
+                _logger.LogWarning($"Projection result was null");
                 return null;
             }
 
@@ -106,14 +107,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation($"Requesting GoToDef for {projectionResult.Uri}.");
 
+            var serverKind = projectionResult.LanguageKind.ToLanguageServerKind();
+            var languageServerName = serverKind.ToLanguageServerName();
+            var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, Location[]>(
+                textBuffer,
                 Methods.TextDocumentDefinitionName,
-                projectionResult.LanguageKind.ToContainedLanguageServerName(),
+                languageServerName,
                 textDocumentPositionParams,
                 cancellationToken).ConfigureAwait(false);
-            var locations = response.Result;
 
-            if (locations is null || locations.Length == 0)
+            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, languageServerName, out var locations))
+            {
+                return null;
+            }
+
+            if (locations.Length == 0)
             {
                 _logger.LogInformation("Received no results.");
                 return locations;

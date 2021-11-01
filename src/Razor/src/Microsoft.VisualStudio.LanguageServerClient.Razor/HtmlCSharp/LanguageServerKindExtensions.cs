@@ -1,6 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+using Microsoft.VisualStudio.Text;
+
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
     internal static class LanguageServerKindExtensions
@@ -24,6 +28,36 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 LanguageServerKind.Html => RazorLSPConstants.HtmlLSPDelegationContentTypeName,
                 _ => RazorLSPConstants.RazorLSPContentTypeName,
             };
+        }
+
+        public static ITextBuffer GetTextBuffer(this LanguageServerKind languageServerKind, LSPDocumentSnapshot documentSnapshot)
+        {
+            if (documentSnapshot is null)
+            {
+                throw new ArgumentNullException(nameof(documentSnapshot));
+            }
+
+            switch (languageServerKind)
+            {
+                case LanguageServerKind.CSharp:
+                    if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocumentSnapshot))
+                    {
+                        throw new InvalidOperationException("Could not extract C# virtual document, this is unexpected");
+                    }
+
+                    return csharpVirtualDocumentSnapshot.Snapshot.TextBuffer;
+                case LanguageServerKind.Html:
+                    if (!documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlVirtualDocumentSnapshot))
+                    {
+                        throw new InvalidOperationException("Could not extract HTML virtual document, this is unexpected");
+                    }
+
+                    return htmlVirtualDocumentSnapshot.Snapshot.TextBuffer;
+                case LanguageServerKind.Razor:
+                    return documentSnapshot.Snapshot.TextBuffer;
+                default:
+                    throw new InvalidOperationException("Unknown language server kind.");
+            }
         }
     }
 }
