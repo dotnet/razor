@@ -69,6 +69,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         // Used in unit tests to ensure we can know when errors are reported
         private ManualResetEventSlim? NotifyErrorBeingReported { get; set; }
 
+        // Used in unit tests to ensure we can know when background workloads are completing
+        private ManualResetEventSlim? NotifyBackgroundWorkCompleting { get; set; }
+
         /// <summary>
         /// Adds the provided <paramref name="workItem"/> to a work queue under the specified <paramref name="key"/>.
         /// Multiple enqueues under the same <paramref name="key"/> will use the last enqueued <paramref name="workItem"/>.
@@ -197,6 +200,8 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
         private void OnCompletingBackgroundWork()
         {
+            NotifyBackgroundWorkCompleting?.Set();
+
             if (BlockBackgroundWorkCompleting != null)
             {
                 BlockBackgroundWorkCompleting.Wait();
@@ -264,6 +269,12 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             {
                 get => _queue.NotifyErrorBeingReported;
                 set => _queue.NotifyErrorBeingReported = value;
+            }
+
+            public ManualResetEventSlim? NotifyBackgroundWorkCompleting
+            {
+                get => _queue.NotifyBackgroundWorkCompleting;
+                set => _queue.NotifyBackgroundWorkCompleting = value;
             }
         }
     }
