@@ -190,7 +190,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             documentVersionCache ??= CreateDocumentVersionCache();
 
             addUsingResolver = new AddUsingsCSharpCodeActionResolver(
-                Dispatcher,
+                LegacyDispatcher,
                 CreateDocumentResolver(documentPath, codeDocument),
                 languageServer,
                 documentVersionCache);

@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void MarkAsLatestVersion_UntrackedDocument_Noops()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
             documentVersionCache.TrackDocumentVersion(document, 123);
             var untrackedDocument = TestDocumentSnapshot.Create("C:/other.cshtml");
@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void MarkAsLatestVersion_KnownDocument_TracksNewDocumentAsLatest()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
             var documentInitial = TestDocumentSnapshot.Create("C:/file.cshtml");
             documentVersionCache.TrackDocumentVersion(documentInitial, 123);
             var documentLatest = TestDocumentSnapshot.Create(documentInitial.FilePath);
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryGetLatestVersionFromPath_TrackedDocument_ReturnsTrue()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
             var filePath = "C:/file.cshtml";
             var document1 = TestDocumentSnapshot.Create(filePath);
             var document2 = TestDocumentSnapshot.Create(filePath);
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryGetLatestVersionFromPath_UntrackedDocument_ReturnsFalse()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
 
             // Act
             var result = documentVersionCache.TryGetLatestVersionFromPath("C:/file.cshtml", out var version);
@@ -81,8 +81,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectSnapshotManager_Changed_DocumentRemoved_DoesNotEvictDocument()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
-            var projectSnapshotManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
+            var projectSnapshotManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectSnapshotManager.AllowNotifyListeners = true;
             documentVersionCache.Initialize(projectSnapshotManager);
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -111,8 +111,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectSnapshotManager_Changed_OpenDocumentRemoved_DoesNotEvictDocument()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
-            var projectSnapshotManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
+            var projectSnapshotManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectSnapshotManager.AllowNotifyListeners = true;
             documentVersionCache.Initialize(projectSnapshotManager);
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -143,8 +143,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectSnapshotManager_Changed_DocumentClosed_EvictsDocument()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
-            var projectSnapshotManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
+            var projectSnapshotManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectSnapshotManager.AllowNotifyListeners = true;
             documentVersionCache.Initialize(projectSnapshotManager);
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -175,7 +175,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TrackDocumentVersion_AddsFirstEntry()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
 
             // Act
@@ -194,7 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TrackDocumentVersion_EvictsOldEntries()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
 
             for (var i = 0; i < DefaultDocumentVersionCache.MaxDocumentTrackingCount; i++)
@@ -215,7 +215,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryGetDocumentVersion_UntrackedDocumentPath_ReturnsFalse()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
 
             // Act
@@ -230,7 +230,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryGetDocumentVersion_EvictedDocument_ReturnsFalse()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
             var evictedDocument = TestDocumentSnapshot.Create(document.FilePath);
             documentVersionCache.TrackDocumentVersion(document, 1337);
@@ -247,7 +247,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void TryGetDocumentVersion_KnownDocument_ReturnsTrue()
         {
             // Arrange
-            var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+            var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
             var document = TestDocumentSnapshot.Create("C:/file.cshtml");
             documentVersionCache.TrackDocumentVersion(document, 1337);
 

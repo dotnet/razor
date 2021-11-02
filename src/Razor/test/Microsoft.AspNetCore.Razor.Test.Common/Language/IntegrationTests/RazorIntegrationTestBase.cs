@@ -129,6 +129,8 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests
                     b.Phases.Insert(0, new ForceLineEndingPhase(LineEnding));
                 }
 
+                b.Features.Add(new DefaultTypeNameFeature());
+
                 b.Features.Add(new CompilationTagHelperFeature());
                 b.Features.Add(new DefaultMetadataReferenceFeature()
                 {

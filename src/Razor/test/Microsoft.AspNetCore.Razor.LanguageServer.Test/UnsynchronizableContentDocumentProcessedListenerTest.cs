@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Arrange
             var generatedDocumentPublisher = new Mock<GeneratedDocumentPublisher>(MockBehavior.Strict);
             var cache = new TestDocumentVersionCache(new Dictionary<DocumentSnapshot, int?>());
-            var listener = new UnsynchronizableContentDocumentProcessedListener(Dispatcher, cache, generatedDocumentPublisher.Object);
+            var listener = new UnsynchronizableContentDocumentProcessedListener(LegacyDispatcher, cache, generatedDocumentPublisher.Object);
             listener.Initialize(ProjectSnapshotManager);
             var document = TestDocumentSnapshot.Create("C:/path/file.cshtml");
 
@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Force the state to already be up-to-date
             document.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(document, codeDocument, documentVersion.GetNewerVersion(), VersionStamp.Default, VersionStamp.Default);
 
-            var listener = new UnsynchronizableContentDocumentProcessedListener(Dispatcher, cache, generatedDocumentPublisher.Object);
+            var listener = new UnsynchronizableContentDocumentProcessedListener(LegacyDispatcher, cache, generatedDocumentPublisher.Object);
             listener.Initialize(ProjectSnapshotManager);
 
             // Act & Assert
@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Force the state to already be up-to-date
             oldDocument.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(lastDocument, codeDocument, lastVersion, VersionStamp.Default, VersionStamp.Default);
 
-            var listener = new UnsynchronizableContentDocumentProcessedListener(Dispatcher, cache, generatedDocumentPublisher.Object);
+            var listener = new UnsynchronizableContentDocumentProcessedListener(LegacyDispatcher, cache, generatedDocumentPublisher.Object);
             listener.Initialize(ProjectSnapshotManager);
 
             // Act & Assert
@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Force the state to already be up-to-date
             document.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(lastDocument, codeDocument, lastVersion, VersionStamp.Default, VersionStamp.Default);
 
-            var listener = new UnsynchronizableContentDocumentProcessedListener(Dispatcher, cache, generatedDocumentPublisher.Object);
+            var listener = new UnsynchronizableContentDocumentProcessedListener(LegacyDispatcher, cache, generatedDocumentPublisher.Object);
             listener.Initialize(ProjectSnapshotManager);
 
             // Act & Assert
@@ -153,7 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // Force the state to already be up-to-date
             document.State.HostDocument.GeneratedDocumentContainer.TrySetOutput(lastDocument, codeDocument, lastVersion, VersionStamp.Default, VersionStamp.Default);
 
-            var listener = new UnsynchronizableContentDocumentProcessedListener(Dispatcher, cache, generatedDocumentPublisher.Object);
+            var listener = new UnsynchronizableContentDocumentProcessedListener(LegacyDispatcher, cache, generatedDocumentPublisher.Object);
             listener.Initialize(ProjectSnapshotManager);
 
             // Act

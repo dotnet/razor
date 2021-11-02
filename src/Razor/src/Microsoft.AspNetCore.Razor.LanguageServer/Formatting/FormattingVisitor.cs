@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -23,8 +24,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private SyntaxNode? _currentBlock;
         private int _currentHtmlIndentationLevel = 0;
         private int _currentRazorIndentationLevel = 0;
+        private int _currentComponentIndentationLevel = 0;
         private bool _isInClassBody = false;
-        private readonly Stack<MarkupTagHelperElementSyntax> _componentTracker;
 
         public FormattingVisitor(RazorSourceDocument source)
         {
@@ -35,7 +36,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             _source = source;
             _spans = new List<FormattingSpan>();
-            _componentTracker = new Stack<MarkupTagHelperElementSyntax>();
             _currentBlockKind = FormattingBlockKind.Markup;
         }
 
@@ -191,6 +191,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
         {
             var isComponent = IsComponentTagHelperNode(node);
+            // Components with cascading type parameters cause an extra level of indentation
+            var componentIndentationLevels = isComponent && DoesComponentHaveCascadingTypeParameter(node) ? 2 : 1;
 
             var causesIndentation = isComponent;
             if (node.Parent is MarkupTagHelperElementSyntax parentComponent &&
@@ -205,7 +207,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             _currentHtmlIndentationLevel++;
             if (causesIndentation)
             {
-                _componentTracker.Push(node);
+                _currentComponentIndentationLevel += componentIndentationLevels;
             }
 
             foreach (var child in node.Body)
@@ -215,8 +217,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             if (causesIndentation)
             {
-                Debug.Assert(_componentTracker.Any(), "Component tracker should not be empty.");
-                _componentTracker.Pop();
+                Debug.Assert(_currentComponentIndentationLevel > 0, "Component indentation level should not be at 0.");
+                _currentComponentIndentationLevel -= componentIndentationLevels;
             }
             _currentHtmlIndentationLevel--;
 
@@ -271,6 +273,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 return false;
+            }
+
+            static bool DoesComponentHaveCascadingTypeParameter(MarkupTagHelperElementSyntax node)
+            {
+                var tagHelperInfo = node.TagHelperInfo;
+
+                if (tagHelperInfo is null)
+                {
+                    return false;
+                }
+
+                var descriptors = tagHelperInfo.BindingResult?.Descriptors;
+                if (descriptors is null)
+                {
+                    return false;
+                }
+
+                return descriptors.Any(d => d.SuppliesCascadingGenericParameters());
             }
         }
 
@@ -442,8 +462,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var spanSource = new TextSpan(node.Position, node.FullWidth);
             var blockSource = new TextSpan(_currentBlock.Position, _currentBlock.FullWidth);
 
-            var componentLambdaNestingLevel = _componentTracker.Count;
-
             var span = new FormattingSpan(
                 spanSource,
                 blockSource,
@@ -452,7 +470,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 _currentRazorIndentationLevel,
                 _currentHtmlIndentationLevel,
                 _isInClassBody,
-                componentLambdaNestingLevel);
+                _currentComponentIndentationLevel);
 
             _spans.Add(span);
         }

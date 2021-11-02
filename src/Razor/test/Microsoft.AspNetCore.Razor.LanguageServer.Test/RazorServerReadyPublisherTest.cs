@@ -22,9 +22,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             // Arrange
             var clientNotifierService = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
 
-            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, clientNotifierService.Object);
+            var razorServerReadyPublisher = new RazorServerReadyPublisher(LegacyDispatcher, clientNotifierService.Object);
 
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.AllowNotifyListeners = true;
 
             razorServerReadyPublisher.Initialize(projectManager);
@@ -57,9 +57,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             clientNotifierService.Setup(l => l.SendRequestAsync(RazorServerReadyEndpoint))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
-            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, clientNotifierService.Object);
+            var razorServerReadyPublisher = new RazorServerReadyPublisher(LegacyDispatcher, clientNotifierService.Object);
 
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.AllowNotifyListeners = true;
 
             razorServerReadyPublisher.Initialize(projectManager);
@@ -90,9 +90,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
             clientNotifierService.Setup(l => l.SendRequestAsync(RazorServerReadyEndpoint))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
 
-            var razorServerReadyPublisher = new RazorServerReadyPublisher(Dispatcher, clientNotifierService.Object);
+            var razorServerReadyPublisher = new RazorServerReadyPublisher(LegacyDispatcher, clientNotifierService.Object);
 
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.AllowNotifyListeners = true;
 
             razorServerReadyPublisher.Initialize(projectManager);
