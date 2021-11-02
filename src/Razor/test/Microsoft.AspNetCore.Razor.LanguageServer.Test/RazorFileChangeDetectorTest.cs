@@ -102,7 +102,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             listener.Setup(l => l.RazorFileChanged(filePath, It.IsAny<RazorFileChangeKind>())).Callback(() => listenerCalled = true);
             var fileChangeDetector = new RazorFileChangeDetector(Dispatcher, FilePathNormalizer, new[] { listener.Object })
             {
-                EnqueueDelay = 50,
+                EnqueueDelay = 10,
                 NotifyNotificationNoop = new ManualResetEventSlim(initialState: false),
                 BlockNotificationWorkStart = new ManualResetEventSlim(initialState: false)
             };

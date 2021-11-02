@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument, documentFound: false);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var endpoint = new LinkedEditingRangeEndpoint(LegacyDispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var endpoint = new LinkedEditingRangeEndpoint(LegacyDispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var endpoint = new LinkedEditingRangeEndpoint(LegacyDispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var endpoint = new LinkedEditingRangeEndpoint(LegacyDispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -162,7 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var endpoint = new LinkedEditingRangeEndpoint(LegacyDispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var endpoint = new LinkedEditingRangeEndpoint(LegacyDispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -206,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var endpoint = new LinkedEditingRangeEndpoint(LegacyDispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -243,7 +243,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var endpoint = new LinkedEditingRangeEndpoint(LegacyDispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -280,7 +280,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var endpoint = new LinkedEditingRangeEndpoint(LegacyDispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -317,7 +317,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.LinkedEditingRange
             var codeDocument = CreateCodeDocument(txt, DefaultTagHelpers);
             var uri = new Uri("file://path/test.razor");
             var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var endpoint = new LinkedEditingRangeEndpoint(Dispatcher, documentResolver);
+            var endpoint = new LinkedEditingRangeEndpoint(LegacyDispatcher, documentResolver);
             var request = new LinkedEditingRangeParams
             {
                 TextDocument = new TextDocumentIdentifier(uri),

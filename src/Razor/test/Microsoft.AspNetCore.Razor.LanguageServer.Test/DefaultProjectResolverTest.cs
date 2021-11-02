@@ -208,7 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             snapshotManager.Setup(manager => manager.ProjectAdded(It.IsAny<HostProject>()))
                 .Callback<HostProject>(hostProject => projects.Add(Mock.Of<ProjectSnapshot>(p => p.FilePath == hostProject.FilePath, MockBehavior.Strict)));
             var snapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(accessor => accessor.Instance == snapshotManager.Object, MockBehavior.Strict);
-            projectResolver = new DefaultProjectResolver(Dispatcher, filePathNormalizer, snapshotManagerAccessor);
+            projectResolver = new DefaultProjectResolver(LegacyDispatcher, filePathNormalizer, snapshotManagerAccessor);
 
             // Act
             var project = projectResolver.GetMiscellaneousProject();
@@ -227,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             snapshotManager.Setup(manager => manager.GetLoadedProject(It.IsAny<string>()))
                 .Returns<string>(filePath => projectFactory().FirstOrDefault(project => project.FilePath == filePath));
             var snapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(accessor => accessor.Instance == snapshotManager.Object, MockBehavior.Strict);
-            var projectResolver = new DefaultProjectResolver(Dispatcher, filePathNormalizer, snapshotManagerAccessor);
+            var projectResolver = new DefaultProjectResolver(LegacyDispatcher, filePathNormalizer, snapshotManagerAccessor);
 
             return projectResolver;
         }

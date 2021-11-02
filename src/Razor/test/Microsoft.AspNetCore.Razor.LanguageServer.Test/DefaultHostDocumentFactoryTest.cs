@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public DefaultHostDocumentFactoryTest()
         {
             var store = new DefaultGeneratedDocumentContainerStore(
-                Dispatcher,
+                LegacyDispatcher,
                 Mock.Of<DocumentVersionCache>(MockBehavior.Strict),
                 Mock.Of<GeneratedDocumentPublisher>(MockBehavior.Strict));
             Factory = new DefaultHostDocumentFactory(store);

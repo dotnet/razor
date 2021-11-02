@@ -202,7 +202,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             razorFormattingService ??= CreateRazorFormattingService(documentUri);
 
             csharpCodeActionResolver = new DefaultCSharpCodeActionResolver(
-                Dispatcher,
+                LegacyDispatcher,
                 CreateDocumentResolver(documentPath, codeDocument),
                 languageServer,
                 razorFormattingService,

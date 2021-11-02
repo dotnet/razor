@@ -328,7 +328,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (hasTask)
             {
                 var kvp = Assert.Single(synchronizer.ProjectInfoMap);
-                await Dispatcher.RunOnDispatcherThreadAsync(
+                await LegacyDispatcher.RunOnDispatcherThreadAsync(
                     () => kvp.Value.ProjectUpdateTask.Wait(), CancellationToken.None).ConfigureAwait(false);
             }
             else
@@ -339,7 +339,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private ProjectConfigurationStateSynchronizer GetSynchronizer(RazorProjectService razorProjectService)
         {
-            var synchronizer = new ProjectConfigurationStateSynchronizer(Dispatcher, razorProjectService, FilePathNormalizer);
+            var synchronizer = new ProjectConfigurationStateSynchronizer(LegacyDispatcher, razorProjectService, FilePathNormalizer);
             synchronizer.EnqueueDelay = 5;
 
             return synchronizer;

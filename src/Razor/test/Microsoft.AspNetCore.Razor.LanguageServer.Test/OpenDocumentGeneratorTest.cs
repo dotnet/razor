@@ -37,13 +37,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void Enqueue_IgnoresClosedDocuments()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.ProjectAdded(HostProject1);
             projectManager.DocumentAdded(HostProject1, Documents[0], null);
 
             var project = projectManager.GetLoadedProject(HostProject1.FilePath);
 
-            var queue = new TestOpenDocumentGenerator(Dispatcher);
+            var queue = new TestOpenDocumentGenerator(LegacyDispatcher);
 
             queue.Initialize(projectManager);
 
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void Enqueue_ProcessesNotifications_AndGoesBackToSleep()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.ProjectAdded(HostProject1);
             projectManager.ProjectAdded(HostProject2);
             projectManager.DocumentAdded(HostProject1, Documents[0], null);
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var project = projectManager.GetLoadedProject(HostProject1.FilePath);
 
-            var queue = new TestOpenDocumentGenerator(Dispatcher)
+            var queue = new TestOpenDocumentGenerator(LegacyDispatcher)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void Enqueue_ProcessesNotifications_AndRestarts()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.ProjectAdded(HostProject1);
             projectManager.ProjectAdded(HostProject2);
             projectManager.DocumentAdded(HostProject1, Documents[0], null);
@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             var project = projectManager.GetLoadedProject(HostProject1.FilePath);
 
-            var queue = new TestOpenDocumentGenerator(Dispatcher)
+            var queue = new TestOpenDocumentGenerator(LegacyDispatcher)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -164,14 +164,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void ProjectChanged_ProcessesNotifications_AndGoesBackToSleep()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.ProjectAdded(HostProject1);
             projectManager.ProjectAdded(HostProject2);
             projectManager.DocumentAdded(HostProject1, Documents[0], null);
             projectManager.DocumentOpened(HostProject1.FilePath, Documents[0].FilePath, SourceText.From(string.Empty));
             projectManager.AllowNotifyListeners = true;
 
-            var queue = new TestOpenDocumentGenerator(Dispatcher)
+            var queue = new TestOpenDocumentGenerator(LegacyDispatcher)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -204,12 +204,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void DocumentAdded_IgnoresClosedDocument()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.ProjectAdded(HostProject1);
             projectManager.ProjectAdded(HostProject2);
             projectManager.AllowNotifyListeners = true;
 
-            var queue = new TestOpenDocumentGenerator(Dispatcher);
+            var queue = new TestOpenDocumentGenerator(LegacyDispatcher);
             queue.Initialize(projectManager);
 
             // Act & Assert
@@ -222,14 +222,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void DocumentChanged_ProcessesNotifications_AndGoesBackToSleep()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.ProjectAdded(HostProject1);
             projectManager.ProjectAdded(HostProject2);
             projectManager.DocumentAdded(HostProject1, Documents[0], null);
             projectManager.DocumentOpened(HostProject1.FilePath, Documents[0].FilePath, SourceText.From(string.Empty));
             projectManager.AllowNotifyListeners = true;
 
-            var queue = new TestOpenDocumentGenerator(Dispatcher)
+            var queue = new TestOpenDocumentGenerator(LegacyDispatcher)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -259,14 +259,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void DocumentRemoved_IgnoresClosedDocument()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.ProjectAdded(HostProject1);
             projectManager.ProjectAdded(HostProject2);
             projectManager.DocumentAdded(HostProject1, Documents[0], null);
             projectManager.DocumentOpened(HostProject1.FilePath, Documents[0].FilePath, SourceText.From(string.Empty));
             projectManager.AllowNotifyListeners = true;
 
-            var queue = new TestOpenDocumentGenerator(Dispatcher);
+            var queue = new TestOpenDocumentGenerator(LegacyDispatcher);
             queue.Initialize(projectManager);
 
             // Act & Assert
