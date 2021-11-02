@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
-                Dispatcher,
+                LegacyDispatcher,
                 _emptyDocumentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -139,7 +139,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -176,7 +176,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
                 },
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 languageServer,
                 _languageServerFeatureOptions)
@@ -211,7 +211,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockMultipleRazorCodeActionProvider(),
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -253,7 +253,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
                 },
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 languageServer,
                 _languageServerFeatureOptions)
@@ -295,7 +295,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
                 },
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 languageServer,
                 _languageServerFeatureOptions)
@@ -330,7 +330,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockNullRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -373,7 +373,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
                 },
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 languageServer,
                 _languageServerFeatureOptions)
@@ -410,7 +410,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockNullRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -457,7 +457,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockNullRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -500,7 +500,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -541,7 +541,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -585,7 +585,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
                 },
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 _languageServer,
                 _languageServerFeatureOptions)
@@ -627,7 +627,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
                 },
-                Dispatcher,
+                LegacyDispatcher,
                 documentResolver,
                 languageServer,
                 _languageServerFeatureOptions)

@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public void Queue_ProcessesNotifications_AndGoesBackToSleep()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.ProjectAdded(HostProject1);
             projectManager.ProjectAdded(HostProject2);
             projectManager.DocumentAdded(HostProject1, Documents[0], null);
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             var project = projectManager.GetLoadedProject(HostProject1.FilePath);
 
-            var queue = new TestBackgroundDocumentGenerator(Dispatcher)
+            var queue = new TestBackgroundDocumentGenerator(LegacyDispatcher)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
         public void Queue_ProcessesNotifications_AndRestarts()
         {
             // Arrange
-            var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             projectManager.ProjectAdded(HostProject1);
             projectManager.ProjectAdded(HostProject2);
             projectManager.DocumentAdded(HostProject1, Documents[0], null);
@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 
             var project = projectManager.GetLoadedProject(HostProject1.FilePath);
 
-            var queue = new TestBackgroundDocumentGenerator(Dispatcher)
+            var queue = new TestBackgroundDocumentGenerator(LegacyDispatcher)
             {
                 Delay = TimeSpan.FromMilliseconds(1),
                 BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),

@@ -16,8 +16,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         {
             var documentVersionCache = Mock.Of<DocumentVersionCache>(MockBehavior.Strict);
             var csharpPublisher = Mock.Of<GeneratedDocumentPublisher>(MockBehavior.Strict);
-            Store = new DefaultGeneratedDocumentContainerStore(Dispatcher, documentVersionCache, csharpPublisher);
-            ProjectManager = TestProjectSnapshotManager.Create(Dispatcher);
+            Store = new DefaultGeneratedDocumentContainerStore(LegacyDispatcher, documentVersionCache, csharpPublisher);
+            ProjectManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             Store.Initialize(ProjectManager);
         }
 

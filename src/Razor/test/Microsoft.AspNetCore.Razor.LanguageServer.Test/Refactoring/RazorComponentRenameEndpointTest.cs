@@ -490,7 +490,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
 
             var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor);
             languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true, MockBehavior.Strict);
-            var endpoint = new RazorComponentRenameEndpoint(Dispatcher, documentResolver, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
+            var endpoint = new RazorComponentRenameEndpoint(LegacyDispatcher, documentResolver, searchEngine, projectSnapshotManagerAccessor, languageServerFeatureOptions);
             return endpoint;
         }
 
