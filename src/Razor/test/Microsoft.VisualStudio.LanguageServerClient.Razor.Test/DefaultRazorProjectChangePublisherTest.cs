@@ -611,7 +611,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
         internal ProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
         {
-            var snapshotManager = TestProjectSnapshotManager.Create(Dispatcher);
+            var snapshotManager = TestProjectSnapshotManager.Create(LegacyDispatcher);
             snapshotManager.AllowNotifyListeners = allowNotifyListeners;
 
             return snapshotManager;
@@ -619,21 +619,21 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
 
         protected Task RunOnDispatcherThreadAsync(Action action)
         {
-            return Dispatcher.RunOnDispatcherThreadAsync(
+            return LegacyDispatcher.RunOnDispatcherThreadAsync(
                 () => action(),
                 CancellationToken.None);
         }
 
         protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> action)
         {
-            return Dispatcher.RunOnDispatcherThreadAsync(
+            return LegacyDispatcher.RunOnDispatcherThreadAsync(
                 () => action(),
                 CancellationToken.None);
         }
 
         protected Task RunOnDispatcherThreadAsync(Func<Task> action)
         {
-            return Dispatcher.RunOnDispatcherThreadAsync(
+            return LegacyDispatcher.RunOnDispatcherThreadAsync(
                 async () => await action().ConfigureAwait(true),
                 CancellationToken.None);
         }

@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var projectPath = "/path/to/project.csproj";
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.AddProject(projectPath)).Verifiable();
-            var synchronizer = new ProjectFileSynchronizer(Dispatcher, projectService.Object);
+            var synchronizer = new ProjectFileSynchronizer(LegacyDispatcher, projectService.Object);
 
             // Act
             synchronizer.ProjectFileChanged(projectPath, RazorFileChangeKind.Added);
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var projectPath = "/path/to/project.csproj";
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.RemoveProject(projectPath)).Verifiable();
-            var synchronizer = new ProjectFileSynchronizer(Dispatcher, projectService.Object);
+            var synchronizer = new ProjectFileSynchronizer(LegacyDispatcher, projectService.Object);
 
             // Act
             synchronizer.ProjectFileChanged(projectPath, RazorFileChangeKind.Removed);

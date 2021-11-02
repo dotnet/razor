@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var filePath = "/path/to/file.razor";
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.AddDocument(filePath)).Verifiable();
-            var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
+            var synchronizer = new RazorFileSynchronizer(LegacyDispatcher, projectService.Object);
 
             // Act
             synchronizer.RazorFileChanged(filePath, RazorFileChangeKind.Added);
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var filePath = "/path/to/file.cshtml";
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.AddDocument(filePath)).Verifiable();
-            var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
+            var synchronizer = new RazorFileSynchronizer(LegacyDispatcher, projectService.Object);
 
             // Act
             synchronizer.RazorFileChanged(filePath, RazorFileChangeKind.Added);
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var filePath = "/path/to/file.razor";
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.RemoveDocument(filePath)).Verifiable();
-            var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
+            var synchronizer = new RazorFileSynchronizer(LegacyDispatcher, projectService.Object);
 
             // Act
             synchronizer.RazorFileChanged(filePath, RazorFileChangeKind.Removed);
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var filePath = "/path/to/file.cshtml";
             var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
             projectService.Setup(service => service.RemoveDocument(filePath)).Verifiable();
-            var synchronizer = new RazorFileSynchronizer(Dispatcher, projectService.Object);
+            var synchronizer = new RazorFileSynchronizer(LegacyDispatcher, projectService.Object);
 
             // Act
             synchronizer.RazorFileChanged(filePath, RazorFileChangeKind.Removed);
