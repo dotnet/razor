@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         // This is marked as legacy because in its current form it's being assigned a "TestProjectSnapshotManagerDispatcher" which takes the
         // synchronization context from the constructing thread and binds to that. We've seen in XUnit how this can unexpectedly lead to flaky
-        // tests since it doesn't actually replicate what happens in real scenariso (a separate dedicated dispatcher thread). If you're reading
+        // tests since it doesn't actually replicate what happens in real scenario (a separate dedicated dispatcher thread). If you're reading
         // this write your tests using the normal Dispatcher property. Eventually this LegacyDispatcher property will go away when we've had
         // the opportunity to re-write our tests correctly.
         internal ProjectSnapshotManagerDispatcher LegacyDispatcher { get; }
