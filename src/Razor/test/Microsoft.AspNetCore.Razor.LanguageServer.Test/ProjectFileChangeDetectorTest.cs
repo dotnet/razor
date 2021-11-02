@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var cts = new CancellationTokenSource();
             var detector = new TestProjectFileChangeDetector(
                 cts,
-                Dispatcher,
+                LegacyDispatcher,
                 new[] { listener1.Object, listener2.Object },
                 existingProjectFiles);
 

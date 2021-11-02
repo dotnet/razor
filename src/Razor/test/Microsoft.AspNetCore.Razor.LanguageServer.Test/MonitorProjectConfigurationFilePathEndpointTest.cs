@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             directoryPathResolver.Setup(resolver => resolver.Resolve())
                 .Throws<XunitException>();
             var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
-                Dispatcher,
+                LegacyDispatcher,
                 FilePathNormalizer,
                 directoryPathResolver.Object,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>());
@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             directoryPathResolver.Setup(resolver => resolver.Resolve())
                 .Throws<XunitException>();
             var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
-                Dispatcher,
+                LegacyDispatcher,
                 FilePathNormalizer,
                 directoryPathResolver.Object,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>());
@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var detector = new TestFileChangeDetector();
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
-                Dispatcher,
+                LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>());
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var detector = new TestFileChangeDetector();
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
-                Dispatcher,
+                LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>());
@@ -131,7 +131,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var detector = new TestFileChangeDetector();
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
-                Dispatcher,
+                LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>());
@@ -157,7 +157,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var detector = new TestFileChangeDetector();
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
-                Dispatcher,
+                LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>());
@@ -188,7 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var detector = new TestFileChangeDetector();
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
-                Dispatcher,
+                LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>());
@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var detectors = new[] { new TestFileChangeDetector(), new TestFileChangeDetector() };
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detectors[callCount++],
-                Dispatcher,
+                LegacyDispatcher,
                 FilePathNormalizer,
                 DirectoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>());

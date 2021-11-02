@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var @params = new DocumentRangeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri)
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, EmptyDocumentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, EmptyDocumentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var uri = new Uri("file://path/test.razor");
             var @params = new DocumentRangeFormattingParams()
             {
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var @params = new DocumentRangeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri)
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, EmptyDocumentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, EmptyDocumentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var @params = new DocumentRangeFormattingParams();
 
             // Act
@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, EmptyDocumentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, EmptyDocumentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams() { TextDocument = new TextDocumentIdentifier(uri) };
 
             // Act
@@ -163,7 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -196,7 +196,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -230,7 +230,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, documentResolver, formattingService, documentMappingService.Object, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, documentResolver, formattingService, documentMappingService.Object, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -264,7 +264,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, documentResolver, formattingService, documentMappingService.Object, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, documentResolver, formattingService, documentMappingService.Object, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -297,7 +297,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
@@ -330,7 +330,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var adhocWorkspaceFactory = TestAdhocWorkspaceFactory.Instance;
             var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
             var endpoint = new RazorFormattingEndpoint(
-                Dispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
+                LegacyDispatcher, documentResolver, formattingService, documentMappingService, adhocWorkspaceFactory, optionsMonitor, LoggerFactory);
             var @params = new DocumentOnTypeFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier(uri),
