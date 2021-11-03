@@ -240,7 +240,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         internal async Task<IEnumerable<RazorCodeAction>> GetCSharpCodeActionsFromLanguageServerAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             Range projectedRange = null;
-            if (context.Request.Range != null &&
+            if (context.Request.Range is not null &&
                 !_documentMappingService.TryMapToProjectedDocumentRange(
                     context.CodeDocument,
                     context.Request.Range,
