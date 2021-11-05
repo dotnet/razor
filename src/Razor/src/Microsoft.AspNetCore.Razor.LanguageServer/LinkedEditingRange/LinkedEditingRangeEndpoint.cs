@@ -19,6 +19,7 @@ using System.Diagnostics.CodeAnalysis;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 {
@@ -32,10 +33,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly DocumentResolver _documentResolver;
+        private readonly ILogger _logger;
 
         public LinkedEditingRangeEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver)
+            DocumentResolver documentResolver,
+            ILoggerFactory loggerFactory)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
@@ -47,8 +50,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
                 throw new ArgumentNullException(nameof(documentResolver));
             }
 
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _documentResolver = documentResolver;
+            _logger = loggerFactory.CreateLogger<LinkedEditingRangeEndpoint>();
         }
 
         public LinkedEditingRangeRegistrationOptions GetRegistrationOptions(
@@ -69,11 +78,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             LinkedEditingRangeParams request,
             CancellationToken cancellationToken)
         {
+            var uri = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
             var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
             {
-                if (!_documentResolver.TryResolveDocument(
-                    request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot))
+                if (!_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
                 {
+                    _logger.LogWarning("Unable to resolve document for {Uri}", uri);
                     return null;
                 }
 
@@ -82,12 +92,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 
             if (document is null || cancellationToken.IsCancellationRequested)
             {
+                _logger.LogWarning("Unable to resolve document for {Uri} or cancellation was requested.", uri);
                 return null;
             }
 
             var codeDocument = await document.GetGeneratedOutputAsync();
             if (codeDocument.IsUnsupported())
             {
+                _logger.LogWarning("FileKind {FileKind} is unsupported", codeDocument.GetFileKind());
                 return null;
             }
 
@@ -109,6 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
                 };
             }
 
+            _logger.LogInformation("LinkedEditingRange request was null at {location} for {uri}", location, uri);
             return null;
 
             static async Task<SourceLocation> GetSourceLocation(
