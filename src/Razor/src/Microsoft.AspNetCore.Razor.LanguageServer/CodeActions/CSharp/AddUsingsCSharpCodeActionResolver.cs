@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             cancellationToken.ThrowIfCancellationRequested();
 
             var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
-            if (resolvedCodeAction is null || resolvedCodeAction.Edit?.DocumentChanges is null)
+            if (resolvedCodeAction?.Edit?.DocumentChanges is null)
             {
                 // Unable to resolve code action with server, return original code action
                 return codeAction;
