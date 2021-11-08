@@ -184,8 +184,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var editContainer = new TextEditContainer(edits);
             return editContainer;
         }
+#nullable enable
 
-        public async Task<TextEditContainer> Handle(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
+        public async Task<TextEditContainer?> Handle(DocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
         {
             _logger.LogInformation($"Starting OnTypeFormatting request for {request.TextDocument.Uri}.");
 
@@ -266,11 +267,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var formattedEdits = await _razorFormattingService.ApplyFormattedEditsAsync(
                 request.TextDocument.Uri, documentSnapshot, triggerCharacterKind, textEdits, request.Options, cancellationToken).ConfigureAwait(false);
+            if (formattedEdits.Length == 0)
+            {
+                _logger.LogInformation("No formatting changes were necessary");
+                return null;
+            }
 
             _logger.LogInformation($"Returning {formattedEdits.Length} final formatted results.");
             return formattedEdits;
         }
-#nullable restore
 
         private static bool IsApplicableTriggerCharacter(string triggerCharacter, RazorLanguageKind languageKind)
         {
