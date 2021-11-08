@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,16 +27,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             LanguageServer = languageServer;
         }
 
-        public abstract Task<CodeAction> ResolveAsync(
+        public abstract Task<CodeAction?> ResolveAsync(
             CSharpCodeActionParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken);
 
-        protected async Task<CodeAction> ResolveCodeActionWithServerAsync(DocumentUri uri, CodeAction codeAction, CancellationToken cancellationToken)
+        protected async Task<CodeAction?> ResolveCodeActionWithServerAsync(DocumentUri uri, CodeAction codeAction, CancellationToken cancellationToken)
         {
             var resolveCodeActionParams = new RazorResolveCodeActionParams(uri, codeAction);
             var response = await LanguageServer.SendRequestAsync(LanguageServerConstants.RazorResolveCodeActionsEndpoint, resolveCodeActionParams).ConfigureAwait(false);
-            var resolvedCodeAction = await response.Returning<CodeAction>(cancellationToken).ConfigureAwait(false);
+            var resolvedCodeAction = await response.Returning<CodeAction?>(cancellationToken).ConfigureAwait(false);
 
             return resolvedCodeAction;
         }

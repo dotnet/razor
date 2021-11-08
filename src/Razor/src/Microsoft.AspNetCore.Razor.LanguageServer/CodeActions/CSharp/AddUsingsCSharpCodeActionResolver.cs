@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -39,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
 
-        public async override Task<CodeAction> ResolveAsync(
+        public async override Task<CodeAction?> ResolveAsync(
             CSharpCodeActionParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken)
@@ -57,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             cancellationToken.ThrowIfCancellationRequested();
 
             var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
-            if (resolvedCodeAction.Edit?.DocumentChanges is null)
+            if (resolvedCodeAction?.Edit?.DocumentChanges is null)
             {
                 // Unable to resolve code action with server, return original code action
                 return codeAction;
@@ -76,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var addUsingTextEdit = documentChanged.TextDocumentEdit.Edits.FirstOrDefault();
+            var addUsingTextEdit = documentChanged.TextDocumentEdit?.Edits.FirstOrDefault();
             if (addUsingTextEdit is null)
             {
                 // No text edit available

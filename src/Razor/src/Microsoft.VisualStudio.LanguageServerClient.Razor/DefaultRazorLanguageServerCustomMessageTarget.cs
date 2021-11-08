@@ -313,8 +313,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return codeActions;
         }
-
-        public override async Task<VSInternalCodeAction> ResolveCodeActionsAsync(RazorResolveCodeActionParams resolveCodeActionParams, CancellationToken cancellationToken)
+#nullable enable
+        public override async Task<VSInternalCodeAction?> ResolveCodeActionsAsync(RazorResolveCodeActionParams resolveCodeActionParams, CancellationToken cancellationToken)
         {
             if (resolveCodeActionParams is null)
             {
@@ -329,7 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var csharpTextBuffer = LanguageServerKind.CSharp.GetTextBuffer(documentSnapshot);
             var codeAction = resolveCodeActionParams.CodeAction;
-            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
+            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction?>(
                 csharpTextBuffer,
                 Methods.CodeActionResolveName,
                 SupportsCSharpCodeActions,
@@ -338,7 +338,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             await foreach (var response in requests)
             {
-                if (response.Response != null)
+                if (response.Response is not null)
                 {
                     // Only take the first response from a resolution
                     return response.Response;
@@ -347,6 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             return null;
         }
+#nullable disable
 
         public override async Task<ProvideSemanticTokensResponse> ProvideSemanticTokensAsync(
             ProvideSemanticTokensParams semanticTokensParams,
