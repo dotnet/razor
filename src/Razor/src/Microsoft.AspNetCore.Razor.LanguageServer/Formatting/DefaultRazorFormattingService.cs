@@ -125,11 +125,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 result = await pass.ExecuteAsync(context, result, cancellationToken);
             }
 
+            var originalText = context.SourceText;
             var edits = result.Edits;
             if (collapseEdits)
             {
-                var collapsedEdit = MergeEdits(result.Edits, context.SourceText);
+                var collapsedEdit = MergeEdits(result.Edits, originalText);
                 edits = new[] { collapsedEdit };
+            }
+
+            // Make sure the edits actually change something, or its not worth responding
+            var textChanges = edits.Select(e => e.AsTextChange(originalText));
+            var changedText = originalText.WithChanges(textChanges);
+
+            if (changedText.ContentEquals(originalText))
+            {
+                return Array.Empty<TextEdit>();
             }
 
             return edits;

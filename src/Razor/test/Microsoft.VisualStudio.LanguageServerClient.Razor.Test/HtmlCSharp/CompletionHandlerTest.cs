@@ -281,13 +281,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             Assert.Equal(expectedItem.InsertText, item.InsertText);
         }
 
-        [Theory]
-        [InlineData(RazorLanguageKind.Html)]
-        [InlineData(RazorLanguageKind.CSharp)]
-        public async Task HandleRequestAsync_247Typing_InvokesLanguageServerWithExplicit(object languageKindObj) // Have to mark language kind as an object because RazorLanguageKind is internal
+        [Fact]
+        public async Task HandleRequestAsync_247Typing_InvokesLanguageServerWithExplicit()
         {
             // Arrange
-            var languageKind = (RazorLanguageKind)languageKindObj;
+            var languageKind = RazorLanguageKind.CSharp;
             var called = false;
             var expectedItem = new CompletionItem() { Label="Sampel", InsertText = "Sample" };
             var completionRequest = new CompletionParams()

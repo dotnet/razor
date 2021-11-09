@@ -26,13 +26,19 @@ async function downloadProxyPackage(version) {
     }
     const extractTarget = path.join(tmpDirectory, `extracted-${packageName}.${version}`);
 
-    const versionedPackageName = `${packageName}.${version}.nupkg`;
-    const downloadUrl = `${nugetUrl}/${packageName}/${version}/${versionedPackageName}`;
+    const versionedPackageName = `${packageName.toLowerCase()}.${version}.nupkg`;
+    // nuget.org requires the package name be lower-case
+    const downloadUrl = `${nugetUrl}/${packageName.toLowerCase()}/${version}/${versionedPackageName}`;
     const downloadPath = path.join(tmpDirectory, versionedPackageName);
 
     // Download and save nupkg to disk
     log(`Fetching package from ${downloadUrl}...`)
     const response = await fetch(downloadUrl)
+
+    if (!response.ok)
+    {
+        log(`Failed to download ${downloadUrl}`)
+    }
     const outputStream = fs.createWriteStream(downloadPath);
     response.body.pipe(outputStream);
 

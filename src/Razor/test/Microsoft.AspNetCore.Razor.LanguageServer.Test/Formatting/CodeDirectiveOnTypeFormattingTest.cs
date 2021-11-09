@@ -574,5 +574,24 @@ expected: @"
 }
 ", triggerCharacter: '}');
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
+        public async Task Semicolon_NoDocumentChanges()
+        {
+            var input = @"
+@page ""/""
+
+@code {
+    void Foo()
+    {
+        DateTime.Now;$$
+    }
+}
+";
+            var (_, edits) = await GetOnTypeFormattingEditsAsync(input, triggerCharacter: ';');
+
+            Assert.Empty(edits);
+        }
     }
 }

@@ -170,6 +170,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             TestAccessor.BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false);
             TestAccessor.NotifyBackgroundWorkStarting = new ManualResetEventSlim(initialState: false);
             TestAccessor.NotifyBackgroundCapturedWorkload = new ManualResetEventSlim(initialState: false);
+            TestAccessor.NotifyBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
             TestAccessor.BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false);
             TestAccessor.NotifyBackgroundWorkCompleted = new ManualResetEventSlim(initialState: false);
 
@@ -188,6 +189,9 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
             TestAccessor.NotifyBackgroundCapturedWorkload.Wait(TimeSpan.FromSeconds(3));
             Assert.Empty(TestAccessor.Work);
+
+            // Wait for the background workload to complete
+            TestAccessor.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(5));
 
             WorkQueue.Enqueue("key", workItemToCauseRestart);
             Assert.NotEmpty(TestAccessor.Work);

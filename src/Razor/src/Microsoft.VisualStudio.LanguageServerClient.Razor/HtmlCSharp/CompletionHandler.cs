@@ -539,7 +539,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             {
                 // Non-triggered based completion
 
-                if (context is VSInternalCompletionContext internalContext && internalContext.InvokeKind == VSInternalCompletionInvokeKind.Typing)
+                if (languageKind == RazorLanguageKind.CSharp &&
+                    context is VSInternalCompletionContext internalContext &&
+                    internalContext.InvokeKind == VSInternalCompletionInvokeKind.Typing)
                 {
                     // We're in the midst of doing a C# typing completion. We consider this 24/7 completion and HTML & C# only offer 24/7 completion at the
                     // beginning of a word. Meaning, completions will be provided at `|D` but not for `|Da` which brings us to an interesting cross-roads.
