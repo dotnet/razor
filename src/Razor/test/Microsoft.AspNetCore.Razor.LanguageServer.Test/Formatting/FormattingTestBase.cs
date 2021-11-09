@@ -117,6 +117,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             bool insertSpaces = true,
             string fileKind = null)
         {
+            var (razorSourceText, edits) = await GetOnTypeFormattingEditsAsync(input, triggerCharacter, tabSize, insertSpaces, fileKind);
+
+            // Assert
+            var edited = ApplyEdits(razorSourceText, edits);
+            var actual = edited.ToString();
+
+            new XUnitVerifier().EqualOrDiff(expected, actual);
+        }
+
+        protected async Task<(SourceText, TextEdit[])> GetOnTypeFormattingEditsAsync(
+            string input,
+            char triggerCharacter,
+            int tabSize = 4,
+            bool insertSpaces = true,
+            string fileKind = null)
+        {
             // Arrange
             fileKind ??= FileKinds.Component;
 
@@ -157,11 +173,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var edits = await formattingService.ApplyFormattedEditsAsync(
                 uri, documentSnapshot, languageKind, projectedEdits, options, CancellationToken.None);
 
-            // Assert
-            var edited = ApplyEdits(razorSourceText, edits);
-            var actual = edited.ToString();
-
-            new XUnitVerifier().EqualOrDiff(expected, actual);
+            return (razorSourceText, edits);
         }
 
         private static async Task<TextEdit[]> GetFormattedCSharpEditsAsync(
