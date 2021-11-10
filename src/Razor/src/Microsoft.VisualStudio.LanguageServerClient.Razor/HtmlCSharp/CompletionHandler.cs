@@ -646,45 +646,50 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 previousCharacterProjection.HostDocumentVersion.Value,
                 state: null);
 
-            var provisionalCompletionParams = new CompletionParams()
+            try
             {
-                Context = request.Context,
-                Position = new Position(
-                    previousCharacterProjection.Position.Line,
-                    previousCharacterProjection.Position.Character + 1),
-                TextDocument = new TextDocumentIdentifier()
+                var provisionalCompletionParams = new CompletionParams()
                 {
-                    Uri = previousCharacterProjection.Uri
+                    Context = request.Context,
+                    Position = new Position(
+                        previousCharacterProjection.Position.Line,
+                        previousCharacterProjection.Position.Character + 1),
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = previousCharacterProjection.Uri
+                    }
+                };
+
+                _logger.LogInformation($"Requesting provisional completion for {previousCharacterProjection.Uri}.");
+
+                var textBuffer = LanguageServerKind.CSharp.GetTextBuffer(documentSnapshot);
+                var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
+                    textBuffer,
+                    Methods.TextDocumentCompletionName,
+                    RazorLSPConstants.RazorCSharpLanguageServerName,
+                    provisionalCompletionParams,
+                    cancellationToken).ConfigureAwait(true);
+
+                if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorCSharpLanguageServerName, out result))
+                {
+                    return (false, result);
                 }
-            };
 
-            _logger.LogInformation($"Requesting provisional completion for {previousCharacterProjection.Uri}.");
-
-            var textBuffer = LanguageServerKind.CSharp.GetTextBuffer(documentSnapshot);
-            var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
-                textBuffer,
-                Methods.TextDocumentCompletionName,
-                RazorLSPConstants.RazorCSharpLanguageServerName,
-                provisionalCompletionParams,
-                cancellationToken).ConfigureAwait(true);
-
-            if (!ReinvocationResponseHelper.TryExtractResultOrLog(response, _logger, RazorLSPConstants.RazorCSharpLanguageServerName, out result))
-            {
-                return (false, result);
+                _logger.LogInformation("Found provisional completion.");
+                return (true, result);
             }
+            finally
+            {
+                // We no longer need the provisional change. Revert.
+                var removeProvisionalDot = new VisualStudioTextChange(previousCharacterProjection.PositionIndex, 1, string.Empty);
 
-            // We have now obtained the necessary completion items. We no longer need the provisional change. Revert.
-            var removeProvisionalDot = new VisualStudioTextChange(previousCharacterProjection.PositionIndex, 1, string.Empty);
-
-            _logger.LogInformation("Removing provisional dot.");
-            trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
-                documentSnapshot.Uri,
-                new[] { removeProvisionalDot },
-                previousCharacterProjection.HostDocumentVersion.Value,
-                state: null);
-
-            _logger.LogInformation("Found provisional completion.");
-            return (true, result);
+                _logger.LogInformation("Removing provisional dot.");
+                trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
+                    documentSnapshot.Uri,
+                    new[] { removeProvisionalDot },
+                    previousCharacterProjection.HostDocumentVersion.Value,
+                    state: null);
+            }
         }
 
         // In cases like "@{" preselection can lead to unexpected behavior, so let's exclude it.
