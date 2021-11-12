@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
@@ -25,6 +26,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly ICompletionBroker _completionBroker;
         private readonly VisualStudioDescriptionFactory _descriptionFactory;
+        private readonly JoinableTaskContext _joinableTaskContext;
 
         [ImportingConstructor]
         public RazorDirectiveAttributeCompletionSourceProvider(
@@ -32,7 +34,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             RazorCompletionFactsService completionFactsService,
             IAsyncCompletionBroker asyncCoompletionBroker,
             ICompletionBroker completionBroker,
-            VisualStudioDescriptionFactory descriptionFactory)
+            VisualStudioDescriptionFactory descriptionFactory,
+            JoinableTaskContext joinableTaskContext)
         {
             if (projectSnapshotManagerDispatcher == null)
             {
@@ -54,10 +57,16 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 throw new ArgumentNullException(nameof(descriptionFactory));
             }
 
+            if (joinableTaskContext is null)
+            {
+                throw new ArgumentNullException(nameof(joinableTaskContext));
+            }
+
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _completionFactsService = completionFactsService;
             _completionBroker = completionBroker;
             _descriptionFactory = descriptionFactory;
+            _joinableTaskContext = joinableTaskContext;
         }
 
         public IAsyncCompletionSource GetOrCreate(ITextView textView)
@@ -87,7 +96,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 return null;
             }
 
-            var completionSource = new RazorDirectiveAttributeCompletionSource(_projectSnapshotManagerDispatcher, parser, _completionFactsService, _completionBroker, _descriptionFactory);
+            var completionSource = new RazorDirectiveAttributeCompletionSource(
+                _projectSnapshotManagerDispatcher,
+                parser,
+                _completionFactsService,
+                _completionBroker,
+                _descriptionFactory,
+                _joinableTaskContext.Factory);
             return completionSource;
         }
     }
