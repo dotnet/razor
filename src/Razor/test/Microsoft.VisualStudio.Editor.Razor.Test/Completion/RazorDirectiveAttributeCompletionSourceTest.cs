@@ -45,7 +45,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict),
                 Mock.Of<RazorCompletionFactsService>(MockBehavior.Strict),
                 Mock.Of<ICompletionBroker>(MockBehavior.Strict),
-                descriptionFactory);
+                descriptionFactory,
+                JoinableTaskFactory);
             var completionSessionSource = Mock.Of<IAsyncCompletionSource>(MockBehavior.Strict);
             var completionItem = new CompletionItem("@random", completionSessionSource);
             completionItem.Properties.AddProperty(RazorDirectiveAttributeCompletionSource.DescriptionKey, description);
@@ -234,7 +235,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict),
                 Mock.Of<RazorCompletionFactsService>(MockBehavior.Strict),
                 Mock.Of<ICompletionBroker>(MockBehavior.Strict),
-                Mock.Of<VisualStudioDescriptionFactory>(MockBehavior.Strict));
+                Mock.Of<VisualStudioDescriptionFactory>(MockBehavior.Strict),
+                JoinableTaskFactory);
             return source;
         }
     }

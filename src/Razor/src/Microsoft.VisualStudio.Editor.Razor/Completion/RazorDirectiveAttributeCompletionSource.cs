@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion
 {
@@ -39,6 +40,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         private readonly RazorCompletionFactsService _completionFactsService;
         private readonly ICompletionBroker _completionBroker;
         private readonly VisualStudioDescriptionFactory _descriptionFactory;
+        private readonly JoinableTaskFactory _joinableTaskFactory;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
         public RazorDirectiveAttributeCompletionSource(
@@ -46,7 +48,8 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             VisualStudioRazorParser parser,
             RazorCompletionFactsService completionFactsService,
             ICompletionBroker completionBroker,
-            VisualStudioDescriptionFactory descriptionFactory)
+            VisualStudioDescriptionFactory descriptionFactory,
+            JoinableTaskFactory joinableTaskFactory)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
@@ -73,6 +76,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             _completionFactsService = completionFactsService;
             _completionBroker = completionBroker;
             _descriptionFactory = descriptionFactory;
+            _joinableTaskFactory = joinableTaskFactory;
         }
 
         public async Task<CompletionContext> GetCompletionContextAsync(IAsyncCompletionSession session, CompletionTrigger trigger, SnapshotPoint triggerLocation, SnapshotSpan applicableToSpan, CancellationToken token)
@@ -110,9 +114,9 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
                     // Legacy completion is also active, we need to dismiss it.
 
-                    _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                        () => activeSession.Dismiss(),
-                        CancellationToken.None);
+                    await _joinableTaskFactory.SwitchToMainThreadAsync();
+
+                    activeSession.Dismiss();
                 }
 
                 var completionItems = new List<CompletionItem>();
