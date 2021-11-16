@@ -593,5 +593,42 @@ expected: @"
 
             Assert.Empty(edits);
         }
+
+        [Fact(Skip = "https://github.com/dotnet/razor-tooling/issues/5676")]
+        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5693")]
+        public async Task IfStatementInsideLambda()
+        {
+            await RunOnTypeFormattingTestAsync(
+input: @"
+@code
+{
+    public RenderFragment RenderFoo()
+    {
+        return (__builder) =>
+        {
+            @if (true)
+            {
+
+            }$$
+        };
+    }
+}
+",
+expected: @"
+@code
+{
+    public RenderFragment RenderFoo()
+    {
+        return (__builder) =>
+        {
+            @if (true)
+            {
+
+            }
+        };
+    }
+}
+", triggerCharacter: '}');
+        }
     }
 }
