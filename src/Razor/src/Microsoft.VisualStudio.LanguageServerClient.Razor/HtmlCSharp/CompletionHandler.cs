@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            var projectionResult = await _projectionProvider.GetProjectionAsync(
+            var projectionResult = await _projectionProvider.GetProjectionForCompletionAsync(
                 documentSnapshot,
                 request.Position,
                 cancellationToken).ConfigureAwait(false);
@@ -532,7 +532,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             var previousCharacterPosition = new Position(projection.Position.Line, projection.Position.Character - 1);
-            var previousCharacterProjection = await _projectionProvider.GetProjectionAsync(
+            var previousCharacterProjection = await _projectionProvider.GetProjectionForCompletionAsync(
                 documentSnapshot,
                 previousCharacterPosition,
                 cancellationToken).ConfigureAwait(false);
