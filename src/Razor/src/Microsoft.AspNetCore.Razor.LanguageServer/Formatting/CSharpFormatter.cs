@@ -110,13 +110,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var actualEdits = new List<TextEdit>();
             foreach (var edit in csharpEdits)
             {
-                if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, edit.Range, out var newRange))
+                if (_documentMappingService.TryMapFromProjectedDocumentEdit(codeDocument, edit, out var newEdit))
                 {
-                    actualEdits.Add(new TextEdit()
-                    {
-                        NewText = edit.NewText,
-                        Range = newRange,
-                    });
+                    actualEdits.Add(newEdit);
                 }
             }
 
