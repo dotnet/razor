@@ -68,6 +68,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 // The +1 here skips the newline character that is found, but also protects from Substring throwing
                 // if there are no newlines (which should be impossible anyway)
                 var lastNewLine = edit.NewText.LastIndexOfAny(new char[] { '\n', '\r' }) + 1;
+
+                // Strictly speaking we could be dropping more lines than we need to, because our mapping point could be anywhere within the edit
+                // but we know that the C# formatter will only be returning blank lines up until the first bit of content that needs to be indented
+                // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
+                Debug.Assert(edit.NewText.Substring(0, lastNewLine - 1).All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
+
                 var proposedEdit = new TextEdit()
                 {
                     NewText = edit.NewText.Substring(lastNewLine),

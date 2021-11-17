@@ -1036,6 +1036,32 @@ expected: @"@{
 
         [Theory]
         [CombinatorialData]
+        public async Task Formats_MultilineExpressionAfterWhitespaceAtStartOfBlock(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@{
+    
+        
+
+    var x = DateTime
+        .Now
+        .ToString();
+}
+",
+expected: @"@{
+
+
+
+    var x = DateTime
+        .Now
+        .ToString();
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task Formats_MultilineExpressionNotAtStartOfBlock(bool useSourceTextDiffer)
         {
             await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
