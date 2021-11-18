@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class RazorDocumentMappingService
     {
-        public abstract bool TryMapFromProjectedDocumentEdit(RazorCodeDocument codeDocument, TextEdit edit, out TextEdit newEdit);
+        public abstract TextEdit[] GetProjectedDocumentEdits(RazorCodeDocument codeDocument, TextEdit[] edits);
 
         public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, out Range originalRange);
 

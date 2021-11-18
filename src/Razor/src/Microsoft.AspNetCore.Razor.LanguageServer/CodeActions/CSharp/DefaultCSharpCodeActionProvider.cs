@@ -51,11 +51,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return EmptyResult;
             }
 
-            if (InFunctionsBlockThatCantHaveCodeActions(context))
-            {
-                return EmptyResult;
-            }
-
             var results = new List<RazorCodeAction>();
 
             foreach (var codeAction in codeActions)

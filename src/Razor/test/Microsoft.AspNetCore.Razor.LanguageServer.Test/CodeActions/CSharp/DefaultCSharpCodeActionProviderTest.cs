@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         [Fact]
-        public async Task ProvideAsync_FunctionsBlock_SingleLine_ValidCodeActions_ReturnsEmpty()
+        public async Task ProvideAsync_FunctionsBlock_SingleLine_ValidCodeActions_ReturnsProvidedCodeAction()
         {
             // Arrange
             var documentPath = "c:/Test.razor";
@@ -107,11 +107,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
             // Assert
-            Assert.Empty(providedCodeActions);
+            Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
+            var providedNames = providedCodeActions.Select(action => action.Name);
+            var expectedNames = _supportedCodeActions.Select(action => action.Name);
+            Assert.Equal(expectedNames, providedNames);
         }
 
         [Fact]
-        public async Task ProvideAsync_FunctionsBlock_OpenBraceSameLine_ValidCodeActions_ReturnsEmpty()
+        public async Task ProvideAsync_FunctionsBlock_OpenBraceSameLine_ValidCodeActions_ReturnsProvidedCodeAction()
         {
             // Arrange
             var documentPath = "c:/Test.razor";
@@ -135,7 +138,10 @@ Path;
             var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
             // Assert
-            Assert.Empty(providedCodeActions);
+            Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
+            var providedNames = providedCodeActions.Select(action => action.Name);
+            var expectedNames = _supportedCodeActions.Select(action => action.Name);
+            Assert.Equal(expectedNames, providedNames);
         }
 
         [Fact]
