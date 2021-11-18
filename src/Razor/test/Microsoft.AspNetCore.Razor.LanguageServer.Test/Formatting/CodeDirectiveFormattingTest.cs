@@ -1014,6 +1014,74 @@ expected: @"@page ""/counter""
 tagHelpers: GetComponentWithTwoCascadingTypeParameter());
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task Formats_MultilineExpressionAtStartOfBlock(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@{
+    var x = DateTime
+        .Now
+        .ToString();
+}
+",
+expected: @"@{
+    var x = DateTime
+        .Now
+        .ToString();
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Formats_MultilineExpressionAfterWhitespaceAtStartOfBlock(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@{
+    
+        
+
+    var x = DateTime
+        .Now
+        .ToString();
+}
+",
+expected: @"@{
+
+
+
+    var x = DateTime
+        .Now
+        .ToString();
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Formats_MultilineExpressionNotAtStartOfBlock(bool useSourceTextDiffer)
+        {
+            await RunFormattingTestAsync(useSourceTextDiffer: useSourceTextDiffer,
+input: @"
+@{
+    //
+    var x = DateTime
+        .Now
+        .ToString();
+}
+",
+expected: @"@{
+    //
+    var x = DateTime
+        .Now
+        .ToString();
+}
+");
+        }
+
         private IReadOnlyList<TagHelperDescriptor> GetComponentWithCascadingTypeParameter()
         {
             var input = @"
