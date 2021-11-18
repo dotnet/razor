@@ -81,27 +81,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<RazorLanguageQueryResponse> Handle(RazorLanguageQueryParams request, CancellationToken cancellationToken)
         {
-            int? documentVersion = null;
-            DocumentSnapshot? documentSnapshot = null;
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(request.Uri.GetAbsoluteOrUNCPath(), out documentSnapshot);
+            var info = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken);
 
-                Debug.Assert(documentSnapshot != null, "Failed to get the document snapshot, could not map to document ranges.");
+            Debug.Assert(info != null, "Failed to get the document snapshot, could not map to document ranges.");
 
-                if (documentSnapshot is null || !_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
-                {
-                    // This typically happens for closed documents.
-                    documentVersion = null;
-                }
-
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (documentSnapshot is null)
+            if (info is null)
             {
                 throw new InvalidOperationException($"Unable to resolve document {request.Uri.GetAbsoluteOrUNCPath()}.");
             }
+
+            var (documentSnapshot, documentVersion) = info;
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             var sourceText = await documentSnapshot.GetTextAsync();
@@ -154,6 +143,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
         }
 
+        private async Task<DocumentSnapshotAndVersion?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
+        {
+            return await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<DocumentSnapshotAndVersion?>(() =>
+            {
+                if (_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
+                {
+                    if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
+                    {
+                        return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
+                    }
+                }
+
+                return null;
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        public record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);
+
         public async Task<RazorMapToDocumentRangesResponse?> Handle(RazorMapToDocumentRangesParams request, CancellationToken cancellationToken)
         {
             if (request is null)
@@ -161,21 +168,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            int? documentVersion = null;
-            DocumentSnapshot? documentSnapshot = null;
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            var info = await TryGetDocumentSnapshotAndVersionAsync(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken);
+            if (info is null)
             {
-                if (!_documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot))
-                {
-                    Debug.Assert(documentSnapshot != null, "Failed to get the document snapshot, could not map to document ranges.");
-                }
+                // Document requested without prior knowledge
+                return null;
+            }
 
-                if (documentSnapshot is null ||
-                    !_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
-                {
-                    documentVersion = null;
-                }
-            }, cancellationToken).ConfigureAwait(false);
+            var (documentSnapshot, documentVersion) = info;
 
             if (request.Kind != RazorLanguageKind.CSharp)
             {
@@ -185,11 +185,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     Ranges = request.ProjectedRanges,
                     HostDocumentVersion = documentVersion,
                 };
-            }
-
-            if (documentSnapshot is null)
-            {
-                return null;
             }
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
@@ -222,25 +217,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            int? documentVersion = null;
-            DocumentSnapshot? documentSnapshot = null;
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                if (!_documentResolver.TryResolveDocument(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), out documentSnapshot))
-                {
-                    Debug.Assert(documentSnapshot != null, "Failed to get the document snapshot, could not map to document ranges.");
-                }
+            var info = await TryGetDocumentSnapshotAndVersionAsync(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken);
 
-                if (documentSnapshot is null || !_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out documentVersion))
-                {
-                    documentVersion = null;
-                }
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (documentSnapshot is null)
+            if (info is null)
             {
                 throw new InvalidOperationException($"Unable to resolve document {request.RazorDocumentUri.GetAbsoluteOrUNCPath()}.");
             }
+
+            var (documentSnapshot, documentVersion) = info;
 
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
             if (codeDocument.IsUnsupported())
