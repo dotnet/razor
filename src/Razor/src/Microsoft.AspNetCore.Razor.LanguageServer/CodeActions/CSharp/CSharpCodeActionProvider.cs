@@ -36,14 +36,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var owner = syntaxTree.Root.LocateOwner(change);
-            if (owner == null)
+            if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
                 return false;
             }
 
             var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.RazorDirective);
-            if (node == null || !(node is RazorDirectiveSyntax directiveNode))
+            if (node is not RazorDirectiveSyntax directiveNode)
             {
                 return false;
             }
