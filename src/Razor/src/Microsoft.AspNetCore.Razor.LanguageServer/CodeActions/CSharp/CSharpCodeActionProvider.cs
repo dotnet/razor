@@ -55,7 +55,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             // At this point we know its a functions block, but because of how the source mappings work,
             // if the opening brace for the functions block is not on the same line as the functions node itself
-            // then we can offer code actions, so we can pretend not to be a function block
+            // then we can offer code actions.
+            //
+            // This is because when we have a block like this:
+            //
+            // @functions {
+            //    class Goo { }
+            // }
+            //
+            // The source mapping starts at char 13 on the "@functions" line (after the open brace). Unfortunately
+            // and code that is needed on that line, say an attribute that the code action wants to insert, will
+            // start at char 8 because of the indentation of the generated code. This means it starts outside of the
+            // mapping, so is thrown away, which results in data loss.
+            //
+            // When the open brace is on the next line, the source mapping starts at char 2, so the insertion at char 8
+            // is fine.
             if (directiveNode.Body is RazorDirectiveBodySyntax directiveBody &&
                 directiveBody.CSharpCode.Children.TryGetOpenBraceNode(out var openBrace))
             {
