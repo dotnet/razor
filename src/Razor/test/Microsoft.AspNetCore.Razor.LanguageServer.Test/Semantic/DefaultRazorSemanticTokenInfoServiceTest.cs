@@ -308,40 +308,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 
             await AssertSemanticTokenEditsAsync(txt: null, expectDelta: true, isRazor, previousResultId: previousResultId, service: service);
             mockClient.Verify(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, It.IsAny<SemanticTokensParams>()), Times.Once());
-            mockClient.Verify(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEditsEndpoint, It.IsAny<SemanticTokensDeltaParams>()), Times.Never());
-        }
-
-        [Fact]
-        public async Task GetSemanticTokens_CSharp_RequeueOnPartialTokens()
-        {
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
-
-            var csharpTokens = new int[]
-            {
-                14, 12, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
-                13, 15, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
-                12, 25, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
-                11, 10, 25, RazorSemanticTokensLegend.CSharpKeyword, 0, // No mapping
-            };
-
-            var csharpResponse = new ProvideSemanticTokensResponse(resultId: "35", csharpTokens, isFinalized: false, hostDocumentSyncVersion: 0);
-
-            var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
-               (new OmniSharpRange(new Position(14, 12), new Position(14, 15)), new OmniSharpRange(new Position(1, 3), new Position(1, 6))),
-               (new OmniSharpRange(new Position(27, 15), new Position(27, 16)), new OmniSharpRange(new Position(1, 7), new Position(1, 8))),
-               (new OmniSharpRange(new Position(39, 25), new Position(39, 26)), new OmniSharpRange(new Position(1, 9), new Position(1, 10))),
-               (new OmniSharpRange(new Position(50, 10), new Position(50, 35)), null)
-            };
-
-            var csharpEdits = new ProvideSemanticTokensEditsResponse(
-                resultId: "36", edits: Array.Empty<RazorSemanticTokensEdit>(), tokens: null, isFinalized: true, hostDocumentSyncVersion: 0);
-
-            var isRazor = false;
-            var (previousResultId, service, mockClient, document) = await AssertSemanticTokensAsync(
-                txt, isRazor, csharpTokens: csharpResponse, csharpEdits: csharpEdits, documentMappings: mappings);
-
-            await AssertSemanticTokenEditsAsync(txt: null, expectDelta: true, isRazor, previousResultId: "35", service: service);
-            mockClient.Verify(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEditsEndpoint, It.IsAny<SemanticTokensDeltaParams>()), Times.Once());
         }
         #endregion
 
@@ -906,11 +872,10 @@ slf*@";
             RazorSemanticTokensInfoService? service = null,
             OmniSharpRange? location = null,
             ProvideSemanticTokensResponse? csharpTokens = null,
-            ProvideSemanticTokensEditsResponse? csharpEdits = null,
             (OmniSharpRange, OmniSharpRange?)[]? documentMappings = null,
             int? documentVersion = 0)
         {
-            return AssertSemanticTokensAsync(new string[] { txt }, new bool[] { isRazor }, service, location, csharpTokens, csharpEdits, documentMappings, documentVersion);
+            return AssertSemanticTokensAsync(new string[] { txt }, new bool[] { isRazor }, service, location, csharpTokens, documentMappings, documentVersion);
         }
 
         private async Task<(string?, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>, Queue<DocumentSnapshot>)> AssertSemanticTokensAsync(
@@ -919,7 +884,6 @@ slf*@";
             RazorSemanticTokensInfoService? service = null,
             OmniSharpRange? location = null,
             ProvideSemanticTokensResponse? csharpTokens = null,
-            ProvideSemanticTokensEditsResponse? csharpEdits = null,
             (OmniSharpRange, OmniSharpRange?)[]? documentMappings = null,
             int? documentVersion = 0)
         {
@@ -939,7 +903,7 @@ slf*@";
 
             if (service is null)
             {
-                (service, serviceMock) = GetDefaultRazorSemanticTokenInfoService(documentSnapshots, csharpTokens, csharpEdits, documentMappings, documentVersion);
+                (service, serviceMock) = GetDefaultRazorSemanticTokenInfoService(documentSnapshots, csharpTokens, documentMappings, documentVersion);
             }
             var outService = service;
 
@@ -995,7 +959,6 @@ slf*@";
         private (RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>) GetDefaultRazorSemanticTokenInfoService(
             Queue<DocumentSnapshot> documentSnapshots,
             ProvideSemanticTokensResponse? csharpTokens = null,
-            ProvideSemanticTokensEditsResponse? cSharpEdits = null,
             (OmniSharpRange, OmniSharpRange?)[]? documentMappings = null,
             int? documentVersion = 0)
         {
@@ -1003,16 +966,10 @@ slf*@";
             responseRouterReturns
                 .Setup(l => l.Returning<ProvideSemanticTokensResponse?>(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(csharpTokens));
-            responseRouterReturns
-                .Setup(l => l.Returning<ProvideSemanticTokensEditsResponse?>(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(cSharpEdits));
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
                 .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, It.IsAny<SemanticTokensParams>()))
-                .Returns(Task.FromResult(responseRouterReturns.Object));
-            languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEditsEndpoint, It.IsAny<SemanticTokensDeltaParams>()))
                 .Returns(Task.FromResult(responseRouterReturns.Object));
             var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
             if (documentMappings != null)
@@ -1022,11 +979,7 @@ slf*@";
                     var passingRange = razorRange;
                     documentMappingService
                         .Setup(s => s.TryMapFromProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), cSharpRange, out passingRange))
-#pragma warning disable CS8604 // Possible null reference argument.
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
                         .Returns(razorRange != null);
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning restore CS8604 // Possible null reference argument.
                 }
             }
             var loggingFactory = new Mock<LoggerFactory>(MockBehavior.Strict);
