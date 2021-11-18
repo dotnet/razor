@@ -12,6 +12,11 @@
         <target state="translated">Criar componente a partir da marca</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_Not_Found">
+        <source>Document {0} was not found.</source>
+        <target state="new">Document {0} was not found.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
         <target state="translated">Extrair o bloco para codificar atrás</target>

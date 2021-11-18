@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,6 +21,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+
+#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -81,13 +81,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var (documentSnapshot, documentVersion) = await TryGetDocumentInfoAsync(documentPath, cancellationToken);
-            if (documentSnapshot is null || documentVersion is null)
+            var documentInfo = await TryGetDocumentInfoAsync(documentPath, cancellationToken);
+            if (documentInfo is null)
             {
                 return null;
             }
 
-            var tokens = await GetSemanticTokensAsync(textDocumentIdentifier, documentSnapshot, documentVersion.Value, range, cancellationToken);
+            var (documentSnapshot, documentVersion) = documentInfo.Value;
+
+            var tokens = await GetSemanticTokensAsync(textDocumentIdentifier, documentSnapshot, documentVersion, range, cancellationToken);
 
             return tokens;
         }
@@ -159,15 +161,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var (documentSnapshot, documentVersion) = await TryGetDocumentInfoAsync(documentPath, cancellationToken);
-            if (documentSnapshot is null || documentVersion is null)
+            var documentInfo = await TryGetDocumentInfoAsync(documentPath, cancellationToken);
+            if (documentInfo is null)
             {
                 return null;
             }
 
+            var (documentSnapshot, documentVersion) = documentInfo.Value;
+
             return await GetSemanticTokensEditsAsync(
                 documentSnapshot,
-                documentVersion.Value,
+                documentVersion,
                 textDocumentIdentifier,
                 previousResultId,
                 cancellationToken);
@@ -601,14 +605,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             yield return currentRange.Modifier;
         }
 
-        private async Task<(DocumentSnapshot Snapshot, int? Version)> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
+        private async Task<(DocumentSnapshot Snapshot, int Version)?> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
         {
-            var documentInfo = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentInfo = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<(DocumentSnapshot Snapshot, int Version)?>(() =>
             {
-                _documentResolver.TryResolveDocument(absolutePath, out var documentSnapshot);
-                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
+                if (_documentResolver.TryResolveDocument(absolutePath, out var documentSnapshot))
+                {
+                    if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
+                    {
+                        return (documentSnapshot, version.Value);
+                    }
+                }
 
-                return (documentSnapshot, version);
+                return null;
             }, cancellationToken).ConfigureAwait(false);
 
             return documentInfo;
