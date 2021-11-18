@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -82,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var documentInfo = await TryGetDocumentInfoAsync(documentPath, cancellationToken);
+            var documentInfo = await TryGetDocumentInfoAsync(documentPath, cancellationToken).ConfigureAwait(false);
             if (documentInfo is null)
             {
                 return null;
@@ -162,7 +161,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var documentInfo = await TryGetDocumentInfoAsync(documentPath, cancellationToken);
+            var documentInfo = await TryGetDocumentInfoAsync(documentPath, cancellationToken).ConfigureAwait(false);
             if (documentInfo is null)
             {
                 return null;
@@ -606,7 +605,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             yield return currentRange.Modifier;
         }
 
-        private ConfiguredTaskAwaitable<(DocumentSnapshot Snapshot, int Version)?> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
+        private Task<(DocumentSnapshot Snapshot, int Version)?> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
         {
             return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<(DocumentSnapshot Snapshot, int Version)?>(() =>
             {
@@ -619,7 +618,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 }
 
                 return null;
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
         // Internal for testing

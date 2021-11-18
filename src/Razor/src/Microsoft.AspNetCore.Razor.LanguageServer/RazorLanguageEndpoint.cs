@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
@@ -82,7 +81,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public async Task<RazorLanguageQueryResponse> Handle(RazorLanguageQueryParams request, CancellationToken cancellationToken)
         {
-            var info = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken);
+            var info = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
 
             Debug.Assert(info != null, "Failed to get the document snapshot, could not map to document ranges.");
 
@@ -144,7 +143,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
         }
 
-        private ConfiguredTaskAwaitable<DocumentSnapshotAndVersion?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
+        private Task<DocumentSnapshotAndVersion?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
         {
             return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<DocumentSnapshotAndVersion?>(() =>
             {
@@ -157,10 +156,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
 
                 return null;
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
-        public record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);
+        private record DocumentSnapshotAndVersion(DocumentSnapshot Snapshot, int Version);
 
         public async Task<RazorMapToDocumentRangesResponse?> Handle(RazorMapToDocumentRangesParams request, CancellationToken cancellationToken)
         {
@@ -169,7 +168,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var info = await TryGetDocumentSnapshotAndVersionAsync(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken);
+            var info = await TryGetDocumentSnapshotAndVersionAsync(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
             if (info is null)
             {
                 // Document requested without prior knowledge
@@ -218,7 +217,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var info = await TryGetDocumentSnapshotAndVersionAsync(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken);
+            var info = await TryGetDocumentSnapshotAndVersionAsync(request.RazorDocumentUri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
 
             if (info is null)
             {
