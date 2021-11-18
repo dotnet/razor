@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -47,7 +48,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return false;
             }
 
-            return directiveNode.DirectiveDescriptor == FunctionsDirective.Directive;
+            if (directiveNode.DirectiveDescriptor != FunctionsDirective.Directive)
+            {
+                return false;
+            }
+
+            // At this point we know its a functions block, but because of how the source mappings work,
+            // if the opening brace for the functions block is not on the same line as the functions node itself
+            // then we can offer code actions, so we can pretend not to be a function block
+            if (directiveNode.Body is RazorDirectiveBodySyntax directiveBody &&
+                directiveBody.CSharpCode.Children.TryGetOpenBraceNode(out var openBrace))
+            {
+                context.SourceText.GetLineAndOffset(directiveNode.SpanStart, out var directiveLine, out _);
+                context.SourceText.GetLineAndOffset(openBrace.SpanStart, out var braceLine, out _);
+                if (braceLine > directiveLine)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
