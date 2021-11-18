@@ -4,11 +4,14 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 using Position = OmniSharp.Extensions.LanguageServer.Protocol.Models.Position;
+using TextEdit = OmniSharp.Extensions.LanguageServer.Protocol.Models.TextEdit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal abstract class RazorDocumentMappingService
     {
+        public abstract bool TryMapFromProjectedDocumentEdit(RazorCodeDocument codeDocument, TextEdit edit, out TextEdit newEdit);
+
         public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, out Range originalRange);
 
         public abstract bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, out Range originalRange);

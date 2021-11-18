@@ -18,6 +18,79 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     {
+        public override bool TryMapFromProjectedDocumentEdit(RazorCodeDocument codeDocument, TextEdit edit, out TextEdit newEdit)
+        {
+            newEdit = default;
+
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+            var range = edit.Range;
+            if (!IsRangeWithinDocument(range, csharpSourceText))
+            {
+                return false;
+            }
+
+            var startIndex = range.Start.GetAbsoluteIndex(csharpSourceText);
+            var endIndex = range.End.GetAbsoluteIndex(csharpSourceText);
+            var mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
+            var mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
+
+            // Ideal case, both start and end can be mapped so just return the edit
+            if (mappedStart && mappedEnd)
+            {
+                newEdit = new TextEdit()
+                {
+                    NewText = edit.NewText,
+                    Range = new Range(hostDocumentStart, hostDocumentEnd)
+                };
+                return true;
+            }
+
+            // For the first line of a code block the C# formatter will often return an edit that starts
+            // before our mapping, but ends within. In those cases, when the edit spans multiple lines
+            // we just take the last line and try to use that.
+            //
+            // eg in the C# document you might see:
+            //
+            //      protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+            //      {
+            // #nullable restore
+            // #line 1 "/path/to/Document.component"
+            //    
+            //          var x = DateTime.Now;
+            //
+            // To indent the 'var x' line the formatter will return an edit that starts the line before,
+            // with a NewText of '\n            '. The start of that edit is outside our mapping, but we
+            // still want to know how to format the 'var x' line, so we have to break up the edit.
+            if (!mappedStart && mappedEnd && range.SpansMultipleLines())
+            {
+                // Construct a theoretical edit that is just for the last line of the edit that the C# formatter
+                // gave us, and see if we can map that.
+                // The +1 here skips the newline character that is found, but also protects from Substring throwing
+                // if there are no newlines (which should be impossible anyway)
+                var lastNewLine = edit.NewText.LastIndexOfAny(new char[] { '\n', '\r' }) + 1;
+
+                // Strictly speaking we could be dropping more lines than we need to, because our mapping point could be anywhere within the edit
+                // but we know that the C# formatter will only be returning blank lines up until the first bit of content that needs to be indented
+                // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
+                Debug.Assert(edit.NewText.Substring(0, lastNewLine - 1).All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
+
+                var proposedEdit = new TextEdit()
+                {
+                    NewText = edit.NewText.Substring(lastNewLine),
+                    Range = new Range(range.End.Line, 0, range.End.Line, range.End.Character)
+                };
+
+                // We don't need to worry about the recursion here because we're deliberately constructing a range
+                // that is on a single line, but only recursing if the range spans multiple.
+                if (TryMapFromProjectedDocumentEdit(codeDocument, proposedEdit, out newEdit))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, out Range originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
         public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, out Range originalRange)
@@ -389,7 +462,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             // This might happen when the document that ranges were created against was not the same as the document we're consulting.
             var result = IsPositionWithinDocument(range.Start, sourceText) && IsPositionWithinDocument(range.End, sourceText);
 
-            if(!s_haveAsserted && !result)
+            if (!s_haveAsserted && !result)
             {
                 s_haveAsserted = true;
                 Debug.Fail($"Attempted to map a range {range} outside of the Source (line count {sourceText.Lines.Count}.) This could happen if the Roslyn and Razor LSP servers are not in sync.");
