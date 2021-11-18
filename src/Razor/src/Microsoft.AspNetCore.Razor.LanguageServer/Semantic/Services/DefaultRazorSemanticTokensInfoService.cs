@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -605,9 +606,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             yield return currentRange.Modifier;
         }
 
-        private async Task<(DocumentSnapshot Snapshot, int Version)?> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
+        private ConfiguredTaskAwaitable<(DocumentSnapshot Snapshot, int Version)?> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
         {
-            var documentInfo = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<(DocumentSnapshot Snapshot, int Version)?>(() =>
+            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<(DocumentSnapshot Snapshot, int Version)?>(() =>
             {
                 if (_documentResolver.TryResolveDocument(absolutePath, out var documentSnapshot))
                 {
@@ -619,8 +620,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
                 return null;
             }, cancellationToken).ConfigureAwait(false);
-
-            return documentInfo;
         }
 
         // Internal for testing
