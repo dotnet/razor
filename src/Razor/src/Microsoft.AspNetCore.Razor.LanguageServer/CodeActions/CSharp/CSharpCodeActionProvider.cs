@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             IEnumerable<RazorCodeAction> codeActions,
             CancellationToken cancellationToken);
 
-        protected static bool InFunctionsBlock(RazorCodeActionContext context)
+        protected static bool InFunctionsBlockThatCantHaveCodeActions(RazorCodeActionContext context)
         {
             var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
