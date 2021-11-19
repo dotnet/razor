@@ -309,6 +309,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
             await AssertSemanticTokenEditsAsync(txt: null, expectDelta: true, isRazor, previousResultId: previousResultId, service: service);
             mockClient.Verify(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<SemanticTokensParams>()), Times.Once());
         }
+
+        [Fact]
+        public async Task GetSemanticTokens_CSharp_RequeueOnPartialTokens()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
+
+            var csharpTokens = new int[]
+            {
+                14, 12, 3, RazorSemanticTokensLegend.CSharpKeyword, 0,
+                13, 15, 1, RazorSemanticTokensLegend.CSharpVariable, 0,
+                12, 25, 1, RazorSemanticTokensLegend.CSharpOperator, 0,
+                11, 10, 25, RazorSemanticTokensLegend.CSharpKeyword, 0, // No mapping
+            };
+
+            var csharpResponse = new ProvideSemanticTokensResponse(resultId: "35", csharpTokens, isFinalized: false, hostDocumentSyncVersion: 0);
+
+            var mappings = new (OmniSharpRange, OmniSharpRange?)[] {
+               (new OmniSharpRange(new Position(14, 12), new Position(14, 15)), new OmniSharpRange(new Position(1, 3), new Position(1, 6))),
+               (new OmniSharpRange(new Position(27, 15), new Position(27, 16)), new OmniSharpRange(new Position(1, 7), new Position(1, 8))),
+               (new OmniSharpRange(new Position(39, 25), new Position(39, 26)), new OmniSharpRange(new Position(1, 9), new Position(1, 10))),
+               (new OmniSharpRange(new Position(50, 10), new Position(50, 35)), null)
+            };
+
+            var csharpFinalizedResponse = new ProvideSemanticTokensResponse(
+                resultId: "36", tokens: Array.Empty<int>(), isFinalized: true, hostDocumentSyncVersion: 0);
+
+            var isRazor = false;
+            var (previousResultId, service, mockClient, document) = await AssertSemanticTokensAsync(
+                txt, isRazor, csharpTokens: csharpResponse, documentMappings: mappings);
+
+            await AssertSemanticTokenEditsAsync(txt: null, expectDelta: true, isRazor, previousResultId: "35", service: service);
+            mockClient.Verify(l => l.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, It.IsAny<ProvideSemanticTokensRangeParams>()), Times.Exactly(2));
+        }
         #endregion
 
         #region HTML
