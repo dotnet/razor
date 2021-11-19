@@ -23,6 +23,7 @@ using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
 using OmniSharpRange = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
 {
@@ -813,6 +814,25 @@ slf*@";
 
             var (newResultId, _, _) = await AssertSemanticTokenEditsAsync(newTxt, expectDelta: true, isRazor, previousResultId: previousResultId, service);
             Assert.NotEqual(previousResultId, newResultId);
+        }
+
+        [Fact]
+        public async Task GetSemanticTokens_CSharp_TryGetMinimalCSharpRange()
+        {
+            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}@{{ var d = }}";
+            var (documentSnapshots, _) = CreateDocumentSnapshot(new string[] { txt }, new bool[] { false }, DefaultTagHelpers);
+
+            var snapshot = documentSnapshots.Dequeue();
+            var csharpDoc = await snapshot.GetGeneratedOutputAsync();
+            DefaultRazorSemanticTokensInfoService.TryGetMinimalCSharpRange(csharpDoc, out var actualRange);
+
+            var expectedRange = new Range
+            {
+                Start = new Position(line: 12, character: 38),
+                End = new Position(line: 29, character: 11)
+            };
+
+            Assert.Equal(expectedRange, actualRange);
         }
 
         private Task<(string?, RazorSemanticTokensInfoService, Mock<ClientNotifierServiceBase>, Queue<DocumentSnapshot>)> AssertSemanticTokensAsync(

@@ -377,7 +377,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return new VersionedSemanticRange(result, csharpResponse.ResultId, csharpResponse.IsFinalizedCSharp);
         }
 
-        private static bool TryGetMinimalCSharpRange(RazorCodeDocument codeDocument, [NotNullWhen(true)] out Range? range)
+        // Internal for testing only
+        internal static bool TryGetMinimalCSharpRange(RazorCodeDocument codeDocument, [NotNullWhen(true)] out Range? range)
         {
             var csharpDoc = codeDocument.GetCSharpDocument();
 
