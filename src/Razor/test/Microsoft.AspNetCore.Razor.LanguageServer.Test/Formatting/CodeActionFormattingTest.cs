@@ -65,7 +65,7 @@ input: @"
 codeActionEdits: new[]
 {
     Edit(67, 0, 67, 8, ""),
-    Edit(69, 34, 69, 34, "\r\n\r\n        class Goo"),
+    Edit(69, 33, 69, 33, "\r\n\r\n        class Goo"),
     Edit(70, 0, 70, 12, "        {"),
     Edit(71, 0, 71, 9, "            public"),
     Edit(71, 13, 71, 13, "()"),
