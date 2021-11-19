@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly RazorProjectService _projectService;
         private readonly FilePathNormalizer _filePathNormalizer;
-        private readonly ILogger<ProjectConfigurationStateSynchronizer> _logger;
+        private readonly ILogger _logger;
         private readonly Dictionary<string, string> _configurationToProjectMap;
         internal readonly Dictionary<string, DelayedProjectInfo> ProjectInfoMap;
 
