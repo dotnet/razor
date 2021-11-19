@@ -4,13 +4,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.Extensions.Logging;
+
+#nullable enable
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -20,6 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
+        private readonly ILogger<MonitorProjectConfigurationFilePathEndpoint> _logger;
         private readonly ConcurrentDictionary<string, (string ConfigurationDirectory, IFileChangeDetector Detector)> _outputPathMonitors;
         private readonly object _disposeLock;
         private bool _disposed;
@@ -28,32 +31,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             FilePathNormalizer filePathNormalizer,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
-            IEnumerable<IProjectConfigurationFileChangeListener> listeners)
+            IEnumerable<IProjectConfigurationFileChangeListener> listeners,
+            ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
-            if (workspaceDirectoryPathResolver is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceDirectoryPathResolver));
-            }
-
-            if (listeners is null)
-            {
-                throw new ArgumentNullException(nameof(listeners));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _filePathNormalizer = filePathNormalizer;
             _workspaceDirectoryPathResolver = workspaceDirectoryPathResolver;
             _listeners = listeners;
+            _logger = loggerFactory.CreateLogger<MonitorProjectConfigurationFilePathEndpoint>();
             _outputPathMonitors = new ConcurrentDictionary<string, (string, IFileChangeDetector)>(FilePathComparer.Instance);
             _disposeLock = new object();
         }
@@ -75,6 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (request.ConfigurationFilePath == null)
             {
+                _logger.LogInformation("'null' configuration path provided. Stopping custom configuration monitoring for project '{0}'.", request.ProjectFilePath);
                 RemoveMonitor(request.ProjectFilePath);
 
                 return Unit.Value;
@@ -82,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             if (!request.ConfigurationFilePath.EndsWith(LanguageServerConstants.ProjectConfigurationFile, StringComparison.Ordinal))
             {
-                Debug.Fail("We should only ever be given configuration file paths with a project.razor.json suffix.");
+                _logger.LogError("Invalid configuration file path provided for project '{0}': '{1}'", request.ProjectFilePath, request.ConfigurationFilePath);
                 return Unit.Value;
             }
 
@@ -97,8 +83,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 if (previousMonitorExists)
                 {
-                    // Configuration directory changed from an external directory -> internal directory.
+                    _logger.LogInformation("Configuration directory changed from external directory -> internal directory for project '{0}, terminating existing monitor'.", request.ProjectFilePath);
                     RemoveMonitor(request.ProjectFilePath);
+                }
+                else
+                {
+                    _logger.LogInformation("No custom configuration directory required. The workspace directory is sufficient for '{0}'.", request.ProjectFilePath);
                 }
 
                 // Configuration directory is already in the workspace directory. We already monitor everything in the workspace directory.
@@ -109,11 +99,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 if (FilePathComparer.Instance.Equals(configurationDirectory, entry.ConfigurationDirectory))
                 {
+                    _logger.LogInformation("Already tracking configuration directory for project '{0}'.", request.ProjectFilePath);
+
                     // Already tracking the requested configuration output path for this project
                     return Unit.Value;
                 }
 
-                // Projects configuration output path has changed. Stop existing detector so we can restart it with a new directory.
+                _logger.LogInformation("Project configuration output path has changed. Stopping existing monitor for project '{0}' so we can restart it with a new directory.", request.ProjectFilePath);
                 entry.Detector.Stop();
             }
             else
@@ -129,6 +121,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 }
             }
 
+            _logger.LogInformation("Starting new configuration monitor for project '{0}' for directory '{1}'.", request.ProjectFilePath, configurationDirectory);
             await entry.Detector.StartAsync(configurationDirectory, cancellationToken);
 
             if (cancellationToken.IsCancellationRequested)
