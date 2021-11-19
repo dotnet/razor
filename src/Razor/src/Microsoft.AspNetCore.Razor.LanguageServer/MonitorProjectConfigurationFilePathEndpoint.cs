@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private readonly FilePathNormalizer _filePathNormalizer;
         private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
-        private readonly ILogger<MonitorProjectConfigurationFilePathEndpoint> _logger;
+        private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, (string ConfigurationDirectory, IFileChangeDetector Detector)> _outputPathMonitors;
         private readonly object _disposeLock;
         private bool _disposed;
