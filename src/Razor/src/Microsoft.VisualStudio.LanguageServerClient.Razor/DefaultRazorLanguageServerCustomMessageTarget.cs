@@ -352,8 +352,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return null;
         }
 
-        public override async Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensAsync(
-            ProvideSemanticTokensParams semanticTokensParams,
+        public override async Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensRangeAsync(
+            ProvideSemanticTokensRangeParams semanticTokensParams,
             CancellationToken cancellationToken)
         {
             if (semanticTokensParams is null)

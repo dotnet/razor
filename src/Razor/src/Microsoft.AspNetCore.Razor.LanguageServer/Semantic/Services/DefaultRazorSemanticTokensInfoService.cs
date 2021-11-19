@@ -345,7 +345,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return VersionedSemanticRange.Default;
             }
 
-            Assumes.NotNull(csharpResponse.ResultId);
+            // Indicates no C# code in Razor doc.
+            if (csharpResponse.ResultId is null)
+            {
+                return new VersionedSemanticRange(razorRanges, null, IsFinalizedCSharp: csharpResponse.IsFinalizedCSharp);
+            }
 
             SemanticRange? previousSemanticRange = null;
             for (var i = 0; i < csharpResponse.Data.Length; i += 5)
@@ -405,13 +409,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             Range csharpRange,
             CancellationToken cancellationToken)
         {
-            var parameter = new ProvideSemanticTokensParams
+            var parameter = new ProvideSemanticTokensRangeParams
             {
                 TextDocument = textDocumentIdentifier,
                 RequiredHostDocumentVersion = documentVersion,
                 Range = csharpRange,
             };
-            var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, parameter);
+            var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, parameter);
             var csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);
 
             if (csharpResponse is null)

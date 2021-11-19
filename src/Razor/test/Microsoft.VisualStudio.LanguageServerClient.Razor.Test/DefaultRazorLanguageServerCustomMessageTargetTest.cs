@@ -374,7 +374,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             Assert.Equal(expectedCodeAction.Title, result.Title);
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
         [Fact]
         public async Task ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNullAsync()
         {
@@ -384,17 +383,18 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
                 .Returns(false);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
-            var request = new ProvideSemanticTokensParams()
+            var request = new ProvideSemanticTokensRangeParams()
             {
-                TextDocument = new OmniSharp.Extensions.LanguageServer.Protocol.Models.TextDocumentIdentifier()
+                TextDocument = new OmniSharpTextDocumentIdentifier()
                 {
                     Uri = new Uri("C:/path/to/file.razor")
                 },
                 RequiredHostDocumentVersion = 1,
+                Range = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range(),
             };
 
             // Act
-            var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
+            var result = await target.ProvideSemanticTokensRangeAsync(request, CancellationToken.None);
 
             // Assert
             Assert.Null(result);
@@ -411,7 +411,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager.Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
-            var request = new ProvideSemanticTokensParams()
+            var request = new ProvideSemanticTokensRangeParams()
             {
                 TextDocument = new OmniSharpTextDocumentIdentifier()
                 {
@@ -420,7 +420,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             };
 
             // Act
-            var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
+            var result = await target.ProvideSemanticTokensRangeAsync(request, CancellationToken.None);
 
             // Assert
             Assert.Null(result);
@@ -463,7 +463,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
                 uIContextManager.Object, disposable.Object, clientOptionsMonitor.Object, documentSynchronizer.Object);
-            var request = new ProvideSemanticTokensParams()
+            var request = new ProvideSemanticTokensRangeParams()
             {
                 TextDocument = new OmniSharpTextDocumentIdentifier()
                 {
@@ -475,12 +475,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 expectedcSharpResults.ResultId, expectedcSharpResults.Data, expectedcSharpResults.IsFinalized, documentVersion);
 
             // Act
-            var result = await target.ProvideSemanticTokensAsync(request, CancellationToken.None);
+            var result = await target.ProvideSemanticTokensRangeAsync(request, CancellationToken.None);
 
             // Assert
             Assert.Equal(expectedResults, result);
         }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         [Fact]
         public async Task RazorServerReadyAsync_ReportsReadyAsync()
