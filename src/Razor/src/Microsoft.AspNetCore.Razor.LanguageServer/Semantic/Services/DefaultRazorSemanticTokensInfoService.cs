@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -328,7 +329,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             CancellationToken cancellationToken,
             string? previousResultId = null)
         {
-            var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, cancellationToken);
+            var razorRanges = new List<SemanticRange>();
+
+            if (!TryGetMinimalCSharpRange(codeDocument, out var csharpRange))
+            {
+                return new VersionedSemanticRange(razorRanges, null, IsFinalizedCSharp: true);
+            }
+
+            var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
 
             // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
             // Unrecoverable, return null to indicate no change. It will retry in a bit.
@@ -337,13 +345,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return VersionedSemanticRange.Default;
             }
 
-            var razorRanges = new List<SemanticRange>();
-
-            // Indicates no C# code in Razor doc.
-            if (csharpResponse.ResultId is null)
-            {
-                return new VersionedSemanticRange(razorRanges, null, IsFinalizedCSharp: csharpResponse.IsFinalizedCSharp);
-            }
+            Assumes.NotNull(csharpResponse.ResultId);
 
             SemanticRange? previousSemanticRange = null;
             for (var i = 0; i < csharpResponse.Data.Length; i += 5)
@@ -371,15 +373,43 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return new VersionedSemanticRange(result, csharpResponse.ResultId, csharpResponse.IsFinalizedCSharp);
         }
 
+        private static bool TryGetMinimalCSharpRange(RazorCodeDocument codeDocument, [NotNullWhen(true)] out Range? range)
+        {
+            var csharpDoc = codeDocument.GetCSharpDocument();
+
+            // If there aren't any source mappings, there's no C# code in the Razor doc.
+            if (csharpDoc.SourceMappings.Count == 0)
+            {
+                range = null;
+                return false;
+            }
+
+            // We only need to colorize the portions of the generated doc that correspond with a C# mapping.
+            // To accomplish this while minimizing the amount of work we need to do, we'll only colorize the
+            // range spanning from the first C# span to the last C# span.
+            var csharpSourceText = codeDocument.GetCSharpSourceText();
+            var start = csharpSourceText.Lines.GetLinePosition(csharpDoc.SourceMappings[0].GeneratedSpan.AbsoluteIndex);
+            var startPosition = new Position(start.Line, start.Character);
+
+            var lastCSharpSpan = csharpDoc.SourceMappings[csharpDoc.SourceMappings.Count - 1].GeneratedSpan;
+            var end = csharpSourceText.Lines.GetLinePosition(lastCSharpSpan.AbsoluteIndex + lastCSharpSpan.Length);
+            var endPosition = new Position(end.Line, end.Character);
+
+            range = new Range(startPosition, endPosition);
+            return true;
+        }
+
         private async Task<SemanticTokensResponse?> GetMatchingCSharpResponseAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             long documentVersion,
+            Range csharpRange,
             CancellationToken cancellationToken)
         {
             var parameter = new ProvideSemanticTokensParams
             {
                 TextDocument = textDocumentIdentifier,
                 RequiredHostDocumentVersion = documentVersion,
+                Range = csharpRange,
             };
             var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensEndpoint, parameter);
             var csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);

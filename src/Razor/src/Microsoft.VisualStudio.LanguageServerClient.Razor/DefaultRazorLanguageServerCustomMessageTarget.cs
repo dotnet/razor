@@ -22,7 +22,6 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using OmniSharpConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.ConfigurationParams;
-using SemanticTokensParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensParams;
 using SemanticTokensRangeParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.SemanticTokensRangeParams;
 using Task = System.Threading.Tasks.Task;
 
@@ -362,6 +361,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(semanticTokensParams));
             }
 
+            if (semanticTokensParams.Range is null)
+            {
+                throw new ArgumentNullException(nameof(semanticTokensParams.Range));
+            }
+
             var csharpDoc = GetCSharpDocumentSnapshsot(semanticTokensParams.TextDocument.Uri.ToUri());
             if (csharpDoc is null)
             {
@@ -382,39 +386,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var csharpTextDocument = semanticTokensParams.TextDocument with { Uri = csharpDoc.Uri };
             semanticTokensParams = semanticTokensParams with { TextDocument = csharpTextDocument };
 
-            ReinvocationResponse<VSSemanticTokensResponse>? csharpResults;
-            if (semanticTokensParams.Range is null)
+            var newParams = new SemanticTokensRangeParams
             {
-                var newParams = new SemanticTokensParams
-                {
-                    TextDocument = semanticTokensParams.TextDocument,
-                    PartialResultToken = semanticTokensParams.PartialResultToken,
-                };
+                TextDocument = semanticTokensParams.TextDocument,
+                PartialResultToken = semanticTokensParams.PartialResultToken,
+            };
 
-                var textBuffer = csharpDoc.Snapshot.TextBuffer;
-                csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensParams, VSSemanticTokensResponse>(
-                    textBuffer,
-                    Methods.TextDocumentSemanticTokensFullName,
-                    RazorLSPConstants.RazorCSharpLanguageServerName,
-                    newParams,
-                    cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                var newParams = new SemanticTokensRangeParams
-                {
-                    TextDocument = semanticTokensParams.TextDocument,
-                    PartialResultToken = semanticTokensParams.PartialResultToken,
-                };
-
-                var textBuffer = csharpDoc.Snapshot.TextBuffer;
-                csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
-                    textBuffer,
-                    Methods.TextDocumentSemanticTokensRangeName,
-                    RazorLSPConstants.RazorCSharpLanguageServerName,
-                    newParams,
-                    cancellationToken).ConfigureAwait(false);
-            }
+            var textBuffer = csharpDoc.Snapshot.TextBuffer;
+            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+                textBuffer,
+                Methods.TextDocumentSemanticTokensRangeName,
+                RazorLSPConstants.RazorCSharpLanguageServerName,
+                newParams,
+                cancellationToken).ConfigureAwait(false);
 
 
             var result = csharpResults?.Response;
